@@ -1,0 +1,236 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import StorageService from '../services/StorageService';
+import characters from '../data/characters';
+
+export default function ChatsScreen({ navigation }) {
+  const [conversations, setConversations] = useState([]);
+
+  useEffect(() => {
+    loadConversations();
+    
+    // Refresh when screen is focused
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadConversations();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const loadConversations = async () => {
+    const allConversations = await StorageService.getAllConversations();
+    setConversations(allConversations);
+  };
+
+  const deleteConversation = async (characterId) => {
+    Alert.alert(
+      'Supprimer la conversation',
+      'Êtes-vous sûr de vouloir supprimer cette conversation ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            await StorageService.deleteConversation(characterId);
+            loadConversations();
+          },
+        },
+      ]
+    );
+  };
+
+  const getCharacter = (characterId) => {
+    return characters.find(c => c.id === characterId);
+  };
+
+  const renderConversation = ({ item }) => {
+    const character = getCharacter(item.characterId);
+    if (!character) return null;
+
+    const lastMessage = item.messages[item.messages.length - 1];
+    const messagePreview = lastMessage?.content?.substring(0, 80) + '...' || 'Aucun message';
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('Conversation', { character })}
+        onLongPress={() => deleteConversation(item.characterId)}
+      >
+        <View style={styles.cardContent}>
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarText}>
+              {character.name.split(' ').map(n => n[0]).join('')}
+            </Text>
+          </View>
+          <View style={styles.info}>
+            <View style={styles.header}>
+              <Text style={styles.name}>{character.name}</Text>
+              <Text style={styles.date}>
+                {new Date(item.lastUpdated).toLocaleDateString('fr-FR')}
+              </Text>
+            </View>
+            <Text style={styles.preview} numberOfLines={2}>
+              {messagePreview}
+            </Text>
+            <View style={styles.statsContainer}>
+              <Text style={styles.stats}>
+                💬 {item.messages.length} messages
+              </Text>
+              <Text style={styles.stats}>
+                💖 Affection: {item.relationship?.affection || 50}%
+              </Text>
+              <Text style={styles.stats}>
+                ⭐ Niveau: {item.relationship?.level || 1}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  if (conversations.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyEmoji}>💬</Text>
+        <Text style={styles.emptyTitle}>Aucune conversation</Text>
+        <Text style={styles.emptyText}>
+          Commencez une conversation avec un personnage depuis l'onglet Personnages
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.headerBar}>
+        <Text style={styles.title}>Conversations</Text>
+        <Text style={styles.subtitle}>{conversations.length} conversation(s)</Text>
+      </View>
+      <FlatList
+        data={conversations}
+        renderItem={renderConversation}
+        keyExtractor={item => item.characterId.toString()}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  headerBar: {
+    padding: 20,
+    paddingTop: 60,
+    backgroundColor: '#6366f1',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#e0e7ff',
+  },
+  list: {
+    padding: 15,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    padding: 15,
+  },
+  avatarPlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#6366f1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  avatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  info: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  date: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  preview: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 10,
+    lineHeight: 20,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  stats: {
+    fontSize: 12,
+    color: '#4f46e5',
+    fontWeight: '500',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: '#f8f9fa',
+  },
+  emptyEmoji: {
+    fontSize: 80,
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 10,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+});
