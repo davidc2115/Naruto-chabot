@@ -272,7 +272,9 @@ export default function CreateCharacterScreen({ navigation, route }) {
       />
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Créer le personnage</Text>
+        <Text style={styles.saveButtonText}>
+          {isEditing ? '💾 Sauvegarder' : '✨ Créer'}
+        </Text>
       </TouchableOpacity>
 
       <View style={{ height: 40 }} />
