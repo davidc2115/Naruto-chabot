@@ -57,57 +57,28 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🔐 Generate and Upload Android Keystore
+      - name: 🔐 Generate Android Keystore Locally
         run: |
           # Generate a keystore using keytool
           echo "Generating keystore..."
-          keytool -genkeypair -v \
-            -storetype PKCS12 \
-            -keystore release.keystore \
-            -alias release-key \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass android \
-            -keypass android \
-            -dname "CN=Roleplay Chat, OU=Mobile, O=RoleplayChat, L=City, S=State, C=US"
+          keytool -genkeypair -v -storetype PKCS12 -keystore release.keystore -alias release-key -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname "CN=Roleplay Chat, OU=Mobile, O=RoleplayChat, L=City, S=State, C=US"
           
           echo "Keystore created successfully"
           ls -lh release.keystore
-          
-          # Upload keystore to EAS using GraphQL API
-          echo "Uploading keystore to Expo..."
-          
-          # Get project ID from app.json
-          PROJECT_ID=$(jq -r '.expo.extra.eas.projectId' app.json)
-          echo "Project ID: $PROJECT_ID"
-          
-          # Create base64 of keystore
-          KEYSTORE_B64=$(base64 -w 0 release.keystore)
-          
-          # Upload via EAS CLI (alternative method)
-          # Create credentials.json
-          cat > android-credentials.json <<'EOFCRED'
-{
-  "android": {
-    "keystore": {
-      "keystorePath": "release.keystore",
-      "keystorePassword": "android",
-      "keyAlias": "release-key",
-      "keyPassword": "android"
-    }
-  }
-}
-EOFCRED
-          
-          echo "Credentials configured"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🏗️ Build APK
         run: |
-          # Now build with credentials already configured
-          eas build --platform android --profile preview --non-interactive --no-wait --local-credentials
+          # Build - EAS will prompt for keystore and we'll use our local one
+          # Using expect to automate the prompts
+          sudo apt-get update && sudo apt-get install -y expect
+          
+          expect <<'EOEXP'
+          spawn eas build --platform android --profile preview --no-wait
+          expect "Generate a new Android Keystore?" { send "yes\r" }
+          expect eof
+EOEXP
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
