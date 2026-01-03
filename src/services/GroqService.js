@@ -55,6 +55,8 @@ class GroqService {
           ...messages
         ];
 
+        console.log('Tentative', attempt + 1, 'avec clé:', apiKey.substring(0, 10) + '...');
+
         const response = await axios.post(
           this.baseURL,
           {
@@ -75,18 +77,50 @@ class GroqService {
         return response.data.choices[0].message.content;
       } catch (error) {
         console.error(`Attempt ${attempt + 1} failed:`, error.message);
+        console.error('Error details:', error.response?.data || error);
+        
+        // Si erreur 401, la clé est invalide
+        if (error.response?.status === 401) {
+          console.error('Clé API invalide, rotation...');
+          this.rotateKey();
+        }
         
         if (attempt < retries - 1) {
           this.rotateKey();
           await new Promise(resolve => setTimeout(resolve, 1000));
         } else {
-          throw new Error('Échec de génération après plusieurs tentatives. Vérifiez vos clés API.');
+          const errorMsg = error.response?.data?.error?.message || error.message;
+          throw new Error(`Échec de génération: ${errorMsg}. Vérifiez vos clés API Groq.`);
         }
       }
     }
   }
 
-  buildSystemPrompt(character) {
+  async testApiKey(apiKey) {
+    try {
+      const response = await axios.post(
+        this.baseURL,
+        {
+          model: this.model,
+          messages: [
+            { role: 'user', content: 'Test' }
+          ],
+          max_tokens: 10,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000,
+        }
+      );
+      return { success: true, message: 'Clé valide ✓' };
+    } catch (error) {
+      const errorMsg = error.response?.data?.error?.message || error.message;
+      return { success: false, message: `Erreur: ${errorMsg}` };
+    }
+  }
     return `Tu incarnes ${character.name}, un personnage avec les caractéristiques suivantes:
 
 Description physique: ${character.appearance}
