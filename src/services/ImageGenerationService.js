@@ -37,8 +37,13 @@ class ImageGenerationService {
   }
 
   async generateCharacterImage(character) {
+    // FILTRAGE: Ne pas générer d'images pour les personnages trop jeunes
+    if (character.age < 18) {
+      throw new Error('Génération d\'images désactivée pour les personnages mineurs');
+    }
+
     // Construire le prompt avec les attributs anatomiques
-    let prompt = `${character.gender === 'male' ? 'handsome man' : 'beautiful woman'}, ${character.hairColor} hair, ${character.appearance}`;
+    let prompt = `${character.gender === 'male' ? 'handsome man' : 'beautiful woman'}, ${character.hairColor} hair, ${character.appearance}, adult, mature, 18+`;
     
     // Ajouter les attributs anatomiques de manière subtile
     if (character.gender === 'female' && character.bust) {
@@ -64,8 +69,13 @@ class ImageGenerationService {
   }
   
   async generateSceneImage(character, sceneDescription) {
+    // FILTRAGE: Ne pas générer d'images pour les personnages trop jeunes
+    if (character.age < 18) {
+      throw new Error('Génération d\'images désactivée pour les personnages mineurs');
+    }
+
     // Générer une image basée sur le personnage dans une scène spécifique
-    let prompt = `${character.gender === 'male' ? 'man' : 'woman'}, ${character.hairColor} hair`;
+    let prompt = `${character.gender === 'male' ? 'man' : 'woman'}, ${character.hairColor} hair, adult, mature`;
     
     if (character.gender === 'female' && character.bust) {
       const bustDesc = ['A', 'B'].includes(character.bust) ? 'slim' : 
@@ -73,7 +83,7 @@ class ImageGenerationService {
       prompt += `, ${bustDesc} figure`;
     }
     
-    prompt += `, ${sceneDescription}, detailed background`;
+    prompt += `, ${sceneDescription}, detailed background, 18+`;
     
     return await this.generateImage(prompt);
   }

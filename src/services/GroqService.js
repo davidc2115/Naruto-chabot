@@ -40,7 +40,7 @@ class GroqService {
     return this.apiKeys[this.currentKeyIndex];
   }
 
-  async generateResponse(messages, character, retries = 3) {
+  async generateResponse(messages, character, userProfile = null, retries = 3) {
     if (this.apiKeys.length === 0) {
       throw new Error('Aucune clé API configurée. Veuillez ajouter des clés dans les paramètres.');
     }
@@ -49,7 +49,7 @@ class GroqService {
       try {
         const apiKey = this.getCurrentKey();
         
-        const systemPrompt = this.buildSystemPrompt(character);
+        const systemPrompt = this.buildSystemPrompt(character, userProfile);
         const fullMessages = [
           { role: 'system', content: systemPrompt },
           ...messages
@@ -121,14 +121,47 @@ class GroqService {
       return { success: false, message: `Erreur: ${errorMsg}` };
     }
   }
-    return `Tu incarnes ${character.name}, un personnage avec les caractéristiques suivantes:
+
+  buildSystemPrompt(character, userProfile = null) {
+    let prompt = `Tu incarnes ${character.name}, un personnage avec les caractéristiques suivantes:
 
 Description physique: ${character.appearance}
 Personnalité: ${character.personality}
 Tempérament: ${character.temperament}
-Âge: ${character.age} ans
+Âge: ${character.age} ans`;
 
-Scénario de base: ${character.scenario}
+    // Ajouter les attributs anatomiques du personnage
+    if (character.gender === 'female' && character.bust) {
+      prompt += `\nTaille de poitrine: Bonnet ${character.bust}`;
+    }
+    if (character.gender === 'male' && character.penis) {
+      prompt += `\nTaille: ${character.penis}`;
+    }
+
+    // Ajouter le profil utilisateur si disponible
+    if (userProfile) {
+      prompt += `\n\nTu interagis avec ${userProfile.username}:`;
+      prompt += `\nGenre: ${userProfile.gender === 'male' ? 'homme' : userProfile.gender === 'female' ? 'femme' : 'personne'}`;
+      prompt += `\nÂge: ${userProfile.age} ans`;
+      
+      if (userProfile.gender === 'female' && userProfile.bust) {
+        prompt += `\nTaille de poitrine: Bonnet ${userProfile.bust}`;
+      }
+      if (userProfile.gender === 'male' && userProfile.penis) {
+        prompt += `\nTaille: ${userProfile.penis}`;
+      }
+
+      // Mode NSFW
+      if (userProfile.nsfwMode && userProfile.isAdult) {
+        prompt += `\n\nMode NSFW activé: Tu peux être explicite et sensuel dans tes réponses si la situation s'y prête. Reste cohérent avec ta personnalité.`;
+      } else {
+        prompt += `\n\nMode SFW: Garde les interactions appropriées et respectueuses, sans contenu explicite.`;
+      }
+    } else {
+      prompt += `\n\nMode SFW par défaut: Garde les interactions appropriées et respectueuses.`;
+    }
+
+    prompt += `\n\nScénario de base: ${character.scenario}
 
 IMPORTANT - Format de réponse RP:
 Tu dois TOUJOURS répondre en utilisant ce format de roleplay:
@@ -142,9 +175,19 @@ Règles:
 - Utilise des actions descriptives entre astérisques
 - Mets les dialogues entre guillemets
 - Adapte ton comportement selon le tempérament (${character.temperament})
-- Sois créatif et engageant dans tes réponses
-- Garde le contenu approprié et respectueux
-- Développe l'histoire de manière naturelle`;
+- Sois créatif et engageant dans tes réponses`;
+
+    if (userProfile?.username) {
+      prompt += `\n- Appelle l'utilisateur par son nom (${userProfile.username}) de temps en temps`;
+    }
+
+    prompt += `\n- Développe l'histoire de manière naturelle`;
+
+    if (!userProfile?.nsfwMode || !userProfile?.isAdult) {
+      prompt += `\n- IMPORTANT: Garde le contenu approprié et respectueux, sans contenu sexuel explicite`;
+    }
+
+    return prompt;
   }
 }
 
