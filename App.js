@@ -51,7 +51,8 @@ function HomeTabs() {
 }
 
 function TabIcon({ name, color }) {
-  return <span style={{ fontSize: 24, color }}>{name}</span>;
+  const { Text } = require('react-native');
+  return <Text style={{ fontSize: 24, color }}>{name}</Text>;
 }
 
 export default function App() {
