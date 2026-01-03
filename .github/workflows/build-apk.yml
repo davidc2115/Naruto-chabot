@@ -57,12 +57,19 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🏗️ Build APK
+      - name: 🔐 Setup Android Credentials  
         run: |
-          # Build will auto-generate credentials with credentialsSource: remote
-          eas build --platform android --profile preview --non-interactive --no-wait
+          # Set environment to auto-accept keystore generation
+          export EXPO_NO_PROMPTINPUT=1
+          export CI=1
+          
+          # Build will trigger keystore generation, we use --wait to see if it succeeds
+          echo "Launching build (will auto-generate keystore)..."
+          eas build --platform android --profile preview --no-wait
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_NO_PROMPT: 1
+          CI: 1
 
       - name: ⏳ Wait for build to complete
         id: build
