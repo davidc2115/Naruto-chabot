@@ -46,11 +46,14 @@ jobs:
           fi
           
           # Configure EAS project without interaction using environment variables
-          export EXPO_NO_PROMPTINPUT=1
+          export EXPO_NO_PROMPT=1
           export CI=1
           
-          # Try to initialize, if it fails we'll let build create the project
-          eas project:init --non-interactive || echo "Project init skipped, will be created during build"
+          # Initialize project with --force to auto-create
+          echo "Creating EAS project..."
+          eas project:init --non-interactive --force || echo "Project init failed"
+          
+          echo "EAS project configured"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
