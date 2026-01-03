@@ -31,17 +31,34 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🎯 Initialize EAS Project
+      - name: 🎯 Create EAS Project via API
         run: |
-          # Accept EAS project creation automatically
-          echo "y" | eas build:configure || true
+          # Fetch account info to get owner
+          ACCOUNT_NAME=$(curl -s -H "Authorization: Bearer $EXPO_TOKEN" \
+            "https://exp.host/--/api/v2/auth/loginAsync" | jq -r '.data.username // "anonymous"')
+          
+          echo "Account: $ACCOUNT_NAME"
+          
+          # Generate a unique project name based on repo
+          PROJECT_SLUG="roleplay-chat-$(echo $GITHUB_REPOSITORY | sha256sum | cut -c1-8)"
+          
+          echo "Creating project: $PROJECT_SLUG"
+          
+          # Try to create project using Expo CLI (non-interactive workaround)
+          export EXPO_NO_TELEMETRY=1
+          export CI=1
+          
+          # Use npx to run eas login and init
+          npx -y eas-cli@latest init --id --non-interactive 2>&1 || {
+            echo "Init failed, trying build directly..."
+          }
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_NO_TELEMETRY: 1
 
       - name: 🏗️ Build APK with EAS
         run: |
-          # Remove --non-interactive to allow EAS to create project
-          eas build --platform android --profile preview --auto-submit
+          eas build --platform android --profile preview --non-interactive --no-wait
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
