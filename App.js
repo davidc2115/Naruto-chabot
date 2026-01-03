@@ -10,6 +10,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import CharacterDetailScreen from './src/screens/CharacterDetailScreen';
 import ConversationScreen from './src/screens/ConversationScreen';
 import CreateCharacterScreen from './src/screens/CreateCharacterScreen';
+import UserProfileScreen from './src/screens/UserProfileScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -65,6 +66,15 @@ export default function App() {
           name="MainTabs" 
           component={HomeTabs}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="UserProfile" 
+          component={UserProfileScreen}
+          options={{ 
+            title: 'Mon Profil',
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
         />
         <Stack.Screen 
           name="CharacterDetail" 
