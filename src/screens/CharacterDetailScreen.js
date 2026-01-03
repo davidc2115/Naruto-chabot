@@ -223,20 +223,27 @@ export default function CharacterDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Galerie d'images */}
-        {gallery.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.gallerySectionHeader}>
-              <Text style={styles.sectionTitle}>🖼️ Galerie</Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Gallery', { character })}
-              >
-                <Text style={styles.seeAllText}>Voir tout ({gallery.length}) →</Text>
-              </TouchableOpacity>
+        {/* Galerie d'images - TOUJOURS VISIBLE */}
+        <View style={styles.section}>
+          <View style={styles.gallerySectionHeader}>
+            <Text style={styles.sectionTitle}>🖼️ Galerie</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Gallery', { character })}
+            >
+              <Text style={styles.seeAllText}>Voir tout ({gallery.length}) →</Text>
+            </TouchableOpacity>
+          </View>
+          {gallery.length === 0 ? (
+            <View style={styles.emptyGalleryContainer}>
+              <Text style={styles.emptyGalleryIcon}>📸</Text>
+              <Text style={styles.emptyGalleryText}>
+                Aucune image pour le moment. Générez des images dans les conversations !
+              </Text>
             </View>
+          ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.galleryPreview}>
-                {gallery.slice(0, 5).map((imageUrl, index) => (
+                {gallery.map((imageUrl, index) => (
                   <TouchableOpacity
                     key={index}
                     onPress={() => navigation.navigate('Gallery', { character })}
@@ -246,8 +253,8 @@ export default function CharacterDetailScreen({ route, navigation }) {
                 ))}
               </View>
             </ScrollView>
-          </View>
-        )}
+          )}
+        </View>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -496,5 +503,21 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 8,
+    marginRight: 10,
+  },
+  emptyGalleryContainer: {
+    padding: 20,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  emptyGalleryIcon: {
+    fontSize: 48,
+    marginBottom: 10,
+  },
+  emptyGalleryText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
   },
 });

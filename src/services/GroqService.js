@@ -41,6 +41,11 @@ class GroqService {
   }
 
   async generateResponse(messages, character, userProfile = null, retries = 3) {
+    // CHARGER LES CLÉS AUTOMATIQUEMENT si pas encore chargées
+    if (this.apiKeys.length === 0) {
+      await this.loadApiKeys();
+    }
+    
     if (this.apiKeys.length === 0) {
       throw new Error('Aucune clé API configurée. Veuillez ajouter des clés dans les paramètres.');
     }
