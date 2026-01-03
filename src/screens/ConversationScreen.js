@@ -16,6 +16,7 @@ import GroqService from '../services/GroqService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
+import GalleryService from '../services/GalleryService';
 
 export default function ConversationScreen({ route, navigation }) {
   const { character } = route.params;
@@ -25,17 +26,24 @@ export default function ConversationScreen({ route, navigation }) {
   const [relationship, setRelationship] = useState(null);
   const [generatingImage, setGeneratingImage] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  const [gallery, setGallery] = useState([]);
   const flatListRef = useRef(null);
 
   useEffect(() => {
     loadConversation();
     loadUserProfile();
+    loadGallery();
     navigation.setOptions({ title: character.name });
   }, [character]);
 
   const loadUserProfile = async () => {
     const profile = await UserProfileService.getProfile();
     setUserProfile(profile);
+  };
+
+  const loadGallery = async () => {
+    const characterGallery = await GalleryService.getGallery(character.id);
+    setGallery(characterGallery);
   };
 
   const loadConversation = async () => {
@@ -138,9 +146,13 @@ export default function ConversationScreen({ route, navigation }) {
       
       const imageUrl = await ImageGenerationService.generateImage(prompt);
       
+      // Sauvegarder dans la galerie
+      await GalleryService.saveImageToGallery(character.id, imageUrl);
+      await loadGallery(); // Recharger la galerie
+      
       const imageMessage = {
         role: 'system',
-        content: '[Image générée]',
+        content: '[Image générée et sauvegardée dans la galerie]',
         image: imageUrl,
         timestamp: new Date().toISOString(),
       };
@@ -149,11 +161,13 @@ export default function ConversationScreen({ route, navigation }) {
       setMessages(updatedMessages);
       await saveConversation(updatedMessages, relationship);
 
+      Alert.alert('Succès', 'Image générée et ajoutée à la galerie !');
+
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de générer l\'image');
+      Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
     } finally {
       setGeneratingImage(false);
     }
@@ -282,6 +296,16 @@ export default function ConversationScreen({ route, navigation }) {
           <View style={styles.relationshipStat}>
             <Text style={styles.relationshipLabel}>🤝 {relationship.trust}%</Text>
           </View>
+          <TouchableOpacity
+            style={styles.galleryButton}
+            onPress={() => Alert.alert(
+              '🖼️ Galerie',
+              `${gallery.length} image(s) sauvegardée(s)\n\n${gallery.length === 0 ? 'Générez des images pour les voir ici !' : gallery.slice(0, 3).map((_, i) => `• Image ${i + 1}`).join('\n')}`,
+              [{ text: 'OK' }]
+            )}
+          >
+            <Text style={styles.galleryButtonText}>🖼️ {gallery.length}</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -495,5 +519,16 @@ const styles = StyleSheet.create({
   sendButtonText: {
     fontSize: 20,
     color: '#fff',
+  },
+  galleryButton: {
+    backgroundColor: '#10b981',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  galleryButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

@@ -6,7 +6,7 @@ class GroqService {
     this.apiKeys = [];
     this.currentKeyIndex = 0;
     this.baseURL = 'https://api.groq.com/openai/v1/chat/completions';
-    this.model = 'mixtral-8x7b-32768';
+    this.model = 'llama-3.3-70b-versatile'; // Modèle actif et performant
   }
 
   async loadApiKeys() {

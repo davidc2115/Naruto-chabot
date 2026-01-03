@@ -117,6 +117,12 @@ export default function CharacterDetailScreen({ route, navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✨ Apparence physique</Text>
           <Text style={styles.sectionContent}>{character.appearance}</Text>
+          {character.gender === 'female' && character.bust && (
+            <Text style={styles.attributeDetail}>• Taille de poitrine : Bonnet {character.bust}</Text>
+          )}
+          {character.gender === 'male' && character.penis && (
+            <Text style={styles.attributeDetail}>• Taille : {character.penis}</Text>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -339,5 +345,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  attributeDetail: {
+    fontSize: 14,
+    color: '#6366f1',
+    fontWeight: '600',
+    marginTop: 8,
   },
 });
