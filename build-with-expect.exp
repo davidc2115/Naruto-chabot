@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+set env(EXPO_TOKEN) "_PixloVMl-esZ0znNH2yhKTk3O997DCGa0snzavb"
+
+spawn npx eas-cli@latest build --platform android --profile preview --no-wait
+
+expect {
+    "Configure this project?" {
+        send "y\r"
+        exp_continue
+    }
+    "Generate a new Android Keystore?" {
+        send "y\r"
+        exp_continue
+    }
+    "Build queued" {
+        puts "\n✅ Build lancé avec succès!\n"
+    }
+    timeout {
+        puts "\n⏱️ Timeout atteint\n"
+    }
+    eof {
+        puts "\n✅ Commande terminée\n"
+    }
+}
