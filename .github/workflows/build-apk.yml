@@ -42,11 +42,14 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y expect
 
       - name: 🏗️ Build APK with expect
+        id: build_trigger
         run: |
           cat > build-auto.exp <<'EOFEXP'
           #!/usr/bin/expect -f
           set timeout 300
           set env(EXPO_TOKEN) "$env(EXPO_TOKEN)"
+          
+          log_file -noappend build_output.log
           
           spawn eas build --platform android --profile preview --no-wait
           
@@ -59,8 +62,13 @@ jobs:
                   send "y\r"
                   exp_continue
               }
+              -re "See logs: https://expo.dev/accounts/[^/]+/projects/[^/]+/builds/(\[a-f0-9-\]+)" {
+                  set build_id $expect_out(1,string)
+                  puts "\n✅ Build ID: $build_id\n"
+              }
               "Uploaded to EAS" {
                   puts "\n✅ Build uploaded successfully!\n"
+                  exp_continue
               }
               timeout {
                   puts "\nBuild initiated\n"
@@ -71,19 +79,20 @@ jobs:
           
           chmod +x build-auto.exp
           ./build-auto.exp
+          
+          # Extract build ID from log
+          BUILD_ID=$(grep -oP 'builds/\K[a-f0-9-]+' build_output.log | tail -1)
+          echo "Extracted BUILD_ID: $BUILD_ID"
+          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: ⏳ Wait for build to complete
         id: build
         run: |
-          echo "Waiting for build to start..."
-          sleep 90
-          
-          # Get the latest build
-          BUILD_ID=$(eas build:list --platform android --limit 1 --json | jq -r '.[0].id')
-          echo "Build ID: $BUILD_ID"
-          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
+          BUILD_ID="${{ steps.build_trigger.outputs.build_id }}"
+          echo "Waiting for build: $BUILD_ID"
+          sleep 60
           
           # Wait for build to complete (max 20 minutes)
           for i in {1..40}; do
