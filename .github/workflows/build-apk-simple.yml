@@ -31,30 +31,20 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🎯 Create EAS Project via API
+      - name: 🎯 Create EAS Project ID in app.json
         run: |
-          # Fetch account info to get owner
-          ACCOUNT_NAME=$(curl -s -H "Authorization: Bearer $EXPO_TOKEN" \
-            "https://exp.host/--/api/v2/auth/loginAsync" | jq -r '.data.username // "anonymous"')
+          # Generate a valid UUID v4
+          PROJECT_ID=$(cat /proc/sys/kernel/random/uuid)
+          echo "Generated Project ID: $PROJECT_ID"
           
-          echo "Account: $ACCOUNT_NAME"
+          # Add projectId to app.json using jq
+          jq --arg id "$PROJECT_ID" '.expo.extra.eas.projectId = $id' app.json > app.json.tmp
+          mv app.json.tmp app.json
           
-          # Generate a unique project name based on repo
-          PROJECT_SLUG="roleplay-chat-$(echo $GITHUB_REPOSITORY | sha256sum | cut -c1-8)"
-          
-          echo "Creating project: $PROJECT_SLUG"
-          
-          # Try to create project using Expo CLI (non-interactive workaround)
-          export EXPO_NO_TELEMETRY=1
-          export CI=1
-          
-          # Use npx to run eas login and init
-          npx -y eas-cli@latest init --id --non-interactive 2>&1 || {
-            echo "Init failed, trying build directly..."
-          }
+          echo "Updated app.json:"
+          cat app.json | jq '.expo.extra'
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          EXPO_NO_TELEMETRY: 1
 
       - name: 🏗️ Build APK with EAS
         run: |
