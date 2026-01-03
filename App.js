@@ -9,6 +9,7 @@ import ChatsScreen from './src/screens/ChatsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import CharacterDetailScreen from './src/screens/CharacterDetailScreen';
 import ConversationScreen from './src/screens/ConversationScreen';
+import CreateCharacterScreen from './src/screens/CreateCharacterScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -70,6 +71,15 @@ export default function App() {
           component={CharacterDetailScreen}
           options={{ 
             title: 'Détails du personnage',
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen 
+          name="CreateCharacter" 
+          component={CreateCharacterScreen}
+          options={{ 
+            title: 'Créer un personnage',
             headerStyle: { backgroundColor: '#6366f1' },
             headerTintColor: '#fff',
           }}
