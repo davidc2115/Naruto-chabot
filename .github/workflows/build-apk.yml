@@ -87,7 +87,7 @@ jobs:
           
           # Upload via EAS CLI (alternative method)
           # Create credentials.json
-          cat > android-credentials.json <<EOF
+          cat > android-credentials.json <<'EOFCRED'
 {
   "android": {
     "keystore": {
@@ -98,7 +98,7 @@ jobs:
     }
   }
 }
-EOF
+EOFCRED
           
           echo "Credentials configured"
         env:
