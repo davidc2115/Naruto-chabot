@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import CustomCharacterService from '../services/CustomCharacterService';
+import ImageGenerationService from '../services/ImageGenerationService';
 
 export default function CreateCharacterScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -22,9 +25,36 @@ export default function CreateCharacterScreen({ navigation }) {
   const [temperament, setTemperament] = useState('amical');
   const [scenario, setScenario] = useState('');
   const [startMessage, setStartMessage] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [generatingImage, setGeneratingImage] = useState(false);
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
   const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
+
+  const generateCharacterImage = async () => {
+    if (!appearance && !hairColor) {
+      Alert.alert('Info', 'Remplissez au moins l\'apparence pour générer une image');
+      return;
+    }
+
+    setGeneratingImage(true);
+    try {
+      const genderTerm = gender === 'male' ? 'handsome man' : 'beautiful woman';
+      const hairTerm = hairColor ? `${hairColor} hair` : '';
+      const bustTerm = gender === 'female' && bust ? 
+        (bust === 'A' || bust === 'B' ? 'petite figure' :
+         bust === 'C' || bust === 'D' ? 'curvy figure' : 'voluptuous figure') : '';
+      const prompt = `${genderTerm}, ${hairTerm}, ${appearance || ''}, ${bustTerm}, adult, 18+, high quality portrait`;
+      
+      const url = await ImageGenerationService.generateImage(prompt);
+      setImageUrl(url);
+      Alert.alert('Succès', 'Image générée ! Vous pouvez maintenant sauvegarder le personnage.');
+    } catch (error) {
+      Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!name || !age || !appearance || !personality || !scenario || !startMessage) {
@@ -45,6 +75,8 @@ export default function CreateCharacterScreen({ navigation }) {
         tags: [temperament, 'personnalisé'],
         scenario,
         startMessage,
+        imageUrl: imageUrl || undefined,
+        isCustom: true,
       };
 
       await CustomCharacterService.saveCustomCharacter(character);
@@ -59,6 +91,43 @@ export default function CreateCharacterScreen({ navigation }) {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Créer un personnage</Text>
+
+      {/* Section Image */}
+      <View style={styles.imageSection}>
+        <Text style={styles.sectionTitle}>📸 Photo du personnage</Text>
+        {imageUrl ? (
+          <View style={styles.imagePreview}>
+            <Image source={{ uri: imageUrl }} style={styles.previewImage} />
+            <TouchableOpacity
+              style={styles.regenerateButton}
+              onPress={generateCharacterImage}
+              disabled={generatingImage}
+            >
+              <Text style={styles.regenerateButtonText}>
+                {generatingImage ? 'Génération...' : '🔄 Régénérer'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.generateImageButton}
+            onPress={generateCharacterImage}
+            disabled={generatingImage}
+          >
+            {generatingImage ? (
+              <ActivityIndicator size="large" color="#6366f1" />
+            ) : (
+              <>
+                <Text style={styles.generateImageIcon}>🎨</Text>
+                <Text style={styles.generateImageText}>Générer une image</Text>
+                <Text style={styles.generateImageHint}>
+                  Remplissez d'abord l'apparence physique
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
 
       <Text style={styles.label}>Nom *</Text>
       <TextInput
@@ -312,5 +381,60 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  imageSection: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#374151',
+    marginBottom: 15,
+  },
+  generateImageButton: {
+    padding: 40,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#6366f1',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  generateImageIcon: {
+    fontSize: 48,
+    marginBottom: 10,
+  },
+  generateImageText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6366f1',
+    marginBottom: 5,
+  },
+  generateImageHint: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  imagePreview: {
+    alignItems: 'center',
+  },
+  previewImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    marginBottom: 15,
+  },
+  regenerateButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#6366f1',
+    borderRadius: 8,
+  },
+  regenerateButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

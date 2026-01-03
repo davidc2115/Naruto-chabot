@@ -7,20 +7,43 @@ import {
   StyleSheet,
   TextInput,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import characters from '../data/characters';
+import CustomCharacterService from '../services/CustomCharacterService';
+import ImageGenerationService from '../services/ImageGenerationService';
 
 export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('tous');
-  const [filteredCharacters, setFilteredCharacters] = useState(characters);
+  const [filteredCharacters, setFilteredCharacters] = useState([]);
+  const [allCharacters, setAllCharacters] = useState([]);
+  const [characterImages, setCharacterImages] = useState({});
+
+  useEffect(() => {
+    loadAllCharacters();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadAllCharacters();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   useEffect(() => {
     filterCharacters();
-  }, [searchQuery, selectedFilter]);
+  }, [searchQuery, selectedFilter, allCharacters]);
+
+  const loadAllCharacters = async () => {
+    const customChars = await CustomCharacterService.getCustomCharacters();
+    // Combiner les personnages de base avec les personnages personnalisés
+    const combined = [...characters, ...customChars];
+    setAllCharacters(combined);
+  };
 
   const filterCharacters = () => {
-    let filtered = characters;
+    let filtered = allCharacters;
 
     // Filter by gender
     if (selectedFilter !== 'tous') {
@@ -39,38 +62,55 @@ export default function HomeScreen({ navigation }) {
     setFilteredCharacters(filtered);
   };
 
-  const renderCharacter = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('CharacterDetail', { character: item })}
-    >
-      <View style={styles.cardContent}>
-        <View style={styles.avatarPlaceholder}>
-          <Text style={styles.avatarText}>
-            {item.name.split(' ').map(n => n[0]).join('')}
-          </Text>
-        </View>
-        <View style={styles.info}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.age}>{item.age} ans • {
-            item.gender === 'male' ? 'Homme' :
-            item.gender === 'female' ? 'Femme' : 
-            'Non-binaire'
-          }</Text>
-          <Text style={styles.description} numberOfLines={2}>
-            {item.scenario}
-          </Text>
-          <View style={styles.tagsContainer}>
-            {item.tags.slice(0, 3).map((tag, index) => (
-              <View key={index} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
-              </View>
-            ))}
+  const renderCharacter = ({ item }) => {
+    const imageUrl = item.imageUrl || characterImages[item.id];
+    
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('CharacterDetail', { character: item })}
+      >
+        <View style={styles.cardContent}>
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.characterImage}
+              onError={() => {
+                // Si l'image échoue, on garde le placeholder
+              }}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {item.name.split(' ').map(n => n[0]).join('')}
+              </Text>
+            </View>
+          )}
+          <View style={styles.info}>
+            <Text style={styles.name}>
+              {item.name}
+              {item.isCustom && <Text style={styles.customBadge}> ✨</Text>}
+            </Text>
+            <Text style={styles.age}>{item.age} ans • {
+              item.gender === 'male' ? 'Homme' :
+              item.gender === 'female' ? 'Femme' : 
+              'Non-binaire'
+            }</Text>
+            <Text style={styles.description} numberOfLines={2}>
+              {item.scenario}
+            </Text>
+            <View style={styles.tagsContainer}>
+              {item.tags.slice(0, 3).map((tag, index) => (
+                <View key={index} style={styles.tag}>
+                  <Text style={styles.tagText}>{tag}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
