@@ -35,10 +35,9 @@ export default function ConversationScreen({ route, navigation }) {
   }, [character]);
 
   const initializeScreen = async () => {
-    // Charger les clés API Groq en premier
-    await GroqService.loadApiKeys();
+    // Les clés API Groq sont maintenant chargées automatiquement dans generateResponse
     
-    // Puis charger le reste
+    // Charger le reste
     loadConversation();
     loadUserProfile();
     loadGallery();
