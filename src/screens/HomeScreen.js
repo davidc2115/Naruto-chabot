@@ -79,6 +79,13 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.subtitle}>{filteredCharacters.length} personnages disponibles</Text>
       </View>
 
+      <TouchableOpacity
+        style={styles.createButton}
+        onPress={() => navigation.navigate('CreateCharacter')}
+      >
+        <Text style={styles.createButtonText}>✨ Créer mon propre personnage</Text>
+      </TouchableOpacity>
+
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
@@ -153,6 +160,24 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#e0e7ff',
+  },
+  createButton: {
+    margin: 15,
+    marginTop: 10,
+    padding: 16,
+    backgroundColor: '#10b981',
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  createButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   searchContainer: {
     padding: 15,

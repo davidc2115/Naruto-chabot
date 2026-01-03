@@ -9,14 +9,24 @@ import {
   Alert,
 } from 'react-native';
 import GroqService from '../services/GroqService';
+import UserProfileService from '../services/UserProfileService';
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const [apiKeys, setApiKeys] = useState(['']);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
     loadSettings();
+    loadProfile();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadProfile();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const loadSettings = async () => {
     await GroqService.loadApiKeys();
@@ -24,6 +34,11 @@ export default function SettingsScreen() {
       setApiKeys(GroqService.apiKeys);
     }
     setLoading(false);
+  };
+
+  const loadProfile = async () => {
+    const profile = await UserProfileService.getProfile();
+    setUserProfile(profile);
   };
 
   const addKeyField = () => {
@@ -96,6 +111,37 @@ export default function SettingsScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Paramètres</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>👤 Mon Profil</Text>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => navigation.navigate('UserProfile')}
+        >
+          {userProfile ? (
+            <View>
+              <Text style={styles.profileName}>👋 {userProfile.username}</Text>
+              <Text style={styles.profileInfo}>
+                {userProfile.age} ans • {userProfile.gender === 'male' ? 'Homme' : userProfile.gender === 'female' ? 'Femme' : 'Autre'}
+                {userProfile.nsfwMode && userProfile.isAdult && ' • 🔞 Mode NSFW'}
+              </Text>
+              <Text style={styles.profileAction}>Modifier mon profil →</Text>
+            </View>
+          ) : (
+            <View>
+              <Text style={styles.profileCreate}>✨ Créer mon profil</Text>
+              <Text style={styles.profileSubtext}>
+                Personnalisez vos conversations avec les personnages
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        {!userProfile && (
+          <Text style={styles.profileHint}>
+            ℹ️ Un profil permet aux personnages de mieux vous connaître et d'adapter leurs réponses à vous !
+          </Text>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -329,5 +375,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#4b5563',
     marginBottom: 8,
+  },
+  profileButton: {
+    padding: 20,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#6366f1',
+    marginBottom: 10,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#6366f1',
+    marginBottom: 5,
+  },
+  profileInfo: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  profileAction: {
+    fontSize: 14,
+    color: '#6366f1',
+    fontWeight: '600',
+  },
+  profileCreate: {
+    fontSize: 18,
+    color: '#6366f1',
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  profileSubtext: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  profileHint: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontStyle: 'italic',
+    lineHeight: 18,
   },
 });
