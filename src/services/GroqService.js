@@ -50,9 +50,17 @@ class GroqService {
         const apiKey = this.getCurrentKey();
         
         const systemPrompt = this.buildSystemPrompt(character, userProfile);
+        
+        // IMPORTANT: Nettoyer les messages pour enlever les champs non supportés par Groq
+        const cleanMessages = messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+          // On enlève timestamp, imageUrl et autres champs custom
+        }));
+        
         const fullMessages = [
           { role: 'system', content: systemPrompt },
-          ...messages
+          ...cleanMessages
         ];
 
         console.log('Tentative', attempt + 1, 'avec clé:', apiKey.substring(0, 10) + '...');
