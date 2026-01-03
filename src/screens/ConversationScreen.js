@@ -15,6 +15,7 @@ import {
 import GroqService from '../services/GroqService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
+import UserProfileService from '../services/UserProfileService';
 
 export default function ConversationScreen({ route, navigation }) {
   const { character } = route.params;
@@ -23,12 +24,19 @@ export default function ConversationScreen({ route, navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [relationship, setRelationship] = useState(null);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
   const flatListRef = useRef(null);
 
   useEffect(() => {
     loadConversation();
+    loadUserProfile();
     navigation.setOptions({ title: character.name });
   }, [character]);
+
+  const loadUserProfile = async () => {
+    const profile = await UserProfileService.getProfile();
+    setUserProfile(profile);
+  };
 
   const loadConversation = async () => {
     const saved = await StorageService.loadConversation(character.id);
@@ -90,7 +98,8 @@ export default function ConversationScreen({ route, navigation }) {
       // Generate AI response
       const response = await GroqService.generateResponse(
         updatedMessages,
-        character
+        character,
+        userProfile
       );
 
       const assistantMessage = {
