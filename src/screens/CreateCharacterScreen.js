@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
+import GalleryService from '../services/GalleryService';
 
 export default function CreateCharacterScreen({ navigation, route }) {
   const { characterToEdit } = route.params || {};
@@ -82,14 +83,23 @@ export default function CreateCharacterScreen({ navigation, route }) {
         isCustom: true,
       };
 
+      let savedCharacter;
       if (isEditing) {
-        await CustomCharacterService.updateCustomCharacter(characterToEdit.id, character);
+        savedCharacter = await CustomCharacterService.updateCustomCharacter(characterToEdit.id, character);
+        // Si nouvelle image générée, l'ajouter à la galerie
+        if (imageUrl && imageUrl !== characterToEdit.imageUrl) {
+          await GalleryService.saveImageToGallery(characterToEdit.id, imageUrl);
+        }
         Alert.alert('Succès', 'Personnage modifié !', [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       } else {
-        await CustomCharacterService.saveCustomCharacter(character);
-        Alert.alert('Succès', 'Personnage créé !', [
+        savedCharacter = await CustomCharacterService.saveCustomCharacter(character);
+        // Ajouter l'image à la galerie du nouveau personnage
+        if (imageUrl && savedCharacter.id) {
+          await GalleryService.saveImageToGallery(savedCharacter.id, imageUrl);
+        }
+        Alert.alert('Succès', 'Personnage créé ! L\'image a été ajoutée à la galerie.', [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       }

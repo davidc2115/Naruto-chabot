@@ -11,6 +11,7 @@ import {
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import CustomCharacterService from '../services/CustomCharacterService';
+import GalleryService from '../services/GalleryService';
 
 export default function CharacterDetailScreen({ route, navigation }) {
   const { character } = route.params;
@@ -18,12 +19,19 @@ export default function CharacterDetailScreen({ route, navigation }) {
   const [hasConversation, setHasConversation] = useState(false);
   const [characterImage, setCharacterImage] = useState(null);
   const [loadingImage, setLoadingImage] = useState(true);
+  const [gallery, setGallery] = useState([]);
 
   useEffect(() => {
     loadCharacterData();
+    loadGallery();
     generateCharacterImage();
     navigation.setOptions({ title: character.name });
   }, [character]);
+
+  const loadGallery = async () => {
+    const images = await GalleryService.getGallery(character.id);
+    setGallery(images);
+  };
 
   const loadCharacterData = async () => {
     const rel = await StorageService.loadRelationship(character.id);
@@ -205,6 +213,32 @@ export default function CharacterDetailScreen({ route, navigation }) {
                 {relationship.interactions} interaction(s) • {relationship.experience} XP
               </Text>
             </View>
+          </View>
+        )}
+
+        {/* Galerie d'images */}
+        {gallery.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.gallerySectionHeader}>
+              <Text style={styles.sectionTitle}>🖼️ Galerie</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Gallery', { character })}
+              >
+                <Text style={styles.seeAllText}>Voir tout ({gallery.length}) →</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.galleryPreview}>
+                {gallery.slice(0, 5).map((imageUrl, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => navigation.navigate('Gallery', { character })}
+                  >
+                    <Image source={{ uri: imageUrl }} style={styles.galleryThumbnail} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
           </View>
         )}
 
@@ -435,5 +469,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  gallerySectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: '#6366f1',
+    fontWeight: '600',
+  },
+  galleryPreview: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  galleryThumbnail: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
   },
 });

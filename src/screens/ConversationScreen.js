@@ -27,12 +27,14 @@ export default function ConversationScreen({ route, navigation }) {
   const [generatingImage, setGeneratingImage] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [gallery, setGallery] = useState([]);
+  const [conversationBackground, setConversationBackground] = useState(null);
   const flatListRef = useRef(null);
 
   useEffect(() => {
     loadConversation();
     loadUserProfile();
     loadGallery();
+    loadBackground();
     navigation.setOptions({
       title: character.name,
       headerRight: () => (
@@ -54,6 +56,11 @@ export default function ConversationScreen({ route, navigation }) {
   const loadGallery = async () => {
     const characterGallery = await GalleryService.getGallery(character.id);
     setGallery(characterGallery);
+  };
+
+  const loadBackground = async () => {
+    const bg = await GalleryService.getConversationBackground(character.id);
+    setConversationBackground(bg);
   };
 
   const loadConversation = async () => {
@@ -290,10 +297,18 @@ export default function ConversationScreen({ route, navigation }) {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, conversationBackground && { backgroundColor: 'transparent' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
+      {conversationBackground && (
+        <Image
+          source={{ uri: conversationBackground }}
+          style={styles.backgroundImage}
+          blurRadius={2}
+        />
+      )}
+      
       {relationship && (
         <View style={styles.relationshipBar}>
           <View style={styles.relationshipStat}>
@@ -536,5 +551,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    opacity: 0.3,
   },
 });
