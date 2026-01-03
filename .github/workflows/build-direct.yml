@@ -1,0 +1,116 @@
+name: Build APK Direct (No EAS)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build APK avec Gradle Direct
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🔍 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🗑️ Clean everything
+        run: |
+          rm -rf node_modules
+          rm -rf android
+          rm -rf ios
+          rm -rf .expo
+          npm cache clean --force
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: 🔧 Setup Expo
+        run: npm install -g expo-cli eas-cli
+
+      - name: 🏗️ Prebuild (Generate native Android files)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx expo prebuild --platform android --clean
+          
+      - name: 📝 Create keystore
+        run: |
+          cd android/app
+          keytool -genkeypair -v -storetype PKCS12 \
+            -keystore release.keystore \
+            -alias roleplaychat \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=RoleplayChat, OU=Dev, O=RoleplayChat, L=Paris, S=IDF, C=FR"
+
+      - name: 🏗️ Build APK with Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+          
+      - name: 📦 Find and rename APK
+        run: |
+          APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -1)
+          echo "Found APK at: $APK_PATH"
+          cp "$APK_PATH" roleplay-chat.apk
+          ls -lh roleplay-chat.apk
+
+      - name: 📊 Get APK info
+        id: apk_info
+        run: |
+          APK_SIZE=$(ls -lh roleplay-chat.apk | awk '{print $5}')
+          echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
+          echo "APK Size: $APK_SIZE"
+
+      - name: 📤 Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: roleplay-chat-apk
+          path: roleplay-chat.apk
+          retention-days: 30
+
+      - name: 🏷️ Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: roleplay-chat.apk
+          body: |
+            # 🎉 Roleplay Chat App - Release ${{ github.ref_name }}
+            
+            ## 📱 Installation
+            1. Téléchargez `roleplay-chat.apk`
+            2. Installez sur Android
+            
+            ## 📊 Build Info
+            - **Taille**: ${{ steps.apk_info.outputs.apk_size }}
+            - **Version**: ${{ github.ref_name }}
+            - **Build**: Direct Gradle (No EAS)
+            
+            ## ✨ Vérifiez la version dans Paramètres après installation !
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ✅ Build Summary
+        run: |
+          echo "### 🎉 Build Direct Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "- **APK Size**: ${{ steps.apk_info.outputs.apk_size }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Method**: Direct Gradle (No EAS Cache)" >> $GITHUB_STEP_SUMMARY
