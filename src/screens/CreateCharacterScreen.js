@@ -37,20 +37,30 @@ export default function CreateCharacterScreen({ navigation, route }) {
 
   const generateCharacterImage = async () => {
     if (!appearance && !hairColor) {
-      Alert.alert('Info', 'Remplissez au moins l\'apparence pour générer une image');
+      Alert.alert('Info', 'Remplissez au moins l\'apparence et l\'âge pour générer une image');
+      return;
+    }
+
+    if (!age || parseInt(age) < 18) {
+      Alert.alert('Erreur', 'L\'âge doit être supérieur ou égal à 18 ans');
       return;
     }
 
     setGeneratingImage(true);
     try {
-      const genderTerm = gender === 'male' ? 'handsome man' : 'beautiful woman';
-      const hairTerm = hairColor ? `${hairColor} hair` : '';
-      const bustTerm = gender === 'female' && bust ? 
-        (bust === 'A' || bust === 'B' ? 'petite figure' :
-         bust === 'C' || bust === 'D' ? 'curvy figure' : 'voluptuous figure') : '';
-      const prompt = `${genderTerm}, ${hairTerm}, ${appearance || ''}, ${bustTerm}, adult, 18+, high quality portrait`;
+      // Créer un objet character temporaire pour utiliser le service
+      const tempCharacter = {
+        name: name || 'Personnage',
+        age: parseInt(age),
+        gender,
+        hairColor,
+        appearance,
+        bust: gender === 'female' ? bust : undefined,
+        penis: gender === 'male' ? `${penis}cm` : undefined,
+      };
       
-      const url = await ImageGenerationService.generateImage(prompt);
+      // Utiliser le service qui a les descriptions explicites
+      const url = await ImageGenerationService.generateCharacterImage(tempCharacter);
       setImageUrl(url);
       Alert.alert('Succès', 'Image générée ! Vous pouvez maintenant sauvegarder le personnage.');
     } catch (error) {

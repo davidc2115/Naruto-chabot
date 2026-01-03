@@ -26,6 +26,13 @@ export default function CharacterDetailScreen({ route, navigation }) {
     loadGallery();
     generateCharacterImage();
     navigation.setOptions({ title: character.name });
+    
+    // Recharger la galerie quand on revient sur cet écran
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadGallery();
+    });
+    
+    return unsubscribe;
   }, [character]);
 
   const loadGallery = async () => {

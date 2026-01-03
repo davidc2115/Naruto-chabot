@@ -31,10 +31,19 @@ export default function ConversationScreen({ route, navigation }) {
   const flatListRef = useRef(null);
 
   useEffect(() => {
+    initializeScreen();
+  }, [character]);
+
+  const initializeScreen = async () => {
+    // Charger les clés API Groq en premier
+    await GroqService.loadApiKeys();
+    
+    // Puis charger le reste
     loadConversation();
     loadUserProfile();
     loadGallery();
     loadBackground();
+    
     navigation.setOptions({
       title: character.name,
       headerRight: () => (
@@ -46,7 +55,7 @@ export default function ConversationScreen({ route, navigation }) {
         </TouchableOpacity>
       ),
     });
-  }, [character]);
+  };
 
   const loadUserProfile = async () => {
     const profile = await UserProfileService.getProfile();
