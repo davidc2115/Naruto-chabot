@@ -38,17 +38,19 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🎯 Generate EAS Project ID
+      - name: 🎯 Configure EAS Project
         run: |
-          # Generate a valid UUID v4
-          PROJECT_ID=$(cat /proc/sys/kernel/random/uuid)
-          echo "Generated Project ID: $PROJECT_ID"
+          # Remove any existing projectId
+          if [ -f app.json ]; then
+            jq 'del(.expo.extra.eas.projectId)' app.json > app.json.tmp && mv app.json.tmp app.json
+          fi
           
-          # Add projectId to app.json using jq
-          jq --arg id "$PROJECT_ID" '.expo.extra.eas.projectId = $id' app.json > app.json.tmp
-          mv app.json.tmp app.json
+          # Configure EAS project without interaction using environment variables
+          export EXPO_NO_PROMPTINPUT=1
+          export CI=1
           
-          echo "Updated app.json with projectId"
+          # Try to initialize, if it fails we'll let build create the project
+          eas project:init --non-interactive || echo "Project init skipped, will be created during build"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
