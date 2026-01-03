@@ -95,7 +95,33 @@ Scannez le QR code avec l'application Expo Go sur votre smartphone.
 
 ## 📦 Build APK pour Android
 
-### Méthode 1 : EAS Build (recommandé)
+### Méthode 1 : GitHub Actions (recommandé - automatique) 🚀
+
+**Le plus simple ! Build automatique dans le cloud.**
+
+#### Configuration rapide (5 minutes):
+
+1. **Créez un token Expo** (gratuit)
+   - https://expo.dev → Compte → Access Tokens → Create
+
+2. **Ajoutez le token sur GitHub**
+   - Repo → Settings → Secrets → New secret
+   - Name: `EXPO_TOKEN`
+   - Value: [votre token]
+
+3. **Lancez le build**
+   - GitHub → Actions → "Build APK (Simple)" → Run workflow
+   - Version: 1.0.0 → Run
+
+4. **Récupérez l'APK** (après ~20 min)
+   - Releases → Téléchargez l'APK
+
+📖 **Guide détaillé**: [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md)  
+⚡ **Guide rapide**: [QUICK_BUILD_GUIDE.md](QUICK_BUILD_GUIDE.md)
+
+---
+
+### Méthode 2 : EAS Build manuel
 
 ```bash
 # Installer EAS CLI
@@ -113,7 +139,7 @@ eas build --platform android --profile preview
 
 L'APK sera téléchargeable depuis votre compte Expo.
 
-### Méthode 2 : Build local
+### Méthode 3 : Build local
 
 ```bash
 # Installer les outils Android

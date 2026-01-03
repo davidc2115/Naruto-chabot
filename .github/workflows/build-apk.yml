@@ -1,0 +1,140 @@
+name: Build and Release APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🔍 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔧 Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🏗️ Build APK
+        run: eas build --platform android --profile preview --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: ⏳ Wait for build to complete
+        id: build
+        run: |
+          echo "Waiting for build to complete..."
+          sleep 60
+          
+          # Get the latest build
+          BUILD_ID=$(eas build:list --platform android --limit 1 --json | jq -r '.[0].id')
+          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
+          
+          # Wait for build to complete (max 30 minutes)
+          for i in {1..60}; do
+            STATUS=$(eas build:view $BUILD_ID --json | jq -r '.status')
+            echo "Build status: $STATUS"
+            
+            if [ "$STATUS" = "FINISHED" ]; then
+              echo "Build completed successfully!"
+              BUILD_URL=$(eas build:view $BUILD_ID --json | jq -r '.artifacts.buildUrl')
+              echo "build_url=$BUILD_URL" >> $GITHUB_OUTPUT
+              break
+            elif [ "$STATUS" = "ERRORED" ] || [ "$STATUS" = "CANCELED" ]; then
+              echo "Build failed with status: $STATUS"
+              exit 1
+            fi
+            
+            sleep 30
+          done
+
+      - name: 📥 Download APK
+        run: |
+          wget -O roleplay-chat.apk "${{ steps.build.outputs.build_url }}"
+
+      - name: 📊 Get APK info
+        id: apk_info
+        run: |
+          APK_SIZE=$(ls -lh roleplay-chat.apk | awk '{print $5}')
+          echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
+          echo "APK Size: $APK_SIZE"
+
+      - name: 📤 Upload APK as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: roleplay-chat-apk
+          path: roleplay-chat.apk
+          retention-days: 30
+
+      - name: 🏷️ Create Release
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          name: Release ${{ github.event.inputs.version || github.ref_name }}
+          body: |
+            # 🎉 Roleplay Chat App - Release ${{ github.event.inputs.version || github.ref_name }}
+            
+            ## 📱 Installation
+            1. Téléchargez le fichier `roleplay-chat.apk` ci-dessous
+            2. Transférez-le sur votre téléphone Android
+            3. Activez "Sources inconnues" dans les paramètres
+            4. Installez l'APK
+            
+            ## ✨ Fonctionnalités
+            - 🎭 200 personnages uniques
+            - 💬 Système de roleplay immersif
+            - 🔄 Multi-clés Groq avec rotation
+            - 🎨 Génération d'images illimitée
+            - 📈 Système de progression complet
+            
+            ## 📊 Informations
+            - **Taille**: ${{ steps.apk_info.outputs.apk_size }}
+            - **Version**: ${{ github.event.inputs.version || github.ref_name }}
+            - **Build ID**: ${{ steps.build.outputs.build_id }}
+            
+            ## 🚀 Premiers pas
+            1. Installez l'APK
+            2. Créez un compte Groq gratuit sur console.groq.com
+            3. Ajoutez vos clés API dans les Paramètres
+            4. Commencez à discuter !
+            
+            ## 📖 Documentation
+            Consultez le README.md pour plus d'informations.
+          files: |
+            roleplay-chat.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ✅ Build Summary
+        run: |
+          echo "### 🎉 Build Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build ID**: ${{ steps.build.outputs.build_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **APK Size**: ${{ steps.apk_info.outputs.apk_size }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Download URL**: [Click here](${{ steps.build.outputs.build_url }})" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,75 @@
+name: Build APK (Simple)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build:
+    name: Build and Release APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🔍 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: 🔧 Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🏗️ Build APK with EAS
+        run: |
+          eas build --platform android --profile preview --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📥 Get build artifact URL
+        id: get_url
+        run: |
+          # Get the latest build URL
+          BUILD_URL=$(eas build:list --platform android --limit 1 --json | jq -r '.[0].artifacts.buildUrl')
+          echo "build_url=$BUILD_URL" >> $GITHUB_OUTPUT
+          
+          # Download the APK
+          wget -O roleplay-chat-${{ github.event.inputs.version }}.apk "$BUILD_URL"
+
+      - name: 🏷️ Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: Roleplay Chat v${{ github.event.inputs.version }}
+          body: |
+            ## 🎉 Roleplay Chat - Version ${{ github.event.inputs.version }}
+            
+            ### 📱 Installation
+            1. Téléchargez `roleplay-chat-${{ github.event.inputs.version }}.apk`
+            2. Installez sur votre Android
+            3. Ajoutez vos clés API Groq
+            4. Profitez de 200 personnages !
+            
+            ### ✨ Nouveautés
+            - Application complète de roleplay
+            - 200 personnages diversifiés
+            - Système RP immersif
+            - Génération d'images AI
+            - Progression et relations
+          files: |
+            roleplay-chat-${{ github.event.inputs.version }}.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

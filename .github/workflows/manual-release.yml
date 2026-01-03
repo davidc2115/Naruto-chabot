@@ -1,0 +1,88 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number'
+        required: true
+        default: '1.0.0'
+      notes:
+        description: 'Release notes'
+        required: false
+        default: 'Release de l''application Roleplay Chat'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build APK
+        run: |
+          echo "Starting EAS build..."
+          eas build --platform android --profile preview --non-interactive
+
+      - name: Wait and download APK
+        run: |
+          echo "Waiting for build to complete..."
+          sleep 120
+          
+          # Get latest build
+          BUILD_URL=$(eas build:list --platform android --limit 1 --json | jq -r '.[0].artifacts.buildUrl')
+          
+          if [ "$BUILD_URL" != "null" ] && [ -n "$BUILD_URL" ]; then
+            echo "Downloading APK from: $BUILD_URL"
+            wget -O roleplay-chat.apk "$BUILD_URL"
+            ls -lh roleplay-chat.apk
+          else
+            echo "Error: Could not get build URL"
+            exit 1
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: Roleplay Chat v${{ github.event.inputs.version }}
+          body: |
+            ${{ github.event.inputs.notes }}
+            
+            ## 📱 Téléchargement
+            Téléchargez le fichier APK ci-dessous et installez-le sur votre appareil Android.
+            
+            ## 🚀 Installation
+            1. Téléchargez `roleplay-chat.apk`
+            2. Sur Android, activez "Sources inconnues" dans Paramètres > Sécurité
+            3. Installez l'APK
+            4. Ouvrez l'app et ajoutez vos clés API Groq (gratuit sur console.groq.com)
+            
+            ## ✨ Fonctionnalités
+            - 🎭 200 personnages uniques
+            - 💬 Système de roleplay immersif  
+            - 🔄 Multi-clés Groq avec rotation automatique
+            - 🎨 Génération d'images illimitée
+            - 📈 Système de progression (XP, niveaux, affection, confiance)
+            - 💾 Sauvegarde automatique
+          files: roleplay-chat.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
