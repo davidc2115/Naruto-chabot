@@ -27,10 +27,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
+          # DÉSACTIVER LE CACHE pour forcer un build frais
+          # cache: 'npm'
+
+      - name: 🗑️ Clean npm cache
+        run: npm cache clean --force
 
       - name: 📦 Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: 🔧 Setup Expo and EAS
         uses: expo/expo-github-action@v8
@@ -44,6 +48,10 @@ jobs:
       - name: 🏗️ Build APK with expect
         id: build_trigger
         run: |
+          # FORCER UN BUILD PROPRE - pas de cache
+          echo "🗑️ Clearing EAS cache..."
+          eas build:clear-cache || true
+          
           cat > build-auto.exp <<'EOFEXP'
           #!/usr/bin/expect -f
           set timeout 300
@@ -51,7 +59,8 @@ jobs:
           
           log_file -noappend build_output.log
           
-          spawn eas build --platform android --profile preview --no-wait
+          # FORCER UN BUILD SANS CACHE
+          spawn eas build --platform android --profile preview --no-wait --clear-cache
           
           expect {
               "Configure this project?" {
