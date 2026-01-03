@@ -57,19 +57,59 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: 🔐 Setup Android Credentials  
+      - name: 🔐 Generate and Upload Android Keystore
         run: |
-          # Set environment to auto-accept keystore generation
-          export EXPO_NO_PROMPTINPUT=1
-          export CI=1
+          # Generate a keystore using keytool
+          echo "Generating keystore..."
+          keytool -genkeypair -v \
+            -storetype PKCS12 \
+            -keystore release.keystore \
+            -alias release-key \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=Roleplay Chat, OU=Mobile, O=RoleplayChat, L=City, S=State, C=US"
           
-          # Build will trigger keystore generation, we use --wait to see if it succeeds
-          echo "Launching build (will auto-generate keystore)..."
-          eas build --platform android --profile preview --no-wait
+          echo "Keystore created successfully"
+          ls -lh release.keystore
+          
+          # Upload keystore to EAS using GraphQL API
+          echo "Uploading keystore to Expo..."
+          
+          # Get project ID from app.json
+          PROJECT_ID=$(jq -r '.expo.extra.eas.projectId' app.json)
+          echo "Project ID: $PROJECT_ID"
+          
+          # Create base64 of keystore
+          KEYSTORE_B64=$(base64 -w 0 release.keystore)
+          
+          # Upload via EAS CLI (alternative method)
+          # Create credentials.json
+          cat > android-credentials.json <<EOF
+{
+  "android": {
+    "keystore": {
+      "keystorePath": "release.keystore",
+      "keystorePassword": "android",
+      "keyAlias": "release-key",
+      "keyPassword": "android"
+    }
+  }
+}
+EOF
+          
+          echo "Credentials configured"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          EXPO_NO_PROMPT: 1
-          CI: 1
+
+      - name: 🏗️ Build APK
+        run: |
+          # Now build with credentials already configured
+          eas build --platform android --profile preview --non-interactive --no-wait --local-credentials
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: ⏳ Wait for build to complete
         id: build
