@@ -31,6 +31,20 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: 🎯 Initialize EAS Project
+        run: |
+          # Create app.json with a unique project ID based on repo
+          UNIQUE_ID=$(echo "$GITHUB_REPOSITORY" | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')
+          
+          # Update app.json with unique slug
+          jq --arg slug "$UNIQUE_ID" '.expo.slug = $slug' app.json > app.json.tmp && mv app.json.tmp app.json
+          
+          # Try to create/link EAS project
+          eas build:configure || true
+          eas init --id || true
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
       - name: 🏗️ Build APK with EAS
         run: |
           eas build --platform android --profile preview --non-interactive
