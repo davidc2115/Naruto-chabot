@@ -33,7 +33,17 @@ export default function ConversationScreen({ route, navigation }) {
     loadConversation();
     loadUserProfile();
     loadGallery();
-    navigation.setOptions({ title: character.name });
+    navigation.setOptions({
+      title: character.name,
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('CharacterDetail', { character })}
+          style={{ marginRight: 15 }}
+        >
+          <Text style={{ color: '#fff', fontSize: 16 }}>ℹ️</Text>
+        </TouchableOpacity>
+      ),
+    });
   }, [character]);
 
   const loadUserProfile = async () => {
@@ -298,11 +308,7 @@ export default function ConversationScreen({ route, navigation }) {
           </View>
           <TouchableOpacity
             style={styles.galleryButton}
-            onPress={() => Alert.alert(
-              '🖼️ Galerie',
-              `${gallery.length} image(s) sauvegardée(s)\n\n${gallery.length === 0 ? 'Générez des images pour les voir ici !' : gallery.slice(0, 3).map((_, i) => `• Image ${i + 1}`).join('\n')}`,
-              [{ text: 'OK' }]
-            )}
+            onPress={() => navigation.navigate('Gallery', { character })}
           >
             <Text style={styles.galleryButtonText}>🖼️ {gallery.length}</Text>
           </TouchableOpacity>

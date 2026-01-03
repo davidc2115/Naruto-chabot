@@ -11,6 +11,7 @@ import CharacterDetailScreen from './src/screens/CharacterDetailScreen';
 import ConversationScreen from './src/screens/ConversationScreen';
 import CreateCharacterScreen from './src/screens/CreateCharacterScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
+import GalleryScreen from './src/screens/GalleryScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -90,6 +91,15 @@ export default function App() {
           component={CreateCharacterScreen}
           options={{ 
             title: 'Créer un personnage',
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen 
+          name="Gallery" 
+          component={GalleryScreen}
+          options={{ 
+            title: 'Galerie',
             headerStyle: { backgroundColor: '#6366f1' },
             headerTintColor: '#fff',
           }}
