@@ -58,7 +58,9 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: 🏗️ Build APK
-        run: eas build --platform android --profile preview --non-interactive --no-wait
+        run: |
+          # Build will auto-generate credentials with credentialsSource: remote
+          eas build --platform android --profile preview --non-interactive --no-wait
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
