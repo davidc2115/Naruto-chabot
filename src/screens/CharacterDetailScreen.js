@@ -53,6 +53,12 @@ export default function CharacterDetailScreen({ route, navigation }) {
       setLoadingImage(true);
       const imageUrl = await ImageGenerationService.generateCharacterImage(character);
       setCharacterImage(imageUrl);
+      
+      // SAUVEGARDER l'image dans la galerie du personnage
+      await GalleryService.saveImageToGallery(character.id, imageUrl);
+      
+      // Recharger la galerie pour afficher la nouvelle image
+      await loadGallery();
     } catch (error) {
       console.error('Error generating image:', error);
     } finally {

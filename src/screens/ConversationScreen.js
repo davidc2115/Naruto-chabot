@@ -306,7 +306,7 @@ export default function ConversationScreen({ route, navigation }) {
     <KeyboardAvoidingView
       style={[styles.container, conversationBackground && { backgroundColor: 'transparent' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
     >
       {conversationBackground && (
         <Image
@@ -374,6 +374,8 @@ export default function ConversationScreen({ route, navigation }) {
           multiline
           maxLength={500}
           editable={!isLoading}
+          returnKeyType="default"
+          blurOnSubmit={false}
         />
         
         <TouchableOpacity
