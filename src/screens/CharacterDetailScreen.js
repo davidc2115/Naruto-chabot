@@ -87,6 +87,8 @@ export default function CharacterDetailScreen({ route, navigation }) {
                 character.gender === 'female' ? 'Femme' :
                 'Non-binaire'
               }
+              {character.gender === 'female' && character.bust && ` • Bonnet ${character.bust}`}
+              {character.gender === 'male' && character.penis && ` • ${character.penis}`}
             </Text>
           </View>
           <TouchableOpacity

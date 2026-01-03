@@ -37,7 +37,44 @@ class ImageGenerationService {
   }
 
   async generateCharacterImage(character) {
-    const prompt = `${character.gender === 'male' ? 'man' : character.gender === 'female' ? 'woman' : 'person'}, ${character.hairColor} hair, ${character.appearance}`;
+    // Construire le prompt avec les attributs anatomiques
+    let prompt = `${character.gender === 'male' ? 'handsome man' : 'beautiful woman'}, ${character.hairColor} hair, ${character.appearance}`;
+    
+    // Ajouter les attributs anatomiques de manière subtile
+    if (character.gender === 'female' && character.bust) {
+      const bustDescriptions = {
+        'A': 'petite',
+        'B': 'petite',
+        'C': 'medium',
+        'D': 'curvy',
+        'DD': 'voluptuous',
+        'E': 'voluptuous',
+        'F': 'very curvy',
+        'G': 'very curvy'
+      };
+      prompt += `, ${bustDescriptions[character.bust] || 'medium'} figure`;
+    }
+    
+    if (character.gender === 'male' && character.penis) {
+      // Pour les hommes, ajouter des descripteurs de physique général
+      prompt += `, athletic build, confident posture`;
+    }
+    
+    return await this.generateImage(prompt);
+  }
+  
+  async generateSceneImage(character, sceneDescription) {
+    // Générer une image basée sur le personnage dans une scène spécifique
+    let prompt = `${character.gender === 'male' ? 'man' : 'woman'}, ${character.hairColor} hair`;
+    
+    if (character.gender === 'female' && character.bust) {
+      const bustDesc = ['A', 'B'].includes(character.bust) ? 'slim' : 
+                       ['C', 'D'].includes(character.bust) ? 'curvy' : 'voluptuous';
+      prompt += `, ${bustDesc} figure`;
+    }
+    
+    prompt += `, ${sceneDescription}, detailed background`;
+    
     return await this.generateImage(prompt);
   }
 }

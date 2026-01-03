@@ -1,0 +1,42 @@
+Ajouts à faire dans CharacterDetailScreen.js:
+
+1. Import GalleryService en haut:
+import GalleryService from '../services/GalleryService';
+
+2. Ajouter state pour gallery:
+const [gallery, setGallery] = useState([]);
+
+3. Dans loadCharacterData, ajouter:
+const images = await GalleryService.getGallery(character.id);
+setGallery(images);
+
+4. Après generateCharacterImage, sauvegarder dans gallery:
+if (imageUrl) {
+  await GalleryService.saveImageToGallery(character.id, imageUrl);
+  const updatedGallery = await GalleryService.getGallery(character.id);
+  setGallery(updatedGallery);
+}
+
+5. Ajouter section galerie avant les boutons d'action:
+{gallery.length > 0 && (
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>📸 Galerie ({gallery.length})</Text>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      {gallery.map((img) => (
+        <Image
+          key={img.id}
+          source={{ uri: img.url }}
+          style={styles.galleryImage}
+        />
+      ))}
+    </ScrollView>
+  </View>
+)}
+
+6. Ajouter dans styles:
+galleryImage: {
+  width: 100,
+  height: 100,
+  borderRadius: 8,
+  marginRight: 8,
+},
