@@ -38,6 +38,20 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: 🎯 Generate EAS Project ID
+        run: |
+          # Generate a valid UUID v4
+          PROJECT_ID=$(cat /proc/sys/kernel/random/uuid)
+          echo "Generated Project ID: $PROJECT_ID"
+          
+          # Add projectId to app.json using jq
+          jq --arg id "$PROJECT_ID" '.expo.extra.eas.projectId = $id' app.json > app.json.tmp
+          mv app.json.tmp app.json
+          
+          echo "Updated app.json with projectId"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
       - name: 🏗️ Build APK
         run: eas build --platform android --profile preview --non-interactive --no-wait
         env:
