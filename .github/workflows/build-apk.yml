@@ -62,9 +62,10 @@ jobs:
                   send "y\r"
                   exp_continue
               }
-              -re "See logs: https://expo.dev/accounts/[^/]+/projects/[^/]+/builds/(\[a-f0-9-\]+)" {
+              -re {builds/([a-f0-9-]+)} {
                   set build_id $expect_out(1,string)
                   puts "\n✅ Build ID: $build_id\n"
+                  exp_continue
               }
               "Uploaded to EAS" {
                   puts "\n✅ Build uploaded successfully!\n"
