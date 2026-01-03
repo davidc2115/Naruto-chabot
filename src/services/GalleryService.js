@@ -7,22 +7,25 @@ class GalleryService {
       const existing = await AsyncStorage.getItem(key);
       const gallery = existing ? JSON.parse(existing) : [];
       
-      // Ajouter l'image avec timestamp
-      const newImage = {
-        url: imageUrl,
-        timestamp: Date.now(),
-        id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      };
+      // Vérifier si l'URL existe déjà
+      const urlExists = gallery.some(item => {
+        const url = typeof item === 'string' ? item : item.url;
+        return url === imageUrl;
+      });
       
-      gallery.unshift(newImage); // Ajouter au début
-      
-      // Limiter à 50 images par personnage
-      if (gallery.length > 50) {
-        gallery.pop();
+      if (!urlExists) {
+        // Ajouter simplement l'URL comme string (plus simple)
+        gallery.unshift(imageUrl);
+        
+        // Limiter à 50 images par personnage
+        if (gallery.length > 50) {
+          gallery.pop();
+        }
+        
+        await AsyncStorage.setItem(key, JSON.stringify(gallery));
       }
       
-      await AsyncStorage.setItem(key, JSON.stringify(gallery));
-      return newImage;
+      return imageUrl;
     } catch (error) {
       console.error('Error saving image to gallery:', error);
       throw error;
@@ -33,19 +36,31 @@ class GalleryService {
     try {
       const key = `gallery_${characterId}`;
       const data = await AsyncStorage.getItem(key);
-      return data ? JSON.parse(data) : [];
+      if (!data) return [];
+      
+      const gallery = JSON.parse(data);
+      // Retourner juste les URLs pour compatibilité
+      return gallery.map(item => typeof item === 'string' ? item : item.url);
     } catch (error) {
       console.error('Error getting gallery:', error);
       return [];
     }
   }
 
-  async deleteImage(characterId, imageId) {
+  async deleteImage(characterId, imageUrl) {
     try {
-      const gallery = await this.getGallery(characterId);
-      const updated = gallery.filter(img => img.id !== imageId);
-      await AsyncStorage.setItem(`gallery_${characterId}`, JSON.stringify(updated));
-      return updated;
+      const key = `gallery_${characterId}`;
+      const data = await AsyncStorage.getItem(key);
+      if (!data) return [];
+      
+      const gallery = JSON.parse(data);
+      // Filtrer par URL (compatible avec ancien et nouveau format)
+      const updated = gallery.filter(item => {
+        const url = typeof item === 'string' ? item : item.url;
+        return url !== imageUrl;
+      });
+      await AsyncStorage.setItem(key, JSON.stringify(updated));
+      return updated.map(item => typeof item === 'string' ? item : item.url);
     } catch (error) {
       console.error('Error deleting image:', error);
       throw error;
