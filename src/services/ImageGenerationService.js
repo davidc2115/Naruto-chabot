@@ -45,19 +45,19 @@ class ImageGenerationService {
     // Construire le prompt avec les attributs anatomiques
     let prompt = `${character.gender === 'male' ? 'handsome man' : 'beautiful woman'}, ${character.hairColor} hair, ${character.appearance}, adult, mature, 18+`;
     
-    // Ajouter les attributs anatomiques de manière subtile
+    // Ajouter les attributs anatomiques de manière EXPLICITE
     if (character.gender === 'female' && character.bust) {
       const bustDescriptions = {
-        'A': 'petite',
-        'B': 'petite',
-        'C': 'medium',
-        'D': 'curvy',
-        'DD': 'voluptuous',
-        'E': 'voluptuous',
-        'F': 'very curvy',
-        'G': 'very curvy'
+        'A': 'small breasts, petite chest, A cup',
+        'B': 'small breasts, B cup',
+        'C': 'medium breasts, C cup, balanced figure',
+        'D': 'large breasts, D cup, curvy figure',
+        'DD': 'very large breasts, DD cup, voluptuous figure',
+        'E': 'very large breasts, E cup, voluptuous and curvy',
+        'F': 'extremely large breasts, F cup, very curvy figure',
+        'G': 'extremely large breasts, G cup, very voluptuous'
       };
-      prompt += `, ${bustDescriptions[character.bust] || 'medium'} figure`;
+      prompt += `, ${bustDescriptions[character.bust] || 'medium breasts, C cup'}`;
     }
     
     if (character.gender === 'male' && character.penis) {
@@ -78,9 +78,17 @@ class ImageGenerationService {
     let prompt = `${character.gender === 'male' ? 'man' : 'woman'}, ${character.hairColor} hair, adult, mature`;
     
     if (character.gender === 'female' && character.bust) {
-      const bustDesc = ['A', 'B'].includes(character.bust) ? 'slim' : 
-                       ['C', 'D'].includes(character.bust) ? 'curvy' : 'voluptuous';
-      prompt += `, ${bustDesc} figure`;
+      const bustMap = {
+        'A': 'slim body, small chest, A cup breasts',
+        'B': 'slim body, small chest, B cup breasts',
+        'C': 'balanced figure, medium chest, C cup breasts',
+        'D': 'curvy figure, large chest, D cup breasts',
+        'DD': 'very curvy, very large chest, DD cup breasts',
+        'E': 'voluptuous figure, very large chest, E cup breasts',
+        'F': 'very voluptuous, extremely large chest, F cup breasts',
+        'G': 'extremely voluptuous, massive chest, G cup breasts'
+      };
+      prompt += `, ${bustMap[character.bust] || 'medium chest, C cup breasts'}`;
     }
     
     prompt += `, ${sceneDescription}, detailed background, 18+`;

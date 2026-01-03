@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
+import CustomCharacterService from '../services/CustomCharacterService';
 
 export default function CharacterDetailScreen({ route, navigation }) {
   const { character } = route.params;
@@ -46,6 +47,43 @@ export default function CharacterDetailScreen({ route, navigation }) {
 
   const startConversation = () => {
     navigation.navigate('Conversation', { character });
+  };
+
+  const handleEditCharacter = () => {
+    if (character.isCustom) {
+      navigation.navigate('CreateCharacter', { characterToEdit: character });
+    } else {
+      Alert.alert('Info', 'Seuls les personnages personnalisés peuvent être modifiés');
+    }
+  };
+
+  const handleDeleteCharacter = async () => {
+    if (!character.isCustom) {
+      Alert.alert('Info', 'Seuls les personnages personnalisés peuvent être supprimés');
+      return;
+    }
+
+    Alert.alert(
+      'Supprimer le personnage',
+      `Voulez-vous vraiment supprimer ${character.name} ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await CustomCharacterService.deleteCustomCharacter(character.id);
+              Alert.alert('Succès', 'Personnage supprimé', [
+                { text: 'OK', onPress: () => navigation.goBack() }
+              ]);
+            } catch (error) {
+              Alert.alert('Erreur', 'Impossible de supprimer le personnage');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const getRelationshipLevel = () => {
@@ -179,6 +217,23 @@ export default function CharacterDetailScreen({ route, navigation }) {
               {hasConversation ? '💬 Continuer la conversation' : '✨ Commencer la conversation'}
             </Text>
           </TouchableOpacity>
+
+          {character.isCustom && (
+            <View style={styles.customButtonsRow}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={handleEditCharacter}
+              >
+                <Text style={styles.editButtonText}>✏️ Modifier</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={handleDeleteCharacter}
+              >
+                <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </ScrollView>
@@ -351,5 +406,34 @@ const styles = StyleSheet.create({
     color: '#6366f1',
     fontWeight: '600',
     marginTop: 8,
+  },
+  customButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  editButton: {
+    flex: 1,
+    backgroundColor: '#f59e0b',
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  deleteButton: {
+    flex: 1,
+    backgroundColor: '#ef4444',
+    borderRadius: 12,
+    padding: 15,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });

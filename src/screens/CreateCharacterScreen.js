@@ -13,19 +13,22 @@ import {
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 
-export default function CreateCharacterScreen({ navigation }) {
-  const [name, setName] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('female');
-  const [hairColor, setHairColor] = useState('');
-  const [appearance, setAppearance] = useState('');
-  const [bust, setBust] = useState('C');
-  const [penis, setPenis] = useState('17');
-  const [personality, setPersonality] = useState('');
-  const [temperament, setTemperament] = useState('amical');
-  const [scenario, setScenario] = useState('');
-  const [startMessage, setStartMessage] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+export default function CreateCharacterScreen({ navigation, route }) {
+  const { characterToEdit } = route.params || {};
+  const isEditing = !!characterToEdit;
+
+  const [name, setName] = useState(characterToEdit?.name || '');
+  const [age, setAge] = useState(characterToEdit?.age?.toString() || '');
+  const [gender, setGender] = useState(characterToEdit?.gender || 'female');
+  const [hairColor, setHairColor] = useState(characterToEdit?.hairColor || '');
+  const [appearance, setAppearance] = useState(characterToEdit?.appearance || '');
+  const [bust, setBust] = useState(characterToEdit?.bust || 'C');
+  const [penis, setPenis] = useState(characterToEdit?.penis?.replace('cm', '') || '17');
+  const [personality, setPersonality] = useState(characterToEdit?.personality || '');
+  const [temperament, setTemperament] = useState(characterToEdit?.temperament || 'amical');
+  const [scenario, setScenario] = useState(characterToEdit?.scenario || '');
+  const [startMessage, setStartMessage] = useState(characterToEdit?.startMessage || '');
+  const [imageUrl, setImageUrl] = useState(characterToEdit?.imageUrl || '');
   const [generatingImage, setGeneratingImage] = useState(false);
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
@@ -79,10 +82,17 @@ export default function CreateCharacterScreen({ navigation }) {
         isCustom: true,
       };
 
-      await CustomCharacterService.saveCustomCharacter(character);
-      Alert.alert('Succès', 'Personnage créé !', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      if (isEditing) {
+        await CustomCharacterService.updateCustomCharacter(characterToEdit.id, character);
+        Alert.alert('Succès', 'Personnage modifié !', [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+      } else {
+        await CustomCharacterService.saveCustomCharacter(character);
+        Alert.alert('Succès', 'Personnage créé !', [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+      }
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de sauvegarder le personnage');
     }
@@ -90,7 +100,9 @@ export default function CreateCharacterScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Créer un personnage</Text>
+      <Text style={styles.title}>
+        {isEditing ? 'Modifier le personnage' : 'Créer un personnage'}
+      </Text>
 
       {/* Section Image */}
       <View style={styles.imageSection}>
