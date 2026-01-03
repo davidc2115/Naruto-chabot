@@ -13,6 +13,7 @@ import {
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
+import UserProfileService from '../services/UserProfileService';
 
 export default function CreateCharacterScreen({ navigation, route }) {
   const { characterToEdit } = route.params || {};
@@ -59,8 +60,11 @@ export default function CreateCharacterScreen({ navigation, route }) {
         penis: gender === 'male' ? `${penis}cm` : undefined,
       };
       
-      // Utiliser le service qui a les descriptions explicites
-      const url = await ImageGenerationService.generateCharacterImage(tempCharacter);
+      // Charger le profil utilisateur pour le mode NSFW
+      const profile = await UserProfileService.getProfile();
+      
+      // Utiliser le service qui a les descriptions explicites + mode NSFW
+      const url = await ImageGenerationService.generateCharacterImage(tempCharacter, profile);
       setImageUrl(url);
       Alert.alert('Succès', 'Image générée ! Vous pouvez maintenant sauvegarder le personnage.');
     } catch (error) {

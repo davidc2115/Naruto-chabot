@@ -164,11 +164,12 @@ export default function ConversationScreen({ route, navigation }) {
 
     setGeneratingImage(true);
     try {
-      // Create a prompt based on the last few messages
-      const recentMessages = messages.slice(-3).map(m => m.content).join(' ');
-      const prompt = `${character.appearance}, ${recentMessages}`;
-      
-      const imageUrl = await ImageGenerationService.generateImage(prompt);
+      // Utiliser generateSceneImage avec détection de tenue et mode NSFW
+      const imageUrl = await ImageGenerationService.generateSceneImage(
+        character,
+        userProfile,
+        messages
+      );
       
       // Sauvegarder dans la galerie
       await GalleryService.saveImageToGallery(character.id, imageUrl);

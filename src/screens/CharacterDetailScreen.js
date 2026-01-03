@@ -12,6 +12,7 @@ import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import CustomCharacterService from '../services/CustomCharacterService';
 import GalleryService from '../services/GalleryService';
+import UserProfileService from '../services/UserProfileService';
 
 export default function CharacterDetailScreen({ route, navigation }) {
   const { character } = route.params;
@@ -20,20 +21,28 @@ export default function CharacterDetailScreen({ route, navigation }) {
   const [characterImage, setCharacterImage] = useState(null);
   const [loadingImage, setLoadingImage] = useState(true);
   const [gallery, setGallery] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
     loadCharacterData();
     loadGallery();
+    loadUserProfile();
     generateCharacterImage();
     navigation.setOptions({ title: character.name });
     
     // Recharger la galerie quand on revient sur cet écran
     const unsubscribe = navigation.addListener('focus', () => {
       loadGallery();
+      loadUserProfile();
     });
     
     return unsubscribe;
   }, [character]);
+
+  const loadUserProfile = async () => {
+    const profile = await UserProfileService.getProfile();
+    setUserProfile(profile);
+  };
 
   const loadGallery = async () => {
     const images = await GalleryService.getGallery(character.id);
@@ -51,7 +60,9 @@ export default function CharacterDetailScreen({ route, navigation }) {
   const generateCharacterImage = async () => {
     try {
       setLoadingImage(true);
-      const imageUrl = await ImageGenerationService.generateCharacterImage(character);
+      // Charger le profil utilisateur pour le mode NSFW
+      const profile = userProfile || await UserProfileService.getProfile();
+      const imageUrl = await ImageGenerationService.generateCharacterImage(character, profile);
       setCharacterImage(imageUrl);
       
       // SAUVEGARDER l'image dans la galerie du personnage
