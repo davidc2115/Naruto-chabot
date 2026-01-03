@@ -78,11 +78,10 @@ export default function ConversationScreen({ route, navigation }) {
       setMessages(saved.messages);
       setRelationship(saved.relationship);
     } else {
-      // Start with character's initial message
+      // Start with character's initial message - PAS DE TIMESTAMP
       const initialMessage = {
         role: 'assistant',
         content: character.startMessage,
-        timestamp: new Date().toISOString(),
       };
       setMessages([initialMessage]);
       const rel = await StorageService.loadRelationship(character.id);
@@ -113,10 +112,10 @@ export default function ConversationScreen({ route, navigation }) {
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
 
+    // PAS DE TIMESTAMP - Groq ne l'accepte pas
     const userMessage = {
       role: 'user',
       content: inputText.trim(),
-      timestamp: new Date().toISOString(),
     };
 
     const updatedMessages = [...messages, userMessage];
@@ -136,10 +135,10 @@ export default function ConversationScreen({ route, navigation }) {
         userProfile
       );
 
+      // PAS DE TIMESTAMP - Groq ne l'accepte pas
       const assistantMessage = {
         role: 'assistant',
         content: response,
-        timestamp: new Date().toISOString(),
       };
 
       const finalMessages = [...updatedMessages, assistantMessage];
@@ -176,11 +175,11 @@ export default function ConversationScreen({ route, navigation }) {
       await GalleryService.saveImageToGallery(character.id, imageUrl);
       await loadGallery(); // Recharger la galerie
       
+      // PAS DE TIMESTAMP
       const imageMessage = {
         role: 'system',
         content: '[Image générée et sauvegardée dans la galerie]',
         image: imageUrl,
-        timestamp: new Date().toISOString(),
       };
 
       const updatedMessages = [...messages, imageMessage];
