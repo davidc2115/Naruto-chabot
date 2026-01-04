@@ -9,7 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import characters from '../data/characters';
+import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
@@ -38,8 +38,8 @@ export default function HomeScreen({ navigation }) {
 
   const loadAllCharacters = async () => {
     const customChars = await CustomCharacterService.getCustomCharacters();
-    // Combiner les personnages de base avec les personnages personnalisés
-    const combined = [...characters, ...customChars];
+    // Combiner les personnages de base (avec NSFW) avec les personnages personnalisés
+    const combined = [...enhancedCharacters, ...customChars];
     setAllCharacters(combined);
     
     // Charger les images de galerie pour tous les personnages
@@ -140,6 +140,19 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.subtitle}>{filteredCharacters.length} personnages disponibles</Text>
       </View>
 
+      {/* Bouton Carrousel Tinder-like */}
+      <TouchableOpacity
+        style={styles.carouselButton}
+        onPress={() => navigation.navigate('CharacterCarousel')}
+      >
+        <Text style={styles.carouselButtonIcon}>❤️</Text>
+        <View style={styles.carouselButtonContent}>
+          <Text style={styles.carouselButtonTitle}>Mode Découverte</Text>
+          <Text style={styles.carouselButtonSubtitle}>Swipe et découvre un par un</Text>
+        </View>
+        <Text style={styles.carouselButtonArrow}>→</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => navigation.navigate('CreateCharacter')}
@@ -224,7 +237,8 @@ const styles = StyleSheet.create({
   },
   createButton: {
     margin: 15,
-    marginTop: 10,
+    marginTop: 5,
+    marginBottom: 5,
     padding: 16,
     backgroundColor: '#10b981',
     borderRadius: 12,
@@ -239,6 +253,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  carouselButton: {
+    margin: 15,
+    marginTop: 10,
+    marginBottom: 5,
+    padding: 18,
+    backgroundColor: '#8b5cf6',
+    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  carouselButtonIcon: {
+    fontSize: 32,
+    marginRight: 15,
+  },
+  carouselButtonContent: {
+    flex: 1,
+  },
+  carouselButtonTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 2,
+  },
+  carouselButtonSubtitle: {
+    fontSize: 13,
+    color: '#e9d5ff',
+  },
+  carouselButtonArrow: {
+    fontSize: 28,
+    color: '#fff',
+    fontWeight: 'bold',
   },
   searchContainer: {
     padding: 15,

@@ -12,6 +12,7 @@ import ConversationScreen from './src/screens/ConversationScreen';
 import CreateCharacterScreen from './src/screens/CreateCharacterScreen';
 import UserProfileScreen from './src/screens/UserProfileScreen';
 import GalleryScreen from './src/screens/GalleryScreen';
+import CharacterCarouselScreen from './src/screens/CharacterCarouselScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -63,6 +64,16 @@ export default function App() {
     <NavigationContainer>
       <StatusBar style="auto" />
       <Stack.Navigator>
+        <Stack.Screen 
+          name="CharacterCarousel" 
+          component={CharacterCarouselScreen}
+          options={{ 
+            title: 'Découvrir',
+            headerStyle: { backgroundColor: '#8b5cf6' },
+            headerTintColor: '#fff',
+            headerShown: true
+          }}
+        />
         <Stack.Screen 
           name="MainTabs" 
           component={HomeTabs}
