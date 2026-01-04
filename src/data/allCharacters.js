@@ -1,5 +1,7 @@
-// Base de données complète avec 200 personnages de base + 100 personnages NSFW
+// Base de données complète avec 200 personnages de base + 100 NSFW + 50 Famille + 130 autres = 480 personnages
 import nsfwCharacters from './nsfwCharacters';
+import additionalNSFWCharacters from './additionalNSFWCharacters';
+import moreNSFWCharacters from './moreNSFWChars';
 
 // Ajouter des tags détaillés aux personnages existants (fonction helper)
 function enhanceCharacterTags(character) {
@@ -110,8 +112,8 @@ export const characters = [
   // ... (tous les autres personnages existants conservés)
 ];
 
-// COMBINER avec les 100 personnages NSFW
-const allCharacters = [...characters, ...nsfwCharacters];
+// COMBINER avec les 100 personnages NSFW + 50 Famille + 130 autres
+const allCharacters = [...characters, ...nsfwCharacters, ...additionalNSFWCharacters, ...moreNSFWCharacters];
 
 // Améliorer tous les tags
 export const enhancedCharacters = allCharacters.map(char => ({
