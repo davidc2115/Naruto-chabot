@@ -1,43 +1,39 @@
-# ✅ VERSION 1.7.0 - v1.6.6 FONCTIONNELLE (VRAIE VERSION QUI MARCHE)
+# ✅ VERSION 1.7.0 - v1.6.0 TARBALL EXACT (CODE SOURCE RELEASE)
 
 **Date**: 04/01/2026  
-**Version**: 1.7.0 (versionCode: 26)
+**Version**: 1.7.0 (versionCode: 27)
 
 ## 🎯 RÉSUMÉ
 
-**v1.7.0 = v1.6.6 EXACTEMENT IDENTIQUE**
+**v1.7.0 = CODE EXACT DU TARBALL v1.6.0**
 
-C'EST LA VERSION QUI FONCTIONNAIT IL Y A 2 HEURES !
+Source : https://api.github.com/repos/davidc2115/Naruto-chabot/tarball/v1.6.0
+Commit SHA : 051626d9a4624a13b5ebd52e0e071ef4f8546e9c
 
-## ✅ CONTENU v1.6.6
+## ✅ CODE SOURCE EXACT
 
-### 📊 481+ PERSONNAGES
+- Copié depuis le tarball officiel GitHub
+- Aucune modification du code
+- Imports sans .js (comme dans la release)
+- KeyboardAvoidingView présent
+- 480+ personnages
+
+## 📊 CONTENU
+
 - 200 SFW base
 - 100 NSFW originaux
 - 50 Famille NSFW
 - 30 MILF
 - 50 Fantasy
-- 51 Professionnels
+- 50 Professionnels
 
-### 🔧 CORRECTIONS v1.6.6
-- ✅ KeyboardAvoidingView présent (texte pas caché)
-- ✅ Imports corrects avec extensions .js
-- ✅ Galerie fonctionnelle
-- ✅ Carrousel fonctionnel
-- ✅ Conversations fonctionnelles
-- ✅ Mode NSFW optimisé
+## 🔧 CARACTÉRISTIQUES
 
-### 💬 Mode NSFW
-- Temperature 0.9
-- top_p 0.95
-- Badge 🔞 dans conversations
-- Prompt NSFW
-
-### 📱 Navigation
-- Liste personnages (écran principal)
+- Galerie fonctionnelle
 - Carrousel découverte
-- Galerie
-- Conversations
+- Conversations IA
+- Mode NSFW
+- KeyboardAvoidingView (clavier)
 
 ---
 
@@ -47,6 +43,6 @@ C'EST LA VERSION QUI FONCTIONNAIT IL Y A 2 HEURES !
 adb install -r roleplay-chat-v1.7.0.apk
 ```
 
-**✅ VERSION v1.6.6 - TOUT FONCTIONNE PARFAITEMENT**
+**✅ CODE EXACT DE LA RELEASE v1.6.0**
 
-Version : 1.7.0 | versionCode: 26 | Date : 04/01/2026
+Version : 1.7.0 | versionCode: 27 | Date : 04/01/2026
