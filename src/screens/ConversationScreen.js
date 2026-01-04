@@ -296,7 +296,7 @@ export default function ConversationScreen({ route, navigation }) {
             })}
           </View>
           <Text style={styles.timestamp}>
-            {new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            {item.timestamp ? new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
           </Text>
         </View>
       </View>

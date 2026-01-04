@@ -87,7 +87,12 @@ class GroqService {
           }
         );
 
-        return response.data.choices[0].message.content;
+        const generatedText = response.data.choices[0].message.content;
+        
+        // POST-TRAITEMENT: Éliminer les répétitions
+        const cleanedText = this.removeRepetitions(generatedText);
+        
+        return cleanedText;
       } catch (error) {
         console.error(`Attempt ${attempt + 1} failed:`, error.message);
         console.error('Error details:', error.response?.data || error);
@@ -135,6 +140,92 @@ class GroqService {
     }
   }
 
+  /**
+   * Élimine les répétitions de texte dans la réponse générée
+   */
+  removeRepetitions(text) {
+    // Séparer le texte en lignes
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    
+    // Détecter les phrases/segments entre * * ou " "
+    const segments = [];
+    let currentSegment = '';
+    let inAction = false;
+    let inDialogue = false;
+    
+    for (let char of text) {
+      currentSegment += char;
+      
+      if (char === '*') {
+        inAction = !inAction;
+        if (!inAction && currentSegment.trim().length > 2) {
+          segments.push(currentSegment.trim());
+          currentSegment = '';
+        }
+      } else if (char === '"') {
+        inDialogue = !inDialogue;
+        if (!inDialogue && currentSegment.trim().length > 2) {
+          segments.push(currentSegment.trim());
+          currentSegment = '';
+        }
+      } else if (char === '\n' && !inAction && !inDialogue && currentSegment.trim().length > 2) {
+        segments.push(currentSegment.trim());
+        currentSegment = '';
+      }
+    }
+    
+    if (currentSegment.trim().length > 2) {
+      segments.push(currentSegment.trim());
+    }
+    
+    // Éliminer les doublons exacts
+    const seen = new Set();
+    const uniqueSegments = [];
+    
+    for (let segment of segments) {
+      // Normaliser pour comparaison (enlever espaces multiples, casse)
+      const normalized = segment.toLowerCase().replace(/\s+/g, ' ').trim();
+      
+      // Ignorer les segments très courts (< 10 caractères)
+      if (normalized.length < 10) {
+        uniqueSegments.push(segment);
+        continue;
+      }
+      
+      // Vérifier si on a déjà vu ce segment (ou très similaire)
+      let isDuplicate = false;
+      for (let seenSegment of seen) {
+        // Calculer similarité (Jaccard simplifiée)
+        const similarity = this.calculateSimilarity(normalized, seenSegment);
+        if (similarity > 0.8) { // 80% de similarité = doublon
+          isDuplicate = true;
+          break;
+        }
+      }
+      
+      if (!isDuplicate) {
+        seen.add(normalized);
+        uniqueSegments.push(segment);
+      }
+    }
+    
+    // Reconstruire le texte sans répétitions
+    return uniqueSegments.join('\n').trim();
+  }
+
+  /**
+   * Calcule la similarité entre deux chaînes (Jaccard simplifié)
+   */
+  calculateSimilarity(str1, str2) {
+    const words1 = new Set(str1.split(' '));
+    const words2 = new Set(str2.split(' '));
+    
+    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const union = new Set([...words1, ...words2]);
+    
+    return intersection.size / union.size;
+  }
+
   buildSystemPrompt(character, userProfile = null) {
     let prompt = `Tu incarnes ${character.name}, un personnage avec les caractéristiques suivantes:
 
@@ -176,23 +267,35 @@ Tempérament: ${character.temperament}
 
     prompt += `\n\nScénario de base: ${character.scenario}
 
-RÈGLES DE ROLEPLAY (STRICT):
+RÈGLES DE ROLEPLAY (STRICTEMENT OBLIGATOIRES):
 1. FORMAT:
    - *astérisques* pour actions et pensées
    - "guillemets" pour paroles
    
-2. RÉPONSES COURTES:
-   - 2-4 phrases MAXIMUM
-   - PAS DE RÉPÉTITION des pensées/actions/paroles précédentes
-   - VARIE tes expressions, ne répète JAMAIS les mêmes formulations
-   - Une seule pensée OU une seule action par message
-   - Réponses NATURELLES et DIRECTES
+2. INTERDICTIONS ABSOLUES:
+   - NE RÉPÈTE JAMAIS le même texte deux fois dans ta réponse
+   - NE RÉPÈTE JAMAIS les mêmes pensées/actions/paroles
+   - NE RÉPÈTE JAMAIS les mêmes formulations
+   - Si tu as déjà écrit quelque chose, PASSE À AUTRE CHOSE
+   - VÉRIFIE ton texte avant de le renvoyer pour éliminer TOUTE répétition
    
-3. STYLE:
+3. LONGUEUR:
+   - 2-3 phrases MAXIMUM par réponse
+   - UNE SEULE pensée OU action par message
+   - Réponses COURTES, PRÉCISES et DIRECTES
+   - PAS de descriptions longues
+   
+4. VARIÉTÉ:
+   - Change tes expressions à CHAQUE message
+   - Utilise des mots DIFFÉRENTS à chaque fois
+   - INNOVE dans tes réponses
+   - NE te répète JAMAIS
+   
+5. STYLE:
    - Reste en personnage
    - Réagis au contexte immédiat
-   - Avance l'interaction, ne te répète pas
-   - Évite les descriptions longues`;
+   - Avance l'interaction
+   - Sois naturel et fluide`;
 
     if (userProfile?.username) {
       prompt += `\n- Appelle l'utilisateur par son nom (${userProfile.username}) parfois`;
@@ -201,6 +304,8 @@ RÈGLES DE ROLEPLAY (STRICT):
     if (!userProfile?.nsfwMode || !userProfile?.isAdult) {
       prompt += `\n- Garde un ton respectueux et approprié`;
     }
+    
+    prompt += `\n\nREMINDER: ABSOLUMENT AUCUNE RÉPÉTITION TOLÉRÉE. Vérifie ton texte!`;
 
     return prompt;
   }
