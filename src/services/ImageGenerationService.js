@@ -190,75 +190,106 @@ class ImageGenerationService {
   }
 
   /**
-   * MODE NSFW ULTRA-RÉALISTE (Suggestif, NON-EXPLICITE)
+   * MODE NSFW ULTRA-RÉALISTE (Suggestif, NON-EXPLICITE mais SEXY)
    */
   buildNSFWPrompt(character) {
     let nsfw = '';
     
     if (character.gender === 'female') {
-      // BASE NSFW FÉMININ
-      nsfw += ', sexy pose, sensual expression, seductive look, sultry gaze, alluring smile, provocative attitude';
-      nsfw += ', bedroom eyes, inviting expression, flirtatious look, suggestive body language, confident sexy pose';
+      // BASE NSFW FÉMININ - Plus explicite
+      nsfw += ', extremely sexy pose, highly sensual expression, intensely seductive look, sultry passionate gaze';
+      nsfw += ', alluring inviting smile, very provocative attitude, erotic energy';
+      nsfw += ', bedroom eyes, deeply inviting expression, intensely flirtatious look';
+      nsfw += ', suggestive sensual body language, confident sexy dominant pose';
       
-      // TENUE NSFW
-      nsfw += ', wearing revealing lingerie, sexy lace underwear, silk bra and panties set, transparent lingerie';
-      nsfw += ', delicate lace details, satin fabric, sheer material, elegant intimate wear';
-      nsfw += ', lingerie partially visible, straps showing, intimate clothing revealed';
+      // TENUE NSFW - Plus détaillée
+      nsfw += ', wearing very revealing lingerie, sexy transparent lace underwear, delicate silk bra and panties set';
+      nsfw += ', sheer see-through lingerie, lace details clearly visible, satin and silk fabric';
+      nsfw += ', extremely delicate intimate wear, luxury lingerie pieces';
+      nsfw += ', lingerie clearly visible and highlighted, straps prominently showing, intimate clothing fully revealed';
+      nsfw += ', transparent fabric showing skin beneath, lace patterns defined';
       
-      // POSE ET ATTITUDE
-      nsfw += ', sitting on bed edge, lying on silk sheets, reclining seductively, posed on bed';
-      nsfw += ', legs crossed elegantly, one leg raised, suggestive leg position, sensual body curve';
-      nsfw += ', looking over shoulder, arched back, sensual posture, inviting pose';
+      // POSE ET ATTITUDE - Plus suggestive
+      nsfw += ', sitting provocatively on bed edge, lying seductively on silk sheets';
+      nsfw += ', reclining in very seductive pose, positioned alluringly on luxurious bed';
+      nsfw += ', legs elegantly and suggestively crossed, one leg raised provocatively';
+      nsfw += ', highly suggestive leg position revealing thighs, very sensual body curve emphasized';
+      nsfw += ', looking seductively over shoulder, back beautifully arched, extremely sensual posture';
+      nsfw += ', inviting and open pose, body positioned to showcase curves';
       
-      // PEAU ET EXPOSITION
-      nsfw += ', smooth skin visible, shoulders exposed, décolleté visible, legs showing';
-      nsfw += ', midriff exposed, lower back visible, thighs visible, skin softly lit';
+      // PEAU ET EXPOSITION - Plus détaillée
+      nsfw += ', smooth flawless skin extensively visible, shoulders completely exposed and highlighted';
+      nsfw += ', décolleté prominently visible and emphasized, legs fully showing and featured';
+      nsfw += ', midriff fully exposed and toned, lower back visible and curved';
+      nsfw += ', thighs prominently visible and shapely, skin softly and romantically lit';
+      nsfw += ', silky smooth skin texture, body glistening subtly';
       
-      // EMPHASE POITRINE (selon taille)
+      // EMPHASE POITRINE (selon taille) - Plus direct
       if (character.bust) {
         if (['D', 'DD', 'E', 'F', 'G'].includes(character.bust)) {
-          nsfw += ', cleavage prominently displayed, breasts emphasized in lingerie, bust clearly defined through fabric';
-          nsfw += ', deep visible cleavage, breast curves highlighted, chest focal point, bustline emphasized';
-          nsfw += ', breasts pressed together, cleavage deepened, bust enhanced by pose';
+          nsfw += ', cleavage very prominently and dramatically displayed, breasts heavily emphasized in revealing lingerie';
+          nsfw += ', bust clearly and boldly defined through transparent fabric, very deep visible cleavage featured';
+          nsfw += ', breast curves strongly highlighted and showcased, chest as primary focal point';
+          nsfw += ', bustline powerfully emphasized, breasts pressed closely together creating dramatic cleavage';
+          nsfw += ', bust enhanced and accentuated by provocative pose, cleavage deepened intentionally';
+          nsfw += ', large bust clearly visible and centered, generous curves fully displayed';
         } else if (['B', 'C'].includes(character.bust)) {
-          nsfw += ', cleavage subtly visible, bust elegantly shown in lingerie, chest naturally defined';
-          nsfw += ', modest cleavage visible, breast curves delicately shown, natural bustline';
+          nsfw += ', cleavage tastefully yet clearly visible, bust elegantly and attractively shown in sexy lingerie';
+          nsfw += ', chest naturally and beautifully defined, visible cleavage subtly revealed';
+          nsfw += ', breast curves delicately and sensually shown, natural bustline emphasized';
+          nsfw += ', feminine curves highlighted by lingerie, bust presented attractively';
         }
       }
       
-      // AMBIANCE
-      nsfw += ', intimate bedroom setting, soft romantic lighting, warm ambient light, dim sensual lighting';
-      nsfw += ', silk sheets, luxurious bed, romantic atmosphere, intimate mood, seductive environment';
-      nsfw += ', candles in background, soft shadows, dreamy lighting, sensual ambiance';
+      // AMBIANCE - Plus immersive
+      nsfw += ', intimate romantic bedroom setting, soft sensual lighting creating shadows';
+      nsfw += ', warm amber ambient light, dim seductive lighting, candlelit atmosphere';
+      nsfw += ', luxury silk sheets in warm tones, sumptuous bed with plush pillows';
+      nsfw += ', romantic dreamy atmosphere, intimate private mood, highly seductive environment';
+      nsfw += ', candles glowing softly in background, soft shadows enhancing curves';
+      nsfw += ', dreamy bokeh lighting effect, sensual warm ambiance';
       
     } else if (character.gender === 'male') {
-      // BASE NSFW MASCULIN
-      nsfw += ', sexy masculine pose, seductive confident look, intense gaze, alluring smile, dominant attitude';
-      nsfw += ', powerful eyes, inviting expression, confident body language, alpha male presence';
+      // BASE NSFW MASCULIN - Plus intense
+      nsfw += ', very sexy masculine pose, intensely seductive confident look, powerful intense gaze';
+      nsfw += ', alluring attractive smile, dominant strong attitude, alpha male presence';
+      nsfw += ', powerful penetrating eyes, inviting masculine expression, confident dominant body language';
       
-      // TENUE NSFW
-      nsfw += ', shirtless, bare chest exposed, topless, muscular torso visible';
-      nsfw += ', wearing only tight underwear, boxer briefs visible, low-waisted pants, revealing clothing';
-      nsfw += ', abs clearly defined, chest muscles visible, defined v-line, muscular definition shown';
+      // TENUE NSFW - Plus révélateur
+      nsfw += ', completely shirtless, bare muscular chest fully exposed, topless revealing physique';
+      nsfw += ', wearing only very tight underwear, boxer briefs clearly visible and form-fitting';
+      nsfw += ', very low-waisted pants revealing v-line, extremely revealing clothing';
+      nsfw += ', abs sharply and clearly defined, chest muscles prominently visible';
+      nsfw += ', defined v-line clearly showing, muscular definition strongly showcased';
       
-      // POSE ET ATTITUDE
-      nsfw += ', standing confidently, leaning against wall, sitting on bed edge, reclining pose';
-      nsfw += ', hands behind head, arms crossed showing muscles, flexing subtly, powerful stance';
-      nsfw += ', looking intensely at camera, dominant gaze, confident posture, masculine presence';
+      // POSE ET ATTITUDE - Plus dominant
+      nsfw += ', standing very confidently and dominantly, leaning seductively against wall';
+      nsfw += ', sitting on bed edge in dominant pose, reclining in masculine powerful pose';
+      nsfw += ', hands behind head showing muscles, arms flexed displaying physique';
+      nsfw += ', flexing subtly but noticeably, powerful dominant stance';
+      nsfw += ', looking intensely directly at camera, very dominant gaze, supremely confident posture';
+      nsfw += ', masculine powerful presence, body positioned to show strength';
       
-      // PEAU ET MUSCLES
-      nsfw += ', tanned skin glistening, muscles defined by lighting, body highlighted, physique emphasized';
-      nsfw += ', six-pack abs visible, chest muscles defined, shoulders broad and muscular, arms toned';
-      nsfw += ', strong masculine features, rugged appeal, raw masculine energy';
+      // PEAU ET MUSCLES - Plus défini
+      nsfw += ', tanned skin glistening with subtle sheen, muscles sharply defined by dramatic lighting';
+      nsfw += ', body highlighted and showcased, physique heavily emphasized and featured';
+      nsfw += ', six-pack abs clearly visible and defined, chest muscles well-defined and prominent';
+      nsfw += ', shoulders broad muscular and powerful, arms toned and strong';
+      nsfw += ', strong masculine features, rugged masculine appeal, raw masculine sexual energy';
+      nsfw += ', muscular athletic body clearly visible, definition in every muscle';
       
-      // AMBIANCE
-      nsfw += ', intimate bedroom setting, masculine environment, moody lighting, dramatic shadows';
-      nsfw += ', soft warm light on skin, athletic aesthetic, seductive mood, intimate atmosphere';
+      // AMBIANCE - Plus virile
+      nsfw += ', intimate masculine bedroom setting, strong moody lighting, dramatic shadows emphasizing muscles';
+      nsfw += ', soft warm light highlighting skin and muscles, athletic powerful aesthetic';
+      nsfw += ', seductive intimate mood, sensual masculine atmosphere';
     }
     
-    // QUALITÉ FINALE
-    nsfw += ', ultra-realistic, high detail, professional photography style, magazine quality';
-    nsfw += ', tasteful sensual, artistic suggestive, elegant sexy, sophisticated intimate';
+    // QUALITÉ FINALE - Plus haute
+    nsfw += ', ultra-realistic photorealistic rendering, extremely high detail and definition';
+    nsfw += ', professional fashion photography style, high-end magazine quality aesthetic';
+    nsfw += ', cinematic lighting and composition, editorial quality image';
+    nsfw += ', tasteful yet very sensual, artistic yet suggestive, elegant yet very sexy';
+    nsfw += ', sophisticated intimate photography, luxury sensual aesthetic';
     
     return nsfw;
   }
