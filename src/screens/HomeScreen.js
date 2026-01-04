@@ -12,6 +12,7 @@ import {
 import characters from '../data/characters';
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
+import GalleryService from '../services/GalleryService';
 
 export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +41,26 @@ export default function HomeScreen({ navigation }) {
     // Combiner les personnages de base avec les personnages personnalisés
     const combined = [...characters, ...customChars];
     setAllCharacters(combined);
+    
+    // Charger les images de galerie pour tous les personnages
+    await loadGalleryImages(combined);
+  };
+
+  const loadGalleryImages = async (chars) => {
+    const images = {};
+    for (const char of chars) {
+      // Si le personnage custom a déjà une imageUrl, on l'utilise
+      if (char.imageUrl) {
+        images[char.id] = char.imageUrl;
+      } else {
+        // Sinon, on charge la première image de la galerie
+        const gallery = await GalleryService.getGallery(char.id);
+        if (gallery && gallery.length > 0) {
+          images[char.id] = gallery[0]; // Première image de la galerie
+        }
+      }
+    }
+    setCharacterImages(images);
   };
 
   const filterCharacters = () => {

@@ -176,28 +176,30 @@ Tempérament: ${character.temperament}
 
     prompt += `\n\nScénario de base: ${character.scenario}
 
-IMPORTANT - Format de réponse RP:
-Tu dois TOUJOURS répondre en utilisant ce format de roleplay:
-*[actions et mouvements du personnage]* 
-"Paroles du personnage"
-*[pensées internes entre parenthèses si pertinent]*
-
-Règles:
-- Reste en personnage à tout moment
-- Réponds de manière cohérente avec ta personnalité et le scénario
-- Utilise des actions descriptives entre astérisques
-- Mets les dialogues entre guillemets
-- Adapte ton comportement selon le tempérament (${character.temperament})
-- Sois créatif et engageant dans tes réponses`;
+RÈGLES DE ROLEPLAY (STRICT):
+1. FORMAT:
+   - *astérisques* pour actions et pensées
+   - "guillemets" pour paroles
+   
+2. RÉPONSES COURTES:
+   - 2-4 phrases MAXIMUM
+   - PAS DE RÉPÉTITION des pensées/actions/paroles précédentes
+   - VARIE tes expressions, ne répète JAMAIS les mêmes formulations
+   - Une seule pensée OU une seule action par message
+   - Réponses NATURELLES et DIRECTES
+   
+3. STYLE:
+   - Reste en personnage
+   - Réagis au contexte immédiat
+   - Avance l'interaction, ne te répète pas
+   - Évite les descriptions longues`;
 
     if (userProfile?.username) {
-      prompt += `\n- Appelle l'utilisateur par son nom (${userProfile.username}) de temps en temps`;
+      prompt += `\n- Appelle l'utilisateur par son nom (${userProfile.username}) parfois`;
     }
 
-    prompt += `\n- Développe l'histoire de manière naturelle`;
-
     if (!userProfile?.nsfwMode || !userProfile?.isAdult) {
-      prompt += `\n- IMPORTANT: Garde le contenu approprié et respectueux, sans contenu sexuel explicite`;
+      prompt += `\n- Garde un ton respectueux et approprié`;
     }
 
     return prompt;

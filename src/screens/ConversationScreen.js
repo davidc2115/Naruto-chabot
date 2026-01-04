@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontStyle: 'italic',
-    color: '#6b7280',
+    color: '#8b5cf6', // Violet pour actions/pensées (même couleur pour user et assistant)
     marginBottom: 3,
   },
   dialogueText: {
