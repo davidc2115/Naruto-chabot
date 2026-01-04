@@ -1,4 +1,5 @@
 import axios from 'axios';
+import CustomImageAPIService from './CustomImageAPIService';
 
 class ImageGenerationService {
   constructor() {
@@ -468,25 +469,41 @@ class ImageGenerationService {
   }
 
   /**
-   * Appelle l'API Pollinations avec gestion du rate limiting
+   * Appelle l'API Pollinations ou l'API personnalisée avec gestion du rate limiting
    */
   async generateImage(prompt) {
+    // Charger la config de l'API personnalisée
+    await CustomImageAPIService.loadConfig();
+    
     let lastError = null;
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
         console.log(`🎨 Tentative ${attempt}/${this.maxRetries} de génération d'image...`);
         
-        // Attendre pour éviter le rate limiting
-        await this.waitForRateLimit();
+        // Attendre pour éviter le rate limiting (seulement pour Pollinations)
+        if (!CustomImageAPIService.hasCustomApi()) {
+          await this.waitForRateLimit();
+        }
         
         const encodedPrompt = encodeURIComponent(prompt);
         
         // Ajouter un seed aléatoire pour varier les images
         const seed = Date.now() + Math.floor(Math.random() * 10000);
         
-        // Utiliser plusieurs paramètres pour améliorer la qualité
-        const imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
+        // Utiliser l'API personnalisée ou Pollinations
+        let imageUrl;
+        if (CustomImageAPIService.hasCustomApi()) {
+          console.log('🏠 Utilisation de l\'API personnalisée');
+          imageUrl = CustomImageAPIService.buildImageUrl(prompt, {
+            width: 768,
+            height: 768,
+            seed: seed,
+          });
+        } else {
+          // Utiliser plusieurs paramètres pour améliorer la qualité
+          imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
+        }
         
         console.log(`🔗 URL générée (longueur: ${imageUrl.length})`);
         

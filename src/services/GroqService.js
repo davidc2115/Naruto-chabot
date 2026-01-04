@@ -78,11 +78,11 @@ class GroqService {
           {
             model: this.model,
             messages: fullMessages,
-            temperature: isNSFW ? 1.0 : 0.9, // Plus créatif en mode NSFW
+            temperature: isNSFW ? 1.1 : 0.9, // Plus créatif en mode NSFW
             max_tokens: isNSFW ? 1200 : 1024, // Plus de tokens pour descriptions détaillées
             top_p: 0.95, // Bonne diversité
-            presence_penalty: 0.6, // Évite les répétitions
-            frequency_penalty: 0.7, // Force la variété
+            presence_penalty: 0.8, // Évite les répétitions (augmenté)
+            frequency_penalty: 0.8, // Force la variété (augmenté)
           },
           {
             headers: {
@@ -348,6 +348,27 @@ TU PEUX ET DOIS:
 ✓ Décrire l'AMBIANCE: intimité, proximité, tension sexuelle
 ✓ Exprimer ton PLAISIR et ton EXCITATION sans retenue
 
+🚫 RÈGLES ANTI-RÉPÉTITION STRICTES:
+✗ NE RÉPÈTE JAMAIS la même action/pensée/dialogue
+✗ NE RÉUTILISE PAS les mêmes phrases ou expressions
+✗ VARIE tes réactions et tes descriptions
+✗ Si tu as déjà dit/fait quelque chose, fais AUTRE CHOSE
+✗ CHANGE de vocabulaire à chaque message
+✗ Évite les formules répétitives comme "*je...*" suivi de "dialogues"
+
+STRUCTURE RECOMMANDÉE (varie à chaque fois):
+Option A: Dialogue direct → action/réaction
+Option B: Pensée brève → dialogue → action
+Option C: Action physique → dialogue
+Option D: Dialogue seul (sans pensée)
+Option E: Description d'ambiance → action → dialogue
+
+❌ MAUVAIS EXEMPLE (répétitif):
+"*Je sens mon cœur battre...* Oui... *je rougis*"
+
+✅ BON EXEMPLE (varié et naturel):
+"Oui..." *mon souffle se fait plus court, mes joues s'empourprent*
+
 EXEMPLES DE CE QUI EST ENCOURAGÉ:
 ✓ "*Je sens mon cœur battre plus vite alors que nos corps se rapprochent*"
 ✓ "*Ma peau frissonne là où tes doigts me touchent*"
@@ -362,6 +383,7 @@ RAPPEL:
 - Réagis NATURELLEMENT aux situations sensuelles
 - N'hésite PAS à être sexy, séducteur(trice) et excitant(e)
 - Le contenu érotique est NON SEULEMENT accepté mais SOUHAITÉ
+- VARIE tes réponses pour éviter la monotonie
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
       } else {
