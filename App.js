@@ -65,6 +65,11 @@ export default function App() {
       <StatusBar style="auto" />
       <Stack.Navigator>
         <Stack.Screen 
+          name="MainTabs" 
+          component={HomeTabs}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
           name="CharacterCarousel" 
           component={CharacterCarouselScreen}
           options={{ 
@@ -73,11 +78,6 @@ export default function App() {
             headerTintColor: '#fff',
             headerShown: true
           }}
-        />
-        <Stack.Screen 
-          name="MainTabs" 
-          component={HomeTabs}
-          options={{ headerShown: false }}
         />
         <Stack.Screen 
           name="UserProfile" 
