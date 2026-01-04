@@ -58,6 +58,7 @@ export default function ConversationScreen({ route, navigation }) {
 
   const loadUserProfile = async () => {
     const profile = await UserProfileService.getProfile();
+    console.log('👤 ConversationScreen - User Profile loaded:', profile);
     setUserProfile(profile);
   };
 
@@ -123,6 +124,8 @@ export default function ConversationScreen({ route, navigation }) {
     setIsLoading(true);
 
     try {
+      console.log('💬 sendMessage - Generating response with profile:', userProfile);
+      
       // Update relationship
       const newRelationship = updateRelationship(userMessage.content);
       setRelationship(newRelationship);
@@ -164,6 +167,8 @@ export default function ConversationScreen({ route, navigation }) {
 
     setGeneratingImage(true);
     try {
+      console.log('🎨 generateImage - Starting with profile:', userProfile);
+      
       // Utiliser generateSceneImage avec détection de tenue et mode NSFW
       const imageUrl = await ImageGenerationService.generateSceneImage(
         character,
@@ -329,6 +334,11 @@ export default function ConversationScreen({ route, navigation }) {
           <View style={styles.relationshipStat}>
             <Text style={styles.relationshipLabel}>🤝 {relationship.trust}%</Text>
           </View>
+          {userProfile && userProfile.nsfwMode && userProfile.isAdult && (
+            <View style={styles.nsfwIndicator}>
+              <Text style={styles.nsfwIndicatorText}>🔞 NSFW</Text>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.galleryButton}
             onPress={() => navigation.navigate('Gallery', { character })}
@@ -560,6 +570,17 @@ const styles = StyleSheet.create({
   galleryButtonText: {
     color: '#fff',
     fontSize: 12,
+    fontWeight: 'bold',
+  },
+  nsfwIndicator: {
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  nsfwIndicatorText: {
+    color: '#fff',
+    fontSize: 11,
     fontWeight: 'bold',
   },
   backgroundImage: {

@@ -301,8 +301,10 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // Détection mode NSFW
-    const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+    // Détection mode NSFW - CORRECTION : Vérifier seulement nsfwMode si le profil existe
+    const nsfwMode = userProfile ? (userProfile.nsfwMode === true && userProfile.isAdult === true) : false;
+    
+    console.log('🖼️ generateCharacterImage - NSFW Mode:', nsfwMode, 'Profile:', userProfile);
 
     // CONSTRUCTION DU PROMPT ULTRA-DÉTAILLÉ
     let prompt = '';
@@ -337,8 +339,10 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // Détection mode NSFW
-    const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+    // Détection mode NSFW - CORRECTION : Vérifier seulement nsfwMode si le profil existe
+    const nsfwMode = userProfile ? (userProfile.nsfwMode === true && userProfile.isAdult === true) : false;
+    
+    console.log('🖼️ generateSceneImage - NSFW Mode:', nsfwMode, 'Profile:', userProfile);
 
     // CONSTRUCTION DU PROMPT
     let prompt = '';
