@@ -13,14 +13,13 @@ on:
           - preview
           - production
   
-  # Déclenchement automatique sur push de tags
+  # Déclenchement automatique sur push
   push:
+    # Sur les tags v1.7.* et 7.*
     tags:
       - 'v1.7.*'
       - '7.*'
-  
-  # Déclenchement sur push sur la branche
-  push:
+    # Sur la branche (avec filtres de chemins)
     branches:
       - 'cursor/version-1-6-0-build-7-1-f7fd'
     paths:
