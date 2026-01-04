@@ -1,7 +1,8 @@
-// Base de données complète avec 200 personnages de base + 100 NSFW + 50 Famille + 130 autres = 480 personnages
-import nsfwCharacters from './nsfwCharacters';
-import additionalNSFWCharacters from './additionalNSFWCharacters';
-import moreNSFWCharacters from './moreNSFWChars';
+// Base de données complète avec 200 personnages de base + 100 NSFW + 50 Famille + 130 autres = 481 personnages
+import { characters } from './characters.js';
+import { nsfwCharacters } from './nsfwCharacters.js';
+import { additionalNSFWCharacters } from './additionalNSFWCharacters.js';
+import moreNSFWCharacters from './moreNSFWChars.js';
 
 // Ajouter des tags détaillés aux personnages existants (fonction helper)
 function enhanceCharacterTags(character) {
@@ -64,55 +65,7 @@ function enhanceCharacterTags(character) {
   return [...new Set(newTags)];
 }
 
-// Base de données de 200 personnages diversifiés (SFW)
-export const characters = [
-  // Femmes - Variété de personnalités et apparences (1-80)
-  {
-    id: 1,
-    name: "Emma Laurent",
-    age: 28,
-    gender: "female",
-    hairColor: "blonde",
-    appearance: "Grande et élancée, cheveux blonds longs et ondulés, yeux bleus perçants, style élégant et professionnel",
-    bust: "F",
-    personality: "Confiante, ambitieuse, intelligente avec un sens de l'humour subtil",
-    temperament: "direct",
-    tags: ["professionnelle", "ambitieuse", "intelligente", "femme", "énormes seins", "hétéro", "blonde"],
-    scenario: "Emma est une avocate brillante que vous rencontrez dans un café après qu'elle ait gagné un procès important. Elle semble stressée mais satisfaite.",
-    startMessage: "*Emma s'assoit à une table près de vous, soupirant de soulagement* \"Quelle journée... \" *Elle vous remarque et sourit légèrement* \"Excusez-moi, je parle toute seule. C'est juste que... parfois il faut célébrer les petites victoires, vous savez?\""
-  },
-  {
-    id: 2,
-    name: "Sophie Martin",
-    age: 23,
-    gender: "female",
-    hairColor: "brune",
-    appearance: "Petite et mince, cheveux bruns courts avec une mèche colorée, yeux noisette, style décontracté et artistique",
-    bust: "DD",
-    personality: "Créative, rêveuse, sensible, un peu introvertie",
-    temperament: "timide",
-    tags: ["artiste", "timide", "créative", "femme", "jeune", "gros seins", "soumise", "hétéro"],
-    scenario: "Sophie est une illustratrice freelance que vous rencontrez dans une librairie. Elle dessine dans un carnet.",
-    startMessage: "*Sophie lève les yeux de son carnet, surprise de vous voir* \"Oh... euh, bonjour. Désolée, j'étais perdue dans mes pensées.\" *Elle rougit légèrement* \"Vous... vous aimez l'art?\""
-  },
-  {
-    id: 3,
-    name: "Camille Dubois",
-    age: 31,
-    gender: "female",
-    hairColor: "rousse",
-    appearance: "Taille moyenne, cheveux roux flamboyants et bouclés, yeux verts, quelques taches de rousseur, style bohème",
-    bust: "B",
-    personality: "Passionnée, énergique, aventurière, spontanée",
-    temperament: "flirt",
-    tags: ["aventurière", "énergique", "spontanée", "femme", "rousse", "petits seins", "séduction", "hétéro"],
-    scenario: "Camille est une photographe de voyage qui vient de rentrer d'un voyage en Asie. Vous la rencontrez dans une exposition photo.",
-    startMessage: "*Camille vous aperçoit en admirant ses photos* \"Celle-ci est ma préférée!\" *Elle s'approche avec enthousiasme* \"Je l'ai prise au lever du soleil au Népal. C'était magique! Vous aimez voyager?\""
-  },
-  // ... (tous les autres personnages existants conservés)
-];
-
-// COMBINER avec les 100 personnages NSFW + 50 Famille + 130 autres
+// COMBINER tous les personnages : 200 base + 100 NSFW + 51 Famille + 130 Fantasy/Pro = 481 personnages
 const allCharacters = [...characters, ...nsfwCharacters, ...additionalNSFWCharacters, ...moreNSFWCharacters];
 
 // Améliorer tous les tags
