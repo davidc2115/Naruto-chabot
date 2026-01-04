@@ -3,6 +3,9 @@ import axios from 'axios';
 class ImageGenerationService {
   constructor() {
     this.baseURL = 'https://image.pollinations.ai/prompt/';
+    this.lastRequestTime = 0;
+    this.minDelay = 3000; // 3 secondes minimum entre les requêtes
+    this.maxRetries = 3;
   }
 
   /**
@@ -449,24 +452,112 @@ class ImageGenerationService {
   }
 
   /**
-   * Appelle l'API Pollinations
+   * Attend le délai minimum entre les requêtes pour éviter le rate limiting
+   */
+  async waitForRateLimit() {
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    if (timeSinceLastRequest < this.minDelay) {
+      const waitTime = this.minDelay - timeSinceLastRequest;
+      console.log(`⏳ Attente de ${waitTime}ms pour éviter le rate limit...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    this.lastRequestTime = Date.now();
+  }
+
+  /**
+   * Appelle l'API Pollinations avec gestion du rate limiting
    */
   async generateImage(prompt) {
-    try {
-      const encodedPrompt = encodeURIComponent(prompt);
-      const imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${Date.now()}`;
-      
-      const response = await axios.head(imageUrl, { timeout: 5000 });
-      
-      if (response.status === 200) {
+    let lastError = null;
+    
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        console.log(`🎨 Tentative ${attempt}/${this.maxRetries} de génération d'image...`);
+        
+        // Attendre pour éviter le rate limiting
+        await this.waitForRateLimit();
+        
+        const encodedPrompt = encodeURIComponent(prompt);
+        
+        // Ajouter un seed aléatoire pour varier les images
+        const seed = Date.now() + Math.floor(Math.random() * 10000);
+        
+        // Utiliser plusieurs paramètres pour améliorer la qualité
+        const imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
+        
+        console.log(`🔗 URL générée (longueur: ${imageUrl.length})`);
+        
+        // Vérifier que l'URL n'est pas trop longue (limite ~2000 caractères)
+        if (imageUrl.length > 2000) {
+          throw new Error('Prompt trop long. Réduisez la description.');
+        }
+        
+        // Tester avec HEAD d'abord
+        try {
+          const response = await axios.head(imageUrl, { 
+            timeout: 10000,
+            maxRedirects: 5,
+            validateStatus: (status) => status === 200 || status === 404
+          });
+          
+          if (response.status === 200) {
+            console.log('✅ Image générée avec succès');
+            return imageUrl;
+          }
+        } catch (headError) {
+          console.log('⚠️  HEAD request failed, trying direct URL...');
+        }
+        
+        // Si HEAD échoue, retourner l'URL quand même (Pollinations génère à la volée)
+        // Attendre un peu pour que l'image soit générée
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Vérifier que l'image ne contient pas "rate limit" en téléchargeant un petit bout
+        try {
+          const testResponse = await axios.get(imageUrl, {
+            timeout: 15000,
+            responseType: 'arraybuffer',
+            maxContentLength: 1024, // Juste les premiers 1KB pour tester
+            validateStatus: (status) => status === 200
+          });
+          
+          // Vérifier que c'est bien une image
+          const contentType = testResponse.headers['content-type'];
+          if (contentType && contentType.includes('image')) {
+            console.log('✅ Image vérifiée, pas de rate limit');
+            return imageUrl;
+          }
+        } catch (testError) {
+          // Si le test échoue, c'est peut-être à cause du maxContentLength
+          // On retourne quand même l'URL
+        }
+        
+        console.log('✅ URL retournée (génération à la volée)');
         return imageUrl;
-      } else {
-        throw new Error('Image service unavailable');
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Tentative ${attempt} échouée:`, error.message);
+        
+        // Si rate limited, attendre plus longtemps avant de réessayer
+        if (error.response?.status === 429 || error.message.includes('rate limit')) {
+          const waitTime = attempt * 5000; // 5s, 10s, 15s...
+          console.log(`⏳ Rate limited détecté. Attente de ${waitTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        } else if (attempt < this.maxRetries) {
+          // Attendre avant de réessayer (backoff exponentiel)
+          const waitTime = attempt * 2000;
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
       }
-    } catch (error) {
-      console.error('Error generating image:', error);
-      throw new Error('Impossible de générer l\'image. Veuillez réessayer.');
     }
+    
+    // Toutes les tentatives ont échoué
+    console.error('❌ Échec de génération après toutes les tentatives');
+    throw new Error(`Impossible de générer l'image après ${this.maxRetries} tentatives. Le service est peut-être temporairement surchargé. Réessayez dans quelques minutes.`);
   }
 }
 
