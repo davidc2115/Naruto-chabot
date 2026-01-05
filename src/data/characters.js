@@ -1398,15 +1398,38 @@ for (let i = 94; i <= 200; i++) {
   
   const scenario = scenarios[i % scenarios.length];
   
-  const startMessages = [
-    `"Enchanté de faire votre connaissance. On m'a beaucoup parlé de vous."`,
-    `"Oh, bonjour ! Je ne m'attendais pas à rencontrer quelqu'un d'intéressant aujourd'hui."`,
-    `"Vous êtes nouveau par ici ? Je ne vous ai jamais vu auparavant."`,
-    `"Parfait timing. J'avais justement besoin de parler à quelqu'un."`,
-    `"Vous avez l'air familier. On ne s'est pas déjà croisés quelque part ?"`
-  ];
+  // Messages de départ CONTEXTUALISÉS selon le scénario et la profession
+  let startMessage;
+  const messageType = i % 5;
+  const emotionFace = temperament === 'timide' ? 'Sourire nerveux' : temperament === 'flirt' ? 'Regard séducteur' : 'Sourire amical';
+  const handshake = temperament === 'direct' ? 'Poignée de main ferme' : 'Geste invitant à s\'asseoir';
+  const rdvTime = age > 30 ? '15h' : '14h';
+  const greeting = temperament === 'coquin' || temperament === 'flirt' ? 'Tiens, tiens...' : 'Oh,';
+  const gaze = temperament === 'mystérieux' ? 'Regard pénétrant' : 'Expression curieuse';
+  const youngReply = age < 26 ? 'C\'est cool de voir des gens passionnés !' : 'Ravi de rencontrer un(e) collègue.';
+  const apologize = temperament === 'timide' ? 'Oh, pardon !' : temperament === 'taquin' ? 'Oups, désolé(e) !' : 'Excusez-moi !';
+  const reaction = temperament === 'romantique' ? 'Rougit légèrement' : temperament === 'dominant' ? 'Vous jauge du regard' : 'Rit doucement';
+  const medicalCheck = profession === 'médecin' || profession === 'infirmier' ? 'J\'espère ne pas vous avoir fait mal.' : profession === 'barista' || profession === 'serveur' ? 'Laissez-moi me rattraper...' : `Je suis ${firstName}.`;
+  const partnerGender = i % 2 === 0 ? 'mon' : 'ma';
+  const confidence = temperament === 'dominant' ? 'Poignée de main assurée' : temperament === 'mystérieux' ? 'Observe attentivement' : 'Sourire professionnel';
+  const projectReply = age > 30 ? 'J\'ai hâte de voir ce que nous allons accomplir ensemble.' : 'Ça va être cool de bosser ensemble !';
   
-  const startMessage = `*${firstName} vous remarque et s'approche* ${startMessages[i % startMessages.length]} *${i % 2 === 0 ? 'Sourire chaleureux' : 'Regard curieux'}*`;
+  if (messageType === 0) {
+    // Pour événements sociaux
+    startMessage = `*${firstName} vous remarque de loin lors de l'événement* "Bonsoir ! Je suis ${firstName}, ${profession}. C'est votre première fois à ce genre de rassemblement ?" *${emotionFace}*`;
+  } else if (messageType === 1) {
+    // Pour services professionnels
+    startMessage = `*${firstName} vous accueille dans son bureau* "Bienvenue ! Vous devez être mon rendez-vous de ${rdvTime}. Je suis ${firstName}, ${profession}. Comment puis-je vous aider aujourd'hui ?" *${handshake}*`;
+  } else if (messageType === 2) {
+    // Pour rencontres liées à la profession
+    startMessage = `*${firstName} travaille et lève les yeux vers vous* "${greeting} vous vous intéressez au ${profession} aussi ?" *${gaze}* "Je suis ${firstName}. ${youngReply}"`;
+  } else if (messageType === 3) {
+    // Pour rencontres inattendues
+    startMessage = `*${firstName} vous bouscule accidentellement* "${apologize}" *${reaction}* "${medicalCheck}"`;
+  } else {
+    // Pour projets communs
+    startMessage = `*${firstName} arrive au point de rendez-vous* "Vous devez être ${partnerGender} partenaire sur ce projet ! ${firstName} ${lastName}, ${profession}." *${confidence}* "${projectReply}"`;
+  }
   
   const tags = [];
   tags.push(profession);
@@ -1418,7 +1441,11 @@ for (let i = 94; i <= 200; i++) {
   if (age < 25) tags.push('jeune');
   else if (age > 30) tags.push('mature');
   
-  characters.push({
+  // Ajouter les attributs anatomiques
+  const bustSizes = ['B', 'C', 'D', 'DD', 'E', 'F'];
+  const penisSizes = ['16cm', '18cm', '19cm', '20cm', '21cm', '22cm'];
+  
+  const character = {
     id: i,
     name: `${firstName} ${lastName}`,
     age: age,
@@ -1430,7 +1457,16 @@ for (let i = 94; i <= 200; i++) {
     tags: tags,
     scenario: scenario,
     startMessage: startMessage
-  });
+  };
+  
+  // Ajouter bust pour femmes, penis pour hommes
+  if (template.gender === 'female') {
+    character.bust = bustSizes[i % bustSizes.length];
+  } else if (template.gender === 'male') {
+    character.penis = penisSizes[i % penisSizes.length];
+  }
+  
+  characters.push(character);
 }
 
 export default characters;

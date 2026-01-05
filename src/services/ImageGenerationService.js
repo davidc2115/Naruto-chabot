@@ -523,7 +523,7 @@ class ImageGenerationService {
             const testResponse = await axios.get(imageUrl, {
               timeout: 60000, // 60 secondes pour la génération
               responseType: 'arraybuffer',
-              maxContentLength: 50000, // 50KB pour tester
+              maxContentLength: 10485760, // 10 MB pour les images complètes
               validateStatus: (status) => status === 200
             });
             
@@ -537,6 +537,30 @@ class ImageGenerationService {
             }
           } catch (error) {
             console.error('❌ Erreur API personnalisée:', error.message);
+            // Si l'API personnalisée échoue, essayer Pollinations en fallback
+            console.log('🔄 Tentative avec Pollinations en fallback...');
+            
+            try {
+              const pollinationsUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
+              console.log('🌐 URL Pollinations:', pollinationsUrl.substring(0, 100) + '...');
+              
+              await this.waitForRateLimit();
+              await new Promise(resolve => setTimeout(resolve, 3000));
+              
+              const pollinationsTest = await axios.head(pollinationsUrl, {
+                timeout: 15000,
+                maxRedirects: 5,
+                validateStatus: (status) => status === 200 || status === 404
+              });
+              
+              if (pollinationsTest.status === 200) {
+                console.log('✅ Image générée avec Pollinations (fallback)');
+                return pollinationsUrl;
+              }
+            } catch (fallbackError) {
+              console.error('❌ Fallback Pollinations échoué:', fallbackError.message);
+            }
+            
             throw new Error(`API personnalisée: ${error.message}`);
           }
         } else {
