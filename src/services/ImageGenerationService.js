@@ -598,28 +598,17 @@ class ImageGenerationService {
     console.log(`🔗 URL Freebox (${imageUrl.length} chars):`, imageUrl.substring(0, 100) + '...');
     
     try {
-      // Vérifier que l'image est accessible (timeout long pour la génération)
-      const testResponse = await axios.get(imageUrl, {
-        timeout: 60000, // 60 secondes pour la génération
-        responseType: 'arraybuffer',
-        maxContentLength: 10485760, // 10 MB pour les images complètes
-        validateStatus: (status) => status === 200
-      });
+      // IMPORTANT: Vérification légère pour Freebox
+      // L'API Freebox retourne l'URL directement, pas besoin de vérifier avec axios.get
+      // qui peut causer des timeouts inutiles
       
-      // Vérifier que c'est bien une image
-      const contentType = testResponse.headers['content-type'];
-      if (contentType && contentType.includes('image')) {
-        console.log('✅ Image générée avec succès depuis API Freebox');
-        return imageUrl;
-      } else {
-        throw new Error('Réponse invalide de l\'API Freebox (pas une image)');
-      }
+      console.log('✅ URL Freebox générée, l\'image sera chargée par l\'app');
+      return imageUrl;
+      
+      // Note: L'app chargera l'image elle-même avec son propre timeout
+      // Pas besoin de la télécharger ici juste pour vérifier
     } catch (error) {
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        throw new Error('Timeout API Freebox (>60s). Le serveur met trop de temps à répondre.');
-      } else if (error.message.includes('Network Error') || error.message.includes('Network request failed')) {
-        throw new Error('Erreur réseau Freebox. Vérifiez que le serveur est accessible.');
-      }
+      console.error('❌ Erreur génération URL Freebox:', error.message);
       throw new Error(`API Freebox: ${error.message}`);
     }
   }
