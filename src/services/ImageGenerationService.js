@@ -453,7 +453,7 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère l'image du personnage (profil) avec style aléatoire
+   * Génère l'image du personnage (profil) avec style aléatoire + TENUE
    */
   async generateCharacterImage(character, userProfile = null) {
     // Filtrage d'âge
@@ -466,7 +466,7 @@ class ImageGenerationService {
 
     // 🎨 SÉLECTION D'UN STYLE ALÉATOIRE
     const style = this.getRandomStyle();
-    console.log(`🎨 Génération image ${character.name} en style: ${style.name}`);
+    console.log(`🎨 Génération image PROFIL ${character.name} en style: ${style.name}`);
 
     // CONSTRUCTION DU PROMPT ULTRA-DÉTAILLÉ
     let prompt = '';
@@ -477,20 +477,33 @@ class ImageGenerationService {
     // 2. Anatomie ultra-précise
     prompt += this.buildAnatomyDescription(character);
     
-    // 3. Mode NSFW ou SFW
-    if (nsfwMode) {
-      prompt += this.buildNSFWPrompt(character);
-    } else {
-      prompt += this.buildSFWPrompt(character);
+    // 3. 👔 TENUE DU PERSONNAGE (PROFIL UNIQUEMENT)
+    if (character.outfit) {
+      prompt += `, wearing ${character.outfit}`;
+      console.log(`👔 Tenue ajoutée: ${character.outfit.substring(0, 50)}...`);
     }
     
-    // 4. ✨ QUALITÉ ET STYLE (NOUVEAU: anti-défauts)
+    // 4. Mode NSFW ou SFW (DÉSACTIVÉ pour profil avec tenue)
+    if (!character.outfit) {
+      // Si pas de tenue spécifiée, utiliser NSFW/SFW normal
+      if (nsfwMode) {
+        prompt += this.buildNSFWPrompt(character);
+      } else {
+        prompt += this.buildSFWPrompt(character);
+      }
+    } else {
+      // Avec tenue: pose naturelle et professionnelle
+      prompt += ', natural confident pose, friendly expression, character portrait';
+      prompt += ', full body shot, standing pose, character showcase';
+    }
+    
+    // 5. ✨ QUALITÉ ET STYLE (anti-défauts)
     prompt += this.buildQualityPrompts(style);
     
-    // 5. 🔒 SÉCURITÉ ADULTE (renforcée)
+    // 6. 🔒 SÉCURITÉ ADULTE (renforcée)
     prompt += this.buildAdultSafetyPrompts();
     
-    // 6. 🚫 NEGATIVE PROMPTS (pour éviter défauts)
+    // 7. 🚫 NEGATIVE PROMPTS (pour éviter défauts)
     const negativePrompt = this.buildNegativePrompts(style);
     console.log(`🚫 Negative prompts: ${negativePrompt.substring(0, 100)}...`);
 
@@ -499,7 +512,7 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère l'image de scène (conversation) avec style aléatoire
+   * Génère l'image de scène (conversation) avec style aléatoire - APPARENCE PHYSIQUE UNIQUEMENT
    */
   async generateSceneImage(character, userProfile = null, recentMessages = []) {
     // Filtrage d'âge
@@ -512,21 +525,25 @@ class ImageGenerationService {
 
     // 🎨 SÉLECTION D'UN STYLE ALÉATOIRE
     const style = this.getRandomStyle();
-    console.log(`🎨 Génération image scène ${character.name} en style: ${style.name}`);
+    console.log(`🎨 Génération image CONVERSATION ${character.name} en style: ${style.name}`);
 
-    // CONSTRUCTION DU PROMPT
+    // CONSTRUCTION DU PROMPT - APPARENCE PHYSIQUE UNIQUEMENT (PAS DE TENUE)
     let prompt = '';
     
-    // 1. Description physique
+    // 1. Description physique UNIQUEMENT
     prompt += this.buildDetailedPhysicalDescription(character);
+    console.log(`🎭 Apparence physique uniquement (pas de tenue character.outfit)`);
     
     // 2. Anatomie
     prompt += this.buildAnatomyDescription(character);
     
-    // 3. Détection de tenue dans la conversation
+    // 3. ⚠️ PAS DE character.outfit - Uniquement détection dans conversation
     const outfit = this.detectOutfit(recentMessages);
     if (outfit) {
       prompt += `, wearing ${outfit}`;
+      console.log(`👔 Tenue détectée dans conversation: ${outfit}`);
+    } else {
+      console.log(`👔 Aucune tenue détectée - apparence physique pure`);
     }
     
     // 4. Contexte conversationnel
@@ -547,7 +564,7 @@ class ImageGenerationService {
       prompt += this.buildSFWPrompt(character);
     }
     
-    // 6. ✨ QUALITÉ ET STYLE (NOUVEAU: anti-défauts)
+    // 6. ✨ QUALITÉ ET STYLE (anti-défauts)
     prompt += this.buildQualityPrompts(style);
     
     // 7. 🔒 SÉCURITÉ ADULTE (renforcée)
