@@ -1422,7 +1422,7 @@ for (let i = 94; i <= 200; i++) {
   } else if (messageType === 7) {
     startMessage = `*${firstName} finit ${possessive} conversation et se tourne vers vous* "Désolé de vous avoir fait attendre." *${pronoun} ${temperament === 'romantique' ? 'rougit légèrement' : 'sourit'}* "Je suis ${firstName}. Vous êtes là pour ${profession === 'médecin' ? 'une consultation' : 'me voir'} ?"`;
   } else if (messageType === 8) {
-    startMessage = `*${firstName} arrive ${age < 25 ? 'en courant' : 'avec assurance'}* "${age < 25 ? 'Désolé du retard !' : 'Pile à l\\'heure.'}" *${pronoun} ${temperament === 'dominant' ? 'vous jauge du regard' : 'vous tend la main'}* "${firstName} ${lastName}. ${profession}. ${temperament === 'flirt' ? 'Et vous êtes... ?' : 'Enchanté.'}"`;
+    startMessage = `*${firstName} arrive ${age < 25 ? 'en courant' : 'avec assurance'}* "${age < 25 ? 'Désolé du retard !' : 'Pile à l\'heure.'}" *${pronoun} ${temperament === 'dominant' ? 'vous jauge du regard' : 'vous tend la main'}* "${firstName} ${lastName}. ${profession}. ${temperament === 'flirt' ? 'Et vous êtes... ?' : 'Enchanté.'}"`;
   } else {
     startMessage = `*${firstName} vous remarque et s'approche naturellement* "On se connaît ?" *${pronoun} ${temperament === 'timide' ? 'hésite' : 'rit'}* "Non ? Eh bien maintenant oui. ${firstName}, ${profession}. ${age > 30 ? 'Toujours un plaisir de faire de nouvelles rencontres.' : 'Cool de te rencontrer !'}"`;
   }
