@@ -7,6 +7,131 @@ class ImageGenerationService {
     this.lastRequestTime = 0;
     this.minDelay = 3000; // 3 secondes minimum entre les requêtes
     this.maxRetries = 3;
+    
+    // Styles disponibles pour génération aléatoire
+    this.styles = [
+      {
+        id: 'photorealistic',
+        name: 'Hyper-Réaliste',
+        weight: 35, // 35% de chance
+        prompt: 'photorealistic, hyper-realistic, ultra-detailed photography, professional photo shoot, DSLR camera quality, 8K resolution, RAW photo, cinematic lighting, perfect focus, sharp details, lifelike textures, realistic skin, natural appearance',
+        negativePrompt: 'cartoon, anime, manga, drawing, illustration, painting, 3D render, CGI, digital art, sketch, unrealistic, fake, artificial'
+      },
+      {
+        id: 'semi-realistic',
+        name: 'Semi-Réaliste',
+        weight: 25, // 25% de chance
+        prompt: 'semi-realistic, realistic digital art, detailed illustration, professional digital painting, high quality artwork, realistic proportions, lifelike features, soft painting style, artistic realism',
+        negativePrompt: 'low quality, deformed, distorted, bad anatomy, childish, cartoony, simple'
+      },
+      {
+        id: 'anime',
+        name: 'Anime',
+        weight: 20, // 20% de chance
+        prompt: 'anime style, high quality anime art, detailed anime illustration, professional anime artwork, beautiful anime character, anime aesthetic, Japanese animation style, detailed anime features, vibrant anime colors',
+        negativePrompt: 'photorealistic, western cartoon, chibi, child-like, 3D, low quality, deformed, bad anatomy'
+      },
+      {
+        id: 'manga',
+        name: 'Manga',
+        weight: 20, // 20% de chance
+        prompt: 'manga style, high quality manga art, detailed manga illustration, professional manga artwork, manga aesthetic, Japanese comic style, detailed linework, manga character design, expressive manga style',
+        negativePrompt: 'photorealistic, western cartoon, chibi, child-like, colored, low quality, deformed'
+      }
+    ];
+  }
+
+  /**
+   * Choisit un style aléatoire selon les poids
+   */
+  getRandomStyle() {
+    const totalWeight = this.styles.reduce((sum, style) => sum + style.weight, 0);
+    let random = Math.random() * totalWeight;
+    
+    for (const style of this.styles) {
+      random -= style.weight;
+      if (random <= 0) {
+        console.log(`🎨 Style sélectionné: ${style.name} (${style.id})`);
+        return style;
+      }
+    }
+    
+    // Fallback au premier style
+    return this.styles[0];
+  }
+
+  /**
+   * Construit les prompts de qualité anti-défauts
+   */
+  buildQualityPrompts(style) {
+    let quality = '';
+    
+    // Prompts de qualité de base pour TOUS les styles
+    quality += ', masterpiece, best quality, high quality, extremely detailed';
+    quality += ', perfect composition, well-balanced, professional artwork';
+    quality += ', correct anatomy, accurate proportions, realistic body structure';
+    
+    // MAINS PARFAITES (problème #1 des générateurs d'images)
+    quality += ', perfect hands, correct number of fingers, five fingers on each hand';
+    quality += ', detailed hands, natural hand position, well-drawn hands, anatomically correct hands';
+    
+    // BRAS ET MEMBRES CORRECTS
+    quality += ', correct arms, natural arm length, proper arm joints';
+    quality += ', correct legs, natural leg proportions, proper limb placement';
+    
+    // VISAGE ET YEUX
+    quality += ', symmetrical face, detailed facial features, realistic eyes';
+    quality += ', properly aligned eyes, natural eye position, detailed iris';
+    
+    // PEAU ET TEXTURE
+    quality += ', detailed skin texture, natural skin, realistic skin pores';
+    quality += ', soft lighting on skin, natural skin tone, smooth skin surface';
+    
+    // Style spécifique
+    quality += ', ' + style.prompt;
+    
+    return quality;
+  }
+
+  /**
+   * Construit les negative prompts pour éviter les défauts
+   */
+  buildNegativePrompts(style) {
+    let negative = '';
+    
+    // Défauts anatomiques (À ÉVITER ABSOLUMENT)
+    negative += 'deformed hands, bad hands, missing fingers, extra fingers, fused fingers';
+    negative += ', mutated hands, poorly drawn hands, malformed hands, incorrect hands';
+    negative += ', deformed arms, extra arms, missing arms, bad arms, incorrect limbs';
+    negative += ', extra limbs, missing limbs, floating limbs, disconnected limbs';
+    negative += ', bad anatomy, anatomical errors, incorrect body structure, deformed body';
+    
+    // Visage et yeux
+    negative += ', deformed face, asymmetrical face, bad eyes, crossed eyes, misaligned eyes';
+    negative += ', extra eyes, missing eyes, malformed eyes, weird eyes';
+    
+    // Qualité
+    negative += ', low quality, worst quality, low resolution, blurry, out of focus';
+    negative += ', distorted, warped, incorrect proportions, bad proportions';
+    negative += ', ugly, poorly drawn, bad art, amateur, messy';
+    
+    // INTERDIT: Apparence infantile (sécurité)
+    negative += ', child, children, kid, kids, young child, infant, baby, toddler';
+    negative += ', underage, minor, childish, child-like, juvenile, immature appearance';
+    negative += ', school uniform, schoolgirl, schoolboy, student uniform';
+    
+    // Style-spécifique
+    negative += ', ' + style.negativePrompt;
+    
+    return negative;
+  }
+
+  /**
+   * Ajoute des garanties de sécurité adulte
+   */
+  buildAdultSafetyPrompts() {
+    return ', adult appearance, mature features, fully grown adult, 18+ years old minimum';
+    + ', age-appropriate features, mature body, adult proportions, clearly adult';
   }
 
   /**
@@ -328,7 +453,7 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère l'image du personnage (profil)
+   * Génère l'image du personnage (profil) avec style aléatoire
    */
   async generateCharacterImage(character, userProfile = null) {
     // Filtrage d'âge
@@ -338,6 +463,10 @@ class ImageGenerationService {
 
     // Détection mode NSFW
     const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+
+    // 🎨 SÉLECTION D'UN STYLE ALÉATOIRE
+    const style = this.getRandomStyle();
+    console.log(`🎨 Génération image ${character.name} en style: ${style.name}`);
 
     // CONSTRUCTION DU PROMPT ULTRA-DÉTAILLÉ
     let prompt = '';
@@ -355,16 +484,22 @@ class ImageGenerationService {
       prompt += this.buildSFWPrompt(character);
     }
     
-    // 4. Qualité et sécurité
-    prompt += ', photorealistic, hyper-detailed, ultra-high quality, 4K resolution, professional photography';
-    prompt += ', realistic lighting, accurate proportions, lifelike, detailed features';
-    prompt += ', adult 18+, mature, age-appropriate, realistic age depiction';
+    // 4. ✨ QUALITÉ ET STYLE (NOUVEAU: anti-défauts)
+    prompt += this.buildQualityPrompts(style);
+    
+    // 5. 🔒 SÉCURITÉ ADULTE (renforcée)
+    prompt += this.buildAdultSafetyPrompts();
+    
+    // 6. 🚫 NEGATIVE PROMPTS (pour éviter défauts)
+    const negativePrompt = this.buildNegativePrompts(style);
+    console.log(`🚫 Negative prompts: ${negativePrompt.substring(0, 100)}...`);
 
-    return await this.generateImage(prompt);
+    // Générer l'image avec le style choisi
+    return await this.generateImageWithNegativePrompts(prompt, negativePrompt, style);
   }
 
   /**
-   * Génère l'image de scène (conversation)
+   * Génère l'image de scène (conversation) avec style aléatoire
    */
   async generateSceneImage(character, userProfile = null, recentMessages = []) {
     // Filtrage d'âge
@@ -374,6 +509,10 @@ class ImageGenerationService {
 
     // Détection mode NSFW
     const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+
+    // 🎨 SÉLECTION D'UN STYLE ALÉATOIRE
+    const style = this.getRandomStyle();
+    console.log(`🎨 Génération image scène ${character.name} en style: ${style.name}`);
 
     // CONSTRUCTION DU PROMPT
     let prompt = '';
@@ -408,11 +547,16 @@ class ImageGenerationService {
       prompt += this.buildSFWPrompt(character);
     }
     
-    // 6. Qualité finale
-    prompt += ', photorealistic, ultra-detailed, 4K, professional quality, realistic lighting';
-    prompt += ', adult 18+, mature, age-appropriate';
+    // 6. ✨ QUALITÉ ET STYLE (NOUVEAU: anti-défauts)
+    prompt += this.buildQualityPrompts(style);
+    
+    // 7. 🔒 SÉCURITÉ ADULTE (renforcée)
+    prompt += this.buildAdultSafetyPrompts();
+    
+    // 8. 🚫 NEGATIVE PROMPTS (pour éviter défauts)
+    const negativePrompt = this.buildNegativePrompts(style);
 
-    return await this.generateImage(prompt);
+    return await this.generateImageWithNegativePrompts(prompt, negativePrompt, style);
   }
 
   /**
@@ -469,9 +613,23 @@ class ImageGenerationService {
   }
 
   /**
+   * Génère une image avec negative prompts (pour éviter défauts)
+   */
+  async generateImageWithNegativePrompts(prompt, negativePrompt, style) {
+    // Pour Pollinations, on ajoute les negative prompts dans le prompt principal
+    // Format: "prompt principal ### negative: défauts à éviter"
+    const fullPrompt = `${prompt} ### AVOID: ${negativePrompt}`;
+    
+    console.log(`📝 Prompt final (${fullPrompt.length} chars)`);
+    console.log(`🎨 Style: ${style.name}`);
+    
+    return await this.generateImage(fullPrompt, style);
+  }
+
+  /**
    * Appelle l'API Pollinations ou l'API personnalisée avec gestion du rate limiting
    */
-  async generateImage(prompt) {
+  async generateImage(prompt, style = null) {
     // Charger la config de l'API personnalisée
     await CustomImageAPIService.loadConfig();
     
