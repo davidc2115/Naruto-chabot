@@ -13,6 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import GroqService from '../services/GroqService';
+import TextGenerationService from '../services/TextGenerationService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
@@ -189,8 +190,8 @@ export default function ConversationScreen({ route, navigation }) {
       const newRelationship = updateRelationship(userMessage.content);
       setRelationship(newRelationship);
 
-      // Generate AI response
-      const response = await GroqService.generateResponse(
+      // Generate AI response (utilise TextGenerationService multi-providers)
+      const response = await TextGenerationService.generateResponse(
         updatedMessages,
         character,
         userProfile

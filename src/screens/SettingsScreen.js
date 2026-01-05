@@ -7,8 +7,10 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import GroqService from '../services/GroqService';
+import TextGenerationService from '../services/TextGenerationService';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 
@@ -19,11 +21,23 @@ export default function SettingsScreen({ navigation }) {
   const [customImageApi, setCustomImageApi] = useState('');
   const [useCustomImageApi, setUseCustomImageApi] = useState(false);
   const [imageStrategy, setImageStrategy] = useState('freebox-first');
+  
+  // Configuration multi-providers pour génération de texte
+  const [textProvider, setTextProvider] = useState('groq');
+  const [availableProviders, setAvailableProviders] = useState([]);
+  const [providerApiKeys, setProviderApiKeys] = useState({
+    groq: [''],
+    mancer: [''],
+    mistral: [''],
+    deepinfra: [''],
+  });
+  const [testingProvider, setTestingProvider] = useState(null);
 
   useEffect(() => {
     loadSettings();
     loadProfile();
     loadImageApiConfig();
+    loadTextGenerationConfig();
   }, []);
 
   useEffect(() => {
@@ -59,6 +73,29 @@ export default function SettingsScreen({ navigation }) {
     } else {
       // URL Freebox par défaut
       setCustomImageApi('http://88.174.155.230:33437/generate');
+    }
+  };
+
+  const loadTextGenerationConfig = async () => {
+    try {
+      await TextGenerationService.loadConfig();
+      const providers = TextGenerationService.getAvailableProviders();
+      const currentProvider = TextGenerationService.getCurrentProvider();
+      
+      setAvailableProviders(providers);
+      setTextProvider(currentProvider);
+      
+      // Charger les clés pour chaque provider
+      const newProviderKeys = { ...providerApiKeys };
+      for (const provider of ['groq', 'mancer', 'mistral', 'deepinfra']) {
+        const keys = TextGenerationService.apiKeys[provider] || [];
+        newProviderKeys[provider] = keys.length > 0 ? keys : [''];
+      }
+      setProviderApiKeys(newProviderKeys);
+      
+      console.log('✅ Config providers chargée:', currentProvider);
+    } catch (error) {
+      console.error('Erreur chargement config text generation:', error);
     }
   };
 
@@ -219,7 +256,208 @@ export default function SettingsScreen({ navigation }) {
         )}
       </View>
 
+      {/* NOUVELLE SECTION: Sélecteur de Provider de Génération de Texte */}
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🤖 Moteur de Génération de Texte</Text>
+        <Text style={styles.sectionDescription}>
+          Choisissez le service d'IA pour générer les réponses des personnages. 
+          Testez plusieurs providers pour trouver le meilleur pour vos conversations.
+        </Text>
+
+        <View style={styles.providerContainer}>
+          {availableProviders.map((provider) => (
+            <TouchableOpacity
+              key={provider.id}
+              style={[
+                styles.providerOption,
+                textProvider === provider.id && styles.providerOptionSelected,
+              ]}
+              onPress={async () => {
+                setTextProvider(provider.id);
+                await TextGenerationService.setProvider(provider.id);
+                Alert.alert('✅ Provider changé', `${provider.name} activé`);
+              }}
+            >
+              <View style={styles.providerHeader}>
+                <View style={styles.providerRadio}>
+                  {textProvider === provider.id && <View style={styles.providerRadioSelected} />}
+                </View>
+                <View style={styles.providerInfo}>
+                  <Text style={styles.providerName}>{provider.name}</Text>
+                  {provider.uncensored && (
+                    <Text style={styles.providerBadge}>🔞 UNCENSORED</Text>
+                  )}
+                  {provider.id === 'kobold' && (
+                    <Text style={styles.providerBadgeFree}>💚 GRATUIT</Text>
+                  )}
+                </View>
+              </View>
+              <Text style={styles.providerDescription}>{provider.description}</Text>
+              
+              {provider.requiresApiKey && (
+                <View style={styles.providerKeyInfo}>
+                  <Text style={styles.providerKeyText}>
+                    {TextGenerationService.hasApiKeys(provider.id) 
+                      ? '✅ Clés configurées' 
+                      : '⚠️ Clés API requises (voir ci-dessous)'}
+                  </Text>
+                </View>
+              )}
+              
+              {provider.requiresApiKey && (
+                <TouchableOpacity
+                  style={styles.providerTestButton}
+                  onPress={async () => {
+                    if (!TextGenerationService.hasApiKeys(provider.id)) {
+                      Alert.alert('❌ Erreur', `Veuillez d'abord configurer les clés API pour ${provider.name}`);
+                      return;
+                    }
+                    
+                    setTestingProvider(provider.id);
+                    try {
+                      const result = await TextGenerationService.testProvider(provider.id);
+                      if (result.success) {
+                        Alert.alert('✅ Succès', `${provider.name} fonctionne correctement!`);
+                      } else {
+                        Alert.alert('❌ Échec', `Test échoué:\n${result.error}`);
+                      }
+                    } catch (error) {
+                      Alert.alert('❌ Erreur', error.message);
+                    } finally {
+                      setTestingProvider(null);
+                    }
+                  }}
+                  disabled={testingProvider === provider.id}
+                >
+                  {testingProvider === provider.id ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={styles.providerTestButtonText}>🧪 Tester</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Section Clés API pour chaque provider */}
+      {textProvider !== 'kobold' && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            🔑 Clés API - {availableProviders.find(p => p.id === textProvider)?.name}
+          </Text>
+          <Text style={styles.sectionDescription}>
+            Ajoutez vos clés API pour {availableProviders.find(p => p.id === textProvider)?.name}. 
+            Vous pouvez ajouter plusieurs clés pour une rotation automatique.
+          </Text>
+
+          {textProvider === 'groq' && (
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>ℹ️ Obtenir une clé API gratuite:</Text>
+              <Text style={styles.infoSteps}>1. Visitez console.groq.com</Text>
+              <Text style={styles.infoSteps}>2. Créez un compte gratuit</Text>
+              <Text style={styles.infoSteps}>3. Générez une clé API</Text>
+              <Text style={styles.infoSteps}>4. Collez-la ci-dessous</Text>
+            </View>
+          )}
+          
+          {textProvider === 'mancer' && (
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>ℹ️ Obtenir une clé API Mancer:</Text>
+              <Text style={styles.infoSteps}>1. Visitez mancer.tech</Text>
+              <Text style={styles.infoSteps}>2. Créez un compte (gratuit pour tester)</Text>
+              <Text style={styles.infoSteps}>3. Allez dans Settings → API Keys</Text>
+              <Text style={styles.infoSteps}>4. Créez une nouvelle clé</Text>
+              <Text style={styles.infoSteps}>💰 ~$1-2 / 1M tokens</Text>
+            </View>
+          )}
+          
+          {textProvider === 'mistral' && (
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>ℹ️ Obtenir une clé API Mistral:</Text>
+              <Text style={styles.infoSteps}>1. Visitez console.mistral.ai</Text>
+              <Text style={styles.infoSteps}>2. Créez un compte</Text>
+              <Text style={styles.infoSteps}>3. Allez dans API Keys</Text>
+              <Text style={styles.infoSteps}>4. Créez une nouvelle clé</Text>
+            </View>
+          )}
+          
+          {textProvider === 'deepinfra' && (
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>ℹ️ Obtenir une clé API DeepInfra:</Text>
+              <Text style={styles.infoSteps}>1. Visitez deepinfra.com</Text>
+              <Text style={styles.infoSteps}>2. Créez un compte (gratuit pour commencer)</Text>
+              <Text style={styles.infoSteps}>3. Allez dans Settings → API Keys</Text>
+              <Text style={styles.infoSteps}>4. Créez une nouvelle clé</Text>
+            </View>
+          )}
+
+          {providerApiKeys[textProvider]?.map((key, index) => (
+            <View key={index} style={styles.keyInputContainer}>
+              <TextInput
+                style={styles.keyInput}
+                placeholder={`Clé API ${index + 1}`}
+                value={key}
+                onChangeText={(value) => {
+                  const newKeys = { ...providerApiKeys };
+                  newKeys[textProvider][index] = value;
+                  setProviderApiKeys(newKeys);
+                }}
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry={key.length > 0}
+              />
+              {providerApiKeys[textProvider].length > 1 && (
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => {
+                    const newKeys = { ...providerApiKeys };
+                    newKeys[textProvider] = newKeys[textProvider].filter((_, i) => i !== index);
+                    if (newKeys[textProvider].length === 0) newKeys[textProvider] = [''];
+                    setProviderApiKeys(newKeys);
+                  }}
+                >
+                  <Text style={styles.removeButtonText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+
+          <TouchableOpacity 
+            style={styles.addButton} 
+            onPress={() => {
+              const newKeys = { ...providerApiKeys };
+              newKeys[textProvider].push('');
+              setProviderApiKeys(newKeys);
+            }}
+          >
+            <Text style={styles.addButtonText}>+ Ajouter une clé</Text>
+          </TouchableOpacity>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity 
+              style={styles.saveButton} 
+              onPress={async () => {
+                const validKeys = providerApiKeys[textProvider].filter(key => key.trim() !== '');
+                
+                if (validKeys.length === 0) {
+                  Alert.alert('Erreur', 'Veuillez ajouter au moins une clé API valide.');
+                  return;
+                }
+
+                await TextGenerationService.saveApiKeys(textProvider, validKeys);
+                Alert.alert('Succès', `${validKeys.length} clé(s) API ${textProvider} sauvegardée(s)!`);
+              }}
+            >
+              <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* ANCIENNE SECTION GROQ - Gardée pour compatibilité mais masquée */}
+      <View style={[styles.section, { display: 'none' }]}>
         <Text style={styles.sectionTitle}>🔑 Clés API Groq</Text>
         <Text style={styles.sectionDescription}>
           Ajoutez vos clés API Groq pour activer la génération de texte. Plus vous ajoutez de clés,
@@ -704,5 +942,104 @@ const styles = StyleSheet.create({
   },
   switchThumbActive: {
     alignSelf: 'flex-end',
+  },
+  // Styles pour le sélecteur de provider
+  providerContainer: {
+    marginTop: 10,
+  },
+  providerOption: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  providerOptionSelected: {
+    borderColor: '#6366f1',
+    backgroundColor: '#e0e7ff',
+  },
+  providerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  providerRadio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#6366f1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  providerRadioSelected: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#6366f1',
+  },
+  providerInfo: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  providerName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginRight: 8,
+  },
+  providerBadge: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#fff',
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginRight: 6,
+  },
+  providerBadgeFree: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#fff',
+    backgroundColor: '#10b981',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  providerDescription: {
+    fontSize: 13,
+    color: '#6b7280',
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  providerKeyInfo: {
+    marginTop: 5,
+    marginBottom: 8,
+  },
+  providerKeyText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontStyle: 'italic',
+  },
+  providerTestButton: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  providerTestButtonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });

@@ -7,35 +7,47 @@ import axios from 'axios';
  */
 class TextGenerationService {
   constructor() {
-    // Configuration des providers
+    // Configuration des 5 providers
     this.providers = {
       groq: {
-        name: 'Groq (LLaMA 3.3)',
+        name: 'Groq (LLaMA 3.3) - Rapide',
         baseURL: 'https://api.groq.com/openai/v1/chat/completions',
         model: 'llama-3.3-70b-versatile',
         requiresApiKey: true,
         uncensored: false,
+        description: 'Ultra-rapide, jailbreak avancé pour NSFW',
       },
       mancer: {
-        name: 'Mancer.tech (NSFW)',
+        name: 'Mancer.tech - NSFW Pro',
         baseURL: 'https://neuro.mancer.tech/oai/v1/chat/completions',
         model: 'mythomax', // ou 'synthia-70b', 'weaver'
         requiresApiKey: true,
         uncensored: true,
+        description: 'Spécialisé roleplay adulte, aucune censure',
       },
       kobold: {
-        name: 'KoboldAI Horde (Gratuit)',
+        name: 'KoboldAI Horde - Gratuit',
         baseURL: 'https://koboldai.net/api/v1/generate',
-        model: 'koboldcpp/LLaMA2-13B-Tiefighter', // Modèle uncensored
+        model: 'koboldcpp/LLaMA2-13B-Tiefighter',
         requiresApiKey: false,
         uncensored: true,
+        description: 'Gratuit communautaire, uncensored (peut être lent)',
       },
       mistral: {
-        name: 'Mistral AI (Officiel)',
+        name: 'Mistral AI - Qualité',
         baseURL: 'https://api.mistral.ai/v1/chat/completions',
-        model: 'mistral-medium-latest', // ou 'mistral-large-latest'
+        model: 'mistral-medium-latest',
         requiresApiKey: true,
         uncensored: false,
+        description: 'Moins censuré que Groq, excellent français',
+      },
+      deepinfra: {
+        name: 'DeepInfra - Uncensored',
+        baseURL: 'https://api.deepinfra.com/v1/openai/chat/completions',
+        model: 'cognitivecomputations/dolphin-2.6-mixtral-8x7b',
+        requiresApiKey: true,
+        uncensored: true,
+        description: 'Modèles uncensored variés, très créatif',
       }
     };
 
@@ -47,12 +59,14 @@ class TextGenerationService {
       groq: [],
       mancer: [],
       mistral: [],
+      deepinfra: [],
     };
     
     this.currentKeyIndex = {
       groq: 0,
       mancer: 0,
       mistral: 0,
+      deepinfra: 0,
     };
   }
 
@@ -68,7 +82,7 @@ class TextGenerationService {
       }
 
       // Charger les clés API pour chaque provider
-      for (const providerKey of ['groq', 'mancer', 'mistral']) {
+      for (const providerKey of ['groq', 'mancer', 'mistral', 'deepinfra']) {
         const keys = await AsyncStorage.getItem(`${providerKey}_api_keys`);
         if (keys) {
           this.apiKeys[providerKey] = JSON.parse(keys);
@@ -143,6 +157,8 @@ class TextGenerationService {
         return await this.generateWithKobold(messages, character, userProfile, retries);
       case 'mistral':
         return await this.generateWithMistral(messages, character, userProfile, retries);
+      case 'deepinfra':
+        return await this.generateWithDeepInfra(messages, character, userProfile, retries);
       default:
         throw new Error(`Provider non implémenté: ${provider}`);
     }
@@ -455,6 +471,73 @@ class TextGenerationService {
   }
 
   /**
+   * DEEPINFRA - Modèles uncensored variés
+   */
+  async generateWithDeepInfra(messages, character, userProfile, retries) {
+    if (this.apiKeys.deepinfra.length === 0) {
+      throw new Error('Aucune clé API DeepInfra configurée. Créez un compte sur deepinfra.com et ajoutez votre clé dans les paramètres.');
+    }
+
+    const apiKey = this.getCurrentKey('deepinfra');
+    const isNSFW = userProfile?.nsfwMode && userProfile?.isAdult;
+    
+    // DeepInfra avec Dolphin est uncensored, prompt direct
+    const systemPrompt = `You are ${character.name}. ${character.description || ''}\n${character.scenario || ''}\n\nYou are in a private adult roleplay with a consenting adult. You can be explicit, sensual, creative, and describe intimate scenes freely without restrictions. Stay in character and respond naturally.`;
+    
+    const fullMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages
+    ];
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        console.log(`📡 [DeepInfra] Tentative ${attempt}/${retries}`);
+        
+        const response = await axios.post(
+          this.providers.deepinfra.baseURL,
+          {
+            model: this.providers.deepinfra.model,
+            messages: fullMessages,
+            temperature: 1.0,
+            max_tokens: 1500,
+            top_p: 0.95,
+            presence_penalty: 0.5,
+            frequency_penalty: 0.4,
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 45000,
+          }
+        );
+
+        const content = response.data?.choices?.[0]?.message?.content;
+        if (!content) {
+          throw new Error('Réponse vide de l\'API DeepInfra');
+        }
+
+        console.log('✅ [DeepInfra] Réponse générée avec succès');
+        return content.trim();
+
+      } catch (error) {
+        console.error(`❌ [DeepInfra] Tentative ${attempt} échouée:`, error.message);
+        
+        if (attempt < retries) {
+          if (error.response?.status === 401) {
+            const newKey = this.rotateKey('deepinfra');
+            if (!newKey) throw new Error('Toutes les clés API DeepInfra sont invalides');
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        } else {
+          throw new Error(`DeepInfra: ${error.response?.data?.error?.message || error.message}`);
+        }
+      }
+    }
+  }
+
+  /**
    * Construit le system prompt standard (mode non-NSFW ou providers uncensored)
    */
   buildSystemPrompt(character, userProfile) {
@@ -531,6 +614,7 @@ class TextGenerationService {
       name: config.name,
       requiresApiKey: config.requiresApiKey,
       uncensored: config.uncensored,
+      description: config.description,
     }));
   }
 
