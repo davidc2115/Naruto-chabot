@@ -565,46 +565,14 @@ class ImageGenerationService {
           }
         } else {
           // API Pollinations - génération à la volée
-          // Tester avec HEAD d'abord (rapide)
-          try {
-            const response = await axios.head(imageUrl, { 
-              timeout: 10000,
-              maxRedirects: 5,
-              validateStatus: (status) => status === 200 || status === 404
-            });
-            
-            if (response.status === 200) {
-              console.log('✅ Image générée avec succès (Pollinations)');
-              return imageUrl;
-            }
-          } catch (headError) {
-            console.log('⚠️  HEAD request failed, trying direct URL...');
-          }
+          console.log('🌐 Génération avec Pollinations.ai');
           
-          // Si HEAD échoue, attendre un peu pour que l'image soit générée
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          // Attendre un délai pour la génération
+          await new Promise(resolve => setTimeout(resolve, 3000));
           
-          // Vérifier que l'image ne contient pas "rate limit"
-          try {
-            const testResponse = await axios.get(imageUrl, {
-              timeout: 15000,
-              responseType: 'arraybuffer',
-              maxContentLength: 1024, // Juste les premiers 1KB
-              validateStatus: (status) => status === 200
-            });
-            
-            // Vérifier que c'est bien une image
-            const contentType = testResponse.headers['content-type'];
-            if (contentType && contentType.includes('image')) {
-              console.log('✅ Image vérifiée (Pollinations), pas de rate limit');
-              return imageUrl;
-            }
-          } catch (testError) {
-            // Si le test échoue, c'est peut-être à cause du maxContentLength
-            // On retourne quand même l'URL
-          }
-          
-          console.log('✅ URL retournée (génération à la volée)');
+          // Retourner l'URL directement - Pollinations génère à la volée
+          // L'image sera générée lors du premier accès
+          console.log('✅ URL Pollinations retournée');
           return imageUrl;
         }
         

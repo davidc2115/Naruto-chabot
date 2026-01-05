@@ -10,15 +10,19 @@ import {
 } from 'react-native';
 import GroqService from '../services/GroqService';
 import UserProfileService from '../services/UserProfileService';
+import CustomImageAPIService from '../services/CustomImageAPIService';
 
 export default function SettingsScreen({ navigation }) {
   const [apiKeys, setApiKeys] = useState(['']);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
+  const [customImageApi, setCustomImageApi] = useState('');
+  const [useCustomImageApi, setUseCustomImageApi] = useState(false);
 
   useEffect(() => {
     loadSettings();
     loadProfile();
+    loadImageApiConfig();
   }, []);
 
   useEffect(() => {
@@ -39,6 +43,15 @@ export default function SettingsScreen({ navigation }) {
   const loadProfile = async () => {
     const profile = await UserProfileService.getProfile();
     setUserProfile(profile);
+  };
+
+  const loadImageApiConfig = async () => {
+    await CustomImageAPIService.loadConfig();
+    const hasApi = CustomImageAPIService.hasCustomApi();
+    setUseCustomImageApi(hasApi);
+    if (hasApi) {
+      setCustomImageApi(CustomImageAPIService.getApiUrl());
+    }
   };
 
   const addKeyField = () => {
@@ -203,6 +216,77 @@ export default function SettingsScreen({ navigation }) {
             <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🖼️ API de Génération d'Images</Text>
+        <Text style={styles.sectionDescription}>
+          Configurez une API personnalisée (ex: Freebox) pour une génération d'images illimitée, ou utilisez Pollinations.ai par défaut.
+        </Text>
+
+        <View style={styles.switchContainer}>
+          <Text style={styles.switchLabel}>Utiliser une API personnalisée</Text>
+          <TouchableOpacity
+            style={[styles.switch, useCustomImageApi && styles.switchActive]}
+            onPress={() => setUseCustomImageApi(!useCustomImageApi)}
+          >
+            <View style={[styles.switchThumb, useCustomImageApi && styles.switchThumbActive]} />
+          </TouchableOpacity>
+        </View>
+
+        {useCustomImageApi && (
+          <>
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>
+                💡 API Freebox configurée :
+              </Text>
+              <Text style={styles.infoSteps}>
+                URL: http://88.174.155.230:33437/generate
+              </Text>
+              <Text style={styles.infoSteps}>
+                Port: 33437
+              </Text>
+              <Text style={styles.infoSteps}>
+                Type: Multi-APIs avec cache
+              </Text>
+            </View>
+
+            <TextInput
+              style={styles.keyInput}
+              placeholder="URL de l'API (ex: http://192.168.1.x:33437/generate)"
+              value={customImageApi}
+              onChangeText={setCustomImageApi}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.testButton} onPress={testImageApi}>
+                <Text style={styles.testButtonText}>🧪 Tester</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveButton} onPress={saveImageApiConfig}>
+                <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+
+        {!useCustomImageApi && (
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              🌐 Utilisation de Pollinations.ai (par défaut)
+            </Text>
+            <Text style={styles.infoSteps}>
+              • Génération gratuite
+            </Text>
+            <Text style={styles.infoSteps}>
+              • Quotas limités
+            </Text>
+            <Text style={styles.infoSteps}>
+              • Activez l'API personnalisée pour une génération illimitée
+            </Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -415,5 +499,39 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontStyle: 'italic',
     lineHeight: 18,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    padding: 15,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 10,
+  },
+  switchLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  switch: {
+    width: 50,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#d1d5db',
+    justifyContent: 'center',
+    paddingHorizontal: 2,
+  },
+  switchActive: {
+    backgroundColor: '#6366f1',
+  },
+  switchThumb: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#fff',
+  },
+  switchThumbActive: {
+    alignSelf: 'flex-end',
   },
 });
