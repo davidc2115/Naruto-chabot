@@ -90,11 +90,25 @@ class CustomImageAPIService {
     }
 
     try {
-      // Test simple avec un timeout court
-      const response = await axios.get(testUrl, {
-        timeout: 5000,
-        validateStatus: (status) => status < 500, // Accepter les redirections
+      // Extraire l'URL de base et tester avec /health
+      let healthUrl = testUrl;
+      if (testUrl.includes('/generate')) {
+        healthUrl = testUrl.replace('/generate', '/health');
+      } else if (!testUrl.endsWith('/health')) {
+        healthUrl = testUrl.replace(/\/$/, '') + '/health';
+      }
+      
+      console.log('🧪 Test connexion:', healthUrl);
+      
+      const response = await axios.get(healthUrl, {
+        timeout: 10000,
+        validateStatus: (status) => status < 500,
+        headers: {
+          'Accept': 'application/json',
+        },
       });
+
+      console.log('✅ Réponse:', response.status, response.data);
 
       return {
         success: true,
@@ -102,9 +116,21 @@ class CustomImageAPIService {
         message: 'Connexion réussie',
       };
     } catch (error) {
+      console.error('❌ Erreur test connexion:', error.message);
+      
+      // Message d'erreur plus détaillé
+      let errorMsg = error.message;
+      if (error.message.includes('Network Error') || error.message.includes('Network request failed')) {
+        errorMsg = 'Erreur réseau. Vérifiez que:\n1. L\'URL est correcte\n2. La Freebox est allumée\n3. Le port 33437 est ouvert\n4. Vous êtes sur le même réseau (ou en 4G/5G)';
+      } else if (error.code === 'ECONNREFUSED') {
+        errorMsg = 'Connexion refusée. Le serveur n\'est pas accessible.';
+      } else if (error.code === 'ETIMEDOUT') {
+        errorMsg = 'Timeout. Le serveur met trop de temps à répondre.';
+      }
+      
       return {
         success: false,
-        error: error.message,
+        error: errorMsg,
         message: 'Impossible de se connecter à l\'API',
       };
     }
