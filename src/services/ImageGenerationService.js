@@ -487,9 +487,16 @@ class ImageGenerationService {
         const encodedPrompt = encodeURIComponent(prompt);
         const seed = Date.now() + Math.floor(Math.random() * 10000);
         
-        // Vérifier que le prompt n'est pas trop long
-        if (encodedPrompt.length > 2000) {
-          throw new Error('Prompt trop long. Réduisez la description.');
+        console.log(`📏 Taille prompt: ${prompt.length} chars, encodé: ${encodedPrompt.length} chars`);
+        
+        // Vérifier longueur UNIQUEMENT pour Pollinations (limite URL navigateur)
+        // Freebox peut gérer des prompts beaucoup plus longs (API serveur)
+        const needsPollinationsCheck = (strategy === 'pollinations-only') || 
+                                        (strategy === 'freebox-first' && !CustomImageAPIService.hasCustomApi());
+        
+        if (needsPollinationsCheck && encodedPrompt.length > 2000) {
+          console.warn('⚠️ Prompt très long pour Pollinations, peut causer des problèmes');
+          // Ne pas bloquer, juste avertir
         }
         
         // STRATÉGIE 1: Freebox uniquement
@@ -498,21 +505,32 @@ class ImageGenerationService {
           if (!CustomImageAPIService.hasCustomApi()) {
             throw new Error('API Freebox non configurée. Allez dans Paramètres > API d\'Images.');
           }
+          // Pas de limite de longueur pour Freebox
           return await this.generateWithFreebox(prompt, seed);
         }
         
         // STRATÉGIE 2: Pollinations uniquement
         if (strategy === 'pollinations-only') {
           console.log('🌐 Stratégie: Pollinations uniquement');
+          
+          // Si prompt trop long, le tronquer pour Pollinations
+          let finalPrompt = prompt;
+          if (encodedPrompt.length > 2000) {
+            console.log('✂️ Prompt trop long pour Pollinations, réduction...');
+            // Tronquer intelligemment en gardant le début (description physique)
+            finalPrompt = prompt.substring(0, Math.floor(prompt.length * 0.6));
+            console.log(`📏 Nouveau prompt: ${finalPrompt.length} chars`);
+          }
+          
           await this.waitForRateLimit();
-          return await this.generateWithPollinations(prompt, seed);
+          return await this.generateWithPollinations(finalPrompt, seed);
         }
         
         // STRATÉGIE 3: Freebox en premier, puis Pollinations en fallback (DÉFAUT)
         if (strategy === 'freebox-first') {
           console.log('🔄 Stratégie: Freebox en premier, Pollinations en fallback');
           
-          // Essayer Freebox si configuré
+          // Essayer Freebox si configuré (pas de limite de longueur)
           if (CustomImageAPIService.hasCustomApi()) {
             try {
               console.log('🏠 Tentative avec Freebox...');
@@ -521,15 +539,21 @@ class ImageGenerationService {
               console.error('❌ Freebox a échoué:', freeboxError.message);
               console.log('🔄 Passage à Pollinations en fallback...');
               lastError = freeboxError;
-              // Continue vers Pollinations
+              // Continue vers Pollinations avec prompt potentiellement réduit
             }
           } else {
             console.log('⚠️ API Freebox non configurée, utilisation de Pollinations directement');
           }
           
-          // Fallback: Pollinations
+          // Fallback: Pollinations (avec réduction si nécessaire)
+          let finalPrompt = prompt;
+          if (encodedPrompt.length > 2000) {
+            console.log('✂️ Prompt trop long pour Pollinations fallback, réduction...');
+            finalPrompt = prompt.substring(0, Math.floor(prompt.length * 0.6));
+          }
+          
           await this.waitForRateLimit();
-          return await this.generateWithPollinations(prompt, seed);
+          return await this.generateWithPollinations(finalPrompt, seed);
         }
         
         // Fallback par défaut: Pollinations
