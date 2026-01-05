@@ -18,6 +18,7 @@ export default function SettingsScreen({ navigation }) {
   const [userProfile, setUserProfile] = useState(null);
   const [customImageApi, setCustomImageApi] = useState('');
   const [useCustomImageApi, setUseCustomImageApi] = useState(false);
+  const [imageStrategy, setImageStrategy] = useState('freebox-first');
 
   useEffect(() => {
     loadSettings();
@@ -48,9 +49,16 @@ export default function SettingsScreen({ navigation }) {
   const loadImageApiConfig = async () => {
     await CustomImageAPIService.loadConfig();
     const hasApi = CustomImageAPIService.hasCustomApi();
+    const strategy = CustomImageAPIService.getStrategy();
+    
     setUseCustomImageApi(hasApi);
+    setImageStrategy(strategy);
+    
     if (hasApi) {
       setCustomImageApi(CustomImageAPIService.getApiUrl());
+    } else {
+      // URL Freebox par défaut
+      setCustomImageApi('http://88.174.155.230:33437/generate');
     }
   };
 
@@ -113,23 +121,36 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const saveImageApiConfig = async () => {
-    if (useCustomImageApi && customImageApi.trim() === '') {
-      Alert.alert('Erreur', 'Veuillez entrer une URL d\'API valide ou désactiver l\'API personnalisée.');
+    // Validation selon la stratégie
+    if ((imageStrategy === 'freebox-only' || imageStrategy === 'freebox-first') && customImageApi.trim() === '') {
+      Alert.alert('Erreur', 'Veuillez entrer une URL d\'API Freebox valide pour cette stratégie.');
       return;
     }
 
     try {
-      if (useCustomImageApi) {
-        await CustomImageAPIService.saveConfig(customImageApi.trim(), 'freebox');
-        Alert.alert('Succès', 'Configuration de l\'API d\'images sauvegardée !');
-      } else {
+      if (imageStrategy === 'pollinations-only') {
+        // Pollinations uniquement: pas besoin d'URL custom
         await CustomImageAPIService.clearConfig();
-        Alert.alert('Succès', 'API d\'images par défaut (Pollinations) restaurée.');
+        // Mais sauvegarder la stratégie
+        await CustomImageAPIService.saveConfig('', 'pollinations', 'pollinations-only');
+        Alert.alert('✅ Succès', 'Pollinations.ai configuré comme source unique.');
+      } else {
+        // Freebox configuré
+        await CustomImageAPIService.saveConfig(customImageApi.trim(), 'freebox', imageStrategy);
+        
+        let message = '';
+        if (imageStrategy === 'freebox-only') {
+          message = 'API Freebox configurée comme source unique.';
+        } else if (imageStrategy === 'freebox-first') {
+          message = 'API Freebox configurée avec Pollinations en fallback.';
+        }
+        
+        Alert.alert('✅ Succès', message);
       }
       
       await loadImageApiConfig();
     } catch (error) {
-      Alert.alert('Erreur', `Impossible de sauvegarder: ${error.message}`);
+      Alert.alert('❌ Erreur', `Impossible de sauvegarder: ${error.message}`);
     }
   };
 
@@ -262,72 +283,126 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🖼️ API de Génération d'Images</Text>
         <Text style={styles.sectionDescription}>
-          Configurez une API personnalisée (ex: Freebox) pour une génération d'images illimitée, ou utilisez Pollinations.ai par défaut.
+          Choisissez la source pour générer les images de personnages et de scènes.
         </Text>
 
-        <View style={styles.switchContainer}>
-          <Text style={styles.switchLabel}>Utiliser une API personnalisée</Text>
+        {/* Stratégies de génération */}
+        <View style={styles.strategyContainer}>
+          <Text style={styles.strategyTitle}>📍 Source de génération:</Text>
+          
+          {/* Option 1: Freebox + Pollinations (RECOMMANDÉ) */}
           <TouchableOpacity
-            style={[styles.switch, useCustomImageApi && styles.switchActive]}
-            onPress={() => setUseCustomImageApi(!useCustomImageApi)}
+            style={[
+              styles.strategyOption,
+              imageStrategy === 'freebox-first' && styles.strategyOptionActive
+            ]}
+            onPress={() => setImageStrategy('freebox-first')}
           >
-            <View style={[styles.switchThumb, useCustomImageApi && styles.switchThumbActive]} />
+            <View style={styles.radioButton}>
+              {imageStrategy === 'freebox-first' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.strategyContent}>
+              <Text style={styles.strategyName}>🏠 Freebox en premier (Recommandé)</Text>
+              <Text style={styles.strategyDescription}>
+                Essaie Freebox, puis Pollinations si échec. Meilleur des deux mondes !
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Option 2: Freebox uniquement */}
+          <TouchableOpacity
+            style={[
+              styles.strategyOption,
+              imageStrategy === 'freebox-only' && styles.strategyOptionActive
+            ]}
+            onPress={() => setImageStrategy('freebox-only')}
+          >
+            <View style={styles.radioButton}>
+              {imageStrategy === 'freebox-only' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.strategyContent}>
+              <Text style={styles.strategyName}>🏠 Freebox uniquement</Text>
+              <Text style={styles.strategyDescription}>
+                Uniquement API Freebox. Illimité mais nécessite que le serveur soit accessible.
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Option 3: Pollinations uniquement */}
+          <TouchableOpacity
+            style={[
+              styles.strategyOption,
+              imageStrategy === 'pollinations-only' && styles.strategyOptionActive
+            ]}
+            onPress={() => setImageStrategy('pollinations-only')}
+          >
+            <View style={styles.radioButton}>
+              {imageStrategy === 'pollinations-only' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.strategyContent}>
+              <Text style={styles.strategyName}>🌐 Pollinations uniquement</Text>
+              <Text style={styles.strategyDescription}>
+                Uniquement Pollinations.ai. Gratuit mais avec quotas.
+              </Text>
+            </View>
           </TouchableOpacity>
         </View>
 
-        {useCustomImageApi && (
+        {/* Configuration URL Freebox (si nécessaire) */}
+        {(imageStrategy === 'freebox-only' || imageStrategy === 'freebox-first') && (
           <>
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>
-                💡 API Freebox configurée :
+                💡 Configuration API Freebox:
               </Text>
               <Text style={styles.infoSteps}>
-                URL: http://88.174.155.230:33437/generate
+                IP: 88.174.155.230
               </Text>
               <Text style={styles.infoSteps}>
                 Port: 33437
               </Text>
               <Text style={styles.infoSteps}>
-                Type: Multi-APIs avec cache
+                Status: {/* On pourrait ajouter un indicateur de status */}✅ En ligne
               </Text>
             </View>
 
             <TextInput
               style={styles.keyInput}
-              placeholder="URL de l'API (ex: http://192.168.1.x:33437/generate)"
+              placeholder="URL de l'API Freebox"
               value={customImageApi}
               onChangeText={setCustomImageApi}
               autoCapitalize="none"
               autoCorrect={false}
             />
 
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.testButton} onPress={testImageApi}>
-                <Text style={styles.testButtonText}>🧪 Tester</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveButton} onPress={saveImageApiConfig}>
-                <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.testButton} onPress={testImageApi}>
+              <Text style={styles.testButtonText}>🧪 Tester la connexion Freebox</Text>
+            </TouchableOpacity>
           </>
         )}
 
-        {!useCustomImageApi && (
+        {/* Info Pollinations */}
+        {imageStrategy === 'pollinations-only' && (
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
-              🌐 Utilisation de Pollinations.ai (par défaut)
+              🌐 Pollinations.ai
             </Text>
             <Text style={styles.infoSteps}>
-              • Génération gratuite
+              ✅ Génération gratuite
             </Text>
             <Text style={styles.infoSteps}>
-              • Quotas limités
+              ⚠️ Quotas limités (rate limiting possible)
             </Text>
             <Text style={styles.infoSteps}>
-              • Activez l'API personnalisée pour une génération illimitée
+              💡 Conseil: Utilisez "Freebox en premier" pour éviter les limites
             </Text>
           </View>
         )}
+
+        {/* Bouton de sauvegarde */}
+        <TouchableOpacity style={styles.saveButton} onPress={saveImageApiConfig}>
+          <Text style={styles.saveButtonText}>💾 Sauvegarder la configuration</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -470,16 +545,71 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   saveButton: {
-    flex: 1,
     backgroundColor: '#6366f1',
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
+    marginTop: 10,
   },
   saveButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  strategyContainer: {
+    marginTop: 15,
+    marginBottom: 15,
+  },
+  strategyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 12,
+  },
+  strategyOption: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#f9fafb',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+  },
+  strategyOptionActive: {
+    borderColor: '#6366f1',
+    backgroundColor: '#eef2ff',
+  },
+  radioButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#6366f1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  radioButtonInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#6366f1',
+  },
+  strategyContent: {
+    flex: 1,
+  },
+  strategyName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  strategyDescription: {
+    fontSize: 13,
+    color: '#6b7280',
+    lineHeight: 18,
   },
   aboutBox: {
     backgroundColor: '#f3f4f6',

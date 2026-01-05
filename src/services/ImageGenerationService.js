@@ -475,6 +475,181 @@ class ImageGenerationService {
     // Charger la config de l'API personnalisée
     await CustomImageAPIService.loadConfig();
     
+    const strategy = CustomImageAPIService.getStrategy();
+    console.log(`🎨 Stratégie de génération: ${strategy}`);
+    
+    let lastError = null;
+    
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        console.log(`🎨 Tentative ${attempt}/${this.maxRetries} de génération d'image...`);
+        
+        const encodedPrompt = encodeURIComponent(prompt);
+        const seed = Date.now() + Math.floor(Math.random() * 10000);
+        
+        // Vérifier que le prompt n'est pas trop long
+        if (encodedPrompt.length > 2000) {
+          throw new Error('Prompt trop long. Réduisez la description.');
+        }
+        
+        // STRATÉGIE 1: Freebox uniquement
+        if (strategy === 'freebox-only') {
+          console.log('🏠 Stratégie: Freebox uniquement');
+          if (!CustomImageAPIService.hasCustomApi()) {
+            throw new Error('API Freebox non configurée. Allez dans Paramètres > API d\'Images.');
+          }
+          return await this.generateWithFreebox(prompt, seed);
+        }
+        
+        // STRATÉGIE 2: Pollinations uniquement
+        if (strategy === 'pollinations-only') {
+          console.log('🌐 Stratégie: Pollinations uniquement');
+          await this.waitForRateLimit();
+          return await this.generateWithPollinations(prompt, seed);
+        }
+        
+        // STRATÉGIE 3: Freebox en premier, puis Pollinations en fallback (DÉFAUT)
+        if (strategy === 'freebox-first') {
+          console.log('🔄 Stratégie: Freebox en premier, Pollinations en fallback');
+          
+          // Essayer Freebox si configuré
+          if (CustomImageAPIService.hasCustomApi()) {
+            try {
+              console.log('🏠 Tentative avec Freebox...');
+              return await this.generateWithFreebox(prompt, seed);
+            } catch (freeboxError) {
+              console.error('❌ Freebox a échoué:', freeboxError.message);
+              console.log('🔄 Passage à Pollinations en fallback...');
+              lastError = freeboxError;
+              // Continue vers Pollinations
+            }
+          } else {
+            console.log('⚠️ API Freebox non configurée, utilisation de Pollinations directement');
+          }
+          
+          // Fallback: Pollinations
+          await this.waitForRateLimit();
+          return await this.generateWithPollinations(prompt, seed);
+        }
+        
+        // Fallback par défaut: Pollinations
+        console.log('⚠️ Stratégie inconnue, utilisation de Pollinations');
+        await this.waitForRateLimit();
+        return await this.generateWithPollinations(prompt, seed);
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Tentative ${attempt} échouée:`, error.message);
+        
+        // Si rate limited, attendre plus longtemps avant de réessayer
+        if (error.response?.status === 429 || error.message.includes('rate limit')) {
+          const waitTime = attempt * 5000; // 5s, 10s, 15s...
+          console.log(`⏳ Rate limited détecté. Attente de ${waitTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        } else if (attempt < this.maxRetries) {
+          // Attendre avant de réessayer (backoff exponentiel)
+          const waitTime = attempt * 2000;
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
+    }
+    
+    // Toutes les tentatives ont échoué
+    console.error('❌ Échec de génération après toutes les tentatives');
+    throw new Error(`Impossible de générer l'image après ${this.maxRetries} tentatives. ${lastError?.message || 'Le service est peut-être temporairement surchargé.'}. Réessayez dans quelques minutes.`);
+  }
+
+  /**
+   * Génère une image avec l'API Freebox
+   */
+  async generateWithFreebox(prompt, seed) {
+    console.log('🏠 Génération avec API Freebox...');
+    
+    const imageUrl = CustomImageAPIService.buildImageUrl(prompt, {
+      width: 768,
+      height: 768,
+      seed: seed,
+    });
+    
+    console.log(`🔗 URL Freebox (${imageUrl.length} chars):`, imageUrl.substring(0, 100) + '...');
+    
+    try {
+      // Vérifier que l'image est accessible (timeout long pour la génération)
+      const testResponse = await axios.get(imageUrl, {
+        timeout: 60000, // 60 secondes pour la génération
+        responseType: 'arraybuffer',
+        maxContentLength: 10485760, // 10 MB pour les images complètes
+        validateStatus: (status) => status === 200
+      });
+      
+      // Vérifier que c'est bien une image
+      const contentType = testResponse.headers['content-type'];
+      if (contentType && contentType.includes('image')) {
+        console.log('✅ Image générée avec succès depuis API Freebox');
+        return imageUrl;
+      } else {
+        throw new Error('Réponse invalide de l\'API Freebox (pas une image)');
+      }
+    } catch (error) {
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('Timeout API Freebox (>60s). Le serveur met trop de temps à répondre.');
+      } else if (error.message.includes('Network Error') || error.message.includes('Network request failed')) {
+        throw new Error('Erreur réseau Freebox. Vérifiez que le serveur est accessible.');
+      }
+      throw new Error(`API Freebox: ${error.message}`);
+    }
+  }
+
+  /**
+   * Génère une image avec Pollinations.ai
+   */
+  async generateWithPollinations(prompt, seed) {
+    console.log('🌐 Génération avec Pollinations.ai...');
+    
+    const encodedPrompt = encodeURIComponent(prompt);
+    const imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
+    
+    console.log(`🔗 URL Pollinations (${imageUrl.length} chars):`, imageUrl.substring(0, 100) + '...');
+    
+    try {
+      // Attendre un peu pour la génération (Pollinations génère à la volée)
+      console.log('⏳ Attente de la génération (3s)...');
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Vérifier que l'URL est accessible avec un HEAD request
+      console.log('🔍 Vérification de l\'image...');
+      const headResponse = await axios.head(imageUrl, {
+        timeout: 10000,
+        maxRedirects: 5,
+        validateStatus: (status) => status === 200
+      });
+      
+      if (headResponse.status === 200) {
+        console.log('✅ Image Pollinations vérifiée et accessible');
+        return imageUrl;
+      } else {
+        throw new Error(`Pollinations a retourné le statut ${headResponse.status}`);
+      }
+    } catch (error) {
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        // Timeout lors de la vérification - l'image se génère peut-être encore
+        // On retourne l'URL quand même, elle se chargera dans l'app
+        console.log('⚠️ Timeout vérification Pollinations, mais URL retournée (génération en cours)');
+        return imageUrl;
+      } else if (error.response?.status === 429) {
+        throw new Error('Rate limit Pollinations. Attendez quelques secondes.');
+      }
+      throw new Error(`Pollinations: ${error.message}`);
+    }
+  }
+
+  /**
+   * ANCIENNE MÉTHODE - Conservée pour compatibilité mais dépréciée
+   */
+  async _generateImageLegacy(prompt) {
+    // Charger la config de l'API personnalisée
+    await CustomImageAPIService.loadConfig();
+    
     let lastError = null;
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {

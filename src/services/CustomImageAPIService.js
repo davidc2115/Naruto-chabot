@@ -9,6 +9,7 @@ class CustomImageAPIService {
   constructor() {
     this.customApiUrl = null;
     this.apiType = 'pollinations'; // 'pollinations' ou 'custom' ou 'freebox'
+    this.strategy = 'freebox-first'; // 'freebox-only', 'pollinations-only', 'freebox-first'
   }
 
   /**
@@ -21,6 +22,16 @@ class CustomImageAPIService {
         const parsed = JSON.parse(config);
         this.customApiUrl = parsed.url;
         this.apiType = parsed.type || 'pollinations';
+        this.strategy = parsed.strategy || 'freebox-first';
+        
+        console.log('📸 Config images chargée:', {
+          url: this.customApiUrl ? this.customApiUrl.substring(0, 50) + '...' : 'none',
+          type: this.apiType,
+          strategy: this.strategy
+        });
+      } else {
+        console.log('📸 Aucune config images, utilisation par défaut: pollinations-only');
+        this.strategy = 'pollinations-only';
       }
     } catch (error) {
       console.error('Error loading custom API config:', error);
@@ -30,12 +41,14 @@ class CustomImageAPIService {
   /**
    * Sauvegarder la configuration de l'API personnalisée
    */
-  async saveConfig(url, type = 'custom') {
+  async saveConfig(url, type = 'custom', strategy = 'freebox-first') {
     try {
-      const config = { url, type };
+      const config = { url, type, strategy };
       this.customApiUrl = url;
       this.apiType = type;
+      this.strategy = strategy;
       await AsyncStorage.setItem('custom_image_api', JSON.stringify(config));
+      console.log('✅ Config images sauvegardée:', config);
       return true;
     } catch (error) {
       console.error('Error saving custom API config:', error);
@@ -73,10 +86,42 @@ class CustomImageAPIService {
   }
 
   /**
+   * Obtenir la stratégie de génération
+   */
+  getStrategy() {
+    return this.strategy;
+  }
+
+  /**
    * Vérifier si une API personnalisée est configurée
    */
   hasCustomApi() {
     return this.customApiUrl !== null && this.customApiUrl !== '';
+  }
+
+  /**
+   * Vérifier si on doit utiliser Freebox
+   */
+  shouldUseFreebox() {
+    return this.hasCustomApi() && (
+      this.strategy === 'freebox-only' || 
+      this.strategy === 'freebox-first'
+    );
+  }
+
+  /**
+   * Vérifier si on doit utiliser Pollinations
+   */
+  shouldUsePollinations() {
+    return this.strategy === 'pollinations-only' || 
+           this.strategy === 'freebox-first';
+  }
+
+  /**
+   * Vérifier si on doit fallback sur Pollinations après échec Freebox
+   */
+  shouldFallbackToPollinations() {
+    return this.strategy === 'freebox-first';
   }
 
   /**
