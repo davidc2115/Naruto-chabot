@@ -67,6 +67,15 @@ jobs:
           
           echo "✅ Android files generated"
           ls -la android/
+          
+          echo "🔍 Vérification network_security_config..."
+          if [ -f "android/app/src/main/res/xml/network_security_config.xml" ]; then
+            echo "✅ network_security_config.xml créé par le plugin"
+            cat android/app/src/main/res/xml/network_security_config.xml | head -10
+          else
+            echo "⚠️ network_security_config.xml PAS créé"
+            ls -la android/app/src/main/res/xml/ || echo "⚠️ xml directory missing"
+          fi
       
       - name: 🔧 Configure Gradle
         run: |
