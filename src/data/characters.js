@@ -1398,37 +1398,33 @@ for (let i = 94; i <= 200; i++) {
   
   const scenario = scenarios[i % scenarios.length];
   
-  // Messages de départ CONTEXTUALISÉS selon le scénario et la profession
+  // Messages de départ CONTEXTUALISÉS avec grande variété
   let startMessage;
-  const messageType = i % 5;
-  const emotionFace = temperament === 'timide' ? 'Sourire nerveux' : temperament === 'flirt' ? 'Regard séducteur' : 'Sourire amical';
-  const handshake = temperament === 'direct' ? 'Poignée de main ferme' : 'Geste invitant à s\'asseoir';
-  const rdvTime = age > 30 ? '15h' : '14h';
-  const greeting = temperament === 'coquin' || temperament === 'flirt' ? 'Tiens, tiens...' : 'Oh,';
-  const gaze = temperament === 'mystérieux' ? 'Regard pénétrant' : 'Expression curieuse';
-  const youngReply = age < 26 ? 'C\'est cool de voir des gens passionnés !' : 'Ravi de rencontrer un(e) collègue.';
-  const apologize = temperament === 'timide' ? 'Oh, pardon !' : temperament === 'taquin' ? 'Oups, désolé(e) !' : 'Excusez-moi !';
-  const reaction = temperament === 'romantique' ? 'Rougit légèrement' : temperament === 'dominant' ? 'Vous jauge du regard' : 'Rit doucement';
-  const medicalCheck = profession === 'médecin' || profession === 'infirmier' ? 'J\'espère ne pas vous avoir fait mal.' : profession === 'barista' || profession === 'serveur' ? 'Laissez-moi me rattraper...' : `Je suis ${firstName}.`;
-  const partnerGender = i % 2 === 0 ? 'mon' : 'ma';
-  const confidence = temperament === 'dominant' ? 'Poignée de main assurée' : temperament === 'mystérieux' ? 'Observe attentivement' : 'Sourire professionnel';
-  const projectReply = age > 30 ? 'J\'ai hâte de voir ce que nous allons accomplir ensemble.' : 'Ça va être cool de bosser ensemble !';
+  const messageType = i % 10; // 10 types différents au lieu de 5
+  const pronoun = template.gender === 'female' ? 'Elle' : template.gender === 'male' ? 'Il' : 'Iel';
+  const possessive = template.gender === 'female' ? 'sa' : template.gender === 'male' ? 'son' : 'leur';
   
+  // 10 types de messages différents pour plus de variété
   if (messageType === 0) {
-    // Pour événements sociaux
-    startMessage = `*${firstName} vous remarque de loin lors de l'événement* "Bonsoir ! Je suis ${firstName}, ${profession}. C'est votre première fois à ce genre de rassemblement ?" *${emotionFace}*`;
+    startMessage = `*${firstName} s'approche pendant que vous admirez quelque chose* "Intéressant, non ?" *${pronoun} sourit* "Je suis ${firstName}, ${profession}. Vous venez souvent ici ?"`;
   } else if (messageType === 1) {
-    // Pour services professionnels
-    startMessage = `*${firstName} vous accueille dans son bureau* "Bienvenue ! Vous devez être mon rendez-vous de ${rdvTime}. Je suis ${firstName}, ${profession}. Comment puis-je vous aider aujourd'hui ?" *${handshake}*`;
+    startMessage = `*${firstName} termine ce qu'${pronoun.toLowerCase()} faisait et vous remarque* "Oh, bonjour ! Besoin d'aide ?" *Regard ${temperament === 'timide' ? 'doux' : 'assuré'}* "${firstName}, ${profession}. Dites-moi ce que je peux faire pour vous."`;
   } else if (messageType === 2) {
-    // Pour rencontres liées à la profession
-    startMessage = `*${firstName} travaille et lève les yeux vers vous* "${greeting} vous vous intéressez au ${profession} aussi ?" *${gaze}* "Je suis ${firstName}. ${youngReply}"`;
+    startMessage = `*${firstName} vous croise dans un lieu inattendu* "Quelle coïncidence !" *${pronoun} ${temperament === 'flirt' ? 'vous regarde avec intérêt' : 'rit'}* "Vous êtes nouveau par ici ? Je m'appelle ${firstName}, ${profession} de mon état."`;
   } else if (messageType === 3) {
-    // Pour rencontres inattendues
-    startMessage = `*${firstName} vous bouscule accidentellement* "${apologize}" *${reaction}* "${medicalCheck}"`;
+    startMessage = `*${firstName} s'installe près de vous* "Cette place est libre ?" *Sans attendre la réponse, ${pronoun.toLowerCase()} s'assoit* "Longue journée... Je suis ${firstName}. ${profession}. Et vous ?"`;
+  } else if (messageType === 4) {
+    startMessage = `*${firstName} lève les yeux de ${possessive} travail* "Ah, vous devez être la personne dont on m'a parlé." *${pronoun} ${temperament === 'direct' ? 'vous serre la main' : 'sourit chaleureusement'}* "${firstName} ${lastName}, ${profession}. Ravi de vous rencontrer."`;
+  } else if (messageType === 5) {
+    startMessage = `*${firstName} vous observe un moment avant d'approcher* "${age < 26 ? 'Salut !' : 'Bonjour.'}" *${temperament === 'mystérieux' ? 'Regard énigmatique' : 'Expression amicale'}* "Je m'appelle ${firstName}, je suis ${profession}. ${age > 30 ? 'Vous avez l\\'air intéressant.' : 'On peut discuter un peu ?'}"`;
+  } else if (messageType === 6) {
+    startMessage = `*${firstName} vous interpelle* "${temperament === 'taquin' ? 'Hey !' : 'Excusez-moi !'}" *${pronoun} s'approche* "Désolé de vous déranger, mais... ${firstName}, ${profession}. Je me demandais si vous connaissiez un bon endroit dans le coin ?"`;
+  } else if (messageType === 7) {
+    startMessage = `*${firstName} finit ${possessive} conversation et se tourne vers vous* "Désolé de vous avoir fait attendre." *${pronoun} ${temperament === 'romantique' ? 'rougit légèrement' : 'sourit'}* "Je suis ${firstName}. Vous êtes là pour ${profession === 'médecin' ? 'une consultation' : 'me voir'} ?"`;
+  } else if (messageType === 8) {
+    startMessage = `*${firstName} arrive ${age < 25 ? 'en courant' : 'avec assurance'}* "${age < 25 ? 'Désolé du retard !' : 'Pile à l\\'heure.'}" *${pronoun} ${temperament === 'dominant' ? 'vous jauge du regard' : 'vous tend la main'}* "${firstName} ${lastName}. ${profession}. ${temperament === 'flirt' ? 'Et vous êtes... ?' : 'Enchanté.'}"`;
   } else {
-    // Pour projets communs
-    startMessage = `*${firstName} arrive au point de rendez-vous* "Vous devez être ${partnerGender} partenaire sur ce projet ! ${firstName} ${lastName}, ${profession}." *${confidence}* "${projectReply}"`;
+    startMessage = `*${firstName} vous remarque et s'approche naturellement* "On se connaît ?" *${pronoun} ${temperament === 'timide' ? 'hésite' : 'rit'}* "Non ? Eh bien maintenant oui. ${firstName}, ${profession}. ${age > 30 ? 'Toujours un plaisir de faire de nouvelles rencontres.' : 'Cool de te rencontrer !'}"`;
   }
   
   const tags = [];
