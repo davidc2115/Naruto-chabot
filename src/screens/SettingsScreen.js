@@ -22,14 +22,11 @@ export default function SettingsScreen({ navigation }) {
   const [useCustomImageApi, setUseCustomImageApi] = useState(false);
   const [imageStrategy, setImageStrategy] = useState('freebox-first');
   
-  // Configuration multi-providers pour génération de texte
+  // Configuration 2 providers pour génération de texte
   const [textProvider, setTextProvider] = useState('groq');
   const [availableProviders, setAvailableProviders] = useState([]);
   const [providerApiKeys, setProviderApiKeys] = useState({
     groq: [''],
-    mancer: [''],
-    mistral: [''],
-    deepinfra: [''],
   });
   const [testingProvider, setTestingProvider] = useState(null);
 
@@ -85,13 +82,11 @@ export default function SettingsScreen({ navigation }) {
       setAvailableProviders(providers);
       setTextProvider(currentProvider);
       
-      // Charger les clés pour chaque provider
-      const newProviderKeys = { ...providerApiKeys };
-      for (const provider of ['groq', 'mancer', 'mistral', 'deepinfra']) {
-        const keys = TextGenerationService.apiKeys[provider] || [];
-        newProviderKeys[provider] = keys.length > 0 ? keys : [''];
-      }
-      setProviderApiKeys(newProviderKeys);
+      // Charger les clés Groq
+      const groqKeys = TextGenerationService.apiKeys.groq || [];
+      setProviderApiKeys({
+        groq: groqKeys.length > 0 ? groqKeys : [''],
+      });
       
       console.log('✅ Config providers chargée:', currentProvider);
     } catch (error) {
@@ -260,8 +255,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🤖 Moteur de Génération de Texte</Text>
         <Text style={styles.sectionDescription}>
-          Choisissez le service d'IA pour générer les réponses des personnages. 
-          Testez plusieurs providers pour trouver le meilleur pour vos conversations.
+          Choisissez le service d'IA pour générer les réponses des personnages.
         </Text>
 
         <View style={styles.providerContainer}>
@@ -359,37 +353,6 @@ export default function SettingsScreen({ navigation }) {
               <Text style={styles.infoSteps}>2. Créez un compte gratuit</Text>
               <Text style={styles.infoSteps}>3. Générez une clé API</Text>
               <Text style={styles.infoSteps}>4. Collez-la ci-dessous</Text>
-            </View>
-          )}
-          
-          {textProvider === 'mancer' && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>ℹ️ Obtenir une clé API Mancer:</Text>
-              <Text style={styles.infoSteps}>1. Visitez mancer.tech</Text>
-              <Text style={styles.infoSteps}>2. Créez un compte (gratuit pour tester)</Text>
-              <Text style={styles.infoSteps}>3. Allez dans Settings → API Keys</Text>
-              <Text style={styles.infoSteps}>4. Créez une nouvelle clé</Text>
-              <Text style={styles.infoSteps}>💰 ~$1-2 / 1M tokens</Text>
-            </View>
-          )}
-          
-          {textProvider === 'mistral' && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>ℹ️ Obtenir une clé API Mistral:</Text>
-              <Text style={styles.infoSteps}>1. Visitez console.mistral.ai</Text>
-              <Text style={styles.infoSteps}>2. Créez un compte</Text>
-              <Text style={styles.infoSteps}>3. Allez dans API Keys</Text>
-              <Text style={styles.infoSteps}>4. Créez une nouvelle clé</Text>
-            </View>
-          )}
-          
-          {textProvider === 'deepinfra' && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>ℹ️ Obtenir une clé API DeepInfra:</Text>
-              <Text style={styles.infoSteps}>1. Visitez deepinfra.com</Text>
-              <Text style={styles.infoSteps}>2. Créez un compte (gratuit pour commencer)</Text>
-              <Text style={styles.infoSteps}>3. Allez dans Settings → API Keys</Text>
-              <Text style={styles.infoSteps}>4. Créez une nouvelle clé</Text>
             </View>
           )}
 

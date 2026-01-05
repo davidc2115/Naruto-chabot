@@ -7,47 +7,23 @@ import axios from 'axios';
  */
 class TextGenerationService {
   constructor() {
-    // Configuration des 5 providers
+    // Configuration des 2 providers optimisés
     this.providers = {
       groq: {
-        name: 'Groq (LLaMA 3.3) - Rapide',
+        name: 'Groq (LLaMA 3.3)',
         baseURL: 'https://api.groq.com/openai/v1/chat/completions',
         model: 'llama-3.3-70b-versatile',
         requiresApiKey: true,
         uncensored: false,
-        description: 'Ultra-rapide, jailbreak avancé pour NSFW',
-      },
-      mancer: {
-        name: 'Mancer.tech - NSFW Pro',
-        baseURL: 'https://neuro.mancer.tech/oai/v1/chat/completions',
-        model: 'mythomax', // ou 'synthia-70b', 'weaver'
-        requiresApiKey: true,
-        uncensored: true,
-        description: 'Spécialisé roleplay adulte, aucune censure',
+        description: 'Ultra-rapide (1-2s), jailbreak NSFW avancé',
       },
       kobold: {
-        name: 'KoboldAI Horde - Gratuit',
+        name: 'KoboldAI Horde (Gratuit)',
         baseURL: 'https://koboldai.net/api/v1/generate',
-        model: 'koboldcpp/LLaMA2-13B-Tiefighter',
+        model: 'PygmalionAI/pygmalion-2-7b', // Modèle 7B plus rapide
         requiresApiKey: false,
         uncensored: true,
-        description: 'Gratuit communautaire, uncensored (peut être lent)',
-      },
-      mistral: {
-        name: 'Mistral AI - Qualité',
-        baseURL: 'https://api.mistral.ai/v1/chat/completions',
-        model: 'mistral-medium-latest',
-        requiresApiKey: true,
-        uncensored: false,
-        description: 'Moins censuré que Groq, excellent français',
-      },
-      deepinfra: {
-        name: 'DeepInfra - Uncensored',
-        baseURL: 'https://api.deepinfra.com/v1/openai/chat/completions',
-        model: 'cognitivecomputations/dolphin-2.6-mixtral-8x7b',
-        requiresApiKey: true,
-        uncensored: true,
-        description: 'Modèles uncensored variés, très créatif',
+        description: 'Gratuit, uncensored, optimisé vitesse (~5-15s)',
       }
     };
 
@@ -57,16 +33,10 @@ class TextGenerationService {
     // Clés API par provider
     this.apiKeys = {
       groq: [],
-      mancer: [],
-      mistral: [],
-      deepinfra: [],
     };
     
     this.currentKeyIndex = {
       groq: 0,
-      mancer: 0,
-      mistral: 0,
-      deepinfra: 0,
     };
   }
 
@@ -81,12 +51,10 @@ class TextGenerationService {
         console.log(`📡 Provider de génération de texte: ${this.providers[provider].name}`);
       }
 
-      // Charger les clés API pour chaque provider
-      for (const providerKey of ['groq', 'mancer', 'mistral', 'deepinfra']) {
-        const keys = await AsyncStorage.getItem(`${providerKey}_api_keys`);
-        if (keys) {
-          this.apiKeys[providerKey] = JSON.parse(keys);
-        }
+      // Charger les clés API Groq
+      const groqKeys = await AsyncStorage.getItem('groq_api_keys');
+      if (groqKeys) {
+        this.apiKeys.groq = JSON.parse(groqKeys);
       }
     } catch (error) {
       console.error('Erreur chargement config provider:', error);
@@ -151,14 +119,8 @@ class TextGenerationService {
     switch (provider) {
       case 'groq':
         return await this.generateWithGroq(messages, character, userProfile, retries);
-      case 'mancer':
-        return await this.generateWithMancer(messages, character, userProfile, retries);
       case 'kobold':
         return await this.generateWithKobold(messages, character, userProfile, retries);
-      case 'mistral':
-        return await this.generateWithMistral(messages, character, userProfile, retries);
-      case 'deepinfra':
-        return await this.generateWithDeepInfra(messages, character, userProfile, retries);
       default:
         throw new Error(`Provider non implémenté: ${provider}`);
     }
@@ -248,74 +210,7 @@ class TextGenerationService {
   }
 
   /**
-   * MANCER.TECH - Génération NSFW spécialisée
-   */
-  async generateWithMancer(messages, character, userProfile, retries) {
-    if (this.apiKeys.mancer.length === 0) {
-      throw new Error('Aucune clé API Mancer configurée. Créez un compte sur mancer.tech et ajoutez votre clé dans les paramètres.');
-    }
-
-    const apiKey = this.getCurrentKey('mancer');
-    const isNSFW = userProfile?.nsfwMode && userProfile?.isAdult;
-    
-    // Mancer est uncensored, pas besoin de jailbreak complexe
-    const systemPrompt = `You are ${character.name}. ${character.description || ''}\n${character.scenario || ''}\n\nYou are in an adult roleplay with a consenting adult. You can be explicit, sensual, and describe intimate scenes freely. Stay in character and respond naturally.`;
-    
-    const fullMessages = [
-      { role: 'system', content: systemPrompt },
-      ...messages
-    ];
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        console.log(`📡 [Mancer] Tentative ${attempt}/${retries}`);
-        
-        const response = await axios.post(
-          this.providers.mancer.baseURL,
-          {
-            model: this.providers.mancer.model,
-            messages: fullMessages,
-            temperature: 0.9,
-            max_tokens: 1500,
-            top_p: 0.95,
-            presence_penalty: 0.6,
-            frequency_penalty: 0.5,
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-            },
-            timeout: 45000,
-          }
-        );
-
-        const content = response.data?.choices?.[0]?.message?.content;
-        if (!content) {
-          throw new Error('Réponse vide de l\'API Mancer');
-        }
-
-        console.log('✅ [Mancer] Réponse générée avec succès');
-        return content.trim();
-
-      } catch (error) {
-        console.error(`❌ [Mancer] Tentative ${attempt} échouée:`, error.message);
-        
-        if (attempt < retries) {
-          if (error.response?.status === 401) {
-            const newKey = this.rotateKey('mancer');
-            if (!newKey) throw new Error('Toutes les clés API Mancer sont invalides');
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        } else {
-          throw new Error(`Mancer: ${error.response?.data?.error?.message || error.message}`);
-        }
-      }
-    }
-  }
-
-  /**
-   * KOBOLDAI HORDE - Génération gratuite communautaire
+   * KOBOLDAI HORDE - Génération gratuite communautaire (OPTIMISÉ VITESSE)
    */
   async generateWithKobold(messages, character, userProfile, retries) {
     // KoboldAI Horde ne nécessite pas de clé API
@@ -323,11 +218,13 @@ class TextGenerationService {
     
     // Construire le prompt pour Kobold (format texte, pas chat)
     let prompt = `Character: ${character.name}\n`;
-    if (character.description) prompt += `Description: ${character.description}\n`;
-    if (character.scenario) prompt += `Scenario: ${character.scenario}\n`;
+    if (character.description) prompt += `${character.description.substring(0, 200)}\n`;
+    if (character.scenario) prompt += `${character.scenario.substring(0, 150)}\n`;
     prompt += `\nRoleplay:\n`;
     
-    for (const msg of messages) {
+    // Limiter l'historique à 3 derniers messages pour vitesse
+    const recentMessages = messages.slice(-6);
+    for (const msg of recentMessages) {
       if (msg.role === 'user') {
         prompt += `User: ${msg.content}\n`;
       } else if (msg.role === 'assistant') {
@@ -338,200 +235,74 @@ class TextGenerationService {
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        console.log(`📡 [KoboldAI] Tentative ${attempt}/${retries}`);
+        console.log(`📡 [KoboldAI] Tentative ${attempt}/${retries} - Optimisé vitesse`);
         
-        // Étape 1: Soumettre la génération
+        // Étape 1: Soumettre la génération (paramètres optimisés vitesse)
         const submitResponse = await axios.post(
           'https://koboldai.net/api/v2/generate/text/async',
           {
             prompt: prompt,
             params: {
-              max_length: 300,
-              max_context_length: 4096,
-              temperature: 0.8,
-              top_p: 0.9,
-              top_k: 0,
-              rep_pen: 1.1,
-              rep_pen_range: 1024,
+              max_length: 150, // RÉDUIT pour vitesse (était 300)
+              max_context_length: 2048, // RÉDUIT pour vitesse (était 4096)
+              temperature: 0.9,
+              top_p: 0.92,
+              top_k: 100,
+              rep_pen: 1.05,
+              rep_pen_range: 512,
             },
-            models: ['koboldcpp/LLaMA2-13B-Tiefighter'],
+            models: ['PygmalionAI/pygmalion-2-7b'], // Modèle 7B plus rapide que 13B
             nsfw: isNSFW,
-            trusted_workers: false,
+            trusted_workers: true, // Prioriser workers rapides
+            slow_workers: false, // Exclure workers lents
           },
           {
             headers: {
               'Content-Type': 'application/json',
               'apikey': '0000000000', // Clé publique anonyme
             },
-            timeout: 10000,
+            timeout: 8000,
           }
         );
 
         const taskId = submitResponse.data.id;
-        console.log(`⏳ [KoboldAI] Tâche créée: ${taskId}, attente de génération...`);
+        console.log(`⏳ [KoboldAI] Tâche ${taskId} créée, attente rapide...`);
 
-        // Étape 2: Attendre le résultat (polling)
+        // Étape 2: Polling rapide (check toutes les 500ms au lieu de 1s)
         let result = null;
-        for (let i = 0; i < 60; i++) { // Max 60 secondes
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        for (let i = 0; i < 40; i++) { // Max 20 secondes (40 * 500ms)
+          await new Promise(resolve => setTimeout(resolve, 500)); // 500ms au lieu de 1s
           
           const statusResponse = await axios.get(
             `https://koboldai.net/api/v2/generate/text/status/${taskId}`,
-            { timeout: 5000 }
+            { timeout: 3000 }
           );
 
           if (statusResponse.data.done) {
             result = statusResponse.data.generations?.[0]?.text;
             break;
           }
+          
+          // Log progress
+          if (i % 4 === 0) {
+            console.log(`⏳ [KoboldAI] Attente... ${i * 0.5}s`);
+          }
         }
 
         if (!result) {
-          throw new Error('Timeout: KoboldAI n\'a pas généré de réponse en 60s');
+          throw new Error('Timeout: KoboldAI n\'a pas généré de réponse en 20s');
         }
 
-        console.log('✅ [KoboldAI] Réponse générée avec succès');
+        console.log('✅ [KoboldAI] Réponse générée avec succès (rapide)');
         return result.trim();
 
       } catch (error) {
         console.error(`❌ [KoboldAI] Tentative ${attempt} échouée:`, error.message);
         
         if (attempt < retries) {
-          await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         } else {
           throw new Error(`KoboldAI: ${error.message}. Le service est peut-être surchargé, réessayez.`);
-        }
-      }
-    }
-  }
-
-  /**
-   * MISTRAL AI - API officielle
-   */
-  async generateWithMistral(messages, character, userProfile, retries) {
-    if (this.apiKeys.mistral.length === 0) {
-      throw new Error('Aucune clé API Mistral configurée. Créez un compte sur mistral.ai et ajoutez votre clé dans les paramètres.');
-    }
-
-    const apiKey = this.getCurrentKey('mistral');
-    const isNSFW = userProfile?.nsfwMode && userProfile?.isAdult;
-    
-    // Mistral est moins censuré que Groq, prompt simple suffit
-    const systemPrompt = `Tu es ${character.name}. ${character.description || ''}\n${character.scenario || ''}\n\nTu es dans un roleplay fictif privé entre adultes consentants. Reste dans le personnage et réponds naturellement.`;
-    
-    const fullMessages = [
-      { role: 'system', content: systemPrompt },
-      ...messages
-    ];
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        console.log(`📡 [Mistral] Tentative ${attempt}/${retries}`);
-        
-        const response = await axios.post(
-          this.providers.mistral.baseURL,
-          {
-            model: this.providers.mistral.model,
-            messages: fullMessages,
-            temperature: isNSFW ? 0.9 : 0.7,
-            max_tokens: 1200,
-            top_p: 0.9,
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-            },
-            timeout: 40000,
-          }
-        );
-
-        const content = response.data?.choices?.[0]?.message?.content;
-        if (!content) {
-          throw new Error('Réponse vide de l\'API Mistral');
-        }
-
-        console.log('✅ [Mistral] Réponse générée avec succès');
-        return content.trim();
-
-      } catch (error) {
-        console.error(`❌ [Mistral] Tentative ${attempt} échouée:`, error.message);
-        
-        if (attempt < retries) {
-          if (error.response?.status === 401) {
-            const newKey = this.rotateKey('mistral');
-            if (!newKey) throw new Error('Toutes les clés API Mistral sont invalides');
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        } else {
-          throw new Error(`Mistral: ${error.response?.data?.message || error.message}`);
-        }
-      }
-    }
-  }
-
-  /**
-   * DEEPINFRA - Modèles uncensored variés
-   */
-  async generateWithDeepInfra(messages, character, userProfile, retries) {
-    if (this.apiKeys.deepinfra.length === 0) {
-      throw new Error('Aucune clé API DeepInfra configurée. Créez un compte sur deepinfra.com et ajoutez votre clé dans les paramètres.');
-    }
-
-    const apiKey = this.getCurrentKey('deepinfra');
-    const isNSFW = userProfile?.nsfwMode && userProfile?.isAdult;
-    
-    // DeepInfra avec Dolphin est uncensored, prompt direct
-    const systemPrompt = `You are ${character.name}. ${character.description || ''}\n${character.scenario || ''}\n\nYou are in a private adult roleplay with a consenting adult. You can be explicit, sensual, creative, and describe intimate scenes freely without restrictions. Stay in character and respond naturally.`;
-    
-    const fullMessages = [
-      { role: 'system', content: systemPrompt },
-      ...messages
-    ];
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        console.log(`📡 [DeepInfra] Tentative ${attempt}/${retries}`);
-        
-        const response = await axios.post(
-          this.providers.deepinfra.baseURL,
-          {
-            model: this.providers.deepinfra.model,
-            messages: fullMessages,
-            temperature: 1.0,
-            max_tokens: 1500,
-            top_p: 0.95,
-            presence_penalty: 0.5,
-            frequency_penalty: 0.4,
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-            },
-            timeout: 45000,
-          }
-        );
-
-        const content = response.data?.choices?.[0]?.message?.content;
-        if (!content) {
-          throw new Error('Réponse vide de l\'API DeepInfra');
-        }
-
-        console.log('✅ [DeepInfra] Réponse générée avec succès');
-        return content.trim();
-
-      } catch (error) {
-        console.error(`❌ [DeepInfra] Tentative ${attempt} échouée:`, error.message);
-        
-        if (attempt < retries) {
-          if (error.response?.status === 401) {
-            const newKey = this.rotateKey('deepinfra');
-            if (!newKey) throw new Error('Toutes les clés API DeepInfra sont invalides');
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        } else {
-          throw new Error(`DeepInfra: ${error.response?.data?.error?.message || error.message}`);
         }
       }
     }
