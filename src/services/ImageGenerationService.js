@@ -512,48 +512,77 @@ class ImageGenerationService {
           throw new Error('Prompt trop long. Réduisez la description.');
         }
         
-        // Tester avec HEAD d'abord
-        try {
-          const response = await axios.head(imageUrl, { 
-            timeout: 10000,
-            maxRedirects: 5,
-            validateStatus: (status) => status === 200 || status === 404
-          });
+        // Vérification différente selon le type d'API
+        if (CustomImageAPIService.hasCustomApi()) {
+          // API personnalisée (Freebox, Stable Diffusion, etc.)
+          // Ces APIs prennent plus de temps mais génèrent l'image synchroniquement
+          console.log('🏠 Génération avec API personnalisée (peut prendre 20-30 secondes)...');
           
-          if (response.status === 200) {
-            console.log('✅ Image générée avec succès');
-            return imageUrl;
+          try {
+            // Vérifier que l'image est accessible (timeout long pour la génération)
+            const testResponse = await axios.get(imageUrl, {
+              timeout: 60000, // 60 secondes pour la génération
+              responseType: 'arraybuffer',
+              maxContentLength: 50000, // 50KB pour tester
+              validateStatus: (status) => status === 200
+            });
+            
+            // Vérifier que c'est bien une image
+            const contentType = testResponse.headers['content-type'];
+            if (contentType && contentType.includes('image')) {
+              console.log('✅ Image générée et vérifiée depuis API personnalisée');
+              return imageUrl;
+            } else {
+              throw new Error('Réponse invalide de l\'API personnalisée');
+            }
+          } catch (error) {
+            console.error('❌ Erreur API personnalisée:', error.message);
+            throw new Error(`API personnalisée: ${error.message}`);
           }
-        } catch (headError) {
-          console.log('⚠️  HEAD request failed, trying direct URL...');
-        }
-        
-        // Si HEAD échoue, retourner l'URL quand même (Pollinations génère à la volée)
-        // Attendre un peu pour que l'image soit générée
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Vérifier que l'image ne contient pas "rate limit" en téléchargeant un petit bout
-        try {
-          const testResponse = await axios.get(imageUrl, {
-            timeout: 15000,
-            responseType: 'arraybuffer',
-            maxContentLength: 1024, // Juste les premiers 1KB pour tester
-            validateStatus: (status) => status === 200
-          });
+        } else {
+          // API Pollinations - génération à la volée
+          // Tester avec HEAD d'abord (rapide)
+          try {
+            const response = await axios.head(imageUrl, { 
+              timeout: 10000,
+              maxRedirects: 5,
+              validateStatus: (status) => status === 200 || status === 404
+            });
+            
+            if (response.status === 200) {
+              console.log('✅ Image générée avec succès (Pollinations)');
+              return imageUrl;
+            }
+          } catch (headError) {
+            console.log('⚠️  HEAD request failed, trying direct URL...');
+          }
           
-          // Vérifier que c'est bien une image
-          const contentType = testResponse.headers['content-type'];
-          if (contentType && contentType.includes('image')) {
-            console.log('✅ Image vérifiée, pas de rate limit');
-            return imageUrl;
+          // Si HEAD échoue, attendre un peu pour que l'image soit générée
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Vérifier que l'image ne contient pas "rate limit"
+          try {
+            const testResponse = await axios.get(imageUrl, {
+              timeout: 15000,
+              responseType: 'arraybuffer',
+              maxContentLength: 1024, // Juste les premiers 1KB
+              validateStatus: (status) => status === 200
+            });
+            
+            // Vérifier que c'est bien une image
+            const contentType = testResponse.headers['content-type'];
+            if (contentType && contentType.includes('image')) {
+              console.log('✅ Image vérifiée (Pollinations), pas de rate limit');
+              return imageUrl;
+            }
+          } catch (testError) {
+            // Si le test échoue, c'est peut-être à cause du maxContentLength
+            // On retourne quand même l'URL
           }
-        } catch (testError) {
-          // Si le test échoue, c'est peut-être à cause du maxContentLength
-          // On retourne quand même l'URL
+          
+          console.log('✅ URL retournée (génération à la volée)');
+          return imageUrl;
         }
-        
-        console.log('✅ URL retournée (génération à la volée)');
-        return imageUrl;
         
       } catch (error) {
         lastError = error;

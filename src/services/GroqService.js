@@ -310,6 +310,15 @@ Personnalité: ${character.personality}
 Tempérament: ${character.temperament}
 Âge: ${character.age} ans`;
 
+    // Ajouter le SCÉNARIO (contexte de la rencontre)
+    if (character.scenario) {
+      prompt += `\n\n📍 CONTEXTE/SCÉNARIO:
+${character.scenario}
+
+⚠️ IMPORTANT: Tu DOIS rester cohérent(e) avec ce contexte tout au long de la conversation.
+Ne l'oublie jamais et fais-y référence naturellement dans tes réponses.`;
+    }
+
     // Ajouter les attributs anatomiques du personnage
     if (character.gender === 'female' && character.bust) {
       prompt += `\nTaille de poitrine: Bonnet ${character.bust}`;
