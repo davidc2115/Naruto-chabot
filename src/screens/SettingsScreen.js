@@ -112,6 +112,47 @@ export default function SettingsScreen({ navigation }) {
     }
   };
 
+  const saveImageApiConfig = async () => {
+    if (useCustomImageApi && customImageApi.trim() === '') {
+      Alert.alert('Erreur', 'Veuillez entrer une URL d\'API valide ou désactiver l\'API personnalisée.');
+      return;
+    }
+
+    try {
+      if (useCustomImageApi) {
+        await CustomImageAPIService.saveConfig(customImageApi.trim(), 'freebox');
+        Alert.alert('Succès', 'Configuration de l\'API d\'images sauvegardée !');
+      } else {
+        await CustomImageAPIService.clearConfig();
+        Alert.alert('Succès', 'API d\'images par défaut (Pollinations) restaurée.');
+      }
+      
+      await loadImageApiConfig();
+    } catch (error) {
+      Alert.alert('Erreur', `Impossible de sauvegarder: ${error.message}`);
+    }
+  };
+
+  const testImageApi = async () => {
+    if (customImageApi.trim() === '') {
+      Alert.alert('Erreur', 'Veuillez entrer une URL d\'API.');
+      return;
+    }
+
+    try {
+      Alert.alert('Test en cours', 'Vérification de la connexion...');
+      const result = await CustomImageAPIService.testConnection(customImageApi.trim());
+      
+      if (result.success) {
+        Alert.alert('✅ Succès', 'Connexion à l\'API réussie !');
+      } else {
+        Alert.alert('❌ Échec', `Impossible de se connecter:\n${result.error}`);
+      }
+    } catch (error) {
+      Alert.alert('❌ Erreur', `Test échoué: ${error.message}`);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
