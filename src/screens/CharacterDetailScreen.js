@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
@@ -78,6 +79,14 @@ export default function CharacterDetailScreen({ route, navigation }) {
   };
 
   const startConversation = () => {
+    // Vérification avant navigation
+    if (!character || !character.id) {
+      Alert.alert('Erreur', 'Impossible de démarrer la conversation. Personnage invalide.');
+      console.error('❌ Tentative de démarrer conversation avec character invalide:', character);
+      return;
+    }
+    
+    console.log('✅ Démarrage conversation:', character.name, 'ID:', character.id);
     navigation.navigate('Conversation', { character });
   };
 
