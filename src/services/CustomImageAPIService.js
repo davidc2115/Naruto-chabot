@@ -8,8 +8,8 @@ import axios from 'axios';
 class CustomImageAPIService {
   constructor() {
     this.customApiUrl = null;
-    this.apiType = 'pollinations'; // 'pollinations' ou 'custom' ou 'freebox'
-    this.strategy = 'freebox-first'; // 'freebox-only', 'pollinations-only', 'freebox-first'
+    this.apiType = 'pollinations'; // 'pollinations' ou 'custom' ou 'freebox' ou 'local'
+    this.strategy = 'freebox-first'; // 'local', 'freebox-only', 'pollinations-only', 'freebox-first'
   }
 
   /**

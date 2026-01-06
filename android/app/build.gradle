@@ -114,8 +114,8 @@ android {
         applicationId 'com.roleplaychat.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 30
-        versionName "1.7.30"
+        versionCode 34
+        versionName "1.7.34"
     }
     signingConfigs {
         debug {
@@ -169,6 +169,9 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+    
+    // ONNX Runtime pour Stable Diffusion Local (optimisé mobile)
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.17.0'
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";

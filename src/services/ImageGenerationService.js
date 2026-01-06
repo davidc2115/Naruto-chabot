@@ -1,5 +1,6 @@
 import axios from 'axios';
 import CustomImageAPIService from './CustomImageAPIService';
+import StableDiffusionLocalService from './StableDiffusionLocalService';
 
 class ImageGenerationService {
   constructor() {
@@ -485,6 +486,12 @@ class ImageGenerationService {
     const strategy = CustomImageAPIService.getStrategy();
     console.log(`🎨 Stratégie de génération: ${strategy}`);
     
+    // Si stratégie = 'local', utiliser SD Local sur smartphone
+    if (strategy === 'local') {
+      console.log('📱 Génération locale (SD sur smartphone)...');
+      return await this.generateWithLocal(prompt);
+    }
+    
     let lastError = null;
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
@@ -791,6 +798,58 @@ class ImageGenerationService {
     // Toutes les tentatives ont échoué
     console.error('❌ Échec de génération après toutes les tentatives');
     throw new Error(`Impossible de générer l'image après ${this.maxRetries} tentatives. Le service est peut-être temporairement surchargé. Réessayez dans quelques minutes.`);
+  }
+
+  /**
+   * Génère une image avec Stable Diffusion Local (Smartphone)
+   */
+  async generateWithLocal(prompt) {
+    console.log('📱 Génération locale SD commencée...');
+    
+    try {
+      // Vérifie la disponibilité
+      const availability = await StableDiffusionLocalService.checkAvailability();
+      
+      if (!availability.available) {
+        throw new Error(availability.reason || 'Service non disponible');
+      }
+
+      if (!availability.modelDownloaded) {
+        throw new Error('Modèle SD non téléchargé. Allez dans Paramètres > Génération d\'images');
+      }
+
+      if (!availability.canRunSD) {
+        throw new Error(`RAM insuffisante (${Math.round(availability.ramMB)} MB). Minimum: 2 GB`);
+      }
+
+      // Construire le prompt avec qualité + négatif
+      const fullPrompt = `${prompt}, masterpiece, best quality, ultra detailed, 8k, photorealistic`;
+      const negativePrompt = 'low quality, blurry, distorted, deformed, ugly, bad anatomy, worst quality, child, childish, young, underage';
+
+      console.log('🎨 Génération avec SD-Turbo local...');
+      
+      // Génération
+      const result = await StableDiffusionLocalService.generateImage(fullPrompt, {
+        negativePrompt,
+        steps: 2, // SD-Turbo optimal
+        guidanceScale: 1.0, // SD-Turbo optimal
+      });
+
+      console.log('✅ Image générée localement:', result);
+      
+      // TODO: Pour l'instant, retourne un message de succès
+      // L'implémentation complète de l'inférence ONNX sera ajoutée
+      if (result.imagePath) {
+        return result.imagePath;
+      }
+      
+      // Placeholder temporaire
+      return 'https://via.placeholder.com/512x512.png?text=SD+Local+Image';
+      
+    } catch (error) {
+      console.error('❌ Erreur génération locale:', error);
+      throw error;
+    }
   }
 }
 

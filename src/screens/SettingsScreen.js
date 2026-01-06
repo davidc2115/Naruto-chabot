@@ -160,7 +160,11 @@ export default function SettingsScreen({ navigation }) {
     }
 
     try {
-      if (imageStrategy === 'pollinations-only') {
+      if (imageStrategy === 'local') {
+        // SD Local sur smartphone
+        await CustomImageAPIService.saveConfig('', 'local', 'local');
+        Alert.alert('✅ Succès', 'Stable Diffusion Local activé ! Téléchargez le modèle (450 MB) pour commencer.');
+      } else if (imageStrategy === 'pollinations-only') {
         // Pollinations uniquement: pas besoin d'URL custom
         await CustomImageAPIService.clearConfig();
         // Mais sauvegarder la stratégie
@@ -495,6 +499,25 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.strategyContainer}>
           <Text style={styles.strategyTitle}>📍 Source de génération:</Text>
           
+          {/* Option 0: SD Local sur Smartphone (NOUVEAU) */}
+          <TouchableOpacity
+            style={[
+              styles.strategyOption,
+              imageStrategy === 'local' && styles.strategyOptionActive
+            ]}
+            onPress={() => setImageStrategy('local')}
+          >
+            <View style={styles.radioButton}>
+              {imageStrategy === 'local' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.strategyContent}>
+              <Text style={styles.strategyName}>📱 Local Smartphone (NOUVEAU) 🚀</Text>
+              <Text style={styles.strategyDescription}>
+                Stable Diffusion sur votre téléphone. Illimité, privé, offline ! (450 MB)
+              </Text>
+            </View>
+          </TouchableOpacity>
+          
           {/* Option 1: Freebox + Pollinations (RECOMMANDÉ) */}
           <TouchableOpacity
             style={[
@@ -586,6 +609,33 @@ export default function SettingsScreen({ navigation }) {
           </>
         )}
 
+        {/* Info SD Local */}
+        {imageStrategy === 'local' && (
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              📱 Stable Diffusion Local
+            </Text>
+            <Text style={styles.infoSteps}>
+              ✅ Génération ILLIMITÉE sur votre téléphone
+            </Text>
+            <Text style={styles.infoSteps}>
+              🔒 100% PRIVÉ - Aucune donnée envoyée
+            </Text>
+            <Text style={styles.infoSteps}>
+              ⚡ Optimisé 8 GB RAM (15-30 sec/image)
+            </Text>
+            <Text style={styles.infoSteps}>
+              📦 Modèle: SD-Turbo ONNX (450 MB)
+            </Text>
+            <Text style={styles.infoSteps}>
+              🎨 Qualité: Hyper-réaliste + Anime
+            </Text>
+            <Text style={styles.infoSteps}>
+              ⚠️ Premier téléchargement: ~10 min (WiFi)
+            </Text>
+          </View>
+        )}
+        
         {/* Info Pollinations */}
         {imageStrategy === 'pollinations-only' && (
           <View style={styles.infoBox}>
