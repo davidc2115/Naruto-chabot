@@ -1,6 +1,6 @@
 {
   "name": "roleplay-chat-app",
-  "version": "1.7.37",
+  "version": "1.7.38",
   "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
@@ -15,6 +15,7 @@
     "@react-navigation/native-stack": "^6.9.17",
     "axios": "^1.6.5",
     "expo": "~51.0.0",
+    "expo-file-system": "~17.0.1",
     "expo-image": "~1.12.0",
     "expo-status-bar": "~1.12.1",
     "react": "18.2.0",

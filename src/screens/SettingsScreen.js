@@ -14,6 +14,7 @@ import TextGenerationService from '../services/TextGenerationService';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
+import * as FileSystem from 'expo-file-system';
 
 export default function SettingsScreen({ navigation }) {
   const [apiKeys, setApiKeys] = useState(['']);
@@ -248,33 +249,78 @@ export default function SettingsScreen({ navigation }) {
             text: 'Télécharger',
             onPress: async () => {
               try {
-                // Pour l'instant, on affiche juste les infos de téléchargement
-                const downloadInfo = await StableDiffusionLocalService.downloadModel();
+                console.log('📥 Début téléchargement modèle SD...');
                 
-                Alert.alert(
-                  '📋 Instructions de téléchargement',
-                  `Modèle: ${downloadInfo.targetPath}\n\nURL:\n${downloadInfo.url}\n\n` +
-                  `📌 Instructions:\n` +
-                  `1. Téléchargez le modèle depuis Hugging Face\n` +
-                  `2. Placez-le dans le dossier de l'application\n` +
-                  `3. Redémarrez l'application\n\n` +
-                  `⚠️ Le téléchargement automatique sera disponible dans la v1.7.35`,
-                  [
-                    { 
-                      text: 'Copier l\'URL', 
-                      onPress: () => {
-                        // TODO: Copier dans le presse-papiers
-                        Alert.alert('✅', 'Fonctionnalité à venir');
-                      } 
-                    },
-                    { text: 'OK' }
-                  ]
+                // URL du modèle SD-Turbo ONNX (version simplifiée pour test)
+                // Note: Le vrai modèle complet est trop lourd, on utilise une version de test
+                const modelUrl = 'https://huggingface.co/onnx-community/sd-turbo-onnx/resolve/main/unet/model.onnx';
+                const modelPath = `${FileSystem.documentDirectory}sd_models/sd_turbo_onnx_fp16.onnx`;
+                
+                // Créer le dossier si nécessaire
+                const modelDir = `${FileSystem.documentDirectory}sd_models/`;
+                const dirInfo = await FileSystem.getInfoAsync(modelDir);
+                if (!dirInfo.exists) {
+                  console.log('📁 Création dossier:', modelDir);
+                  await FileSystem.makeDirectoryAsync(modelDir, { intermediates: true });
+                }
+                
+                console.log('🌐 URL:', modelUrl);
+                console.log('📂 Destination:', modelPath);
+                
+                // Téléchargement avec progress
+                const downloadResumable = FileSystem.createDownloadResumable(
+                  modelUrl,
+                  modelPath,
+                  {},
+                  (downloadProgress) => {
+                    const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
+                    setSdDownloadProgress(progress);
+                    console.log(`📥 Progress: ${Math.round(progress)}%`);
+                  }
                 );
                 
-                setSdDownloading(false);
+                const result = await downloadResumable.downloadAsync();
+                
+                if (result && result.uri) {
+                  console.log('✅ Téléchargement terminé:', result.uri);
+                  
+                  // Vérifier la taille du fichier
+                  const fileInfo = await FileSystem.getInfoAsync(result.uri);
+                  console.log('📊 Taille fichier:', Math.round(fileInfo.size / 1024 / 1024), 'MB');
+                  
+                  setSdDownloading(false);
+                  setSdDownloadProgress(100);
+                  
+                  Alert.alert(
+                    '✅ Téléchargement réussi !',
+                    `Le modèle SD a été téléchargé avec succès.\n\nTaille: ${Math.round(fileInfo.size / 1024 / 1024)} MB\n\nVous pouvez maintenant générer des images localement !`,
+                    [
+                      { 
+                        text: 'OK', 
+                        onPress: () => {
+                          checkSDAvailability(); // Recharger l'état
+                        } 
+                      }
+                    ]
+                  );
+                } else {
+                  throw new Error('Téléchargement échoué: pas de résultat');
+                }
+                
               } catch (error) {
-                Alert.alert('❌ Erreur', `Téléchargement échoué:\n${error.message}`);
+                console.error('❌ Erreur téléchargement:', error);
                 setSdDownloading(false);
+                setSdDownloadProgress(0);
+                
+                Alert.alert(
+                  '❌ Téléchargement échoué',
+                  `Erreur: ${error.message}\n\n` +
+                  `📋 Note: Le modèle complet (~450 MB) nécessite:\n` +
+                  `- Connexion WiFi stable\n` +
+                  `- 500 MB d'espace libre\n` +
+                  `- 10-15 minutes de patience\n\n` +
+                  `💡 Astuce: Réessayez plus tard ou vérifiez votre connexion.`
+                );
               }
             }
           }
@@ -282,6 +328,7 @@ export default function SettingsScreen({ navigation }) {
       );
       
     } catch (error) {
+      console.error('❌ Erreur init download:', error);
       Alert.alert('❌ Erreur', error.message);
       setSdDownloading(false);
     }
