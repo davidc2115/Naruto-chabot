@@ -13,6 +13,7 @@ import GroqService from '../services/GroqService';
 import TextGenerationService from '../services/TextGenerationService';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
+import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
 
 export default function SettingsScreen({ navigation }) {
   const [apiKeys, setApiKeys] = useState(['']);
@@ -29,12 +30,18 @@ export default function SettingsScreen({ navigation }) {
     groq: [''],
   });
   const [testingProvider, setTestingProvider] = useState(null);
+  
+  // Stable Diffusion Local
+  const [sdAvailability, setSdAvailability] = useState(null);
+  const [sdDownloading, setSdDownloading] = useState(false);
+  const [sdDownloadProgress, setSdDownloadProgress] = useState(0);
 
   useEffect(() => {
     loadSettings();
     loadProfile();
     loadImageApiConfig();
     loadTextGenerationConfig();
+    checkSDAvailability();
   }, []);
 
   useEffect(() => {
@@ -82,13 +89,20 @@ export default function SettingsScreen({ navigation }) {
       setAvailableProviders(providers);
       setTextProvider(currentProvider);
       
-      // Charger les clés pour Groq
-      const newProviderKeys = { ...providerApiKeys };
-      const groqKeys = TextGenerationService.apiKeys.groq || [];
-      newProviderKeys.groq = groqKeys.length > 0 ? groqKeys : [''];
+      // Charger les clés pour tous les providers qui en nécessitent
+      const newProviderKeys = {};
+      
+      providers.forEach(provider => {
+        if (provider.requiresApiKey) {
+          const keys = TextGenerationService.apiKeys[provider.id] || [];
+          newProviderKeys[provider.id] = keys.length > 0 ? keys : [''];
+        }
+      });
+      
       setProviderApiKeys(newProviderKeys);
       
       console.log('✅ Config providers chargée:', currentProvider);
+      console.log('📋 Clés chargées pour:', Object.keys(newProviderKeys));
     } catch (error) {
       console.error('Erreur chargement config text generation:', error);
     }
@@ -207,6 +221,69 @@ export default function SettingsScreen({ navigation }) {
       }
     } catch (error) {
       Alert.alert('❌ Erreur', `Test échoué: ${error.message}`);
+    }
+  };
+
+  const checkSDAvailability = async () => {
+    try {
+      const availability = await StableDiffusionLocalService.checkAvailability();
+      setSdAvailability(availability);
+      console.log('📱 SD Local availability:', availability);
+    } catch (error) {
+      console.error('❌ Error checking SD availability:', error);
+    }
+  };
+
+  const downloadSDModel = async () => {
+    try {
+      setSdDownloading(true);
+      setSdDownloadProgress(0);
+      
+      Alert.alert(
+        '📥 Téléchargement du modèle SD',
+        'Le téléchargement va commencer. Taille: ~450 MB\n\n⚠️ Assurez-vous d\'être connecté en WiFi.\n\nDurée estimée: 5-15 minutes',
+        [
+          { text: 'Annuler', style: 'cancel', onPress: () => setSdDownloading(false) },
+          {
+            text: 'Télécharger',
+            onPress: async () => {
+              try {
+                // Pour l'instant, on affiche juste les infos de téléchargement
+                const downloadInfo = await StableDiffusionLocalService.downloadModel();
+                
+                Alert.alert(
+                  '📋 Instructions de téléchargement',
+                  `Modèle: ${downloadInfo.targetPath}\n\nURL:\n${downloadInfo.url}\n\n` +
+                  `📌 Instructions:\n` +
+                  `1. Téléchargez le modèle depuis Hugging Face\n` +
+                  `2. Placez-le dans le dossier de l'application\n` +
+                  `3. Redémarrez l'application\n\n` +
+                  `⚠️ Le téléchargement automatique sera disponible dans la v1.7.35`,
+                  [
+                    { 
+                      text: 'Copier l\'URL', 
+                      onPress: () => {
+                        // TODO: Copier dans le presse-papiers
+                        Alert.alert('✅', 'Fonctionnalité à venir');
+                      } 
+                    },
+                    { text: 'OK' }
+                  ]
+                );
+                
+                setSdDownloading(false);
+              } catch (error) {
+                Alert.alert('❌ Erreur', `Téléchargement échoué:\n${error.message}`);
+                setSdDownloading(false);
+              }
+            }
+          }
+        ]
+      );
+      
+    } catch (error) {
+      Alert.alert('❌ Erreur', error.message);
+      setSdDownloading(false);
     }
   };
 
@@ -399,6 +476,9 @@ export default function SettingsScreen({ navigation }) {
             style={styles.addButton} 
             onPress={() => {
               const newKeys = { ...providerApiKeys };
+              if (!newKeys[textProvider]) {
+                newKeys[textProvider] = [''];
+              }
               newKeys[textProvider].push('');
               setProviderApiKeys(newKeys);
             }}
@@ -410,6 +490,11 @@ export default function SettingsScreen({ navigation }) {
             <TouchableOpacity 
               style={styles.saveButton} 
               onPress={async () => {
+                if (!providerApiKeys[textProvider]) {
+                  Alert.alert('Erreur', 'Erreur de configuration. Veuillez recharger l\'application.');
+                  return;
+                }
+                
                 const validKeys = providerApiKeys[textProvider].filter(key => key.trim() !== '');
                 
                 if (validKeys.length === 0) {
@@ -417,11 +502,16 @@ export default function SettingsScreen({ navigation }) {
                   return;
                 }
 
-                await TextGenerationService.saveApiKeys(textProvider, validKeys);
-                Alert.alert('Succès', `${validKeys.length} clé(s) API ${textProvider} sauvegardée(s)!`);
+                try {
+                  await TextGenerationService.saveApiKeys(textProvider, validKeys);
+                  Alert.alert('✅ Succès', `${validKeys.length} clé(s) API ${textProvider.toUpperCase()} sauvegardée(s)!`);
+                  await loadTextGenerationConfig(); // Recharger la config
+                } catch (error) {
+                  Alert.alert('❌ Erreur', `Impossible de sauvegarder: ${error.message}`);
+                }
               }}
             >
-              <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
+              <Text style={styles.saveButtonText}>💾 Sauvegarder les clés</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -660,6 +750,85 @@ export default function SettingsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* NOUVELLE SECTION: Téléchargement modèle SD Local */}
+      {imageStrategy === 'local' && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📥 Modèle Stable Diffusion Local</Text>
+          <Text style={styles.sectionDescription}>
+            Téléchargez le modèle SD-Turbo ONNX (450 MB) pour générer des images sur votre smartphone.
+          </Text>
+
+          {sdAvailability && (
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>
+                📊 État du système:
+              </Text>
+              <Text style={styles.infoSteps}>
+                📱 RAM disponible: {sdAvailability.ramMB ? Math.round(sdAvailability.ramMB) : 'N/A'} MB
+              </Text>
+              <Text style={styles.infoSteps}>
+                {sdAvailability.canRunSD ? '✅ Compatible SD Local' : '⚠️ RAM insuffisante (min 2 GB)'}
+              </Text>
+              <Text style={styles.infoSteps}>
+                {sdAvailability.modelDownloaded 
+                  ? `✅ Modèle téléchargé (${Math.round(sdAvailability.modelSizeMB)} MB)` 
+                  : '❌ Modèle non téléchargé'}
+              </Text>
+            </View>
+          )}
+
+          {sdDownloading && (
+            <View style={styles.progressContainer}>
+              <Text style={styles.progressText}>
+                📥 Téléchargement en cours... {Math.round(sdDownloadProgress)}%
+              </Text>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
+              </View>
+            </View>
+          )}
+
+          <TouchableOpacity 
+            style={[
+              styles.downloadButton, 
+              (sdDownloading || (sdAvailability && sdAvailability.modelDownloaded)) && styles.downloadButtonDisabled
+            ]} 
+            onPress={downloadSDModel}
+            disabled={sdDownloading || (sdAvailability && sdAvailability.modelDownloaded)}
+          >
+            <Text style={styles.downloadButtonText}>
+              {sdDownloading 
+                ? '⏳ Téléchargement...' 
+                : (sdAvailability && sdAvailability.modelDownloaded)
+                  ? '✅ Modèle installé'
+                  : '📥 Télécharger le modèle (450 MB)'}
+            </Text>
+          </TouchableOpacity>
+
+          {sdAvailability && sdAvailability.modelDownloaded && (
+            <TouchableOpacity 
+              style={styles.testButton} 
+              onPress={async () => {
+                try {
+                  const sysInfo = await StableDiffusionLocalService.getSystemInfo();
+                  Alert.alert(
+                    '📊 Infos Système',
+                    `RAM Max: ${Math.round(sysInfo.maxMemoryMB)} MB\n` +
+                    `RAM Utilisée: ${Math.round(sysInfo.usedMemoryMB)} MB\n` +
+                    `RAM Libre: ${Math.round(sysInfo.freeMemoryMB)} MB\n\n` +
+                    `${sysInfo.canRunSD ? '✅ Peut exécuter SD' : '⚠️ RAM insuffisante'}`
+                  );
+                } catch (error) {
+                  Alert.alert('❌ Erreur', error.message);
+                }
+              }}
+            >
+              <Text style={styles.testButtonText}>📊 Infos Système</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
@@ -810,6 +979,42 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  downloadButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  downloadButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  downloadButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  progressContainer: {
+    marginTop: 15,
+    marginBottom: 10,
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#10b981',
+    borderRadius: 4,
   },
   strategyContainer: {
     marginTop: 15,
