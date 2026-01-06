@@ -21,6 +21,17 @@ jobs:
     name: 🚀 Build Android APK (Native)
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write
+      packages: write
+      actions: read
+      checks: write
+      deployments: write
+      issues: write
+      pull-requests: write
+      repository-projects: write
+      statuses: write
+    
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
