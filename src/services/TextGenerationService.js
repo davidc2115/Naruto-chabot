@@ -7,8 +7,16 @@ import axios from 'axios';
  */
 class TextGenerationService {
   constructor() {
-    // Configuration des 3 providers
+    // Configuration des 4 providers
     this.providers = {
+      openrouter: {
+        name: 'OpenRouter (Multi-modèles)',
+        baseURL: 'https://openrouter.ai/api/v1/chat/completions',
+        model: 'meta-llama/llama-3.1-70b-instruct',
+        requiresApiKey: true,
+        uncensored: true,
+        description: 'Ultra-rapide, multi-modèles, NSFW excellent',
+      },
       groq: {
         name: 'Groq (LLaMA 3.3)',
         baseURL: 'https://api.groq.com/openai/v1/chat/completions',
@@ -31,20 +39,22 @@ class TextGenerationService {
         model: 'dolphin-mistral:latest',
         requiresApiKey: false,
         uncensored: true,
-        description: 'Freebox local, ZÉRO CENSURE, NSFW parfait',
+        description: 'Freebox local, ZÉRO CENSURE, NSFW parfait, mais lent',
       },
     };
 
-    // Provider actif (Ollama Freebox par défaut pour NSFW)
-    this.currentProvider = 'ollama';
+    // Provider actif (OpenRouter par défaut - rapide et NSFW)
+    this.currentProvider = 'openrouter';
     
     // Clés API par provider
     this.apiKeys = {
       groq: [],
+      openrouter: [],
     };
     
     this.currentKeyIndex = {
       groq: 0,
+      openrouter: 0,
     };
   }
 
@@ -59,10 +69,15 @@ class TextGenerationService {
         console.log(`📡 Provider de génération de texte: ${this.providers[provider].name}`);
       }
 
-      // Charger les clés API pour Groq uniquement
+      // Charger les clés API pour Groq et OpenRouter
       const groqKeys = await AsyncStorage.getItem('groq_api_keys');
       if (groqKeys) {
         this.apiKeys.groq = JSON.parse(groqKeys);
+      }
+      
+      const openrouterKeys = await AsyncStorage.getItem('openrouter_api_keys');
+      if (openrouterKeys) {
+        this.apiKeys.openrouter = JSON.parse(openrouterKeys);
       }
     } catch (error) {
       console.error('Erreur chargement config provider:', error);
@@ -125,6 +140,8 @@ class TextGenerationService {
 
     // Dispatcher vers le bon provider
     switch (provider) {
+      case 'openrouter':
+        return await this.generateWithOpenRouter(messages, character, userProfile, retries);
       case 'groq':
         return await this.generateWithGroq(messages, character, userProfile, retries);
       case 'kobold':
