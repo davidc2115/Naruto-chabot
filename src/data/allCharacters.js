@@ -1,6 +1,5 @@
-// Import uniquement des 6 personnages Naruto
+// AUCUN PERSONNAGE - Liste vide
 import characters from './characters';
 
-// Export simple
 export const enhancedCharacters = characters;
 export default characters;

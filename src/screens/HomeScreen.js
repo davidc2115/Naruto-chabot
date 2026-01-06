@@ -121,7 +121,7 @@ export default function HomeScreen({ navigation }) {
               {item.scenario}
             </Text>
             <View style={styles.tagsContainer}>
-              {item.tags.slice(0, 3).map((tag, index) => (
+              {item.tags.slice(0, 5).map((tag, index) => (
                 <View key={index} style={styles.tag}>
                   <Text style={styles.tagText}>{tag}</Text>
                 </View>

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
@@ -78,6 +79,45 @@ export default function CharacterDetailScreen({ route, navigation }) {
   };
 
   const startConversation = () => {
+    // Vérification avant navigation
+    if (!character || !character.id) {
+      Alert.alert('Erreur', 'Impossible de démarrer la conversation. Personnage invalide.');
+      console.error('❌ Tentative de démarrer conversation avec character invalide:', character);
+      return;
+    }
+    
+    console.log('✅ Démarrage conversation:', character.name, 'ID:', character.id);
+    navigation.navigate('Conversation', { character });
+  };
+
+  const startNewConversation = () => {
+    Alert.alert(
+      'Nouvelle conversation',
+      'Voulez-vous vraiment démarrer une nouvelle conversation ? L\'ancienne conversation sera perdue.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Nouvelle conversation',
+          style: 'destructive',
+          onPress: async () => {
+            // Supprimer l'ancienne conversation
+            await StorageService.deleteConversation(character.id);
+            setHasConversation(false);
+            // Démarrer une nouvelle conversation
+            startConversation();
+          }
+        }
+      ]
+    );
+  };
+
+  const resumeConversation = () => {
+    if (!character || !character.id) {
+      Alert.alert('Erreur', 'Impossible de reprendre la conversation. Personnage invalide.');
+      return;
+    }
+    
+    console.log('✅ Reprise conversation:', character.name, 'ID:', character.id);
     navigation.navigate('Conversation', { character });
   };
 
@@ -274,14 +314,35 @@ export default function CharacterDetailScreen({ route, navigation }) {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={startConversation}
-          >
-            <Text style={styles.startButtonText}>
-              {hasConversation ? '💬 Continuer la conversation' : '✨ Commencer la conversation'}
-            </Text>
-          </TouchableOpacity>
+          {hasConversation ? (
+            <>
+              <TouchableOpacity
+                style={styles.resumeButton}
+                onPress={resumeConversation}
+              >
+                <Text style={styles.resumeButtonText}>
+                  💬 Reprendre la conversation
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.newConversationButton}
+                onPress={startNewConversation}
+              >
+                <Text style={styles.newConversationButtonText}>
+                  ✨ Nouvelle conversation
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={startConversation}
+            >
+              <Text style={styles.startButtonText}>
+                ✨ Commencer la conversation
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {character.isCustom && (
             <View style={styles.customButtonsRow}>
@@ -462,6 +523,39 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   startButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  resumeButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 15,
+    padding: 18,
+    alignItems: 'center',
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  resumeButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  newConversationButton: {
+    backgroundColor: '#6366f1',
+    borderRadius: 15,
+    padding: 18,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  newConversationButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
