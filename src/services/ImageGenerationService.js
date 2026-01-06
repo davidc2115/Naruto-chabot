@@ -330,6 +330,7 @@ class ImageGenerationService {
 
   /**
    * Génère l'image du personnage (profil)
+   * INCLUT: Descriptif physique complet + tenue
    */
   async generateCharacterImage(character, userProfile = null) {
     // Filtrage d'âge
@@ -343,36 +344,46 @@ class ImageGenerationService {
     // CONSTRUCTION DU PROMPT ULTRA-DÉTAILLÉ
     let prompt = '';
     
-    // 1. Description physique complète
+    // 1. Description physique détaillée (genre, âge, cheveux, traits)
     prompt += this.buildDetailedPhysicalDescription(character);
     
-    // 2. Anatomie ultra-précise
-    prompt += this.buildAnatomyDescription(character);
-    
-    // 3. TENUE COMPLÈTE DU PERSONNAGE (critique pour profil)
-    if (character.outfit) {
-      prompt += `, wearing: ${character.outfit}`;
-      console.log('✅ Outfit ajouté au prompt:', character.outfit.substring(0, 100));
+    // 2. DESCRIPTIF PHYSIQUE COMPLET du personnage (character.appearance)
+    if (character.appearance) {
+      // Nettoyer et ajouter le descriptif complet
+      const appearance = character.appearance.replace(/\n/g, ' ').trim();
+      prompt += `, ${appearance}`;
+      console.log('✅ Descriptif physique complet ajouté:', appearance.substring(0, 150));
     }
     
-    // 4. Mode NSFW ou SFW
+    // 3. Anatomie ultra-précise (bust/penis)
+    prompt += this.buildAnatomyDescription(character);
+    
+    // 4. TENUE COMPLÈTE DU PERSONNAGE (critique pour profil)
+    if (character.outfit) {
+      const outfit = character.outfit.replace(/\n/g, ' ').trim();
+      prompt += `, wearing: ${outfit}`;
+      console.log('✅ Tenue complète ajoutée:', outfit.substring(0, 150));
+    }
+    
+    // 5. Mode NSFW ou SFW
     if (nsfwMode) {
       prompt += this.buildNSFWPrompt(character);
     } else {
       prompt += this.buildSFWPrompt(character);
     }
     
-    // 5. Qualité et sécurité
+    // 6. Qualité et sécurité
     prompt += ', photorealistic, hyper-detailed, ultra-high quality, 4K resolution, professional photography';
     prompt += ', realistic lighting, accurate proportions, lifelike, detailed features';
     prompt += ', adult 18+, mature, age-appropriate, realistic age depiction';
 
-    console.log('🖼️ Prompt profil complet (avec tenue):', prompt.substring(0, 200));
+    console.log('🖼️ Prompt profil (AVEC tenue):', prompt.substring(0, 300));
     return await this.generateImage(prompt);
   }
 
   /**
    * Génère l'image de scène (conversation)
+   * INCLUT: Descriptif physique complet SANS tenue (sauf si mentionnée dans conversation)
    */
   async generateSceneImage(character, userProfile = null, recentMessages = []) {
     // Filtrage d'âge
@@ -386,25 +397,36 @@ class ImageGenerationService {
     // CONSTRUCTION DU PROMPT
     let prompt = '';
     
-    // 1. Description physique
+    // 1. Description physique détaillée (genre, âge, cheveux, traits)
     prompt += this.buildDetailedPhysicalDescription(character);
     
-    // 2. Anatomie
+    // 2. DESCRIPTIF PHYSIQUE COMPLET du personnage (character.appearance)
+    if (character.appearance) {
+      // Nettoyer et ajouter le descriptif complet
+      const appearance = character.appearance.replace(/\n/g, ' ').trim();
+      prompt += `, ${appearance}`;
+      console.log('✅ Descriptif physique complet ajouté (conversation):', appearance.substring(0, 150));
+    }
+    
+    // 3. Anatomie ultra-précise (bust/penis)
     prompt += this.buildAnatomyDescription(character);
     
-    // 3. Détection de tenue dans la conversation
+    // 4. Détection de tenue UNIQUEMENT dans la conversation (PAS character.outfit par défaut)
     const outfit = this.detectOutfit(recentMessages);
     if (outfit) {
       prompt += `, wearing ${outfit}`;
+      console.log('✅ Tenue détectée dans conversation:', outfit);
+    } else {
+      console.log('ℹ️ Aucune tenue détectée → Corps/physique seul visible');
     }
     
-    // 4. Contexte conversationnel
+    // 5. Contexte conversationnel
     const context = recentMessages.slice(-2).map(m => m.content).join(' ').substring(0, 200);
     if (context && !outfit) {
       prompt += `, scene context: ${context}`;
     }
     
-    // 5. Mode NSFW ou SFW
+    // 6. Mode NSFW ou SFW
     if (nsfwMode) {
       if (!outfit || this.isOutfitSuggestive(outfit)) {
         prompt += this.buildNSFWPrompt(character);
@@ -416,10 +438,11 @@ class ImageGenerationService {
       prompt += this.buildSFWPrompt(character);
     }
     
-    // 6. Qualité finale
+    // 7. Qualité finale
     prompt += ', photorealistic, ultra-detailed, 4K, professional quality, realistic lighting';
     prompt += ', adult 18+, mature, age-appropriate';
 
+    console.log('🖼️ Prompt conversation (SANS tenue par défaut):', prompt.substring(0, 300));
     return await this.generateImage(prompt);
   }
 
