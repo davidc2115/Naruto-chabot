@@ -1,0 +1,44 @@
+// init.gradle - Force TOUS les repositories à utiliser les miroirs alternatifs
+// Ceci remplace dynamiquement toutes les URLs Maven Central par Aliyun
+
+allprojects {
+    buildscript {
+        repositories {
+            all { ArtifactRepository repo ->
+                if (repo instanceof MavenArtifactRepository) {
+                    def url = repo.url.toString()
+                    if (url.contains('repo.maven.apache.org') || url.contains('repo1.maven.org')) {
+                        // Supprimer ce repository Maven Central
+                        remove repo
+                    }
+                }
+            }
+            // Ajouter les miroirs alternatifs en priorité
+            maven { url 'https://maven.google.com' }
+            maven { url 'https://maven.aliyun.com/repository/central' }
+            maven { url 'https://maven.aliyun.com/repository/public' }
+            maven { url 'https://maven.aliyun.com/repository/google' }
+            maven { url 'https://repo.huaweicloud.com/repository/maven/' }
+            maven { url 'https://jitpack.io' }
+        }
+    }
+    
+    repositories {
+        all { ArtifactRepository repo ->
+            if (repo instanceof MavenArtifactRepository) {
+                def url = repo.url.toString()
+                if (url.contains('repo.maven.apache.org') || url.contains('repo1.maven.org')) {
+                    // Supprimer ce repository Maven Central
+                    remove repo
+                }
+            }
+        }
+        // Ajouter les miroirs alternatifs en priorité
+        maven { url 'https://maven.google.com' }
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://repo.huaweicloud.com/repository/maven/' }
+        maven { url 'https://jitpack.io' }
+    }
+}
