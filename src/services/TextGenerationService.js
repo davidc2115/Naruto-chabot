@@ -233,14 +233,26 @@ class TextGenerationService {
       if (response.data?.choices?.[0]?.message?.content) {
         const content = response.data.choices[0].message.content;
         console.log(`✅ OpenRouter: ${content.length} caractères`);
-        return content;
+        console.log(`📝 OpenRouter aperçu: ${content.substring(0, 100)}...`);
+        
+        // Nettoyer et trim le contenu
+        const cleanedContent = content.trim();
+        
+        // Vérifier que c'est du texte lisible
+        if (cleanedContent.length === 0) {
+          throw new Error('Réponse vide après nettoyage');
+        }
+        
+        return cleanedContent;
       }
 
-      throw new Error('Réponse vide');
+      throw new Error('Réponse vide de OpenRouter');
     } catch (error) {
       console.error(`❌ OpenRouter erreur:`, error.message);
+      console.error(`❌ OpenRouter response:`, error.response?.data);
       
       if (error.response?.status === 429 || error.response?.status === 401) {
+        console.log('🔄 Rotation de clé OpenRouter...');
         this.rotateKey('openrouter');
         if (retries > 0) {
           return this.generateWithOpenRouter(messages, character, userProfile, retries - 1);
@@ -248,11 +260,12 @@ class TextGenerationService {
       }
 
       if (retries > 0) {
+        console.log(`⏳ Retry ${4 - retries}/3 pour OpenRouter...`);
         await new Promise(resolve => setTimeout(resolve, 2000));
         return this.generateWithOpenRouter(messages, character, userProfile, retries - 1);
       }
 
-      throw error;
+      throw new Error(`OpenRouter: ${error.response?.data?.error?.message || error.message}`);
     }
   }
 

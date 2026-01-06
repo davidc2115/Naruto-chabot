@@ -23,16 +23,26 @@ class StableDiffusionLocalService {
    * Vérifie si le service est disponible
    */
   async checkAvailability() {
+    console.log('🔍 checkAvailability called');
+    console.log('📱 Platform:', Platform.OS);
+    console.log('📱 Module disponible:', this.isAvailable);
+    
     if (!this.isAvailable) {
+      console.log('⚠️ Module natif non disponible');
       return {
         available: false,
-        reason: 'Module natif non disponible (Android uniquement)',
+        reason: 'Module natif SD Local non disponible. Ceci est normal sur iOS ou si le module natif n\'est pas compilé.',
       };
     }
 
     try {
+      console.log('🔄 Appel StableDiffusionLocal.isModelAvailable()...');
       const modelStatus = await StableDiffusionLocal.isModelAvailable();
+      console.log('✅ Model status:', modelStatus);
+      
+      console.log('🔄 Appel StableDiffusionLocal.getSystemInfo()...');
       const systemInfo = await StableDiffusionLocal.getSystemInfo();
+      console.log('✅ System info:', systemInfo);
       
       return {
         available: true,
@@ -46,9 +56,10 @@ class StableDiffusionLocalService {
       };
     } catch (error) {
       console.error('❌ Error checking SD Local availability:', error);
+      console.error('❌ Error details:', error.message);
       return {
         available: false,
-        reason: error.message,
+        reason: `Erreur module natif: ${error.message}`,
       };
     }
   }
@@ -58,17 +69,23 @@ class StableDiffusionLocalService {
    * Retourne les instructions de téléchargement
    */
   async downloadModel() {
+    console.log('📥 downloadModel called');
+    console.log('📱 isAvailable:', this.isAvailable);
+    console.log('📱 StableDiffusionLocal module:', StableDiffusionLocal);
+    
     if (!this.isAvailable) {
-      throw new Error('Service non disponible');
+      throw new Error('Module natif SD Local non disponible (Android uniquement). Assurez-vous que l\'APK est bien installée.');
     }
 
     try {
+      console.log('🔄 Appel StableDiffusionLocal.downloadModel()...');
       const downloadInfo = await StableDiffusionLocal.downloadModel();
-      console.log('📥 Model download info:', downloadInfo);
+      console.log('✅ Model download info:', downloadInfo);
       return downloadInfo;
     } catch (error) {
-      console.error('❌ Error getting download info:', error);
-      throw error;
+      console.error('❌ Error calling native module:', error);
+      console.error('❌ Error details:', error.message, error.stack);
+      throw new Error(`Impossible d'accéder au module natif: ${error.message}`);
     }
   }
 
