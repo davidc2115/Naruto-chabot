@@ -8,6 +8,38 @@ class ImageGenerationService {
     this.lastRequestTime = 0;
     this.minDelay = 3000; // 3 secondes minimum entre les requêtes
     this.maxRetries = 3;
+    
+    // STYLES ALÉATOIRES pour variété
+    this.artStyles = [
+      'photorealistic, ultra-realistic photography',
+      'hyper-realistic, 8K ultra-detailed photography',
+      'anime style, anime art, manga illustration',
+      'semi-realistic anime style',
+    ];
+    
+    // TENUES NSFW ALÉATOIRES (conversations)
+    this.nsfwOutfits = [
+      'wearing sexy lingerie, lace underwear',
+      'wearing silk robe, partially open',
+      'topless, bare chest visible',
+      'wearing only towel',
+      'completely nude, artistic nudity',
+      'wearing see-through clothing',
+      'wearing bikini, swimsuit',
+      'lingerie visible under clothing',
+    ];
+    
+    // POSTURES NSFW ALÉATOIRES
+    this.nsfwPoses = [
+      'lying on bed, seductive pose',
+      'sitting provocatively, legs crossed',
+      'standing, hand on hip, confident',
+      'kneeling, looking up',
+      'arching back, sensual pose',
+      'leaning against wall, alluring',
+      'reclining on couch, relaxed',
+      'stretching, body exposed',
+    ];
   }
 
   /**
@@ -330,7 +362,7 @@ class ImageGenerationService {
 
   /**
    * Génère l'image du personnage (profil)
-   * INCLUT: Descriptif physique complet + tenue
+   * INCLUT: Descriptif physique complet + tenue + STYLE ALÉATOIRE
    */
   async generateCharacterImage(character, userProfile = null) {
     // Filtrage d'âge
@@ -344,46 +376,50 @@ class ImageGenerationService {
     // CONSTRUCTION DU PROMPT ULTRA-DÉTAILLÉ
     let prompt = '';
     
-    // 1. Description physique détaillée (genre, âge, cheveux, traits)
-    prompt += this.buildDetailedPhysicalDescription(character);
+    // 1. STYLE ALÉATOIRE (réaliste/hyper-réaliste/anime)
+    const randomStyle = this.artStyles[Math.floor(Math.random() * this.artStyles.length)];
+    prompt += randomStyle;
+    console.log('🎨 Style aléatoire choisi:', randomStyle);
     
-    // 2. DESCRIPTIF PHYSIQUE COMPLET du personnage (character.appearance)
+    // 2. Description physique détaillée (genre, âge, cheveux, traits)
+    prompt += ', ' + this.buildDetailedPhysicalDescription(character);
+    
+    // 3. DESCRIPTIF PHYSIQUE COMPLET du personnage (character.appearance)
     if (character.appearance) {
-      // Nettoyer et ajouter le descriptif complet
       const appearance = character.appearance.replace(/\n/g, ' ').trim();
       prompt += `, ${appearance}`;
       console.log('✅ Descriptif physique complet ajouté:', appearance.substring(0, 150));
     }
     
-    // 3. Anatomie ultra-précise (bust/penis)
+    // 4. Anatomie ultra-précise (bust/penis)
     prompt += this.buildAnatomyDescription(character);
     
-    // 4. TENUE COMPLÈTE DU PERSONNAGE (critique pour profil)
+    // 5. TENUE COMPLÈTE DU PERSONNAGE (critique pour profil)
     if (character.outfit) {
       const outfit = character.outfit.replace(/\n/g, ' ').trim();
       prompt += `, wearing: ${outfit}`;
       console.log('✅ Tenue complète ajoutée:', outfit.substring(0, 150));
     }
     
-    // 5. Mode NSFW ou SFW
+    // 6. Mode NSFW ou SFW
     if (nsfwMode) {
       prompt += this.buildNSFWPrompt(character);
     } else {
       prompt += this.buildSFWPrompt(character);
     }
     
-    // 6. Qualité et sécurité
-    prompt += ', photorealistic, hyper-detailed, ultra-high quality, 4K resolution, professional photography';
+    // 7. Qualité et sécurité
+    prompt += ', ultra-high quality, 4K resolution, professional photography';
     prompt += ', realistic lighting, accurate proportions, lifelike, detailed features';
     prompt += ', adult 18+, mature, age-appropriate, realistic age depiction';
 
-    console.log('🖼️ Prompt profil (AVEC tenue):', prompt.substring(0, 300));
+    console.log('🖼️ Prompt profil (AVEC tenue + style aléatoire):', prompt.substring(0, 300));
     return await this.generateImage(prompt);
   }
 
   /**
    * Génère l'image de scène (conversation)
-   * INCLUT: Descriptif physique complet SANS tenue (sauf si mentionnée dans conversation)
+   * INCLUT: Descriptif physique + TENUE/POSTURE ALÉATOIRE si NSFW + STYLE ALÉATOIRE
    */
   async generateSceneImage(character, userProfile = null, recentMessages = []) {
     // Filtrage d'âge
@@ -397,52 +433,63 @@ class ImageGenerationService {
     // CONSTRUCTION DU PROMPT
     let prompt = '';
     
-    // 1. Description physique détaillée (genre, âge, cheveux, traits)
-    prompt += this.buildDetailedPhysicalDescription(character);
+    // 1. STYLE ALÉATOIRE (réaliste/hyper-réaliste/anime)
+    const randomStyle = this.artStyles[Math.floor(Math.random() * this.artStyles.length)];
+    prompt += randomStyle;
+    console.log('🎨 Style aléatoire choisi (conversation):', randomStyle);
     
-    // 2. DESCRIPTIF PHYSIQUE COMPLET du personnage (character.appearance)
+    // 2. Description physique détaillée (genre, âge, cheveux, traits)
+    prompt += ', ' + this.buildDetailedPhysicalDescription(character);
+    
+    // 3. DESCRIPTIF PHYSIQUE COMPLET du personnage (character.appearance)
     if (character.appearance) {
-      // Nettoyer et ajouter le descriptif complet
       const appearance = character.appearance.replace(/\n/g, ' ').trim();
       prompt += `, ${appearance}`;
       console.log('✅ Descriptif physique complet ajouté (conversation):', appearance.substring(0, 150));
     }
     
-    // 3. Anatomie ultra-précise (bust/penis)
+    // 4. Anatomie ultra-précise (bust/penis)
     prompt += this.buildAnatomyDescription(character);
     
-    // 4. Détection de tenue UNIQUEMENT dans la conversation (PAS character.outfit par défaut)
-    const outfit = this.detectOutfit(recentMessages);
-    if (outfit) {
-      prompt += `, wearing ${outfit}`;
-      console.log('✅ Tenue détectée dans conversation:', outfit);
+    // 5. TENUE: Détection conversation OU aléatoire si NSFW
+    const detectedOutfit = this.detectOutfit(recentMessages);
+    if (detectedOutfit) {
+      prompt += `, wearing ${detectedOutfit}`;
+      console.log('✅ Tenue détectée dans conversation:', detectedOutfit);
+    } else if (nsfwMode) {
+      // NSFW: Tenue aléatoire
+      const randomOutfit = this.nsfwOutfits[Math.floor(Math.random() * this.nsfwOutfits.length)];
+      prompt += `, ${randomOutfit}`;
+      console.log('🎲 Tenue NSFW aléatoire:', randomOutfit);
     } else {
-      console.log('ℹ️ Aucune tenue détectée → Corps/physique seul visible');
+      console.log('ℹ️ Aucune tenue (SFW mode)');
     }
     
-    // 5. Contexte conversationnel
+    // 6. POSTURE: Aléatoire si NSFW
+    if (nsfwMode) {
+      const randomPose = this.nsfwPoses[Math.floor(Math.random() * this.nsfwPoses.length)];
+      prompt += `, ${randomPose}`;
+      console.log('🎲 Posture NSFW aléatoire:', randomPose);
+    }
+    
+    // 7. Contexte conversationnel
     const context = recentMessages.slice(-2).map(m => m.content).join(' ').substring(0, 200);
-    if (context && !outfit) {
+    if (context && !detectedOutfit) {
       prompt += `, scene context: ${context}`;
     }
     
-    // 6. Mode NSFW ou SFW
+    // 8. Mode NSFW ou SFW
     if (nsfwMode) {
-      if (!outfit || this.isOutfitSuggestive(outfit)) {
-        prompt += this.buildNSFWPrompt(character);
-      } else {
-        // NSFW atténué si tenue normale
-        prompt += ', attractive pose, alluring expression, sensual atmosphere, sexy lighting';
-      }
+      prompt += this.buildNSFWPrompt(character);
     } else {
       prompt += this.buildSFWPrompt(character);
     }
     
-    // 7. Qualité finale
-    prompt += ', photorealistic, ultra-detailed, 4K, professional quality, realistic lighting';
+    // 9. Qualité finale
+    prompt += ', ultra-detailed, 4K, professional quality, realistic lighting';
     prompt += ', adult 18+, mature, age-appropriate';
 
-    console.log('🖼️ Prompt conversation (SANS tenue par défaut):', prompt.substring(0, 300));
+    console.log('🖼️ Prompt conversation (tenue/posture aléatoire si NSFW):', prompt.substring(0, 300));
     return await this.generateImage(prompt);
   }
 
