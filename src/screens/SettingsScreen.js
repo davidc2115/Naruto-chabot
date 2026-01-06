@@ -8,7 +8,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import GroqService from '../services/GroqService';
+import TextGenerationService from '../services/TextGenerationService';
 import UserProfileService from '../services/UserProfileService';
 
 export default function SettingsScreen({ navigation }) {
@@ -29,9 +29,9 @@ export default function SettingsScreen({ navigation }) {
   }, [navigation]);
 
   const loadSettings = async () => {
-    await GroqService.loadApiKeys();
-    if (GroqService.apiKeys.length > 0) {
-      setApiKeys(GroqService.apiKeys);
+    await TextGenerationService.loadGroqApiKeys();
+    if (TextGenerationService.groq?.apiKeys?.length > 0) {
+      setApiKeys(TextGenerationService.groq.apiKeys);
     }
     setLoading(false);
   };
@@ -64,7 +64,7 @@ export default function SettingsScreen({ navigation }) {
       return;
     }
 
-    await GroqService.saveApiKeys(validKeys);
+    await TextGenerationService.saveGroqApiKeys(validKeys);
     Alert.alert('Succès', `${validKeys.length} clé(s) API sauvegardée(s) avec succès!`);
   };
 
@@ -76,23 +76,10 @@ export default function SettingsScreen({ navigation }) {
       return;
     }
 
-    await GroqService.saveApiKeys(validKeys);
+    await TextGenerationService.saveGroqApiKeys(validKeys);
     
     try {
-      const testMessage = [
-        { role: 'user', content: 'Dis bonjour en une phrase.' }
-      ];
-      
-      const testCharacter = {
-        name: 'Test',
-        appearance: 'Test',
-        personality: 'Test',
-        temperament: 'direct',
-        age: 25,
-        scenario: 'Test'
-      };
-
-      await GroqService.generateResponse(testMessage, testCharacter);
+      await TextGenerationService.testGroqKeys();
       Alert.alert('Succès', 'Les clés API fonctionnent correctement!');
     } catch (error) {
       Alert.alert('Erreur', `Échec du test: ${error.message}`);
@@ -208,7 +195,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 1.0.0</Text>
+          <Text style={styles.aboutText}>Version: 2.0.0</Text>
           <Text style={styles.aboutText}>
             Application de roleplay conversationnel
           </Text>

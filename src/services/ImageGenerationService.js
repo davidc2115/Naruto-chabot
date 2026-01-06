@@ -317,6 +317,10 @@ class ImageGenerationService {
     if (nsfwMode) {
       prompt += this.buildNSFWPrompt(character);
     } else {
+      // Tenue de base du personnage (si définie) pour guider l'image
+      if (character.outfit) {
+        prompt += `, wearing ${character.outfit}`;
+      }
       prompt += this.buildSFWPrompt(character);
     }
     

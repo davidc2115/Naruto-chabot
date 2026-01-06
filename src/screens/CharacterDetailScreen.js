@@ -195,6 +195,13 @@ export default function CharacterDetailScreen({ route, navigation }) {
           )}
         </View>
 
+        {character.outfit && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>👗 Tenue</Text>
+            <Text style={styles.sectionContent}>{character.outfit}</Text>
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🎭 Personnalité</Text>
           <Text style={styles.sectionContent}>{character.personality}</Text>

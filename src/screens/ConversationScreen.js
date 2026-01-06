@@ -12,7 +12,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import GroqService from '../services/GroqService';
+import TextGenerationService from '../services/TextGenerationService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
@@ -128,7 +128,7 @@ export default function ConversationScreen({ route, navigation }) {
       setRelationship(newRelationship);
 
       // Generate AI response
-      const response = await GroqService.generateResponse(
+      const response = await TextGenerationService.generateResponse(
         updatedMessages,
         character,
         userProfile
@@ -258,7 +258,7 @@ export default function ConversationScreen({ route, navigation }) {
         <View style={styles.imageMessageContainer}>
           <Image source={{ uri: item.image }} style={styles.generatedImage} />
           <Text style={styles.imageTimestamp}>
-            {new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            {item.timestamp ? new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
           </Text>
         </View>
       );
