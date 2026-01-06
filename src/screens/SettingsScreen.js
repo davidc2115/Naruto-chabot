@@ -285,6 +285,9 @@ export default function SettingsScreen({ navigation }) {
                   {provider.id === 'kobold' && (
                     <Text style={styles.providerBadgeFree}>💚 GRATUIT</Text>
                   )}
+                  {provider.id === 'ollama' && (
+                    <Text style={styles.providerBadgeFreebox}>🏠 FREEBOX LOCAL</Text>
+                  )}
                 </View>
               </View>
               <Text style={styles.providerDescription}>{provider.description}</Text>

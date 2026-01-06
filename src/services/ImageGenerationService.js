@@ -348,18 +348,25 @@ class ImageGenerationService {
     // 2. Anatomie ultra-précise
     prompt += this.buildAnatomyDescription(character);
     
-    // 3. Mode NSFW ou SFW
+    // 3. TENUE COMPLÈTE DU PERSONNAGE (critique pour profil)
+    if (character.outfit) {
+      prompt += `, wearing: ${character.outfit}`;
+      console.log('✅ Outfit ajouté au prompt:', character.outfit.substring(0, 100));
+    }
+    
+    // 4. Mode NSFW ou SFW
     if (nsfwMode) {
       prompt += this.buildNSFWPrompt(character);
     } else {
       prompt += this.buildSFWPrompt(character);
     }
     
-    // 4. Qualité et sécurité
+    // 5. Qualité et sécurité
     prompt += ', photorealistic, hyper-detailed, ultra-high quality, 4K resolution, professional photography';
     prompt += ', realistic lighting, accurate proportions, lifelike, detailed features';
     prompt += ', adult 18+, mature, age-appropriate, realistic age depiction';
 
+    console.log('🖼️ Prompt profil complet (avec tenue):', prompt.substring(0, 200));
     return await this.generateImage(prompt);
   }
 
