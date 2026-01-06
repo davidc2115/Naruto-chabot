@@ -30,19 +30,17 @@ export default function ChatsScreen({ navigation }) {
   };
 
   const deleteConversation = async (characterId) => {
-    const character = getCharacter(characterId);
     Alert.alert(
-      'Supprimer définitivement',
-      `Voulez-vous vraiment supprimer définitivement la conversation avec ${character?.name || 'ce personnage'} ? Cette action est irréversible.`,
+      'Supprimer la conversation',
+      'Êtes-vous sûr de vouloir supprimer cette conversation ?',
       [
         { text: 'Annuler', style: 'cancel' },
         {
-          text: 'Supprimer définitivement',
+          text: 'Supprimer',
           style: 'destructive',
           onPress: async () => {
             await StorageService.deleteConversation(characterId);
             loadConversations();
-            Alert.alert('✅ Supprimée', 'La conversation a été supprimée définitivement.');
           },
         },
       ]
@@ -61,48 +59,41 @@ export default function ChatsScreen({ navigation }) {
     const messagePreview = lastMessage?.content?.substring(0, 80) + '...' || 'Aucun message';
 
     return (
-      <View style={styles.card}>
-        <TouchableOpacity
-          style={styles.cardTouchable}
-          onPress={() => navigation.navigate('Conversation', { character })}
-        >
-          <View style={styles.cardContent}>
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {character.name.split(' ').map(n => n[0]).join('')}
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('Conversation', { character })}
+        onLongPress={() => deleteConversation(item.characterId)}
+      >
+        <View style={styles.cardContent}>
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarText}>
+              {character.name.split(' ').map(n => n[0]).join('')}
+            </Text>
+          </View>
+          <View style={styles.info}>
+            <View style={styles.header}>
+              <Text style={styles.name}>{character.name}</Text>
+              <Text style={styles.date}>
+                {new Date(item.lastUpdated).toLocaleDateString('fr-FR')}
               </Text>
             </View>
-            <View style={styles.info}>
-              <View style={styles.header}>
-                <Text style={styles.name}>{character.name}</Text>
-                <Text style={styles.date}>
-                  {new Date(item.lastUpdated).toLocaleDateString('fr-FR')}
-                </Text>
-              </View>
-              <Text style={styles.preview} numberOfLines={2}>
-                {messagePreview}
+            <Text style={styles.preview} numberOfLines={2}>
+              {messagePreview}
+            </Text>
+            <View style={styles.statsContainer}>
+              <Text style={styles.stats}>
+                💬 {item.messages.length} messages
               </Text>
-              <View style={styles.statsContainer}>
-                <Text style={styles.stats}>
-                  💬 {item.messages.length} messages
-                </Text>
-                <Text style={styles.stats}>
-                  💖 Affection: {item.relationship?.affection || 50}%
-                </Text>
-                <Text style={styles.stats}>
-                  ⭐ Niveau: {item.relationship?.level || 1}
-                </Text>
-              </View>
+              <Text style={styles.stats}>
+                💖 Affection: {item.relationship?.affection || 50}%
+              </Text>
+              <Text style={styles.stats}>
+                ⭐ Niveau: {item.relationship?.level || 1}
+              </Text>
             </View>
           </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => deleteConversation(item.characterId)}
-        >
-          <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </TouchableOpacity>
     );
   };
 
@@ -167,26 +158,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    overflow: 'hidden',
-  },
-  cardTouchable: {
-    flex: 1,
   },
   cardContent: {
     flexDirection: 'row',
     padding: 15,
-  },
-  deleteButton: {
-    backgroundColor: '#ef4444',
-    padding: 12,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#fee2e2',
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
   },
   avatarPlaceholder: {
     width: 60,

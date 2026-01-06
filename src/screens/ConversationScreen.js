@@ -13,14 +13,13 @@ import {
   Alert,
 } from 'react-native';
 import GroqService from '../services/GroqService';
-import TextGenerationService from '../services/TextGenerationService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
 import GalleryService from '../services/GalleryService';
 
 export default function ConversationScreen({ route, navigation }) {
-  const { character } = route.params || {};
+  const { character } = route.params;
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -29,125 +28,63 @@ export default function ConversationScreen({ route, navigation }) {
   const [userProfile, setUserProfile] = useState(null);
   const [gallery, setGallery] = useState([]);
   const [conversationBackground, setConversationBackground] = useState(null);
-  const [initError, setInitError] = useState(null);
-  const [isInitialized, setIsInitialized] = useState(false);
   const flatListRef = useRef(null);
 
-  // Vérification de sécurité
   useEffect(() => {
-    if (!character || !character.id) {
-      console.error('❌ Character invalide:', character);
-      setInitError('Personnage invalide ou incomplet');
-      Alert.alert(
-        'Erreur',
-        'Impossible de charger la conversation. Le personnage est invalide.',
-        [{ text: 'Retour', onPress: () => navigation.goBack() }]
-      );
-      return;
-    }
-    
-    console.log('✅ Initialisation conversation pour:', character.name, 'ID:', character.id);
     initializeScreen();
   }, [character]);
 
   const initializeScreen = async () => {
-    try {
-      // Les clés API Groq sont maintenant chargées automatiquement dans generateResponse
-      
-      // Charger le reste
-      await Promise.all([
-        loadConversation(),
-        loadUserProfile(),
-        loadGallery(),
-        loadBackground()
-      ]);
-      
-      setIsInitialized(true);
-      
-      navigation.setOptions({
-        title: character?.name || 'Conversation',
-        headerRight: () => (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('CharacterDetail', { character })}
-            style={{ marginRight: 15 }}
-          >
-            <Text style={{ color: '#fff', fontSize: 16 }}>ℹ️</Text>
-          </TouchableOpacity>
-        ),
-      });
-    } catch (error) {
-      console.error('❌ Erreur initialisation conversation:', error);
-      setInitError(error.message);
-      Alert.alert(
-        'Erreur',
-        `Impossible d'initialiser la conversation: ${error.message}`,
-        [{ text: 'Retour', onPress: () => navigation.goBack() }]
-      );
-    }
+    // Les clés API Groq sont maintenant chargées automatiquement dans generateResponse
+    
+    // Charger le reste
+    loadConversation();
+    loadUserProfile();
+    loadGallery();
+    loadBackground();
+    
+    navigation.setOptions({
+      title: character.name,
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('CharacterDetail', { character })}
+          style={{ marginRight: 15 }}
+        >
+          <Text style={{ color: '#fff', fontSize: 16 }}>ℹ️</Text>
+        </TouchableOpacity>
+      ),
+    });
   };
 
   const loadUserProfile = async () => {
-    try {
-      const profile = await UserProfileService.getProfile();
-      setUserProfile(profile);
-      console.log('✅ Profil utilisateur chargé');
-    } catch (error) {
-      console.error('❌ Erreur chargement profil:', error);
-    }
+    const profile = await UserProfileService.getProfile();
+    setUserProfile(profile);
   };
 
   const loadGallery = async () => {
-    try {
-      if (!character || !character.id) return;
-      const characterGallery = await GalleryService.getGallery(character.id);
-      setGallery(characterGallery || []);
-      console.log(`✅ Galerie chargée: ${characterGallery?.length || 0} images`);
-    } catch (error) {
-      console.error('❌ Erreur chargement galerie:', error);
-      setGallery([]);
-    }
+    const characterGallery = await GalleryService.getGallery(character.id);
+    setGallery(characterGallery);
   };
 
   const loadBackground = async () => {
-    try {
-      if (!character || !character.id) return;
-      const bg = await GalleryService.getConversationBackground(character.id);
-      setConversationBackground(bg);
-      if (bg) console.log('✅ Background chargé');
-    } catch (error) {
-      console.error('❌ Erreur chargement background:', error);
-    }
+    const bg = await GalleryService.getConversationBackground(character.id);
+    setConversationBackground(bg);
   };
 
   const loadConversation = async () => {
-    try {
-      if (!character || !character.id) {
-        throw new Error('Character ID manquant');
-      }
-      
-      const saved = await StorageService.loadConversation(character.id);
-      if (saved && saved.messages && saved.messages.length > 0) {
-        console.log(`✅ Conversation chargée: ${saved.messages.length} messages`);
-        setMessages(saved.messages);
-        setRelationship(saved.relationship);
-      } else {
-        // Start with character's initial message - PAS DE TIMESTAMP
-        const initialMessage = {
-          role: 'assistant',
-          content: character.startMessage || `Bonjour, je suis ${character.name}.`,
-        };
-        console.log('✅ Nouveau conversation initialisée');
-        setMessages([initialMessage]);
-        const rel = await StorageService.loadRelationship(character.id);
-        setRelationship(rel);
-      }
-    } catch (error) {
-      console.error('❌ Erreur chargement conversation:', error);
-      // Initialiser avec un message par défaut
-      setMessages([{
+    const saved = await StorageService.loadConversation(character.id);
+    if (saved && saved.messages.length > 0) {
+      setMessages(saved.messages);
+      setRelationship(saved.relationship);
+    } else {
+      // Start with character's initial message - PAS DE TIMESTAMP
+      const initialMessage = {
         role: 'assistant',
-        content: character?.startMessage || `Bonjour, je suis ${character?.name || 'votre personnage'}.`
-      }]);
+        content: character.startMessage,
+      };
+      setMessages([initialMessage]);
+      const rel = await StorageService.loadRelationship(character.id);
+      setRelationship(rel);
     }
   };
 
@@ -190,8 +127,8 @@ export default function ConversationScreen({ route, navigation }) {
       const newRelationship = updateRelationship(userMessage.content);
       setRelationship(newRelationship);
 
-      // Generate AI response (utilise TextGenerationService multi-providers)
-      const response = await TextGenerationService.generateResponse(
+      // Generate AI response
+      const response = await GroqService.generateResponse(
         updatedMessages,
         character,
         userProfile
@@ -365,32 +302,6 @@ export default function ConversationScreen({ route, navigation }) {
       </View>
     );
   };
-
-  // Afficher l'écran de chargement ou d'erreur
-  if (initError) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>❌ Erreur</Text>
-        <Text style={styles.errorMessage}>{initError}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.retryButtonText}>← Retour</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  if (!isInitialized) {
-    return (
-      <View style={styles.loadingScreen}>
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={styles.loadingScreenText}>Chargement de la conversation...</Text>
-        <Text style={styles.loadingScreenSubText}>{character?.name || ''}</Text>
-      </View>
-    );
-  }
 
   return (
     <KeyboardAvoidingView
@@ -655,54 +566,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
-    opacity: 0.6,
-    resizeMode: 'cover',
-  },
-  loadingScreen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-  },
-  loadingScreenText: {
-    marginTop: 15,
-    fontSize: 16,
-    color: '#6366f1',
-    fontWeight: '600',
-  },
-  loadingScreenSubText: {
-    marginTop: 5,
-    fontSize: 14,
-    color: '#9ca3af',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    padding: 20,
-  },
-  errorText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ef4444',
-    marginBottom: 10,
-  },
-  errorMessage: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  retryButton: {
-    backgroundColor: '#6366f1',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 10,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    opacity: 0.3,
   },
 });

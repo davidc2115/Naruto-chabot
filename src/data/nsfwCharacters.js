@@ -1,5 +1,3 @@
-// FICHIER VIDÉ - Plus de personnages NSFW
-// Seuls les 6 personnages Naruto sont disponibles dans characters.js
-
+// Fichier vide
 export const nsfwCharacters = [];
 export default nsfwCharacters;

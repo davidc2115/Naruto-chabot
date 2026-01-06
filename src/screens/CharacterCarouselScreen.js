@@ -9,7 +9,7 @@ import {
   Dimensions,
   ImageBackground,
 } from 'react-native';
-import characters from '../data/characters'; // 6 personnages Naruto uniquement
+import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
 import GalleryService from '../services/GalleryService';
 
@@ -35,7 +35,7 @@ export default function CharacterCarouselScreen({ navigation }) {
   const loadAllCharacters = async () => {
     const customChars = await CustomCharacterService.getCustomCharacters();
     // Combiner les personnages de la base + customs
-    const combined = [...characters, ...customChars]; // 6 personnages Naruto
+    const combined = [...enhancedCharacters, ...customChars];
     setAllCharacters(combined);
     await loadGalleryImages(combined);
   };

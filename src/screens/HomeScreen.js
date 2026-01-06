@@ -9,7 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import characters from '../data/characters'; // 6 personnages Naruto uniquement
+import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
@@ -38,8 +38,8 @@ export default function HomeScreen({ navigation }) {
 
   const loadAllCharacters = async () => {
     const customChars = await CustomCharacterService.getCustomCharacters();
-    // Combiner les 6 personnages Naruto avec les personnages personnalisés
-    const combined = [...characters, ...customChars];
+    // Combiner les personnages de base (avec NSFW) avec les personnages personnalisés
+    const combined = [...enhancedCharacters, ...customChars];
     setAllCharacters(combined);
     
     // Charger les images de galerie pour tous les personnages
@@ -121,7 +121,7 @@ export default function HomeScreen({ navigation }) {
               {item.scenario}
             </Text>
             <View style={styles.tagsContainer}>
-              {item.tags.slice(0, 5).map((tag, index) => (
+              {item.tags.slice(0, 3).map((tag, index) => (
                 <View key={index} style={styles.tag}>
                   <Text style={styles.tagText}>{tag}</Text>
                 </View>

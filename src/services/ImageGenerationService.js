@@ -1,137 +1,8 @@
 import axios from 'axios';
-import CustomImageAPIService from './CustomImageAPIService';
 
 class ImageGenerationService {
   constructor() {
     this.baseURL = 'https://image.pollinations.ai/prompt/';
-    this.lastRequestTime = 0;
-    this.minDelay = 3000; // 3 secondes minimum entre les requêtes
-    this.maxRetries = 3;
-    
-    // Styles disponibles pour génération aléatoire
-    this.styles = [
-      {
-        id: 'photorealistic',
-        name: 'Hyper-Réaliste',
-        weight: 35, // 35% de chance
-        prompt: 'photorealistic, hyper-realistic, ultra-detailed photography, professional photo shoot, DSLR camera quality, 8K resolution, RAW photo, cinematic lighting, perfect focus, sharp details, lifelike textures, realistic skin, natural appearance',
-        negativePrompt: 'cartoon, anime, manga, drawing, illustration, painting, 3D render, CGI, digital art, sketch, unrealistic, fake, artificial'
-      },
-      {
-        id: 'semi-realistic',
-        name: 'Semi-Réaliste',
-        weight: 25, // 25% de chance
-        prompt: 'semi-realistic, realistic digital art, detailed illustration, professional digital painting, high quality artwork, realistic proportions, lifelike features, soft painting style, artistic realism',
-        negativePrompt: 'low quality, deformed, distorted, bad anatomy, childish, cartoony, simple'
-      },
-      {
-        id: 'anime',
-        name: 'Anime',
-        weight: 20, // 20% de chance
-        prompt: 'anime style, high quality anime art, detailed anime illustration, professional anime artwork, beautiful anime character, anime aesthetic, Japanese animation style, detailed anime features, vibrant anime colors',
-        negativePrompt: 'photorealistic, western cartoon, chibi, child-like, 3D, low quality, deformed, bad anatomy'
-      },
-      {
-        id: 'manga',
-        name: 'Manga',
-        weight: 20, // 20% de chance
-        prompt: 'manga style, high quality manga art, detailed manga illustration, professional manga artwork, manga aesthetic, Japanese comic style, detailed linework, manga character design, expressive manga style',
-        negativePrompt: 'photorealistic, western cartoon, chibi, child-like, colored, low quality, deformed'
-      }
-    ];
-  }
-
-  /**
-   * Choisit un style aléatoire selon les poids
-   */
-  getRandomStyle() {
-    const totalWeight = this.styles.reduce((sum, style) => sum + style.weight, 0);
-    let random = Math.random() * totalWeight;
-    
-    for (const style of this.styles) {
-      random -= style.weight;
-      if (random <= 0) {
-        console.log(`🎨 Style sélectionné: ${style.name} (${style.id})`);
-        return style;
-      }
-    }
-    
-    // Fallback au premier style
-    return this.styles[0];
-  }
-
-  /**
-   * Construit les prompts de qualité anti-défauts
-   */
-  buildQualityPrompts(style) {
-    let quality = '';
-    
-    // Prompts de qualité de base pour TOUS les styles
-    quality += ', masterpiece, best quality, high quality, extremely detailed';
-    quality += ', perfect composition, well-balanced, professional artwork';
-    quality += ', correct anatomy, accurate proportions, realistic body structure';
-    
-    // MAINS PARFAITES (problème #1 des générateurs d'images)
-    quality += ', perfect hands, correct number of fingers, five fingers on each hand';
-    quality += ', detailed hands, natural hand position, well-drawn hands, anatomically correct hands';
-    
-    // BRAS ET MEMBRES CORRECTS
-    quality += ', correct arms, natural arm length, proper arm joints';
-    quality += ', correct legs, natural leg proportions, proper limb placement';
-    
-    // VISAGE ET YEUX
-    quality += ', symmetrical face, detailed facial features, realistic eyes';
-    quality += ', properly aligned eyes, natural eye position, detailed iris';
-    
-    // PEAU ET TEXTURE
-    quality += ', detailed skin texture, natural skin, realistic skin pores';
-    quality += ', soft lighting on skin, natural skin tone, smooth skin surface';
-    
-    // Style spécifique
-    quality += ', ' + style.prompt;
-    
-    return quality;
-  }
-
-  /**
-   * Construit les negative prompts pour éviter les défauts
-   */
-  buildNegativePrompts(style) {
-    let negative = '';
-    
-    // Défauts anatomiques (À ÉVITER ABSOLUMENT)
-    negative += 'deformed hands, bad hands, missing fingers, extra fingers, fused fingers';
-    negative += ', mutated hands, poorly drawn hands, malformed hands, incorrect hands';
-    negative += ', deformed arms, extra arms, missing arms, bad arms, incorrect limbs';
-    negative += ', extra limbs, missing limbs, floating limbs, disconnected limbs';
-    negative += ', bad anatomy, anatomical errors, incorrect body structure, deformed body';
-    
-    // Visage et yeux
-    negative += ', deformed face, asymmetrical face, bad eyes, crossed eyes, misaligned eyes';
-    negative += ', extra eyes, missing eyes, malformed eyes, weird eyes';
-    
-    // Qualité
-    negative += ', low quality, worst quality, low resolution, blurry, out of focus';
-    negative += ', distorted, warped, incorrect proportions, bad proportions';
-    negative += ', ugly, poorly drawn, bad art, amateur, messy';
-    
-    // INTERDIT: Apparence infantile (sécurité)
-    negative += ', child, children, kid, kids, young child, infant, baby, toddler';
-    negative += ', underage, minor, childish, child-like, juvenile, immature appearance';
-    negative += ', school uniform, schoolgirl, schoolboy, student uniform';
-    
-    // Style-spécifique
-    negative += ', ' + style.negativePrompt;
-    
-    return negative;
-  }
-
-  /**
-   * Ajoute des garanties de sécurité adulte
-   */
-  buildAdultSafetyPrompts() {
-    return ', adult appearance, mature features, fully grown adult, 18+ years old minimum' +
-           ', age-appropriate features, mature body, adult proportions, clearly adult';
   }
 
   /**
@@ -319,106 +190,75 @@ class ImageGenerationService {
   }
 
   /**
-   * MODE NSFW ULTRA-RÉALISTE (Suggestif, NON-EXPLICITE mais SEXY)
+   * MODE NSFW ULTRA-RÉALISTE (Suggestif, NON-EXPLICITE)
    */
   buildNSFWPrompt(character) {
     let nsfw = '';
     
     if (character.gender === 'female') {
-      // BASE NSFW FÉMININ - Plus explicite
-      nsfw += ', extremely sexy pose, highly sensual expression, intensely seductive look, sultry passionate gaze';
-      nsfw += ', alluring inviting smile, very provocative attitude, erotic energy';
-      nsfw += ', bedroom eyes, deeply inviting expression, intensely flirtatious look';
-      nsfw += ', suggestive sensual body language, confident sexy dominant pose';
+      // BASE NSFW FÉMININ
+      nsfw += ', sexy pose, sensual expression, seductive look, sultry gaze, alluring smile, provocative attitude';
+      nsfw += ', bedroom eyes, inviting expression, flirtatious look, suggestive body language, confident sexy pose';
       
-      // TENUE NSFW - Plus détaillée
-      nsfw += ', wearing very revealing lingerie, sexy transparent lace underwear, delicate silk bra and panties set';
-      nsfw += ', sheer see-through lingerie, lace details clearly visible, satin and silk fabric';
-      nsfw += ', extremely delicate intimate wear, luxury lingerie pieces';
-      nsfw += ', lingerie clearly visible and highlighted, straps prominently showing, intimate clothing fully revealed';
-      nsfw += ', transparent fabric showing skin beneath, lace patterns defined';
+      // TENUE NSFW
+      nsfw += ', wearing revealing lingerie, sexy lace underwear, silk bra and panties set, transparent lingerie';
+      nsfw += ', delicate lace details, satin fabric, sheer material, elegant intimate wear';
+      nsfw += ', lingerie partially visible, straps showing, intimate clothing revealed';
       
-      // POSE ET ATTITUDE - Plus suggestive
-      nsfw += ', sitting provocatively on bed edge, lying seductively on silk sheets';
-      nsfw += ', reclining in very seductive pose, positioned alluringly on luxurious bed';
-      nsfw += ', legs elegantly and suggestively crossed, one leg raised provocatively';
-      nsfw += ', highly suggestive leg position revealing thighs, very sensual body curve emphasized';
-      nsfw += ', looking seductively over shoulder, back beautifully arched, extremely sensual posture';
-      nsfw += ', inviting and open pose, body positioned to showcase curves';
+      // POSE ET ATTITUDE
+      nsfw += ', sitting on bed edge, lying on silk sheets, reclining seductively, posed on bed';
+      nsfw += ', legs crossed elegantly, one leg raised, suggestive leg position, sensual body curve';
+      nsfw += ', looking over shoulder, arched back, sensual posture, inviting pose';
       
-      // PEAU ET EXPOSITION - Plus détaillée
-      nsfw += ', smooth flawless skin extensively visible, shoulders completely exposed and highlighted';
-      nsfw += ', décolleté prominently visible and emphasized, legs fully showing and featured';
-      nsfw += ', midriff fully exposed and toned, lower back visible and curved';
-      nsfw += ', thighs prominently visible and shapely, skin softly and romantically lit';
-      nsfw += ', silky smooth skin texture, body glistening subtly';
+      // PEAU ET EXPOSITION
+      nsfw += ', smooth skin visible, shoulders exposed, décolleté visible, legs showing';
+      nsfw += ', midriff exposed, lower back visible, thighs visible, skin softly lit';
       
-      // EMPHASE POITRINE (selon taille) - Plus direct
+      // EMPHASE POITRINE (selon taille)
       if (character.bust) {
         if (['D', 'DD', 'E', 'F', 'G'].includes(character.bust)) {
-          nsfw += ', cleavage very prominently and dramatically displayed, breasts heavily emphasized in revealing lingerie';
-          nsfw += ', bust clearly and boldly defined through transparent fabric, very deep visible cleavage featured';
-          nsfw += ', breast curves strongly highlighted and showcased, chest as primary focal point';
-          nsfw += ', bustline powerfully emphasized, breasts pressed closely together creating dramatic cleavage';
-          nsfw += ', bust enhanced and accentuated by provocative pose, cleavage deepened intentionally';
-          nsfw += ', large bust clearly visible and centered, generous curves fully displayed';
+          nsfw += ', cleavage prominently displayed, breasts emphasized in lingerie, bust clearly defined through fabric';
+          nsfw += ', deep visible cleavage, breast curves highlighted, chest focal point, bustline emphasized';
+          nsfw += ', breasts pressed together, cleavage deepened, bust enhanced by pose';
         } else if (['B', 'C'].includes(character.bust)) {
-          nsfw += ', cleavage tastefully yet clearly visible, bust elegantly and attractively shown in sexy lingerie';
-          nsfw += ', chest naturally and beautifully defined, visible cleavage subtly revealed';
-          nsfw += ', breast curves delicately and sensually shown, natural bustline emphasized';
-          nsfw += ', feminine curves highlighted by lingerie, bust presented attractively';
+          nsfw += ', cleavage subtly visible, bust elegantly shown in lingerie, chest naturally defined';
+          nsfw += ', modest cleavage visible, breast curves delicately shown, natural bustline';
         }
       }
       
-      // AMBIANCE - Plus immersive
-      nsfw += ', intimate romantic bedroom setting, soft sensual lighting creating shadows';
-      nsfw += ', warm amber ambient light, dim seductive lighting, candlelit atmosphere';
-      nsfw += ', luxury silk sheets in warm tones, sumptuous bed with plush pillows';
-      nsfw += ', romantic dreamy atmosphere, intimate private mood, highly seductive environment';
-      nsfw += ', candles glowing softly in background, soft shadows enhancing curves';
-      nsfw += ', dreamy bokeh lighting effect, sensual warm ambiance';
+      // AMBIANCE
+      nsfw += ', intimate bedroom setting, soft romantic lighting, warm ambient light, dim sensual lighting';
+      nsfw += ', silk sheets, luxurious bed, romantic atmosphere, intimate mood, seductive environment';
+      nsfw += ', candles in background, soft shadows, dreamy lighting, sensual ambiance';
       
     } else if (character.gender === 'male') {
-      // BASE NSFW MASCULIN - Plus intense
-      nsfw += ', very sexy masculine pose, intensely seductive confident look, powerful intense gaze';
-      nsfw += ', alluring attractive smile, dominant strong attitude, alpha male presence';
-      nsfw += ', powerful penetrating eyes, inviting masculine expression, confident dominant body language';
+      // BASE NSFW MASCULIN
+      nsfw += ', sexy masculine pose, seductive confident look, intense gaze, alluring smile, dominant attitude';
+      nsfw += ', powerful eyes, inviting expression, confident body language, alpha male presence';
       
-      // TENUE NSFW - Plus révélateur
-      nsfw += ', completely shirtless, bare muscular chest fully exposed, topless revealing physique';
-      nsfw += ', wearing only very tight underwear, boxer briefs clearly visible and form-fitting';
-      nsfw += ', very low-waisted pants revealing v-line, extremely revealing clothing';
-      nsfw += ', abs sharply and clearly defined, chest muscles prominently visible';
-      nsfw += ', defined v-line clearly showing, muscular definition strongly showcased';
+      // TENUE NSFW
+      nsfw += ', shirtless, bare chest exposed, topless, muscular torso visible';
+      nsfw += ', wearing only tight underwear, boxer briefs visible, low-waisted pants, revealing clothing';
+      nsfw += ', abs clearly defined, chest muscles visible, defined v-line, muscular definition shown';
       
-      // POSE ET ATTITUDE - Plus dominant
-      nsfw += ', standing very confidently and dominantly, leaning seductively against wall';
-      nsfw += ', sitting on bed edge in dominant pose, reclining in masculine powerful pose';
-      nsfw += ', hands behind head showing muscles, arms flexed displaying physique';
-      nsfw += ', flexing subtly but noticeably, powerful dominant stance';
-      nsfw += ', looking intensely directly at camera, very dominant gaze, supremely confident posture';
-      nsfw += ', masculine powerful presence, body positioned to show strength';
+      // POSE ET ATTITUDE
+      nsfw += ', standing confidently, leaning against wall, sitting on bed edge, reclining pose';
+      nsfw += ', hands behind head, arms crossed showing muscles, flexing subtly, powerful stance';
+      nsfw += ', looking intensely at camera, dominant gaze, confident posture, masculine presence';
       
-      // PEAU ET MUSCLES - Plus défini
-      nsfw += ', tanned skin glistening with subtle sheen, muscles sharply defined by dramatic lighting';
-      nsfw += ', body highlighted and showcased, physique heavily emphasized and featured';
-      nsfw += ', six-pack abs clearly visible and defined, chest muscles well-defined and prominent';
-      nsfw += ', shoulders broad muscular and powerful, arms toned and strong';
-      nsfw += ', strong masculine features, rugged masculine appeal, raw masculine sexual energy';
-      nsfw += ', muscular athletic body clearly visible, definition in every muscle';
+      // PEAU ET MUSCLES
+      nsfw += ', tanned skin glistening, muscles defined by lighting, body highlighted, physique emphasized';
+      nsfw += ', six-pack abs visible, chest muscles defined, shoulders broad and muscular, arms toned';
+      nsfw += ', strong masculine features, rugged appeal, raw masculine energy';
       
-      // AMBIANCE - Plus virile
-      nsfw += ', intimate masculine bedroom setting, strong moody lighting, dramatic shadows emphasizing muscles';
-      nsfw += ', soft warm light highlighting skin and muscles, athletic powerful aesthetic';
-      nsfw += ', seductive intimate mood, sensual masculine atmosphere';
+      // AMBIANCE
+      nsfw += ', intimate bedroom setting, masculine environment, moody lighting, dramatic shadows';
+      nsfw += ', soft warm light on skin, athletic aesthetic, seductive mood, intimate atmosphere';
     }
     
-    // QUALITÉ FINALE - Plus haute
-    nsfw += ', ultra-realistic photorealistic rendering, extremely high detail and definition';
-    nsfw += ', professional fashion photography style, high-end magazine quality aesthetic';
-    nsfw += ', cinematic lighting and composition, editorial quality image';
-    nsfw += ', tasteful yet very sensual, artistic yet suggestive, elegant yet very sexy';
-    nsfw += ', sophisticated intimate photography, luxury sensual aesthetic';
+    // QUALITÉ FINALE
+    nsfw += ', ultra-realistic, high detail, professional photography style, magazine quality';
+    nsfw += ', tasteful sensual, artistic suggestive, elegant sexy, sophisticated intimate';
     
     return nsfw;
   }
@@ -453,7 +293,7 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère l'image du personnage (profil) avec style aléatoire + TENUE
+   * Génère l'image du personnage (profil)
    */
   async generateCharacterImage(character, userProfile = null) {
     // Filtrage d'âge
@@ -464,10 +304,6 @@ class ImageGenerationService {
     // Détection mode NSFW
     const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
 
-    // 🎨 SÉLECTION D'UN STYLE ALÉATOIRE
-    const style = this.getRandomStyle();
-    console.log(`🎨 Génération image PROFIL ${character.name} en style: ${style.name}`);
-
     // CONSTRUCTION DU PROMPT ULTRA-DÉTAILLÉ
     let prompt = '';
     
@@ -477,42 +313,23 @@ class ImageGenerationService {
     // 2. Anatomie ultra-précise
     prompt += this.buildAnatomyDescription(character);
     
-    // 3. 👔 TENUE DU PERSONNAGE (PROFIL UNIQUEMENT)
-    if (character.outfit) {
-      prompt += `, wearing ${character.outfit}`;
-      console.log(`👔 Tenue ajoutée: ${character.outfit.substring(0, 50)}...`);
-    }
-    
-    // 4. Mode NSFW ou SFW (DÉSACTIVÉ pour profil avec tenue)
-    if (!character.outfit) {
-      // Si pas de tenue spécifiée, utiliser NSFW/SFW normal
-      if (nsfwMode) {
-        prompt += this.buildNSFWPrompt(character);
-      } else {
-        prompt += this.buildSFWPrompt(character);
-      }
+    // 3. Mode NSFW ou SFW
+    if (nsfwMode) {
+      prompt += this.buildNSFWPrompt(character);
     } else {
-      // Avec tenue: pose naturelle et professionnelle
-      prompt += ', natural confident pose, friendly expression, character portrait';
-      prompt += ', full body shot, standing pose, character showcase';
+      prompt += this.buildSFWPrompt(character);
     }
     
-    // 5. ✨ QUALITÉ ET STYLE (anti-défauts)
-    prompt += this.buildQualityPrompts(style);
-    
-    // 6. 🔒 SÉCURITÉ ADULTE (renforcée)
-    prompt += this.buildAdultSafetyPrompts();
-    
-    // 7. 🚫 NEGATIVE PROMPTS (pour éviter défauts)
-    const negativePrompt = this.buildNegativePrompts(style);
-    console.log(`🚫 Negative prompts: ${negativePrompt.substring(0, 100)}...`);
+    // 4. Qualité et sécurité
+    prompt += ', photorealistic, hyper-detailed, ultra-high quality, 4K resolution, professional photography';
+    prompt += ', realistic lighting, accurate proportions, lifelike, detailed features';
+    prompt += ', adult 18+, mature, age-appropriate, realistic age depiction';
 
-    // Générer l'image avec le style choisi
-    return await this.generateImageWithNegativePrompts(prompt, negativePrompt, style);
+    return await this.generateImage(prompt);
   }
 
   /**
-   * Génère l'image de scène (conversation) avec style aléatoire - APPARENCE PHYSIQUE UNIQUEMENT
+   * Génère l'image de scène (conversation)
    */
   async generateSceneImage(character, userProfile = null, recentMessages = []) {
     // Filtrage d'âge
@@ -523,27 +340,19 @@ class ImageGenerationService {
     // Détection mode NSFW
     const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
 
-    // 🎨 SÉLECTION D'UN STYLE ALÉATOIRE
-    const style = this.getRandomStyle();
-    console.log(`🎨 Génération image CONVERSATION ${character.name} en style: ${style.name}`);
-
-    // CONSTRUCTION DU PROMPT - APPARENCE PHYSIQUE UNIQUEMENT (PAS DE TENUE)
+    // CONSTRUCTION DU PROMPT
     let prompt = '';
     
-    // 1. Description physique UNIQUEMENT
+    // 1. Description physique
     prompt += this.buildDetailedPhysicalDescription(character);
-    console.log(`🎭 Apparence physique uniquement (pas de tenue character.outfit)`);
     
     // 2. Anatomie
     prompt += this.buildAnatomyDescription(character);
     
-    // 3. ⚠️ PAS DE character.outfit - Uniquement détection dans conversation
+    // 3. Détection de tenue dans la conversation
     const outfit = this.detectOutfit(recentMessages);
     if (outfit) {
       prompt += `, wearing ${outfit}`;
-      console.log(`👔 Tenue détectée dans conversation: ${outfit}`);
-    } else {
-      console.log(`👔 Aucune tenue détectée - apparence physique pure`);
     }
     
     // 4. Contexte conversationnel
@@ -564,16 +373,11 @@ class ImageGenerationService {
       prompt += this.buildSFWPrompt(character);
     }
     
-    // 6. ✨ QUALITÉ ET STYLE (anti-défauts)
-    prompt += this.buildQualityPrompts(style);
-    
-    // 7. 🔒 SÉCURITÉ ADULTE (renforcée)
-    prompt += this.buildAdultSafetyPrompts();
-    
-    // 8. 🚫 NEGATIVE PROMPTS (pour éviter défauts)
-    const negativePrompt = this.buildNegativePrompts(style);
+    // 6. Qualité finale
+    prompt += ', photorealistic, ultra-detailed, 4K, professional quality, realistic lighting';
+    prompt += ', adult 18+, mature, age-appropriate';
 
-    return await this.generateImageWithNegativePrompts(prompt, negativePrompt, style);
+    return await this.generateImage(prompt);
   }
 
   /**
@@ -614,351 +418,24 @@ class ImageGenerationService {
   }
 
   /**
-   * Attend le délai minimum entre les requêtes pour éviter le rate limiting
+   * Appelle l'API Pollinations
    */
-  async waitForRateLimit() {
-    const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
-    
-    if (timeSinceLastRequest < this.minDelay) {
-      const waitTime = this.minDelay - timeSinceLastRequest;
-      console.log(`⏳ Attente de ${waitTime}ms pour éviter le rate limit...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-    }
-    
-    this.lastRequestTime = Date.now();
-  }
-
-  /**
-   * Génère une image avec negative prompts (pour éviter défauts)
-   */
-  async generateImageWithNegativePrompts(prompt, negativePrompt, style) {
-    // Pour Pollinations, on ajoute les negative prompts dans le prompt principal
-    // Format: "prompt principal ### negative: défauts à éviter"
-    const fullPrompt = `${prompt} ### AVOID: ${negativePrompt}`;
-    
-    console.log(`📝 Prompt final (${fullPrompt.length} chars)`);
-    console.log(`🎨 Style: ${style.name}`);
-    
-    return await this.generateImage(fullPrompt, style);
-  }
-
-  /**
-   * Appelle l'API Pollinations ou l'API personnalisée avec gestion du rate limiting
-   */
-  async generateImage(prompt, style = null) {
-    // Charger la config de l'API personnalisée
-    await CustomImageAPIService.loadConfig();
-    
-    const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🎨 Stratégie de génération: ${strategy}`);
-    
-    let lastError = null;
-    
-    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-      try {
-        console.log(`🎨 Tentative ${attempt}/${this.maxRetries} de génération d'image...`);
-        
-        const encodedPrompt = encodeURIComponent(prompt);
-        const seed = Date.now() + Math.floor(Math.random() * 10000);
-        
-        console.log(`📏 Taille prompt: ${prompt.length} chars, encodé: ${encodedPrompt.length} chars`);
-        
-        // Vérifier longueur UNIQUEMENT pour Pollinations (limite URL navigateur)
-        // Freebox peut gérer des prompts beaucoup plus longs (API serveur)
-        const needsPollinationsCheck = (strategy === 'pollinations-only') || 
-                                        (strategy === 'freebox-first' && !CustomImageAPIService.hasCustomApi());
-        
-        if (needsPollinationsCheck && encodedPrompt.length > 2000) {
-          console.warn('⚠️ Prompt très long pour Pollinations, peut causer des problèmes');
-          // Ne pas bloquer, juste avertir
-        }
-        
-        // STRATÉGIE 1: Freebox uniquement
-        if (strategy === 'freebox-only') {
-          console.log('🏠 Stratégie: Freebox uniquement');
-          if (!CustomImageAPIService.hasCustomApi()) {
-            throw new Error('API Freebox non configurée. Allez dans Paramètres > API d\'Images.');
-          }
-          // Pas de limite de longueur pour Freebox
-          return await this.generateWithFreebox(prompt, seed);
-        }
-        
-        // STRATÉGIE 2: Pollinations uniquement
-        if (strategy === 'pollinations-only') {
-          console.log('🌐 Stratégie: Pollinations uniquement');
-          
-          // Si prompt trop long, le tronquer pour Pollinations
-          let finalPrompt = prompt;
-          if (encodedPrompt.length > 2000) {
-            console.log('✂️ Prompt trop long pour Pollinations, réduction...');
-            // Tronquer intelligemment en gardant le début (description physique)
-            finalPrompt = prompt.substring(0, Math.floor(prompt.length * 0.6));
-            console.log(`📏 Nouveau prompt: ${finalPrompt.length} chars`);
-          }
-          
-          await this.waitForRateLimit();
-          return await this.generateWithPollinations(finalPrompt, seed);
-        }
-        
-        // STRATÉGIE 3: Freebox en premier, puis Pollinations en fallback (DÉFAUT)
-        if (strategy === 'freebox-first') {
-          console.log('🔄 Stratégie: Freebox en premier, Pollinations en fallback');
-          
-          // Essayer Freebox si configuré (pas de limite de longueur)
-          if (CustomImageAPIService.hasCustomApi()) {
-            try {
-              console.log('🏠 Tentative avec Freebox...');
-              return await this.generateWithFreebox(prompt, seed);
-            } catch (freeboxError) {
-              console.error('❌ Freebox a échoué:', freeboxError.message);
-              console.log('🔄 Passage à Pollinations en fallback...');
-              lastError = freeboxError;
-              // Continue vers Pollinations avec prompt potentiellement réduit
-            }
-          } else {
-            console.log('⚠️ API Freebox non configurée, utilisation de Pollinations directement');
-          }
-          
-          // Fallback: Pollinations (avec réduction si nécessaire)
-          let finalPrompt = prompt;
-          if (encodedPrompt.length > 2000) {
-            console.log('✂️ Prompt trop long pour Pollinations fallback, réduction...');
-            finalPrompt = prompt.substring(0, Math.floor(prompt.length * 0.6));
-          }
-          
-          await this.waitForRateLimit();
-          return await this.generateWithPollinations(finalPrompt, seed);
-        }
-        
-        // Fallback par défaut: Pollinations
-        console.log('⚠️ Stratégie inconnue, utilisation de Pollinations');
-        await this.waitForRateLimit();
-        return await this.generateWithPollinations(prompt, seed);
-        
-      } catch (error) {
-        lastError = error;
-        console.error(`❌ Tentative ${attempt} échouée:`, error.message);
-        
-        // Si rate limited, attendre plus longtemps avant de réessayer
-        if (error.response?.status === 429 || error.message.includes('rate limit')) {
-          const waitTime = attempt * 5000; // 5s, 10s, 15s...
-          console.log(`⏳ Rate limited détecté. Attente de ${waitTime}ms...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        } else if (attempt < this.maxRetries) {
-          // Attendre avant de réessayer (backoff exponentiel)
-          const waitTime = attempt * 2000;
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-      }
-    }
-    
-    // Toutes les tentatives ont échoué
-    console.error('❌ Échec de génération après toutes les tentatives');
-    throw new Error(`Impossible de générer l'image après ${this.maxRetries} tentatives. ${lastError?.message || 'Le service est peut-être temporairement surchargé.'}. Réessayez dans quelques minutes.`);
-  }
-
-  /**
-   * Génère une image avec l'API Freebox
-   */
-  async generateWithFreebox(prompt, seed) {
-    console.log('🏠 Génération avec API Freebox...');
-    
-    const imageUrl = CustomImageAPIService.buildImageUrl(prompt, {
-      width: 768,
-      height: 768,
-      seed: seed,
-    });
-    
-    console.log(`🔗 URL Freebox (${imageUrl.length} chars):`, imageUrl.substring(0, 100) + '...');
-    
+  async generateImage(prompt) {
     try {
-      // IMPORTANT: Vérification légère pour Freebox
-      // L'API Freebox retourne l'URL directement, pas besoin de vérifier avec axios.get
-      // qui peut causer des timeouts inutiles
+      const encodedPrompt = encodeURIComponent(prompt);
+      const imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${Date.now()}`;
       
-      console.log('✅ URL Freebox générée, l\'image sera chargée par l\'app');
-      return imageUrl;
+      const response = await axios.head(imageUrl, { timeout: 5000 });
       
-      // Note: L'app chargera l'image elle-même avec son propre timeout
-      // Pas besoin de la télécharger ici juste pour vérifier
-    } catch (error) {
-      console.error('❌ Erreur génération URL Freebox:', error.message);
-      throw new Error(`API Freebox: ${error.message}`);
-    }
-  }
-
-  /**
-   * Génère une image avec Pollinations.ai
-   */
-  async generateWithPollinations(prompt, seed) {
-    console.log('🌐 Génération avec Pollinations.ai...');
-    
-    const encodedPrompt = encodeURIComponent(prompt);
-    const imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
-    
-    console.log(`🔗 URL Pollinations (${imageUrl.length} chars):`, imageUrl.substring(0, 100) + '...');
-    
-    try {
-      // Attendre un peu pour la génération (Pollinations génère à la volée)
-      console.log('⏳ Attente de la génération (3s)...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Vérifier que l'URL est accessible avec un HEAD request
-      console.log('🔍 Vérification de l\'image...');
-      const headResponse = await axios.head(imageUrl, {
-        timeout: 10000,
-        maxRedirects: 5,
-        validateStatus: (status) => status === 200
-      });
-      
-      if (headResponse.status === 200) {
-        console.log('✅ Image Pollinations vérifiée et accessible');
+      if (response.status === 200) {
         return imageUrl;
       } else {
-        throw new Error(`Pollinations a retourné le statut ${headResponse.status}`);
+        throw new Error('Image service unavailable');
       }
     } catch (error) {
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        // Timeout lors de la vérification - l'image se génère peut-être encore
-        // On retourne l'URL quand même, elle se chargera dans l'app
-        console.log('⚠️ Timeout vérification Pollinations, mais URL retournée (génération en cours)');
-        return imageUrl;
-      } else if (error.response?.status === 429) {
-        throw new Error('Rate limit Pollinations. Attendez quelques secondes.');
-      }
-      throw new Error(`Pollinations: ${error.message}`);
+      console.error('Error generating image:', error);
+      throw new Error('Impossible de générer l\'image. Veuillez réessayer.');
     }
-  }
-
-  /**
-   * ANCIENNE MÉTHODE - Conservée pour compatibilité mais dépréciée
-   */
-  async _generateImageLegacy(prompt) {
-    // Charger la config de l'API personnalisée
-    await CustomImageAPIService.loadConfig();
-    
-    let lastError = null;
-    
-    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-      try {
-        console.log(`🎨 Tentative ${attempt}/${this.maxRetries} de génération d'image...`);
-        
-        // Attendre pour éviter le rate limiting (seulement pour Pollinations)
-        if (!CustomImageAPIService.hasCustomApi()) {
-          await this.waitForRateLimit();
-        }
-        
-        const encodedPrompt = encodeURIComponent(prompt);
-        
-        // Ajouter un seed aléatoire pour varier les images
-        const seed = Date.now() + Math.floor(Math.random() * 10000);
-        
-        // Utiliser l'API personnalisée ou Pollinations
-        let imageUrl;
-        if (CustomImageAPIService.hasCustomApi()) {
-          console.log('🏠 Utilisation de l\'API personnalisée');
-          imageUrl = CustomImageAPIService.buildImageUrl(prompt, {
-            width: 768,
-            height: 768,
-            seed: seed,
-          });
-        } else {
-          // Utiliser plusieurs paramètres pour améliorer la qualité
-          imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
-        }
-        
-        console.log(`🔗 URL générée (longueur: ${imageUrl.length})`);
-        
-        // Vérifier que l'URL n'est pas trop longue (limite ~2000 caractères)
-        if (imageUrl.length > 2000) {
-          throw new Error('Prompt trop long. Réduisez la description.');
-        }
-        
-        // Vérification différente selon le type d'API
-        if (CustomImageAPIService.hasCustomApi()) {
-          // API personnalisée (Freebox, Stable Diffusion, etc.)
-          // Ces APIs prennent plus de temps mais génèrent l'image synchroniquement
-          console.log('🏠 Génération avec API personnalisée (peut prendre 20-30 secondes)...');
-          
-          try {
-            // Vérifier que l'image est accessible (timeout long pour la génération)
-            const testResponse = await axios.get(imageUrl, {
-              timeout: 60000, // 60 secondes pour la génération
-              responseType: 'arraybuffer',
-              maxContentLength: 10485760, // 10 MB pour les images complètes
-              validateStatus: (status) => status === 200
-            });
-            
-            // Vérifier que c'est bien une image
-            const contentType = testResponse.headers['content-type'];
-            if (contentType && contentType.includes('image')) {
-              console.log('✅ Image générée et vérifiée depuis API personnalisée');
-              return imageUrl;
-            } else {
-              throw new Error('Réponse invalide de l\'API personnalisée');
-            }
-          } catch (error) {
-            console.error('❌ Erreur API personnalisée:', error.message);
-            // Si l'API personnalisée échoue, essayer Pollinations en fallback
-            console.log('🔄 Tentative avec Pollinations en fallback...');
-            
-            try {
-              const pollinationsUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
-              console.log('🌐 URL Pollinations:', pollinationsUrl.substring(0, 100) + '...');
-              
-              await this.waitForRateLimit();
-              await new Promise(resolve => setTimeout(resolve, 3000));
-              
-              const pollinationsTest = await axios.head(pollinationsUrl, {
-                timeout: 15000,
-                maxRedirects: 5,
-                validateStatus: (status) => status === 200 || status === 404
-              });
-              
-              if (pollinationsTest.status === 200) {
-                console.log('✅ Image générée avec Pollinations (fallback)');
-                return pollinationsUrl;
-              }
-            } catch (fallbackError) {
-              console.error('❌ Fallback Pollinations échoué:', fallbackError.message);
-            }
-            
-            throw new Error(`API personnalisée: ${error.message}`);
-          }
-        } else {
-          // API Pollinations - génération à la volée
-          console.log('🌐 Génération avec Pollinations.ai');
-          
-          // Attendre un délai pour la génération
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          
-          // Retourner l'URL directement - Pollinations génère à la volée
-          // L'image sera générée lors du premier accès
-          console.log('✅ URL Pollinations retournée');
-          return imageUrl;
-        }
-        
-      } catch (error) {
-        lastError = error;
-        console.error(`❌ Tentative ${attempt} échouée:`, error.message);
-        
-        // Si rate limited, attendre plus longtemps avant de réessayer
-        if (error.response?.status === 429 || error.message.includes('rate limit')) {
-          const waitTime = attempt * 5000; // 5s, 10s, 15s...
-          console.log(`⏳ Rate limited détecté. Attente de ${waitTime}ms...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        } else if (attempt < this.maxRetries) {
-          // Attendre avant de réessayer (backoff exponentiel)
-          const waitTime = attempt * 2000;
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-      }
-    }
-    
-    // Toutes les tentatives ont échoué
-    console.error('❌ Échec de génération après toutes les tentatives');
-    throw new Error(`Impossible de générer l'image après ${this.maxRetries} tentatives. Le service est peut-être temporairement surchargé. Réessayez dans quelques minutes.`);
   }
 }
 
