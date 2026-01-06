@@ -1,4 +1,15 @@
 pluginManagement {
+  repositories {
+    maven { url 'https://maven.google.com' }
+    maven { url 'https://maven.aliyun.com/repository/central' }
+    maven { url 'https://maven.aliyun.com/repository/public' }
+    maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    maven { url 'https://repo.huaweicloud.com/repository/maven/' }
+    maven { url 'https://jitpack.io' }
+    gradlePluginPortal()
+    google()
+  }
+
   def version = providers.exec {
     commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
   }.standardOutput.asText.get().trim()

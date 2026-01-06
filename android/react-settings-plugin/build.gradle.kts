@@ -6,7 +6,13 @@ plugins {
 }
 
 repositories {
-    mavenCentral()
+    maven { url = uri("https://maven.google.com") }
+    maven { url = uri("https://maven.aliyun.com/repository/central") }
+    maven { url = uri("https://maven.aliyun.com/repository/public") }
+    maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
+    maven { url = uri("https://jitpack.io") }
+    // mavenCentral() COMMENTÉ pour éviter 403
+    // mavenCentral()
 }
 
 gradlePlugin {
