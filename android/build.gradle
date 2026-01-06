@@ -12,15 +12,11 @@ buildscript {
     }
     repositories {
         google()
-        maven { url 'https://maven.google.com' }
-        // EXCLUSION de mavenCentral() pour contourner 403
-        // Utilisation uniquement des miroirs alternatifs
+        mavenCentral()
         maven { url 'https://maven.aliyun.com/repository/central' }
         maven { url 'https://maven.aliyun.com/repository/public' }
         maven { url 'https://repo.huaweicloud.com/repository/maven/' }
         maven { url 'https://jitpack.io' }
-        // mavenCentral() COMMENTÉ pour éviter 403
-        // mavenCentral()
     }
     dependencies {
         classpath('com.android.tools.build:gradle')
@@ -43,15 +39,11 @@ allprojects {
         }
 
         google()
-        maven { url 'https://maven.google.com' }
-        // EXCLUSION de mavenCentral() pour contourner erreurs 403
-        // Utilisation uniquement des miroirs alternatifs
+        mavenCentral()
         maven { url 'https://maven.aliyun.com/repository/central' }
         maven { url 'https://maven.aliyun.com/repository/public' }
         maven { url 'https://maven.aliyun.com/repository/google' }
         maven { url 'https://repo.huaweicloud.com/repository/maven/' }
         maven { url 'https://jitpack.io' }
-        // mavenCentral() COMMENTÉ pour éviter 403
-        // mavenCentral()
     }
 }

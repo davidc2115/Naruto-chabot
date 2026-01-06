@@ -88,14 +88,6 @@ jobs:
             echo "✅ Created local.properties"
           fi
           
-          # Copier init.gradle pour forcer les miroirs Maven
-          if [ -f "init.gradle" ]; then
-            mkdir -p ~/.gradle/init.d
-            cp init.gradle ~/.gradle/init.d/
-            echo "✅ init.gradle copié (force miroirs Aliyun/Huawei)"
-            cat ~/.gradle/init.d/init.gradle | head -10
-          fi
-          
           # Vérifier gradle wrapper
           if [ -f "gradlew" ]; then
             chmod +x gradlew
