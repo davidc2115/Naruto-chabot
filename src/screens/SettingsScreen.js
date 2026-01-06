@@ -27,9 +27,6 @@ export default function SettingsScreen({ navigation }) {
   const [availableProviders, setAvailableProviders] = useState([]);
   const [providerApiKeys, setProviderApiKeys] = useState({
     groq: [''],
-    mancer: [''],
-    mistral: [''],
-    deepinfra: [''],
   });
   const [testingProvider, setTestingProvider] = useState(null);
 
@@ -85,12 +82,10 @@ export default function SettingsScreen({ navigation }) {
       setAvailableProviders(providers);
       setTextProvider(currentProvider);
       
-      // Charger les clés pour chaque provider
+      // Charger les clés pour Groq
       const newProviderKeys = { ...providerApiKeys };
-      for (const provider of ['groq', 'mancer', 'mistral', 'deepinfra']) {
-        const keys = TextGenerationService.apiKeys[provider] || [];
-        newProviderKeys[provider] = keys.length > 0 ? keys : [''];
-      }
+      const groqKeys = TextGenerationService.apiKeys.groq || [];
+      newProviderKeys.groq = groqKeys.length > 0 ? groqKeys : [''];
       setProviderApiKeys(newProviderKeys);
       
       console.log('✅ Config providers chargée:', currentProvider);
@@ -362,37 +357,6 @@ export default function SettingsScreen({ navigation }) {
             </View>
           )}
           
-          {textProvider === 'mancer' && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>ℹ️ Obtenir une clé API Mancer:</Text>
-              <Text style={styles.infoSteps}>1. Visitez mancer.tech</Text>
-              <Text style={styles.infoSteps}>2. Créez un compte (gratuit pour tester)</Text>
-              <Text style={styles.infoSteps}>3. Allez dans Settings → API Keys</Text>
-              <Text style={styles.infoSteps}>4. Créez une nouvelle clé</Text>
-              <Text style={styles.infoSteps}>💰 ~$1-2 / 1M tokens</Text>
-            </View>
-          )}
-          
-          {textProvider === 'mistral' && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>ℹ️ Obtenir une clé API Mistral:</Text>
-              <Text style={styles.infoSteps}>1. Visitez console.mistral.ai</Text>
-              <Text style={styles.infoSteps}>2. Créez un compte</Text>
-              <Text style={styles.infoSteps}>3. Allez dans API Keys</Text>
-              <Text style={styles.infoSteps}>4. Créez une nouvelle clé</Text>
-            </View>
-          )}
-          
-          {textProvider === 'deepinfra' && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>ℹ️ Obtenir une clé API DeepInfra:</Text>
-              <Text style={styles.infoSteps}>1. Visitez deepinfra.com</Text>
-              <Text style={styles.infoSteps}>2. Créez un compte (gratuit pour commencer)</Text>
-              <Text style={styles.infoSteps}>3. Allez dans Settings → API Keys</Text>
-              <Text style={styles.infoSteps}>4. Créez une nouvelle clé</Text>
-            </View>
-          )}
-
           {providerApiKeys[textProvider]?.map((key, index) => (
             <View key={index} style={styles.keyInputContainer}>
               <TextInput
