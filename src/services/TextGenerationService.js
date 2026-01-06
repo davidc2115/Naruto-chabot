@@ -12,10 +12,10 @@ class TextGenerationService {
       openrouter: {
         name: 'OpenRouter (Multi-modèles)',
         baseURL: 'https://openrouter.ai/api/v1/chat/completions',
-        model: 'meta-llama/llama-3.1-70b-instruct',
+        model: 'anthropic/claude-3.5-sonnet',
         requiresApiKey: true,
         uncensored: true,
-        description: 'Ultra-rapide, multi-modèles, NSFW excellent',
+        description: 'Claude 3.5 Sonnet via OpenRouter (⚠️ Peut générer du charabia)',
       },
       groq: {
         name: 'Groq (LLaMA 3.3)',
@@ -43,8 +43,8 @@ class TextGenerationService {
       },
     };
 
-    // Provider actif (OpenRouter par défaut - rapide et NSFW)
-    this.currentProvider = 'openrouter';
+    // Provider actif (Groq par défaut - stable et testé)
+    this.currentProvider = 'groq';
     
     // Clés API par provider
     this.apiKeys = {
