@@ -4,6 +4,8 @@ class UserProfileService {
   async createProfile(profile) {
     try {
       const userProfile = {
+        // Identité (optionnel)
+        email: profile.email || null,
         username: profile.username,
         gender: profile.gender, // 'male', 'female', 'other'
         age: profile.age,

@@ -12,6 +12,7 @@ import {
 import UserProfileService from '../services/UserProfileService';
 
 export default function UserProfileScreen({ navigation }) {
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('male');
@@ -30,6 +31,7 @@ export default function UserProfileScreen({ navigation }) {
     const profile = await UserProfileService.getProfile();
     if (profile) {
       setHasProfile(true);
+      setEmail(profile.email || '');
       setUsername(profile.username);
       setAge(profile.age.toString());
       setGender(profile.gender);
@@ -45,6 +47,16 @@ export default function UserProfileScreen({ navigation }) {
       return;
     }
 
+    const emailTrimmed = email.trim();
+    if (emailTrimmed.length > 0) {
+      // Validation simple d'email (suffisant côté UI)
+      const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed);
+      if (!isValidEmail) {
+        Alert.alert('Erreur', 'Email invalide');
+        return;
+      }
+    }
+
     const ageNum = parseInt(age);
     if (isNaN(ageNum) || ageNum < 13) {
       Alert.alert('Erreur', 'Âge invalide (minimum 13 ans)');
@@ -53,6 +65,7 @@ export default function UserProfileScreen({ navigation }) {
 
     try {
       const profile = {
+        email: emailTrimmed.length > 0 ? emailTrimmed : null,
         username,
         age: ageNum,
         gender,
@@ -105,6 +118,17 @@ export default function UserProfileScreen({ navigation }) {
       <Text style={styles.description}>
         Votre profil permet aux personnages de mieux vous connaître et d'adapter leurs réponses.
       </Text>
+
+      <Text style={styles.label}>Email (optionnel)</Text>
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="ex: douvdouv21@gmail.com"
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+      />
 
       <Text style={styles.label}>Pseudo *</Text>
       <TextInput
