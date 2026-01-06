@@ -159,7 +159,13 @@ class TextGenerationService {
       fullMessages.push({ role: 'system', content: systemPrompt });
     }
 
-    fullMessages.push(...messages);
+    // Filtrer les messages pour ne garder que role et content (Groq n'accepte pas les propriétés additionnelles comme 'image')
+    const cleanedMessages = messages.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
+    
+    fullMessages.push(...cleanedMessages);
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {

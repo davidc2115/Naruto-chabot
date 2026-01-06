@@ -2,7 +2,7 @@
   "expo": {
     "name": "Roleplay Chat",
     "slug": "roleplay-chat-app",
-    "version": "1.7.27",
+    "version": "1.7.28",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -27,7 +27,7 @@
         "backgroundColor": "#6366f1"
       },
       "package": "com.roleplaychat.app",
-      "versionCode": 27,
+      "versionCode": 28,
       "permissions": [
         "android.permission.INTERNET"
       ],
