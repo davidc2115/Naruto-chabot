@@ -366,33 +366,6 @@ export default function SettingsScreen({ navigation }) {
       setSdDownloading(false);
     }
   };
-                
-              } catch (error) {
-                console.error('❌ Erreur téléchargement:', error);
-                setSdDownloading(false);
-                setSdDownloadProgress(0);
-                
-                Alert.alert(
-                  '❌ Téléchargement échoué',
-                  `Erreur: ${error.message}\n\n` +
-                  `📋 Note: Le modèle complet (~450 MB) nécessite:\n` +
-                  `- Connexion WiFi stable\n` +
-                  `- 500 MB d'espace libre\n` +
-                  `- 10-15 minutes de patience\n\n` +
-                  `💡 Astuce: Réessayez plus tard ou vérifiez votre connexion.`
-                );
-              }
-            }
-          }
-        ]
-      );
-      
-    } catch (error) {
-      console.error('❌ Erreur init download:', error);
-      Alert.alert('❌ Erreur', error.message);
-      setSdDownloading(false);
-    }
-  };
 
   if (loading) {
     return (
