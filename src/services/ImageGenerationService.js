@@ -130,8 +130,8 @@ class ImageGenerationService {
    * Ajoute des garanties de sécurité adulte
    */
   buildAdultSafetyPrompts() {
-    return ', adult appearance, mature features, fully grown adult, 18+ years old minimum';
-    + ', age-appropriate features, mature body, adult proportions, clearly adult';
+    return ', adult appearance, mature features, fully grown adult, 18+ years old minimum' +
+           ', age-appropriate features, mature body, adult proportions, clearly adult';
   }
 
   /**
