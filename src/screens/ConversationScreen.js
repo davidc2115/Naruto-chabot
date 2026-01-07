@@ -13,7 +13,6 @@ import {
   Alert,
   Modal,
   ScrollView,
-  Slider,
 } from 'react-native';
 import TextGenerationService from '../services/TextGenerationService';
 import StorageService from '../services/StorageService';
@@ -477,30 +476,44 @@ export default function ConversationScreen({ route, navigation }) {
               </View>
 
               {/* Opacité */}
-              <Text style={styles.settingLabel}>💧 Opacité des bulles: {Math.round(opacity * 100)}%</Text>
-              <Slider
-                style={styles.slider}
-                minimumValue={0.5}
-                maximumValue={1}
-                value={opacity}
-                onValueChange={changeOpacity}
-                minimumTrackTintColor="#6366f1"
-                maximumTrackTintColor="#d1d5db"
-                thumbTintColor="#6366f1"
-              />
+              <Text style={styles.settingLabel}>💧 Opacité: {Math.round(opacity * 100)}%</Text>
+              <View style={styles.sliderRow}>
+                <TouchableOpacity 
+                  style={styles.sliderBtn} 
+                  onPress={() => changeOpacity(Math.max(0.5, opacity - 0.1))}
+                >
+                  <Text style={styles.sliderBtnText}>−</Text>
+                </TouchableOpacity>
+                <View style={styles.sliderTrack}>
+                  <View style={[styles.sliderFill, { width: `${(opacity - 0.5) * 200}%` }]} />
+                </View>
+                <TouchableOpacity 
+                  style={styles.sliderBtn} 
+                  onPress={() => changeOpacity(Math.min(1, opacity + 0.1))}
+                >
+                  <Text style={styles.sliderBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
 
               {/* Border Radius */}
-              <Text style={styles.settingLabel}>⬜ Arrondi des bulles: {Math.round(borderRadius)}px</Text>
-              <Slider
-                style={styles.slider}
-                minimumValue={0}
-                maximumValue={30}
-                value={borderRadius}
-                onValueChange={changeRadius}
-                minimumTrackTintColor="#6366f1"
-                maximumTrackTintColor="#d1d5db"
-                thumbTintColor="#6366f1"
-              />
+              <Text style={styles.settingLabel}>⬜ Arrondi: {Math.round(borderRadius)}px</Text>
+              <View style={styles.sliderRow}>
+                <TouchableOpacity 
+                  style={styles.sliderBtn} 
+                  onPress={() => changeRadius(Math.max(0, borderRadius - 5))}
+                >
+                  <Text style={styles.sliderBtnText}>−</Text>
+                </TouchableOpacity>
+                <View style={styles.sliderTrack}>
+                  <View style={[styles.sliderFill, { width: `${(borderRadius / 30) * 100}%` }]} />
+                </View>
+                <TouchableOpacity 
+                  style={styles.sliderBtn} 
+                  onPress={() => changeRadius(Math.min(30, borderRadius + 5))}
+                >
+                  <Text style={styles.sliderBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
 
               {/* Aperçu */}
               <Text style={styles.settingLabel}>👁️ Aperçu</Text>
@@ -604,7 +617,11 @@ const styles = StyleSheet.create({
   themeColorUser: { width: 20, height: 20, borderRadius: 10, marginRight: 5 },
   themeColorAssistant: { width: 20, height: 20, borderRadius: 10, borderWidth: 1, borderColor: '#e5e7eb' },
   themeName: { fontSize: 11, color: '#374151', textAlign: 'center' },
-  slider: { width: '100%', height: 40 },
+  sliderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  sliderBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#6366f1', justifyContent: 'center', alignItems: 'center' },
+  sliderBtnText: { color: '#fff', fontSize: 24, fontWeight: 'bold' },
+  sliderTrack: { flex: 1, height: 8, backgroundColor: '#e5e7eb', borderRadius: 4, marginHorizontal: 15, overflow: 'hidden' },
+  sliderFill: { height: '100%', backgroundColor: '#6366f1', borderRadius: 4 },
   previewContainer: { backgroundColor: '#f3f4f6', padding: 15, borderRadius: 12, marginTop: 10 },
   previewBubbleUser: { alignSelf: 'flex-end', padding: 10, marginBottom: 10, maxWidth: '70%' },
   previewBubbleAssistant: { alignSelf: 'flex-start', padding: 10, maxWidth: '70%' },
