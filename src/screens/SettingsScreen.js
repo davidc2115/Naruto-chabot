@@ -301,7 +301,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 2.8.0 - Niveaux + Corrections 🔥</Text>
+          <Text style={styles.aboutText}>Version: 2.9.0 - Personnalisation bulles 🎨</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>200 personnages uniques</Text>
           <Text style={styles.aboutText}>Génération d'images NSFW</Text>
