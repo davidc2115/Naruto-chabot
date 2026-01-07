@@ -24,6 +24,7 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [gender, setGender] = useState(characterToEdit?.gender || 'female');
   const [hairColor, setHairColor] = useState(characterToEdit?.hairColor || '');
   const [appearance, setAppearance] = useState(characterToEdit?.appearance || '');
+  const [outfit, setOutfit] = useState(characterToEdit?.outfit || '');
   const [bust, setBust] = useState(characterToEdit?.bust || 'C');
   const [penis, setPenis] = useState(characterToEdit?.penis?.replace('cm', '') || '17');
   const [personality, setPersonality] = useState(characterToEdit?.personality || '');
@@ -32,6 +33,17 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [startMessage, setStartMessage] = useState(characterToEdit?.startMessage || '');
   const [imageUrl, setImageUrl] = useState(characterToEdit?.imageUrl || '');
   const [generatingImage, setGeneratingImage] = useState(false);
+
+  // Tenues prédéfinies
+  const outfitPresets = {
+    casual: 'jean, t-shirt décontracté',
+    elegant: 'robe de soirée élégante',
+    business: 'tailleur professionnel',
+    sport: 'tenue de sport moulante',
+    sexy: 'lingerie fine, talons hauts',
+    beach: 'bikini, paréo',
+    home: 'pyjama confortable',
+  };
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
   const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
@@ -42,8 +54,9 @@ export default function CreateCharacterScreen({ navigation, route }) {
       return;
     }
 
-    if (!age || parseInt(age) < 18) {
-      Alert.alert('Erreur', 'L\'âge doit être supérieur ou égal à 18 ans');
+    const ageNum = parseInt(age);
+    if (!age || isNaN(ageNum) || ageNum < 18) {
+      Alert.alert('Erreur', 'L\'âge doit être de 18 ans minimum');
       return;
     }
 
@@ -56,6 +69,7 @@ export default function CreateCharacterScreen({ navigation, route }) {
         gender,
         hairColor,
         appearance,
+        outfit,
         bust: gender === 'female' ? bust : undefined,
         penis: gender === 'male' ? `${penis}cm` : undefined,
       };
@@ -80,6 +94,12 @@ export default function CreateCharacterScreen({ navigation, route }) {
       return;
     }
 
+    const ageNum = parseInt(age);
+    if (isNaN(ageNum) || ageNum < 18) {
+      Alert.alert('Erreur', 'L\'âge doit être de 18 ans minimum. Tous les personnages doivent être majeurs.');
+      return;
+    }
+
     try {
       const character = {
         name,
@@ -87,6 +107,7 @@ export default function CreateCharacterScreen({ navigation, route }) {
         gender,
         hairColor,
         appearance,
+        outfit,
         ...(gender === 'female' ? { bust } : { penis: `${penis}cm` }),
         personality,
         temperament,
@@ -173,12 +194,17 @@ export default function CreateCharacterScreen({ navigation, route }) {
         placeholder="Ex: Emma Laurent"
       />
 
-      <Text style={styles.label}>Âge *</Text>
+      <Text style={styles.label}>Âge * (minimum 18 ans)</Text>
       <TextInput
         style={styles.input}
         value={age}
-        onChangeText={setAge}
-        placeholder="Ex: 25"
+        onChangeText={(text) => {
+          const num = parseInt(text);
+          if (text === '' || (!isNaN(num) && num >= 0)) {
+            setAge(text);
+          }
+        }}
+        placeholder="Ex: 25 (minimum 18)"
         keyboardType="numeric"
       />
 
@@ -248,6 +274,32 @@ export default function CreateCharacterScreen({ navigation, route }) {
         placeholder="Décrivez l'apparence détaillée..."
         multiline
         numberOfLines={4}
+      />
+
+      <Text style={styles.label}>👗 Tenue vestimentaire</Text>
+      <View style={styles.outfitPresets}>
+        {Object.entries(outfitPresets).map(([key, value]) => (
+          <TouchableOpacity
+            key={key}
+            style={[styles.outfitButton, outfit === value && styles.outfitButtonActive]}
+            onPress={() => setOutfit(value)}
+          >
+            <Text style={[styles.outfitText, outfit === value && styles.outfitTextActive]}>
+              {key === 'casual' ? '👕 Casual' :
+               key === 'elegant' ? '👗 Élégant' :
+               key === 'business' ? '💼 Business' :
+               key === 'sport' ? '🏃 Sport' :
+               key === 'sexy' ? '🔥 Sexy' :
+               key === 'beach' ? '🏖️ Plage' : '🏠 Maison'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <TextInput
+        style={styles.input}
+        value={outfit}
+        onChangeText={setOutfit}
+        placeholder="Ex: robe rouge moulante, talons noirs..."
       />
 
       <Text style={styles.label}>Personnalité *</Text>
@@ -405,6 +457,32 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   tempTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  outfitPresets: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
+  },
+  outfitButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    backgroundColor: '#f9fafb',
+  },
+  outfitButtonActive: {
+    backgroundColor: '#6366f1',
+    borderColor: '#6366f1',
+  },
+  outfitText: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  outfitTextActive: {
     color: '#fff',
     fontWeight: '600',
   },

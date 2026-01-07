@@ -18,6 +18,7 @@ export default function UserProfileScreen({ navigation }) {
   const [bust, setBust] = useState('C');
   const [penis, setPenis] = useState('17');
   const [nsfwMode, setNsfwMode] = useState(false);
+  const [spicyMode, setSpicyMode] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
@@ -36,6 +37,7 @@ export default function UserProfileScreen({ navigation }) {
       if (profile.bust) setBust(profile.bust);
       if (profile.penis) setPenis(profile.penis.replace('cm', ''));
       setNsfwMode(profile.nsfwMode || false);
+      setSpicyMode(profile.spicyMode || false);
     }
   };
 
@@ -59,6 +61,7 @@ export default function UserProfileScreen({ navigation }) {
         ...(gender === 'female' && { bust }),
         ...(gender === 'male' && { penis: `${penis}cm` }),
         nsfwMode: ageNum >= 18 ? nsfwMode : false,
+        spicyMode: ageNum >= 18 ? spicyMode : false,
       };
 
       if (hasProfile) {
@@ -184,20 +187,80 @@ export default function UserProfileScreen({ navigation }) {
       )}
 
       {isAdult && (
-        <View style={styles.nsfwContainer}>
-          <View style={styles.nsfwHeader}>
-            <Text style={styles.nsfwTitle}>🔞 Mode NSFW (18+)</Text>
-            <Switch
-              value={nsfwMode}
-              onValueChange={setNsfwMode}
-              trackColor={{ false: '#d1d5db', true: '#6366f1' }}
-              thumbColor={nsfwMode ? '#fff' : '#f4f3f4'}
-            />
-          </View>
-          <Text style={styles.nsfwDescription}>
-            Active le contenu explicite et sensuel dans les conversations. 
-            Vous devez avoir 18 ans ou plus.
+        <View style={styles.contentModeContainer}>
+          <Text style={styles.contentModeTitle}>🔥 Mode de conversation (18+)</Text>
+          <Text style={styles.contentModeDescription}>
+            Choisissez le niveau de contenu autorisé dans vos conversations.
           </Text>
+          
+          {/* Mode SFW (Normal) */}
+          <TouchableOpacity
+            style={[
+              styles.modeOption,
+              !nsfwMode && !spicyMode && styles.modeOptionActive
+            ]}
+            onPress={() => {
+              setNsfwMode(false);
+              setSpicyMode(false);
+            }}
+          >
+            <View style={styles.modeRadio}>
+              {!nsfwMode && !spicyMode && <View style={styles.modeRadioInner} />}
+            </View>
+            <View style={styles.modeContent}>
+              <Text style={styles.modeName}>😊 Normal (SFW)</Text>
+              <Text style={styles.modeDesc}>
+                Conversations amicales et respectueuses. Pas de contenu romantique explicite.
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Mode Romance */}
+          <TouchableOpacity
+            style={[
+              styles.modeOption,
+              nsfwMode && !spicyMode && styles.modeOptionActive,
+              nsfwMode && !spicyMode && styles.modeOptionRomance
+            ]}
+            onPress={() => {
+              setNsfwMode(true);
+              setSpicyMode(false);
+            }}
+          >
+            <View style={[styles.modeRadio, nsfwMode && !spicyMode && styles.modeRadioRomance]}>
+              {nsfwMode && !spicyMode && <View style={[styles.modeRadioInner, styles.modeRadioInnerRomance]} />}
+            </View>
+            <View style={styles.modeContent}>
+              <Text style={styles.modeName}>💕 Romance</Text>
+              <Text style={styles.modeDesc}>
+                Flirt, baisers, câlins et moments romantiques suggestifs. Pas de scènes explicites.
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Mode Spicy (Explicite) */}
+          <TouchableOpacity
+            style={[
+              styles.modeOption,
+              spicyMode && styles.modeOptionActive,
+              spicyMode && styles.modeOptionSpicy
+            ]}
+            onPress={() => {
+              setNsfwMode(true);
+              setSpicyMode(true);
+            }}
+          >
+            <View style={[styles.modeRadio, spicyMode && styles.modeRadioSpicy]}>
+              {spicyMode && <View style={[styles.modeRadioInner, styles.modeRadioInnerSpicy]} />}
+            </View>
+            <View style={styles.modeContent}>
+              <Text style={styles.modeName}>🔥 Spicy (Explicite)</Text>
+              <Text style={styles.modeDesc}>
+                Contenu adulte complet. Scènes intimes détaillées, descriptions explicites, roleplay 18+ sans limites.
+              </Text>
+              <Text style={styles.modeWarning}>⚠️ Contenu sexuellement explicite</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -330,6 +393,96 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#7f1d1d',
     lineHeight: 18,
+  },
+  // Nouveaux styles pour les modes de contenu
+  contentModeContainer: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#1f2937',
+    borderRadius: 12,
+  },
+  contentModeTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  contentModeDescription: {
+    fontSize: 13,
+    color: '#9ca3af',
+    marginBottom: 15,
+    lineHeight: 18,
+  },
+  modeOption: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 15,
+    backgroundColor: '#374151',
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  modeOptionActive: {
+    borderColor: '#6366f1',
+    backgroundColor: '#4338ca20',
+  },
+  modeOptionRomance: {
+    borderColor: '#ec4899',
+    backgroundColor: '#ec489920',
+  },
+  modeOptionSpicy: {
+    borderColor: '#ef4444',
+    backgroundColor: '#ef444420',
+  },
+  modeRadio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#6b7280',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  modeRadioRomance: {
+    borderColor: '#ec4899',
+  },
+  modeRadioSpicy: {
+    borderColor: '#ef4444',
+  },
+  modeRadioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#6366f1',
+  },
+  modeRadioInnerRomance: {
+    backgroundColor: '#ec4899',
+  },
+  modeRadioInnerSpicy: {
+    backgroundColor: '#ef4444',
+  },
+  modeContent: {
+    flex: 1,
+  },
+  modeName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  modeDesc: {
+    fontSize: 13,
+    color: '#d1d5db',
+    lineHeight: 18,
+  },
+  modeWarning: {
+    fontSize: 11,
+    color: '#fca5a5',
+    marginTop: 6,
+    fontWeight: '600',
   },
   warningContainer: {
     marginTop: 20,

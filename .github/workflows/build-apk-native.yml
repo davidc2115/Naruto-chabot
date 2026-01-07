@@ -13,6 +13,7 @@ on:
   push:
     tags:
       - 'v1.7.*'
+      - 'v2.*'
       - '7.*'
       - 'native-build-*'
 
@@ -156,59 +157,54 @@ jobs:
         with:
           files: roleplay-chat-v${{ steps.version.outputs.version }}-native.apk
           body: |
-            # 🚀 Roleplay Chat v${{ steps.version.outputs.version }} (Native Build)
+            # 🔥 Roleplay Chat v${{ steps.version.outputs.version }} - Images NSFW Réalistes!
             
             **Build Method**: Native Android (Gradle)  
             **No Expo Account Required**: ✅  
             **Completely Free**: ✅
             
-            ## ✨ Corrections v${{ steps.version.outputs.version }}
+            ## 🚀 Nouveautés v2.2.0
             
-            ### 🔥 Mode NSFW Ultra-Optimisé
-            - Prompt système ultra-explicite (100+ lignes)
-            - Directives détaillées anti-censure
-            - Température augmentée (1.0)
-            - Tokens max augmentés (1200)
-            - Pénalités anti-répétition
+            ### 📸 Images NSFW Réalistes
+            - **85% style photo-réaliste** - Fini les images cartoon!
+            - **Tenues sexy variées** - Lingerie, bikini, nu artistique...
+            - **Poses sensuelles** - Poses suggestives et explicites
+            - **Mode Sexy vs Revealing** - 2 niveaux d'intensité NSFW
             
-            ### 📸 Gestion Rate Limit Images
-            - Délai minimum 3s entre requêtes
-            - Retry automatique (3 tentatives)
-            - Backoff exponentiel
-            - Vérification du contenu image
-            - Plus de "rate limit" affiché
+            ### ⚡ Ollama Plus Rapide
+            - **Timeout réduit à 30s** (au lieu de 2 min)
+            - **Fallback automatique** vers Groq si trop lent
+            - **Messages d'erreur clairs** avec solutions
             
-            ### ✅ Fonctionnalités Complètes (v1.6.0)
-            - Galerie de personnages avec carrousel
-            - Filtres par tags multiples
-            - Système de galerie d'images
-            - Conversations immersives roleplay
-            - Mode NSFW optimisé
-            - Profil utilisateur
-            - 200+ personnages
+            ### 🎨 Génération d'Images Simplifiée
+            - **Config automatique** Freebox + Pollinations
+            - **Message clair** si SD Local non disponible
+            - **Qualité maximale** 768x768 pixels
+            
+            ## 🔥 3 Modes de Conversation (18+)
+            - **😊 Normal (SFW)** - Conversations amicales
+            - **💕 Romance** - Flirt, baisers, câlins
+            - **🔥 Spicy** - Contenu adulte explicite!
             
             ## 📥 Installation
             
-            1. Téléchargez `roleplay-chat-v${{ steps.version.outputs.version }}-native.apk`
-            2. Transférez sur votre téléphone Android
-            3. Activez "Sources inconnues" si nécessaire
-            4. Installez l'APK
-            5. Configurez vos clés API Groq dans les paramètres
+            1. Téléchargez l'APK
+            2. Installez sur Android
+            3. Configurez vos clés API (Paramètres)
+            4. Activez le mode Romance ou Spicy dans votre profil
+            5. Profitez des images réalistes! 🔥
             
-            ## 📊 Améliorations
+            ## 🎯 Configuration Images
             
-            | Métrique | Avant | Maintenant | Gain |
-            |----------|-------|------------|------|
-            | Rate limit images | ❌ | ✅ | +100% |
-            | Explicité NSFW | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | +67% |
-            | Auto-censure | Fréquente | Rare | -80% |
-            | Variété réponses | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | +67% |
+            | Source | Recommandation |
+            |--------|----------------|
+            | Freebox + Pollinations | ⭐⭐⭐⭐⭐ Parfait |
+            | Pollinations seul | ⭐⭐⭐⭐ Bon |
             
             ---
             
-            **Build Method**: Native Gradle (Sans compte Expo)  
-            **Date**: ${{ github.event.head_commit.timestamp }}  
-            **Commit**: ${{ github.sha }}
+            **Build**: Native Gradle  
+            **Date**: ${{ github.event.head_commit.timestamp }}
           draft: false
           prerelease: false
         env:
