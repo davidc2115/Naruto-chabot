@@ -15,6 +15,7 @@ class UserProfileService {
         ...(profile.gender === 'male' && { penis: profile.penis }),
         // Préférences
         nsfwMode: profile.age >= 18 ? (profile.nsfwMode || false) : false,
+        spicyMode: profile.age >= 18 ? (profile.spicyMode || false) : false,
         createdAt: Date.now(),
       };
 
@@ -48,6 +49,7 @@ class UserProfileService {
         updates.isAdult = updates.age >= 18;
         if (updates.age < 18) {
           updates.nsfwMode = false;
+          updates.spicyMode = false;
         }
       }
 

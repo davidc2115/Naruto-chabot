@@ -238,8 +238,10 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // Détection mode NSFW
-    const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+    // Détection modes (18+)
+    const isAdult = !!userProfile?.isAdult;
+    const nsfwMode = !!(isAdult && userProfile?.nsfwMode);
+    const spicyMode = !!(isAdult && userProfile?.spicyMode);
 
     // CONSTRUCTION DU PROMPT ULTRA-DÉTAILLÉ
     let prompt = '';
@@ -269,8 +271,8 @@ class ImageGenerationService {
       console.log('✅ Tenue complète ajoutée:', outfit.substring(0, 150));
     }
     
-    // 6. Mode NSFW ou SFW
-    if (nsfwMode) {
+    // 6. Mode "spicy/mature" (si NSFW ou si toggle spicy)
+    if (nsfwMode || spicyMode) {
       prompt += this.buildNSFWPrompt(character);
     } else {
       prompt += this.buildSFWPrompt(character);
@@ -295,8 +297,10 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // Détection mode NSFW
-    const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+    // Détection modes (18+)
+    const isAdult = !!userProfile?.isAdult;
+    const nsfwMode = !!(isAdult && userProfile?.nsfwMode);
+    const spicyMode = !!(isAdult && userProfile?.spicyMode);
 
     // CONSTRUCTION DU PROMPT
     let prompt = '';
@@ -324,8 +328,8 @@ class ImageGenerationService {
     if (detectedOutfit) {
       prompt += `, wearing ${detectedOutfit}`;
       console.log('✅ Tenue détectée dans conversation:', detectedOutfit);
-    } else if (nsfwMode) {
-      // NSFW: Tenue aléatoire
+    } else if (nsfwMode || spicyMode) {
+      // Spicy/NSFW: Tenue aléatoire (suggestive non-explicite)
       const randomOutfit = this.nsfwOutfits[Math.floor(Math.random() * this.nsfwOutfits.length)];
       prompt += `, ${randomOutfit}`;
       console.log('🎲 Tenue NSFW aléatoire:', randomOutfit);
@@ -334,7 +338,7 @@ class ImageGenerationService {
     }
     
     // 6. POSTURE: Aléatoire si NSFW
-    if (nsfwMode) {
+    if (nsfwMode || spicyMode) {
       const randomPose = this.nsfwPoses[Math.floor(Math.random() * this.nsfwPoses.length)];
       prompt += `, ${randomPose}`;
       console.log('🎲 Posture NSFW aléatoire:', randomPose);
@@ -346,8 +350,8 @@ class ImageGenerationService {
       prompt += `, scene context: ${context}`;
     }
     
-    // 8. Mode NSFW ou SFW
-    if (nsfwMode) {
+    // 8. Mode "spicy/mature" ou SFW
+    if (nsfwMode || spicyMode) {
       prompt += this.buildNSFWPrompt(character);
     } else {
       prompt += this.buildSFWPrompt(character);

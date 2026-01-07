@@ -98,10 +98,12 @@ class TextGenerationService {
       throw new Error('Aucune clé API Groq configurée. Veuillez ajouter des clés dans les paramètres.');
     }
 
-    const spicyModeEnabled = !!(userProfile?.nsfwMode && userProfile?.isAdult);
+    const isAdult = !!userProfile?.isAdult;
+    const nsfwEnabled = !!(isAdult && userProfile?.nsfwMode);
+    const spicyEnabled = !!(isAdult && userProfile?.spicyMode);
     const apiKey = this.getCurrentKey();
     const fullMessages = [
-      { role: 'system', content: this.buildSystemPrompt(character, userProfile, { spicyMode: spicyModeEnabled }) }
+      { role: 'system', content: this.buildSystemPrompt(character, userProfile, { nsfwMode: nsfwEnabled, spicyMode: spicyEnabled }) }
     ];
 
     // Filtrer les messages pour ne garder que role et content (Groq n'accepte pas les propriétés additionnelles comme 'image')
@@ -115,7 +117,7 @@ class TextGenerationService {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         console.log(`📡 [Groq] Tentative ${attempt}/${retries}`);
-        const spicyBoost = spicyModeEnabled ? 0.15 : 0;
+        const spicyBoost = spicyEnabled ? 0.15 : 0;
         
         const response = await axios.post(
           this.provider.baseURL,
@@ -123,9 +125,9 @@ class TextGenerationService {
             model: this.provider.model,
             messages: fullMessages,
             // "Spicy mode" (mature): plus vivant + plus immersif
-            temperature: (spicyModeEnabled ? 0.95 : 0.85) + spicyBoost,
-            max_tokens: spicyModeEnabled ? 1400 : 1100,
-            top_p: spicyModeEnabled ? 0.96 : 0.93,
+            temperature: 0.85 + (nsfwEnabled ? 0.05 : 0) + spicyBoost,
+            max_tokens: nsfwEnabled ? 1300 : 1100,
+            top_p: 0.93 + (nsfwEnabled ? 0.02 : 0) + (spicyEnabled ? 0.01 : 0),
             presence_penalty: 0.6,
             frequency_penalty: 0.5,
           },
@@ -166,7 +168,7 @@ class TextGenerationService {
    * Construit le system prompt "vrai mode conversation" (immersif)
    */
   buildSystemPrompt(character, userProfile, options = {}) {
-    const { spicyMode = false } = options;
+    const { spicyMode = false, nsfwMode = false } = options;
     const username = userProfile?.username ? userProfile.username : 'l’utilisateur';
     const scenario = character?.scenario ? character.scenario : '';
     const description = character?.description ? character.description : '';
@@ -183,10 +185,13 @@ class TextGenerationService {
       `- Reste concis mais vivant: 2 à 6 paragraphes, pas un monologue.`,
       `- Pose 1 question courte à ${username} de temps en temps pour relancer.`,
       `- Zéro répétition mot-à-mot, évite les tics et les résumés.`,
+      nsfwMode
+        ? `- Mode adulte (18+): ton mature, romantique/suggestif permis, toujours consensuel, jamais de contenu explicite/graphique.`
+        : null,
       spicyMode
         ? `- Style (spicy/mature): plus de tension dramatique, plus d’émotions, plus de détails sensoriels, plus de répartie, plus de flirt.`
         : null,
-      spicyMode
+      (spicyMode || nsfwMode)
         ? `- Limites: reste suggestif et romantique (pas de description explicite d’actes sexuels ou de détails anatomiques).`
         : null,
     ]
