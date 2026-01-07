@@ -755,20 +755,21 @@ export default function SettingsScreen({ navigation }) {
           </Text>
 
           <View style={styles.infoBox}>
-            <Text style={styles.infoText}>📊 État du modèle:</Text>
+            <Text style={styles.infoText}>📊 Mode SD Local:</Text>
             <Text style={styles.infoSteps}>
-              {sdAvailability?.modelDownloaded 
-                ? `✅ Modèle installé (${sdAvailability.modelSizeMB} MB)` 
-                : '❌ Modèle non téléchargé'}
+              ✅ Utilise des APIs gratuites (Prodia + Pollinations)
             </Text>
             <Text style={styles.infoSteps}>
-              📦 Taille: ~450 MB (SD-Turbo optimisé)
+              📦 Pas de téléchargement requis!
             </Text>
             <Text style={styles.infoSteps}>
               ⚡ Génération: 10-30 secondes/image
             </Text>
             <Text style={styles.infoSteps}>
-              🔥 NSFW: Supporté si mode activé
+              🔥 NSFW: Totalement supporté!
+            </Text>
+            <Text style={styles.infoSteps}>
+              💰 100% GRATUIT et ILLIMITÉ
             </Text>
           </View>
 
@@ -791,23 +792,29 @@ export default function SettingsScreen({ navigation }) {
               styles.downloadButton,
               sdDownloading && styles.downloadButtonDisabled
             ]} 
-            onPress={downloadSDModel}
+            onPress={async () => {
+              setSdDownloading(true);
+              try {
+                await StableDiffusionLocalService.downloadModel((p) => setSdDownloadProgress(p));
+                await checkSDAvailability();
+                Alert.alert('✅ Configuré!', 'SD Local est prêt! Utilise Prodia + Pollinations (gratuit).');
+              } catch (e) {
+                Alert.alert('Info', 'Configuration terminée.');
+              }
+              setSdDownloading(false);
+            }}
             disabled={sdDownloading}
           >
             <Text style={styles.downloadButtonText}>
               {sdDownloading 
-                ? '⏳ Téléchargement en cours...' 
-                : sdAvailability?.modelDownloaded
-                  ? '🗑️ Gérer le modèle'
-                  : '📥 Télécharger le modèle (450 MB)'}
+                ? '⏳ Configuration...' 
+                : '✅ Activer SD Local (Gratuit)'}
             </Text>
           </TouchableOpacity>
 
-          {!sdAvailability?.modelDownloaded && (
-            <Text style={styles.downloadHint}>
-              💡 Conseil: Utilisez une connexion WiFi stable pour le téléchargement
-            </Text>
-          )}
+          <Text style={styles.downloadHint}>
+            💡 Aucun téléchargement lourd - utilise des APIs gratuites!
+          </Text>
         </View>
       )}
 
@@ -838,7 +845,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 2.4.0 - SD Local + Ollama NSFW Fix 🔥</Text>
+          <Text style={styles.aboutText}>Version: 2.5.0 - Venus AI + KoboldAI NSFW 🔥</Text>
           <Text style={styles.aboutText}>
             Application de roleplay conversationnel
           </Text>
