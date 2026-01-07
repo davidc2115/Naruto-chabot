@@ -245,6 +245,18 @@ export default function UserProfileScreen({ navigation }) {
         </View>
       )}
 
+      {isAdult && (
+        <View style={styles.modesInfoBox}>
+          <Text style={styles.modesInfoTitle}>ℹ️ Différence entre les modes</Text>
+          <Text style={styles.modesInfoText}>
+            - <Text style={styles.modesInfoBold}>NSFW (18+)</Text> : autorise un ton adulte (mature/suggestif).
+          </Text>
+          <Text style={styles.modesInfoText}>
+            - <Text style={styles.modesInfoBold}>Spicy</Text> : rend la conversation plus intense (style), même sans changer le contenu.
+          </Text>
+        </View>
+      )}
+
       {!isAdult && age && (
         <View style={styles.warningContainer}>
           <Text style={styles.warningText}>
@@ -392,6 +404,29 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#7c2d12',
     lineHeight: 18,
+  },
+  modesInfoBox: {
+    marginTop: 12,
+    padding: 14,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  modesInfoTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  modesInfoText: {
+    fontSize: 13,
+    color: '#4b5563',
+    lineHeight: 18,
+  },
+  modesInfoBold: {
+    fontWeight: '700',
+    color: '#111827',
   },
   warningContainer: {
     marginTop: 20,
