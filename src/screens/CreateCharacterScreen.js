@@ -54,8 +54,9 @@ export default function CreateCharacterScreen({ navigation, route }) {
       return;
     }
 
-    if (!age || parseInt(age) < 18) {
-      Alert.alert('Erreur', 'L\'âge doit être supérieur ou égal à 18 ans');
+    const ageNum = parseInt(age);
+    if (!age || isNaN(ageNum) || ageNum < 18) {
+      Alert.alert('Erreur', 'L\'âge doit être de 18 ans minimum');
       return;
     }
 
@@ -90,6 +91,12 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const handleSave = async () => {
     if (!name || !age || !appearance || !personality || !scenario || !startMessage) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    const ageNum = parseInt(age);
+    if (isNaN(ageNum) || ageNum < 18) {
+      Alert.alert('Erreur', 'L\'âge doit être de 18 ans minimum. Tous les personnages doivent être majeurs.');
       return;
     }
 
@@ -187,12 +194,17 @@ export default function CreateCharacterScreen({ navigation, route }) {
         placeholder="Ex: Emma Laurent"
       />
 
-      <Text style={styles.label}>Âge *</Text>
+      <Text style={styles.label}>Âge * (minimum 18 ans)</Text>
       <TextInput
         style={styles.input}
         value={age}
-        onChangeText={setAge}
-        placeholder="Ex: 25"
+        onChangeText={(text) => {
+          const num = parseInt(text);
+          if (text === '' || (!isNaN(num) && num >= 0)) {
+            setAge(text);
+          }
+        }}
+        placeholder="Ex: 25 (minimum 18)"
         keyboardType="numeric"
       />
 

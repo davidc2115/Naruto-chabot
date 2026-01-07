@@ -8,23 +8,30 @@ import {
   Alert,
 } from 'react-native';
 import StorageService from '../services/StorageService';
+import CustomCharacterService from '../services/CustomCharacterService';
 import characters from '../data/characters';
 
 export default function ChatsScreen({ navigation }) {
   const [conversations, setConversations] = useState([]);
+  const [allCharacters, setAllCharacters] = useState([]);
 
   useEffect(() => {
-    loadConversations();
+    loadAll();
     
-    // Refresh when screen is focused
     const unsubscribe = navigation.addListener('focus', () => {
-      loadConversations();
+      loadAll();
     });
 
     return unsubscribe;
   }, [navigation]);
 
-  const loadConversations = async () => {
+  const loadAll = async () => {
+    // Charger les personnages par défaut + personnalisés
+    const customChars = await CustomCharacterService.getCustomCharacters();
+    const combined = [...characters, ...customChars];
+    setAllCharacters(combined);
+    
+    // Charger les conversations
     const allConversations = await StorageService.getAllConversations();
     setConversations(allConversations);
   };
@@ -33,16 +40,15 @@ export default function ChatsScreen({ navigation }) {
     const character = getCharacter(characterId);
     Alert.alert(
       'Supprimer définitivement',
-      `Voulez-vous vraiment supprimer définitivement la conversation avec ${character?.name || 'ce personnage'} ? Cette action est irréversible.`,
+      `Voulez-vous vraiment supprimer la conversation avec ${character?.name || 'ce personnage'} ?`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
-          text: 'Supprimer définitivement',
+          text: 'Supprimer',
           style: 'destructive',
           onPress: async () => {
             await StorageService.deleteConversation(characterId);
-            loadConversations();
-            Alert.alert('✅ Supprimée', 'La conversation a été supprimée définitivement.');
+            loadAll();
           },
         },
       ]
@@ -50,15 +56,22 @@ export default function ChatsScreen({ navigation }) {
   };
 
   const getCharacter = (characterId) => {
-    return characters.find(c => c.id === characterId);
+    return allCharacters.find(c => c.id === characterId);
   };
 
   const renderConversation = ({ item }) => {
     const character = getCharacter(item.characterId);
-    if (!character) return null;
+    if (!character) {
+      console.log('⚠️ Personnage non trouvé pour ID:', item.characterId);
+      return null;
+    }
 
     const lastMessage = item.messages[item.messages.length - 1];
     const messagePreview = lastMessage?.content?.substring(0, 80) + '...' || 'Aucun message';
+    
+    // Calculer le niveau avec le nouveau système
+    const level = item.relationship?.level || 1;
+    const xp = item.relationship?.experience || 0;
 
     return (
       <View style={styles.card}>
@@ -67,10 +80,15 @@ export default function ChatsScreen({ navigation }) {
           onPress={() => navigation.navigate('Conversation', { character })}
         >
           <View style={styles.cardContent}>
-            <View style={styles.avatarPlaceholder}>
+            <View style={[styles.avatarPlaceholder, character.isCustom && styles.customAvatar]}>
               <Text style={styles.avatarText}>
                 {character.name.split(' ').map(n => n[0]).join('')}
               </Text>
+              {character.isCustom && (
+                <View style={styles.customBadge}>
+                  <Text style={styles.customBadgeText}>✨</Text>
+                </View>
+              )}
             </View>
             <View style={styles.info}>
               <View style={styles.header}>
@@ -84,13 +102,16 @@ export default function ChatsScreen({ navigation }) {
               </Text>
               <View style={styles.statsContainer}>
                 <Text style={styles.stats}>
-                  💬 {item.messages.length} messages
+                  💬 {item.messages.length}
                 </Text>
                 <Text style={styles.stats}>
-                  💖 Affection: {item.relationship?.affection || 50}%
+                  ⭐ Niv.{level}
                 </Text>
                 <Text style={styles.stats}>
-                  ⭐ Niveau: {item.relationship?.level || 1}
+                  💖 {item.relationship?.affection || 50}%
+                </Text>
+                <Text style={styles.statsXp}>
+                  {xp} XP
                 </Text>
               </View>
             </View>
@@ -100,7 +121,7 @@ export default function ChatsScreen({ navigation }) {
           style={styles.deleteButton}
           onPress={() => deleteConversation(item.characterId)}
         >
-          <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
+          <Text style={styles.deleteButtonText}>🗑️</Text>
         </TouchableOpacity>
       </View>
     );
@@ -112,7 +133,7 @@ export default function ChatsScreen({ navigation }) {
         <Text style={styles.emptyEmoji}>💬</Text>
         <Text style={styles.emptyTitle}>Aucune conversation</Text>
         <Text style={styles.emptyText}>
-          Commencez une conversation avec un personnage depuis l'onglet Personnages
+          Commencez une conversation depuis l'onglet Personnages
         </Text>
       </View>
     );
@@ -167,6 +188,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    flexDirection: 'row',
     overflow: 'hidden',
   },
   cardTouchable: {
@@ -177,28 +199,42 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   deleteButton: {
-    backgroundColor: '#ef4444',
-    padding: 12,
+    backgroundColor: '#fee2e2',
+    padding: 15,
+    justifyContent: 'center',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#fee2e2',
   },
   deleteButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: 20,
   },
   avatarPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 55,
+    height: 55,
+    borderRadius: 27,
     backgroundColor: '#6366f1',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 12,
+  },
+  customAvatar: {
+    backgroundColor: '#10b981',
+  },
+  customBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#fbbf24',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  customBadgeText: {
+    fontSize: 12,
   },
   avatarText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -212,28 +248,32 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   name: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#111827',
   },
   date: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#9ca3af',
   },
   preview: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6b7280',
-    marginBottom: 10,
-    lineHeight: 20,
+    marginBottom: 8,
+    lineHeight: 18,
   },
   statsContainer: {
     flexDirection: 'row',
-    gap: 15,
+    gap: 12,
   },
   stats: {
     fontSize: 12,
-    color: '#4f46e5',
-    fontWeight: '500',
+    color: '#6366f1',
+    fontWeight: '600',
+  },
+  statsXp: {
+    fontSize: 11,
+    color: '#9ca3af',
   },
   emptyContainer: {
     flex: 1,

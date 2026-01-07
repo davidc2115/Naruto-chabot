@@ -100,11 +100,9 @@ export default function CharacterDetailScreen({ route, navigation }) {
           text: 'Nouvelle conversation',
           style: 'destructive',
           onPress: async () => {
-            // Supprimer l'ancienne conversation
-            await StorageService.deleteConversation(character.id);
             setHasConversation(false);
-            // Démarrer une nouvelle conversation
-            startConversation();
+            // Passer newConversation: true pour forcer le reset
+            navigation.navigate('Conversation', { character, newConversation: true });
           }
         }
       ]
