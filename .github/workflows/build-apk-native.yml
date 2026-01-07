@@ -13,6 +13,8 @@ on:
   push:
     tags:
       - 'v1.7.*'
+      - 'v2.*'
+      - 'v3.*'
       - '7.*'
       - 'native-build-*'
 

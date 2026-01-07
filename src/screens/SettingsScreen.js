@@ -29,8 +29,12 @@ export default function SettingsScreen({ navigation }) {
   const [availableProviders, setAvailableProviders] = useState([]);
   const [providerApiKeys, setProviderApiKeys] = useState({
     groq: [''],
+    openrouter: [''],
+    kobold: [],
+    ollama: [],
   });
   const [testingProvider, setTestingProvider] = useState(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   
   // Stable Diffusion Local
   const [sdAvailability, setSdAvailability] = useState(null);
@@ -88,24 +92,38 @@ export default function SettingsScreen({ navigation }) {
       const currentProvider = TextGenerationService.getCurrentProvider();
       
       setAvailableProviders(providers);
-      setTextProvider(currentProvider);
+      setTextProvider(currentProvider || 'groq');
       
       // Charger les clés pour tous les providers qui en nécessitent
-      const newProviderKeys = {};
+      const newProviderKeys = {
+        groq: [''],
+        openrouter: [''],
+        kobold: [],
+        ollama: [],
+      };
       
       providers.forEach(provider => {
         if (provider.requiresApiKey) {
-          const keys = TextGenerationService.apiKeys[provider.id] || [];
-          newProviderKeys[provider.id] = keys.length > 0 ? keys : [''];
+          const keys = TextGenerationService.apiKeys?.[provider.id] || [];
+          newProviderKeys[provider.id] = keys.length > 0 ? [...keys] : [''];
         }
       });
       
       setProviderApiKeys(newProviderKeys);
+      setSettingsLoaded(true);
       
       console.log('✅ Config providers chargée:', currentProvider);
       console.log('📋 Clés chargées pour:', Object.keys(newProviderKeys));
     } catch (error) {
       console.error('Erreur chargement config text generation:', error);
+      // En cas d'erreur, initialiser avec les valeurs par défaut
+      setProviderApiKeys({
+        groq: [''],
+        openrouter: [''],
+        kobold: [],
+        ollama: [],
+      });
+      setSettingsLoaded(true);
     }
   };
 
@@ -521,26 +539,34 @@ export default function SettingsScreen({ navigation }) {
             </View>
           )}
           
-          {providerApiKeys[textProvider]?.map((key, index) => (
+          {(providerApiKeys[textProvider] || ['']).map((key, index) => (
             <View key={index} style={styles.keyInputContainer}>
               <TextInput
                 style={styles.keyInput}
                 placeholder={`Clé API ${index + 1}`}
-                value={key}
+                value={key || ''}
                 onChangeText={(value) => {
                   const newKeys = { ...providerApiKeys };
+                  if (!newKeys[textProvider]) {
+                    newKeys[textProvider] = [''];
+                  }
                   newKeys[textProvider][index] = value;
                   setProviderApiKeys(newKeys);
                 }}
                 autoCapitalize="none"
                 autoCorrect={false}
-                secureTextEntry={key.length > 0}
+                secureTextEntry={key && key.length > 0}
               />
-              {providerApiKeys[textProvider].length > 1 && (
+              {(providerApiKeys[textProvider] || []).length > 1 && (
                 <TouchableOpacity
                   style={styles.removeButton}
                   onPress={() => {
                     const newKeys = { ...providerApiKeys };
+                    if (!newKeys[textProvider]) {
+                      newKeys[textProvider] = [''];
+                      setProviderApiKeys(newKeys);
+                      return;
+                    }
                     newKeys[textProvider] = newKeys[textProvider].filter((_, i) => i !== index);
                     if (newKeys[textProvider].length === 0) newKeys[textProvider] = [''];
                     setProviderApiKeys(newKeys);
@@ -557,9 +583,9 @@ export default function SettingsScreen({ navigation }) {
             onPress={() => {
               const newKeys = { ...providerApiKeys };
               if (!newKeys[textProvider]) {
-                newKeys[textProvider] = [''];
+                newKeys[textProvider] = [];
               }
-              newKeys[textProvider].push('');
+              newKeys[textProvider] = [...newKeys[textProvider], ''];
               setProviderApiKeys(newKeys);
             }}
           >
@@ -570,12 +596,8 @@ export default function SettingsScreen({ navigation }) {
             <TouchableOpacity 
               style={styles.saveButton} 
               onPress={async () => {
-                if (!providerApiKeys[textProvider]) {
-                  Alert.alert('Erreur', 'Erreur de configuration. Veuillez recharger l\'application.');
-                  return;
-                }
-                
-                const validKeys = providerApiKeys[textProvider].filter(key => key.trim() !== '');
+                const currentKeys = providerApiKeys[textProvider] || [];
+                const validKeys = currentKeys.filter(key => key && key.trim() !== '');
                 
                 if (validKeys.length === 0) {
                   Alert.alert('Erreur', 'Veuillez ajouter au moins une clé API valide.');
@@ -912,12 +934,12 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 1.0.0</Text>
+          <Text style={styles.aboutText}>Version: 3.0.0</Text>
           <Text style={styles.aboutText}>
             Application de roleplay conversationnel
           </Text>
           <Text style={styles.aboutText}>
-            200 personnages uniques
+            236 personnages uniques (dont 30 nouvelles amies)
           </Text>
           <Text style={styles.aboutText}>
             Système de relation dynamique
@@ -932,7 +954,8 @@ export default function SettingsScreen({ navigation }) {
         <Text style={styles.sectionTitle}>🎨 Fonctionnalités</Text>
         <View style={styles.featuresList}>
           <Text style={styles.featureItem}>✓ Multi-clés Groq avec rotation automatique</Text>
-          <Text style={styles.featureItem}>✓ 200 personnages diversifiés</Text>
+          <Text style={styles.featureItem}>✓ 236 personnages diversifiés</Text>
+          <Text style={styles.featureItem}>✓ 30 nouvelles amies avec apparences variées</Text>
           <Text style={styles.featureItem}>✓ Système de roleplay immersif</Text>
           <Text style={styles.featureItem}>✓ Système d'expérience et d'affection</Text>
           <Text style={styles.featureItem}>✓ Génération d'images illimitée</Text>
