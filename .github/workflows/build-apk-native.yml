@@ -13,6 +13,7 @@ on:
   push:
     tags:
       - 'v1.7.*'
+      - 'v2.*'
       - '7.*'
       - 'native-build-*'
 
@@ -156,57 +157,49 @@ jobs:
         with:
           files: roleplay-chat-v${{ steps.version.outputs.version }}-native.apk
           body: |
-            # 🚀 Roleplay Chat v${{ steps.version.outputs.version }} (Native Build)
+            # 🔥 Roleplay Chat v${{ steps.version.outputs.version }} - Mode Spicy!
             
             **Build Method**: Native Android (Gradle)  
             **No Expo Account Required**: ✅  
             **Completely Free**: ✅
             
-            ## ✨ Corrections v${{ steps.version.outputs.version }}
+            ## 🚀 Nouveautés v2.0.0 - Mode Spicy
             
-            ### 🔥 Mode NSFW Ultra-Optimisé
-            - Prompt système ultra-explicite (100+ lignes)
-            - Directives détaillées anti-censure
-            - Température augmentée (1.0)
-            - Tokens max augmentés (1200)
-            - Pénalités anti-répétition
+            ### 🔥 3 Modes de Conversation (18+)
+            - **😊 Normal (SFW)** - Conversations amicales
+            - **💕 Romance** - Flirt, baisers, câlins suggestifs
+            - **🔥 Spicy (Explicite)** - Contenu adulte sans limites!
             
-            ### 📸 Gestion Rate Limit Images
-            - Délai minimum 3s entre requêtes
-            - Retry automatique (3 tentatives)
-            - Backoff exponentiel
-            - Vérification du contenu image
-            - Plus de "rate limit" affiché
+            ### 🤖 Providers Optimisés pour NSFW
+            - **Ollama (Freebox)** - ZÉRO CENSURE, parfait pour Spicy
+            - **Groq (LLaMA 3.3)** - Jailbreak conversationnel avancé
+            - **KoboldAI** - Gratuit et uncensored
+            - **OpenRouter** - Multi-modèles
             
-            ### ✅ Fonctionnalités Complètes (v1.6.0)
-            - Galerie de personnages avec carrousel
-            - Filtres par tags multiples
-            - Système de galerie d'images
-            - Conversations immersives roleplay
-            - Mode NSFW optimisé
-            - Profil utilisateur
-            - 200+ personnages
+            ### ✨ Améliorations Techniques
+            - Jailbreak conversationnel avancé
+            - Paramètres optimisés par mode (temp, tokens)
+            - Détection et contournement des refus
+            - Interface utilisateur améliorée
             
             ## 📥 Installation
             
             1. Téléchargez `roleplay-chat-v${{ steps.version.outputs.version }}-native.apk`
-            2. Transférez sur votre téléphone Android
-            3. Activez "Sources inconnues" si nécessaire
-            4. Installez l'APK
-            5. Configurez vos clés API Groq dans les paramètres
+            2. Installez l'APK sur Android
+            3. Configurez vos clés API dans les paramètres
+            4. Créez votre profil et choisissez le mode Spicy! 🔥
             
-            ## 📊 Améliorations
+            ## 🎯 Recommandations Mode Spicy
             
-            | Métrique | Avant | Maintenant | Gain |
-            |----------|-------|------------|------|
-            | Rate limit images | ❌ | ✅ | +100% |
-            | Explicité NSFW | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | +67% |
-            | Auto-censure | Fréquente | Rare | -80% |
-            | Variété réponses | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | +67% |
+            | Provider | Mode Spicy | Recommandation |
+            |----------|-----------|----------------|
+            | Ollama (Freebox) | ⭐⭐⭐⭐⭐ | PARFAIT - Zéro censure |
+            | KoboldAI | ⭐⭐⭐⭐ | Gratuit et uncensored |
+            | Groq | ⭐⭐⭐ | Bon avec jailbreak |
             
             ---
             
-            **Build Method**: Native Gradle (Sans compte Expo)  
+            **Build**: Native Gradle  
             **Date**: ${{ github.event.head_commit.timestamp }}  
             **Commit**: ${{ github.sha }}
           draft: false
