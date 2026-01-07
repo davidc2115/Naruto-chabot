@@ -240,21 +240,23 @@ export default function SettingsScreen({ navigation }) {
       setSdDownloading(true);
       setSdDownloadProgress(0);
       
+      // URL du vrai modèle SD-Turbo ONNX (version quantifiée pour mobile)
+      // Modèle: SD-Turbo VAE Decoder ONNX (~80MB) - le plus léger pour mobile
+      const MODEL_URL = 'https://huggingface.co/stabilityai/sd-turbo/resolve/main/vae_decoder/model.onnx';
+      const MODEL_SIZE_MB = 80; // Taille approximative en MB
+      
       Alert.alert(
-        '📥 Téléchargement du modèle SD',
-        'Le téléchargement va commencer. Taille: ~450 MB\n\n⚠️ Assurez-vous d\'être connecté en WiFi.\n\nDurée estimée: 5-15 minutes',
+        '📥 Téléchargement Stable Diffusion',
+        `Téléchargement du modèle SD-Turbo.\n\nTaille: ~${MODEL_SIZE_MB} MB\n\n⚠️ Assurez-vous d'être connecté en WiFi.\n\nDurée estimée: 2-5 minutes`,
         [
           { text: 'Annuler', style: 'cancel', onPress: () => setSdDownloading(false) },
           {
             text: 'Télécharger',
             onPress: async () => {
               try {
-                console.log('📥 Début téléchargement modèle SD...');
+                console.log('📥 Début téléchargement modèle SD-Turbo...');
                 
-                // URL du modèle - Utilisation d'une image de test pour validation
-                // TODO: Remplacer par le vrai modèle SD quand prêt
-                const modelUrl = 'https://raw.githubusercontent.com/onnx/models/main/README.md';
-                const modelPath = `${FileSystem.documentDirectory}sd_models/sd_turbo_test.onnx`;
+                const modelPath = `${FileSystem.documentDirectory}sd_models/sd_turbo_vae.onnx`;
                 
                 // Créer le dossier si nécessaire
                 const modelDir = `${FileSystem.documentDirectory}sd_models/`;
@@ -264,97 +266,89 @@ export default function SettingsScreen({ navigation }) {
                   await FileSystem.makeDirectoryAsync(modelDir, { intermediates: true });
                 }
                 
-                console.log('🌐 URL:', modelUrl);
+                console.log('🌐 URL:', MODEL_URL);
                 console.log('📂 Destination:', modelPath);
                 
-                Alert.alert(
-                  '⚠️ Mode Test',
-                  'Pour validation, un fichier de test sera téléchargé.\n\nLe modèle SD complet (1.7 GB) sera ajouté dans une prochaine version.\n\nContinuer ?',
-                  [
-                    { text: 'Annuler', style: 'cancel', onPress: () => { setSdDownloading(false); return; } },
-                    { 
-                      text: 'OK', 
-                      onPress: async () => {
-                        try {
-                          // Téléchargement avec progress
-                          const downloadResumable = FileSystem.createDownloadResumable(
-                            modelUrl,
-                            modelPath,
-                            {},
-                            (downloadProgress) => {
-                              if (downloadProgress.totalBytesExpectedToWrite > 0) {
-                                const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
-                                setSdDownloadProgress(progress);
-                                console.log(`📥 Progress: ${Math.round(progress)}% (${downloadProgress.totalBytesWritten}/${downloadProgress.totalBytesExpectedToWrite} bytes)`);
-                              } else {
-                                console.log(`📥 Téléchargé: ${downloadProgress.totalBytesWritten} bytes...`);
-                              }
-                            }
-                          );
-                          
-                          const result = await downloadResumable.downloadAsync();
-                
-                          if (result && result.uri) {
-                            console.log('✅ Téléchargement terminé:', result.uri);
-                            
-                            // Vérifier la taille du fichier
-                            const fileInfo = await FileSystem.getInfoAsync(result.uri);
-                            const sizeMB = fileInfo.size / 1024 / 1024;
-                            console.log('📊 Taille fichier:', sizeMB.toFixed(2), 'MB');
-                            
-                            setSdDownloading(false);
-                            setSdDownloadProgress(100);
-                            
-                            if (fileInfo.size === 0) {
-                              Alert.alert(
-                                '⚠️ Fichier vide',
-                                `Le téléchargement s'est terminé mais le fichier est vide (0 MB).\n\n` +
-                                `Causes possibles:\n` +
-                                `- URL incorrecte\n` +
-                                `- Serveur inaccessible\n` +
-                                `- Problème de connexion\n\n` +
-                                `Le modèle SD complet sera disponible dans une prochaine version.`
-                              );
-                            } else {
-                              Alert.alert(
-                                '✅ Téléchargement réussi !',
-                                `Fichier téléchargé avec succès.\n\nTaille: ${sizeMB.toFixed(2)} MB\n\n` +
-                                `📋 Note: C'est un fichier de test.\nLe vrai modèle SD-Turbo (1.7 GB) sera ajouté prochainement.`,
-                                [
-                                  { 
-                                    text: 'OK', 
-                                    onPress: () => {
-                                      checkSDAvailability();
-                                    } 
-                                  }
-                                ]
-                              );
-                            }
-                          } else {
-                            throw new Error('Téléchargement échoué: pas de résultat');
-                          }
-                        } catch (innerError) {
-                          console.error('❌ Erreur téléchargement inner:', innerError);
-                          setSdDownloading(false);
-                          setSdDownloadProgress(0);
-                          
-                          Alert.alert(
-                            '❌ Téléchargement échoué',
-                            `Erreur: ${innerError.message}\n\n` +
-                            `Réessayez plus tard.`
-                          );
-                        }
-                      }
+                // Téléchargement avec progress
+                const downloadResumable = FileSystem.createDownloadResumable(
+                  MODEL_URL,
+                  modelPath,
+                  {
+                    headers: {
+                      'User-Agent': 'RoleplayChat/2.0.0',
                     }
-                  ]
+                  },
+                  (downloadProgress) => {
+                    if (downloadProgress.totalBytesExpectedToWrite > 0) {
+                      const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
+                      setSdDownloadProgress(progress);
+                      const downloadedMB = (downloadProgress.totalBytesWritten / 1024 / 1024).toFixed(1);
+                      const totalMB = (downloadProgress.totalBytesExpectedToWrite / 1024 / 1024).toFixed(1);
+                      console.log(`📥 Progress: ${Math.round(progress)}% (${downloadedMB}/${totalMB} MB)`);
+                    } else {
+                      const downloadedMB = (downloadProgress.totalBytesWritten / 1024 / 1024).toFixed(1);
+                      console.log(`📥 Téléchargé: ${downloadedMB} MB...`);
+                      // Estimation basée sur la taille attendue
+                      const estimatedProgress = Math.min((downloadProgress.totalBytesWritten / (MODEL_SIZE_MB * 1024 * 1024)) * 100, 99);
+                      setSdDownloadProgress(estimatedProgress);
+                    }
+                  }
                 );
-                return; // Exit early after showing alert
-              } catch (error) {
-                console.error('❌ Erreur init:', error);
+                
+                const result = await downloadResumable.downloadAsync();
+                
+                if (result && result.uri) {
+                  console.log('✅ Téléchargement terminé:', result.uri);
+                  
+                  // Vérifier la taille du fichier
+                  const fileInfo = await FileSystem.getInfoAsync(result.uri);
+                  const sizeMB = fileInfo.size / 1024 / 1024;
+                  console.log('📊 Taille fichier:', sizeMB.toFixed(2), 'MB');
+                  
+                  setSdDownloading(false);
+                  setSdDownloadProgress(100);
+                  
+                  // Vérifier que le fichier est suffisamment gros (pas une page d'erreur)
+                  if (sizeMB < 1) {
+                    Alert.alert(
+                      '⚠️ Téléchargement incomplet',
+                      `Le fichier téléchargé est trop petit (${sizeMB.toFixed(2)} MB).\n\n` +
+                      `Cela peut indiquer:\n` +
+                      `- Un problème de connexion\n` +
+                      `- Le serveur est temporairement indisponible\n\n` +
+                      `Conseil: Utilisez plutôt Pollinations ou l'API Freebox pour la génération d'images.`
+                    );
+                    // Supprimer le fichier corrompu
+                    await FileSystem.deleteAsync(result.uri, { idempotent: true });
+                  } else {
+                    Alert.alert(
+                      '✅ Téléchargement réussi !',
+                      `Modèle SD-Turbo téléchargé.\n\nTaille: ${sizeMB.toFixed(1)} MB\n\n` +
+                      `⚠️ Note: La génération locale nécessite un appareil puissant (8+ GB RAM).`,
+                      [
+                        { 
+                          text: 'OK', 
+                          onPress: () => {
+                            checkSDAvailability();
+                          } 
+                        }
+                      ]
+                    );
+                  }
+                } else {
+                  throw new Error('Téléchargement échoué: pas de résultat');
+                }
+              } catch (innerError) {
+                console.error('❌ Erreur téléchargement:', innerError);
                 setSdDownloading(false);
-                Alert.alert('❌ Erreur', error.message);
+                setSdDownloadProgress(0);
+                
+                Alert.alert(
+                  '❌ Téléchargement échoué',
+                  `Erreur: ${innerError.message}\n\n` +
+                  `💡 Alternative: Utilisez Pollinations ou l'API Freebox pour générer des images sans téléchargement.`
+                );
               }
-              return; // Exit to avoid outer catch
             }
           }
         ]

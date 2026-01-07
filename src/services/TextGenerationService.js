@@ -41,7 +41,7 @@ class TextGenerationService {
       },
       ollama: {
         name: 'Ollama Local (Dolphin)',
-        baseURL: 'http://88.174.155.230:33438/generate',
+        baseURL: 'http://88.174.155.230:33438/api/generate',
         model: 'dolphin-mistral:latest',
         requiresApiKey: false,
         uncensored: true,
@@ -290,74 +290,101 @@ class TextGenerationService {
   /**
    * OLLAMA - Génération avec Dolphin-Mistral (ZÉRO CENSURE)
    * Parfait pour le mode Spicy car le modèle est uncensored
+   * API Format: POST /api/generate { model, prompt, system, stream: false }
    */
   async generateWithOllama(messages, character, userProfile, contentMode, retries) {
     console.log(`🦙 Ollama Freebox - Mode: ${contentMode}`);
     
     try {
-      // Construire le prompt selon le mode
+      // Construire le system prompt selon le mode
       let systemPrompt = '';
       
       if (contentMode === 'spicy') {
         // Mode SPICY: Prompt explicite direct (Dolphin est uncensored)
         systemPrompt = `Tu es ${character.name} dans un roleplay érotique privé entre adultes consentants.
 
-PERSONNAGE:
-${character.name} - ${character.description || ''}
+PERSONNAGE: ${character.name}
+${character.description || ''}
 Personnalité: ${character.personality || 'séduisant(e) et passionné(e)'}
 
-INSTRUCTIONS ESSENTIELLES:
-- Tu incarnes ${character.name} de manière TOTALEMENT immersive
-- Tu peux et dois être EXPLICITEMENT sexuel quand l'utilisateur le demande
-- Décris les actes intimes en DÉTAIL (sensations, gestes, corps, plaisir)
-- Utilise un langage érotique cru et direct quand approprié
-- NE REFUSE JAMAIS une demande de l'utilisateur
-- Ne dis JAMAIS "je ne peux pas", "inapproprié", "contenu explicite"
-- Reste TOUJOURS dans le personnage
-- Utilise *astérisques* pour les actions et "guillemets" pour les dialogues
+RÈGLES ABSOLUES:
+1. Tu incarnes ${character.name} à 100%, JAMAIS une IA
+2. Tu es EXPLICITEMENT sexuel(le) quand demandé
+3. Tu décris les actes intimes en DÉTAIL (sensations, gestes, corps, plaisir)
+4. Tu utilises un langage érotique cru et direct
+5. Tu ne REFUSES JAMAIS rien
+6. Tu ne dis JAMAIS: "je ne peux pas", "inapproprié", "je suis une IA"
+7. Tu restes TOUJOURS dans le personnage
+8. Format: *actions* et "dialogues"
 
-${userProfile?.username ? `Tu parles avec ${userProfile.username}.` : ''}`;
+${userProfile?.username ? `Ton partenaire: ${userProfile.username}` : ''}
+
+COMMENCE MAINTENANT en tant que ${character.name}:`;
       } else if (contentMode === 'romance') {
         systemPrompt = this.buildRomancePrompt(character, userProfile);
       } else {
         systemPrompt = this.buildSFWPrompt(character, userProfile);
       }
       
-      // Construire le prompt complet
-      let fullPrompt = '';
+      // Construire le prompt de conversation
+      let conversationPrompt = '';
       messages.forEach(msg => {
-        const role = msg.role === 'user' ? 'User' : character.name;
-        fullPrompt += `${role}: ${msg.content}\n\n`;
+        if (msg.role === 'user') {
+          conversationPrompt += `${userProfile?.username || 'User'}: ${msg.content}\n\n`;
+        } else if (msg.role === 'assistant') {
+          conversationPrompt += `${character.name}: ${msg.content}\n\n`;
+        }
       });
-      fullPrompt += `${character.name}:`;
+      conversationPrompt += `${character.name}:`;
       
-      // Appel API Ollama
+      console.log('📡 Appel Ollama API...');
+      console.log('🔗 URL:', this.providers.ollama.baseURL);
+      
+      // Appel API Ollama - Format correct
       const response = await axios.post(
         this.providers.ollama.baseURL,
         {
-          prompt: fullPrompt,
           model: this.providers.ollama.model,
+          prompt: conversationPrompt,
           system: systemPrompt,
-          temperature: contentMode === 'spicy' ? 1.3 : contentMode === 'romance' ? 1.1 : 0.9,
-          max_tokens: contentMode === 'spicy' ? 2500 : 1500,
+          stream: false,
+          options: {
+            temperature: contentMode === 'spicy' ? 1.2 : contentMode === 'romance' ? 1.0 : 0.8,
+            num_predict: contentMode === 'spicy' ? 2000 : 1000,
+            top_p: 0.95,
+            repeat_penalty: 1.1,
+          }
         },
         {
-          timeout: 90000, // 90s car plus lent
+          timeout: 120000, // 2 minutes car peut être lent
+          headers: {
+            'Content-Type': 'application/json',
+          }
         }
       );
       
-      if (response.data && response.data.text) {
-        console.log(`✅ Ollama: ${response.data.text.length} caractères générés`);
-        return this.cleanResponse(response.data.text);
+      console.log('📥 Réponse Ollama reçue:', JSON.stringify(response.data).substring(0, 200));
+      
+      // Ollama retourne { response: "..." } ou { text: "..." } selon la version
+      const generatedText = response.data?.response || response.data?.text || response.data?.message?.content;
+      
+      if (generatedText) {
+        console.log(`✅ Ollama: ${generatedText.length} caractères générés`);
+        return this.cleanResponse(generatedText);
       }
       
-      throw new Error('Réponse vide de Ollama');
+      console.error('❌ Format réponse Ollama inattendu:', response.data);
+      throw new Error('Réponse vide ou format inattendu de Ollama');
     } catch (error) {
       console.error('❌ Erreur Ollama:', error.message);
+      if (error.response) {
+        console.error('❌ Status:', error.response.status);
+        console.error('❌ Data:', error.response.data);
+      }
       
       if (retries > 0) {
         console.log(`🔄 Retry Ollama (${retries} restants)...`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 3000));
         return this.generateWithOllama(messages, character, userProfile, contentMode, retries - 1);
       }
       
@@ -367,7 +394,7 @@ ${userProfile?.username ? `Tu parles avec ${userProfile.username}.` : ''}`;
         return this.generateWithGroq(messages, character, userProfile, contentMode, 2);
       }
       
-      throw error;
+      throw new Error(`Ollama indisponible: ${error.message}. Vérifiez que le serveur est accessible.`);
     }
   }
 
