@@ -236,30 +236,35 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const downloadSDModel = async () => {
-    // SD Local est complexe - informer l'utilisateur
+    // SD Local n'est pas supporté - rediriger vers Freebox/Pollinations
     Alert.alert(
-      '🚧 Stable Diffusion Local',
-      'La génération d\'images locale est une fonctionnalité avancée qui nécessite:\n\n' +
-      '• Un appareil puissant (8+ GB RAM)\n' +
-      '• Un modèle ONNX (~1.5 GB)\n' +
-      '• Configuration native Android\n\n' +
-      '📱 Pour l\'instant, nous recommandons:\n\n' +
-      '1️⃣ **Pollinations.ai** (gratuit, en ligne)\n' +
-      '2️⃣ **API Freebox** (votre serveur local)\n\n' +
-      'Ces options fonctionnent parfaitement pour générer des images!',
+      '📱 Génération d\'Images',
+      'La génération locale sur smartphone n\'est pas encore disponible.\n\n' +
+      '🎨 Options disponibles:\n\n' +
+      '• 🏠 **API Freebox** - Votre serveur SD local\n' +
+      '   Images illimitées, NSFW supporté\n\n' +
+      '• 🌐 **Pollinations.ai** - Service gratuit en ligne\n' +
+      '   Facile à utiliser, pas de config\n\n' +
+      'Choisissez une option:',
       [
         { 
-          text: 'Configurer Pollinations', 
-          onPress: () => {
-            setImageStrategy('pollinations-only');
-            Alert.alert('✅', 'Pollinations activé comme source d\'images!');
+          text: '🏠 Freebox (recommandé)', 
+          onPress: async () => {
+            setImageStrategy('freebox-first');
+            await CustomImageAPIService.saveConfig(
+              'http://88.174.155.230:33437/generate', 
+              'freebox', 
+              'freebox-first'
+            );
+            Alert.alert('✅ Configuré!', 'API Freebox activée avec Pollinations en fallback.');
           }
         },
         { 
-          text: 'Configurer Freebox', 
-          onPress: () => {
-            setImageStrategy('freebox-first');
-            Alert.alert('✅', 'Freebox configuré avec Pollinations en fallback!');
+          text: '🌐 Pollinations', 
+          onPress: async () => {
+            setImageStrategy('pollinations-only');
+            await CustomImageAPIService.saveConfig('', 'pollinations', 'pollinations-only');
+            Alert.alert('✅ Configuré!', 'Pollinations.ai activé.');
           }
         },
         { text: 'Annuler', style: 'cancel' }
@@ -570,21 +575,26 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.strategyContainer}>
           <Text style={styles.strategyTitle}>📍 Source de génération:</Text>
           
-          {/* Option 0: SD Local sur Smartphone (NOUVEAU) */}
+          {/* Option 0: Configuration automatique */}
           <TouchableOpacity
             style={[
               styles.strategyOption,
               imageStrategy === 'local' && styles.strategyOptionActive
             ]}
-            onPress={() => setImageStrategy('local')}
+            onPress={() => {
+              // Rediriger vers Freebox automatiquement
+              setImageStrategy('freebox-first');
+              setCustomImageApi('http://88.174.155.230:33437/generate');
+              Alert.alert('✅', 'Configuration Freebox + Pollinations activée!');
+            }}
           >
             <View style={styles.radioButton}>
               {imageStrategy === 'local' && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.strategyContent}>
-              <Text style={styles.strategyName}>📱 Local Smartphone (NOUVEAU) 🚀</Text>
+              <Text style={styles.strategyName}>⚡ Config Automatique (Recommandé)</Text>
               <Text style={styles.strategyDescription}>
-                Stable Diffusion sur votre téléphone. Illimité, privé, offline ! (450 MB)
+                Configure automatiquement Freebox + Pollinations en fallback.
               </Text>
             </View>
           </TouchableOpacity>
@@ -680,29 +690,23 @@ export default function SettingsScreen({ navigation }) {
           </>
         )}
 
-        {/* Info SD Local */}
+        {/* Info Configuration */}
         {imageStrategy === 'local' && (
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
-              📱 Stable Diffusion Local
+              ⚡ Configuration Automatique
             </Text>
             <Text style={styles.infoSteps}>
-              ✅ Génération ILLIMITÉE sur votre téléphone
+              ✅ Freebox SD en priorité (illimité, NSFW)
             </Text>
             <Text style={styles.infoSteps}>
-              🔒 100% PRIVÉ - Aucune donnée envoyée
+              ✅ Pollinations.ai en fallback (gratuit)
             </Text>
             <Text style={styles.infoSteps}>
-              ⚡ Optimisé 8 GB RAM (15-30 sec/image)
+              🎨 Images réalistes haute qualité
             </Text>
             <Text style={styles.infoSteps}>
-              📦 Modèle: SD-Turbo ONNX (450 MB)
-            </Text>
-            <Text style={styles.infoSteps}>
-              🎨 Qualité: Hyper-réaliste + Anime
-            </Text>
-            <Text style={styles.infoSteps}>
-              ⚠️ Premier téléchargement: ~10 min (WiFi)
+              🔥 Mode NSFW supporté si activé
             </Text>
           </View>
         )}
@@ -731,89 +735,52 @@ export default function SettingsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* NOUVELLE SECTION: Téléchargement modèle SD Local */}
+      {/* Section info quand config auto sélectionnée */}
       {imageStrategy === 'local' && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📥 Modèle Stable Diffusion Local</Text>
+          <Text style={styles.sectionTitle}>✅ Configuration Active</Text>
           <Text style={styles.sectionDescription}>
-            Téléchargez le modèle SD-Turbo ONNX (450 MB) pour générer des images sur votre smartphone.
+            La génération d'images est configurée pour utiliser Freebox en priorité avec Pollinations en fallback.
           </Text>
 
-          {sdAvailability && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                📊 État du système:
-              </Text>
-              <Text style={styles.infoSteps}>
-                📱 RAM disponible: {sdAvailability.ramMB ? Math.round(sdAvailability.ramMB) : 'N/A'} MB
-              </Text>
-              <Text style={styles.infoSteps}>
-                {sdAvailability.canRunSD ? '✅ Compatible SD Local' : '⚠️ RAM insuffisante (min 2 GB)'}
-              </Text>
-              <Text style={styles.infoSteps}>
-                {sdAvailability.modelDownloaded 
-                  ? `✅ Modèle téléchargé (${Math.round(sdAvailability.modelSizeMB)} MB)` 
-                  : '❌ Modèle non téléchargé'}
-              </Text>
-            </View>
-          )}
-
-          {sdDownloading && (
-            <View style={styles.progressContainer}>
-              <Text style={styles.progressText}>
-                📥 Téléchargement en cours... {Math.round(sdDownloadProgress)}%
-              </Text>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
-              </View>
-            </View>
-          )}
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              🎨 Paramètres actuels:
+            </Text>
+            <Text style={styles.infoSteps}>
+              🏠 Freebox: http://88.174.155.230:33437
+            </Text>
+            <Text style={styles.infoSteps}>
+              🌐 Fallback: Pollinations.ai
+            </Text>
+            <Text style={styles.infoSteps}>
+              🔥 NSFW: Activé si mode Romance/Spicy
+            </Text>
+            <Text style={styles.infoSteps}>
+              📸 Style: Photo-réaliste prioritaire
+            </Text>
+          </View>
 
           <TouchableOpacity 
-            style={[
-              styles.downloadButton, 
-              (sdDownloading || (sdAvailability && sdAvailability.modelDownloaded)) && styles.downloadButtonDisabled
-            ]} 
-            onPress={downloadSDModel}
-            disabled={sdDownloading || (sdAvailability && sdAvailability.modelDownloaded)}
+            style={styles.saveButton} 
+            onPress={async () => {
+              await CustomImageAPIService.saveConfig(
+                'http://88.174.155.230:33437/generate', 
+                'freebox', 
+                'freebox-first'
+              );
+              Alert.alert('✅ Sauvegardé!', 'Configuration Freebox + Pollinations activée.');
+            }}
           >
-            <Text style={styles.downloadButtonText}>
-              {sdDownloading 
-                ? '⏳ Téléchargement...' 
-                : (sdAvailability && sdAvailability.modelDownloaded)
-                  ? '✅ Modèle installé'
-                  : '📥 Télécharger le modèle (450 MB)'}
-            </Text>
+            <Text style={styles.saveButtonText}>💾 Appliquer cette configuration</Text>
           </TouchableOpacity>
-
-          {sdAvailability && sdAvailability.modelDownloaded && (
-            <TouchableOpacity 
-              style={styles.testButton} 
-              onPress={async () => {
-                try {
-                  const sysInfo = await StableDiffusionLocalService.getSystemInfo();
-                  Alert.alert(
-                    '📊 Infos Système',
-                    `RAM Max: ${Math.round(sysInfo.maxMemoryMB)} MB\n` +
-                    `RAM Utilisée: ${Math.round(sysInfo.usedMemoryMB)} MB\n` +
-                    `RAM Libre: ${Math.round(sysInfo.freeMemoryMB)} MB\n\n` +
-                    `${sysInfo.canRunSD ? '✅ Peut exécuter SD' : '⚠️ RAM insuffisante'}`
-                  );
-                } catch (error) {
-                  Alert.alert('❌ Erreur', error.message);
-                }
-              }}
-            >
-              <Text style={styles.testButtonText}>📊 Infos Système</Text>
-            </TouchableOpacity>
-          )}
         </View>
       )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 2.1.0 - Jailbreak Ultra 🔥</Text>
+          <Text style={styles.aboutText}>Version: 2.2.0 - NSFW Images + Réaliste 🔥</Text>
           <Text style={styles.aboutText}>
             Application de roleplay conversationnel
           </Text>
