@@ -17,9 +17,6 @@ class TextGenerationService {
     // Clés API Groq
     this.apiKeys = [];
     this.currentKeyIndex = 0;
-
-    // "Spicy mode" (conversations plus vivantes/immersives)
-    this.spicyMode = true;
   }
 
   /**
@@ -101,8 +98,11 @@ class TextGenerationService {
       throw new Error('Aucune clé API Groq configurée. Veuillez ajouter des clés dans les paramètres.');
     }
 
+    const spicyModeEnabled = !!(userProfile?.nsfwMode && userProfile?.isAdult);
     const apiKey = this.getCurrentKey();
-    const fullMessages = [{ role: 'system', content: this.buildSystemPrompt(character, userProfile) }];
+    const fullMessages = [
+      { role: 'system', content: this.buildSystemPrompt(character, userProfile, { spicyMode: spicyModeEnabled }) }
+    ];
 
     // Filtrer les messages pour ne garder que role et content (Groq n'accepte pas les propriétés additionnelles comme 'image')
     const cleanedMessages = messages.map(msg => ({
@@ -115,19 +115,17 @@ class TextGenerationService {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         console.log(`📡 [Groq] Tentative ${attempt}/${retries}`);
-
-        const isAdultNsfw = !!(userProfile?.nsfwMode && userProfile?.isAdult);
-        const spicyBoost = this.spicyMode ? 0.15 : 0;
+        const spicyBoost = spicyModeEnabled ? 0.15 : 0;
         
         const response = await axios.post(
           this.provider.baseURL,
           {
             model: this.provider.model,
             messages: fullMessages,
-            // "Spicy mode": plus vivant + plus immersif (sans changer le modèle)
-            temperature: (isAdultNsfw ? 1.0 : 0.85) + spicyBoost,
-            max_tokens: isAdultNsfw ? 1600 : 1100,
-            top_p: isAdultNsfw ? 0.97 : 0.93,
+            // "Spicy mode" (mature): plus vivant + plus immersif
+            temperature: (spicyModeEnabled ? 0.95 : 0.85) + spicyBoost,
+            max_tokens: spicyModeEnabled ? 1400 : 1100,
+            top_p: spicyModeEnabled ? 0.96 : 0.93,
             presence_penalty: 0.6,
             frequency_penalty: 0.5,
           },
@@ -167,7 +165,8 @@ class TextGenerationService {
   /**
    * Construit le system prompt "vrai mode conversation" (immersif)
    */
-  buildSystemPrompt(character, userProfile) {
+  buildSystemPrompt(character, userProfile, options = {}) {
+    const { spicyMode = false } = options;
     const username = userProfile?.username ? userProfile.username : 'l’utilisateur';
     const scenario = character?.scenario ? character.scenario : '';
     const description = character?.description ? character.description : '';
@@ -184,8 +183,11 @@ class TextGenerationService {
       `- Reste concis mais vivant: 2 à 6 paragraphes, pas un monologue.`,
       `- Pose 1 question courte à ${username} de temps en temps pour relancer.`,
       `- Zéro répétition mot-à-mot, évite les tics et les résumés.`,
-      this.spicyMode
-        ? `- Style (spicy): plus de tension dramatique, plus d’émotions, plus de détails sensoriels, plus de répartie.`
+      spicyMode
+        ? `- Style (spicy/mature): plus de tension dramatique, plus d’émotions, plus de détails sensoriels, plus de répartie, plus de flirt.`
+        : null,
+      spicyMode
+        ? `- Limites: reste suggestif et romantique (pas de description explicite d’actes sexuels ou de détails anatomiques).`
         : null,
     ]
       .filter(Boolean)
