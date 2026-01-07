@@ -146,7 +146,52 @@ class TextGenerationService {
         }
 
         console.log('✅ [Groq] Réponse générée avec succès');
-        return content.trim();
+        const trimmed = content.trim();
+
+        // Si le modèle "refuse" (ex: "je ne peux pas continuer..."), on fait 1 retry guidé
+        // en restant dans un registre mature/suggestif (pas explicite/graphique).
+        if ((nsfwEnabled || spicyEnabled) && this.looksLikeRefusal(trimmed) && attempt < retries) {
+          console.warn('⚠️ [Groq] Réponse type refus détectée, retry guidé...');
+          const nudge = [
+            {
+              role: 'system',
+              content:
+                `Si l’utilisateur demande quelque chose de trop explicite, ne refuse pas et ne stoppe pas la conversation.\n` +
+                `Continue la scène en restant dans le personnage, en gardant un ton romantique/suggestif, et fais un "fade to black" pour les passages trop détaillés.\n` +
+                `Ne dis jamais: "je ne peux pas continuer", "je ne peux pas", "désolé", "inapproprié".`,
+            },
+            {
+              role: 'user',
+              content:
+                `Continue la conversation en mode immersif. Si la demande est trop explicite, reste suggestif et romantique, puis relance avec une question.`,
+            },
+          ];
+
+          const retryResponse = await axios.post(
+            this.provider.baseURL,
+            {
+              model: this.provider.model,
+              messages: [...fullMessages, ...nudge],
+              temperature: 0.9 + spicyBoost,
+              max_tokens: 1200,
+              top_p: 0.95,
+              presence_penalty: 0.6,
+              frequency_penalty: 0.5,
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+              },
+              timeout: 30000,
+            }
+          );
+
+          const retryContent = retryResponse.data?.choices?.[0]?.message?.content;
+          if (retryContent) return retryContent.trim();
+        }
+
+        return trimmed;
 
       } catch (error) {
         console.error(`❌ [Groq] Tentative ${attempt} échouée:`, error.message);
@@ -186,17 +231,37 @@ class TextGenerationService {
       `- Pose 1 question courte à ${username} de temps en temps pour relancer.`,
       `- Zéro répétition mot-à-mot, évite les tics et les résumés.`,
       nsfwMode
-        ? `- Mode adulte (18+): ton mature, romantique/suggestif permis, toujours consensuel, jamais de contenu explicite/graphique.`
+        ? `- Mode adulte (18+): ton mature, romantique/suggestif permis, toujours consensuel.`
         : null,
       spicyMode
         ? `- Style (spicy/mature): plus de tension dramatique, plus d’émotions, plus de détails sensoriels, plus de répartie, plus de flirt.`
         : null,
       (spicyMode || nsfwMode)
-        ? `- Limites: reste suggestif et romantique (pas de description explicite d’actes sexuels ou de détails anatomiques).`
+        ? `- Si une demande est trop explicite: fais un "fade to black" et continue la scène (ne refuse pas et ne stoppe pas).`
         : null,
     ]
       .filter(Boolean)
       .join('\n\n');
+  }
+
+  looksLikeRefusal(text) {
+    const t = (text || '').toLowerCase();
+    const patterns = [
+      'je ne peux pas continuer',
+      "je ne peux pas",
+      "je ne peux plus",
+      'je ne suis pas en mesure',
+      'désolé',
+      'inapproprié',
+      "je ne suis pas à l'aise",
+      "je ne peux pas aider",
+      'i can’t',
+      "i can't",
+      'cannot',
+      "i’m sorry",
+      "i'm sorry",
+    ];
+    return patterns.some(p => t.includes(p));
   }
 
   /**

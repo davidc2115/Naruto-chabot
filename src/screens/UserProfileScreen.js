@@ -222,7 +222,7 @@ export default function UserProfileScreen({ navigation }) {
             />
           </View>
           <Text style={styles.nsfwDescription}>
-            Active le contenu explicite et sensuel dans les conversations. 
+            Active un ton adulte (18+) et plus sensuel/suggestif dans les conversations. 
             Vous devez avoir 18 ans ou plus.
           </Text>
         </View>
