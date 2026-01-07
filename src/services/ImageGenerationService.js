@@ -135,7 +135,6 @@ class ImageGenerationService {
       desc += `, ${character.eyeColor} eyes`;
     }
     if (character.appearance) {
-      // Limiter et nettoyer l'apparence
       const cleanAppearance = character.appearance
         .replace(/[^\w\s,.-]/g, '')
         .substring(0, 150);
@@ -146,6 +145,53 @@ class ImageGenerationService {
     desc += ', perfect skin, detailed face, natural makeup';
     
     return desc;
+  }
+
+  /**
+   * Traduit la tenue en anglais pour le prompt
+   */
+  translateOutfit(outfit) {
+    if (!outfit) return '';
+    
+    const translations = {
+      'robe': 'dress',
+      'jupe': 'skirt',
+      'jean': 'jeans',
+      'pantalon': 'pants',
+      'chemise': 'shirt',
+      't-shirt': 't-shirt',
+      'lingerie': 'lingerie',
+      'bikini': 'bikini',
+      'maillot': 'swimsuit',
+      'talons': 'high heels',
+      'chaussures': 'shoes',
+      'bottes': 'boots',
+      'veste': 'jacket',
+      'manteau': 'coat',
+      'pull': 'sweater',
+      'débardeur': 'tank top',
+      'short': 'shorts',
+      'pyjama': 'pajamas',
+      'nuisette': 'nightgown',
+      'déshabillé': 'negligee',
+      'moulante': 'tight-fitting',
+      'décontracté': 'casual',
+      'élégante': 'elegant',
+      'sexy': 'sexy',
+      'fine': 'delicate',
+      'noir': 'black',
+      'rouge': 'red',
+      'blanc': 'white',
+      'bleu': 'blue',
+      'rose': 'pink',
+    };
+    
+    let translated = outfit.toLowerCase();
+    Object.entries(translations).forEach(([fr, en]) => {
+      translated = translated.replace(new RegExp(fr, 'gi'), en);
+    });
+    
+    return translated;
   }
 
   /**
@@ -164,38 +210,59 @@ class ImageGenerationService {
     // Description physique
     let physical = this.buildPhysicalDescription(character);
     
+    // Tenue du personnage (priorité)
+    const characterOutfit = character.outfit ? this.translateOutfit(character.outfit) : '';
+    
     // Contenu selon le mode
     let content = '';
     
     if (isSpicy) {
       // MODE SPICY - Explicite
       console.log('🔥 Mode SPICY activé - génération explicite');
-      const outfit = this.randomChoice(this.revealingOutfits);
+      
+      // Utiliser la tenue du personnage si définie, sinon tenue révélatrice
+      if (characterOutfit) {
+        content = `wearing ${characterOutfit}`;
+      } else {
+        content = this.randomChoice(this.revealingOutfits);
+      }
+      
       const pose = this.randomChoice(this.sensualPoses);
       const expression = this.randomChoice(this.sexyExpressions);
       const setting = this.randomChoice(this.intimateSettings);
       
-      content = `${outfit}, ${pose}, ${expression}, ${setting}`;
+      content += `, ${pose}, ${expression}, ${setting}`;
       
     } else if (isRomance) {
       // MODE ROMANCE - Sexy mais pas explicite
       console.log('💕 Mode Romance activé - génération sexy');
-      const outfit = this.randomChoice(this.sexyOutfits);
-      const pose = this.randomChoice(this.sensualPoses.slice(0, 4)); // Poses moins explicites
+      
+      if (characterOutfit) {
+        content = `wearing ${characterOutfit}`;
+      } else {
+        content = this.randomChoice(this.sexyOutfits);
+      }
+      
+      const pose = this.randomChoice(this.sensualPoses.slice(0, 4));
       const expression = this.randomChoice(this.sexyExpressions);
       
-      content = `${outfit}, ${pose}, ${expression}, elegant lighting`;
+      content += `, ${pose}, ${expression}, elegant lighting`;
       
     } else {
       // MODE NORMAL - SFW
       console.log('✨ Mode Normal - génération SFW');
-      content = 'wearing casual elegant clothing, friendly smile, natural pose, bright lighting';
+      
+      if (characterOutfit) {
+        content = `wearing ${characterOutfit}, friendly smile, natural pose, bright lighting`;
+      } else {
+        content = 'wearing casual elegant clothing, friendly smile, natural pose, bright lighting';
+      }
     }
     
     // Assemblage du prompt
     const prompt = `${style}, ${physical}, ${content}, high quality, detailed, sharp focus, professional`;
     
-    // Negative prompt pour éviter les problèmes
+    // Negative prompt
     const negativePrompt = 'low quality, blurry, distorted, deformed, ugly, bad anatomy, bad hands, missing fingers, extra fingers, watermark, signature, text';
     
     return { prompt, negativePrompt };

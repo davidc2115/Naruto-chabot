@@ -301,7 +301,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 2.6.1 - NSFW Images amélioré 🔥</Text>
+          <Text style={styles.aboutText}>Version: 2.7.0 - RP Immersif + Tenue 🔥</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>200 personnages uniques</Text>
           <Text style={styles.aboutText}>Génération d'images NSFW</Text>
