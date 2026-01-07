@@ -12,88 +12,98 @@ import axios from 'axios';
  */
 class TextGenerationService {
   constructor() {
-    // Configuration des providers
+    // Configuration des providers - GROQ UNIQUEMENT avec choix de modèles
     this.providers = {
       groq: {
-        name: 'Groq (Mixtral - Moins censuré)',
+        name: 'Groq',
         baseURL: 'https://api.groq.com/openai/v1/chat/completions',
-        model: 'mixtral-8x7b-32768', // Mixtral est moins censuré que LLaMA
         requiresApiKey: true,
-        uncensored: false,
-        description: 'Ultra-rapide, Mixtral moins strict que LLaMA',
+        description: 'Ultra-rapide, choix de modèles',
       },
-      groq_llama: {
-        name: 'Groq (LLaMA 3.3 - Plus censuré)',
-        baseURL: 'https://api.groq.com/openai/v1/chat/completions',
-        model: 'llama-3.3-70b-versatile',
-        requiresApiKey: true,
-        uncensored: false,
-        description: 'Plus intelligent mais plus censuré',
+    };
+    
+    // Modèles Groq disponibles
+    this.groqModels = {
+      'mixtral-8x7b-32768': {
+        name: 'Mixtral 8x7B',
+        description: '🔥 Recommandé - Moins censuré, bon équilibre',
+        contextLength: 32768,
       },
-      openrouter: {
-        name: 'OpenRouter (Multi-modèles)',
-        baseURL: 'https://openrouter.ai/api/v1/chat/completions',
-        model: 'mistralai/mistral-7b-instruct',
-        requiresApiKey: true,
-        uncensored: true,
-        description: 'Multi-modèles, certains uncensored',
+      'llama-3.3-70b-versatile': {
+        name: 'LLaMA 3.3 70B',
+        description: 'Plus intelligent, plus censuré',
+        contextLength: 128000,
       },
-      kobold: {
-        name: 'KoboldAI Horde (NSFW)',
-        baseURL: 'https://stablehorde.net/api/v2/generate/text/async',
-        model: 'PygmalionAI/pygmalion-2-13b',
-        requiresApiKey: false,
-        uncensored: true,
-        description: '🔥 GRATUIT, communautaire, PARFAIT pour NSFW!',
+      'llama-3.1-70b-versatile': {
+        name: 'LLaMA 3.1 70B',
+        description: 'Très capable, censuré',
+        contextLength: 128000,
       },
-      venus: {
-        name: 'Venus AI (NSFW)',
-        baseURL: 'https://api.chub.ai/api/venus',
-        model: 'mars',
-        requiresApiKey: false,
-        uncensored: true,
-        description: '🔥 GRATUIT, spécialisé roleplay adulte, SANS LIMITE!',
+      'llama-3.1-8b-instant': {
+        name: 'LLaMA 3.1 8B',
+        description: 'Rapide, moins intelligent',
+        contextLength: 128000,
       },
-      ollama: {
-        name: 'Ollama Local (Dolphin)',
-        // URL Freebox - essayer plusieurs formats
-        baseURL: 'http://88.174.155.230:33438',
-        model: 'dolphin-mistral:latest',
-        requiresApiKey: false,
-        uncensored: true,
-        description: 'Local Freebox, ZÉRO CENSURE, parfait pour Spicy',
+      'gemma2-9b-it': {
+        name: 'Gemma 2 9B',
+        description: 'Google, très censuré',
+        contextLength: 8192,
+      },
+      'llama-guard-3-8b': {
+        name: 'LLaMA Guard 3',
+        description: 'Modération (pas pour roleplay)',
+        contextLength: 8192,
       },
     };
 
     this.currentProvider = 'groq';
-    this.apiKeys = { groq: [], openrouter: [] };
-    this.currentKeyIndex = { groq: 0, openrouter: 0 };
+    this.currentModel = 'mixtral-8x7b-32768'; // Modèle par défaut (moins censuré)
+    this.apiKeys = { groq: [] };
+    this.currentKeyIndex = { groq: 0 };
   }
 
   async loadConfig() {
     try {
-      const provider = await AsyncStorage.getItem('text_generation_provider');
-      if (provider && this.providers[provider]) {
-        this.currentProvider = provider;
-      }
       const groqKeys = await AsyncStorage.getItem('groq_api_keys');
       if (groqKeys) this.apiKeys.groq = JSON.parse(groqKeys);
-      const openrouterKeys = await AsyncStorage.getItem('openrouter_api_keys');
-      if (openrouterKeys) this.apiKeys.openrouter = JSON.parse(openrouterKeys);
+      
+      const model = await AsyncStorage.getItem('groq_model');
+      if (model && this.groqModels[model]) {
+        this.currentModel = model;
+      }
     } catch (error) {
       console.error('Erreur chargement config:', error);
     }
   }
 
+  async setModel(modelId) {
+    if (!this.groqModels[modelId]) throw new Error(`Modèle inconnu: ${modelId}`);
+    this.currentModel = modelId;
+    await AsyncStorage.setItem('groq_model', modelId);
+    console.log(`✅ Modèle Groq changé: ${this.groqModels[modelId].name}`);
+  }
+
   async setProvider(provider) {
-    if (!this.providers[provider]) throw new Error(`Provider inconnu: ${provider}`);
-    this.currentProvider = provider;
-    await AsyncStorage.setItem('text_generation_provider', provider);
+    // Groq uniquement maintenant
+    this.currentProvider = 'groq';
   }
 
   async saveApiKeys(provider, keys) {
-    this.apiKeys[provider] = keys;
-    await AsyncStorage.setItem(`${provider}_api_keys`, JSON.stringify(keys));
+    this.apiKeys.groq = keys;
+    await AsyncStorage.setItem('groq_api_keys', JSON.stringify(keys));
+  }
+  
+  getAvailableModels() {
+    return Object.entries(this.groqModels).map(([id, config]) => ({
+      id,
+      name: config.name,
+      description: config.description,
+      contextLength: config.contextLength,
+    }));
+  }
+  
+  getCurrentModel() {
+    return this.currentModel;
   }
 
   rotateKey(provider) {
@@ -122,21 +132,8 @@ class TextGenerationService {
     
     console.log(`🤖 Provider: ${this.providers[provider].name} | Mode: ${contentMode.toUpperCase()}`);
 
-    switch (provider) {
-      case 'groq':
-      case 'groq_llama':
-        return await this.generateWithGroq(messages, character, userProfile, contentMode, retries);
-      case 'openrouter':
-        return await this.generateWithOpenRouter(messages, character, userProfile, contentMode, retries);
-      case 'kobold':
-        return await this.generateWithKobold(messages, character, userProfile, contentMode, retries);
-      case 'venus':
-        return await this.generateWithVenus(messages, character, userProfile, contentMode, retries);
-      case 'ollama':
-        return await this.generateWithOllama(messages, character, userProfile, contentMode, retries);
-      default:
-        throw new Error(`Provider non implémenté: ${provider}`);
-    }
+    // Groq uniquement
+    return await this.generateWithGroq(messages, character, userProfile, contentMode, retries);
   }
 
   /**
@@ -150,13 +147,10 @@ class TextGenerationService {
     }
 
     const apiKey = this.getCurrentKey('groq');
+    const model = this.currentModel;
+    const modelInfo = this.groqModels[model];
     
-    // Choisir le modèle selon le provider sélectionné
-    const model = this.currentProvider === 'groq_llama' 
-      ? 'llama-3.3-70b-versatile' 
-      : 'mixtral-8x7b-32768'; // Mixtral par défaut (moins censuré)
-    
-    console.log(`🚀 Groq avec ${model}`);
+    console.log(`🚀 Groq avec ${modelInfo?.name || model}`);
     
     let fullMessages = [];
     
@@ -731,18 +725,12 @@ ${userProfile?.username ? `\nTu parles avec ${userProfile.username}.` : ''}`;
   }
 
   async testProvider(provider) {
-    const config = this.providers[provider];
-    if (!config) throw new Error(`Provider inconnu: ${provider}`);
-
     try {
-      const original = this.currentProvider;
-      this.currentProvider = provider;
       const response = await this.generateResponse(
         [{ role: 'user', content: 'Test. Réponds juste "OK".' }],
-        { name: 'Test', description: 'Test' },
+        { name: 'Test', description: 'Test', age: 25 },
         null, 1
       );
-      this.currentProvider = original;
       return { success: true, response };
     } catch (error) {
       return { success: false, error: error.message };
@@ -750,14 +738,11 @@ ${userProfile?.username ? `\nTu parles avec ${userProfile.username}.` : ''}`;
   }
 
   getAvailableProviders() {
-    return Object.entries(this.providers).map(([id, config]) => ({
-      id, name: config.name, requiresApiKey: config.requiresApiKey,
-      uncensored: config.uncensored, description: config.description,
-    }));
+    return [{ id: 'groq', name: 'Groq', requiresApiKey: true, description: 'Ultra-rapide' }];
   }
 
-  getCurrentProvider() { return this.currentProvider; }
-  hasApiKeys(provider) { return this.apiKeys[provider]?.length > 0; }
+  getCurrentProvider() { return 'groq'; }
+  hasApiKeys(provider) { return this.apiKeys.groq?.length > 0; }
 }
 
 export default new TextGenerationService();
