@@ -1,5 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+/**
+ * Service de gestion du profil utilisateur
+ * Modes de conversation:
+ * - SFW (default): Conversations normales
+ * - Romance (nsfwMode): Romantique/suggestif, flirt, baisers
+ * - Spicy (spicyMode): Contenu adulte explicite, scènes intimes détaillées
+ */
 class UserProfileService {
   async createProfile(profile) {
     try {
@@ -11,8 +18,11 @@ class UserProfileService {
         // Attributs physiques
         ...(profile.gender === 'female' && { bust: profile.bust }),
         ...(profile.gender === 'male' && { penis: profile.penis }),
-        // Préférences
+        // Préférences de mode - 3 niveaux
+        // nsfwMode: mode romance (suggestif, baisers, flirt)
+        // spicyMode: mode explicite (scènes intimes détaillées, contenu 18+)
         nsfwMode: profile.age >= 18 ? (profile.nsfwMode || false) : false,
+        spicyMode: profile.age >= 18 ? (profile.spicyMode || false) : false,
         createdAt: Date.now(),
       };
 
@@ -41,12 +51,18 @@ class UserProfileService {
         throw new Error('No profile found');
       }
 
-      // Si l'âge change, réajuster isAdult et nsfwMode
+      // Si l'âge change, réajuster isAdult et les modes
       if (updates.age) {
         updates.isAdult = updates.age >= 18;
         if (updates.age < 18) {
           updates.nsfwMode = false;
+          updates.spicyMode = false;
         }
+      }
+
+      // Si spicyMode est activé, nsfwMode doit aussi être activé
+      if (updates.spicyMode && !updates.nsfwMode) {
+        updates.nsfwMode = true;
       }
 
       const updatedProfile = {
@@ -83,11 +99,55 @@ class UserProfileService {
         throw new Error('Must be 18+ to enable NSFW mode');
       }
 
-      return await this.updateProfile({ nsfwMode: !profile.nsfwMode });
+      // Si on désactive NSFW, on désactive aussi Spicy
+      const newNsfwMode = !profile.nsfwMode;
+      const updates = { nsfwMode: newNsfwMode };
+      if (!newNsfwMode) {
+        updates.spicyMode = false;
+      }
+
+      return await this.updateProfile(updates);
     } catch (error) {
       console.error('Error toggling NSFW:', error);
       throw error;
     }
+  }
+
+  async toggleSpicy() {
+    try {
+      const profile = await this.getProfile();
+      if (!profile) {
+        throw new Error('No profile found');
+      }
+
+      if (!profile.isAdult) {
+        throw new Error('Must be 18+ to enable Spicy mode');
+      }
+
+      const newSpicyMode = !profile.spicyMode;
+      const updates = { spicyMode: newSpicyMode };
+      
+      // Si on active Spicy, on active aussi NSFW
+      if (newSpicyMode) {
+        updates.nsfwMode = true;
+      }
+
+      return await this.updateProfile(updates);
+    } catch (error) {
+      console.error('Error toggling Spicy:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retourne le mode de contenu actif
+   * @returns 'sfw' | 'romance' | 'spicy'
+   */
+  getContentMode(profile) {
+    if (!profile || !profile.isAdult) return 'sfw';
+    if (profile.spicyMode) return 'spicy';
+    if (profile.nsfwMode) return 'romance';
+    return 'sfw';
   }
 }
 

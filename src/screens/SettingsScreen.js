@@ -392,7 +392,8 @@ export default function SettingsScreen({ navigation }) {
               <Text style={styles.profileName}>👋 {userProfile.username}</Text>
               <Text style={styles.profileInfo}>
                 {userProfile.age} ans • {userProfile.gender === 'male' ? 'Homme' : userProfile.gender === 'female' ? 'Femme' : 'Autre'}
-                {userProfile.nsfwMode && userProfile.isAdult && ' • 🔞 Mode NSFW'}
+                {userProfile.spicyMode && userProfile.isAdult && ' • 🔥 Mode Spicy'}
+                {userProfile.nsfwMode && !userProfile.spicyMode && userProfile.isAdult && ' • 💕 Mode Romance'}
               </Text>
               <Text style={styles.profileAction}>Modifier mon profil →</Text>
             </View>
@@ -447,7 +448,7 @@ export default function SettingsScreen({ navigation }) {
                     <Text style={styles.providerBadgeFree}>💚 GRATUIT</Text>
                   )}
                   {provider.id === 'ollama' && (
-                    <Text style={styles.providerBadgeFreebox}>🏠 FREEBOX LOCAL</Text>
+                    <Text style={styles.providerBadgeFreebox}>🏠 FREEBOX • 🔥 PARFAIT SPICY</Text>
                   )}
                 </View>
               </View>
@@ -912,7 +913,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 1.0.0</Text>
+          <Text style={styles.aboutText}>Version: 2.0.0 - Mode Spicy 🔥</Text>
           <Text style={styles.aboutText}>
             Application de roleplay conversationnel
           </Text>
@@ -1310,6 +1311,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     backgroundColor: '#10b981',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  providerBadgeFreebox: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#fff',
+    backgroundColor: '#f97316',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
