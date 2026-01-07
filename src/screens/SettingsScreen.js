@@ -175,28 +175,31 @@ export default function SettingsScreen({ navigation }) {
     }
 
     try {
-      if (imageStrategy === 'local') {
-        // SD Local sur smartphone
-        await CustomImageAPIService.saveConfig('', 'local', 'local');
-        Alert.alert('✅ Succès', 'Stable Diffusion Local activé ! Téléchargez le modèle (450 MB) pour commencer.');
-      } else if (imageStrategy === 'pollinations-only') {
-        // Pollinations uniquement: pas besoin d'URL custom
-        await CustomImageAPIService.clearConfig();
-        // Mais sauvegarder la stratégie
+      // Traiter 'local' comme 'freebox-first'
+      const effectiveStrategy = (imageStrategy === 'local') ? 'freebox-first' : imageStrategy;
+      
+      if (effectiveStrategy === 'pollinations-only') {
+        // Pollinations uniquement
         await CustomImageAPIService.saveConfig('', 'pollinations', 'pollinations-only');
         Alert.alert('✅ Succès', 'Pollinations.ai configuré comme source unique.');
       } else {
-        // Freebox configuré
-        await CustomImageAPIService.saveConfig(customImageApi.trim(), 'freebox', imageStrategy);
+        // Freebox configuré (freebox-first ou freebox-only)
+        const url = customImageApi.trim() || 'http://88.174.155.230:33437/generate';
+        await CustomImageAPIService.saveConfig(url, 'freebox', effectiveStrategy);
         
         let message = '';
-        if (imageStrategy === 'freebox-only') {
-          message = 'API Freebox configurée comme source unique.';
-        } else if (imageStrategy === 'freebox-first') {
-          message = 'API Freebox configurée avec Pollinations en fallback.';
+        if (effectiveStrategy === 'freebox-only') {
+          message = 'Freebox SD configuré comme source unique. NSFW illimité!';
+        } else {
+          message = 'Freebox SD + Pollinations configuré. NSFW supporté!';
         }
         
         Alert.alert('✅ Succès', message);
+      }
+      
+      // Mettre à jour l'état local
+      if (imageStrategy === 'local') {
+        setImageStrategy('freebox-first');
       }
       
       await loadImageApiConfig();
@@ -573,47 +576,26 @@ export default function SettingsScreen({ navigation }) {
 
         {/* Stratégies de génération */}
         <View style={styles.strategyContainer}>
-          <Text style={styles.strategyTitle}>📍 Source de génération:</Text>
-          
-          {/* Option 0: Configuration automatique */}
-          <TouchableOpacity
-            style={[
-              styles.strategyOption,
-              imageStrategy === 'local' && styles.strategyOptionActive
-            ]}
-            onPress={() => {
-              // Rediriger vers Freebox automatiquement
-              setImageStrategy('freebox-first');
-              setCustomImageApi('http://88.174.155.230:33437/generate');
-              Alert.alert('✅', 'Configuration Freebox + Pollinations activée!');
-            }}
-          >
-            <View style={styles.radioButton}>
-              {imageStrategy === 'local' && <View style={styles.radioButtonInner} />}
-            </View>
-            <View style={styles.strategyContent}>
-              <Text style={styles.strategyName}>⚡ Config Automatique (Recommandé)</Text>
-              <Text style={styles.strategyDescription}>
-                Configure automatiquement Freebox + Pollinations en fallback.
-              </Text>
-            </View>
-          </TouchableOpacity>
+          <Text style={styles.strategyTitle}>📍 Source de génération d'images:</Text>
           
           {/* Option 1: Freebox + Pollinations (RECOMMANDÉ) */}
           <TouchableOpacity
             style={[
               styles.strategyOption,
-              imageStrategy === 'freebox-first' && styles.strategyOptionActive
+              (imageStrategy === 'freebox-first' || imageStrategy === 'local') && styles.strategyOptionActive
             ]}
-            onPress={() => setImageStrategy('freebox-first')}
+            onPress={() => {
+              setImageStrategy('freebox-first');
+              setCustomImageApi('http://88.174.155.230:33437/generate');
+            }}
           >
             <View style={styles.radioButton}>
-              {imageStrategy === 'freebox-first' && <View style={styles.radioButtonInner} />}
+              {(imageStrategy === 'freebox-first' || imageStrategy === 'local') && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.strategyContent}>
-              <Text style={styles.strategyName}>🏠 Freebox en premier (Recommandé)</Text>
+              <Text style={styles.strategyName}>🏠 Freebox SD + Pollinations (Recommandé)</Text>
               <Text style={styles.strategyDescription}>
-                Essaie Freebox, puis Pollinations si échec. Meilleur des deux mondes !
+                Stable Diffusion sur Freebox en priorité, Pollinations en fallback. NSFW supporté!
               </Text>
             </View>
           </TouchableOpacity>
@@ -624,15 +606,18 @@ export default function SettingsScreen({ navigation }) {
               styles.strategyOption,
               imageStrategy === 'freebox-only' && styles.strategyOptionActive
             ]}
-            onPress={() => setImageStrategy('freebox-only')}
+            onPress={() => {
+              setImageStrategy('freebox-only');
+              setCustomImageApi('http://88.174.155.230:33437/generate');
+            }}
           >
             <View style={styles.radioButton}>
               {imageStrategy === 'freebox-only' && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.strategyContent}>
-              <Text style={styles.strategyName}>🏠 Freebox uniquement</Text>
+              <Text style={styles.strategyName}>🏠 Freebox SD uniquement</Text>
               <Text style={styles.strategyDescription}>
-                Uniquement API Freebox. Illimité mais nécessite que le serveur soit accessible.
+                Uniquement votre serveur Stable Diffusion. Illimité, NSFW total!
               </Text>
             </View>
           </TouchableOpacity>
@@ -649,9 +634,9 @@ export default function SettingsScreen({ navigation }) {
               {imageStrategy === 'pollinations-only' && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.strategyContent}>
-              <Text style={styles.strategyName}>🌐 Pollinations uniquement</Text>
+              <Text style={styles.strategyName}>🌐 Pollinations.ai uniquement</Text>
               <Text style={styles.strategyDescription}>
-                Uniquement Pollinations.ai. Gratuit mais avec quotas.
+                Service en ligne gratuit. Pas besoin de serveur, mais quotas limités.
               </Text>
             </View>
           </TouchableOpacity>
@@ -690,27 +675,6 @@ export default function SettingsScreen({ navigation }) {
           </>
         )}
 
-        {/* Info Configuration */}
-        {imageStrategy === 'local' && (
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              ⚡ Configuration Automatique
-            </Text>
-            <Text style={styles.infoSteps}>
-              ✅ Freebox SD en priorité (illimité, NSFW)
-            </Text>
-            <Text style={styles.infoSteps}>
-              ✅ Pollinations.ai en fallback (gratuit)
-            </Text>
-            <Text style={styles.infoSteps}>
-              🎨 Images réalistes haute qualité
-            </Text>
-            <Text style={styles.infoSteps}>
-              🔥 Mode NSFW supporté si activé
-            </Text>
-          </View>
-        )}
-        
         {/* Info Pollinations */}
         {imageStrategy === 'pollinations-only' && (
           <View style={styles.infoBox}>
@@ -735,52 +699,34 @@ export default function SettingsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Section info quand config auto sélectionnée */}
-      {imageStrategy === 'local' && (
+      {/* Section info Freebox SD */}
+      {(imageStrategy === 'freebox-first' || imageStrategy === 'freebox-only') && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>✅ Configuration Active</Text>
-          <Text style={styles.sectionDescription}>
-            La génération d'images est configurée pour utiliser Freebox en priorité avec Pollinations en fallback.
-          </Text>
-
+          <Text style={styles.sectionTitle}>🎨 Configuration Stable Diffusion</Text>
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
-              🎨 Paramètres actuels:
+              ✅ Votre configuration:
             </Text>
             <Text style={styles.infoSteps}>
-              🏠 Freebox: http://88.174.155.230:33437
+              🏠 Serveur: Freebox SD (88.174.155.230:33437)
             </Text>
             <Text style={styles.infoSteps}>
-              🌐 Fallback: Pollinations.ai
+              📸 Style: Photo-réaliste (85%) + Anime (15%)
             </Text>
             <Text style={styles.infoSteps}>
-              🔥 NSFW: Activé si mode Romance/Spicy
+              🔥 NSFW: Images sexy si mode Romance/Spicy activé
             </Text>
             <Text style={styles.infoSteps}>
-              📸 Style: Photo-réaliste prioritaire
+              👙 Tenues: Lingerie, bikini, nu artistique...
             </Text>
           </View>
-
-          <TouchableOpacity 
-            style={styles.saveButton} 
-            onPress={async () => {
-              await CustomImageAPIService.saveConfig(
-                'http://88.174.155.230:33437/generate', 
-                'freebox', 
-                'freebox-first'
-              );
-              Alert.alert('✅ Sauvegardé!', 'Configuration Freebox + Pollinations activée.');
-            }}
-          >
-            <Text style={styles.saveButtonText}>💾 Appliquer cette configuration</Text>
-          </TouchableOpacity>
         </View>
       )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 2.2.0 - NSFW Images + Réaliste 🔥</Text>
+          <Text style={styles.aboutText}>Version: 2.3.0 - Ollama NSFW + Groq Fix 🔥</Text>
           <Text style={styles.aboutText}>
             Application de roleplay conversationnel
           </Text>
