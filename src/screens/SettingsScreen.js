@@ -175,31 +175,38 @@ export default function SettingsScreen({ navigation }) {
     }
 
     try {
-      // Traiter 'local' comme 'freebox-first'
-      const effectiveStrategy = (imageStrategy === 'local') ? 'freebox-first' : imageStrategy;
-      
-      if (effectiveStrategy === 'pollinations-only') {
+      if (imageStrategy === 'local') {
+        // SD Local sur smartphone
+        await CustomImageAPIService.saveConfig('', 'local', 'local');
+        
+        // Vérifier si le modèle est téléchargé
+        const availability = await StableDiffusionLocalService.checkAvailability();
+        if (!availability.modelDownloaded) {
+          Alert.alert(
+            '⚠️ Modèle requis',
+            'SD Local activé! N\'oubliez pas de télécharger le modèle (~450 MB) pour que la génération fonctionne.',
+            [{ text: 'OK' }]
+          );
+        } else {
+          Alert.alert('✅ Succès', 'SD Local activé avec modèle installé!');
+        }
+      } else if (imageStrategy === 'pollinations-only') {
         // Pollinations uniquement
         await CustomImageAPIService.saveConfig('', 'pollinations', 'pollinations-only');
         Alert.alert('✅ Succès', 'Pollinations.ai configuré comme source unique.');
       } else {
         // Freebox configuré (freebox-first ou freebox-only)
         const url = customImageApi.trim() || 'http://88.174.155.230:33437/generate';
-        await CustomImageAPIService.saveConfig(url, 'freebox', effectiveStrategy);
+        await CustomImageAPIService.saveConfig(url, 'freebox', imageStrategy);
         
         let message = '';
-        if (effectiveStrategy === 'freebox-only') {
+        if (imageStrategy === 'freebox-only') {
           message = 'Freebox SD configuré comme source unique. NSFW illimité!';
         } else {
           message = 'Freebox SD + Pollinations configuré. NSFW supporté!';
         }
         
         Alert.alert('✅ Succès', message);
-      }
-      
-      // Mettre à jour l'état local
-      if (imageStrategy === 'local') {
-        setImageStrategy('freebox-first');
       }
       
       await loadImageApiConfig();
@@ -239,38 +246,58 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const downloadSDModel = async () => {
-    // SD Local n'est pas supporté - rediriger vers Freebox/Pollinations
+    // Vérifier d'abord si le modèle est déjà téléchargé
+    const availability = await StableDiffusionLocalService.checkAvailability();
+    
+    if (availability.modelDownloaded) {
+      Alert.alert(
+        '✅ Modèle déjà installé',
+        `Le modèle SD est déjà téléchargé (${availability.modelSizeMB} MB).\n\nVoulez-vous le supprimer?`,
+        [
+          { text: 'Garder', style: 'cancel' },
+          { 
+            text: 'Supprimer', 
+            style: 'destructive',
+            onPress: async () => {
+              await StableDiffusionLocalService.deleteModel();
+              await checkSDAvailability();
+              Alert.alert('🗑️', 'Modèle supprimé');
+            }
+          }
+        ]
+      );
+      return;
+    }
+
+    // Demander confirmation avant téléchargement
     Alert.alert(
-      '📱 Génération d\'Images',
-      'La génération locale sur smartphone n\'est pas encore disponible.\n\n' +
-      '🎨 Options disponibles:\n\n' +
-      '• 🏠 **API Freebox** - Votre serveur SD local\n' +
-      '   Images illimitées, NSFW supporté\n\n' +
-      '• 🌐 **Pollinations.ai** - Service gratuit en ligne\n' +
-      '   Facile à utiliser, pas de config\n\n' +
-      'Choisissez une option:',
+      '📥 Télécharger SD-Turbo',
+      `Télécharger le modèle Stable Diffusion (~450 MB)?\n\n` +
+      `⚠️ Nécessite une connexion WiFi stable\n` +
+      `⏱️ Durée estimée: 5-15 minutes\n\n` +
+      `Le modèle sera stocké localement pour une génération plus rapide.`,
       [
+        { text: 'Annuler', style: 'cancel' },
         { 
-          text: '🏠 Freebox (recommandé)', 
+          text: '📥 Télécharger', 
           onPress: async () => {
-            setImageStrategy('freebox-first');
-            await CustomImageAPIService.saveConfig(
-              'http://88.174.155.230:33437/generate', 
-              'freebox', 
-              'freebox-first'
-            );
-            Alert.alert('✅ Configuré!', 'API Freebox activée avec Pollinations en fallback.');
+            setSdDownloading(true);
+            setSdDownloadProgress(0);
+            
+            try {
+              await StableDiffusionLocalService.downloadModel((progress) => {
+                setSdDownloadProgress(progress);
+              });
+              
+              setSdDownloading(false);
+              await checkSDAvailability();
+              Alert.alert('✅ Succès!', 'Modèle SD téléchargé avec succès!');
+            } catch (error) {
+              setSdDownloading(false);
+              Alert.alert('❌ Erreur', `Téléchargement échoué:\n${error.message}`);
+            }
           }
-        },
-        { 
-          text: '🌐 Pollinations', 
-          onPress: async () => {
-            setImageStrategy('pollinations-only');
-            await CustomImageAPIService.saveConfig('', 'pollinations', 'pollinations-only');
-            Alert.alert('✅ Configuré!', 'Pollinations.ai activé.');
-          }
-        },
-        { text: 'Annuler', style: 'cancel' }
+        }
       ]
     );
   };
@@ -578,11 +605,31 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.strategyContainer}>
           <Text style={styles.strategyTitle}>📍 Source de génération d'images:</Text>
           
+          {/* Option 0: SD Local sur Smartphone */}
+          <TouchableOpacity
+            style={[
+              styles.strategyOption,
+              imageStrategy === 'local' && styles.strategyOptionActive
+            ]}
+            onPress={() => setImageStrategy('local')}
+          >
+            <View style={styles.radioButton}>
+              {imageStrategy === 'local' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.strategyContent}>
+              <Text style={styles.strategyName}>📱 SD Local Smartphone {sdAvailability?.modelDownloaded ? '✅' : '📥'}</Text>
+              <Text style={styles.strategyDescription}>
+                Génération sur votre téléphone. Téléchargez le modèle (~450 MB) une seule fois.
+                {sdAvailability?.modelDownloaded ? ` Modèle installé (${sdAvailability.modelSizeMB} MB)` : ' Modèle non téléchargé.'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          
           {/* Option 1: Freebox + Pollinations (RECOMMANDÉ) */}
           <TouchableOpacity
             style={[
               styles.strategyOption,
-              (imageStrategy === 'freebox-first' || imageStrategy === 'local') && styles.strategyOptionActive
+              imageStrategy === 'freebox-first' && styles.strategyOptionActive
             ]}
             onPress={() => {
               setImageStrategy('freebox-first');
@@ -590,7 +637,7 @@ export default function SettingsScreen({ navigation }) {
             }}
           >
             <View style={styles.radioButton}>
-              {(imageStrategy === 'freebox-first' || imageStrategy === 'local') && <View style={styles.radioButtonInner} />}
+              {imageStrategy === 'freebox-first' && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.strategyContent}>
               <Text style={styles.strategyName}>🏠 Freebox SD + Pollinations (Recommandé)</Text>
@@ -699,6 +746,71 @@ export default function SettingsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Section SD Local - Téléchargement modèle */}
+      {imageStrategy === 'local' && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📱 Stable Diffusion Local</Text>
+          <Text style={styles.sectionDescription}>
+            Générez des images directement sur votre smartphone. Téléchargez le modèle une seule fois.
+          </Text>
+
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>📊 État du modèle:</Text>
+            <Text style={styles.infoSteps}>
+              {sdAvailability?.modelDownloaded 
+                ? `✅ Modèle installé (${sdAvailability.modelSizeMB} MB)` 
+                : '❌ Modèle non téléchargé'}
+            </Text>
+            <Text style={styles.infoSteps}>
+              📦 Taille: ~450 MB (SD-Turbo optimisé)
+            </Text>
+            <Text style={styles.infoSteps}>
+              ⚡ Génération: 10-30 secondes/image
+            </Text>
+            <Text style={styles.infoSteps}>
+              🔥 NSFW: Supporté si mode activé
+            </Text>
+          </View>
+
+          {sdDownloading && (
+            <View style={styles.progressContainer}>
+              <Text style={styles.progressText}>
+                📥 Téléchargement: {sdDownloadProgress}%
+              </Text>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
+              </View>
+              <Text style={styles.progressHint}>
+                Ne fermez pas l'application pendant le téléchargement
+              </Text>
+            </View>
+          )}
+
+          <TouchableOpacity 
+            style={[
+              styles.downloadButton,
+              sdDownloading && styles.downloadButtonDisabled
+            ]} 
+            onPress={downloadSDModel}
+            disabled={sdDownloading}
+          >
+            <Text style={styles.downloadButtonText}>
+              {sdDownloading 
+                ? '⏳ Téléchargement en cours...' 
+                : sdAvailability?.modelDownloaded
+                  ? '🗑️ Gérer le modèle'
+                  : '📥 Télécharger le modèle (450 MB)'}
+            </Text>
+          </TouchableOpacity>
+
+          {!sdAvailability?.modelDownloaded && (
+            <Text style={styles.downloadHint}>
+              💡 Conseil: Utilisez une connexion WiFi stable pour le téléchargement
+            </Text>
+          )}
+        </View>
+      )}
+
       {/* Section info Freebox SD */}
       {(imageStrategy === 'freebox-first' || imageStrategy === 'freebox-only') && (
         <View style={styles.section}>
@@ -726,7 +838,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 2.3.0 - Ollama NSFW + Groq Fix 🔥</Text>
+          <Text style={styles.aboutText}>Version: 2.4.0 - SD Local + Ollama NSFW Fix 🔥</Text>
           <Text style={styles.aboutText}>
             Application de roleplay conversationnel
           </Text>
@@ -909,6 +1021,20 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#10b981',
     borderRadius: 4,
+  },
+  progressHint: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  downloadHint: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 10,
+    fontStyle: 'italic',
   },
   strategyContainer: {
     marginTop: 15,

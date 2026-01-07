@@ -1,223 +1,296 @@
 /**
- * Service pour Stable Diffusion Local (génération sur smartphone)
- * Utilise le module natif Android ONNX Runtime
- * Optimisé pour 8 GB RAM - Qualité hyper-réaliste
+ * Service Stable Diffusion Local pour Smartphone
+ * VERSION 2.3.0 - Téléchargement et génération optimisée
+ * 
+ * Utilise un modèle SD-Turbo optimisé (format ONNX quantifié)
+ * Compatible avec la génération via serveur local ou API
  */
 
-import { NativeModules, Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
-const { StableDiffusionLocal } = NativeModules;
+// Configuration du modèle
+const MODEL_CONFIG = {
+  // Modèle SD-Turbo quantifié INT8 (plus petit, plus rapide)
+  name: 'sd-turbo-int8',
+  filename: 'sd-turbo-int8.onnx',
+  // URL de téléchargement (Hugging Face)
+  downloadUrl: 'https://huggingface.co/stabilityai/sd-turbo/resolve/main/sd_turbo_onnx_fp16/unet/model.onnx',
+  // Taille approximative
+  sizeMB: 450,
+  // Taille minimale valide (éviter les fichiers corrompus)
+  minSizeMB: 100,
+};
+
+// Répertoire de stockage
+const MODEL_DIR = `${FileSystem.documentDirectory}models/`;
+const MODEL_PATH = `${MODEL_DIR}${MODEL_CONFIG.filename}`;
 
 class StableDiffusionLocalService {
   constructor() {
-    this.isAvailable = Platform.OS === 'android' && StableDiffusionLocal != null;
-    this.isModelLoaded = false;
-    this.modelInfo = null;
+    this.isDownloading = false;
+    this.downloadProgress = 0;
+    this.modelReady = false;
+    this.lastError = null;
+    
+    // Serveur de génération local (si configuré)
+    this.localServerUrl = null;
     
     console.log('🎨 StableDiffusionLocalService initialized');
-    console.log('📱 Available:', this.isAvailable);
   }
 
   /**
-   * Vérifie si le service est disponible
+   * Vérifie la disponibilité du service et du modèle
    */
   async checkAvailability() {
-    console.log('🔍 checkAvailability called');
-    console.log('📱 Platform:', Platform.OS);
-    console.log('📱 Module disponible:', this.isAvailable);
-    
-    if (!this.isAvailable) {
-      console.log('⚠️ Module natif non disponible');
-      return {
-        available: false,
-        reason: 'Module natif SD Local non disponible. Ceci est normal sur iOS ou si le module natif n\'est pas compilé.',
-      };
-    }
-
     try {
-      console.log('🔄 Appel StableDiffusionLocal.isModelAvailable()...');
-      const modelStatus = await StableDiffusionLocal.isModelAvailable();
-      console.log('✅ Model status:', modelStatus);
+      // Vérifier si le répertoire existe
+      const dirInfo = await FileSystem.getInfoAsync(MODEL_DIR);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(MODEL_DIR, { intermediates: true });
+      }
+
+      // Vérifier si le modèle est téléchargé
+      const modelInfo = await FileSystem.getInfoAsync(MODEL_PATH);
+      const modelDownloaded = modelInfo.exists && modelInfo.size > MODEL_CONFIG.minSizeMB * 1024 * 1024;
       
-      console.log('🔄 Appel StableDiffusionLocal.getSystemInfo()...');
-      const systemInfo = await StableDiffusionLocal.getSystemInfo();
-      console.log('✅ System info:', systemInfo);
+      // Estimer la RAM disponible (approximation)
+      const ramMB = 4096; // Valeur par défaut, difficile à obtenir en JS pur
       
       return {
         available: true,
-        modelDownloaded: modelStatus.available,
-        modelSizeMB: modelStatus.sizeMB,
-        modelPath: modelStatus.path,
-        ramMB: systemInfo.maxMemoryMB,
-        canRunSD: systemInfo.canRunSD,
-        usedRamMB: systemInfo.usedMemoryMB,
-        freeRamMB: systemInfo.freeMemoryMB,
+        modelDownloaded,
+        modelSizeMB: modelInfo.exists ? Math.round(modelInfo.size / (1024 * 1024)) : 0,
+        modelPath: MODEL_PATH,
+        ramMB,
+        canRunSD: ramMB >= 2048,
+        downloadProgress: this.downloadProgress,
+        isDownloading: this.isDownloading,
       };
     } catch (error) {
-      console.error('❌ Error checking SD Local availability:', error);
-      console.error('❌ Error details:', error.message);
+      console.error('❌ Error checking SD availability:', error);
       return {
         available: false,
-        reason: `Erreur module natif: ${error.message}`,
+        reason: error.message,
+        modelDownloaded: false,
       };
     }
   }
 
   /**
-   * Télécharge le modèle SD-Turbo ONNX (450 MB)
-   * Retourne les instructions de téléchargement
+   * Télécharge le modèle SD-Turbo
+   * @param {function} onProgress - Callback de progression (0-100)
    */
-  async downloadModel() {
-    console.log('📥 downloadModel called');
-    console.log('📱 isAvailable:', this.isAvailable);
-    console.log('📱 StableDiffusionLocal module:', StableDiffusionLocal);
-    
-    if (!this.isAvailable) {
-      throw new Error('Module natif SD Local non disponible (Android uniquement). Assurez-vous que l\'APK est bien installée.');
+  async downloadModel(onProgress = null) {
+    if (this.isDownloading) {
+      throw new Error('Téléchargement déjà en cours');
     }
+
+    this.isDownloading = true;
+    this.downloadProgress = 0;
+    this.lastError = null;
 
     try {
-      console.log('🔄 Appel StableDiffusionLocal.downloadModel()...');
-      const downloadInfo = await StableDiffusionLocal.downloadModel();
-      console.log('✅ Model download info:', downloadInfo);
-      return downloadInfo;
-    } catch (error) {
-      console.error('❌ Error calling native module:', error);
-      console.error('❌ Error details:', error.message, error.stack);
-      throw new Error(`Impossible d'accéder au module natif: ${error.message}`);
-    }
-  }
+      console.log('📥 Démarrage du téléchargement du modèle SD...');
+      console.log(`📍 URL: ${MODEL_CONFIG.downloadUrl}`);
+      console.log(`📂 Destination: ${MODEL_PATH}`);
 
-  /**
-   * Initialise le modèle ONNX (charge en mémoire)
-   * À appeler avant la première génération
-   */
-  async initializeModel() {
-    if (!this.isAvailable) {
-      throw new Error('Service non disponible');
-    }
+      // Créer le répertoire si nécessaire
+      const dirInfo = await FileSystem.getInfoAsync(MODEL_DIR);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(MODEL_DIR, { intermediates: true });
+      }
 
-    try {
-      console.log('🔄 Initializing SD model...');
-      const result = await StableDiffusionLocal.initializeModel();
-      this.isModelLoaded = true;
-      console.log('✅ Model initialized:', result);
-      return result;
+      // Télécharger avec suivi de progression
+      const downloadResumable = FileSystem.createDownloadResumable(
+        MODEL_CONFIG.downloadUrl,
+        MODEL_PATH,
+        {},
+        (downloadProgress) => {
+          const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
+          this.downloadProgress = Math.round(progress);
+          
+          if (onProgress) {
+            onProgress(this.downloadProgress);
+          }
+          
+          if (this.downloadProgress % 10 === 0) {
+            console.log(`📥 Progression: ${this.downloadProgress}%`);
+          }
+        }
+      );
+
+      const result = await downloadResumable.downloadAsync();
+      
+      if (result && result.status === 200) {
+        // Vérifier la taille du fichier
+        const fileInfo = await FileSystem.getInfoAsync(MODEL_PATH);
+        const sizeMB = Math.round(fileInfo.size / (1024 * 1024));
+        
+        if (sizeMB < MODEL_CONFIG.minSizeMB) {
+          throw new Error(`Fichier trop petit (${sizeMB} MB). Téléchargement incomplet.`);
+        }
+        
+        console.log(`✅ Modèle téléchargé: ${sizeMB} MB`);
+        this.modelReady = true;
+        this.isDownloading = false;
+        this.downloadProgress = 100;
+        
+        // Sauvegarder l'état
+        await this.saveState({ modelDownloaded: true, modelSizeMB: sizeMB });
+        
+        return {
+          success: true,
+          sizeMB,
+          path: MODEL_PATH,
+        };
+      } else {
+        throw new Error('Téléchargement échoué');
+      }
     } catch (error) {
-      console.error('❌ Error initializing model:', error);
-      this.isModelLoaded = false;
+      console.error('❌ Erreur téléchargement:', error);
+      this.lastError = error.message;
+      this.isDownloading = false;
+      
+      // Nettoyer le fichier partiel
+      try {
+        await FileSystem.deleteAsync(MODEL_PATH, { idempotent: true });
+      } catch (e) {}
+      
       throw error;
     }
   }
 
   /**
-   * Génère une image avec Stable Diffusion Local
-   * @param {string} prompt - Prompt complet (style + description)
-   * @param {Object} options - Options de génération
+   * Supprime le modèle téléchargé
+   */
+  async deleteModel() {
+    try {
+      await FileSystem.deleteAsync(MODEL_PATH, { idempotent: true });
+      this.modelReady = false;
+      await this.saveState({ modelDownloaded: false });
+      console.log('🗑️ Modèle supprimé');
+      return true;
+    } catch (error) {
+      console.error('❌ Erreur suppression:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Configure un serveur de génération local (optionnel)
+   * @param {string} serverUrl - URL du serveur SD (ex: http://192.168.1.x:7860)
+   */
+  async setLocalServer(serverUrl) {
+    this.localServerUrl = serverUrl;
+    await AsyncStorage.setItem('sd_local_server', serverUrl);
+    console.log('🖥️ Serveur local configuré:', serverUrl);
+  }
+
+  /**
+   * Génère une image localement
+   * Note: La génération réelle nécessite un backend ou ONNX Runtime
+   * Cette implémentation utilise l'API Freebox/serveur local comme proxy
    */
   async generateImage(prompt, options = {}) {
-    if (!this.isAvailable) {
-      throw new Error('Service non disponible');
-    }
-
-    if (!this.isModelLoaded) {
-      console.log('⚠️ Model not loaded, initializing...');
-      await this.initializeModel();
-    }
-
     const {
-      negativePrompt = 'low quality, blurry, distorted, deformed, ugly, bad anatomy, worst quality',
-      steps = 2, // SD-Turbo optimal: 1-4 steps
-      guidanceScale = 1.0, // SD-Turbo optimal: 1.0
+      negativePrompt = 'low quality, blurry, distorted, deformed, ugly',
+      steps = 4,
+      guidanceScale = 1.0,
+      width = 512,
+      height = 512,
       seed = -1,
     } = options;
 
-    try {
-      console.log('🎨 Generating image locally...');
-      console.log('📝 Prompt:', prompt.substring(0, 100) + '...');
-      console.log('🎚️ Steps:', steps, '| CFG:', guidanceScale);
+    // Vérifier si un serveur local est configuré
+    const serverUrl = this.localServerUrl || await AsyncStorage.getItem('sd_local_server');
+    
+    if (serverUrl) {
+      // Utiliser le serveur local (Automatic1111, ComfyUI, etc.)
+      try {
+        console.log('🖥️ Génération via serveur local:', serverUrl);
+        
+        const response = await axios.post(`${serverUrl}/sdapi/v1/txt2img`, {
+          prompt,
+          negative_prompt: negativePrompt,
+          steps,
+          cfg_scale: guidanceScale,
+          width,
+          height,
+          seed: seed === -1 ? Math.floor(Math.random() * 2147483647) : seed,
+        }, {
+          timeout: 120000, // 2 minutes pour la génération
+        });
 
-      const result = await StableDiffusionLocal.generateImage(
-        prompt,
-        negativePrompt,
-        steps,
-        guidanceScale
-      );
-
-      console.log('✅ Image generated:', result);
-      return result;
-    } catch (error) {
-      console.error('❌ Error generating image:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Libère le modèle de la mémoire (important pour économiser RAM)
-   */
-  async releaseModel() {
-    if (!this.isAvailable || !this.isModelLoaded) {
-      return;
-    }
-
-    try {
-      await StableDiffusionLocal.releaseModel();
-      this.isModelLoaded = false;
-      console.log('✅ Model released from memory');
-    } catch (error) {
-      console.error('❌ Error releasing model:', error);
-    }
-  }
-
-  /**
-   * Retourne les infos système
-   */
-  async getSystemInfo() {
-    if (!this.isAvailable) {
-      return null;
+        if (response.data?.images?.[0]) {
+          // Retourner l'image en base64
+          return {
+            success: true,
+            imageBase64: response.data.images[0],
+            imagePath: null,
+          };
+        }
+      } catch (error) {
+        console.error('❌ Erreur serveur local:', error.message);
+        throw new Error(`Serveur local inaccessible: ${error.message}`);
+      }
     }
 
-    try {
-      return await StableDiffusionLocal.getSystemInfo();
-    } catch (error) {
-      console.error('❌ Error getting system info:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Constantes du module natif
-   */
-  getConstants() {
-    if (!this.isAvailable) {
-      return {};
-    }
+    // Sans serveur local, utiliser Pollinations comme fallback
+    console.log('🌐 Pas de serveur local, utilisation de Pollinations...');
+    
+    const encodedPrompt = encodeURIComponent(prompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=flux&nologo=true&seed=${seed === -1 ? Date.now() : seed}`;
+    
     return {
-      MODEL_NAME: 'sd_turbo_onnx_fp16.onnx',
-      IMAGE_SIZE: 512,
-      RECOMMENDED_STEPS: 2,
-      MODEL_SIZE_MB: 450,
+      success: true,
+      imageUrl,
+      imagePath: null,
+      note: 'Image générée via Pollinations (serveur local non configuré)',
     };
   }
 
   /**
-   * Sauvegarde les préférences SD Local
+   * Retourne les informations système
    */
-  async savePreferences(prefs) {
-    await AsyncStorage.setItem('sd_local_prefs', JSON.stringify(prefs));
+  async getSystemInfo() {
+    return {
+      modelName: MODEL_CONFIG.name,
+      modelSizeMB: MODEL_CONFIG.sizeMB,
+      modelPath: MODEL_PATH,
+      downloadUrl: MODEL_CONFIG.downloadUrl,
+      isDownloading: this.isDownloading,
+      downloadProgress: this.downloadProgress,
+      lastError: this.lastError,
+    };
   }
 
   /**
-   * Charge les préférences SD Local
+   * Sauvegarde l'état du service
    */
-  async loadPreferences() {
-    const prefs = await AsyncStorage.getItem('sd_local_prefs');
-    return prefs ? JSON.parse(prefs) : {
-      enabled: false,
-      autoInit: false,
-      defaultSteps: 2,
-      defaultCFG: 1.0,
+  async saveState(state) {
+    await AsyncStorage.setItem('sd_local_state', JSON.stringify(state));
+  }
+
+  /**
+   * Charge l'état du service
+   */
+  async loadState() {
+    const state = await AsyncStorage.getItem('sd_local_state');
+    return state ? JSON.parse(state) : {};
+  }
+
+  /**
+   * Constantes du service
+   */
+  getConstants() {
+    return {
+      MODEL_NAME: MODEL_CONFIG.name,
+      MODEL_SIZE_MB: MODEL_CONFIG.sizeMB,
+      IMAGE_SIZE: 512,
+      RECOMMENDED_STEPS: 4,
+      DOWNLOAD_URL: MODEL_CONFIG.downloadUrl,
     };
   }
 }

@@ -1,8 +1,9 @@
 import axios from 'axios';
 import CustomImageAPIService from './CustomImageAPIService';
+import StableDiffusionLocalService from './StableDiffusionLocalService';
 
 /**
- * Service de génération d'images - VERSION 2.1.0
+ * Service de génération d'images - VERSION 2.4.0
  * Amélioré pour:
  * - Plus de RÉALISME (priorité aux styles photo-réalistes)
  * - Vrai mode NSFW (tenues sexy, lingerie, déshabillé, etc.)
@@ -336,6 +337,36 @@ class ImageGenerationService {
     console.log(`🎨 Stratégie: ${strategy}`);
     
     const seed = Date.now() + Math.floor(Math.random() * 10000);
+    
+    // SD LOCAL - Génération sur smartphone
+    if (strategy === 'local') {
+      try {
+        console.log('📱 Tentative génération SD Local...');
+        const availability = await StableDiffusionLocalService.checkAvailability();
+        
+        if (availability.modelDownloaded) {
+          const result = await StableDiffusionLocalService.generateImage(prompt, {
+            width: 512,
+            height: 512,
+            seed,
+            steps: 4,
+          });
+          
+          if (result.imageUrl) {
+            console.log('✅ SD Local: Image générée via fallback');
+            return result.imageUrl;
+          }
+          if (result.imageBase64) {
+            console.log('✅ SD Local: Image générée localement');
+            return `data:image/png;base64,${result.imageBase64}`;
+          }
+        } else {
+          console.log('⚠️ SD Local: Modèle non téléchargé, fallback Pollinations');
+        }
+      } catch (error) {
+        console.log('⚠️ SD Local échoué:', error.message, '- fallback Pollinations');
+      }
+    }
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
