@@ -236,129 +236,35 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const downloadSDModel = async () => {
-    try {
-      setSdDownloading(true);
-      setSdDownloadProgress(0);
-      
-      // URL du vrai modèle SD-Turbo ONNX (version quantifiée pour mobile)
-      // Modèle: SD-Turbo VAE Decoder ONNX (~80MB) - le plus léger pour mobile
-      const MODEL_URL = 'https://huggingface.co/stabilityai/sd-turbo/resolve/main/vae_decoder/model.onnx';
-      const MODEL_SIZE_MB = 80; // Taille approximative en MB
-      
-      Alert.alert(
-        '📥 Téléchargement Stable Diffusion',
-        `Téléchargement du modèle SD-Turbo.\n\nTaille: ~${MODEL_SIZE_MB} MB\n\n⚠️ Assurez-vous d'être connecté en WiFi.\n\nDurée estimée: 2-5 minutes`,
-        [
-          { text: 'Annuler', style: 'cancel', onPress: () => setSdDownloading(false) },
-          {
-            text: 'Télécharger',
-            onPress: async () => {
-              try {
-                console.log('📥 Début téléchargement modèle SD-Turbo...');
-                
-                const modelPath = `${FileSystem.documentDirectory}sd_models/sd_turbo_vae.onnx`;
-                
-                // Créer le dossier si nécessaire
-                const modelDir = `${FileSystem.documentDirectory}sd_models/`;
-                const dirInfo = await FileSystem.getInfoAsync(modelDir);
-                if (!dirInfo.exists) {
-                  console.log('📁 Création dossier:', modelDir);
-                  await FileSystem.makeDirectoryAsync(modelDir, { intermediates: true });
-                }
-                
-                console.log('🌐 URL:', MODEL_URL);
-                console.log('📂 Destination:', modelPath);
-                
-                // Téléchargement avec progress
-                const downloadResumable = FileSystem.createDownloadResumable(
-                  MODEL_URL,
-                  modelPath,
-                  {
-                    headers: {
-                      'User-Agent': 'RoleplayChat/2.0.0',
-                    }
-                  },
-                  (downloadProgress) => {
-                    if (downloadProgress.totalBytesExpectedToWrite > 0) {
-                      const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
-                      setSdDownloadProgress(progress);
-                      const downloadedMB = (downloadProgress.totalBytesWritten / 1024 / 1024).toFixed(1);
-                      const totalMB = (downloadProgress.totalBytesExpectedToWrite / 1024 / 1024).toFixed(1);
-                      console.log(`📥 Progress: ${Math.round(progress)}% (${downloadedMB}/${totalMB} MB)`);
-                    } else {
-                      const downloadedMB = (downloadProgress.totalBytesWritten / 1024 / 1024).toFixed(1);
-                      console.log(`📥 Téléchargé: ${downloadedMB} MB...`);
-                      // Estimation basée sur la taille attendue
-                      const estimatedProgress = Math.min((downloadProgress.totalBytesWritten / (MODEL_SIZE_MB * 1024 * 1024)) * 100, 99);
-                      setSdDownloadProgress(estimatedProgress);
-                    }
-                  }
-                );
-                
-                const result = await downloadResumable.downloadAsync();
-                
-                if (result && result.uri) {
-                  console.log('✅ Téléchargement terminé:', result.uri);
-                  
-                  // Vérifier la taille du fichier
-                  const fileInfo = await FileSystem.getInfoAsync(result.uri);
-                  const sizeMB = fileInfo.size / 1024 / 1024;
-                  console.log('📊 Taille fichier:', sizeMB.toFixed(2), 'MB');
-                  
-                  setSdDownloading(false);
-                  setSdDownloadProgress(100);
-                  
-                  // Vérifier que le fichier est suffisamment gros (pas une page d'erreur)
-                  if (sizeMB < 1) {
-                    Alert.alert(
-                      '⚠️ Téléchargement incomplet',
-                      `Le fichier téléchargé est trop petit (${sizeMB.toFixed(2)} MB).\n\n` +
-                      `Cela peut indiquer:\n` +
-                      `- Un problème de connexion\n` +
-                      `- Le serveur est temporairement indisponible\n\n` +
-                      `Conseil: Utilisez plutôt Pollinations ou l'API Freebox pour la génération d'images.`
-                    );
-                    // Supprimer le fichier corrompu
-                    await FileSystem.deleteAsync(result.uri, { idempotent: true });
-                  } else {
-                    Alert.alert(
-                      '✅ Téléchargement réussi !',
-                      `Modèle SD-Turbo téléchargé.\n\nTaille: ${sizeMB.toFixed(1)} MB\n\n` +
-                      `⚠️ Note: La génération locale nécessite un appareil puissant (8+ GB RAM).`,
-                      [
-                        { 
-                          text: 'OK', 
-                          onPress: () => {
-                            checkSDAvailability();
-                          } 
-                        }
-                      ]
-                    );
-                  }
-                } else {
-                  throw new Error('Téléchargement échoué: pas de résultat');
-                }
-              } catch (innerError) {
-                console.error('❌ Erreur téléchargement:', innerError);
-                setSdDownloading(false);
-                setSdDownloadProgress(0);
-                
-                Alert.alert(
-                  '❌ Téléchargement échoué',
-                  `Erreur: ${innerError.message}\n\n` +
-                  `💡 Alternative: Utilisez Pollinations ou l'API Freebox pour générer des images sans téléchargement.`
-                );
-              }
-            }
+    // SD Local est complexe - informer l'utilisateur
+    Alert.alert(
+      '🚧 Stable Diffusion Local',
+      'La génération d\'images locale est une fonctionnalité avancée qui nécessite:\n\n' +
+      '• Un appareil puissant (8+ GB RAM)\n' +
+      '• Un modèle ONNX (~1.5 GB)\n' +
+      '• Configuration native Android\n\n' +
+      '📱 Pour l\'instant, nous recommandons:\n\n' +
+      '1️⃣ **Pollinations.ai** (gratuit, en ligne)\n' +
+      '2️⃣ **API Freebox** (votre serveur local)\n\n' +
+      'Ces options fonctionnent parfaitement pour générer des images!',
+      [
+        { 
+          text: 'Configurer Pollinations', 
+          onPress: () => {
+            setImageStrategy('pollinations-only');
+            Alert.alert('✅', 'Pollinations activé comme source d\'images!');
           }
-        ]
-      );
-      
-    } catch (error) {
-      console.error('❌ Erreur init download:', error);
-      Alert.alert('❌ Erreur', error.message);
-      setSdDownloading(false);
-    }
+        },
+        { 
+          text: 'Configurer Freebox', 
+          onPress: () => {
+            setImageStrategy('freebox-first');
+            Alert.alert('✅', 'Freebox configuré avec Pollinations en fallback!');
+          }
+        },
+        { text: 'Annuler', style: 'cancel' }
+      ]
+    );
   };
 
   if (loading) {
@@ -907,7 +813,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 2.0.1 - Mode Spicy 🔥</Text>
+          <Text style={styles.aboutText}>Version: 2.1.0 - Jailbreak Ultra 🔥</Text>
           <Text style={styles.aboutText}>
             Application de roleplay conversationnel
           </Text>
