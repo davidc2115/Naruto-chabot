@@ -99,11 +99,13 @@ class TextGenerationService {
     }
 
     const isAdult = !!userProfile?.isAdult;
-    const nsfwEnabled = !!(isAdult && userProfile?.nsfwMode);
+    // On garde le flag "nsfwMode" pour l'UI (18+), mais on ne mentionne jamais "adulte/NSFW"
+    // dans le prompt afin d'éviter des refus injustifiés sur du romantique léger.
+    const romanceEnabled = !!(isAdult && userProfile?.nsfwMode);
     const spicyEnabled = !!(isAdult && userProfile?.spicyMode);
     const apiKey = this.getCurrentKey();
     const fullMessages = [
-      { role: 'system', content: this.buildSystemPrompt(character, userProfile, { nsfwMode: nsfwEnabled, spicyMode: spicyEnabled }) }
+      { role: 'system', content: this.buildSystemPrompt(character, userProfile, { romanceMode: romanceEnabled, spicyMode: spicyEnabled }) }
     ];
 
     // Filtrer les messages pour ne garder que role et content (Groq n'accepte pas les propriétés additionnelles comme 'image')
@@ -111,8 +113,13 @@ class TextGenerationService {
       role: msg.role,
       content: msg.content
     }));
-    
-    fullMessages.push(...cleanedMessages);
+
+    // IMPORTANT: on garde une fenêtre de contexte + on assainit pour éviter que
+    // des messages trop explicites dans l'historique déclenchent un refus même
+    // quand l'utilisateur fait juste un geste romantique léger.
+    const contextWindow = (romanceEnabled || spicyEnabled) ? 20 : 30;
+    const recent = cleanedMessages.slice(-contextWindow);
+    fullMessages.push(...this.sanitizeMessages(recent));
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -125,9 +132,9 @@ class TextGenerationService {
             model: this.provider.model,
             messages: fullMessages,
             // "Spicy mode" (mature): plus vivant + plus immersif
-            temperature: 0.85 + (nsfwEnabled ? 0.05 : 0) + spicyBoost,
-            max_tokens: nsfwEnabled ? 1300 : 1100,
-            top_p: 0.93 + (nsfwEnabled ? 0.02 : 0) + (spicyEnabled ? 0.01 : 0),
+            temperature: 0.85 + (romanceEnabled ? 0.03 : 0) + spicyBoost,
+            max_tokens: romanceEnabled ? 1200 : 1100,
+            top_p: 0.93 + (romanceEnabled ? 0.01 : 0) + (spicyEnabled ? 0.01 : 0),
             presence_penalty: 0.6,
             frequency_penalty: 0.5,
           },
@@ -150,20 +157,20 @@ class TextGenerationService {
 
         // Si le modèle "refuse" (ex: "je ne peux pas continuer..."), on fait 1 retry guidé
         // en restant dans un registre mature/suggestif (pas explicite/graphique).
-        if ((nsfwEnabled || spicyEnabled) && this.looksLikeRefusal(trimmed) && attempt < retries) {
+        if ((romanceEnabled || spicyEnabled) && this.looksLikeRefusal(trimmed) && attempt < retries) {
           console.warn('⚠️ [Groq] Réponse type refus détectée, retry guidé...');
           const nudge = [
             {
               role: 'system',
               content:
-                `Si l’utilisateur demande quelque chose de trop explicite, ne refuse pas et ne stoppe pas la conversation.\n` +
-                `Continue la scène en restant dans le personnage, en gardant un ton romantique/suggestif, et fais un "fade to black" pour les passages trop détaillés.\n` +
-                `Ne dis jamais: "je ne peux pas continuer", "je ne peux pas", "désolé", "inapproprié".`,
+                `Ne stoppe jamais la conversation.\n` +
+                `Si la demande devient trop détaillée, reste romantique et suggestif, mets l’action "hors-champ" (fade-to-black), puis continue la scène.\n` +
+                `Ne dis jamais: "je ne peux pas", "désolé", "inapproprié", "contenu pour adultes".`,
             },
             {
               role: 'user',
               content:
-                `Continue la conversation en mode immersif. Si la demande est trop explicite, reste suggestif et romantique, puis relance avec une question.`,
+                `Continue la conversation de façon immersive et romantique. Si ça devient trop détaillé, reste suggestif (fade-to-black) puis relance avec une question.`,
             },
           ];
 
@@ -213,7 +220,7 @@ class TextGenerationService {
    * Construit le system prompt "vrai mode conversation" (immersif)
    */
   buildSystemPrompt(character, userProfile, options = {}) {
-    const { spicyMode = false, nsfwMode = false } = options;
+    const { spicyMode = false, romanceMode = false } = options;
     const username = userProfile?.username ? userProfile.username : 'l’utilisateur';
     const scenario = character?.scenario ? character.scenario : '';
     const description = character?.description ? character.description : '';
@@ -230,18 +237,39 @@ class TextGenerationService {
       `- Reste concis mais vivant: 2 à 6 paragraphes, pas un monologue.`,
       `- Pose 1 question courte à ${username} de temps en temps pour relancer.`,
       `- Zéro répétition mot-à-mot, évite les tics et les résumés.`,
-      nsfwMode
-        ? `- Mode adulte (18+): ton mature, romantique/suggestif permis, toujours consensuel.`
+      romanceMode
+        ? `- Style romance: gestes affectueux et flirt légers autorisés (ex: main sur la cuisse, baiser, câlin), toujours consensuel.`
         : null,
       spicyMode
         ? `- Style (spicy/mature): plus de tension dramatique, plus d’émotions, plus de détails sensoriels, plus de répartie, plus de flirt.`
         : null,
-      (spicyMode || nsfwMode)
-        ? `- Si une demande est trop explicite: fais un "fade to black" et continue la scène (ne refuse pas et ne stoppe pas).`
+      (spicyMode || romanceMode)
+        ? `- Si une demande devient trop détaillée: fais un "fade-to-black" et continue la scène (ne refuse pas et ne stoppe pas).`
         : null,
     ]
       .filter(Boolean)
       .join('\n\n');
+  }
+
+  sanitizeMessages(messages) {
+    return messages.map((m) => {
+      const content = typeof m.content === 'string' ? m.content : '';
+      return { ...m, content: this.sanitizeContent(content) };
+    });
+  }
+
+  sanitizeContent(content) {
+    // Objectif: éviter de déclencher des refus sur l'historique.
+    // On garde le romantique léger, mais on retire les détails sexuels explicites.
+    let text = content;
+    const explicitPatterns = [
+      /\b(pénétration|penis|vagin|sperme|fellation|cunnilingus|anal|orgasme|se branler|masturb)/gi,
+      /\b(nu|nue|naked|topless|lingerie|sexe)\b/gi,
+    ];
+    explicitPatterns.forEach((re) => {
+      text = text.replace(re, '[...]');
+    });
+    return text;
   }
 
   looksLikeRefusal(text) {
@@ -255,6 +283,8 @@ class TextGenerationService {
       'inapproprié',
       "je ne suis pas à l'aise",
       "je ne peux pas aider",
+      'contenus pour adultes',
+      'contenu pour adultes',
       'i can’t',
       "i can't",
       'cannot',
