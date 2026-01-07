@@ -17,28 +17,25 @@ class ImageGenerationService {
       'semi-realistic anime style',
     ];
     
-    // TENUES NSFW ALÉATOIRES (conversations)
+    // Mode "spicy/mature" (profil NSFW): suggestif mais NON explicite
+    // (pas de nudité, pas de descriptions anatomiques explicites)
     this.nsfwOutfits = [
-      'wearing sexy lingerie, lace underwear',
-      'wearing silk robe, partially open',
-      'topless, bare chest visible',
-      'wearing only towel',
-      'completely nude, artistic nudity',
-      'wearing see-through clothing',
-      'wearing bikini, swimsuit',
-      'lingerie visible under clothing',
+      'wearing a stylish party outfit, tasteful and slightly revealing',
+      'wearing an elegant dress with a modest deep neckline',
+      'wearing a fitted top and skirt, flirtatious vibe',
+      'wearing a silk robe (closed), cozy and intimate mood',
+      'wearing a swimsuit (tasteful), beach vibe',
+      'wearing a sporty crop top and shorts, confident look',
     ];
     
-    // POSTURES NSFW ALÉATOIRES
+    // POSTURES "spicy/mature" (suggestives)
     this.nsfwPoses = [
-      'lying on bed, seductive pose',
-      'sitting provocatively, legs crossed',
-      'standing, hand on hip, confident',
-      'kneeling, looking up',
-      'arching back, sensual pose',
-      'leaning against wall, alluring',
-      'reclining on couch, relaxed',
-      'stretching, body exposed',
+      'sitting on the edge of a bed, flirtatious posture',
+      'leaning against a wall, alluring expression',
+      'reclining on a couch, relaxed and intimate mood',
+      'standing confidently, hand on hip, playful gaze',
+      'looking over shoulder, soft smile, teasing vibe',
+      'stretching casually, warm lighting, cozy scene',
     ];
   }
 
@@ -154,178 +151,49 @@ class ImageGenerationService {
   }
 
   /**
-   * Décrit l'anatomie de manière ULTRA-PRÉCISE
+   * Décrit la silhouette (sans détails anatomiques explicites)
    */
   buildAnatomyDescription(character) {
     let anatomy = '';
     
-    // === FEMMES - POITRINE ULTRA-DÉTAILLÉE ===
+    // === SILHOUETTE (optionnelle) ===
     if (character.gender === 'female' && character.bust) {
-      const bustDetails = {
-        'A': {
-          size: 'small A cup breasts',
-          details: 'petite chest, delicate small bust, subtle curves, slim upper body, athletic chest, perky small breasts, proportionate to slim frame',
-          emphasis: 'feminine delicate chest, natural small proportions'
-        },
-        'B': {
-          size: 'small B cup breasts',
-          details: 'modest bust, small perky breasts, slender figure, subtle feminine curves, petite chest, proportioned small bust, natural B cup shape',
-          emphasis: 'elegant modest chest, naturally proportioned'
-        },
-        'C': {
-          size: 'medium C cup breasts',
-          details: 'balanced bust, natural C cup proportions, moderate chest size, feminine curves, well-proportioned breasts, attractive medium bust, natural cleavage',
-          emphasis: 'perfectly balanced chest, ideal proportions, natural medium breasts'
-        },
-        'D': {
-          size: 'large D cup breasts',
-          details: 'voluptuous D cup bust, curvy figure, prominent chest, noticeable cleavage, full breasts, generous bust, shapely large breasts, eye-catching chest',
-          emphasis: 'impressive bust, prominent cleavage visible, large feminine curves, voluptuous chest emphasized'
-        },
-        'DD': {
-          size: 'very large DD cup breasts',
-          details: 'very voluptuous DD cup bust, very curvy figure, very generous chest, deep cleavage, very full heavy breasts, striking bust, remarkably large chest, attention-grabbing breasts',
-          emphasis: 'very prominent bust emphasized, deep visible cleavage, very large feminine curves highlighted, chest clearly defined'
-        },
-        'E': {
-          size: 'extremely large E cup breasts',
-          details: 'extremely voluptuous E cup bust, highly curvy figure, impressive large chest, dramatic cleavage, massive full breasts, extraordinary bust, remarkably large and full chest',
-          emphasis: 'extremely prominent bust emphasized, dramatic deep cleavage clearly visible, massive feminine curves highlighted, chest dominantly featured'
-        },
-        'F': {
-          size: 'huge F cup breasts',
-          details: 'huge voluptuous F cup bust, extremely curvy figure, massive chest, extreme deep cleavage, enormous heavy full breasts, spectacular bust, incredibly large chest',
-          emphasis: 'massively prominent bust emphasized, extreme dramatic cleavage clearly visible, huge feminine curves dominated, chest as focal point'
-        },
-        'G': {
-          size: 'gigantic G cup breasts',
-          details: 'gigantic G cup bust, extraordinarily voluptuous figure, colossal chest, extreme dramatic cleavage, gigantic massive breasts, phenomenal bust, unbelievably large chest',
-          emphasis: 'gigantically prominent bust heavily emphasized, extreme deep cleavage fully visible, gigantic feminine curves completely dominating, chest as main feature'
-        }
-      };
-      
-      const bustInfo = bustDetails[character.bust] || bustDetails['C'];
-      anatomy += `, ${bustInfo.size}, ${bustInfo.details}, ${bustInfo.emphasis}`;
+      // Indication légère de silhouette (sans focus anatomique)
+      if (['A', 'B'].includes(character.bust)) anatomy += ', petite silhouette, slim upper body, delicate proportions';
+      else if (['C'].includes(character.bust)) anatomy += ', balanced silhouette, natural proportions';
+      else anatomy += ', curvy silhouette, confident proportions';
     }
     
-    // === HOMMES - PHYSIQUE DÉTAILLÉ ===
     if (character.gender === 'male' && character.penis) {
-      const penisSize = parseInt(character.penis) || 15;
-      
-      if (penisSize >= 22) {
-        anatomy += ', exceptionally muscular build, very broad shoulders, extremely defined pecs, rock-hard abs, powerful arms, massive muscular thighs, dominant masculine physique, alpha male body';
-      } else if (penisSize >= 20) {
-        anatomy += ', very muscular athletic build, broad strong shoulders, well-defined pecs, six-pack abs, strong arms, muscular thighs, impressive masculine physique, powerful body';
-      } else if (penisSize >= 18) {
-        anatomy += ', muscular athletic build, broad shoulders, defined chest, toned abs, athletic arms, strong legs, fit masculine physique, sporty body';
-      } else {
-        anatomy += ', toned athletic build, proportioned shoulders, lean chest, athletic body, fit physique, healthy masculine frame';
-      }
+      // On garde l’info uniquement pour influencer la carrure (sans mention explicite)
+      const build = parseInt(character.penis) >= 18 ? 'athletic muscular build' : 'toned athletic build';
+      anatomy += `, ${build}, confident posture`;
     }
     
     return anatomy;
   }
 
   /**
-   * MODE NSFW ULTRA-RÉALISTE (Suggestif, NON-EXPLICITE mais SEXY)
+   * MODE "spicy/mature" (profil NSFW): suggestif, romantique, NON explicite
    */
   buildNSFWPrompt(character) {
     let nsfw = '';
     
     if (character.gender === 'female') {
-      // BASE NSFW FÉMININ - Plus explicite
-      nsfw += ', extremely sexy pose, highly sensual expression, intensely seductive look, sultry passionate gaze';
-      nsfw += ', alluring inviting smile, very provocative attitude, erotic energy';
-      nsfw += ', bedroom eyes, deeply inviting expression, intensely flirtatious look';
-      nsfw += ', suggestive sensual body language, confident sexy dominant pose';
-      
-      // TENUE NSFW - Plus détaillée
-      nsfw += ', wearing very revealing lingerie, sexy transparent lace underwear, delicate silk bra and panties set';
-      nsfw += ', sheer see-through lingerie, lace details clearly visible, satin and silk fabric';
-      nsfw += ', extremely delicate intimate wear, luxury lingerie pieces';
-      nsfw += ', lingerie clearly visible and highlighted, straps prominently showing, intimate clothing fully revealed';
-      nsfw += ', transparent fabric showing skin beneath, lace patterns defined';
-      
-      // POSE ET ATTITUDE - Plus suggestive
-      nsfw += ', sitting provocatively on bed edge, lying seductively on silk sheets';
-      nsfw += ', reclining in very seductive pose, positioned alluringly on luxurious bed';
-      nsfw += ', legs elegantly and suggestively crossed, one leg raised provocatively';
-      nsfw += ', highly suggestive leg position revealing thighs, very sensual body curve emphasized';
-      nsfw += ', looking seductively over shoulder, back beautifully arched, extremely sensual posture';
-      nsfw += ', inviting and open pose, body positioned to showcase curves';
-      
-      // PEAU ET EXPOSITION - Plus détaillée
-      nsfw += ', smooth flawless skin extensively visible, shoulders completely exposed and highlighted';
-      nsfw += ', décolleté prominently visible and emphasized, legs fully showing and featured';
-      nsfw += ', midriff fully exposed and toned, lower back visible and curved';
-      nsfw += ', thighs prominently visible and shapely, skin softly and romantically lit';
-      nsfw += ', silky smooth skin texture, body glistening subtly';
-      
-      // EMPHASE POITRINE (selon taille) - Plus direct
-      if (character.bust) {
-        if (['D', 'DD', 'E', 'F', 'G'].includes(character.bust)) {
-          nsfw += ', cleavage very prominently and dramatically displayed, breasts heavily emphasized in revealing lingerie';
-          nsfw += ', bust clearly and boldly defined through transparent fabric, very deep visible cleavage featured';
-          nsfw += ', breast curves strongly highlighted and showcased, chest as primary focal point';
-          nsfw += ', bustline powerfully emphasized, breasts pressed closely together creating dramatic cleavage';
-          nsfw += ', bust enhanced and accentuated by provocative pose, cleavage deepened intentionally';
-          nsfw += ', large bust clearly visible and centered, generous curves fully displayed';
-        } else if (['B', 'C'].includes(character.bust)) {
-          nsfw += ', cleavage tastefully yet clearly visible, bust elegantly and attractively shown in sexy lingerie';
-          nsfw += ', chest naturally and beautifully defined, visible cleavage subtly revealed';
-          nsfw += ', breast curves delicately and sensually shown, natural bustline emphasized';
-          nsfw += ', feminine curves highlighted by lingerie, bust presented attractively';
-        }
-      }
-      
-      // AMBIANCE - Plus immersive
-      nsfw += ', intimate romantic bedroom setting, soft sensual lighting creating shadows';
-      nsfw += ', warm amber ambient light, dim seductive lighting, candlelit atmosphere';
-      nsfw += ', luxury silk sheets in warm tones, sumptuous bed with plush pillows';
-      nsfw += ', romantic dreamy atmosphere, intimate private mood, highly seductive environment';
-      nsfw += ', candles glowing softly in background, soft shadows enhancing curves';
-      nsfw += ', dreamy bokeh lighting effect, sensual warm ambiance';
+      nsfw += ', flirtatious expression, playful gaze, romantic vibe';
+      nsfw += ', confident posture, elegant body language, teasing smile';
+      nsfw += ', warm soft lighting, intimate cozy setting, cinematic mood';
       
     } else if (character.gender === 'male') {
-      // BASE NSFW MASCULIN - Plus intense
-      nsfw += ', very sexy masculine pose, intensely seductive confident look, powerful intense gaze';
-      nsfw += ', alluring attractive smile, dominant strong attitude, alpha male presence';
-      nsfw += ', powerful penetrating eyes, inviting masculine expression, confident dominant body language';
-      
-      // TENUE NSFW - Plus révélateur
-      nsfw += ', completely shirtless, bare muscular chest fully exposed, topless revealing physique';
-      nsfw += ', wearing only very tight underwear, boxer briefs clearly visible and form-fitting';
-      nsfw += ', very low-waisted pants revealing v-line, extremely revealing clothing';
-      nsfw += ', abs sharply and clearly defined, chest muscles prominently visible';
-      nsfw += ', defined v-line clearly showing, muscular definition strongly showcased';
-      
-      // POSE ET ATTITUDE - Plus dominant
-      nsfw += ', standing very confidently and dominantly, leaning seductively against wall';
-      nsfw += ', sitting on bed edge in dominant pose, reclining in masculine powerful pose';
-      nsfw += ', hands behind head showing muscles, arms flexed displaying physique';
-      nsfw += ', flexing subtly but noticeably, powerful dominant stance';
-      nsfw += ', looking intensely directly at camera, very dominant gaze, supremely confident posture';
-      nsfw += ', masculine powerful presence, body positioned to show strength';
-      
-      // PEAU ET MUSCLES - Plus défini
-      nsfw += ', tanned skin glistening with subtle sheen, muscles sharply defined by dramatic lighting';
-      nsfw += ', body highlighted and showcased, physique heavily emphasized and featured';
-      nsfw += ', six-pack abs clearly visible and defined, chest muscles well-defined and prominent';
-      nsfw += ', shoulders broad muscular and powerful, arms toned and strong';
-      nsfw += ', strong masculine features, rugged masculine appeal, raw masculine sexual energy';
-      nsfw += ', muscular athletic body clearly visible, definition in every muscle';
-      
-      // AMBIANCE - Plus virile
-      nsfw += ', intimate masculine bedroom setting, strong moody lighting, dramatic shadows emphasizing muscles';
-      nsfw += ', soft warm light highlighting skin and muscles, athletic powerful aesthetic';
-      nsfw += ', seductive intimate mood, sensual masculine atmosphere';
+      nsfw += ', confident flirty expression, intense gaze, charming smile';
+      nsfw += ', moody cinematic lighting, cozy intimate setting, stylish vibe';
     }
     
     // QUALITÉ FINALE - Plus haute
     nsfw += ', ultra-realistic photorealistic rendering, extremely high detail and definition';
     nsfw += ', professional fashion photography style, high-end magazine quality aesthetic';
     nsfw += ', cinematic lighting and composition, editorial quality image';
-    nsfw += ', tasteful yet very sensual, artistic yet suggestive, elegant yet very sexy';
+    nsfw += ', tasteful and sensual, artistic and romantic, elegant and stylish';
     nsfw += ', sophisticated intimate photography, luxury sensual aesthetic';
     
     return nsfw;
@@ -370,8 +238,10 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // Détection mode NSFW
-    const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+    // Détection modes (18+)
+    const isAdult = !!userProfile?.isAdult;
+    const nsfwMode = !!(isAdult && userProfile?.nsfwMode);
+    const spicyMode = !!(isAdult && userProfile?.spicyMode);
 
     // CONSTRUCTION DU PROMPT ULTRA-DÉTAILLÉ
     let prompt = '';
@@ -401,8 +271,8 @@ class ImageGenerationService {
       console.log('✅ Tenue complète ajoutée:', outfit.substring(0, 150));
     }
     
-    // 6. Mode NSFW ou SFW
-    if (nsfwMode) {
+    // 6. Mode "spicy/mature" (si NSFW ou si toggle spicy)
+    if (nsfwMode || spicyMode) {
       prompt += this.buildNSFWPrompt(character);
     } else {
       prompt += this.buildSFWPrompt(character);
@@ -427,8 +297,10 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // Détection mode NSFW
-    const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+    // Détection modes (18+)
+    const isAdult = !!userProfile?.isAdult;
+    const nsfwMode = !!(isAdult && userProfile?.nsfwMode);
+    const spicyMode = !!(isAdult && userProfile?.spicyMode);
 
     // CONSTRUCTION DU PROMPT
     let prompt = '';
@@ -456,8 +328,8 @@ class ImageGenerationService {
     if (detectedOutfit) {
       prompt += `, wearing ${detectedOutfit}`;
       console.log('✅ Tenue détectée dans conversation:', detectedOutfit);
-    } else if (nsfwMode) {
-      // NSFW: Tenue aléatoire
+    } else if (nsfwMode || spicyMode) {
+      // Spicy/NSFW: Tenue aléatoire (suggestive non-explicite)
       const randomOutfit = this.nsfwOutfits[Math.floor(Math.random() * this.nsfwOutfits.length)];
       prompt += `, ${randomOutfit}`;
       console.log('🎲 Tenue NSFW aléatoire:', randomOutfit);
@@ -466,7 +338,7 @@ class ImageGenerationService {
     }
     
     // 6. POSTURE: Aléatoire si NSFW
-    if (nsfwMode) {
+    if (nsfwMode || spicyMode) {
       const randomPose = this.nsfwPoses[Math.floor(Math.random() * this.nsfwPoses.length)];
       prompt += `, ${randomPose}`;
       console.log('🎲 Posture NSFW aléatoire:', randomPose);
@@ -478,8 +350,8 @@ class ImageGenerationService {
       prompt += `, scene context: ${context}`;
     }
     
-    // 8. Mode NSFW ou SFW
-    if (nsfwMode) {
+    // 8. Mode "spicy/mature" ou SFW
+    if (nsfwMode || spicyMode) {
       prompt += this.buildNSFWPrompt(character);
     } else {
       prompt += this.buildSFWPrompt(character);

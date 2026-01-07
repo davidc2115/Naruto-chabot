@@ -12,12 +12,14 @@ import {
 import UserProfileService from '../services/UserProfileService';
 
 export default function UserProfileScreen({ navigation }) {
+  const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('male');
   const [bust, setBust] = useState('C');
   const [penis, setPenis] = useState('17');
   const [nsfwMode, setNsfwMode] = useState(false);
+  const [spicyMode, setSpicyMode] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
@@ -30,12 +32,14 @@ export default function UserProfileScreen({ navigation }) {
     const profile = await UserProfileService.getProfile();
     if (profile) {
       setHasProfile(true);
+      setEmail(profile.email || '');
       setUsername(profile.username);
       setAge(profile.age.toString());
       setGender(profile.gender);
       if (profile.bust) setBust(profile.bust);
       if (profile.penis) setPenis(profile.penis.replace('cm', ''));
       setNsfwMode(profile.nsfwMode || false);
+      setSpicyMode(profile.spicyMode || false);
     }
   };
 
@@ -43,6 +47,16 @@ export default function UserProfileScreen({ navigation }) {
     if (!username || !age) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
       return;
+    }
+
+    const emailTrimmed = email.trim();
+    if (emailTrimmed.length > 0) {
+      // Validation simple d'email (suffisant côté UI)
+      const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed);
+      if (!isValidEmail) {
+        Alert.alert('Erreur', 'Email invalide');
+        return;
+      }
     }
 
     const ageNum = parseInt(age);
@@ -53,12 +67,14 @@ export default function UserProfileScreen({ navigation }) {
 
     try {
       const profile = {
+        email: emailTrimmed.length > 0 ? emailTrimmed : null,
         username,
         age: ageNum,
         gender,
         ...(gender === 'female' && { bust }),
         ...(gender === 'male' && { penis: `${penis}cm` }),
         nsfwMode: ageNum >= 18 ? nsfwMode : false,
+        spicyMode: ageNum >= 18 ? spicyMode : false,
       };
 
       if (hasProfile) {
@@ -105,6 +121,17 @@ export default function UserProfileScreen({ navigation }) {
       <Text style={styles.description}>
         Votre profil permet aux personnages de mieux vous connaître et d'adapter leurs réponses.
       </Text>
+
+      <Text style={styles.label}>Email (optionnel)</Text>
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="ex: douvdouv21@gmail.com"
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+      />
 
       <Text style={styles.label}>Pseudo *</Text>
       <TextInput
@@ -195,8 +222,37 @@ export default function UserProfileScreen({ navigation }) {
             />
           </View>
           <Text style={styles.nsfwDescription}>
-            Active le contenu explicite et sensuel dans les conversations. 
+            Active un ton adulte (18+) et plus sensuel/suggestif dans les conversations. 
             Vous devez avoir 18 ans ou plus.
+          </Text>
+        </View>
+      )}
+
+      {isAdult && (
+        <View style={styles.spicyContainer}>
+          <View style={styles.nsfwHeader}>
+            <Text style={styles.spicyTitle}>🌶️ Mode Spicy (mature)</Text>
+            <Switch
+              value={spicyMode}
+              onValueChange={setSpicyMode}
+              trackColor={{ false: '#d1d5db', true: '#6366f1' }}
+              thumbColor={spicyMode ? '#fff' : '#f4f3f4'}
+            />
+          </View>
+          <Text style={styles.spicyDescription}>
+            Rend les conversations plus immersives: flirt, tension, émotions, détails sensoriels (sans description explicite).
+          </Text>
+        </View>
+      )}
+
+      {isAdult && (
+        <View style={styles.modesInfoBox}>
+          <Text style={styles.modesInfoTitle}>ℹ️ Différence entre les modes</Text>
+          <Text style={styles.modesInfoText}>
+            - <Text style={styles.modesInfoBold}>NSFW (18+)</Text> : autorise un ton adulte (mature/suggestif).
+          </Text>
+          <Text style={styles.modesInfoText}>
+            - <Text style={styles.modesInfoBold}>Spicy</Text> : rend la conversation plus intense (style), même sans changer le contenu.
           </Text>
         </View>
       )}
@@ -330,6 +386,47 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#7f1d1d',
     lineHeight: 18,
+  },
+  spicyContainer: {
+    marginTop: 12,
+    padding: 15,
+    backgroundColor: '#fff7ed',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fdba74',
+  },
+  spicyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#9a3412',
+  },
+  spicyDescription: {
+    fontSize: 13,
+    color: '#7c2d12',
+    lineHeight: 18,
+  },
+  modesInfoBox: {
+    marginTop: 12,
+    padding: 14,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  modesInfoTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  modesInfoText: {
+    fontSize: 13,
+    color: '#4b5563',
+    lineHeight: 18,
+  },
+  modesInfoBold: {
+    fontWeight: '700',
+    color: '#111827',
   },
   warningContainer: {
     marginTop: 20,

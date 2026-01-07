@@ -7,9 +7,10 @@ import axios from 'axios';
  */
 class CustomImageAPIService {
   constructor() {
-    this.customApiUrl = null;
-    this.apiType = 'pollinations'; // 'pollinations' ou 'custom' ou 'freebox' ou 'local'
-    this.strategy = 'freebox-first'; // 'local', 'freebox-only', 'pollinations-only', 'freebox-first'
+    // v1.7.40 (custom): on force Freebox local uniquement
+    this.customApiUrl = 'http://88.174.155.230:33437/generate';
+    this.apiType = 'freebox'; // 'freebox' uniquement
+    this.strategy = 'freebox-only'; // 'freebox-only' uniquement
   }
 
   /**
@@ -20,9 +21,10 @@ class CustomImageAPIService {
       const config = await AsyncStorage.getItem('custom_image_api');
       if (config) {
         const parsed = JSON.parse(config);
-        this.customApiUrl = parsed.url;
-        this.apiType = parsed.type || 'pollinations';
-        this.strategy = parsed.strategy || 'freebox-first';
+        // Tolère anciennes configs mais normalise vers Freebox-only
+        this.customApiUrl = parsed.url || this.customApiUrl;
+        this.apiType = 'freebox';
+        this.strategy = 'freebox-only';
         
         console.log('📸 Config images chargée:', {
           url: this.customApiUrl ? this.customApiUrl.substring(0, 50) + '...' : 'none',
@@ -30,8 +32,7 @@ class CustomImageAPIService {
           strategy: this.strategy
         });
       } else {
-        console.log('📸 Aucune config images, utilisation par défaut: pollinations-only');
-        this.strategy = 'pollinations-only';
+        console.log('📸 Aucune config images, utilisation par défaut: freebox-only');
       }
     } catch (error) {
       console.error('Error loading custom API config:', error);
@@ -43,10 +44,12 @@ class CustomImageAPIService {
    */
   async saveConfig(url, type = 'custom', strategy = 'freebox-first') {
     try {
-      const config = { url, type, strategy };
-      this.customApiUrl = url;
-      this.apiType = type;
-      this.strategy = strategy;
+      // Normaliser: Freebox-only
+      const normalizedUrl = url || '';
+      const config = { url: normalizedUrl, type: 'freebox', strategy: 'freebox-only' };
+      this.customApiUrl = normalizedUrl;
+      this.apiType = 'freebox';
+      this.strategy = 'freebox-only';
       await AsyncStorage.setItem('custom_image_api', JSON.stringify(config));
       console.log('✅ Config images sauvegardée:', config);
       return true;
@@ -62,8 +65,10 @@ class CustomImageAPIService {
   async clearConfig() {
     try {
       await AsyncStorage.removeItem('custom_image_api');
-      this.customApiUrl = null;
-      this.apiType = 'pollinations';
+      // Revenir aux defaults Freebox-only
+      this.customApiUrl = 'http://88.174.155.230:33437/generate';
+      this.apiType = 'freebox';
+      this.strategy = 'freebox-only';
       return true;
     } catch (error) {
       console.error('Error clearing custom API config:', error);
@@ -103,25 +108,21 @@ class CustomImageAPIService {
    * Vérifier si on doit utiliser Freebox
    */
   shouldUseFreebox() {
-    return this.hasCustomApi() && (
-      this.strategy === 'freebox-only' || 
-      this.strategy === 'freebox-first'
-    );
+    return this.hasCustomApi();
   }
 
   /**
    * Vérifier si on doit utiliser Pollinations
    */
   shouldUsePollinations() {
-    return this.strategy === 'pollinations-only' || 
-           this.strategy === 'freebox-first';
+    return false;
   }
 
   /**
    * Vérifier si on doit fallback sur Pollinations après échec Freebox
    */
   shouldFallbackToPollinations() {
-    return this.strategy === 'freebox-first';
+    return false;
   }
 
   /**
@@ -188,30 +189,17 @@ class CustomImageAPIService {
     const {
       width = 768,
       height = 768,
-      model = 'flux',
       seed = Date.now(),
     } = options;
 
-    if (this.apiType === 'pollinations' || !this.customApiUrl) {
-      // API Pollinations par défaut
-      const encodedPrompt = encodeURIComponent(prompt);
-      return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=${model}&nologo=true&enhance=true&seed=${seed}&private=true`;
-    }
-
-    if (this.apiType === 'freebox' || this.apiType === 'custom') {
-      // API personnalisée - format standard text-to-image
-      // La plupart des APIs acceptent ce format
-      const encodedPrompt = encodeURIComponent(prompt);
-      
-      // Si l'URL contient déjà des paramètres, utiliser &, sinon ?
-      const separator = this.customApiUrl.includes('?') ? '&' : '?';
-      
-      return `${this.customApiUrl}${separator}prompt=${encodedPrompt}&width=${width}&height=${height}&seed=${seed}`;
-    }
-
-    // Fallback: Pollinations
+    // Freebox uniquement (API serveur)
     const encodedPrompt = encodeURIComponent(prompt);
-    return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=${model}&nologo=true&enhance=true&seed=${seed}&private=true`;
+    const base = (this.customApiUrl || '').trim();
+    if (!base) {
+      throw new Error('API Freebox non configurée');
+    }
+    const separator = base.includes('?') ? '&' : '?';
+    return `${base}${separator}prompt=${encodedPrompt}&width=${width}&height=${height}&seed=${seed}`;
   }
 
   /**
