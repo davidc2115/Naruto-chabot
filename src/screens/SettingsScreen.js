@@ -11,17 +11,26 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserProfileService from '../services/UserProfileService';
+import CustomImageAPIService from '../services/CustomImageAPIService';
+import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
+import * as FileSystem from 'expo-file-system';
 
 export default function SettingsScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
   
-  // Clés API Groq (simple)
+  // Clés API Groq
   const [groqApiKeys, setGroqApiKeys] = useState(['']);
   const [testingApi, setTestingApi] = useState(false);
   
   // Configuration images
-  const [imageSource, setImageSource] = useState('pollinations');
+  const [imageSource, setImageSource] = useState('freebox');
+  const [freeboxUrl, setFreeboxUrl] = useState('http://88.174.155.230:33437/generate');
+  
+  // SD Local
+  const [sdAvailability, setSdAvailability] = useState(null);
+  const [sdDownloading, setSdDownloading] = useState(false);
+  const [sdDownloadProgress, setSdDownloadProgress] = useState(0);
 
   useEffect(() => {
     loadAllSettings();
@@ -30,6 +39,7 @@ export default function SettingsScreen({ navigation }) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       loadProfile();
+      checkSDAvailability();
     });
     return unsubscribe;
   }, [navigation]);
@@ -39,6 +49,7 @@ export default function SettingsScreen({ navigation }) {
       await loadProfile();
       await loadGroqKeys();
       await loadImageConfig();
+      await checkSDAvailability();
     } catch (error) {
       console.error('Erreur chargement paramètres:', error);
     } finally {
@@ -69,12 +80,27 @@ export default function SettingsScreen({ navigation }) {
 
   const loadImageConfig = async () => {
     try {
-      const strategy = await AsyncStorage.getItem('image_generation_strategy');
-      if (strategy) {
-        setImageSource(strategy);
+      await CustomImageAPIService.loadConfig();
+      const strategy = CustomImageAPIService.getStrategy();
+      const url = CustomImageAPIService.getApiUrl();
+      
+      setImageSource(strategy || 'freebox');
+      if (url) {
+        setFreeboxUrl(url);
       }
     } catch (error) {
       console.error('Erreur chargement config images:', error);
+    }
+  };
+
+  const checkSDAvailability = async () => {
+    try {
+      const availability = await StableDiffusionLocalService.checkAvailability();
+      setSdAvailability(availability);
+      console.log('📱 SD Local availability:', availability);
+    } catch (error) {
+      console.error('❌ Error checking SD availability:', error);
+      setSdAvailability({ available: false, reason: error.message });
     }
   };
 
@@ -132,9 +158,110 @@ export default function SettingsScreen({ navigation }) {
 
   const saveImageConfig = async () => {
     try {
-      await AsyncStorage.setItem('image_generation_strategy', imageSource);
-      Alert.alert('✅ Succès', 'Configuration des images sauvegardée !');
+      if (imageSource === 'local') {
+        await CustomImageAPIService.saveConfig('', 'local', 'local');
+        Alert.alert('✅ Succès', 'Stable Diffusion Local activé ! Téléchargez le modèle pour commencer.');
+      } else {
+        // Freebox
+        if (!freeboxUrl.trim()) {
+          Alert.alert('Erreur', 'Veuillez entrer l\'URL de la Freebox.');
+          return;
+        }
+        await CustomImageAPIService.saveConfig(freeboxUrl.trim(), 'freebox', 'freebox');
+        Alert.alert('✅ Succès', 'API Freebox configurée !');
+      }
     } catch (error) {
+      Alert.alert('❌ Erreur', error.message);
+    }
+  };
+
+  const testFreeboxConnection = async () => {
+    if (!freeboxUrl.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer une URL.');
+      return;
+    }
+
+    try {
+      Alert.alert('Test en cours', 'Vérification de la connexion...');
+      const result = await CustomImageAPIService.testConnection(freeboxUrl.trim());
+      
+      if (result.success) {
+        Alert.alert('✅ Succès', 'Connexion à la Freebox réussie !');
+      } else {
+        Alert.alert('❌ Échec', `Impossible de se connecter:\n${result.error}`);
+      }
+    } catch (error) {
+      Alert.alert('❌ Erreur', `Test échoué: ${error.message}`);
+    }
+  };
+
+  const downloadSDModel = async () => {
+    try {
+      setSdDownloading(true);
+      setSdDownloadProgress(0);
+      
+      Alert.alert(
+        '📥 Téléchargement du modèle SD',
+        'Le téléchargement va commencer.\nTaille: ~450 MB\n\n⚠️ Assurez-vous d\'être connecté en WiFi.',
+        [
+          { text: 'Annuler', style: 'cancel', onPress: () => setSdDownloading(false) },
+          {
+            text: 'Télécharger',
+            onPress: async () => {
+              try {
+                console.log('📥 Début téléchargement modèle SD...');
+                
+                // Créer le dossier
+                const modelDir = `${FileSystem.documentDirectory}sd_models/`;
+                const dirInfo = await FileSystem.getInfoAsync(modelDir);
+                if (!dirInfo.exists) {
+                  await FileSystem.makeDirectoryAsync(modelDir, { intermediates: true });
+                }
+                
+                // URL du modèle (placeholder - sera remplacée par le vrai modèle)
+                const modelUrl = 'https://huggingface.co/stabilityai/sd-turbo/resolve/main/sd_turbo.safetensors';
+                const modelPath = `${modelDir}sd_turbo.safetensors`;
+                
+                console.log('🌐 Téléchargement depuis:', modelUrl);
+                
+                const downloadResumable = FileSystem.createDownloadResumable(
+                  modelUrl,
+                  modelPath,
+                  {},
+                  (downloadProgress) => {
+                    if (downloadProgress.totalBytesExpectedToWrite > 0) {
+                      const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
+                      setSdDownloadProgress(progress);
+                    }
+                  }
+                );
+                
+                const result = await downloadResumable.downloadAsync();
+                
+                if (result && result.uri) {
+                  const fileInfo = await FileSystem.getInfoAsync(result.uri);
+                  const sizeMB = fileInfo.size / 1024 / 1024;
+                  
+                  setSdDownloading(false);
+                  setSdDownloadProgress(100);
+                  
+                  Alert.alert(
+                    '✅ Téléchargement réussi !',
+                    `Modèle téléchargé avec succès.\nTaille: ${sizeMB.toFixed(2)} MB`,
+                    [{ text: 'OK', onPress: () => checkSDAvailability() }]
+                  );
+                }
+              } catch (error) {
+                console.error('❌ Erreur téléchargement:', error);
+                setSdDownloading(false);
+                Alert.alert('❌ Erreur', `Téléchargement échoué: ${error.message}`);
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      setSdDownloading(false);
       Alert.alert('❌ Erreur', error.message);
     }
   };
@@ -259,27 +386,10 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
         <Text style={styles.sectionDescription}>
-          Choisissez la source pour générer les images des personnages.
+          Choisissez la source pour générer les images. Freebox uniquement (pas de Pollinations).
         </Text>
 
-        <TouchableOpacity
-          style={[
-            styles.optionCard,
-            imageSource === 'pollinations' && styles.optionCardActive
-          ]}
-          onPress={() => setImageSource('pollinations')}
-        >
-          <View style={styles.radioButton}>
-            {imageSource === 'pollinations' && <View style={styles.radioButtonInner} />}
-          </View>
-          <View style={styles.optionContent}>
-            <Text style={styles.optionTitle}>🌐 Pollinations.ai (Recommandé)</Text>
-            <Text style={styles.optionDescription}>
-              Génération en ligne gratuite. Fonctionne partout, sans installation.
-            </Text>
-          </View>
-        </TouchableOpacity>
-
+        {/* Option Freebox */}
         <TouchableOpacity
           style={[
             styles.optionCard,
@@ -291,15 +401,111 @@ export default function SettingsScreen({ navigation }) {
             {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
           </View>
           <View style={styles.optionContent}>
-            <Text style={styles.optionTitle}>🏠 Freebox (Serveur local)</Text>
+            <Text style={styles.optionTitle}>🏠 Freebox (Recommandé)</Text>
             <Text style={styles.optionDescription}>
-              Utilise votre serveur Freebox si configuré. Illimité.
+              Utilise votre serveur Freebox. Illimité, pas de rate limit !
             </Text>
           </View>
         </TouchableOpacity>
 
+        {/* Option SD Local */}
+        <TouchableOpacity
+          style={[
+            styles.optionCard,
+            imageSource === 'local' && styles.optionCardActive
+          ]}
+          onPress={() => setImageSource('local')}
+        >
+          <View style={styles.radioButton}>
+            {imageSource === 'local' && <View style={styles.radioButtonInner} />}
+          </View>
+          <View style={styles.optionContent}>
+            <Text style={styles.optionTitle}>📱 SD Local (Smartphone)</Text>
+            <Text style={styles.optionDescription}>
+              Génération sur votre téléphone. 100% privé, offline.
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Configuration Freebox */}
+        {imageSource === 'freebox' && (
+          <View style={styles.configBox}>
+            <Text style={styles.configTitle}>Configuration Freebox:</Text>
+            <TextInput
+              style={styles.urlInput}
+              placeholder="http://88.174.155.230:33437/generate"
+              value={freeboxUrl}
+              onChangeText={setFreeboxUrl}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
+              <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Configuration SD Local */}
+        {imageSource === 'local' && (
+          <View style={styles.configBox}>
+            <Text style={styles.configTitle}>Stable Diffusion Local:</Text>
+            
+            {sdAvailability && (
+              <View style={styles.sdInfoBox}>
+                <Text style={styles.sdInfoText}>
+                  📱 Disponible: {sdAvailability.available ? '✅ Oui' : '❌ Non'}
+                </Text>
+                {sdAvailability.available && (
+                  <>
+                    <Text style={styles.sdInfoText}>
+                      📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
+                    </Text>
+                    <Text style={styles.sdInfoText}>
+                      💾 RAM: {sdAvailability.ramMB ? `${Math.round(sdAvailability.ramMB)} MB` : 'N/A'}
+                    </Text>
+                    <Text style={styles.sdInfoText}>
+                      ⚡ Compatible: {sdAvailability.canRunSD ? '✅ Oui' : '❌ RAM insuffisante'}
+                    </Text>
+                  </>
+                )}
+                {!sdAvailability.available && sdAvailability.reason && (
+                  <Text style={styles.sdInfoWarning}>⚠️ {sdAvailability.reason}</Text>
+                )}
+              </View>
+            )}
+
+            {sdDownloading && (
+              <View style={styles.progressContainer}>
+                <Text style={styles.progressText}>
+                  📥 Téléchargement... {Math.round(sdDownloadProgress)}%
+                </Text>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
+                </View>
+              </View>
+            )}
+
+            <TouchableOpacity 
+              style={[
+                styles.downloadButton, 
+                (sdDownloading || (sdAvailability?.modelDownloaded)) && styles.downloadButtonDisabled
+              ]} 
+              onPress={downloadSDModel}
+              disabled={sdDownloading || sdAvailability?.modelDownloaded}
+            >
+              <Text style={styles.downloadButtonText}>
+                {sdDownloading 
+                  ? '⏳ Téléchargement...' 
+                  : sdAvailability?.modelDownloaded
+                    ? '✅ Modèle installé'
+                    : '📥 Télécharger le modèle (450 MB)'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         <TouchableOpacity style={styles.saveButton} onPress={saveImageConfig}>
-          <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
+          <Text style={styles.saveButtonText}>💾 Sauvegarder la configuration</Text>
         </TouchableOpacity>
       </View>
 
@@ -307,11 +513,11 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.0.2</Text>
+          <Text style={styles.aboutText}>Version: 3.0.3</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
-          <Text style={styles.aboutText}>236 personnages uniques</Text>
-          <Text style={styles.aboutText}>30 amies avec descriptions détaillées</Text>
-          <Text style={styles.aboutText}>Génération d'images gratuite</Text>
+          <Text style={styles.aboutText}>45 personnages (15 originaux + 30 amies)</Text>
+          <Text style={styles.aboutText}>Génération d'images: Freebox uniquement</Text>
+          <Text style={styles.aboutText}>Descriptions en français</Text>
         </View>
       </View>
 
@@ -322,7 +528,8 @@ export default function SettingsScreen({ navigation }) {
           <Text style={styles.featureItem}>✓ Multi-clés Groq avec rotation</Text>
           <Text style={styles.featureItem}>✓ Personnalisation des bulles de chat</Text>
           <Text style={styles.featureItem}>✓ Mode NSFW pour adultes</Text>
-          <Text style={styles.featureItem}>✓ Génération d'images illimitée</Text>
+          <Text style={styles.featureItem}>✓ Génération d'images Freebox illimitée</Text>
+          <Text style={styles.featureItem}>✓ Option SD Local sur smartphone</Text>
           <Text style={styles.featureItem}>✓ Galerie d'images par personnage</Text>
           <Text style={styles.featureItem}>✓ Sauvegarde automatique</Text>
         </View>
@@ -507,6 +714,89 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6b7280',
     lineHeight: 18,
+  },
+  configBox: {
+    backgroundColor: '#f0f9ff',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  configTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0369a1',
+    marginBottom: 10,
+  },
+  urlInput: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 13,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 10,
+  },
+  testButtonSmall: {
+    backgroundColor: '#0ea5e9',
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+  },
+  testButtonSmallText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  sdInfoBox: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  sdInfoText: {
+    fontSize: 13,
+    color: '#374151',
+    marginBottom: 5,
+  },
+  sdInfoWarning: {
+    fontSize: 13,
+    color: '#dc2626',
+    marginTop: 5,
+  },
+  progressContainer: {
+    marginBottom: 10,
+  },
+  progressText: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#10b981',
+    borderRadius: 4,
+  },
+  downloadButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  downloadButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  downloadButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
   },
   aboutBox: {
     backgroundColor: '#f3f4f6',
