@@ -386,46 +386,132 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
         <Text style={styles.sectionDescription}>
-          Génération via Stable Diffusion sur serveur Freebox. Sans Pollinations, sans rate limit !
+          Choisissez entre Freebox (serveur) ou SD Local (smartphone).
         </Text>
 
-        {/* Info Freebox */}
-        <View style={[styles.optionCard, styles.optionCardActive]}>
+        {/* Option Freebox */}
+        <TouchableOpacity
+          style={[
+            styles.optionCard,
+            imageSource === 'freebox' && styles.optionCardActive
+          ]}
+          onPress={() => setImageSource('freebox')}
+        >
           <View style={styles.radioButton}>
-            <View style={styles.radioButtonInner} />
+            {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
           </View>
           <View style={styles.optionContent}>
-            <Text style={styles.optionTitle}>🏠 Freebox Stable Diffusion</Text>
+            <Text style={styles.optionTitle}>🏠 Freebox (Recommandé)</Text>
             <Text style={styles.optionDescription}>
-              Utilise Hugging Face Stable Diffusion via votre serveur Freebox. Illimité !
+              Serveur Stable Diffusion sur Freebox. Rapide et illimité !
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
+
+        {/* Option SD Local */}
+        <TouchableOpacity
+          style={[
+            styles.optionCard,
+            imageSource === 'local' && styles.optionCardActive
+          ]}
+          onPress={() => setImageSource('local')}
+        >
+          <View style={styles.radioButton}>
+            {imageSource === 'local' && <View style={styles.radioButtonInner} />}
+          </View>
+          <View style={styles.optionContent}>
+            <Text style={styles.optionTitle}>📱 SD Local (Smartphone)</Text>
+            <Text style={styles.optionDescription}>
+              Génération sur téléphone. Offline, 100% privé.
+            </Text>
+            <Text style={styles.optionWarning}>⚠️ Pipeline en développement</Text>
+          </View>
+        </TouchableOpacity>
 
         {/* Configuration Freebox */}
-        <View style={styles.configBox}>
-          <Text style={styles.configTitle}>Configuration Freebox:</Text>
-          <TextInput
-            style={styles.urlInput}
-            placeholder="http://88.174.155.230:33437/generate"
-            value={freeboxUrl}
-            onChangeText={setFreeboxUrl}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
-            <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
-          </TouchableOpacity>
-        </View>
+        {imageSource === 'freebox' && (
+          <View style={styles.configBox}>
+            <Text style={styles.configTitle}>Configuration Freebox:</Text>
+            <TextInput
+              style={styles.urlInput}
+              placeholder="http://88.174.155.230:33437/generate"
+              value={freeboxUrl}
+              onChangeText={setFreeboxUrl}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
+              <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-        {/* Note SD Local désactivé */}
-        <View style={styles.sdDisabledBox}>
-          <Text style={styles.sdDisabledTitle}>📱 SD Local (Désactivé)</Text>
-          <Text style={styles.sdDisabledText}>
-            La génération sur smartphone nécessite un pipeline ONNX complet qui n'est pas encore implémenté.
-            Utilisez la Freebox pour générer des images.
-          </Text>
-        </View>
+        {/* Configuration SD Local */}
+        {imageSource === 'local' && (
+          <View style={styles.configBox}>
+            <Text style={styles.configTitle}>📱 Stable Diffusion Local:</Text>
+            
+            {/* Avertissement */}
+            <View style={styles.warningBox}>
+              <Text style={styles.warningText}>
+                ⚠️ Le pipeline ONNX complet n'est pas encore implémenté.
+                Vous pouvez télécharger le modèle pour préparer l'utilisation future.
+                En attendant, la Freebox sera utilisée comme fallback.
+              </Text>
+            </View>
+
+            {/* Statut */}
+            {sdAvailability && (
+              <View style={styles.sdInfoBox}>
+                <Text style={styles.sdInfoText}>
+                  📱 Module natif: {sdAvailability.available ? '✅ Chargé' : '❌ Non chargé'}
+                </Text>
+                <Text style={styles.sdInfoText}>
+                  📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
+                </Text>
+                {sdAvailability.modelSizeMB > 0 && (
+                  <Text style={styles.sdInfoText}>
+                    💾 Taille: {sdAvailability.modelSizeMB.toFixed(1)} MB
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* Barre de progression */}
+            {sdDownloading && (
+              <View style={styles.progressContainer}>
+                <Text style={styles.progressText}>
+                  📥 Téléchargement... {Math.round(sdDownloadProgress)}%
+                </Text>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
+                </View>
+              </View>
+            )}
+
+            {/* Bouton téléchargement */}
+            <TouchableOpacity 
+              style={[
+                styles.downloadButton, 
+                sdDownloading && styles.downloadButtonDisabled
+              ]} 
+              onPress={downloadSDModel}
+              disabled={sdDownloading}
+            >
+              <Text style={styles.downloadButtonText}>
+                {sdDownloading 
+                  ? '⏳ Téléchargement en cours...' 
+                  : sdAvailability?.modelDownloaded
+                    ? '🔄 Re-télécharger le modèle'
+                    : '📥 Télécharger le modèle (~2.5 GB)'}
+              </Text>
+            </TouchableOpacity>
+            
+            <Text style={styles.sdNote}>
+              💡 Conseil: Utilisez la Freebox pour l'instant. Le SD Local sera fonctionnel dans une future mise à jour.
+            </Text>
+          </View>
+        )}
 
         <TouchableOpacity style={styles.saveButton} onPress={saveImageConfig}>
           <Text style={styles.saveButtonText}>💾 Sauvegarder la configuration</Text>
@@ -436,7 +522,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.0.6</Text>
+          <Text style={styles.aboutText}>Version: 3.0.7</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>45 personnages (15 originaux + 30 amies)</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox + HuggingFace SD</Text>
@@ -721,25 +807,31 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
-  sdDisabledBox: {
+  optionWarning: {
+    fontSize: 11,
+    color: '#dc2626',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  warningBox: {
     backgroundColor: '#fef3c7',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 10,
-    marginBottom: 10,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#f59e0b',
   },
-  sdDisabledTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#92400e',
-    marginBottom: 5,
-  },
-  sdDisabledText: {
-    fontSize: 13,
+  warningText: {
+    fontSize: 12,
     color: '#92400e',
     lineHeight: 18,
+  },
+  sdNote: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 10,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   aboutBox: {
     backgroundColor: '#f3f4f6',
