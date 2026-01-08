@@ -872,24 +872,29 @@ class ImageGenerationService {
 
   /**
    * Génère une image avec Stable Diffusion Local (Smartphone)
+   * Si non disponible, utilise automatiquement Pollinations comme fallback
    */
   async generateWithLocal(prompt) {
-    console.log('📱 Génération locale SD commencée...');
+    console.log('📱 Tentative génération locale SD...');
     
     try {
       // Vérifie la disponibilité
       const availability = await StableDiffusionLocalService.checkAvailability();
       
-      if (!availability.available) {
-        throw new Error(availability.reason || 'Service non disponible');
-      }
-
-      if (!availability.modelDownloaded) {
-        throw new Error('Modèle SD non téléchargé. Allez dans Paramètres > Génération d\'images');
-      }
-
-      if (!availability.canRunSD) {
-        throw new Error(`RAM insuffisante (${Math.round(availability.ramMB)} MB). Minimum: 2 GB`);
+      // Si SD Local non disponible, fallback vers Pollinations
+      if (!availability.available || !availability.modelDownloaded || !availability.canRunSD) {
+        const reason = !availability.available 
+          ? 'Service SD Local non disponible sur cet appareil'
+          : !availability.modelDownloaded 
+            ? 'Modèle SD non téléchargé'
+            : 'RAM insuffisante';
+        
+        console.log(`⚠️ ${reason} - Utilisation de Pollinations à la place`);
+        
+        // Fallback automatique vers Pollinations
+        const seed = Date.now() + Math.floor(Math.random() * 10000);
+        await this.waitForRateLimit();
+        return await this.generateWithPollinations(prompt, seed);
       }
 
       // Construire le prompt avec qualité + négatif
@@ -907,18 +912,28 @@ class ImageGenerationService {
 
       console.log('✅ Image générée localement:', result);
       
-      // TODO: Pour l'instant, retourne un message de succès
-      // L'implémentation complète de l'inférence ONNX sera ajoutée
-      if (result.imagePath) {
+      if (result && result.imagePath) {
         return result.imagePath;
       }
       
-      // Placeholder temporaire
-      return 'https://via.placeholder.com/512x512.png?text=SD+Local+Image';
+      // Si pas de résultat, fallback vers Pollinations
+      console.log('⚠️ Pas de résultat SD Local, fallback Pollinations');
+      const seed = Date.now() + Math.floor(Math.random() * 10000);
+      await this.waitForRateLimit();
+      return await this.generateWithPollinations(prompt, seed);
       
     } catch (error) {
-      console.error('❌ Erreur génération locale:', error);
-      throw error;
+      console.error('❌ Erreur génération locale:', error.message);
+      console.log('🔄 Fallback vers Pollinations...');
+      
+      // En cas d'erreur, fallback vers Pollinations
+      try {
+        const seed = Date.now() + Math.floor(Math.random() * 10000);
+        await this.waitForRateLimit();
+        return await this.generateWithPollinations(prompt, seed);
+      } catch (fallbackError) {
+        throw new Error(`Génération impossible: ${fallbackError.message}`);
+      }
     }
   }
 }
