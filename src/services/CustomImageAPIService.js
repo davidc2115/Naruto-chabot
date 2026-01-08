@@ -2,15 +2,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 /**
- * Service de configuration d'API d'image personnalisée
- * Permet d'utiliser une API hébergée localement (ex: Freebox) pour générer des images
+ * Service de configuration d'API d'image - FREEBOX UNIQUEMENT
+ * Pas de Pollinations - utilise Hugging Face SD sur Freebox
  */
 class CustomImageAPIService {
   constructor() {
     // URL Freebox par défaut
     this.customApiUrl = 'http://88.174.155.230:33437/generate';
     this.apiType = 'freebox'; // 'freebox' ou 'local'
-    this.strategy = 'freebox'; // 'freebox' ou 'local' (pas de Pollinations)
+    this.strategy = 'freebox'; // 'freebox' ou 'local' (JAMAIS Pollinations)
   }
 
   /**
@@ -21,12 +21,13 @@ class CustomImageAPIService {
       const config = await AsyncStorage.getItem('custom_image_api');
       if (config) {
         const parsed = JSON.parse(config);
-        this.customApiUrl = parsed.url;
-        this.apiType = parsed.type || 'pollinations';
-        this.strategy = parsed.strategy || 'freebox-first';
+        this.customApiUrl = parsed.url || 'http://88.174.155.230:33437/generate';
+        this.apiType = parsed.type || 'freebox';
+        // Forcer freebox ou local, jamais pollinations
+        this.strategy = (parsed.strategy === 'local') ? 'local' : 'freebox';
         
         console.log('📸 Config images chargée:', {
-          url: this.customApiUrl ? this.customApiUrl.substring(0, 50) + '...' : 'none',
+          url: this.customApiUrl ? this.customApiUrl.substring(0, 50) + '...' : 'freebox default',
           type: this.apiType,
           strategy: this.strategy
         });
@@ -38,18 +39,32 @@ class CustomImageAPIService {
       }
     } catch (error) {
       console.error('Error loading custom API config:', error);
+      // Fallback sur Freebox
+      this.customApiUrl = 'http://88.174.155.230:33437/generate';
+      this.apiType = 'freebox';
+      this.strategy = 'freebox';
     }
   }
 
   /**
    * Sauvegarder la configuration de l'API personnalisée
    */
-  async saveConfig(url, type = 'custom', strategy = 'freebox-first') {
+  async saveConfig(url, type = 'freebox', strategy = 'freebox') {
     try {
-      const config = { url, type, strategy };
-      this.customApiUrl = url;
-      this.apiType = type;
-      this.strategy = strategy;
+      // Forcer freebox ou local uniquement
+      const validStrategy = (strategy === 'local') ? 'local' : 'freebox';
+      const validType = (type === 'local') ? 'local' : 'freebox';
+      
+      const config = { 
+        url: url || 'http://88.174.155.230:33437/generate', 
+        type: validType, 
+        strategy: validStrategy 
+      };
+      
+      this.customApiUrl = config.url;
+      this.apiType = config.type;
+      this.strategy = config.strategy;
+      
       await AsyncStorage.setItem('custom_image_api', JSON.stringify(config));
       console.log('✅ Config images sauvegardée:', config);
       return true;
@@ -60,13 +75,14 @@ class CustomImageAPIService {
   }
 
   /**
-   * Supprimer la configuration (revenir à Pollinations)
+   * Supprimer la configuration (revenir à Freebox par défaut)
    */
   async clearConfig() {
     try {
       await AsyncStorage.removeItem('custom_image_api');
-      this.customApiUrl = null;
-      this.apiType = 'pollinations';
+      this.customApiUrl = 'http://88.174.155.230:33437/generate';
+      this.apiType = 'freebox';
+      this.strategy = 'freebox';
       return true;
     } catch (error) {
       console.error('Error clearing custom API config:', error);
@@ -78,7 +94,7 @@ class CustomImageAPIService {
    * Obtenir l'URL de l'API actuelle
    */
   getApiUrl() {
-    return this.customApiUrl;
+    return this.customApiUrl || 'http://88.174.155.230:33437/generate';
   }
 
   /**
@@ -106,25 +122,14 @@ class CustomImageAPIService {
    * Vérifier si on doit utiliser Freebox
    */
   shouldUseFreebox() {
-    return this.hasCustomApi() && (
-      this.strategy === 'freebox-only' || 
-      this.strategy === 'freebox-first'
-    );
+    return this.strategy === 'freebox';
   }
 
   /**
-   * Vérifier si on doit utiliser Pollinations
+   * Vérifier si on doit utiliser SD Local
    */
-  shouldUsePollinations() {
-    return this.strategy === 'pollinations-only' || 
-           this.strategy === 'freebox-first';
-  }
-
-  /**
-   * Vérifier si on doit fallback sur Pollinations après échec Freebox
-   */
-  shouldFallbackToPollinations() {
-    return this.strategy === 'freebox-first';
+  shouldUseLocal() {
+    return this.strategy === 'local';
   }
 
   /**
@@ -185,134 +190,22 @@ class CustomImageAPIService {
   }
 
   /**
-   * Construire l'URL de génération d'image selon le type d'API
+   * Construire l'URL de génération d'image - FREEBOX UNIQUEMENT
    */
   buildImageUrl(prompt, options = {}) {
     const {
       width = 768,
       height = 768,
-      model = 'flux',
       seed = Date.now(),
     } = options;
 
-    if (this.apiType === 'pollinations' || !this.customApiUrl) {
-      // API Pollinations par défaut
-      const encodedPrompt = encodeURIComponent(prompt);
-      return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=${model}&nologo=true&enhance=true&seed=${seed}&private=true`;
-    }
-
-    if (this.apiType === 'freebox' || this.apiType === 'custom') {
-      // API personnalisée - format standard text-to-image
-      // La plupart des APIs acceptent ce format
-      const encodedPrompt = encodeURIComponent(prompt);
-      
-      // Si l'URL contient déjà des paramètres, utiliser &, sinon ?
-      const separator = this.customApiUrl.includes('?') ? '&' : '?';
-      
-      return `${this.customApiUrl}${separator}prompt=${encodedPrompt}&width=${width}&height=${height}&seed=${seed}`;
-    }
-
-    // Fallback: Pollinations
+    const url = this.customApiUrl || 'http://88.174.155.230:33437/generate';
     const encodedPrompt = encodeURIComponent(prompt);
-    return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=${model}&nologo=true&enhance=true&seed=${seed}&private=true`;
-  }
-
-  /**
-   * Guide pour configurer l'API sur Freebox
-   */
-  getFreeboxSetupGuide() {
-    return `
-# 🖼️ Configuration API d'Images sur Freebox
-
-## Option 1: Stable Diffusion Web UI (Recommandé)
-
-1. **Installer Stable Diffusion sur votre Freebox/serveur local**
-   - Télécharger: https://github.com/AUTOMATIC1111/stable-diffusion-webui
-   - Installer sur Freebox Server ou VM
-
-2. **Lancer avec API activée**
-   \`\`\`bash
-   ./webui.sh --api --listen
-   \`\`\`
-
-3. **Trouver votre IP locale**
-   - Freebox: généralement 192.168.1.x ou 192.168.0.x
-   - Exemple: http://192.168.1.100:7860
-
-4. **URL à configurer dans l'app**
-   \`\`\`
-   http://192.168.1.100:7860/sdapi/v1/txt2img
-   \`\`\`
-
-## Option 2: ComfyUI
-
-1. **Installer ComfyUI**
-   - https://github.com/comfyanonymous/ComfyUI
-
-2. **Lancer avec API**
-   \`\`\`bash
-   python main.py --listen 0.0.0.0
-   \`\`\`
-
-3. **URL à configurer**
-   \`\`\`
-   http://192.168.1.100:8188/api/txt2img
-   \`\`\`
-
-## Option 3: Serveur personnalisé simple
-
-Si vous avez un serveur sur votre Freebox, créez un endpoint simple :
-
-\`\`\`python
-# simple_image_api.py
-from flask import Flask, request, send_file
-from diffusers import StableDiffusionPipeline
-
-app = Flask(__name__)
-pipe = StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5")
-
-@app.route('/generate', methods=['GET'])
-def generate():
-    prompt = request.args.get('prompt')
-    image = pipe(prompt).images[0]
-    image.save('output.png')
-    return send_file('output.png', mimetype='image/png')
-
-app.run(host='0.0.0.0', port=5000)
-\`\`\`
-
-**URL à configurer**: \`http://192.168.1.100:5000/generate\`
-
-## ⚙️ Configuration dans l'App
-
-1. Aller dans **Paramètres**
-2. Section **"API d'Images Personnalisée"**
-3. Activer "Utiliser une API personnalisée"
-4. Entrer l'URL de votre serveur
-5. Tester la connexion
-6. Sauvegarder
-
-## 📝 Notes
-
-- Assurez-vous que votre Freebox/serveur est accessible depuis votre réseau local
-- L'API doit accepter les requêtes GET avec le paramètre "prompt"
-- Pour un accès depuis l'extérieur, configurez le port forwarding sur votre Freebox
-- Les images sont générées localement = **ILLIMITÉ** et **GRATUIT** !
-
-## 🔒 Sécurité
-
-- N'exposez PAS votre API sur Internet sans authentification
-- Utilisez uniquement sur votre réseau local
-- Ou configurez un VPN pour y accéder à distance
-
-## 🚀 Avantages
-
-✅ **Illimité** - Pas de quota
-✅ **Gratuit** - Après l'investissement initial
-✅ **Privé** - Vos images restent chez vous
-✅ **Rapide** - Pas de latence réseau
-✅ **Personnalisable** - Vos propres modèles
-`;
+    
+    // Si l'URL contient déjà des paramètres, utiliser &, sinon ?
+    const separator = url.includes('?') ? '&' : '?';
+    
+    return `${url}${separator}prompt=${encodedPrompt}&width=${width}&height=${height}&seed=${seed}`;
   }
 }
 
