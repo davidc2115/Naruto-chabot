@@ -11,6 +11,8 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import GroqService from '../services/GroqService';
 import TextGenerationService from '../services/TextGenerationService';
@@ -18,6 +20,7 @@ import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
 import GalleryService from '../services/GalleryService';
+import ChatStyleService from '../services/ChatStyleService';
 
 export default function ConversationScreen({ route, navigation }) {
   const { character } = route.params || {};
@@ -31,6 +34,14 @@ export default function ConversationScreen({ route, navigation }) {
   const [conversationBackground, setConversationBackground] = useState(null);
   const [initError, setInitError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Style settings
+  const [showSettings, setShowSettings] = useState(false);
+  const [chatStyle, setChatStyle] = useState(null);
+  const [selectedTheme, setSelectedTheme] = useState('default');
+  const [opacity, setOpacity] = useState(1);
+  const [borderRadius, setBorderRadius] = useState(15);
+  
   const flatListRef = useRef(null);
 
   // Vérification de sécurité
@@ -52,14 +63,13 @@ export default function ConversationScreen({ route, navigation }) {
 
   const initializeScreen = async () => {
     try {
-      // Les clés API Groq sont maintenant chargées automatiquement dans generateResponse
-      
-      // Charger le reste
+      // Charger tout en parallèle
       await Promise.all([
         loadConversation(),
         loadUserProfile(),
         loadGallery(),
-        loadBackground()
+        loadBackground(),
+        loadChatStyle(),
       ]);
       
       setIsInitialized(true);
@@ -67,12 +77,14 @@ export default function ConversationScreen({ route, navigation }) {
       navigation.setOptions({
         title: character?.name || 'Conversation',
         headerRight: () => (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('CharacterDetail', { character })}
-            style={{ marginRight: 15 }}
-          >
-            <Text style={{ color: '#fff', fontSize: 16 }}>ℹ️</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', marginRight: 10 }}>
+            <TouchableOpacity onPress={() => setShowSettings(true)} style={{ marginRight: 15 }}>
+              <Text style={{ color: '#fff', fontSize: 20 }}>⚙️</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('CharacterDetail', { character })}>
+              <Text style={{ color: '#fff', fontSize: 20 }}>ℹ️</Text>
+            </TouchableOpacity>
+          </View>
         ),
       });
     } catch (error) {
@@ -83,6 +95,19 @@ export default function ConversationScreen({ route, navigation }) {
         `Impossible d'initialiser la conversation: ${error.message}`,
         [{ text: 'Retour', onPress: () => navigation.goBack() }]
       );
+    }
+  };
+
+  const loadChatStyle = async () => {
+    try {
+      const style = await ChatStyleService.loadStyle();
+      setChatStyle(style);
+      setSelectedTheme(ChatStyleService.getCurrentTheme());
+      setOpacity(style.bubbleOpacity || 1);
+      setBorderRadius(style.borderRadius || 15);
+    } catch (error) {
+      console.error('❌ Erreur chargement style:', error);
+      setChatStyle(ChatStyleService.getCurrentStyle());
     }
   };
 
@@ -131,7 +156,6 @@ export default function ConversationScreen({ route, navigation }) {
         setMessages(saved.messages);
         setRelationship(saved.relationship);
       } else {
-        // Start with character's initial message - PAS DE TIMESTAMP
         const initialMessage = {
           role: 'assistant',
           content: character.startMessage || `Bonjour, je suis ${character.name}.`,
@@ -143,7 +167,6 @@ export default function ConversationScreen({ route, navigation }) {
       }
     } catch (error) {
       console.error('❌ Erreur chargement conversation:', error);
-      // Initialiser avec un message par défaut
       setMessages([{
         role: 'assistant',
         content: character?.startMessage || `Bonjour, je suis ${character?.name || 'votre personnage'}.`
@@ -174,7 +197,6 @@ export default function ConversationScreen({ route, navigation }) {
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
 
-    // PAS DE TIMESTAMP - Groq ne l'accepte pas
     const userMessage = {
       role: 'user',
       content: inputText.trim(),
@@ -186,18 +208,15 @@ export default function ConversationScreen({ route, navigation }) {
     setIsLoading(true);
 
     try {
-      // Update relationship
       const newRelationship = updateRelationship(userMessage.content);
       setRelationship(newRelationship);
 
-      // Generate AI response (utilise TextGenerationService multi-providers)
       const response = await TextGenerationService.generateResponse(
         updatedMessages,
         character,
         userProfile
       );
 
-      // PAS DE TIMESTAMP - Groq ne l'accepte pas
       const assistantMessage = {
         role: 'assistant',
         content: response,
@@ -206,16 +225,13 @@ export default function ConversationScreen({ route, navigation }) {
       const finalMessages = [...updatedMessages, assistantMessage];
       setMessages(finalMessages);
       
-      // Save conversation
       await saveConversation(finalMessages, newRelationship);
 
-      // Scroll to bottom
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
       Alert.alert('Erreur', error.message);
-      // Remove the user message if there was an error
       setMessages(messages);
     } finally {
       setIsLoading(false);
@@ -227,18 +243,15 @@ export default function ConversationScreen({ route, navigation }) {
 
     setGeneratingImage(true);
     try {
-      // Utiliser generateSceneImage avec détection de tenue et mode NSFW
       const imageUrl = await ImageGenerationService.generateSceneImage(
         character,
         userProfile,
         messages
       );
       
-      // Sauvegarder dans la galerie
       await GalleryService.saveImageToGallery(character.id, imageUrl);
-      await loadGallery(); // Recharger la galerie
+      await loadGallery();
       
-      // PAS DE TIMESTAMP
       const imageMessage = {
         role: 'system',
         content: '[Image générée et sauvegardée dans la galerie]',
@@ -261,47 +274,57 @@ export default function ConversationScreen({ route, navigation }) {
     }
   };
 
+  // Fonctions de personnalisation du style
+  const handleThemeChange = async (themeId) => {
+    setSelectedTheme(themeId);
+    const newStyle = await ChatStyleService.applyTheme(themeId);
+    setChatStyle(newStyle);
+    setOpacity(newStyle.bubbleOpacity);
+    setBorderRadius(newStyle.borderRadius);
+  };
+
+  const handleOpacityChange = async (value) => {
+    setOpacity(value);
+    const newStyle = await ChatStyleService.setOpacity(value);
+    setChatStyle(newStyle);
+  };
+
+  const handleBorderRadiusChange = async (value) => {
+    setBorderRadius(value);
+    const newStyle = await ChatStyleService.setBorderRadius(value);
+    setChatStyle(newStyle);
+  };
+
   const formatRPMessage = (content) => {
-    // Parse RP format: *actions* "dialogue" *thoughts*
     const parts = [];
-    let lastIndex = 0;
-    
-    // Match patterns for actions/thoughts (between asterisks) and dialogue (between quotes)
     const actionRegex = /\*([^*]+)\*/g;
     const dialogueRegex = /"([^"]+)"/g;
     
     let match;
     const allMatches = [];
     
-    // Find all actions
     while ((match = actionRegex.exec(content)) !== null) {
       allMatches.push({ type: 'action', text: match[1], index: match.index, length: match[0].length });
     }
     
-    // Find all dialogues
     while ((match = dialogueRegex.exec(content)) !== null) {
       allMatches.push({ type: 'dialogue', text: match[1], index: match.index, length: match[0].length });
     }
     
-    // Sort by index
     allMatches.sort((a, b) => a.index - b.index);
     
-    // Build parts array
     let currentIndex = 0;
     allMatches.forEach(match => {
-      // Add text before this match
       if (match.index > currentIndex) {
         const text = content.substring(currentIndex, match.index).trim();
         if (text) {
           parts.push({ type: 'text', text });
         }
       }
-      // Add the match
       parts.push({ type: match.type, text: match.text });
       currentIndex = match.index + match.length;
     });
     
-    // Add remaining text
     if (currentIndex < content.length) {
       const text = content.substring(currentIndex).trim();
       if (text) {
@@ -315,13 +338,14 @@ export default function ConversationScreen({ route, navigation }) {
   const renderMessage = ({ item }) => {
     const isUser = item.role === 'user';
     const isSystem = item.role === 'system';
+    const style = chatStyle || {};
 
     if (isSystem && item.image) {
       return (
         <View style={styles.imageMessageContainer}>
           <Image source={{ uri: item.image }} style={styles.generatedImage} />
           <Text style={styles.imageTimestamp}>
-            {new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            {item.timestamp ? new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
           </Text>
         </View>
       );
@@ -329,40 +353,198 @@ export default function ConversationScreen({ route, navigation }) {
 
     const formattedParts = formatRPMessage(item.content);
 
+    const bubbleStyle = {
+      backgroundColor: isUser 
+        ? (style.userBubble || '#6366f1') 
+        : (style.assistantBubble || '#ffffff'),
+      opacity: style.bubbleOpacity || 1,
+      borderRadius: style.borderRadius || 15,
+    };
+
     return (
       <View style={[styles.messageContainer, isUser ? styles.userMessage : styles.assistantMessage]}>
-        <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.assistantBubble]}>
+        <View style={[styles.messageBubble, bubbleStyle]}>
           {!isUser && (
-            <Text style={styles.characterName}>{character.name}</Text>
+            <Text style={[styles.characterName, { color: style.userBubble || '#6366f1' }]}>
+              {character.name}
+            </Text>
           )}
           <View style={styles.messageContent}>
             {formattedParts.map((part, index) => {
               if (part.type === 'action') {
                 return (
-                  <Text key={index} style={styles.actionText}>
+                  <Text key={index} style={[styles.actionText, { color: style.actionColor || '#8b5cf6' }]}>
                     *{part.text}*
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
                 return (
-                  <Text key={index} style={styles.dialogueText}>
+                  <Text key={index} style={[
+                    styles.dialogueText, 
+                    { color: isUser ? (style.userText || '#fff') : (style.dialogueColor || '#111827') }
+                  ]}>
                     "{part.text}"
                   </Text>
                 );
               } else {
                 return (
-                  <Text key={index} style={styles.normalText}>
+                  <Text key={index} style={[
+                    styles.normalText, 
+                    { color: isUser ? (style.userText || '#fff') : (style.assistantText || '#4b5563') }
+                  ]}>
                     {part.text}
                   </Text>
                 );
               }
             })}
           </View>
-          <Text style={styles.timestamp}>
+          <Text style={[styles.timestamp, { color: isUser ? 'rgba(255,255,255,0.7)' : '#9ca3af' }]}>
             {item.timestamp ? new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
           </Text>
         </View>
       </View>
+    );
+  };
+
+  // Modal de personnalisation
+  const renderSettingsModal = () => {
+    const themes = ChatStyleService.getThemes();
+    
+    return (
+      <Modal
+        visible={showSettings}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowSettings(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>⚙️ Style des bulles</Text>
+              <TouchableOpacity onPress={() => setShowSettings(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody}>
+              {/* Thèmes prédéfinis */}
+              <Text style={styles.settingLabel}>🎨 Thèmes</Text>
+              <View style={styles.themesGrid}>
+                {themes.map((theme) => (
+                  <TouchableOpacity
+                    key={theme.id}
+                    style={[
+                      styles.themeOption,
+                      selectedTheme === theme.id && styles.themeOptionSelected
+                    ]}
+                    onPress={() => handleThemeChange(theme.id)}
+                  >
+                    <View style={styles.themePreview}>
+                      <View style={[styles.themePreviewBubble, { backgroundColor: theme.preview.userBubble }]} />
+                      <View style={[styles.themePreviewBubble, { backgroundColor: theme.preview.assistantBubble, borderWidth: 1, borderColor: '#e5e7eb' }]} />
+                    </View>
+                    <Text style={styles.themeName}>{theme.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              {/* Opacité */}
+              <Text style={styles.settingLabel}>🔍 Opacité: {Math.round(opacity * 100)}%</Text>
+              <View style={styles.sliderContainer}>
+                <Text style={styles.sliderLabel}>50%</Text>
+                <View style={styles.sliderWrapper}>
+                  <View 
+                    style={[
+                      styles.sliderTrack,
+                      { width: `${((opacity - 0.5) / 0.5) * 100}%` }
+                    ]} 
+                  />
+                  <TouchableOpacity
+                    style={[
+                      styles.sliderThumb,
+                      { left: `${((opacity - 0.5) / 0.5) * 100}%` }
+                    ]}
+                    onPress={() => {}}
+                  />
+                </View>
+                <Text style={styles.sliderLabel}>100%</Text>
+              </View>
+              <View style={styles.sliderButtons}>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => handleOpacityChange(Math.max(0.5, opacity - 0.1))}
+                >
+                  <Text style={styles.sliderBtnText}>-</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => handleOpacityChange(Math.min(1, opacity + 0.1))}
+                >
+                  <Text style={styles.sliderBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Arrondi */}
+              <Text style={styles.settingLabel}>⭕ Arrondi: {Math.round(borderRadius)}px</Text>
+              <View style={styles.sliderButtons}>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => handleBorderRadiusChange(Math.max(0, borderRadius - 5))}
+                >
+                  <Text style={styles.sliderBtnText}>-</Text>
+                </TouchableOpacity>
+                <View style={styles.radiusPreview}>
+                  <View style={[styles.radiusPreviewBox, { borderRadius: borderRadius }]} />
+                </View>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => handleBorderRadiusChange(Math.min(30, borderRadius + 5))}
+                >
+                  <Text style={styles.sliderBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Aperçu */}
+              <Text style={styles.settingLabel}>👁️ Aperçu</Text>
+              <View style={styles.previewContainer}>
+                <View style={[
+                  styles.previewBubble, 
+                  { 
+                    backgroundColor: chatStyle?.assistantBubble || '#fff',
+                    opacity: opacity,
+                    borderRadius: borderRadius,
+                    alignSelf: 'flex-start',
+                  }
+                ]}>
+                  <Text style={{ color: chatStyle?.assistantText || '#111827' }}>
+                    *sourit* "Bonjour !"
+                  </Text>
+                </View>
+                <View style={[
+                  styles.previewBubble, 
+                  { 
+                    backgroundColor: chatStyle?.userBubble || '#6366f1',
+                    opacity: opacity,
+                    borderRadius: borderRadius,
+                    alignSelf: 'flex-end',
+                  }
+                ]}>
+                  <Text style={{ color: chatStyle?.userText || '#fff' }}>
+                    Salut !
+                  </Text>
+                </View>
+              </View>
+            </ScrollView>
+            
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setShowSettings(false)}
+            >
+              <Text style={styles.modalButtonText}>✓ Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     );
   };
 
@@ -401,7 +583,7 @@ export default function ConversationScreen({ route, navigation }) {
       {conversationBackground && (
         <Image
           source={{ uri: conversationBackground }}
-          style={styles.backgroundImage}
+          style={[styles.backgroundImage, { opacity: opacity * 0.6 }]}
           blurRadius={2}
         />
       )}
@@ -476,6 +658,8 @@ export default function ConversationScreen({ route, navigation }) {
           <Text style={styles.sendButtonText}>➤</Text>
         </TouchableOpacity>
       </View>
+      
+      {renderSettingsModal()}
     </KeyboardAvoidingView>
   );
 }
@@ -520,7 +704,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   messageBubble: {
-    borderRadius: 15,
     padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -528,16 +711,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  userBubble: {
-    backgroundColor: '#6366f1',
-  },
-  assistantBubble: {
-    backgroundColor: '#fff',
-  },
   characterName: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#6366f1',
     marginBottom: 5,
   },
   messageContent: {
@@ -546,23 +722,19 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontStyle: 'italic',
-    color: '#8b5cf6', // Violet pour actions/pensées (même couleur pour user et assistant)
     marginBottom: 3,
   },
   dialogueText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#111827',
     marginBottom: 3,
   },
   normalText: {
     fontSize: 14,
-    color: '#4b5563',
     marginBottom: 3,
   },
   timestamp: {
     fontSize: 10,
-    color: '#9ca3af',
     alignSelf: 'flex-end',
   },
   imageMessageContainer: {
@@ -655,7 +827,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
-    opacity: 0.6,
     resizeMode: 'cover',
   },
   loadingScreen: {
@@ -704,5 +875,163 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  modalClose: {
+    fontSize: 24,
+    color: '#6b7280',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 12,
+    marginTop: 10,
+  },
+  themesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 20,
+  },
+  themeOption: {
+    width: '30%',
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  themeOptionSelected: {
+    borderColor: '#6366f1',
+    backgroundColor: '#eef2ff',
+  },
+  themePreview: {
+    flexDirection: 'row',
+    gap: 5,
+    marginBottom: 5,
+  },
+  themePreviewBubble: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
+  themeName: {
+    fontSize: 11,
+    color: '#4b5563',
+    textAlign: 'center',
+  },
+  sliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sliderWrapper: {
+    flex: 1,
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    marginHorizontal: 10,
+    position: 'relative',
+  },
+  sliderTrack: {
+    height: '100%',
+    backgroundColor: '#6366f1',
+    borderRadius: 4,
+  },
+  sliderThumb: {
+    position: 'absolute',
+    top: -6,
+    width: 20,
+    height: 20,
+    backgroundColor: '#6366f1',
+    borderRadius: 10,
+    marginLeft: -10,
+  },
+  sliderLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    width: 40,
+    textAlign: 'center',
+  },
+  sliderButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 20,
+    marginBottom: 20,
+  },
+  sliderBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#6366f1',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sliderBtnText: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  radiusPreview: {
+    width: 60,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radiusPreviewBox: {
+    width: 50,
+    height: 30,
+    backgroundColor: '#6366f1',
+  },
+  previewContainer: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 15,
+    gap: 10,
+  },
+  previewBubble: {
+    padding: 12,
+    maxWidth: '70%',
+  },
+  modalButton: {
+    backgroundColor: '#6366f1',
+    margin: 20,
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

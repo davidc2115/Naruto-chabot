@@ -934,7 +934,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.0.0</Text>
+          <Text style={styles.aboutText}>Version: 3.0.1</Text>
           <Text style={styles.aboutText}>
             Application de roleplay conversationnel
           </Text>
