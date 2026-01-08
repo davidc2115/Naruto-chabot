@@ -10,23 +10,11 @@ import * as FileSystem from 'expo-file-system';
 
 const { StableDiffusionLocal } = NativeModules;
 
-// URLs des modèles ONNX (SD-Turbo optimisé mobile)
-const MODEL_URLS = {
-  // Modèle UNet quantifié (~900 MB) - Le cœur de SD
-  unet: 'https://huggingface.co/AKJlU/sd-turbo-onnx/resolve/main/unet/model.onnx',
-  // Décodeur VAE (~100 MB) - Convertit latents en image
-  vae: 'https://huggingface.co/AKJlU/sd-turbo-onnx/resolve/main/vae_decoder/model.onnx',
-  // Encodeur texte CLIP (~500 MB) - Convertit texte en embeddings
-  textEncoder: 'https://huggingface.co/AKJlU/sd-turbo-onnx/resolve/main/text_encoder/model.onnx',
-};
+// URL du modèle SD-Turbo (format safetensors - utilisé pour future implémentation)
+const MODEL_URL = 'https://huggingface.co/stabilityai/sd-turbo/resolve/main/sd_turbo.safetensors';
 
-// Tailles approximatives des modèles (en MB)
-const MODEL_SIZES = {
-  unet: 900,
-  vae: 100,
-  textEncoder: 500,
-  total: 1500, // ~1.5 GB total
-};
+// Taille approximative du modèle (en MB)
+const MODEL_SIZE_MB = 2500; // ~2.5 GB
 
 class StableDiffusionLocalService {
   constructor() {
@@ -60,60 +48,35 @@ class StableDiffusionLocalService {
   }
 
   /**
-   * Retourne les chemins des fichiers modèles
+   * Retourne le chemin du fichier modèle
    */
-  getModelPaths() {
-    const dir = this.getModelDirectory();
-    return {
-      unet: `${dir}unet.onnx`,
-      vae: `${dir}vae_decoder.onnx`,
-      textEncoder: `${dir}text_encoder.onnx`,
-    };
+  getModelPath() {
+    return `${this.getModelDirectory()}sd_turbo.safetensors`;
   }
 
   /**
-   * Vérifie si tous les modèles existent localement
+   * Vérifie si le modèle existe localement
    */
-  async checkModelsExist() {
+  async checkModelExists() {
     try {
-      const paths = this.getModelPaths();
-      const results = {};
-      let allExist = true;
-      let totalSize = 0;
-      let downloadedCount = 0;
-
-      for (const [name, path] of Object.entries(paths)) {
-        const fileInfo = await FileSystem.getInfoAsync(path);
-        const minSize = MODEL_SIZES[name] * 0.5 * 1024 * 1024; // Au moins 50% de la taille attendue
-        
-        results[name] = {
-          exists: fileInfo.exists && fileInfo.size > minSize,
-          size: fileInfo.size || 0,
-          sizeMB: fileInfo.size ? (fileInfo.size / 1024 / 1024).toFixed(1) : 0,
-          path: path,
-          expectedMB: MODEL_SIZES[name],
-        };
-        
-        if (!results[name].exists) {
-          allExist = false;
-        } else {
-          totalSize += fileInfo.size || 0;
-          downloadedCount++;
-        }
-      }
-
+      const modelPath = this.getModelPath();
+      const fileInfo = await FileSystem.getInfoAsync(modelPath);
+      const minSize = 100 * 1024 * 1024; // Au moins 100 MB
+      
+      const exists = fileInfo.exists && fileInfo.size > minSize;
+      const sizeMB = fileInfo.size ? fileInfo.size / 1024 / 1024 : 0;
+      
       return {
-        allModelsPresent: allExist,
-        models: results,
-        totalSizeMB: (totalSize / 1024 / 1024).toFixed(1),
-        downloadedCount,
-        totalCount: Object.keys(paths).length,
-        directory: this.getModelDirectory(),
+        exists,
+        sizeMB: sizeMB.toFixed(1),
+        path: modelPath,
+        expectedMB: MODEL_SIZE_MB,
       };
     } catch (error) {
-      console.error('❌ Erreur vérification modèles:', error);
+      console.error('❌ Erreur vérification modèle:', error);
       return {
-        allModelsPresent: false,
+        exists: false,
+        sizeMB: 0,
         error: error.message,
       };
     }
@@ -125,8 +88,8 @@ class StableDiffusionLocalService {
   async checkAvailability() {
     console.log('🔍 Vérification disponibilité SD Local...');
     
-    // Vérifier les modèles côté JS
-    const modelsCheck = await this.checkModelsExist();
+    // Vérifier le modèle côté JS
+    const modelCheck = await this.checkModelExists();
     
     // Si le module natif n'est pas disponible
     if (!this.isAvailable) {
@@ -135,11 +98,9 @@ class StableDiffusionLocalService {
         reason: Platform.OS === 'android' 
           ? 'Module natif en cours de chargement... Relancez l\'app.'
           : 'SD Local uniquement disponible sur Android',
-        modelDownloaded: modelsCheck.allModelsPresent,
-        downloadedCount: modelsCheck.downloadedCount || 0,
-        totalCount: modelsCheck.totalCount || 3,
-        modelSizeMB: parseFloat(modelsCheck.totalSizeMB || 0),
-        models: modelsCheck.models,
+        modelDownloaded: modelCheck.exists,
+        modelSizeMB: parseFloat(modelCheck.sizeMB || 0),
+        modelPath: modelCheck.path,
         canRunSD: false,
         ramMB: 0,
         pipelineReady: false,
@@ -154,22 +115,21 @@ class StableDiffusionLocalService {
         StableDiffusionLocal.getSystemInfo(),
       ]);
       
-      const allReady = modelsCheck.allModelsPresent && modelStatus.onnxRuntime;
+      // Le modèle est téléchargé si détecté côté JS ou côté natif
+      const modelDownloaded = modelCheck.exists || modelStatus.available;
       
       return {
         available: true,
-        modelDownloaded: modelsCheck.allModelsPresent,
-        downloadedCount: modelsCheck.downloadedCount || 0,
-        totalCount: modelsCheck.totalCount || 3,
-        modelSizeMB: parseFloat(modelsCheck.totalSizeMB || 0),
-        models: modelsCheck.models,
+        modelDownloaded,
+        modelSizeMB: parseFloat(modelCheck.sizeMB || modelStatus.sizeMB || 0),
+        modelPath: modelCheck.path,
         ramMB: systemInfo.maxMemoryMB,
         canRunSD: systemInfo.canRunSD,
         usedRamMB: systemInfo.usedMemoryMB,
         freeRamMB: systemInfo.freeMemoryMB,
         onnxAvailable: modelStatus.onnxRuntime || false,
-        pipelineReady: allReady,
-        reason: this.getStatusReason(modelsCheck, modelStatus, systemInfo),
+        pipelineReady: false, // Le pipeline ONNX n'est pas encore implémenté
+        reason: this.getStatusReason(modelCheck, modelStatus, systemInfo),
       };
     } catch (error) {
       console.error('❌ Erreur module natif:', error);
@@ -177,11 +137,9 @@ class StableDiffusionLocalService {
       return {
         available: false,
         reason: `Erreur: ${error.message}`,
-        modelDownloaded: modelsCheck.allModelsPresent,
-        downloadedCount: modelsCheck.downloadedCount || 0,
-        totalCount: modelsCheck.totalCount || 3,
-        modelSizeMB: parseFloat(modelsCheck.totalSizeMB || 0),
-        models: modelsCheck.models,
+        modelDownloaded: modelCheck.exists,
+        modelSizeMB: parseFloat(modelCheck.sizeMB || 0),
+        modelPath: modelCheck.path,
         canRunSD: false,
         ramMB: 0,
         pipelineReady: false,
@@ -193,26 +151,25 @@ class StableDiffusionLocalService {
   /**
    * Génère un message de statut clair
    */
-  getStatusReason(modelsCheck, modelStatus, systemInfo) {
-    if (!modelStatus.onnxRuntime) {
-      return '❌ ONNX Runtime non disponible sur cet appareil';
+  getStatusReason(modelCheck, modelStatus, systemInfo) {
+    if (!modelStatus?.onnxRuntime) {
+      return '⚠️ Pipeline ONNX en développement - Freebox utilisée';
     }
-    if (!modelsCheck.allModelsPresent) {
-      const missing = 3 - (modelsCheck.downloadedCount || 0);
-      return `⏳ ${missing} modèle(s) à télécharger (${MODEL_SIZES.total} MB total)`;
+    if (!modelCheck.exists) {
+      return `⏳ Modèle à télécharger (~${MODEL_SIZE_MB} MB)`;
     }
-    if (!systemInfo.canRunSD) {
+    if (systemInfo && !systemInfo.canRunSD) {
       return `⚠️ RAM insuffisante (${systemInfo.maxMemoryMB?.toFixed(0)} MB, besoin 3 GB+)`;
     }
-    return '✅ Prêt pour génération locale !';
+    return '📦 Modèle téléchargé - Pipeline en développement';
   }
 
   /**
-   * Télécharge tous les modèles nécessaires
-   * @param {function} onProgress - Callback pour la progression
+   * Télécharge le modèle SD-Turbo
+   * @param {function} onProgress - Callback pour la progression (progress, status)
    */
   async downloadModel(onProgress = null) {
-    console.log('📥 Début téléchargement modèles ONNX...');
+    console.log('📥 Début téléchargement modèle SD-Turbo...');
     
     try {
       // Créer le dossier si nécessaire
@@ -223,80 +180,65 @@ class StableDiffusionLocalService {
         await FileSystem.makeDirectoryAsync(modelDir, { intermediates: true });
       }
       
-      const paths = this.getModelPaths();
-      const downloads = [
-        { name: 'VAE Decoder', url: MODEL_URLS.vae, path: paths.vae, sizeMB: MODEL_SIZES.vae },
-        { name: 'UNet', url: MODEL_URLS.unet, path: paths.unet, sizeMB: MODEL_SIZES.unet },
-        { name: 'Text Encoder', url: MODEL_URLS.textEncoder, path: paths.textEncoder, sizeMB: MODEL_SIZES.textEncoder },
-      ];
+      const modelPath = this.getModelPath();
       
-      let totalProgress = 0;
-      let completedSize = 0;
-      const totalSize = MODEL_SIZES.total;
+      console.log('🌐 URL:', MODEL_URL);
+      console.log('📂 Destination:', modelPath);
+      console.log(`📊 Taille estimée: ~${MODEL_SIZE_MB} MB`);
       
-      for (let i = 0; i < downloads.length; i++) {
-        const dl = downloads[i];
-        console.log(`\n📥 [${i + 1}/${downloads.length}] Téléchargement ${dl.name}...`);
-        console.log(`   URL: ${dl.url}`);
-        console.log(`   Destination: ${dl.path}`);
-        console.log(`   Taille estimée: ${dl.sizeMB} MB`);
-        
-        // Vérifier si déjà téléchargé
-        const existingFile = await FileSystem.getInfoAsync(dl.path);
-        if (existingFile.exists && existingFile.size > dl.sizeMB * 0.5 * 1024 * 1024) {
-          console.log(`   ✅ Déjà téléchargé (${(existingFile.size / 1024 / 1024).toFixed(1)} MB)`);
-          completedSize += dl.sizeMB;
-          if (onProgress) {
-            onProgress((completedSize / totalSize) * 100, dl.name, true);
-          }
-          continue;
+      // Vérifier si déjà téléchargé
+      const existingFile = await FileSystem.getInfoAsync(modelPath);
+      if (existingFile.exists && existingFile.size > 100 * 1024 * 1024) {
+        const sizeMB = existingFile.size / 1024 / 1024;
+        console.log(`✅ Modèle déjà téléchargé (${sizeMB.toFixed(1)} MB)`);
+        if (onProgress) {
+          onProgress(100, 'Déjà téléchargé');
         }
-        
-        // Télécharger
-        const downloadResumable = FileSystem.createDownloadResumable(
-          dl.url,
-          dl.path,
-          {},
-          (downloadProgress) => {
-            if (downloadProgress.totalBytesExpectedToWrite > 0) {
-              const fileProgress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
-              const currentFileMB = dl.sizeMB * fileProgress;
-              const overallProgress = ((completedSize + currentFileMB) / totalSize) * 100;
-              
-              if (onProgress) {
-                onProgress(overallProgress, dl.name, false);
-              }
-            }
-          }
-        );
-        
-        try {
-          const result = await downloadResumable.downloadAsync();
-          
-          if (result && result.uri) {
-            const fileInfo = await FileSystem.getInfoAsync(result.uri);
-            console.log(`   ✅ Téléchargé: ${(fileInfo.size / 1024 / 1024).toFixed(1)} MB`);
-            completedSize += dl.sizeMB;
-          } else {
-            throw new Error(`Échec téléchargement ${dl.name}`);
-          }
-        } catch (dlError) {
-          console.error(`   ❌ Erreur téléchargement ${dl.name}:`, dlError.message);
-          throw dlError;
-        }
+        return {
+          success: true,
+          sizeMB: sizeMB.toFixed(1),
+          path: modelPath,
+          message: 'Modèle déjà téléchargé !',
+        };
       }
       
-      console.log('\n✅ Tous les modèles téléchargés !');
+      // Télécharger
+      const downloadResumable = FileSystem.createDownloadResumable(
+        MODEL_URL,
+        modelPath,
+        {},
+        (downloadProgress) => {
+          if (downloadProgress.totalBytesExpectedToWrite > 0) {
+            const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
+            const downloadedMB = downloadProgress.totalBytesWritten / 1024 / 1024;
+            const totalMB = downloadProgress.totalBytesExpectedToWrite / 1024 / 1024;
+            
+            console.log(`📥 ${progress.toFixed(1)}% (${downloadedMB.toFixed(0)}/${totalMB.toFixed(0)} MB)`);
+            
+            if (onProgress) {
+              onProgress(progress, `${downloadedMB.toFixed(0)}/${totalMB.toFixed(0)} MB`);
+            }
+          }
+        }
+      );
       
-      // Vérifier le résultat final
-      const finalCheck = await this.checkModelsExist();
+      const result = await downloadResumable.downloadAsync();
       
-      return {
-        success: true,
-        totalSizeMB: finalCheck.totalSizeMB,
-        models: finalCheck.models,
-        message: 'Modèles ONNX téléchargés avec succès !',
-      };
+      if (result && result.uri) {
+        const fileInfo = await FileSystem.getInfoAsync(result.uri);
+        const sizeMB = fileInfo.size / 1024 / 1024;
+        
+        console.log(`✅ Téléchargement terminé: ${sizeMB.toFixed(1)} MB`);
+        
+        return {
+          success: true,
+          sizeMB: sizeMB.toFixed(1),
+          path: result.uri,
+          message: 'Modèle téléchargé avec succès !',
+        };
+      } else {
+        throw new Error('Téléchargement échoué: pas de résultat');
+      }
     } catch (error) {
       console.error('❌ Erreur téléchargement:', error);
       throw error;
@@ -304,24 +246,24 @@ class StableDiffusionLocalService {
   }
 
   /**
-   * Initialise les modèles ONNX dans le module natif
+   * Initialise le modèle dans le module natif
    */
   async initializeModel() {
     if (!this.isAvailable) {
       throw new Error('Module natif non disponible');
     }
 
-    // Vérifier que les modèles sont téléchargés
-    const modelsCheck = await this.checkModelsExist();
-    if (!modelsCheck.allModelsPresent) {
-      throw new Error('Modèles non téléchargés. Téléchargez d\'abord les modèles.');
+    // Vérifier que le modèle est téléchargé
+    const modelCheck = await this.checkModelExists();
+    if (!modelCheck.exists) {
+      throw new Error('Modèle non téléchargé. Téléchargez d\'abord le modèle.');
     }
 
     try {
-      console.log('🔄 Initialisation des modèles ONNX...');
+      console.log('🔄 Initialisation du modèle...');
       const result = await StableDiffusionLocal.initializeModel();
       this.isModelLoaded = true;
-      console.log('✅ Modèles initialisés');
+      console.log('✅ Modèle initialisé');
       return result;
     } catch (error) {
       console.error('❌ Erreur initialisation:', error);
@@ -422,16 +364,16 @@ class StableDiffusionLocalService {
   }
 
   /**
-   * Supprime tous les modèles téléchargés
+   * Supprime le modèle téléchargé
    */
-  async deleteModels() {
+  async deleteModel() {
     try {
-      const modelDir = this.getModelDirectory();
-      const dirInfo = await FileSystem.getInfoAsync(modelDir);
+      const modelPath = this.getModelPath();
+      const fileInfo = await FileSystem.getInfoAsync(modelPath);
       
-      if (dirInfo.exists) {
-        await FileSystem.deleteAsync(modelDir, { idempotent: true });
-        console.log('✅ Modèles supprimés');
+      if (fileInfo.exists) {
+        await FileSystem.deleteAsync(modelPath, { idempotent: true });
+        console.log('✅ Modèle supprimé');
         return true;
       }
       return false;
@@ -444,8 +386,8 @@ class StableDiffusionLocalService {
   /**
    * Alias pour compatibilité
    */
-  async deleteModel() {
-    return this.deleteModels();
+  async deleteModels() {
+    return this.deleteModel();
   }
 }
 

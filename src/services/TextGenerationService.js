@@ -3,27 +3,45 @@ import axios from 'axios';
 
 /**
  * Service de génération de texte - NSFW ULTRA-PERMISSIF
- * Utilise llama-3.1-70b (moins censuré que 3.3)
+ * Support multi-modèles Groq avec sélection utilisateur
  */
 class TextGenerationService {
   constructor() {
+    // Modèles Groq disponibles
+    this.groqModels = {
+      'llama-3.3-70b-versatile': {
+        name: 'LLaMA 3.3 70B',
+        description: 'Plus récent, très capable',
+        contextWindow: 128000,
+      },
+      'llama-3.1-70b-versatile': {
+        name: 'LLaMA 3.1 70B',
+        description: 'Moins censuré, bon pour NSFW',
+        contextWindow: 128000,
+      },
+      'llama-3.1-8b-instant': {
+        name: 'LLaMA 3.1 8B Instant',
+        description: 'Très rapide, réponses courtes',
+        contextWindow: 128000,
+      },
+      'mixtral-8x7b-32768': {
+        name: 'Mixtral 8x7B',
+        description: 'Très permissif, NSFW++',
+        contextWindow: 32768,
+      },
+      'gemma2-9b-it': {
+        name: 'Gemma 2 9B',
+        description: 'Modèle Google, équilibré',
+        contextWindow: 8192,
+      },
+    };
+
     this.providers = {
       groq: {
-        name: 'Groq (LLaMA 3.1 70B)',
+        name: 'Groq',
         baseURL: 'https://api.groq.com/openai/v1/chat/completions',
-        // LLaMA 3.1 est MOINS censuré que 3.3
-        model: 'llama-3.1-70b-versatile',
         requiresApiKey: true,
-        uncensored: false,
         description: 'Ultra-rapide, jailbreak avancé pour NSFW',
-      },
-      groq_backup: {
-        name: 'Groq (Mixtral)',
-        baseURL: 'https://api.groq.com/openai/v1/chat/completions',
-        model: 'mixtral-8x7b-32768',
-        requiresApiKey: true,
-        uncensored: true,
-        description: 'Backup - Mixtral plus permissif',
       },
       ollama: {
         name: 'Ollama Freebox (Dolphin-Mistral)',
@@ -36,6 +54,7 @@ class TextGenerationService {
     };
 
     this.currentProvider = 'groq';
+    this.currentGroqModel = 'llama-3.1-70b-versatile'; // Par défaut
     
     this.apiKeys = {
       groq: [],
@@ -59,6 +78,14 @@ class TextGenerationService {
       if (groqKeys) {
         this.apiKeys.groq = JSON.parse(groqKeys);
       }
+
+      // Charger le modèle Groq sélectionné
+      const savedModel = await AsyncStorage.getItem('groq_model');
+      if (savedModel && this.groqModels[savedModel]) {
+        this.currentGroqModel = savedModel;
+      }
+      
+      console.log('🤖 Modèle Groq chargé:', this.currentGroqModel);
     } catch (error) {
       console.error('Erreur chargement config:', error);
     }
@@ -70,6 +97,37 @@ class TextGenerationService {
     }
     this.currentProvider = provider;
     await AsyncStorage.setItem('text_generation_provider', provider);
+  }
+
+  /**
+   * Définit le modèle Groq à utiliser
+   */
+  async setGroqModel(modelId) {
+    if (!this.groqModels[modelId]) {
+      throw new Error(`Modèle Groq inconnu: ${modelId}`);
+    }
+    this.currentGroqModel = modelId;
+    await AsyncStorage.setItem('groq_model', modelId);
+    console.log('🤖 Modèle Groq défini:', modelId);
+  }
+
+  /**
+   * Retourne le modèle Groq actuel
+   */
+  getGroqModel() {
+    return this.currentGroqModel;
+  }
+
+  /**
+   * Retourne la liste des modèles Groq disponibles
+   */
+  getAvailableGroqModels() {
+    return Object.entries(this.groqModels).map(([id, config]) => ({
+      id,
+      name: config.name,
+      description: config.description,
+      contextWindow: config.contextWindow,
+    }));
   }
 
   async saveApiKeys(provider, keys) {
@@ -229,8 +287,9 @@ STYLE:
     }));
     fullMessages.push(...cleanedMessages);
 
-    // Modèle à utiliser
-    let model = 'llama-3.1-70b-versatile';
+    // Modèle à utiliser (celui sélectionné par l'utilisateur)
+    let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
+    console.log(`🤖 Modèle sélectionné: ${model}`);
     
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {

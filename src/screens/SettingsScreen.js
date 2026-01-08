@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
+import TextGenerationService from '../services/TextGenerationService';
 import * as FileSystem from 'expo-file-system';
 
 export default function SettingsScreen({ navigation }) {
@@ -22,6 +23,10 @@ export default function SettingsScreen({ navigation }) {
   // Clés API Groq
   const [groqApiKeys, setGroqApiKeys] = useState(['']);
   const [testingApi, setTestingApi] = useState(false);
+  
+  // Modèle Groq
+  const [groqModel, setGroqModel] = useState('llama-3.1-70b-versatile');
+  const [availableModels, setAvailableModels] = useState([]);
   
   // Configuration images
   const [imageSource, setImageSource] = useState('freebox');
@@ -48,6 +53,7 @@ export default function SettingsScreen({ navigation }) {
     try {
       await loadProfile();
       await loadGroqKeys();
+      await loadGroqModel();
       await loadImageConfig();
       await checkSDAvailability();
     } catch (error) {
@@ -75,6 +81,36 @@ export default function SettingsScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Erreur chargement clés Groq:', error);
+    }
+  };
+
+  const loadGroqModel = async () => {
+    try {
+      // Charger la config du service
+      await TextGenerationService.loadConfig();
+      
+      // Récupérer les modèles disponibles
+      const models = TextGenerationService.getAvailableGroqModels();
+      setAvailableModels(models);
+      
+      // Récupérer le modèle actuel
+      const currentModel = TextGenerationService.getGroqModel();
+      setGroqModel(currentModel);
+      
+      console.log('🤖 Modèles Groq chargés:', models.length);
+      console.log('🤖 Modèle actuel:', currentModel);
+    } catch (error) {
+      console.error('Erreur chargement modèle Groq:', error);
+    }
+  };
+
+  const saveGroqModel = async (modelId) => {
+    try {
+      await TextGenerationService.setGroqModel(modelId);
+      setGroqModel(modelId);
+      Alert.alert('✅ Succès', `Modèle ${modelId} sélectionné !`);
+    } catch (error) {
+      Alert.alert('❌ Erreur', error.message);
     }
   };
 
@@ -380,6 +416,33 @@ export default function SettingsScreen({ navigation }) {
             <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Sélection du modèle Groq */}
+        <View style={styles.modelSection}>
+          <Text style={styles.modelSectionTitle}>🤖 Modèle Groq</Text>
+          <Text style={styles.modelDescription}>
+            Sélectionnez le modèle IA pour les conversations
+          </Text>
+          
+          {availableModels.map((model) => (
+            <TouchableOpacity
+              key={model.id}
+              style={[
+                styles.modelCard,
+                groqModel === model.id && styles.modelCardActive
+              ]}
+              onPress={() => saveGroqModel(model.id)}
+            >
+              <View style={styles.modelRadio}>
+                {groqModel === model.id && <View style={styles.modelRadioInner} />}
+              </View>
+              <View style={styles.modelContent}>
+                <Text style={styles.modelName}>{model.name}</Text>
+                <Text style={styles.modelDesc}>{model.description}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       {/* GÉNÉRATION D'IMAGES */}
@@ -464,16 +527,19 @@ export default function SettingsScreen({ navigation }) {
             {sdAvailability && (
               <View style={styles.sdInfoBox}>
                 <Text style={styles.sdInfoText}>
-                  📱 Module natif: {sdAvailability.available ? '✅ Chargé' : '❌ Non chargé'}
+                  📱 Module natif: {sdAvailability.available ? '✅ Chargé' : '⏳ En attente'}
                 </Text>
                 <Text style={styles.sdInfoText}>
                   📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
                 </Text>
                 {sdAvailability.modelSizeMB > 0 && (
                   <Text style={styles.sdInfoText}>
-                    💾 Taille: {sdAvailability.modelSizeMB.toFixed(1)} MB
+                    💾 Taille: {typeof sdAvailability.modelSizeMB === 'number' ? sdAvailability.modelSizeMB.toFixed(1) : sdAvailability.modelSizeMB} MB
                   </Text>
                 )}
+                <Text style={[styles.sdInfoText, { marginTop: 5, fontStyle: 'italic' }]}>
+                  {sdAvailability.reason || 'Vérification...'}
+                </Text>
               </View>
             )}
 
@@ -522,7 +588,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.0.9</Text>
+          <Text style={styles.aboutText}>Version: 3.1.0</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>45 personnages (15 originaux + 30 amies)</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox + HuggingFace SD</Text>
@@ -886,5 +952,66 @@ const styles = StyleSheet.create({
   profileSubtext: {
     fontSize: 13,
     color: '#6b7280',
+  },
+  // Styles pour la sélection du modèle Groq
+  modelSection: {
+    marginTop: 25,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  modelSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 5,
+  },
+  modelDescription: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginBottom: 15,
+  },
+  modelCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 8,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+  },
+  modelCardActive: {
+    borderColor: '#10b981',
+    backgroundColor: '#ecfdf5',
+  },
+  modelRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#10b981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  modelRadioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#10b981',
+  },
+  modelContent: {
+    flex: 1,
+  },
+  modelName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  modelDesc: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
   },
 });
