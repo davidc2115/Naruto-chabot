@@ -588,10 +588,10 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.1.2</Text>
+          <Text style={styles.aboutText}>Version: 3.1.3</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>45 personnages (15 originaux + 30 amies)</Text>
-          <Text style={styles.aboutText}>Génération d'images: Freebox + HuggingFace SD</Text>
+          <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
           <Text style={styles.aboutText}>Mode NSFW 100% français</Text>
         </View>
       </View>

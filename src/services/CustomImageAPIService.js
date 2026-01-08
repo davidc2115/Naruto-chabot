@@ -2,15 +2,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 /**
- * Service de configuration d'API d'image - FREEBOX UNIQUEMENT
- * Pas de Pollinations - utilise Hugging Face SD sur Freebox
+ * Service de configuration d'API d'image
+ * Freebox utilise Pollinations avec rotation de modèles en cas de rate limit
  */
 class CustomImageAPIService {
   constructor() {
-    // URL Freebox par défaut
+    // URL Freebox par défaut (serveur Pollinations avec fallback multi-modèles)
     this.customApiUrl = 'http://88.174.155.230:33437/generate';
     this.apiType = 'freebox'; // 'freebox' ou 'local'
-    this.strategy = 'freebox'; // 'freebox' ou 'local' (JAMAIS Pollinations)
+    this.strategy = 'freebox'; // 'freebox' ou 'local'
   }
 
   /**
