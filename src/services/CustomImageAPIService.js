@@ -7,9 +7,10 @@ import axios from 'axios';
  */
 class CustomImageAPIService {
   constructor() {
-    this.customApiUrl = null;
-    this.apiType = 'pollinations'; // 'pollinations' ou 'custom' ou 'freebox' ou 'local'
-    this.strategy = 'freebox-first'; // 'local', 'freebox-only', 'pollinations-only', 'freebox-first'
+    // URL Freebox par défaut
+    this.customApiUrl = 'http://88.174.155.230:33437/generate';
+    this.apiType = 'freebox'; // 'freebox' ou 'local'
+    this.strategy = 'freebox'; // 'freebox' ou 'local' (pas de Pollinations)
   }
 
   /**
@@ -30,8 +31,10 @@ class CustomImageAPIService {
           strategy: this.strategy
         });
       } else {
-        console.log('📸 Aucune config images, utilisation par défaut: pollinations-only');
-        this.strategy = 'pollinations-only';
+        console.log('📸 Aucune config images, utilisation par défaut: Freebox');
+        this.customApiUrl = 'http://88.174.155.230:33437/generate';
+        this.apiType = 'freebox';
+        this.strategy = 'freebox';
       }
     } catch (error) {
       console.error('Error loading custom API config:', error);

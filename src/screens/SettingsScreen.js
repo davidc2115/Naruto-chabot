@@ -386,123 +386,46 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
         <Text style={styles.sectionDescription}>
-          Choisissez la source pour générer les images. Freebox uniquement (pas de Pollinations).
+          Génération via Stable Diffusion sur serveur Freebox. Sans Pollinations, sans rate limit !
         </Text>
 
-        {/* Option Freebox */}
-        <TouchableOpacity
-          style={[
-            styles.optionCard,
-            imageSource === 'freebox' && styles.optionCardActive
-          ]}
-          onPress={() => setImageSource('freebox')}
-        >
+        {/* Info Freebox */}
+        <View style={[styles.optionCard, styles.optionCardActive]}>
           <View style={styles.radioButton}>
-            {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
+            <View style={styles.radioButtonInner} />
           </View>
           <View style={styles.optionContent}>
-            <Text style={styles.optionTitle}>🏠 Freebox (Recommandé)</Text>
+            <Text style={styles.optionTitle}>🏠 Freebox Stable Diffusion</Text>
             <Text style={styles.optionDescription}>
-              Utilise votre serveur Freebox. Illimité, pas de rate limit !
+              Utilise Hugging Face Stable Diffusion via votre serveur Freebox. Illimité !
             </Text>
           </View>
-        </TouchableOpacity>
-
-        {/* Option SD Local */}
-        <TouchableOpacity
-          style={[
-            styles.optionCard,
-            imageSource === 'local' && styles.optionCardActive
-          ]}
-          onPress={() => setImageSource('local')}
-        >
-          <View style={styles.radioButton}>
-            {imageSource === 'local' && <View style={styles.radioButtonInner} />}
-          </View>
-          <View style={styles.optionContent}>
-            <Text style={styles.optionTitle}>📱 SD Local (Smartphone)</Text>
-            <Text style={styles.optionDescription}>
-              Génération sur votre téléphone. 100% privé, offline.
-            </Text>
-          </View>
-        </TouchableOpacity>
+        </View>
 
         {/* Configuration Freebox */}
-        {imageSource === 'freebox' && (
-          <View style={styles.configBox}>
-            <Text style={styles.configTitle}>Configuration Freebox:</Text>
-            <TextInput
-              style={styles.urlInput}
-              placeholder="http://88.174.155.230:33437/generate"
-              value={freeboxUrl}
-              onChangeText={setFreeboxUrl}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
-              <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <View style={styles.configBox}>
+          <Text style={styles.configTitle}>Configuration Freebox:</Text>
+          <TextInput
+            style={styles.urlInput}
+            placeholder="http://88.174.155.230:33437/generate"
+            value={freeboxUrl}
+            onChangeText={setFreeboxUrl}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
+            <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
+          </TouchableOpacity>
+        </View>
 
-        {/* Configuration SD Local */}
-        {imageSource === 'local' && (
-          <View style={styles.configBox}>
-            <Text style={styles.configTitle}>Stable Diffusion Local:</Text>
-            
-            {sdAvailability && (
-              <View style={styles.sdInfoBox}>
-                <Text style={styles.sdInfoText}>
-                  📱 Disponible: {sdAvailability.available ? '✅ Oui' : '❌ Non'}
-                </Text>
-                {sdAvailability.available && (
-                  <>
-                    <Text style={styles.sdInfoText}>
-                      📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
-                    </Text>
-                    <Text style={styles.sdInfoText}>
-                      💾 RAM: {sdAvailability.ramMB ? `${Math.round(sdAvailability.ramMB)} MB` : 'N/A'}
-                    </Text>
-                    <Text style={styles.sdInfoText}>
-                      ⚡ Compatible: {sdAvailability.canRunSD ? '✅ Oui' : '❌ RAM insuffisante'}
-                    </Text>
-                  </>
-                )}
-                {!sdAvailability.available && sdAvailability.reason && (
-                  <Text style={styles.sdInfoWarning}>⚠️ {sdAvailability.reason}</Text>
-                )}
-              </View>
-            )}
-
-            {sdDownloading && (
-              <View style={styles.progressContainer}>
-                <Text style={styles.progressText}>
-                  📥 Téléchargement... {Math.round(sdDownloadProgress)}%
-                </Text>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
-                </View>
-              </View>
-            )}
-
-            <TouchableOpacity 
-              style={[
-                styles.downloadButton, 
-                (sdDownloading || (sdAvailability?.modelDownloaded)) && styles.downloadButtonDisabled
-              ]} 
-              onPress={downloadSDModel}
-              disabled={sdDownloading || sdAvailability?.modelDownloaded}
-            >
-              <Text style={styles.downloadButtonText}>
-                {sdDownloading 
-                  ? '⏳ Téléchargement...' 
-                  : sdAvailability?.modelDownloaded
-                    ? '✅ Modèle installé'
-                    : '📥 Télécharger le modèle (450 MB)'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* Note SD Local désactivé */}
+        <View style={styles.sdDisabledBox}>
+          <Text style={styles.sdDisabledTitle}>📱 SD Local (Désactivé)</Text>
+          <Text style={styles.sdDisabledText}>
+            La génération sur smartphone nécessite un pipeline ONNX complet qui n'est pas encore implémenté.
+            Utilisez la Freebox pour générer des images.
+          </Text>
+        </View>
 
         <TouchableOpacity style={styles.saveButton} onPress={saveImageConfig}>
           <Text style={styles.saveButtonText}>💾 Sauvegarder la configuration</Text>
@@ -513,11 +436,11 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.0.5</Text>
+          <Text style={styles.aboutText}>Version: 3.0.6</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>45 personnages (15 originaux + 30 amies)</Text>
-          <Text style={styles.aboutText}>Génération d'images: Freebox uniquement</Text>
-          <Text style={styles.aboutText}>Descriptions en français</Text>
+          <Text style={styles.aboutText}>Génération d'images: Freebox + HuggingFace SD</Text>
+          <Text style={styles.aboutText}>Mode NSFW 100% français</Text>
         </View>
       </View>
 
@@ -797,6 +720,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#fff',
+  },
+  sdDisabledBox: {
+    backgroundColor: '#fef3c7',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+  },
+  sdDisabledTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#92400e',
+    marginBottom: 5,
+  },
+  sdDisabledText: {
+    fontSize: 13,
+    color: '#92400e',
+    lineHeight: 18,
   },
   aboutBox: {
     backgroundColor: '#f3f4f6',
