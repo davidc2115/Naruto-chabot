@@ -21,6 +21,7 @@ import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
 import GalleryService from '../services/GalleryService';
 import ChatStyleService from '../services/ChatStyleService';
+import LevelService from '../services/LevelService';
 
 export default function ConversationScreen({ route, navigation }) {
   const { character } = route.params || {};
@@ -34,6 +35,11 @@ export default function ConversationScreen({ route, navigation }) {
   const [conversationBackground, setConversationBackground] = useState(null);
   const [initError, setInitError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Système de niveaux
+  const [userLevel, setUserLevel] = useState(null);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpInfo, setLevelUpInfo] = useState(null);
   
   // Style settings
   const [showSettings, setShowSettings] = useState(false);
@@ -70,6 +76,7 @@ export default function ConversationScreen({ route, navigation }) {
         loadGallery(),
         loadBackground(),
         loadChatStyle(),
+        loadUserLevel(),
       ]);
       
       setIsInitialized(true);
@@ -108,6 +115,16 @@ export default function ConversationScreen({ route, navigation }) {
     } catch (error) {
       console.error('❌ Erreur chargement style:', error);
       setChatStyle(ChatStyleService.getCurrentStyle());
+    }
+  };
+
+  const loadUserLevel = async () => {
+    try {
+      const levelData = await LevelService.getFullStats();
+      setUserLevel(levelData);
+      console.log('✅ Niveau chargé:', levelData.level, levelData.title);
+    } catch (error) {
+      console.error('❌ Erreur chargement niveau:', error);
     }
   };
 
@@ -226,6 +243,36 @@ export default function ConversationScreen({ route, navigation }) {
       setMessages(finalMessages);
       
       await saveConversation(finalMessages, newRelationship);
+
+      // Gagner de l'XP pour le message envoyé
+      try {
+        const isNSFW = userProfile?.nsfwMode || false;
+        const xpGained = LevelService.calculateMessageXP(userMessage.content.length, isNSFW);
+        const xpResult = await LevelService.addXP(xpGained, 'message');
+        
+        // Enregistrer l'interaction avec ce personnage
+        await LevelService.recordCharacterInteraction(character.id);
+        
+        // Mettre à jour l'état du niveau
+        setUserLevel({
+          ...userLevel,
+          level: xpResult.level,
+          title: xpResult.title,
+          totalXP: xpResult.totalXP,
+          progress: xpResult.progress,
+        });
+        
+        // Si level up, afficher l'animation
+        if (xpResult.leveledUp) {
+          setLevelUpInfo(xpResult);
+          setShowLevelUp(true);
+          setTimeout(() => setShowLevelUp(false), 3000);
+        }
+        
+        console.log(`✅ +${xpGained} XP → Niveau ${xpResult.level} (${xpResult.progress}%)`);
+      } catch (xpError) {
+        console.error('❌ Erreur XP:', xpError);
+      }
 
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
@@ -588,11 +635,27 @@ export default function ConversationScreen({ route, navigation }) {
         />
       )}
       
+      {/* Barre de niveau utilisateur */}
+      {userLevel && (
+        <View style={styles.levelBar}>
+          <View style={styles.levelInfo}>
+            <Text style={styles.levelText}>⭐ Niv. {userLevel.level}</Text>
+            <Text style={styles.levelTitle}>{userLevel.title}</Text>
+          </View>
+          <View style={styles.xpBarContainer}>
+            <View style={[styles.xpBar, { width: `${userLevel.progress || 0}%` }]} />
+            <Text style={styles.xpText}>{userLevel.progress || 0}%</Text>
+          </View>
+          <Text style={styles.xpDetail}>{userLevel.totalXP || 0} XP</Text>
+        </View>
+      )}
+      
+      {/* Barre de relation avec le personnage */}
       {relationship && (
         <View style={styles.relationshipBar}>
           <View style={styles.relationshipStat}>
-            <Text style={styles.relationshipLabel}>Niv. {relationship.level}</Text>
-            <Text style={styles.relationshipValue}>{relationship.experience} XP</Text>
+            <Text style={styles.relationshipLabel}>💫 Relation</Text>
+            <Text style={styles.relationshipValue}>Niv. {relationship.level}</Text>
           </View>
           <View style={styles.relationshipStat}>
             <Text style={styles.relationshipLabel}>💖 {relationship.affection}%</Text>
@@ -606,6 +669,23 @@ export default function ConversationScreen({ route, navigation }) {
           >
             <Text style={styles.galleryButtonText}>🖼️ {gallery.length}</Text>
           </TouchableOpacity>
+        </View>
+      )}
+      
+      {/* Animation Level Up */}
+      {showLevelUp && levelUpInfo && (
+        <View style={styles.levelUpOverlay}>
+          <View style={styles.levelUpModal}>
+            <Text style={styles.levelUpEmoji}>🎉</Text>
+            <Text style={styles.levelUpTitle}>NIVEAU SUPÉRIEUR !</Text>
+            <Text style={styles.levelUpLevel}>Niveau {levelUpInfo.newLevel}</Text>
+            <Text style={styles.levelUpTitleText}>{levelUpInfo.title}</Text>
+            {levelUpInfo.reward && (
+              <View style={styles.rewardBox}>
+                <Text style={styles.rewardText}>🎁 {levelUpInfo.reward.description}</Text>
+              </View>
+            )}
+          </View>
         </View>
       )}
 
@@ -668,6 +748,112 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  // Barre de niveau utilisateur
+  levelBar: {
+    backgroundColor: '#1e1b4b',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  levelInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  levelText: {
+    color: '#fbbf24',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  levelTitle: {
+    color: '#a78bfa',
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  xpBarContainer: {
+    flex: 1,
+    height: 12,
+    backgroundColor: '#374151',
+    borderRadius: 6,
+    marginHorizontal: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  xpBar: {
+    height: '100%',
+    backgroundColor: '#8b5cf6',
+    borderRadius: 6,
+  },
+  xpText: {
+    position: 'absolute',
+    width: '100%',
+    textAlign: 'center',
+    fontSize: 9,
+    color: '#fff',
+    fontWeight: 'bold',
+    lineHeight: 12,
+  },
+  xpDetail: {
+    color: '#9ca3af',
+    fontSize: 11,
+    minWidth: 50,
+    textAlign: 'right',
+  },
+  // Animation Level Up
+  levelUpOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  levelUpModal: {
+    backgroundColor: '#1e1b4b',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#fbbf24',
+  },
+  levelUpEmoji: {
+    fontSize: 50,
+    marginBottom: 10,
+  },
+  levelUpTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fbbf24',
+    marginBottom: 5,
+  },
+  levelUpLevel: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 5,
+  },
+  levelUpTitleText: {
+    fontSize: 18,
+    color: '#a78bfa',
+    fontStyle: 'italic',
+    marginBottom: 15,
+  },
+  rewardBox: {
+    backgroundColor: '#4c1d95',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  rewardText: {
+    color: '#fbbf24',
+    fontSize: 14,
+    fontWeight: '600',
   },
   relationshipBar: {
     flexDirection: 'row',
