@@ -523,23 +523,45 @@ export default function SettingsScreen({ navigation }) {
               </Text>
             </View>
 
-            {/* Statut */}
+            {/* Statut détaillé */}
             {sdAvailability && (
               <View style={styles.sdInfoBox}>
+                <Text style={styles.sdInfoTitle}>📊 Statut du module</Text>
+                
                 <Text style={styles.sdInfoText}>
-                  📱 Module natif: {sdAvailability.available ? '✅ Chargé' : '⏳ En attente'}
+                  📱 Module natif: {sdAvailability.moduleLoaded ? '✅ Chargé' : '❌ Non chargé'}
+                  {sdAvailability.moduleVersion && ` (v${sdAvailability.moduleVersion})`}
                 </Text>
+                
                 <Text style={styles.sdInfoText}>
                   📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
+                  {sdAvailability.modelSizeMB > 0 && ` (${typeof sdAvailability.modelSizeMB === 'number' ? sdAvailability.modelSizeMB.toFixed(0) : sdAvailability.modelSizeMB} MB)`}
                 </Text>
-                {sdAvailability.modelSizeMB > 0 && (
+                
+                {sdAvailability.deviceModel && (
                   <Text style={styles.sdInfoText}>
-                    💾 Taille: {typeof sdAvailability.modelSizeMB === 'number' ? sdAvailability.modelSizeMB.toFixed(1) : sdAvailability.modelSizeMB} MB
+                    📲 Appareil: {sdAvailability.deviceModel} (Android {sdAvailability.androidVersion})
                   </Text>
                 )}
-                <Text style={[styles.sdInfoText, { marginTop: 5, fontStyle: 'italic' }]}>
-                  {sdAvailability.reason || 'Vérification...'}
-                </Text>
+                
+                {sdAvailability.ramMB > 0 && (
+                  <Text style={styles.sdInfoText}>
+                    🧠 RAM: {sdAvailability.ramMB.toFixed(0)} MB max
+                    {sdAvailability.canRunSD ? ' ✅' : ' ⚠️'}
+                  </Text>
+                )}
+                
+                {sdAvailability.freeStorageMB > 0 && (
+                  <Text style={styles.sdInfoText}>
+                    💾 Stockage libre: {(sdAvailability.freeStorageMB / 1024).toFixed(1)} GB
+                  </Text>
+                )}
+                
+                <View style={styles.sdStatusBadge}>
+                  <Text style={styles.sdStatusText}>
+                    {sdAvailability.reason || 'Vérification...'}
+                  </Text>
+                </View>
               </View>
             )}
 
@@ -588,7 +610,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.1.3</Text>
+          <Text style={styles.aboutText}>Version: 3.2.0</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>45 personnages (15 originaux + 30 amies)</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
@@ -825,14 +847,35 @@ const styles = StyleSheet.create({
   },
   sdInfoBox: {
     backgroundColor: '#fff',
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  sdInfoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 8,
   },
   sdInfoText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#374151',
-    marginBottom: 5,
+    marginBottom: 4,
+  },
+  sdStatusBadge: {
+    backgroundColor: '#f0f9ff',
+    padding: 8,
+    borderRadius: 6,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+  },
+  sdStatusText: {
+    fontSize: 12,
+    color: '#0369a1',
+    textAlign: 'center',
   },
   sdInfoWarning: {
     fontSize: 13,

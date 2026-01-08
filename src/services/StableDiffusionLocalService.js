@@ -1,7 +1,8 @@
 /**
  * Service Stable Diffusion Local (génération sur smartphone)
+ * Version 3.2
  * 
- * Version 3.1 - STATUT:
+ * STATUT:
  * ✅ Module natif se charge correctement
  * ✅ Téléchargement du modèle fonctionne
  * ⏳ Pipeline de génération en développement
@@ -11,6 +12,7 @@
 import { NativeModules, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 
+// Récupération du module natif
 const { StableDiffusionLocal } = NativeModules;
 
 // URL du modèle SD-Turbo
@@ -19,24 +21,68 @@ const MODEL_SIZE_MB = 2500; // ~2.5 GB
 
 class StableDiffusionLocalService {
   constructor() {
-    this.isModuleAvailable = Platform.OS === 'android' && StableDiffusionLocal != null;
-    this.isModelLoaded = false;
+    // Détection du module natif
+    this.nativeModule = StableDiffusionLocal;
+    this.isAndroid = Platform.OS === 'android';
+    this.moduleInfo = this._getModuleInfo();
     
-    console.log('===========================================');
-    console.log('🎨 StableDiffusionLocalService v3.1');
-    console.log('📱 Platform:', Platform.OS);
-    console.log('📱 Module natif:', this.isModuleAvailable ? '✅ Disponible' : '❌ Non disponible');
+    console.log('╔════════════════════════════════════════╗');
+    console.log('║  StableDiffusionLocalService v3.2      ║');
+    console.log('╚════════════════════════════════════════╝');
+    console.log('📱 Platform:', Platform.OS, Platform.Version);
+    console.log('📱 Module natif:', this.moduleInfo.status);
     
-    if (this.isModuleAvailable) {
-      try {
-        const constants = StableDiffusionLocal.getConstants ? StableDiffusionLocal.getConstants() : StableDiffusionLocal;
-        console.log('📱 Module version:', constants?.VERSION || 'unknown');
-        console.log('📱 Pipeline implémenté:', constants?.PIPELINE_IMPLEMENTED ? '✅' : '❌');
-      } catch (e) {
-        console.log('📱 Constantes non disponibles');
-      }
+    if (this.moduleInfo.isLoaded) {
+      console.log('📱 Module version:', this.moduleInfo.version);
+      console.log('📱 Constantes disponibles:', this.moduleInfo.hasConstants);
     }
-    console.log('===========================================');
+    console.log('==========================================');
+  }
+
+  /**
+   * Analyse le module natif et retourne ses informations
+   */
+  _getModuleInfo() {
+    if (!this.isAndroid) {
+      return {
+        isLoaded: false,
+        status: '❌ iOS non supporté',
+        version: null,
+        hasConstants: false,
+      };
+    }
+
+    if (!this.nativeModule) {
+      return {
+        isLoaded: false,
+        status: '❌ Module non trouvé dans NativeModules',
+        version: null,
+        hasConstants: false,
+      };
+    }
+
+    // Le module existe, vérifions les constantes
+    try {
+      const constants = this.nativeModule.getConstants 
+        ? this.nativeModule.getConstants() 
+        : this.nativeModule;
+      
+      return {
+        isLoaded: true,
+        status: '✅ Module chargé',
+        version: constants?.VERSION || 'unknown',
+        hasConstants: !!constants?.IS_LOADED,
+        constants: constants,
+      };
+    } catch (e) {
+      return {
+        isLoaded: true,
+        status: '⚠️ Module chargé (constantes inaccessibles)',
+        version: 'unknown',
+        hasConstants: false,
+        error: e.message,
+      };
+    }
   }
 
   /**
@@ -54,7 +100,7 @@ class StableDiffusionLocalService {
   }
 
   /**
-   * Vérifie si le modèle existe localement
+   * Vérifie si le modèle existe localement (côté JavaScript)
    */
   async checkModelExists() {
     try {
@@ -65,110 +111,137 @@ class StableDiffusionLocalService {
       const exists = fileInfo.exists && fileInfo.size > minSize;
       const sizeMB = fileInfo.size ? fileInfo.size / 1024 / 1024 : 0;
       
-      console.log(`📁 Modèle: ${exists ? '✅ Présent' : '❌ Absent'} (${sizeMB.toFixed(0)} MB)`);
-      
       return {
         exists,
         sizeMB: sizeMB.toFixed(1),
+        sizeBytes: fileInfo.size || 0,
         path: modelPath,
         expectedMB: MODEL_SIZE_MB,
       };
     } catch (error) {
-      console.error('❌ Erreur vérification modèle:', error);
+      console.error('❌ Erreur vérification modèle JS:', error);
       return { exists: false, sizeMB: 0, error: error.message };
     }
   }
 
   /**
-   * Vérifie si le service est disponible
+   * Vérifie la disponibilité complète du service
    */
   async checkAvailability() {
     console.log('🔍 Vérification disponibilité SD Local...');
     
-    // Vérifier le modèle côté JS
-    const modelCheck = await this.checkModelExists();
+    // Vérifier le modèle côté JS d'abord
+    const jsModelCheck = await this.checkModelExists();
+    console.log('📁 JS Model check:', jsModelCheck.exists ? 'Présent' : 'Absent');
     
     // Construire la réponse de base
     const baseResponse = {
-      modelDownloaded: modelCheck.exists,
-      modelSizeMB: parseFloat(modelCheck.sizeMB || 0),
-      modelPath: modelCheck.path,
+      platform: Platform.OS,
+      modelDownloaded: jsModelCheck.exists,
+      modelSizeMB: parseFloat(jsModelCheck.sizeMB || 0),
+      modelPath: jsModelCheck.path,
       expectedSizeMB: MODEL_SIZE_MB,
     };
     
-    // Si le module natif n'est pas disponible (iOS ou erreur)
-    if (!this.isModuleAvailable) {
+    // Si ce n'est pas Android
+    if (!this.isAndroid) {
       return {
         ...baseResponse,
         available: false,
         moduleLoaded: false,
         pipelineReady: false,
         canRunSD: false,
-        reason: Platform.OS === 'ios' 
-          ? 'SD Local non disponible sur iOS'
-          : 'Module natif non chargé. Redémarrez l\'app.',
+        reason: 'SD Local disponible uniquement sur Android',
+      };
+    }
+    
+    // Si le module natif n'est pas chargé
+    if (!this.moduleInfo.isLoaded) {
+      return {
+        ...baseResponse,
+        available: false,
+        moduleLoaded: false,
+        pipelineReady: false,
+        canRunSD: false,
+        reason: this.moduleInfo.status,
       };
     }
 
+    // Le module est chargé, essayons de communiquer avec lui
     try {
-      // Obtenir les infos du module natif
+      console.log('📡 Appel module natif...');
+      
       const [modelStatus, systemInfo] = await Promise.all([
-        StableDiffusionLocal.isModelAvailable(),
-        StableDiffusionLocal.getSystemInfo(),
+        this.nativeModule.isModelAvailable(),
+        this.nativeModule.getSystemInfo(),
       ]);
       
-      // Le modèle est téléchargé si détecté côté JS ou côté natif
-      const isDownloaded = modelCheck.exists || modelStatus.modelDownloaded;
+      console.log('📱 Native modelStatus:', JSON.stringify(modelStatus));
+      console.log('📱 Native systemInfo:', JSON.stringify(systemInfo));
       
-      return {
-        available: true, // Module chargé
-        moduleLoaded: modelStatus.moduleLoaded || true,
-        modelDownloaded: isDownloaded,
-        modelSizeMB: parseFloat(modelCheck.sizeMB || modelStatus.sizeMB || 0),
-        modelPath: modelCheck.path,
-        expectedSizeMB: MODEL_SIZE_MB,
-        ramMB: systemInfo.maxMemoryMB,
-        freeStorageMB: systemInfo.freeStorageMB,
-        canRunSD: systemInfo.canRunSD,
-        pipelineReady: false, // Pas encore implémenté
-        reason: this.getStatusMessage(isDownloaded, systemInfo),
-      };
-    } catch (error) {
-      console.error('❌ Erreur module natif:', error);
+      // Combiner les vérifications JS et native
+      const isModelDownloaded = jsModelCheck.exists || modelStatus?.modelDownloaded;
       
       return {
         ...baseResponse,
-        available: false,
-        moduleLoaded: false,
+        available: true,
+        moduleLoaded: true,
+        moduleVersion: modelStatus?.moduleVersion || this.moduleInfo.version,
+        modelDownloaded: isModelDownloaded,
+        modelSizeMB: parseFloat(jsModelCheck.sizeMB || modelStatus?.sizeMB || 0),
+        nativeModelPath: modelStatus?.modelPath,
+        
+        // Infos système
+        ramMB: systemInfo?.maxMemoryMB || 0,
+        freeRamMB: systemInfo?.freeMemoryMB || 0,
+        freeStorageMB: systemInfo?.freeStorageMB || 0,
+        processors: systemInfo?.availableProcessors || 0,
+        canRunSD: systemInfo?.canRunSD || false,
+        deviceModel: systemInfo?.deviceModel || 'Unknown',
+        androidVersion: systemInfo?.androidVersion || 'Unknown',
+        
+        // Pipeline
+        pipelineReady: false,
+        reason: this._buildStatusMessage(isModelDownloaded, systemInfo),
+      };
+      
+    } catch (error) {
+      console.error('❌ Erreur communication module natif:', error);
+      
+      return {
+        ...baseResponse,
+        available: true, // Le module existe mais la communication a échoué
+        moduleLoaded: true,
         pipelineReady: false,
         canRunSD: false,
-        reason: `Erreur: ${error.message}`,
+        error: error.message,
+        reason: `Module chargé mais erreur: ${error.message}`,
       };
     }
   }
 
   /**
-   * Génère un message de statut clair
+   * Construit un message de statut clair
    */
-  getStatusMessage(modelDownloaded, systemInfo) {
+  _buildStatusMessage(modelDownloaded, systemInfo) {
     if (!modelDownloaded) {
       const storageFree = systemInfo?.freeStorageMB || 0;
       if (storageFree < 3000) {
-        return `❌ Espace insuffisant (${storageFree.toFixed(0)} MB libre, besoin 3 GB)`;
+        return `❌ Espace insuffisant (${storageFree.toFixed(0)} MB libre, besoin ~3 GB)`;
       }
-      return `⏳ Modèle à télécharger (~${MODEL_SIZE_MB} MB)`;
+      return `📥 Modèle à télécharger (~${MODEL_SIZE_MB} MB)`;
     }
     
     if (!systemInfo?.canRunSD) {
-      return `⚠️ RAM insuffisante pour SD local. Freebox utilisée.`;
+      const ramMB = systemInfo?.maxMemoryMB || 0;
+      return `⚠️ RAM limitée (${ramMB.toFixed(0)} MB). Freebox recommandée.`;
     }
     
-    return '📦 Modèle OK. Pipeline en développement - Freebox utilisée.';
+    return '✅ Modèle OK. Pipeline en développement - Freebox utilisée.';
   }
 
   /**
    * Télécharge le modèle SD-Turbo
-   * @param {function} onProgress - Callback pour la progression (progress, status)
    */
   async downloadModel(onProgress = null) {
     console.log('📥 Début téléchargement modèle SD-Turbo...');
@@ -184,61 +257,52 @@ class StableDiffusionLocalService {
       
       const modelPath = this.getModelPath();
       
-      console.log('🌐 URL:', MODEL_URL);
-      console.log('📂 Destination:', modelPath);
-      console.log(`📊 Taille estimée: ~${MODEL_SIZE_MB} MB`);
-      
       // Vérifier si déjà téléchargé
       const existingFile = await FileSystem.getInfoAsync(modelPath);
       if (existingFile.exists && existingFile.size > 100 * 1024 * 1024) {
         const sizeMB = existingFile.size / 1024 / 1024;
         console.log(`✅ Modèle déjà téléchargé (${sizeMB.toFixed(1)} MB)`);
-        if (onProgress) {
-          onProgress(100, 'Déjà téléchargé');
-        }
+        if (onProgress) onProgress(100, 'Déjà téléchargé');
         return {
           success: true,
           sizeMB: sizeMB.toFixed(1),
           path: modelPath,
-          message: 'Modèle déjà téléchargé !',
+          message: 'Modèle déjà présent !',
         };
       }
       
-      // Télécharger
+      console.log('🌐 Téléchargement depuis:', MODEL_URL);
+      
       const downloadResumable = FileSystem.createDownloadResumable(
         MODEL_URL,
         modelPath,
         {},
-        (downloadProgress) => {
-          if (downloadProgress.totalBytesExpectedToWrite > 0) {
-            const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
-            const downloadedMB = downloadProgress.totalBytesWritten / 1024 / 1024;
-            const totalMB = downloadProgress.totalBytesExpectedToWrite / 1024 / 1024;
-            
-            if (onProgress) {
-              onProgress(progress, `${downloadedMB.toFixed(0)}/${totalMB.toFixed(0)} MB`);
-            }
+        (progress) => {
+          if (progress.totalBytesExpectedToWrite > 0) {
+            const pct = (progress.totalBytesWritten / progress.totalBytesExpectedToWrite) * 100;
+            const dlMB = progress.totalBytesWritten / 1024 / 1024;
+            const totalMB = progress.totalBytesExpectedToWrite / 1024 / 1024;
+            if (onProgress) onProgress(pct, `${dlMB.toFixed(0)}/${totalMB.toFixed(0)} MB`);
           }
         }
       );
       
       const result = await downloadResumable.downloadAsync();
       
-      if (result && result.uri) {
+      if (result?.uri) {
         const fileInfo = await FileSystem.getInfoAsync(result.uri);
         const sizeMB = fileInfo.size / 1024 / 1024;
-        
         console.log(`✅ Téléchargement terminé: ${sizeMB.toFixed(1)} MB`);
         
         return {
           success: true,
           sizeMB: sizeMB.toFixed(1),
           path: result.uri,
-          message: 'Modèle téléchargé ! Le pipeline sera disponible prochainement.',
+          message: 'Modèle téléchargé ! Pipeline bientôt disponible.',
         };
-      } else {
-        throw new Error('Téléchargement échoué: pas de résultat');
       }
+      
+      throw new Error('Téléchargement échoué');
     } catch (error) {
       console.error('❌ Erreur téléchargement:', error);
       throw error;
@@ -246,13 +310,10 @@ class StableDiffusionLocalService {
   }
 
   /**
-   * Génère une image (retourne null pour utiliser Freebox)
+   * Génère une image (retourne null → Freebox sera utilisée)
    */
   async generateImage(prompt, options = {}) {
     console.log('📱 SD Local: Génération demandée');
-    
-    // Le pipeline n'est pas encore implémenté
-    // Retourner null pour que ImageGenerationService utilise Freebox
     console.log('⚠️ Pipeline non implémenté - Fallback Freebox');
     return null;
   }
@@ -261,20 +322,15 @@ class StableDiffusionLocalService {
    * Retourne les infos système
    */
   async getSystemInfo() {
-    if (!this.isModuleAvailable) {
-      return {
-        maxMemoryMB: 0,
-        freeStorageMB: 0,
-        canRunSD: false,
-        moduleLoaded: false,
-      };
+    if (!this.moduleInfo.isLoaded) {
+      return { moduleLoaded: false, canRunSD: false };
     }
-
+    
     try {
-      return await StableDiffusionLocal.getSystemInfo();
+      return await this.nativeModule.getSystemInfo();
     } catch (error) {
-      console.error('❌ Erreur infos système:', error);
-      return null;
+      console.error('❌ Erreur getSystemInfo:', error);
+      return { moduleLoaded: true, canRunSD: false, error: error.message };
     }
   }
 
