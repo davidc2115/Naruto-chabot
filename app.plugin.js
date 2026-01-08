@@ -286,10 +286,20 @@ public class StableDiffusionPackage implements ReactPackage {
         
         // Ajouter le package si absent
         if (!content.includes('StableDiffusionPackage()')) {
-          content = content.replace(
-            'val packages = PackageList(this).packages.toMutableList()',
-            'val packages = PackageList(this).packages.toMutableList()\n        packages.add(StableDiffusionPackage())'
-          );
+          // Pattern 1: return PackageList(this).packages
+          if (content.includes('return PackageList(this).packages')) {
+            content = content.replace(
+              'return PackageList(this).packages',
+              'val packages = PackageList(this).packages.toMutableList()\n            packages.add(StableDiffusionPackage())\n            return packages'
+            );
+          }
+          // Pattern 2: val packages = PackageList(this).packages.toMutableList()
+          else if (content.includes('val packages = PackageList(this).packages.toMutableList()')) {
+            content = content.replace(
+              'val packages = PackageList(this).packages.toMutableList()',
+              'val packages = PackageList(this).packages.toMutableList()\n            packages.add(StableDiffusionPackage())'
+            );
+          }
         }
         
         fs.writeFileSync(mainAppPath, content);
