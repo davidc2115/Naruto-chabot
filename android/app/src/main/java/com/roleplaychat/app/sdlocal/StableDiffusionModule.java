@@ -29,7 +29,7 @@ import ai.onnxruntime.OrtSession;
  */
 public class StableDiffusionModule extends ReactContextBaseJavaModule {
     private static final String TAG = "StableDiffusionLocal";
-    private static final String MODEL_NAME = "sd_turbo_onnx_fp16.onnx";
+    private static final String MODEL_NAME = "sd_turbo.safetensors";
     private static final int IMAGE_SIZE = 512;
     
     private ReactApplicationContext reactContext;
@@ -230,8 +230,34 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
 
     /**
      * Retourne le chemin du fichier modèle
+     * Cherche dans plusieurs emplacements possibles (Expo et natif)
      */
     private File getModelFile() {
+        // Liste des emplacements possibles
+        String[] possiblePaths = {
+            // Chemin Expo FileSystem.documentDirectory
+            reactContext.getFilesDir().getAbsolutePath() + "/ExponentExperienceData/@anonymous/roleplay-chat/sd_models/" + MODEL_NAME,
+            // Chemin Expo standard
+            reactContext.getFilesDir().getAbsolutePath() + "/../files/sd_models/" + MODEL_NAME,
+            // Chemin natif standard
+            reactContext.getFilesDir().getAbsolutePath() + "/sd_models/" + MODEL_NAME,
+            // Chemin cache
+            reactContext.getCacheDir().getAbsolutePath() + "/sd_models/" + MODEL_NAME,
+            // Chemin Documents (accessible)
+            android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS).getAbsolutePath() + "/sd_models/" + MODEL_NAME,
+        };
+        
+        // Chercher dans tous les emplacements
+        for (String path : possiblePaths) {
+            File file = new File(path);
+            Log.d(TAG, "Checking model at: " + path + " exists: " + file.exists());
+            if (file.exists() && file.length() > 1000000) { // > 1 MB
+                Log.i(TAG, "Found model at: " + path);
+                return file;
+            }
+        }
+        
+        // Retourner le chemin par défaut (pour création)
         File appDir = reactContext.getFilesDir();
         File modelsDir = new File(appDir, "sd_models");
         if (!modelsDir.exists()) {

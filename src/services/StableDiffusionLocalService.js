@@ -5,7 +5,7 @@
  */
 
 import { NativeModules, Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 
 const { StableDiffusionLocal } = NativeModules;
 
@@ -16,7 +16,47 @@ class StableDiffusionLocalService {
     this.modelInfo = null;
     
     console.log('🎨 StableDiffusionLocalService initialized');
-    console.log('📱 Available:', this.isAvailable);
+    console.log('📱 Platform:', Platform.OS);
+    console.log('📱 Module disponible:', this.isAvailable);
+    console.log('📱 NativeModules.StableDiffusionLocal:', StableDiffusionLocal ? 'exists' : 'null');
+  }
+
+  /**
+   * Retourne le chemin du dossier des modèles
+   */
+  getModelDirectory() {
+    return `${FileSystem.documentDirectory}sd_models/`;
+  }
+
+  /**
+   * Retourne le chemin complet du modèle
+   */
+  getModelPath() {
+    return `${this.getModelDirectory()}sd_turbo.safetensors`;
+  }
+
+  /**
+   * Vérifie si le modèle existe localement (côté JavaScript)
+   */
+  async checkModelExistsJS() {
+    try {
+      const modelPath = this.getModelPath();
+      const fileInfo = await FileSystem.getInfoAsync(modelPath);
+      
+      console.log('📁 Vérification modèle JS:', modelPath);
+      console.log('📁 Existe:', fileInfo.exists);
+      console.log('📁 Taille:', fileInfo.size ? `${(fileInfo.size / 1024 / 1024).toFixed(2)} MB` : 'N/A');
+      
+      return {
+        exists: fileInfo.exists,
+        size: fileInfo.size || 0,
+        sizeMB: fileInfo.size ? fileInfo.size / 1024 / 1024 : 0,
+        path: modelPath,
+      };
+    } catch (error) {
+      console.error('❌ Erreur vérification modèle JS:', error);
+      return { exists: false, size: 0, sizeMB: 0, path: this.getModelPath() };
+    }
   }
 
   /**
@@ -24,31 +64,47 @@ class StableDiffusionLocalService {
    */
   async checkAvailability() {
     console.log('🔍 checkAvailability called');
-    console.log('📱 Platform:', Platform.OS);
-    console.log('📱 Module disponible:', this.isAvailable);
     
+    // Vérifier d'abord si le module natif existe
     if (!this.isAvailable) {
       console.log('⚠️ Module natif non disponible');
+      
+      // Vérifier quand même si le modèle existe côté JS
+      const jsCheck = await this.checkModelExistsJS();
+      
       return {
         available: false,
-        reason: 'Module natif SD Local non disponible. Ceci est normal sur iOS ou si le module natif n\'est pas compilé.',
+        reason: 'Module natif SD Local non disponible. Le module ONNX n\'est pas chargé.',
+        modelDownloaded: jsCheck.exists,
+        modelSizeMB: jsCheck.sizeMB,
+        modelPath: jsCheck.path,
+        canRunSD: false,
+        ramMB: 0,
       };
     }
 
     try {
       console.log('🔄 Appel StableDiffusionLocal.isModelAvailable()...');
       const modelStatus = await StableDiffusionLocal.isModelAvailable();
-      console.log('✅ Model status:', modelStatus);
+      console.log('✅ Model status natif:', modelStatus);
+      
+      // Aussi vérifier côté JS
+      const jsCheck = await this.checkModelExistsJS();
+      console.log('✅ Model status JS:', jsCheck);
       
       console.log('🔄 Appel StableDiffusionLocal.getSystemInfo()...');
       const systemInfo = await StableDiffusionLocal.getSystemInfo();
       console.log('✅ System info:', systemInfo);
       
+      // Le modèle est disponible si trouvé côté natif OU côté JS
+      const modelDownloaded = modelStatus.available || jsCheck.exists;
+      const modelSizeMB = modelStatus.sizeMB || jsCheck.sizeMB;
+      
       return {
         available: true,
-        modelDownloaded: modelStatus.available,
-        modelSizeMB: modelStatus.sizeMB,
-        modelPath: modelStatus.path,
+        modelDownloaded: modelDownloaded,
+        modelSizeMB: modelSizeMB,
+        modelPath: modelStatus.path || jsCheck.path,
         ramMB: systemInfo.maxMemoryMB,
         canRunSD: systemInfo.canRunSD,
         usedRamMB: systemInfo.usedMemoryMB,
@@ -56,42 +112,85 @@ class StableDiffusionLocalService {
       };
     } catch (error) {
       console.error('❌ Error checking SD Local availability:', error);
-      console.error('❌ Error details:', error.message);
+      
+      // En cas d'erreur, vérifier quand même côté JS
+      const jsCheck = await this.checkModelExistsJS();
+      
       return {
         available: false,
         reason: `Erreur module natif: ${error.message}`,
+        modelDownloaded: jsCheck.exists,
+        modelSizeMB: jsCheck.sizeMB,
+        modelPath: jsCheck.path,
+        canRunSD: false,
+        ramMB: 0,
       };
     }
   }
 
   /**
-   * Télécharge le modèle SD-Turbo ONNX (450 MB)
-   * Retourne les instructions de téléchargement
+   * Télécharge le modèle SD-Turbo
+   * @param {function} onProgress - Callback pour la progression (0-100)
    */
-  async downloadModel() {
+  async downloadModel(onProgress = null) {
     console.log('📥 downloadModel called');
-    console.log('📱 isAvailable:', this.isAvailable);
-    console.log('📱 StableDiffusionLocal module:', StableDiffusionLocal);
     
-    if (!this.isAvailable) {
-      throw new Error('Module natif SD Local non disponible (Android uniquement). Assurez-vous que l\'APK est bien installée.');
-    }
-
     try {
-      console.log('🔄 Appel StableDiffusionLocal.downloadModel()...');
-      const downloadInfo = await StableDiffusionLocal.downloadModel();
-      console.log('✅ Model download info:', downloadInfo);
-      return downloadInfo;
+      // Créer le dossier si nécessaire
+      const modelDir = this.getModelDirectory();
+      const dirInfo = await FileSystem.getInfoAsync(modelDir);
+      if (!dirInfo.exists) {
+        console.log('📁 Création dossier:', modelDir);
+        await FileSystem.makeDirectoryAsync(modelDir, { intermediates: true });
+      }
+      
+      const modelPath = this.getModelPath();
+      
+      // URL du modèle (Hugging Face)
+      // Note: SD-Turbo complet est ~5GB, on utilise une version optimisée
+      const modelUrl = 'https://huggingface.co/stabilityai/sd-turbo/resolve/main/sd_turbo.safetensors';
+      
+      console.log('🌐 Téléchargement depuis:', modelUrl);
+      console.log('📂 Destination:', modelPath);
+      
+      const downloadResumable = FileSystem.createDownloadResumable(
+        modelUrl,
+        modelPath,
+        {},
+        (downloadProgress) => {
+          if (downloadProgress.totalBytesExpectedToWrite > 0) {
+            const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
+            console.log(`📥 Progress: ${Math.round(progress)}%`);
+            if (onProgress) {
+              onProgress(progress);
+            }
+          }
+        }
+      );
+      
+      const result = await downloadResumable.downloadAsync();
+      
+      if (result && result.uri) {
+        const fileInfo = await FileSystem.getInfoAsync(result.uri);
+        console.log('✅ Téléchargement terminé:', result.uri);
+        console.log('📊 Taille:', (fileInfo.size / 1024 / 1024).toFixed(2), 'MB');
+        
+        return {
+          success: true,
+          path: result.uri,
+          sizeMB: fileInfo.size / 1024 / 1024,
+        };
+      } else {
+        throw new Error('Téléchargement échoué: pas de résultat');
+      }
     } catch (error) {
-      console.error('❌ Error calling native module:', error);
-      console.error('❌ Error details:', error.message, error.stack);
-      throw new Error(`Impossible d'accéder au module natif: ${error.message}`);
+      console.error('❌ Erreur téléchargement:', error);
+      throw error;
     }
   }
 
   /**
    * Initialise le modèle ONNX (charge en mémoire)
-   * À appeler avant la première génération
    */
   async initializeModel() {
     if (!this.isAvailable) {
@@ -113,8 +212,6 @@ class StableDiffusionLocalService {
 
   /**
    * Génère une image avec Stable Diffusion Local
-   * @param {string} prompt - Prompt complet (style + description)
-   * @param {Object} options - Options de génération
    */
   async generateImage(prompt, options = {}) {
     if (!this.isAvailable) {
@@ -128,15 +225,13 @@ class StableDiffusionLocalService {
 
     const {
       negativePrompt = 'low quality, blurry, distorted, deformed, ugly, bad anatomy, worst quality',
-      steps = 2, // SD-Turbo optimal: 1-4 steps
-      guidanceScale = 1.0, // SD-Turbo optimal: 1.0
-      seed = -1,
+      steps = 2,
+      guidanceScale = 1.0,
     } = options;
 
     try {
       console.log('🎨 Generating image locally...');
       console.log('📝 Prompt:', prompt.substring(0, 100) + '...');
-      console.log('🎚️ Steps:', steps, '| CFG:', guidanceScale);
 
       const result = await StableDiffusionLocal.generateImage(
         prompt,
@@ -154,7 +249,7 @@ class StableDiffusionLocalService {
   }
 
   /**
-   * Libère le modèle de la mémoire (important pour économiser RAM)
+   * Libère le modèle de la mémoire
    */
   async releaseModel() {
     if (!this.isAvailable || !this.isModelLoaded) {
@@ -175,7 +270,12 @@ class StableDiffusionLocalService {
    */
   async getSystemInfo() {
     if (!this.isAvailable) {
-      return null;
+      return {
+        maxMemoryMB: 0,
+        usedMemoryMB: 0,
+        freeMemoryMB: 0,
+        canRunSD: false,
+      };
     }
 
     try {
@@ -187,38 +287,23 @@ class StableDiffusionLocalService {
   }
 
   /**
-   * Constantes du module natif
+   * Supprime le modèle téléchargé
    */
-  getConstants() {
-    if (!this.isAvailable) {
-      return {};
+  async deleteModel() {
+    try {
+      const modelPath = this.getModelPath();
+      const fileInfo = await FileSystem.getInfoAsync(modelPath);
+      
+      if (fileInfo.exists) {
+        await FileSystem.deleteAsync(modelPath);
+        console.log('✅ Modèle supprimé:', modelPath);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('❌ Erreur suppression modèle:', error);
+      throw error;
     }
-    return {
-      MODEL_NAME: 'sd_turbo_onnx_fp16.onnx',
-      IMAGE_SIZE: 512,
-      RECOMMENDED_STEPS: 2,
-      MODEL_SIZE_MB: 450,
-    };
-  }
-
-  /**
-   * Sauvegarde les préférences SD Local
-   */
-  async savePreferences(prefs) {
-    await AsyncStorage.setItem('sd_local_prefs', JSON.stringify(prefs));
-  }
-
-  /**
-   * Charge les préférences SD Local
-   */
-  async loadPreferences() {
-    const prefs = await AsyncStorage.getItem('sd_local_prefs');
-    return prefs ? JSON.parse(prefs) : {
-      enabled: false,
-      autoInit: false,
-      defaultSteps: 2,
-      defaultCFG: 1.0,
-    };
   }
 }
 
