@@ -1,9 +1,5 @@
 package com.roleplaychat.app.sdlocal;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Environment;
 import android.util.Log;
 
 import com.facebook.react.bridge.Promise;
@@ -14,18 +10,12 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Arguments;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import ai.onnxruntime.OnnxTensor;
-import ai.onnxruntime.OrtEnvironment;
-import ai.onnxruntime.OrtSession;
-
 /**
  * Module natif Android pour Stable Diffusion Local
- * Utilise ONNX Runtime pour génération d'images sur smartphone
- * Optimisé pour 8 GB RAM - Qualité hyper-réaliste
+ * Version simplifiée - vérifie juste la présence du modèle
  */
 public class StableDiffusionModule extends ReactContextBaseJavaModule {
     private static final String TAG = "StableDiffusionLocal";
@@ -33,13 +23,23 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
     private static final int IMAGE_SIZE = 512;
     
     private ReactApplicationContext reactContext;
-    private OrtEnvironment ortEnvironment;
-    private OrtSession ortSession;
     private boolean isModelLoaded = false;
+    private boolean onnxAvailable = false;
     
     public StableDiffusionModule(ReactApplicationContext context) {
         super(context);
         this.reactContext = context;
+        Log.i(TAG, "✅ StableDiffusionModule créé");
+        
+        // Vérifier si ONNX Runtime est disponible
+        try {
+            Class.forName("ai.onnxruntime.OrtEnvironment");
+            onnxAvailable = true;
+            Log.i(TAG, "✅ ONNX Runtime disponible");
+        } catch (ClassNotFoundException e) {
+            onnxAvailable = false;
+            Log.w(TAG, "⚠️ ONNX Runtime non disponible");
+        }
     }
 
     @Override
@@ -54,152 +54,33 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
     public void isModelAvailable(Promise promise) {
         try {
             File modelFile = getModelFile();
-            boolean available = modelFile.exists() && modelFile.length() > 100000000; // > 100 MB
+            boolean exists = modelFile.exists();
+            long size = exists ? modelFile.length() : 0;
+            boolean available = exists && size > 100000000; // > 100 MB
             
             WritableMap result = Arguments.createMap();
             result.putBoolean("available", available);
             result.putString("path", modelFile.getAbsolutePath());
-            result.putDouble("sizeMB", available ? modelFile.length() / 1024.0 / 1024.0 : 0);
+            result.putDouble("sizeMB", size / 1024.0 / 1024.0);
+            result.putBoolean("onnxAvailable", onnxAvailable);
             
-            Log.i(TAG, "Model available: " + available);
+            Log.i(TAG, "Model check: exists=" + exists + ", size=" + (size/1024/1024) + "MB, available=" + available);
             promise.resolve(result);
         } catch (Exception e) {
-            Log.e(TAG, "Error checking model availability", e);
-            promise.reject("CHECK_ERROR", e.getMessage());
-        }
-    }
-
-    /**
-     * Télécharge le modèle SD-Turbo ONNX (FP16 - 450 MB)
-     * URL: Hugging Face optimized model
-     */
-    @ReactMethod
-    public void downloadModel(Promise promise) {
-        try {
-            // URL du modèle SD-Turbo ONNX FP16 optimisé pour mobile
-            String modelUrl = "https://huggingface.co/onnx-community/sd-turbo-onnx/resolve/main/unet/model.onnx";
+            Log.e(TAG, "Error checking model", e);
             
             WritableMap result = Arguments.createMap();
-            result.putString("status", "download_required");
-            result.putString("url", modelUrl);
-            result.putString("instructions", "Use DownloadManager or external download");
-            result.putString("targetPath", getModelFile().getAbsolutePath());
-            
-            Log.i(TAG, "Model download URL provided: " + modelUrl);
+            result.putBoolean("available", false);
+            result.putString("path", "");
+            result.putDouble("sizeMB", 0);
+            result.putBoolean("onnxAvailable", onnxAvailable);
+            result.putString("error", e.getMessage());
             promise.resolve(result);
-        } catch (Exception e) {
-            Log.e(TAG, "Error preparing model download", e);
-            promise.reject("DOWNLOAD_ERROR", e.getMessage());
         }
     }
 
     /**
-     * Initialise ONNX Runtime et charge le modèle SD
-     */
-    @ReactMethod
-    public void initializeModel(Promise promise) {
-        try {
-            if (isModelLoaded) {
-                Log.i(TAG, "Model already loaded");
-                promise.resolve("already_loaded");
-                return;
-            }
-
-            File modelFile = getModelFile();
-            if (!modelFile.exists()) {
-                promise.reject("MODEL_NOT_FOUND", "Model file not found. Please download first.");
-                return;
-            }
-
-            Log.i(TAG, "Initializing ONNX Runtime...");
-            ortEnvironment = OrtEnvironment.getEnvironment();
-            
-            Log.i(TAG, "Loading SD model from: " + modelFile.getAbsolutePath());
-            OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
-            
-            // Optimisations pour 8 GB RAM
-            sessionOptions.setIntraOpNumThreads(4); // Multi-threading
-            sessionOptions.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT);
-            sessionOptions.setMemoryPatternOptimization(true);
-            
-            ortSession = ortEnvironment.createSession(modelFile.getAbsolutePath(), sessionOptions);
-            isModelLoaded = true;
-            
-            Log.i(TAG, "✅ SD Model loaded successfully!");
-            promise.resolve("loaded");
-        } catch (Exception e) {
-            Log.e(TAG, "Error initializing model", e);
-            isModelLoaded = false;
-            promise.reject("INIT_ERROR", e.getMessage());
-        }
-    }
-
-    /**
-     * Génère une image avec Stable Diffusion Local
-     * @param prompt - Prompt de génération (style + description)
-     * @param negativePrompt - Negative prompt pour qualité
-     * @param steps - Nombre de steps (1-4 pour SD-Turbo)
-     * @param guidanceScale - CFG scale (recommandé: 1.0 pour SD-Turbo)
-     */
-    @ReactMethod
-    public void generateImage(String prompt, String negativePrompt, int steps, double guidanceScale, Promise promise) {
-        try {
-            if (!isModelLoaded) {
-                promise.reject("MODEL_NOT_LOADED", "Model not initialized. Call initializeModel first.");
-                return;
-            }
-
-            Log.i(TAG, "🎨 Generating image with prompt: " + prompt.substring(0, Math.min(50, prompt.length())) + "...");
-            Log.i(TAG, "Steps: " + steps + ", CFG: " + guidanceScale);
-
-            // Pour l'instant, on retourne un message de succès simulé
-            // L'implémentation complète de l'inférence ONNX nécessite plus de code
-            WritableMap result = Arguments.createMap();
-            result.putString("status", "generation_started");
-            result.putString("message", "SD Local generation implemented");
-            result.putInt("estimatedSeconds", steps * 5); // ~5s par step
-            
-            // TODO: Implémenter l'inférence ONNX complète
-            // 1. Tokenizer pour convertir prompt en embeddings
-            // 2. UNet inference avec ONNX
-            // 3. VAE decoder pour générer l'image finale
-            // 4. Sauvegarde et retour du chemin
-            
-            Log.i(TAG, "⚠️ Full ONNX inference not yet implemented - returning placeholder");
-            promise.resolve(result);
-            
-        } catch (Exception e) {
-            Log.e(TAG, "Error generating image", e);
-            promise.reject("GENERATION_ERROR", e.getMessage());
-        }
-    }
-
-    /**
-     * Libère les ressources ONNX (important pour RAM)
-     */
-    @ReactMethod
-    public void releaseModel(Promise promise) {
-        try {
-            if (ortSession != null) {
-                ortSession.close();
-                ortSession = null;
-            }
-            if (ortEnvironment != null) {
-                ortEnvironment.close();
-                ortEnvironment = null;
-            }
-            isModelLoaded = false;
-            
-            Log.i(TAG, "✅ Model released, RAM freed");
-            promise.resolve("released");
-        } catch (Exception e) {
-            Log.e(TAG, "Error releasing model", e);
-            promise.reject("RELEASE_ERROR", e.getMessage());
-        }
-    }
-
-    /**
-     * Retourne les infos système (RAM, GPU, etc.)
+     * Retourne les infos système (RAM, etc.)
      */
     @ReactMethod
     public void getSystemInfo(Promise promise) {
@@ -216,50 +97,89 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
             result.putDouble("usedMemoryMB", usedMemory / 1024.0 / 1024.0);
             result.putDouble("freeMemoryMB", freeMemory / 1024.0 / 1024.0);
             result.putBoolean("canRunSD", maxMemory > 2000000000L); // > 2 GB
+            result.putBoolean("onnxAvailable", onnxAvailable);
             
-            Log.i(TAG, String.format("System RAM: %.2f MB / %.2f MB", 
-                usedMemory / 1024.0 / 1024.0, 
-                maxMemory / 1024.0 / 1024.0));
+            Log.i(TAG, String.format("System RAM: %.0f MB max, ONNX: %s", 
+                maxMemory / 1024.0 / 1024.0, onnxAvailable));
             
             promise.resolve(result);
         } catch (Exception e) {
             Log.e(TAG, "Error getting system info", e);
-            promise.reject("SYSTEM_INFO_ERROR", e.getMessage());
+            
+            WritableMap result = Arguments.createMap();
+            result.putDouble("maxMemoryMB", 0);
+            result.putBoolean("canRunSD", false);
+            result.putBoolean("onnxAvailable", false);
+            promise.resolve(result);
         }
     }
 
     /**
+     * Initialise le modèle (placeholder pour maintenant)
+     */
+    @ReactMethod
+    public void initializeModel(Promise promise) {
+        if (!onnxAvailable) {
+            promise.reject("ONNX_NOT_AVAILABLE", "ONNX Runtime n'est pas disponible sur cet appareil");
+            return;
+        }
+        
+        File modelFile = getModelFile();
+        if (!modelFile.exists()) {
+            promise.reject("MODEL_NOT_FOUND", "Modèle non trouvé. Téléchargez-le d'abord.");
+            return;
+        }
+        
+        // Pour l'instant, on simule le chargement
+        isModelLoaded = true;
+        Log.i(TAG, "Model initialized (simulation)");
+        promise.resolve("loaded");
+    }
+
+    /**
+     * Génère une image (placeholder - retourne null pour fallback Freebox)
+     */
+    @ReactMethod
+    public void generateImage(String prompt, String negativePrompt, int steps, double guidanceScale, Promise promise) {
+        // Retourne null pour que le fallback Freebox soit utilisé
+        Log.i(TAG, "generateImage called - returning null for Freebox fallback");
+        
+        WritableMap result = Arguments.createMap();
+        result.putString("status", "not_implemented");
+        result.putString("message", "Pipeline ONNX non implémenté. Utilisation de Freebox.");
+        result.putNull("imagePath");
+        promise.resolve(result);
+    }
+
+    /**
+     * Libère les ressources
+     */
+    @ReactMethod
+    public void releaseModel(Promise promise) {
+        isModelLoaded = false;
+        Log.i(TAG, "Model released");
+        promise.resolve("released");
+    }
+
+    /**
      * Retourne le chemin du fichier modèle
-     * Cherche dans plusieurs emplacements possibles (Expo et natif)
      */
     private File getModelFile() {
-        // Liste des emplacements possibles
-        String[] possiblePaths = {
-            // Chemin Expo FileSystem.documentDirectory
-            reactContext.getFilesDir().getAbsolutePath() + "/ExponentExperienceData/@anonymous/roleplay-chat/sd_models/" + MODEL_NAME,
-            // Chemin Expo standard
-            reactContext.getFilesDir().getAbsolutePath() + "/../files/sd_models/" + MODEL_NAME,
-            // Chemin natif standard
+        // Chemins possibles
+        String[] paths = {
             reactContext.getFilesDir().getAbsolutePath() + "/sd_models/" + MODEL_NAME,
-            // Chemin cache
             reactContext.getCacheDir().getAbsolutePath() + "/sd_models/" + MODEL_NAME,
-            // Chemin Documents (accessible)
-            android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOCUMENTS).getAbsolutePath() + "/sd_models/" + MODEL_NAME,
         };
         
-        // Chercher dans tous les emplacements
-        for (String path : possiblePaths) {
+        for (String path : paths) {
             File file = new File(path);
-            Log.d(TAG, "Checking model at: " + path + " exists: " + file.exists());
-            if (file.exists() && file.length() > 1000000) { // > 1 MB
-                Log.i(TAG, "Found model at: " + path);
+            if (file.exists()) {
                 return file;
             }
         }
         
-        // Retourner le chemin par défaut (pour création)
-        File appDir = reactContext.getFilesDir();
-        File modelsDir = new File(appDir, "sd_models");
+        // Chemin par défaut
+        File modelsDir = new File(reactContext.getFilesDir(), "sd_models");
         if (!modelsDir.exists()) {
             modelsDir.mkdirs();
         }
@@ -275,7 +195,8 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
         constants.put("MODEL_NAME", MODEL_NAME);
         constants.put("IMAGE_SIZE", IMAGE_SIZE);
         constants.put("RECOMMENDED_STEPS", 2);
-        constants.put("MODEL_SIZE_MB", 450);
+        constants.put("MODEL_SIZE_MB", 2500);
+        constants.put("ONNX_AVAILABLE", onnxAvailable);
         return constants;
     }
 }
