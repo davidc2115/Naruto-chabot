@@ -7,7 +7,7 @@ import axios from 'axios';
  */
 class TextGenerationService {
   constructor() {
-    // Modèles Groq disponibles
+    // Modèles Groq disponibles (mis à jour janvier 2026)
     this.groqModels = {
       'llama-3.3-70b-versatile': {
         name: 'LLaMA 3.3 70B',
@@ -24,10 +24,10 @@ class TextGenerationService {
         description: 'Très rapide, réponses courtes',
         contextWindow: 128000,
       },
-      'mixtral-8x7b-32768': {
-        name: 'Mixtral 8x7B',
-        description: 'Très permissif, NSFW++',
-        contextWindow: 32768,
+      'llama3-70b-8192': {
+        name: 'LLaMA 3 70B',
+        description: 'Stable et fiable',
+        contextWindow: 8192,
       },
       'gemma2-9b-it': {
         name: 'Gemma 2 9B',
@@ -35,6 +35,9 @@ class TextGenerationService {
         contextWindow: 8192,
       },
     };
+    
+    // Modèle de fallback en cas de refus
+    this.fallbackModel = 'llama-3.1-8b-instant';
 
     this.providers = {
       groq: {
@@ -342,8 +345,8 @@ STYLE:
         const hasRefusal = refusPatterns.some(p => contentLower.includes(p));
         
         if (hasRefusal && isNSFW && attempt < retries) {
-          console.log('⚠️ Refus détecté, tentative avec Mixtral...');
-          model = 'mixtral-8x7b-32768';
+          console.log('⚠️ Refus détecté, nouvelle tentative...');
+          // Rester sur le même modèle, juste réessayer
           continue;
         }
 
@@ -358,9 +361,10 @@ STYLE:
             const newKey = this.rotateKey('groq');
             if (!newKey) throw new Error('Toutes les clés API Groq invalides');
           }
-          // Essayer Mixtral en backup
-          if (attempt === 1) {
-            model = 'mixtral-8x7b-32768';
+          // En cas d'erreur, essayer le modèle de fallback
+          if (attempt === 1 && model !== this.fallbackModel) {
+            console.log(`⚠️ Tentative avec modèle de secours: ${this.fallbackModel}`);
+            model = this.fallbackModel;
           }
           await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         } else {
