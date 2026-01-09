@@ -29,7 +29,6 @@ export default function ProfileSetupScreen({ onComplete }) {
   ];
 
   const bustOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-  const penisOptions = ['S', 'M', 'L', 'XL', 'XXL'];
 
   const handleSubmit = async () => {
     // Validation
@@ -171,28 +170,17 @@ export default function ProfileSetupScreen({ onComplete }) {
 
       {gender === 'homme' && (
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Taille (optionnel)</Text>
-          <View style={styles.optionsRow}>
-            {penisOptions.map((size) => (
-              <TouchableOpacity
-                key={size}
-                style={[
-                  styles.smallButton,
-                  penis === size && styles.smallButtonActive,
-                ]}
-                onPress={() => setPenis(size)}
-              >
-                <Text
-                  style={[
-                    styles.smallButtonText,
-                    penis === size && styles.smallButtonTextActive,
-                  ]}
-                >
-                  {size}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={styles.label}>Taille du sexe en cm (optionnel)</Text>
+          <TextInput
+            style={styles.input}
+            value={penis}
+            onChangeText={setPenis}
+            placeholder="Ex: 18"
+            placeholderTextColor="#9ca3af"
+            keyboardType="number-pad"
+            maxLength={2}
+          />
+          <Text style={styles.hint}>Entrez la taille en centimètres (10-30 cm)</Text>
         </View>
       )}
 
@@ -330,5 +318,11 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     fontSize: 12,
     marginTop: 20,
+  },
+  hint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 5,
+    fontStyle: 'italic',
   },
 });

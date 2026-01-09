@@ -259,7 +259,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.4.0</Text>
+          <Text style={styles.aboutText}>Version: 3.5.0</Text>
           <Text style={styles.aboutText}>Roleplay Chat - Application de conversation</Text>
           <Text style={styles.aboutText}>150+ personnages disponibles</Text>
         </View>

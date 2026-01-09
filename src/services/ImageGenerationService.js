@@ -235,32 +235,43 @@ class ImageGenerationService {
     // === FEMMES - POITRINE ===
     if (character.gender === 'female' && character.bust) {
       const bustDetails = {
-        'A': { size: 'small A cup breasts', details: 'petite chest, small perky bust' },
-        'B': { size: 'small B cup breasts', details: 'modest bust, small perky breasts' },
-        'C': { size: 'medium C cup breasts', details: 'balanced bust, natural medium breasts' },
-        'D': { size: 'large D cup breasts', details: 'voluptuous bust, full generous breasts' },
-        'DD': { size: 'very large DD cup breasts', details: 'very generous bust, full heavy breasts' },
-        'E': { size: 'extremely large E cup breasts', details: 'impressive large bust, massive full breasts' },
-        'F': { size: 'huge F cup breasts', details: 'huge voluptuous bust, enormous full breasts' },
-        'G': { size: 'gigantic G cup breasts', details: 'gigantic massive bust, colossal breasts' }
+        'A': { size: 'small A cup breasts', details: 'petite chest, small perky bust, flat chested' },
+        'B': { size: 'small B cup breasts', details: 'modest bust, small perky breasts, cute small chest' },
+        'C': { size: 'medium C cup breasts', details: 'balanced bust, natural medium breasts, nice cleavage' },
+        'D': { size: 'large D cup breasts', details: 'voluptuous bust, full generous breasts, impressive cleavage' },
+        'DD': { size: 'very large DD cup breasts', details: 'very generous bust, full heavy breasts, deep cleavage' },
+        'E': { size: 'extremely large E cup breasts', details: 'impressive huge bust, massive full breasts, enormous cleavage' },
+        'F': { size: 'huge F cup breasts', details: 'huge voluptuous bust, enormous full breasts, gigantic cleavage' },
+        'G': { size: 'gigantic G cup breasts', details: 'gigantic massive bust, colossal breasts, impossibly large' },
+        'H': { size: 'enormous H cup breasts', details: 'enormous massive bust, incredibly huge breasts' }
       };
       
       const bustInfo = bustDetails[character.bust] || bustDetails['C'];
       anatomy += `, ${bustInfo.size}, ${bustInfo.details}`;
+      
+      // Ajouter des détails sur les hanches/taille
+      if (['D', 'DD', 'E', 'F', 'G', 'H'].includes(character.bust)) {
+        anatomy += ', wide hips, hourglass figure, curvy body';
+      }
     }
     
-    // === HOMMES - PHYSIQUE ===
+    // === HOMMES - PHYSIQUE (basé sur la taille en cm) ===
     if (character.gender === 'male' && character.penis) {
       const penisSize = parseInt(character.penis) || 15;
       
-      if (penisSize >= 22) {
-        anatomy += ', exceptionally muscular build, very broad shoulders, defined pecs, rock-hard abs';
+      if (penisSize >= 25) {
+        anatomy += ', exceptionally muscular build, bodybuilder physique, massive muscles';
+        anatomy += ', very broad shoulders, huge pecs, rock-hard six-pack abs, V-shaped torso';
+      } else if (penisSize >= 22) {
+        anatomy += ', extremely muscular build, very broad shoulders, defined pecs, rock-hard abs';
       } else if (penisSize >= 20) {
-        anatomy += ', very muscular athletic build, broad shoulders, six-pack abs';
+        anatomy += ', very muscular athletic build, broad shoulders, six-pack abs, defined muscles';
       } else if (penisSize >= 18) {
-        anatomy += ', muscular athletic build, defined chest, toned abs';
+        anatomy += ', muscular athletic build, defined chest, toned abs, fit body';
+      } else if (penisSize >= 15) {
+        anatomy += ', athletic build, toned physique, lean muscles';
       } else {
-        anatomy += ', toned athletic build, lean fit physique';
+        anatomy += ', slim build, lean physique, slender body';
       }
     }
     
@@ -274,33 +285,79 @@ class ImageGenerationService {
   }
 
   /**
-   * MODE NSFW
+   * MODE NSFW - Version explicite
    */
   buildNSFWPrompt(character, isRealistic = false) {
     let nsfw = '';
     
+    // Niveau d'explicité aléatoire (soft, medium, hard)
+    const explicitLevel = Math.random();
+    
     if (character.gender === 'female') {
-      nsfw += ', sexy alluring pose, sensual seductive expression, sultry gaze';
-      nsfw += ', wearing revealing lingerie, lace underwear, silk intimate wear';
-      nsfw += ', lying on luxurious bed, soft romantic lighting';
-      nsfw += ', smooth flawless skin, shoulders exposed';
+      nsfw += ', seductive sexy pose, sensual expression, bedroom eyes, sultry gaze';
       
-      if (character.bust && ['D', 'DD', 'E', 'F', 'G'].includes(character.bust)) {
-        nsfw += ', prominent cleavage displayed, bust emphasized';
+      // Poitrine
+      if (character.bust) {
+        const bustDescriptions = {
+          'A': 'small perky breasts visible',
+          'B': 'petite breasts showing',
+          'C': 'medium breasts, nice cleavage',
+          'D': 'large breasts, deep cleavage, generous bust',
+          'DD': 'very large breasts, impressive cleavage',
+          'E': 'huge breasts prominently displayed, massive cleavage',
+          'F': 'enormous breasts, gigantic bust emphasized',
+          'G': 'massive breasts, colossal bust'
+        };
+        nsfw += `, ${bustDescriptions[character.bust] || 'beautiful breasts'}`;
       }
       
+      // Tenue selon niveau
+      if (explicitLevel > 0.7) {
+        nsfw += ', topless, bare breasts exposed, nude upper body';
+        nsfw += ', nipples visible, exposed chest';
+      } else if (explicitLevel > 0.4) {
+        nsfw += ', wearing only panties, topless with arm covering';
+        nsfw += ', sheer see-through lingerie, nipples showing through';
+      } else {
+        nsfw += ', sexy lingerie, lace bra barely covering';
+        nsfw += ', revealing outfit, cleavage emphasized';
+      }
+      
+      nsfw += ', lying on bed seductively, soft romantic lighting';
+      nsfw += ', smooth flawless skin, sensual body curves';
+      
     } else if (character.gender === 'male') {
-      nsfw += ', sexy masculine pose, confident seductive look';
-      nsfw += ', shirtless bare muscular chest, topless';
-      nsfw += ', defined abs, muscular physique highlighted';
+      nsfw += ', sexy masculine pose, confident seductive expression';
+      nsfw += ', shirtless, bare muscular chest fully exposed';
+      nsfw += ', defined six-pack abs, muscular physique highlighted';
+      nsfw += ', V-line visible, low waist pants';
+      
+      // Physique selon "penis" qui représente la musculature
+      if (character.penis) {
+        const size = parseInt(character.penis) || 15;
+        if (size >= 20) {
+          nsfw += ', extremely muscular body, bodybuilder physique';
+          nsfw += ', massive muscles, powerful build, impressive physique';
+        } else if (size >= 17) {
+          nsfw += ', very muscular athletic body, ripped physique';
+        }
+      }
+      
+      if (explicitLevel > 0.6) {
+        nsfw += ', wearing only underwear, bulge visible';
+      }
     }
     
     if (isRealistic) {
-      nsfw += ', professional boudoir photography, high-end intimate photoshoot';
-      nsfw += ', tasteful sensual, elegant erotic, artistic';
+      nsfw += ', professional boudoir photography, high-end erotic photoshoot';
+      nsfw += ', intimate sensual photo, artistic nude, elegant erotica';
+      nsfw += ', perfect studio lighting, professional quality';
     } else {
-      nsfw += ', beautiful anime art, detailed illustration';
+      nsfw += ', beautiful ecchi anime art, detailed hentai style illustration';
+      nsfw += ', high quality nsfw anime, sensual anime artwork';
     }
+    
+    nsfw += ', NSFW content, adult only, explicit, erotic, sexy';
     
     return nsfw;
   }
