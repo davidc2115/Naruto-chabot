@@ -259,23 +259,13 @@ export default function CharacterDetailScreen({ route, navigation }) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.imageContainer}>
-        {loadingImage ? (
+        {loadingImage && isPremium ? (
           <View style={styles.imagePlaceholder}>
             <ActivityIndicator size="large" color="#6366f1" />
             <Text style={styles.loadingText}>Génération de l'image...</Text>
           </View>
         ) : characterImage ? (
           <Image source={{ uri: characterImage }} style={styles.characterImage} />
-        ) : !isPremium ? (
-          <View style={styles.premiumPlaceholder}>
-            <Text style={styles.premiumLockIcon}>🔒</Text>
-            <Text style={styles.avatarLarge}>
-              {character.name.split(' ').map(n => n[0]).join('')}
-            </Text>
-            <Text style={styles.premiumPlaceholderText}>
-              💎 Premium requis pour les images
-            </Text>
-          </View>
         ) : (
           <View style={styles.imagePlaceholder}>
             <Text style={styles.avatarLarge}>
@@ -287,7 +277,7 @@ export default function CharacterDetailScreen({ route, navigation }) {
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerInfo}>
             <Text style={styles.name}>{character.name}</Text>
             <Text style={styles.info}>
               {character.age} ans • {
@@ -299,12 +289,14 @@ export default function CharacterDetailScreen({ route, navigation }) {
               {character.gender === 'male' && character.penis && ` • ${character.penis}`}
             </Text>
           </View>
-          <TouchableOpacity
-            style={[styles.refreshImageButton, !isPremium && styles.refreshImageButtonLocked]}
-            onPress={generateCharacterImage}
-          >
-            <Text style={styles.refreshImageText}>{isPremium ? '🔄' : '🔒'}</Text>
-          </TouchableOpacity>
+          {isPremium && (
+            <TouchableOpacity
+              style={styles.refreshImageButton}
+              onPress={generateCharacterImage}
+            >
+              <Text style={styles.refreshImageText}>🔄</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.tagsContainer}>
@@ -493,23 +485,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  premiumPlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#1e1b4b',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  premiumLockIcon: {
-    fontSize: 40,
-    marginBottom: 10,
-  },
-  premiumPlaceholderText: {
-    color: '#fbbf24',
-    fontSize: 14,
-    marginTop: 15,
-    fontWeight: '600',
-  },
   avatarLarge: {
     fontSize: 80,
     fontWeight: 'bold',
@@ -529,6 +504,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 15,
   },
+  headerInfo: {
+    flex: 1,
+  },
   name: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -546,11 +524,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#6366f1',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  refreshImageButtonLocked: {
-    backgroundColor: '#fef3c7',
-    borderWidth: 1,
-    borderColor: '#f59e0b',
   },
   refreshImageText: {
     fontSize: 20,
