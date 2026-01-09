@@ -20,7 +20,7 @@ import CustomCharacterService from '../services/CustomCharacterService';
 import GalleryService from '../services/GalleryService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SWIPE_THRESHOLD = 120;
+const SWIPE_THRESHOLD = 80;
 
 // Fonction pour mélanger un tableau (Fisher-Yates)
 const shuffleArray = (array) => {
@@ -50,10 +50,58 @@ export default function CharacterCarouselScreen({ navigation }) {
     extrapolate: 'clamp',
   });
 
-  // PanResponder pour le swipe
+  // Refs pour stocker les valeurs actuelles (éviter les closures obsolètes)
+  const currentIndexRef = useRef(currentIndex);
+  const filteredCharactersLengthRef = useRef(0);
+  
+  // Mettre à jour les refs quand les valeurs changent
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  // Fonctions de navigation utilisant les refs
+  const goToNext = () => {
+    const maxIndex = filteredCharactersLengthRef.current - 1;
+    if (currentIndexRef.current < maxIndex) {
+      setCurrentIndex(currentIndexRef.current + 1);
+    } else {
+      setCurrentIndex(0); // Revenir au début
+    }
+  };
+
+  const goToPrevious = () => {
+    const maxIndex = filteredCharactersLengthRef.current - 1;
+    if (currentIndexRef.current > 0) {
+      setCurrentIndex(currentIndexRef.current - 1);
+    } else {
+      setCurrentIndex(maxIndex); // Aller à la fin
+    }
+  };
+
+  const swipeCard = (direction) => {
+    const toValue = direction === 'left' ? -SCREEN_WIDTH : SCREEN_WIDTH;
+    Animated.timing(position, {
+      toValue: { x: toValue, y: 0 },
+      duration: 200,
+      useNativeDriver: false,
+    }).start(() => {
+      if (direction === 'left') {
+        goToNext();
+      } else {
+        goToPrevious();
+      }
+      position.setValue({ x: 0, y: 0 });
+    });
+  };
+
+  // PanResponder pour le swipe - créé une seule fois mais utilise les refs
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        // Activer le pan si le mouvement horizontal est significatif
+        return Math.abs(gesture.dx) > 5;
+      },
       onPanResponderMove: (_, gesture) => {
         position.setValue({ x: gesture.dx, y: 0 });
       },
@@ -68,28 +116,13 @@ export default function CharacterCarouselScreen({ navigation }) {
           // Retour au centre
           Animated.spring(position, {
             toValue: { x: 0, y: 0 },
+            friction: 5,
             useNativeDriver: false,
           }).start();
         }
       },
     })
   ).current;
-
-  const swipeCard = (direction) => {
-    const toValue = direction === 'left' ? -SCREEN_WIDTH : SCREEN_WIDTH;
-    Animated.timing(position, {
-      toValue: { x: toValue, y: 0 },
-      duration: 250,
-      useNativeDriver: false,
-    }).start(() => {
-      if (direction === 'left') {
-        handleNext();
-      } else {
-        handlePrevious();
-      }
-      position.setValue({ x: 0, y: 0 });
-    });
-  };
 
   useEffect(() => {
     loadAllCharacters();
@@ -158,6 +191,9 @@ export default function CharacterCarouselScreen({ navigation }) {
     });
   }
   
+  // Mettre à jour la ref avec la longueur des personnages filtrés
+  filteredCharactersLengthRef.current = filteredCharacters.length;
+  
   // Filtrer les tags pour la recherche
   const allTags = [...new Set(allCharacters.flatMap(char => char.tags || []))].sort();
   const filteredTags = tagSearch 
@@ -169,22 +205,6 @@ export default function CharacterCarouselScreen({ navigation }) {
   // Fonction pour obtenir la description à afficher
   const getDisplayDescription = (char) => {
     return char.scenario || char.description || char.personality || char.background || 'Personnage mystérieux...';
-  };
-
-  const handleNext = () => {
-    if (currentIndex < filteredCharacters.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      setCurrentIndex(0); // Revenir au début
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    } else {
-      setCurrentIndex(filteredCharacters.length - 1); // Aller à la fin
-    }
   };
 
   const handleSelect = () => {

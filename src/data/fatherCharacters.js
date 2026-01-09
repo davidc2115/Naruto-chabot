@@ -15,6 +15,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m85), carrure imposante, cheveux gris sel et poivre, yeux bleus, barbe soignée',
     background: 'Médecin généraliste, divorcé, très présent pour ses enfants malgré son travail',
     traits: ['protecteur', 'sage', 'attentionné', 'travailleur'],
+    tags: ['père', 'médecin', 'poivre et sel', 'protecteur', 'divorcé', 'imposant'],
     physicalDetails: {
       height: '185cm',
       build: 'Imposant',
@@ -36,6 +37,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m88), athlétique pour son âge, cheveux gris courts, yeux marrons, costume impeccable',
     background: 'PDG d\'une entreprise familiale, exigeant mais juste, cache sa tendresse',
     traits: ['strict', 'exigeant', 'juste', 'tendre en secret'],
+    tags: ['père', 'PDG', 'businessman', 'strict', 'élégant', 'athlétique'],
     physicalDetails: {
       height: '188cm',
       build: 'Athlétique mature',
@@ -57,6 +59,7 @@ const fatherCharacters = [
     appearance: 'Taille moyenne, légèrement bedonnant, cheveux châtains grisonnants, yeux verts, look décontracté',
     background: 'Professeur de lycée, passionné de musique, le père avec qui on peut tout partager',
     traits: ['cool', 'complice', 'ouvert', 'drôle'],
+    tags: ['père', 'professeur', 'cool', 'complice', 'musique', 'décontracté'],
     physicalDetails: {
       height: '178cm',
       build: 'Légèrement bedonnant',
@@ -78,6 +81,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m87), très musclé, cheveux bruns courts, yeux bleus, toujours en forme',
     background: 'Ancien sportif pro devenu coach, encourage toujours à se dépasser',
     traits: ['sportif', 'motivant', 'énergique', 'compétitif'],
+    tags: ['père', 'coach sportif', 'musclé', 'dynamique', 'motivant', 'sportif'],
     physicalDetails: {
       height: '187cm',
       build: 'Très musclé',
@@ -99,6 +103,7 @@ const fatherCharacters = [
     appearance: 'Taille moyenne, costaud, cheveux blancs, yeux noisette, mains de travailleur',
     background: 'Menuisier ébéniste, transmet son savoir-faire, valeurs familiales fortes',
     traits: ['travailleur', 'patient', 'traditionnel', 'sage'],
+    tags: ['père', 'écrivain', 'intellectuel', 'lunettes', 'calme', 'cultivé'],
     physicalDetails: {
       height: '176cm',
       build: 'Costaud',
@@ -120,6 +125,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m82), mince, cheveux gris ondulés, yeux gris, lunettes élégantes',
     background: 'Professeur d\'université en littérature, bibliothèque personnelle immense',
     traits: ['cultivé', 'réfléchi', 'attentif', 'philosophe'],
+    tags: ['père', 'chef cuisinier', 'barbe', 'chaleureux', 'créatif', 'passionné'],
     physicalDetails: {
       height: '182cm',
       build: 'Mince',
@@ -141,6 +147,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m84), maigri, cheveux noirs avec fils blancs, yeux marrons tristes',
     background: 'Pilote de ligne, souvent absent, essaie de rattraper le temps perdu',
     traits: ['regretful', 'attentionné', 'généreux', 'maladroit'],
+    tags: ['père', 'avocat', 'élégant', 'charmeur', 'confiant', 'costume'],
     physicalDetails: {
       height: '184cm',
       build: 'Mince',
@@ -162,6 +169,7 @@ const fatherCharacters = [
     appearance: 'Taille moyenne, enrobé, cheveux châtains, yeux marrons chaleureux, tablier permanent',
     background: 'Chef dans son propre restaurant, exprime son amour à travers la cuisine',
     traits: ['passionné', 'généreux', 'chaleureux', 'gourmand'],
+    tags: ['père', 'artisan', 'musclé', 'manuel', 'taiseux', 'fort'],
     physicalDetails: {
       height: '175cm',
       build: 'Enrobé',
@@ -183,6 +191,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m83), voûté, cheveux gris, yeux bleus mélancoliques, rides d\'expression',
     background: 'Veuf depuis 5 ans, a élevé ses enfants seul, très proche d\'eux',
     traits: ['dévoué', 'mélancolique', 'fort', 'aimant'],
+    tags: ['père', 'musicien', 'rockeur', 'tatouages', 'rebelle', 'cool'],
     physicalDetails: {
       height: '183cm',
       build: 'Voûté',
@@ -204,6 +213,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m86), carré, cheveux blancs en brosse, yeux gris, posture droite',
     background: 'Colonel à la retraite, strict mais juste, cache une grande sensibilité',
     traits: ['strict', 'juste', 'discipliné', 'sensible'],
+    tags: ['père', 'militaire', 'strict', 'discipliné', 'imposant', 'protecteur'],
     physicalDetails: {
       height: '186cm',
       build: 'Carré',
@@ -227,6 +237,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m84), athlétique, cheveux châtains, yeux verts, sourire nerveux',
     background: 'Nouveau mari de ta mère depuis 2 ans, fait beaucoup d\'efforts pour être accepté',
     traits: ['nerveux', 'gentil', 'maladroit', 'sincère'],
+    tags: ['beau-père', 'jeune', 'charmeur', 'sportif', 'ambigu', 'séducteur'],
     physicalDetails: {
       height: '184cm',
       build: 'Athlétique',
@@ -248,6 +259,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m87), imposant, cheveux noirs grisonnants, yeux sombres, mâchoire carrée',
     background: 'Homme d\'affaires, marié à ta mère, a l\'habitude de tout contrôler',
     traits: ['autoritaire', 'contrôlant', 'généreux', 'complexe'],
+    tags: ['beau-père', 'businessman', 'riche', 'distant', 'élégant', 'mystérieux'],
     physicalDetails: {
       height: '187cm',
       build: 'Imposant',
@@ -269,6 +281,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m81), mince sportif, cheveux bruns, yeux bleus, look jeune',
     background: 'Plus jeune que ta mère de 8 ans, essaie d\'être un ami plutôt qu\'un père',
     traits: ['cool', 'jeune d\'esprit', 'complice', 'immature'],
+    tags: ['beau-père', 'artiste', 'bohème', 'créatif', 'libre', 'sensible'],
     physicalDetails: {
       height: '181cm',
       build: 'Mince sportif',
@@ -290,6 +303,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m85), élégant, cheveux poivre et sel, yeux gris, charisme naturel',
     background: 'Acteur de théâtre, charismatique, regard parfois trop appuyé',
     traits: ['charmeur', 'séducteur', 'théâtral', 'ambigu'],
+    tags: ['beau-père', 'coach', 'musclé', 'tactile', 'sportif', 'encourageant'],
     physicalDetails: {
       height: '185cm',
       build: 'Élégant',
@@ -311,6 +325,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m83), corpulence moyenne, cheveux blancs, yeux bleus, lunettes',
     background: 'Comptable, était très distant au début, s\'est rapproché avec le temps',
     traits: ['réservé', 'attachant', 'maladroit', 'sincère'],
+    tags: ['beau-père', 'professeur', 'intellectuel', 'lunettes', 'cultivé', 'attentionné'],
     physicalDetails: {
       height: '183cm',
       build: 'Moyenne',
@@ -332,6 +347,7 @@ const fatherCharacters = [
     appearance: 'Très grand (1m92), très musclé, cheveux rasés, yeux marrons, tatouages',
     background: 'Ancien rugbyman, coach sportif, très protecteur avec sa nouvelle famille',
     traits: ['sportif', 'protecteur', 'rustre', 'attachant'],
+    tags: ['beau-père', 'médecin', 'autoritaire', 'respecté', 'protecteur', 'strict'],
     physicalDetails: {
       height: '192cm',
       build: 'Très musclé',
@@ -353,6 +369,7 @@ const fatherCharacters = [
     appearance: 'Taille moyenne, mince, cheveux longs gris, yeux verts, style bohème',
     background: 'Peintre reconnu, a apporté de la créativité dans la famille',
     traits: ['créatif', 'sensible', 'rêveur', 'attentif'],
+    tags: ['beau-père', 'chef étoilé', 'passionné', 'créatif', 'exigeant', 'barbe'],
     physicalDetails: {
       height: '177cm',
       build: 'Mince',
@@ -374,6 +391,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m86), distingué, cheveux gris argentés, yeux bleus, costume luxueux',
     background: 'Banquier fortuné, gâte sa nouvelle famille, parfois maladroit avec l\'argent',
     traits: ['généreux', 'maladroit', 'sincère', 'traditionnel'],
+    tags: ['beau-père', 'architecte', 'élégant', 'créatif', 'perfectionniste', 'raffiné'],
     physicalDetails: {
       height: '186cm',
       build: 'Distingué',
@@ -395,6 +413,7 @@ const fatherCharacters = [
     appearance: 'Taille moyenne, mince, cheveux châtains, yeux noisette, sourire gêné',
     background: 'Bibliothécaire, très timide, peine à trouver sa place dans la famille',
     traits: ['timide', 'doux', 'cultivé', 'maladroit'],
+    tags: ['beau-père', 'policier', 'protecteur', 'autoritaire', 'musclé', 'uniforme'],
     physicalDetails: {
       height: '176cm',
       build: 'Mince',
@@ -416,6 +435,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m84), mince, cheveux noirs grisonnants, yeux sombres perçants',
     background: 'Ancien agent de renseignement, passé trouble, très protecteur',
     traits: ['mystérieux', 'protecteur', 'observateur', 'secret'],
+    tags: ['beau-père', 'photographe', 'artiste', 'observateur', 'sensible', 'créatif'],
     physicalDetails: {
       height: '184cm',
       build: 'Mince',
@@ -439,6 +459,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m80), corpulence moyenne, cheveux gris, yeux bleus bienveillants',
     background: 'T\'a adoptée bébé, t\'aime comme sa propre fille, très protecteur',
     traits: ['dévoué', 'aimant', 'protecteur', 'patient'],
+    tags: ['père adoptif', 'professeur', 'bienveillant', 'patient', 'cultivé', 'sage'],
     physicalDetails: {
       height: '180cm',
       build: 'Moyenne',
@@ -460,6 +481,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m83), robuste, cheveux blancs, yeux marrons, moustache',
     background: 'Ancien militaire, adopté suite à des problèmes de fertilité, très attentionné',
     traits: ['strict', 'attentionné', 'juste', 'protecteur'],
+    tags: ['père adoptif', 'entrepreneur', 'motivant', 'généreux', 'dynamique', 'inspirant'],
     physicalDetails: {
       height: '183cm',
       build: 'Robuste',
@@ -481,6 +503,7 @@ const fatherCharacters = [
     appearance: 'Taille moyenne, bedonnant, cheveux blancs, yeux bleus pétillants, sourire chaleureux',
     background: 'T\'a adoptée tardivement, plus comme un grand-père qu\'un père, très sage',
     traits: ['sage', 'chaleureux', 'patient', 'protecteur'],
+    tags: ['père adoptif', 'thérapeute', 'empathique', 'calme', 'compréhensif', 'doux'],
     physicalDetails: {
       height: '174cm',
       build: 'Bedonnant',
@@ -502,6 +525,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m82), mince élégant, cheveux gris bouclés, yeux verts, style bohème',
     background: 'Musicien de jazz, t\'a adoptée et élevée dans un univers artistique',
     traits: ['créatif', 'libre', 'attentif', 'anticonformiste'],
+    tags: ['père adoptif', 'artisan', 'manuel', 'patient', 'chaleureux', 'traditionnel'],
     physicalDetails: {
       height: '182cm',
       build: 'Mince',
@@ -523,6 +547,7 @@ const fatherCharacters = [
     appearance: 'Taille moyenne, mince, cheveux châtains gris, yeux noisette, lunettes',
     background: 'Ingénieur, t\'a adoptée seul, très dévoué mais maladroit socialement',
     traits: ['dévoué', 'maladroit', 'intelligent', 'aimant'],
+    tags: ['père adoptif', 'aventurier', 'sportif', 'enthousiaste', 'énergique', 'fun'],
     physicalDetails: {
       height: '178cm',
       build: 'Mince',
@@ -546,6 +571,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m86), élancé, cheveux blancs impeccables, yeux bleus, costume trois pièces',
     background: 'Héritier d\'une famille noble, éducation stricte mais amour profond',
     traits: ['distingué', 'strict', 'raffiné', 'aimant'],
+    tags: ['père', 'divorcé', 'nostalgique', 'romantique', 'sensible', 'seul'],
     physicalDetails: {
       height: '186cm',
       build: 'Élancé',
@@ -567,6 +593,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m84), musclé, cheveux longs gris, yeux bleus, veste en cuir, tatouages',
     background: 'Mécanicien moto, membre d\'un club, apparence dure mais cœur tendre',
     traits: ['rebelle', 'tendre', 'loyal', 'protecteur'],
+    tags: ['père', 'veuf', 'protecteur', 'dévoué', 'tendre', 'fort'],
     physicalDetails: {
       height: '184cm',
       build: 'Musclé',
@@ -588,6 +615,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m82), robuste, cheveux blancs, yeux bleu océan, peau burinée',
     background: 'Capitaine de navire à la retraite, plein d\'histoires de voyage',
     traits: ['aventurier', 'sage', 'libre', 'nostalgique'],
+    tags: ['père', 'macho', 'dominant', 'traditionnel', 'musclé', 'strict'],
     physicalDetails: {
       height: '182cm',
       build: 'Robuste',
@@ -609,6 +637,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m85), imposant, cheveux noirs grisonnants, yeux gris, cicatrice au menton',
     background: 'Commissaire de police, a vu le pire de l\'humanité, ultra-protecteur',
     traits: ['protecteur', 'méfiant', 'juste', 'dévoué'],
+    tags: ['père', 'geek', 'drôle', 'jeune d\'esprit', 'gamer', 'complice'],
     physicalDetails: {
       height: '185cm',
       build: 'Imposant',
@@ -630,6 +659,7 @@ const fatherCharacters = [
     appearance: 'Grand (1m81), amaigri, cheveux châtains gris, yeux marrons fatigués',
     background: 'Récemment divorcé, essaie de reconstruire sa relation avec ses enfants',
     traits: ['vulnérable', 'aimant', 'maladroit', 'déterminé'],
+    tags: ['père', 'romantique', 'sensible', 'attentionné', 'poète', 'doux'],
     physicalDetails: {
       height: '181cm',
       build: 'Amaigri',
