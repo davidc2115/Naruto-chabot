@@ -9,6 +9,9 @@ import {
   Dimensions,
   ImageBackground,
   TextInput,
+  SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
@@ -131,9 +134,11 @@ export default function CharacterCarouselScreen({ navigation }) {
   const imageUrl = characterImages[currentCharacter.id];
 
   return (
-    <View style={styles.container}>
-      {/* Barre de recherche tags */}
-      <View style={styles.searchContainer}>
+    <SafeAreaView style={styles.container}>
+      {/* Header avec padding pour status bar */}
+      <View style={styles.headerSafe}>
+        {/* Barre de recherche tags */}
+        <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
           placeholder="🔍 Rechercher un tag..."
@@ -194,6 +199,7 @@ export default function CharacterCarouselScreen({ navigation }) {
             </TouchableOpacity>
           )}
         </ScrollView>
+      </View>
       </View>
 
       {/* Carte personnage */}
@@ -262,7 +268,7 @@ export default function CharacterCarouselScreen({ navigation }) {
           <Text style={styles.navButtonText}>→</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -270,6 +276,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0f172a',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  headerSafe: {
+    backgroundColor: '#1e293b',
   },
   searchContainer: {
     flexDirection: 'row',
