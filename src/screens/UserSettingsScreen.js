@@ -8,10 +8,13 @@ import {
   Switch,
   Alert,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '../services/AuthService';
 import UserProfileService from '../services/UserProfileService';
+import CustomImageAPIService from '../services/CustomImageAPIService';
+import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
 
 /**
  * Écran de paramètres pour les utilisateurs non-admin
@@ -24,19 +27,174 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [nsfwMode, setNsfwMode] = useState(false);
   const [isAdult, setIsAdult] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // États pour Stable Diffusion Local
+  const [imageStrategy, setImageStrategy] = useState('freebox'); // 'freebox' ou 'local'
+  const [sdAvailability, setSdAvailability] = useState(null);
+  const [sdDownloading, setSdDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isPremium, setIsPremium] = useState(false);
 
   const DISCORD_INVITE = 'https://discord.gg/9KHCqSmz';
 
   useEffect(() => {
     loadUserData();
+    loadImageSettings();
+    checkPremiumStatus();
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       loadUserData();
+      loadImageSettings();
+      checkPremiumStatus();
     });
     return unsubscribe;
   }, [navigation]);
+
+  const checkPremiumStatus = async () => {
+    try {
+      const premiumStatus = await AuthService.checkPremiumStatus();
+      setIsPremium(premiumStatus);
+    } catch (error) {
+      console.error('Erreur vérification premium:', error);
+      setIsPremium(AuthService.isPremium());
+    }
+  };
+
+  const loadImageSettings = async () => {
+    try {
+      await CustomImageAPIService.loadConfig();
+      setImageStrategy(CustomImageAPIService.getStrategy());
+      
+      // Vérifier la disponibilité de SD Local
+      const availability = await StableDiffusionLocalService.checkAvailability();
+      setSdAvailability(availability);
+    } catch (error) {
+      console.error('Erreur chargement config images:', error);
+    }
+  };
+
+  const handleImageStrategyChange = async (newStrategy) => {
+    if (newStrategy === 'local' && !isPremium) {
+      Alert.alert(
+        '💎 Premium Requis',
+        'La génération d\'images sur smartphone est réservée aux membres Premium.'
+      );
+      return;
+    }
+
+    if (newStrategy === 'local' && (!sdAvailability?.available || !sdAvailability?.modelDownloaded)) {
+      Alert.alert(
+        '📱 Stable Diffusion Non Disponible',
+        'Vous devez d\'abord télécharger le modèle SD pour utiliser la génération locale.\n\nVoulez-vous le télécharger maintenant ?',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          { text: 'Télécharger', onPress: handleDownloadSD }
+        ]
+      );
+      return;
+    }
+
+    try {
+      setImageStrategy(newStrategy);
+      await CustomImageAPIService.saveConfig(
+        CustomImageAPIService.getApiUrl(),
+        newStrategy === 'local' ? 'local' : 'freebox',
+        newStrategy
+      );
+      
+      Alert.alert(
+        '✅ Configuration Sauvegardée',
+        newStrategy === 'local'
+          ? 'Les images seront générées directement sur votre smartphone.'
+          : 'Les images seront générées via le serveur Freebox.'
+      );
+    } catch (error) {
+      console.error('Erreur changement stratégie:', error);
+      Alert.alert('Erreur', 'Impossible de changer la configuration');
+    }
+  };
+
+  const handleDownloadSD = async () => {
+    if (!isPremium) {
+      Alert.alert(
+        '💎 Premium Requis',
+        'Le téléchargement de Stable Diffusion est réservé aux membres Premium.'
+      );
+      return;
+    }
+
+    Alert.alert(
+      '📥 Téléchargement SD-Turbo',
+      'Cela va télécharger le modèle SD-Turbo (~2 Go).\n\nAssurez-vous d\'avoir:\n• Une bonne connexion WiFi\n• Suffisamment d\'espace de stockage\n• Un appareil compatible (4+ Go RAM)',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Télécharger',
+          onPress: async () => {
+            try {
+              setSdDownloading(true);
+              setDownloadProgress(0);
+              
+              await StableDiffusionLocalService.downloadModel((progress) => {
+                // progress est en pourcentage (0-100)
+                setDownloadProgress(progress / 100);
+              });
+              
+              setSdDownloading(false);
+              
+              // Recharger la disponibilité
+              const availability = await StableDiffusionLocalService.checkAvailability();
+              setSdAvailability(availability);
+              
+              Alert.alert('✅ Téléchargement Terminé', 'Le modèle SD-Turbo est prêt à utiliser !');
+            } catch (error) {
+              setSdDownloading(false);
+              console.error('Erreur téléchargement SD:', error);
+              Alert.alert('❌ Erreur', 'Le téléchargement a échoué: ' + error.message);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeleteSD = async () => {
+    Alert.alert(
+      '🗑️ Supprimer Stable Diffusion',
+      'Voulez-vous supprimer le modèle SD-Turbo de votre appareil ?\n\nCela libérera environ 2 Go d\'espace.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await StableDiffusionLocalService.deleteModel();
+              
+              // Revenir à Freebox
+              setImageStrategy('freebox');
+              await CustomImageAPIService.saveConfig(
+                CustomImageAPIService.getApiUrl(),
+                'freebox',
+                'freebox'
+              );
+              
+              // Recharger la disponibilité
+              const availability = await StableDiffusionLocalService.checkAvailability();
+              setSdAvailability(availability);
+              
+              Alert.alert('✅ Supprimé', 'Le modèle SD a été supprimé de votre appareil.');
+            } catch (error) {
+              console.error('Erreur suppression SD:', error);
+              Alert.alert('Erreur', 'Impossible de supprimer le modèle');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const loadUserData = async () => {
     try {
@@ -203,6 +361,129 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         </TouchableOpacity>
       </View>
 
+      {/* GÉNÉRATION D'IMAGES */}
+      {isPremium && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
+          
+          <Text style={styles.sectionSubtitle}>Méthode de génération</Text>
+          
+          <View style={styles.strategyOptions}>
+            <TouchableOpacity
+              style={[
+                styles.strategyOption,
+                imageStrategy === 'freebox' && styles.strategyOptionActive
+              ]}
+              onPress={() => handleImageStrategyChange('freebox')}
+            >
+              <Text style={styles.strategyIcon}>🏠</Text>
+              <Text style={[
+                styles.strategyLabel,
+                imageStrategy === 'freebox' && styles.strategyLabelActive
+              ]}>
+                Freebox
+              </Text>
+              <Text style={styles.strategyDesc}>Via serveur</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.strategyOption,
+                imageStrategy === 'local' && styles.strategyOptionActive
+              ]}
+              onPress={() => handleImageStrategyChange('local')}
+            >
+              <Text style={styles.strategyIcon}>📱</Text>
+              <Text style={[
+                styles.strategyLabel,
+                imageStrategy === 'local' && styles.strategyLabelActive
+              ]}>
+                Local
+              </Text>
+              <Text style={styles.strategyDesc}>Sur smartphone</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Status Stable Diffusion */}
+          <View style={styles.sdStatusBox}>
+            <Text style={styles.sdStatusTitle}>📱 Stable Diffusion Local</Text>
+            
+            {sdAvailability ? (
+              <View style={styles.sdStatusContent}>
+                <View style={styles.sdStatusRow}>
+                  <Text style={styles.sdStatusLabel}>Compatible:</Text>
+                  <Text style={[
+                    styles.sdStatusValue,
+                    { color: sdAvailability.canRunSD ? '#10b981' : '#ef4444' }
+                  ]}>
+                    {sdAvailability.canRunSD ? '✅ Oui' : '❌ Non'}
+                  </Text>
+                </View>
+                <View style={styles.sdStatusRow}>
+                  <Text style={styles.sdStatusLabel}>Modèle téléchargé:</Text>
+                  <Text style={[
+                    styles.sdStatusValue,
+                    { color: sdAvailability.modelDownloaded ? '#10b981' : '#f59e0b' }
+                  ]}>
+                    {sdAvailability.modelDownloaded ? '✅ Oui' : '⬇️ Non'}
+                  </Text>
+                </View>
+                {sdAvailability.deviceInfo && (
+                  <View style={styles.sdStatusRow}>
+                    <Text style={styles.sdStatusLabel}>RAM disponible:</Text>
+                    <Text style={styles.sdStatusValue}>
+                      {sdAvailability.deviceInfo.totalMemory 
+                        ? `${Math.round(sdAvailability.deviceInfo.totalMemory / 1024 / 1024 / 1024)} Go`
+                        : 'N/A'}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ) : (
+              <ActivityIndicator color="#6366f1" style={{ marginTop: 10 }} />
+            )}
+            
+            {/* Boutons SD */}
+            <View style={styles.sdButtonsRow}>
+              {!sdAvailability?.modelDownloaded ? (
+                <TouchableOpacity
+                  style={[styles.sdDownloadButton, sdDownloading && styles.sdButtonDisabled]}
+                  onPress={handleDownloadSD}
+                  disabled={sdDownloading}
+                >
+                  {sdDownloading ? (
+                    <View style={styles.sdDownloadingContent}>
+                      <ActivityIndicator color="#fff" size="small" />
+                      <Text style={styles.sdDownloadButtonText}>
+                        {Math.round(downloadProgress * 100)}%
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.sdDownloadButtonText}>
+                      📥 Télécharger SD-Turbo (~2 Go)
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.sdDeleteButton}
+                  onPress={handleDeleteSD}
+                >
+                  <Text style={styles.sdDeleteButtonText}>
+                    🗑️ Supprimer le modèle
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            <Text style={styles.sdInfoText}>
+              ℹ️ La génération locale nécessite un smartphone puissant (4+ Go RAM).
+              Les images sont générées directement sur votre appareil sans passer par un serveur.
+            </Text>
+          </View>
+        </View>
+      )}
+
       {/* MODE NSFW */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🔞 Contenu Adulte</Text>
@@ -284,9 +565,9 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.5.0</Text>
+          <Text style={styles.aboutText}>Version: 3.6.1</Text>
           <Text style={styles.aboutText}>Roleplay Chat - Application de conversation</Text>
-          <Text style={styles.aboutText}>150+ personnages disponibles</Text>
+          <Text style={styles.aboutText}>250+ personnages disponibles</Text>
         </View>
       </View>
 
@@ -506,5 +787,119 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginBottom: 5,
+  },
+  // Section subtitle
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 10,
+  },
+  // Strategy options for image generation
+  strategyOptions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 15,
+  },
+  strategyOption: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  strategyOptionActive: {
+    borderColor: '#6366f1',
+    backgroundColor: '#eef2ff',
+  },
+  strategyIcon: {
+    fontSize: 28,
+    marginBottom: 8,
+  },
+  strategyLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  strategyLabelActive: {
+    color: '#6366f1',
+  },
+  strategyDesc: {
+    fontSize: 11,
+    color: '#9ca3af',
+    marginTop: 2,
+  },
+  // SD Status box
+  sdStatusBox: {
+    backgroundColor: '#f9fafb',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  sdStatusTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 10,
+  },
+  sdStatusContent: {
+    marginBottom: 15,
+  },
+  sdStatusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  sdStatusLabel: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  sdStatusValue: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  sdButtonsRow: {
+    marginBottom: 10,
+  },
+  sdDownloadButton: {
+    backgroundColor: '#6366f1',
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  sdButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  sdDownloadButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sdDownloadingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sdDeleteButton: {
+    backgroundColor: '#fee2e2',
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  sdDeleteButtonText: {
+    color: '#dc2626',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sdInfoText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });

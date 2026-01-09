@@ -456,13 +456,28 @@ def detect_style(prompt):
 @app.route('/generate', methods=['GET'])
 def generate_image():
     """Génération d'images - PREMIUM UNIQUEMENT"""
-    # Vérifier le statut premium
+    # Vérifier le statut premium via plusieurs méthodes
     user = get_current_user(request)
     user_id = request.headers.get('X-User-ID', '')
+    
+    # Vérification via token dans l'URL (pour les appels d'images)
+    token_param = request.args.get('token', '')
+    if token_param and not user:
+        user_id_from_token = verify_session(token_param)
+        if user_id_from_token:
+            user = get_user_by_id(user_id_from_token)
+    
+    # Vérification via user_id dans l'URL (fallback)
+    url_user_id = request.args.get('user_id', '')
+    if url_user_id and not user:
+        user = get_user_by_id(url_user_id)
     
     # Si on a un user_id dans le header, vérifier son statut
     if user_id and not user:
         user = get_user_by_id(user_id)
+    
+    # Log pour debug
+    print(f"🖼️ Génération demandée - User: {user.get('email') if user else 'None'}, Premium: {is_premium(user) if user else False}")
     
     # Admin ou premium uniquement
     if not user or not is_premium(user):

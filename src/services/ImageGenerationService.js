@@ -1,6 +1,8 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomImageAPIService from './CustomImageAPIService';
 import StableDiffusionLocalService from './StableDiffusionLocalService';
+import AuthService from './AuthService';
 
 class ImageGenerationService {
   constructor() {
@@ -586,10 +588,23 @@ class ImageGenerationService {
     const seed = Date.now() + Math.floor(Math.random() * 10000);
     const encodedPrompt = encodeURIComponent(prompt);
     
-    const separator = freeboxUrl.includes('?') ? '&' : '?';
-    const imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=768&height=768&seed=${seed}`;
+    // Récupérer le token et user_id pour l'authentification premium
+    const token = await AsyncStorage.getItem('auth_token');
+    const user = AuthService.getCurrentUser();
+    const userId = user?.id || '';
     
-    console.log(`🔗 URL Freebox générée (${prompt.length} chars)`);
+    const separator = freeboxUrl.includes('?') ? '&' : '?';
+    let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=768&height=768&seed=${seed}`;
+    
+    // Ajouter l'authentification pour les utilisateurs premium
+    if (token) {
+      imageUrl += `&token=${encodeURIComponent(token)}`;
+    }
+    if (userId) {
+      imageUrl += `&user_id=${encodeURIComponent(userId)}`;
+    }
+    
+    console.log(`🔗 URL Freebox générée avec auth (${prompt.length} chars)`);
     
     return imageUrl;
   }
