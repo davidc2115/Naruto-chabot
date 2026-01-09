@@ -498,6 +498,67 @@ export default function SettingsScreen({ navigation, onLogout }) {
             </TouchableOpacity>
           </View>
 
+          {/* Limites API Groq */}
+          <View style={styles.groqLimitsBox}>
+            <Text style={styles.groqLimitsTitle}>📊 Limites API Groq (Free Tier)</Text>
+            
+            <View style={styles.groqLimitsGrid}>
+              <View style={styles.groqLimitItem}>
+                <Text style={styles.groqLimitLabel}>🔑 Clés configurées</Text>
+                <Text style={styles.groqLimitValue}>
+                  {groqApiKeys.filter(k => k && k.trim()).length}
+                </Text>
+              </View>
+              
+              <View style={styles.groqLimitItem}>
+                <Text style={styles.groqLimitLabel}>⚡ Requêtes/min</Text>
+                <Text style={styles.groqLimitValue}>
+                  {30 * groqApiKeys.filter(k => k && k.trim()).length}
+                </Text>
+                <Text style={styles.groqLimitSub}>
+                  (30 × {groqApiKeys.filter(k => k && k.trim()).length} clés)
+                </Text>
+              </View>
+              
+              <View style={styles.groqLimitItem}>
+                <Text style={styles.groqLimitLabel}>📅 Requêtes/jour</Text>
+                <Text style={styles.groqLimitValue}>
+                  {(14400 * groqApiKeys.filter(k => k && k.trim()).length).toLocaleString('fr-FR')}
+                </Text>
+                <Text style={styles.groqLimitSub}>
+                  (14 400 × {groqApiKeys.filter(k => k && k.trim()).length} clés)
+                </Text>
+              </View>
+              
+              <View style={styles.groqLimitItem}>
+                <Text style={styles.groqLimitLabel}>📝 Tokens/min</Text>
+                <Text style={styles.groqLimitValue}>
+                  {(6000 * groqApiKeys.filter(k => k && k.trim()).length).toLocaleString('fr-FR')}
+                </Text>
+                <Text style={styles.groqLimitSub}>
+                  (6 000 × {groqApiKeys.filter(k => k && k.trim()).length} clés)
+                </Text>
+              </View>
+            </View>
+            
+            <View style={styles.groqLimitsNote}>
+              <Text style={styles.groqLimitsNoteText}>
+                💡 Ajoutez plus de clés pour augmenter les limites !
+                Chaque clé gratuite multiplie vos quotas.
+              </Text>
+            </View>
+            
+            {/* Fenêtre de contexte du modèle actuel */}
+            <View style={styles.groqContextInfo}>
+              <Text style={styles.groqContextLabel}>
+                🧠 Fenêtre de contexte ({groqModel.split('-')[0]}):
+              </Text>
+              <Text style={styles.groqContextValue}>
+                {availableModels.find(m => m.id === groqModel)?.contextWindow?.toLocaleString('fr-FR') || '128 000'} tokens
+              </Text>
+            </View>
+          </View>
+
           {/* Sélection du modèle Groq */}
           <View style={styles.modelSection}>
             <Text style={styles.modelSectionTitle}>🤖 Modèle Groq</Text>
@@ -808,7 +869,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.7.4</Text>
+          <Text style={styles.aboutText}>Version: 3.7.5</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>400+ personnages disponibles</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
@@ -1279,6 +1340,82 @@ const styles = StyleSheet.create({
   profileSubtext: {
     fontSize: 13,
     color: '#6b7280',
+  },
+  // Styles pour les limites Groq
+  groqLimitsBox: {
+    backgroundColor: '#f0fdf4',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 20,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  groqLimitsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#166534',
+    marginBottom: 12,
+  },
+  groqLimitsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 12,
+  },
+  groqLimitItem: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  groqLimitLabel: {
+    fontSize: 11,
+    color: '#166534',
+    marginBottom: 4,
+  },
+  groqLimitValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#15803d',
+  },
+  groqLimitSub: {
+    fontSize: 10,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  groqLimitsNote: {
+    backgroundColor: '#dcfce7',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  groqLimitsNoteText: {
+    fontSize: 12,
+    color: '#166534',
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  groqContextInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  groqContextLabel: {
+    fontSize: 12,
+    color: '#166534',
+  },
+  groqContextValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#15803d',
   },
   // Styles pour la sélection du modèle Groq
   modelSection: {
