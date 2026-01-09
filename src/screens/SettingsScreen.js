@@ -18,7 +18,7 @@ import SyncService from '../services/SyncService';
 import AuthService from '../services/AuthService';
 import * as FileSystem from 'expo-file-system';
 
-export default function SettingsScreen({ navigation }) {
+export default function SettingsScreen({ navigation, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -708,7 +708,7 @@ export default function SettingsScreen({ navigation }) {
             
             <TouchableOpacity
               style={[styles.accountButton, styles.logoutButton]}
-              onPress={async () => {
+              onPress={() => {
                 Alert.alert(
                   'Déconnexion',
                   'Voulez-vous vraiment vous déconnecter ?',
@@ -719,7 +719,10 @@ export default function SettingsScreen({ navigation }) {
                       style: 'destructive',
                       onPress: async () => {
                         await AuthService.logout();
-                        // Force reload app
+                        // Appeler le callback pour retourner à l'écran de connexion
+                        if (onLogout) {
+                          onLogout();
+                        }
                       }
                     }
                   ]
@@ -805,9 +808,9 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.3.0</Text>
+          <Text style={styles.aboutText}>Version: 3.3.1</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
-          <Text style={styles.aboutText}>126+ personnages disponibles</Text>
+          <Text style={styles.aboutText}>216+ personnages disponibles</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
           <Text style={styles.aboutText}>Synchronisation Freebox + Personnages publics</Text>
           <Text style={styles.aboutText}>Mode NSFW 100% français</Text>

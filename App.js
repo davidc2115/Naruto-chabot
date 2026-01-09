@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -8,6 +8,7 @@ import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import HomeScreen from './src/screens/HomeScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import UserSettingsScreen from './src/screens/UserSettingsScreen';
 import CharacterDetailScreen from './src/screens/CharacterDetailScreen';
 import ConversationScreen from './src/screens/ConversationScreen';
 import CreateCharacterScreen from './src/screens/CreateCharacterScreen';
@@ -23,7 +24,7 @@ import SyncService from './src/services/SyncService';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-function HomeTabs({ isAdmin }) {
+function HomeTabs({ isAdmin, onLogout }) {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -56,16 +57,27 @@ function HomeTabs({ isAdmin }) {
           tabBarIcon: ({ color }) => <TabIcon name="✨" color={color} />,
         }}
       />
-      {/* Onglet Paramètres visible seulement pour admin */}
-      {isAdmin && (
+      {/* Admin = SettingsScreen complet, Utilisateur = UserSettingsScreen */}
+      {isAdmin ? (
         <Tab.Screen 
           name="Settings" 
-          component={SettingsScreen}
           options={{
             tabBarLabel: 'Paramètres',
             tabBarIcon: ({ color }) => <TabIcon name="⚙️" color={color} />,
           }}
-        />
+        >
+          {props => <SettingsScreen {...props} onLogout={onLogout} />}
+        </Tab.Screen>
+      ) : (
+        <Tab.Screen 
+          name="UserSettings" 
+          options={{
+            tabBarLabel: 'Paramètres',
+            tabBarIcon: ({ color }) => <TabIcon name="⚙️" color={color} />,
+          }}
+        >
+          {props => <UserSettingsScreen {...props} onLogout={onLogout} />}
+        </Tab.Screen>
       )}
     </Tab.Navigator>
   );
@@ -144,6 +156,15 @@ export default function App() {
     startBackgroundSync();
   };
 
+  // Callback de déconnexion - appelé depuis UserSettingsScreen ou SettingsScreen
+  const handleLogout = useCallback(() => {
+    console.log('🚪 Déconnexion détectée, retour à l\'écran de connexion');
+    SyncService.stopAutoSync();
+    setUser(null);
+    setIsAdmin(false);
+    setAuthState('login');
+  }, []);
+
   // Écran de chargement
   if (isLoading) {
     return (
@@ -191,7 +212,7 @@ export default function App() {
           name="MainTabs" 
           options={{ headerShown: false }}
         >
-          {props => <HomeTabs {...props} isAdmin={isAdmin} />}
+          {props => <HomeTabs {...props} isAdmin={isAdmin} onLogout={handleLogout} />}
         </Stack.Screen>
         <Stack.Screen 
           name="CharacterCarousel" 
