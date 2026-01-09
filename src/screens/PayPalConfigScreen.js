@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '../services/AuthService';
 
 const FREEBOX_URL = 'http://88.174.155.230:33437';
@@ -23,18 +24,28 @@ export default function PayPalConfigScreen({ navigation }) {
   });
   const [pendingPayments, setPendingPayments] = useState([]);
 
+  // Récupérer les headers d'authentification
+  const getAuthHeaders = async () => {
+    const token = await AsyncStorage.getItem('auth_token');
+    const user = AuthService.getCurrentUser();
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+      'X-Admin-Email': user?.email || ''
+    };
+  };
+
   useEffect(() => {
     loadConfig();
   }, []);
 
   const loadConfig = async () => {
     try {
+      const headers = await getAuthHeaders();
+      
       // Charger la config PayPal
       const response = await fetch(`${FREEBOX_URL}/admin/paypal/config`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
-        }
+        headers
       });
 
       if (response.ok) {
@@ -46,14 +57,14 @@ export default function PayPalConfigScreen({ navigation }) {
             currency: data.config.currency || 'EUR',
           });
         }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.log('Erreur config PayPal:', errorData);
       }
 
       // Charger les paiements en attente
       const paymentsResponse = await fetch(`${FREEBOX_URL}/admin/payments/pending`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
-        }
+        headers
       });
 
       if (paymentsResponse.ok) {
@@ -64,6 +75,7 @@ export default function PayPalConfigScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Erreur chargement config PayPal:', error);
+      Alert.alert('Erreur', 'Impossible de charger la configuration PayPal');
     } finally {
       setLoading(false);
     }
@@ -77,12 +89,11 @@ export default function PayPalConfigScreen({ navigation }) {
 
     setSaving(true);
     try {
+      const headers = await getAuthHeaders();
+      
       const response = await fetch(`${FREEBOX_URL}/admin/paypal/config`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
-        },
+        headers,
         body: JSON.stringify({
           paypal_email: config.paypal_email,
           premium_price: parseFloat(config.premium_price) || 4.99,
@@ -90,12 +101,15 @@ export default function PayPalConfigScreen({ navigation }) {
         })
       });
 
-      if (response.ok) {
-        Alert.alert('✅ Succès', 'Configuration PayPal sauvegardée');
+      const data = await response.json().catch(() => ({}));
+      
+      if (response.ok && data.success) {
+        Alert.alert('✅ Succès', 'Configuration PayPal sauvegardée avec succès !');
       } else {
-        Alert.alert('Erreur', 'Impossible de sauvegarder la configuration');
+        Alert.alert('Erreur', data.error || 'Impossible de sauvegarder la configuration');
       }
     } catch (error) {
+      console.error('Erreur sauvegarde PayPal:', error);
       Alert.alert('Erreur', 'Erreur de connexion au serveur');
     } finally {
       setSaving(false);
@@ -112,24 +126,26 @@ export default function PayPalConfigScreen({ navigation }) {
           text: 'Oui, activer Premium',
           onPress: async () => {
             try {
+              const headers = await getAuthHeaders();
+              
               const response = await fetch(
                 `${FREEBOX_URL}/admin/payments/${transactionId}/confirm`,
                 {
                   method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
-                  }
+                  headers
                 }
               );
 
-              if (response.ok) {
+              const data = await response.json().catch(() => ({}));
+              
+              if (response.ok && data.success) {
                 Alert.alert('✅ Succès', 'Premium activé pour l\'utilisateur');
                 loadConfig(); // Recharger la liste
               } else {
-                Alert.alert('Erreur', 'Impossible de confirmer le paiement');
+                Alert.alert('Erreur', data.error || 'Impossible de confirmer le paiement');
               }
             } catch (error) {
+              console.error('Erreur confirmation:', error);
               Alert.alert('Erreur', 'Erreur de connexion');
             }
           }
