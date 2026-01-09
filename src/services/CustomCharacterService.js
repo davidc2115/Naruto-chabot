@@ -34,7 +34,12 @@ class CustomCharacterService {
         isPublic: isPublic,
         createdBy: user?.id || 'anonymous',
         createdByEmail: user?.email || null,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        // Assurer des valeurs par défaut pour description et tags
+        scenario: character.scenario || character.description || '',
+        description: character.description || character.scenario || '',
+        personality: character.personality || '',
+        tags: character.tags || [],
       };
       
       characters.push(newCharacter);
@@ -44,15 +49,17 @@ class CustomCharacterService {
       if (isPublic) {
         try {
           await SyncService.init();
-          const publishedChar = await SyncService.publishCharacter(newCharacter);
+          // S'assurer que le personnage est bien marqué comme public avant publication
+          const charToPublish = { ...newCharacter, isPublic: true };
+          const publishedChar = await SyncService.publishCharacter(charToPublish);
           // Mettre à jour avec l'ID du serveur
           if (publishedChar && publishedChar.id) {
             newCharacter.serverId = publishedChar.id;
             await this.updateCustomCharacter(newCharacter.id, { serverId: publishedChar.id });
           }
-          console.log('✅ Personnage publié sur le serveur');
+          console.log('✅ Personnage publié sur le serveur:', newCharacter.name);
         } catch (error) {
-          console.error('⚠️ Erreur publication, personnage sauvé localement uniquement:', error);
+          console.error('⚠️ Erreur publication, personnage sauvé localement uniquement:', error.message);
         }
       }
       
@@ -166,7 +173,17 @@ class CustomCharacterService {
       }
 
       await SyncService.init();
-      const publishedChar = await SyncService.publishCharacter(character);
+      
+      // S'assurer que le personnage est bien marqué comme public et a toutes les infos
+      const charToPublish = { 
+        ...character, 
+        isPublic: true,
+        scenario: character.scenario || character.description || 'Personnage mystérieux',
+        description: character.description || character.scenario || '',
+        tags: character.tags || [],
+      };
+      
+      const publishedChar = await SyncService.publishCharacter(charToPublish);
       
       // Mettre à jour le statut local
       await this.updateCustomCharacter(characterId, {
@@ -174,6 +191,7 @@ class CustomCharacterService {
         serverId: publishedChar.id
       });
 
+      console.log('✅ Personnage publié:', character.name);
       return publishedChar;
     } catch (error) {
       console.error('Error publishing character:', error);
