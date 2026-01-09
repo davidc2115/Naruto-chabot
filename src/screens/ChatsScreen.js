@@ -48,7 +48,7 @@ export default function ChatsScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             await StorageService.deleteConversation(characterId);
-            loadConversations();
+            loadData();
             Alert.alert('✅ Supprimée', 'La conversation a été supprimée définitivement.');
           },
         },
