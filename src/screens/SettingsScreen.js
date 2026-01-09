@@ -14,6 +14,7 @@ import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
 import TextGenerationService from '../services/TextGenerationService';
+import SyncService from '../services/SyncService';
 import * as FileSystem from 'expo-file-system';
 
 export default function SettingsScreen({ navigation }) {
@@ -36,6 +37,11 @@ export default function SettingsScreen({ navigation }) {
   const [sdAvailability, setSdAvailability] = useState(null);
   const [sdDownloading, setSdDownloading] = useState(false);
   const [sdDownloadProgress, setSdDownloadProgress] = useState(0);
+  
+  // Synchronisation
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const [serverStats, setServerStats] = useState(null);
 
   useEffect(() => {
     loadAllSettings();
@@ -56,11 +62,71 @@ export default function SettingsScreen({ navigation }) {
       await loadGroqModel();
       await loadImageConfig();
       await checkSDAvailability();
+      await loadSyncStatus();
     } catch (error) {
       console.error('Erreur chargement paramètres:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadSyncStatus = async () => {
+    try {
+      await SyncService.init();
+      const status = await SyncService.getSyncStatus();
+      setSyncStatus(status);
+      
+      if (status.serverOnline) {
+        const stats = await SyncService.getServerStats();
+        setServerStats(stats);
+      }
+    } catch (error) {
+      console.error('Erreur vérification sync:', error);
+    }
+  };
+
+  const handleSyncUpload = async () => {
+    setSyncing(true);
+    try {
+      await SyncService.init();
+      await SyncService.syncUpload();
+      await loadSyncStatus();
+      Alert.alert('Succès', 'Données synchronisées avec le serveur !');
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de synchroniser: ' + error.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleSyncDownload = async () => {
+    Alert.alert(
+      'Restaurer les données',
+      'Cela remplacera vos données locales par celles du serveur. Continuer ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Restaurer',
+          onPress: async () => {
+            setSyncing(true);
+            try {
+              await SyncService.init();
+              const success = await SyncService.syncDownload();
+              if (success) {
+                await loadSyncStatus();
+                Alert.alert('Succès', 'Données restaurées depuis le serveur !');
+              } else {
+                Alert.alert('Info', 'Aucune donnée à restaurer sur le serveur.');
+              }
+            } catch (error) {
+              Alert.alert('Erreur', 'Impossible de restaurer: ' + error.message);
+            } finally {
+              setSyncing(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const loadProfile = async () => {
@@ -606,14 +672,79 @@ export default function SettingsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* SYNCHRONISATION FREEBOX */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>☁️ Synchronisation Freebox</Text>
+        
+        <View style={styles.syncStatusBox}>
+          <View style={styles.syncStatusRow}>
+            <Text style={styles.syncLabel}>Serveur:</Text>
+            <Text style={[
+              styles.syncValue, 
+              { color: syncStatus?.serverOnline ? '#059669' : '#dc2626' }
+            ]}>
+              {syncStatus?.serverOnline ? '🟢 En ligne' : '🔴 Hors ligne'}
+            </Text>
+          </View>
+          
+          {syncStatus?.lastSync && (
+            <View style={styles.syncStatusRow}>
+              <Text style={styles.syncLabel}>Dernière sync:</Text>
+              <Text style={styles.syncValue}>
+                {new Date(syncStatus.lastSync).toLocaleString('fr-FR')}
+              </Text>
+            </View>
+          )}
+          
+          {serverStats && (
+            <View style={styles.syncStatusRow}>
+              <Text style={styles.syncLabel}>Personnages publics:</Text>
+              <Text style={styles.syncValue}>{serverStats.publicCharacters || 0}</Text>
+            </View>
+          )}
+        </View>
+        
+        <View style={styles.syncButtons}>
+          <TouchableOpacity
+            style={[styles.syncButton, styles.syncUploadButton]}
+            onPress={handleSyncUpload}
+            disabled={syncing}
+          >
+            {syncing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.syncButtonText}>📤 Sauvegarder</Text>
+            )}
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.syncButton, styles.syncDownloadButton]}
+            onPress={handleSyncDownload}
+            disabled={syncing}
+          >
+            {syncing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.syncButtonText}>📥 Restaurer</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+        
+        <Text style={styles.syncHint}>
+          Synchronise tes personnages, conversations et paramètres avec ta Freebox.
+          Les personnages publics sont partagés avec la communauté.
+        </Text>
+      </View>
+
       {/* À PROPOS */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.2.6</Text>
+          <Text style={styles.aboutText}>Version: 3.2.7</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
-          <Text style={styles.aboutText}>45 personnages (15 originaux + 30 amies)</Text>
+          <Text style={styles.aboutText}>126+ personnages disponibles</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
+          <Text style={styles.aboutText}>Synchronisation Freebox + Personnages publics</Text>
           <Text style={styles.aboutText}>Mode NSFW 100% français</Text>
         </View>
       </View>
@@ -951,6 +1082,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#4b5563',
     marginBottom: 8,
+  },
+  // Styles synchronisation
+  syncStatusBox: {
+    backgroundColor: '#f3f4f6',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  syncStatusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  syncLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  syncValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  syncButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 15,
+  },
+  syncButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  syncUploadButton: {
+    backgroundColor: '#6366f1',
+  },
+  syncDownloadButton: {
+    backgroundColor: '#10b981',
+  },
+  syncButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  syncHint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    lineHeight: 18,
   },
   featuresList: {
     backgroundColor: '#f3f4f6',

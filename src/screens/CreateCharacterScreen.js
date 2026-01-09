@@ -9,11 +9,13 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
 import UserProfileService from '../services/UserProfileService';
+import SyncService from '../services/SyncService';
 
 export default function CreateCharacterScreen({ navigation, route }) {
   const { characterToEdit } = route.params || {};
@@ -32,6 +34,10 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [startMessage, setStartMessage] = useState(characterToEdit?.startMessage || '');
   const [imageUrl, setImageUrl] = useState(characterToEdit?.imageUrl || '');
   const [generatingImage, setGeneratingImage] = useState(false);
+  
+  // Option public/privé
+  const [isPublic, setIsPublic] = useState(characterToEdit?.isPublic || false);
+  const [serverOnline, setServerOnline] = useState(null);
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
   const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
@@ -74,6 +80,18 @@ export default function CreateCharacterScreen({ navigation, route }) {
     }
   };
 
+  const checkServerStatus = async () => {
+    const online = await SyncService.checkServerHealth();
+    setServerOnline(online);
+  };
+
+  // Vérifier le serveur au montage si on veut publier
+  React.useEffect(() => {
+    if (isPublic) {
+      checkServerStatus();
+    }
+  }, [isPublic]);
+
   const handleSave = async () => {
     if (!name || !age || !appearance || !personality || !scenario || !startMessage) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
@@ -95,25 +113,49 @@ export default function CreateCharacterScreen({ navigation, route }) {
         startMessage,
         imageUrl: imageUrl || undefined,
         isCustom: true,
+        isPublic: isPublic,
       };
 
       let savedCharacter;
       if (isEditing) {
         savedCharacter = await CustomCharacterService.updateCustomCharacter(characterToEdit.id, character);
-        // Si nouvelle image générée, l'ajouter à la galerie
+        
+        // Gérer le changement de statut public/privé
+        if (isPublic && !characterToEdit.isPublic) {
+          try {
+            await CustomCharacterService.publishCharacter(characterToEdit.id);
+          } catch (e) {
+            console.warn('Erreur publication:', e);
+          }
+        } else if (!isPublic && characterToEdit.isPublic) {
+          try {
+            await CustomCharacterService.unpublishCharacter(characterToEdit.id);
+          } catch (e) {
+            console.warn('Erreur dépublication:', e);
+          }
+        }
+        
         if (imageUrl && imageUrl !== characterToEdit.imageUrl) {
           await GalleryService.saveImageToGallery(characterToEdit.id, imageUrl);
         }
-        Alert.alert('Succès', 'Personnage modifié !', [
+        
+        const message = isPublic 
+          ? 'Personnage modifié et visible publiquement !' 
+          : 'Personnage modifié !';
+        Alert.alert('Succès', message, [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       } else {
-        savedCharacter = await CustomCharacterService.saveCustomCharacter(character);
-        // Ajouter l'image à la galerie du nouveau personnage
+        savedCharacter = await CustomCharacterService.saveCustomCharacter(character, isPublic);
+        
         if (imageUrl && savedCharacter.id) {
           await GalleryService.saveImageToGallery(savedCharacter.id, imageUrl);
         }
-        Alert.alert('Succès', 'Personnage créé ! L\'image a été ajoutée à la galerie.', [
+        
+        const message = isPublic 
+          ? 'Personnage créé et partagé avec la communauté !' 
+          : 'Personnage créé ! L\'image a été ajoutée à la galerie.';
+        Alert.alert('Succès', message, [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       }
@@ -295,9 +337,42 @@ export default function CreateCharacterScreen({ navigation, route }) {
         numberOfLines={4}
       />
 
+      {/* Section Public/Privé */}
+      <View style={styles.publicSection}>
+        <View style={styles.publicHeader}>
+          <View style={styles.publicInfo}>
+            <Text style={styles.publicTitle}>🌐 Partager publiquement</Text>
+            <Text style={styles.publicDescription}>
+              Rendre ce personnage visible par tous les utilisateurs
+            </Text>
+          </View>
+          <Switch
+            value={isPublic}
+            onValueChange={(value) => {
+              setIsPublic(value);
+              if (value) checkServerStatus();
+            }}
+            trackColor={{ false: '#d1d5db', true: '#6366f1' }}
+            thumbColor={isPublic ? '#fff' : '#f4f3f4'}
+          />
+        </View>
+        
+        {isPublic && (
+          <View style={styles.publicStatus}>
+            {serverOnline === null ? (
+              <Text style={styles.statusChecking}>⏳ Vérification du serveur...</Text>
+            ) : serverOnline ? (
+              <Text style={styles.statusOnline}>✅ Serveur en ligne - Prêt à publier</Text>
+            ) : (
+              <Text style={styles.statusOffline}>⚠️ Serveur hors ligne - Sera publié plus tard</Text>
+            )}
+          </View>
+        )}
+      </View>
+
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>
-          {isEditing ? '💾 Sauvegarder' : '✨ Créer'}
+          {isEditing ? '💾 Sauvegarder' : isPublic ? '🌐 Créer et Partager' : '✨ Créer'}
         </Text>
       </TouchableOpacity>
 
@@ -474,5 +549,53 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  // Styles pour public/privé
+  publicSection: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#eef2ff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#c7d2fe',
+  },
+  publicHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  publicInfo: {
+    flex: 1,
+    marginRight: 15,
+  },
+  publicTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4338ca',
+    marginBottom: 4,
+  },
+  publicDescription: {
+    fontSize: 13,
+    color: '#6366f1',
+  },
+  publicStatus: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#c7d2fe',
+  },
+  statusChecking: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  statusOnline: {
+    fontSize: 13,
+    color: '#059669',
+    fontWeight: '500',
+  },
+  statusOffline: {
+    fontSize: 13,
+    color: '#d97706',
+    fontWeight: '500',
   },
 });

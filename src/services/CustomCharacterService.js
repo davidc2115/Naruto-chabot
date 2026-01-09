@@ -1,7 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import SyncService from './SyncService';
 
 class CustomCharacterService {
-  async saveCustomCharacter(character) {
+  /**
+   * Sauvegarde un personnage personnalisé
+   * @param {object} character - Le personnage à sauvegarder
+   * @param {boolean} isPublic - Si true, le personnage sera publié sur le serveur
+   */
+  async saveCustomCharacter(character, isPublic = false) {
     try {
       const key = 'custom_characters';
       const existing = await AsyncStorage.getItem(key);
@@ -12,11 +18,28 @@ class CustomCharacterService {
         ...character,
         id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         isCustom: true,
+        isPublic: isPublic,
         createdAt: Date.now()
       };
       
       characters.push(newCharacter);
       await AsyncStorage.setItem(key, JSON.stringify(characters));
+      
+      // Si public, publier sur le serveur
+      if (isPublic) {
+        try {
+          await SyncService.init();
+          const publishedChar = await SyncService.publishCharacter(newCharacter);
+          // Mettre à jour avec l'ID du serveur
+          if (publishedChar && publishedChar.id) {
+            newCharacter.serverId = publishedChar.id;
+            await this.updateCustomCharacter(newCharacter.id, { serverId: publishedChar.id });
+          }
+          console.log('✅ Personnage publié sur le serveur');
+        } catch (error) {
+          console.error('⚠️ Erreur publication, personnage sauvé localement uniquement:', error);
+        }
+      }
       
       return newCharacter;
     } catch (error) {
@@ -62,6 +85,124 @@ class CustomCharacterService {
     } catch (error) {
       console.error('Error updating custom character:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Publie un personnage existant sur le serveur
+   */
+  async publishCharacter(characterId) {
+    try {
+      const characters = await this.getCustomCharacters();
+      const character = characters.find(char => char.id === characterId);
+      
+      if (!character) {
+        throw new Error('Personnage non trouvé');
+      }
+
+      await SyncService.init();
+      const publishedChar = await SyncService.publishCharacter(character);
+      
+      // Mettre à jour le statut local
+      await this.updateCustomCharacter(characterId, {
+        isPublic: true,
+        serverId: publishedChar.id
+      });
+
+      return publishedChar;
+    } catch (error) {
+      console.error('Error publishing character:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Retire un personnage du serveur public
+   */
+  async unpublishCharacter(characterId) {
+    try {
+      const characters = await this.getCustomCharacters();
+      const character = characters.find(char => char.id === characterId);
+      
+      if (!character) {
+        throw new Error('Personnage non trouvé');
+      }
+
+      const serverIdToRemove = character.serverId || characterId;
+      
+      await SyncService.init();
+      await SyncService.unpublishCharacter(serverIdToRemove);
+      
+      // Mettre à jour le statut local
+      await this.updateCustomCharacter(characterId, {
+        isPublic: false,
+        serverId: null
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error unpublishing character:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère tous les personnages publics du serveur
+   */
+  async getPublicCharacters() {
+    try {
+      await SyncService.init();
+      return await SyncService.getPublicCharacters();
+    } catch (error) {
+      console.error('Error getting public characters:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Télécharge un personnage public et l'ajoute aux personnages locaux
+   */
+  async downloadPublicCharacter(characterId) {
+    try {
+      await SyncService.init();
+      const character = await SyncService.downloadPublicCharacter(characterId);
+      
+      if (character) {
+        // Sauvegarder localement avec un nouvel ID
+        const localCharacter = {
+          ...character,
+          id: `downloaded_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          originalId: character.id,
+          isCustom: true,
+          isPublic: false, // Le personnage téléchargé est privé par défaut
+          isDownloaded: true,
+          downloadedAt: Date.now()
+        };
+
+        const existing = await AsyncStorage.getItem('custom_characters');
+        const characters = existing ? JSON.parse(existing) : [];
+        characters.push(localCharacter);
+        await AsyncStorage.setItem('custom_characters', JSON.stringify(characters));
+
+        return localCharacter;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error downloading public character:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Like un personnage public
+   */
+  async likePublicCharacter(characterId) {
+    try {
+      await SyncService.init();
+      return await SyncService.likeCharacter(characterId);
+    } catch (error) {
+      console.error('Error liking character:', error);
+      return null;
     }
   }
 }
