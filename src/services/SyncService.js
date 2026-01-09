@@ -8,9 +8,11 @@ import axios from 'axios';
  */
 class SyncService {
   constructor() {
-    this.baseUrl = 'http://88.174.155.230:33438';
+    // Port unique 33437 pour tous les services
+    this.baseUrl = 'http://88.174.155.230:33437';
     this.userId = null;
     this.lastSync = null;
+    this.autoSyncInterval = null;
   }
 
   /**
@@ -372,6 +374,70 @@ class SyncService {
       return response.data.success ? response.data.stats : null;
     } catch (error) {
       return null;
+    }
+  }
+
+  // ==================== AUTO SYNC ====================
+
+  /**
+   * Démarre la synchronisation automatique des personnages publics
+   */
+  startAutoSync(intervalMinutes = 15) {
+    if (this.autoSyncInterval) {
+      clearInterval(this.autoSyncInterval);
+    }
+
+    // Sync immédiate au démarrage
+    this.syncPublicCharacters();
+
+    // Puis toutes les X minutes
+    this.autoSyncInterval = setInterval(() => {
+      this.syncPublicCharacters();
+    }, intervalMinutes * 60 * 1000);
+
+    console.log(`✅ Auto-sync démarré (toutes les ${intervalMinutes} min)`);
+  }
+
+  /**
+   * Arrête la synchronisation automatique
+   */
+  stopAutoSync() {
+    if (this.autoSyncInterval) {
+      clearInterval(this.autoSyncInterval);
+      this.autoSyncInterval = null;
+      console.log('🛑 Auto-sync arrêté');
+    }
+  }
+
+  /**
+   * Synchronise les personnages publics en arrière-plan
+   */
+  async syncPublicCharacters() {
+    try {
+      const characters = await this.getPublicCharacters();
+      if (characters.length > 0) {
+        console.log(`🔄 Auto-sync: ${characters.length} personnages publics mis en cache`);
+      }
+      return characters;
+    } catch (error) {
+      console.error('❌ Erreur auto-sync:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Récupère les personnages publics depuis le cache (rapide)
+   */
+  async getCachedPublicCharacters() {
+    try {
+      const cached = await AsyncStorage.getItem('cached_public_characters');
+      if (cached) {
+        return JSON.parse(cached);
+      }
+      // Si pas de cache, charger depuis le serveur
+      return await this.getPublicCharacters();
+    } catch (error) {
+      return [];
     }
   }
 }

@@ -21,6 +21,7 @@ import * as FileSystem from 'expo-file-system';
 export default function SettingsScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Clés API Groq
   const [groqApiKeys, setGroqApiKeys] = useState(['']);
@@ -58,11 +59,20 @@ export default function SettingsScreen({ navigation }) {
 
   const loadAllSettings = async () => {
     try {
+      // Vérifier si admin
+      const adminStatus = AuthService.isAdmin();
+      setIsAdmin(adminStatus);
+      console.log('👑 Admin status:', adminStatus);
+      
       await loadProfile();
-      await loadGroqKeys();
-      await loadGroqModel();
-      await loadImageConfig();
-      await checkSDAvailability();
+      
+      // Charger les paramètres sensibles seulement si admin
+      if (adminStatus) {
+        await loadGroqKeys();
+        await loadGroqModel();
+        await loadImageConfig();
+        await checkSDAvailability();
+      }
       await loadSyncStatus();
     } catch (error) {
       console.error('Erreur chargement paramètres:', error);
@@ -426,358 +436,376 @@ export default function SettingsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* CLÉS API GROQ */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🔑 Clés API Groq</Text>
-        <Text style={styles.sectionDescription}>
-          Ajoutez vos clés API Groq pour la génération de texte. Gratuit sur console.groq.com
-        </Text>
-
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>ℹ️ Comment obtenir une clé gratuite:</Text>
-          <Text style={styles.infoSteps}>1. Allez sur console.groq.com</Text>
-          <Text style={styles.infoSteps}>2. Créez un compte (gratuit)</Text>
-          <Text style={styles.infoSteps}>3. Créez une API Key</Text>
-          <Text style={styles.infoSteps}>4. Collez-la ci-dessous</Text>
-        </View>
-
-        {groqApiKeys.map((key, index) => (
-          <View key={index} style={styles.keyInputContainer}>
-            <TextInput
-              style={styles.keyInput}
-              placeholder={`Clé API ${index + 1}`}
-              value={key}
-              onChangeText={(value) => updateKey(index, value)}
-              autoCapitalize="none"
-              autoCorrect={false}
-              secureTextEntry={key.length > 0}
-            />
-            {groqApiKeys.length > 1 && (
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => removeKeyField(index)}
-              >
-                <Text style={styles.removeButtonText}>✕</Text>
-              </TouchableOpacity>
-            )}
+      {/* CLÉS API GROQ - Admin seulement */}
+      {isAdmin && (
+        <View style={styles.section}>
+          <View style={styles.adminBadge}>
+            <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
           </View>
-        ))}
-
-        <TouchableOpacity style={styles.addButton} onPress={addKeyField}>
-          <Text style={styles.addButtonText}>+ Ajouter une clé</Text>
-        </TouchableOpacity>
-
-        <View style={styles.buttonRow}>
-          <TouchableOpacity 
-            style={styles.testButton} 
-            onPress={testGroqKey}
-            disabled={testingApi}
-          >
-            {testingApi ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text style={styles.testButtonText}>🧪 Tester</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.saveButton} onPress={saveGroqKeys}>
-            <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Sélection du modèle Groq */}
-        <View style={styles.modelSection}>
-          <Text style={styles.modelSectionTitle}>🤖 Modèle Groq</Text>
-          <Text style={styles.modelDescription}>
-            Sélectionnez le modèle IA pour les conversations
+          <Text style={styles.sectionTitle}>🔑 Clés API Groq</Text>
+          <Text style={styles.sectionDescription}>
+            Ajoutez vos clés API Groq pour la génération de texte. Gratuit sur console.groq.com
           </Text>
-          
-          {availableModels.map((model) => (
-            <TouchableOpacity
-              key={model.id}
-              style={[
-                styles.modelCard,
-                groqModel === model.id && styles.modelCardActive
-              ]}
-              onPress={() => saveGroqModel(model.id)}
-            >
-              <View style={styles.modelRadio}>
-                {groqModel === model.id && <View style={styles.modelRadioInner} />}
-              </View>
-              <View style={styles.modelContent}>
-                <Text style={styles.modelName}>{model.name}</Text>
-                <Text style={styles.modelDesc}>{model.description}</Text>
-              </View>
-            </TouchableOpacity>
+
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>ℹ️ Comment obtenir une clé gratuite:</Text>
+            <Text style={styles.infoSteps}>1. Allez sur console.groq.com</Text>
+            <Text style={styles.infoSteps}>2. Créez un compte (gratuit)</Text>
+            <Text style={styles.infoSteps}>3. Créez une API Key</Text>
+            <Text style={styles.infoSteps}>4. Collez-la ci-dessous</Text>
+          </View>
+
+          {groqApiKeys.map((key, index) => (
+            <View key={index} style={styles.keyInputContainer}>
+              <TextInput
+                style={styles.keyInput}
+                placeholder={`Clé API ${index + 1}`}
+                value={key}
+                onChangeText={(value) => updateKey(index, value)}
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry={key.length > 0}
+              />
+              {groqApiKeys.length > 1 && (
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => removeKeyField(index)}
+                >
+                  <Text style={styles.removeButtonText}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           ))}
-        </View>
-      </View>
 
-      {/* GÉNÉRATION D'IMAGES */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
-        <Text style={styles.sectionDescription}>
-          Choisissez entre Freebox (serveur) ou SD Local (smartphone).
-        </Text>
+          <TouchableOpacity style={styles.addButton} onPress={addKeyField}>
+            <Text style={styles.addButtonText}>+ Ajouter une clé</Text>
+          </TouchableOpacity>
 
-        {/* Option Freebox */}
-        <TouchableOpacity
-          style={[
-            styles.optionCard,
-            imageSource === 'freebox' && styles.optionCardActive
-          ]}
-          onPress={() => setImageSource('freebox')}
-        >
-          <View style={styles.radioButton}>
-            {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
-          </View>
-          <View style={styles.optionContent}>
-            <Text style={styles.optionTitle}>🏠 Freebox (Recommandé)</Text>
-            <Text style={styles.optionDescription}>
-              Serveur Stable Diffusion sur Freebox. Rapide et illimité !
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Option SD Local */}
-        <TouchableOpacity
-          style={[
-            styles.optionCard,
-            imageSource === 'local' && styles.optionCardActive
-          ]}
-          onPress={() => setImageSource('local')}
-        >
-          <View style={styles.radioButton}>
-            {imageSource === 'local' && <View style={styles.radioButtonInner} />}
-          </View>
-          <View style={styles.optionContent}>
-            <Text style={styles.optionTitle}>📱 SD Local (Smartphone)</Text>
-            <Text style={styles.optionDescription}>
-              Génération sur téléphone. Offline, 100% privé.
-            </Text>
-            <Text style={styles.optionWarning}>⚠️ Pipeline en développement</Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Configuration Freebox */}
-        {imageSource === 'freebox' && (
-          <View style={styles.configBox}>
-            <Text style={styles.configTitle}>Configuration Freebox:</Text>
-            <TextInput
-              style={styles.urlInput}
-              placeholder="http://88.174.155.230:33437/generate"
-              value={freeboxUrl}
-              onChangeText={setFreeboxUrl}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
-              <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity 
+              style={styles.testButton} 
+              onPress={testGroqKey}
+              disabled={testingApi}
+            >
+              {testingApi ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.testButtonText}>🧪 Tester</Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.saveButton} onPress={saveGroqKeys}>
+              <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
             </TouchableOpacity>
           </View>
-        )}
 
-        {/* Configuration SD Local */}
-        {imageSource === 'local' && (
-          <View style={styles.configBox}>
-            <Text style={styles.configTitle}>📱 Stable Diffusion Local:</Text>
+          {/* Sélection du modèle Groq */}
+          <View style={styles.modelSection}>
+            <Text style={styles.modelSectionTitle}>🤖 Modèle Groq</Text>
+            <Text style={styles.modelDescription}>
+              Sélectionnez le modèle IA pour les conversations
+            </Text>
             
-            {/* Avertissement */}
-            <View style={styles.warningBox}>
-              <Text style={styles.warningText}>
-                ⚠️ Le pipeline ONNX complet n'est pas encore implémenté.
-                Vous pouvez télécharger le modèle pour préparer l'utilisation future.
-                En attendant, la Freebox sera utilisée comme fallback.
+            {availableModels.map((model) => (
+              <TouchableOpacity
+                key={model.id}
+                style={[
+                  styles.modelCard,
+                  groqModel === model.id && styles.modelCardActive
+                ]}
+                onPress={() => saveGroqModel(model.id)}
+              >
+                <View style={styles.modelRadio}>
+                  {groqModel === model.id && <View style={styles.modelRadioInner} />}
+                </View>
+                <View style={styles.modelContent}>
+                  <Text style={styles.modelName}>{model.name}</Text>
+                  <Text style={styles.modelDesc}>{model.description}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* GÉNÉRATION D'IMAGES - Admin seulement */}
+      {isAdmin && (
+        <View style={styles.section}>
+          <View style={styles.adminBadge}>
+            <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
+          </View>
+          <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
+          <Text style={styles.sectionDescription}>
+            Choisissez entre Freebox (serveur) ou SD Local (smartphone).
+          </Text>
+
+          {/* Option Freebox */}
+          <TouchableOpacity
+            style={[
+              styles.optionCard,
+              imageSource === 'freebox' && styles.optionCardActive
+            ]}
+            onPress={() => setImageSource('freebox')}
+          >
+            <View style={styles.radioButton}>
+              {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>🏠 Freebox (Recommandé)</Text>
+              <Text style={styles.optionDescription}>
+                Serveur Stable Diffusion sur Freebox. Rapide et illimité !
               </Text>
             </View>
+          </TouchableOpacity>
 
-            {/* Statut détaillé */}
-            {sdAvailability && (
-              <View style={styles.sdInfoBox}>
-                <Text style={styles.sdInfoTitle}>📊 Statut du module</Text>
-                
-                <Text style={styles.sdInfoText}>
-                  📱 Module natif: {sdAvailability.moduleLoaded ? '✅ Chargé' : '❌ Non chargé'}
-                  {sdAvailability.moduleVersion && ` (v${sdAvailability.moduleVersion})`}
-                </Text>
-                
-                <Text style={styles.sdInfoText}>
-                  📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
-                  {sdAvailability.modelSizeMB > 0 && ` (${typeof sdAvailability.modelSizeMB === 'number' ? sdAvailability.modelSizeMB.toFixed(0) : sdAvailability.modelSizeMB} MB)`}
-                </Text>
-                
-                {sdAvailability.deviceModel && (
-                  <Text style={styles.sdInfoText}>
-                    📲 Appareil: {sdAvailability.deviceModel} (Android {sdAvailability.androidVersion})
-                  </Text>
-                )}
-                
-                {sdAvailability.ramMB > 0 && (
-                  <Text style={styles.sdInfoText}>
-                    🧠 RAM: {sdAvailability.ramMB.toFixed(0)} MB max
-                    {sdAvailability.canRunSD ? ' ✅' : ' ⚠️'}
-                  </Text>
-                )}
-                
-                {sdAvailability.freeStorageMB > 0 && (
-                  <Text style={styles.sdInfoText}>
-                    💾 Stockage libre: {(sdAvailability.freeStorageMB / 1024).toFixed(1)} GB
-                  </Text>
-                )}
-                
-                <View style={styles.sdStatusBadge}>
-                  <Text style={styles.sdStatusText}>
-                    {sdAvailability.reason || 'Vérification...'}
-                  </Text>
-                </View>
-              </View>
-            )}
-
-            {/* Barre de progression */}
-            {sdDownloading && (
-              <View style={styles.progressContainer}>
-                <Text style={styles.progressText}>
-                  📥 Téléchargement... {Math.round(sdDownloadProgress)}%
-                </Text>
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
-                </View>
-              </View>
-            )}
-
-            {/* Bouton téléchargement */}
-            <TouchableOpacity 
-              style={[
-                styles.downloadButton, 
-                sdDownloading && styles.downloadButtonDisabled
-              ]} 
-              onPress={downloadSDModel}
-              disabled={sdDownloading}
-            >
-              <Text style={styles.downloadButtonText}>
-                {sdDownloading 
-                  ? '⏳ Téléchargement en cours...' 
-                  : sdAvailability?.modelDownloaded
-                    ? '🔄 Re-télécharger le modèle'
-                    : '📥 Télécharger le modèle (~2.5 GB)'}
+          {/* Option SD Local */}
+          <TouchableOpacity
+            style={[
+              styles.optionCard,
+              imageSource === 'local' && styles.optionCardActive
+            ]}
+            onPress={() => setImageSource('local')}
+          >
+            <View style={styles.radioButton}>
+              {imageSource === 'local' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>📱 SD Local (Smartphone)</Text>
+              <Text style={styles.optionDescription}>
+                Génération sur téléphone. Offline, 100% privé.
               </Text>
-            </TouchableOpacity>
-            
-            <Text style={styles.sdNote}>
-              💡 Conseil: Utilisez la Freebox pour l'instant. Le SD Local sera fonctionnel dans une future mise à jour.
-            </Text>
+              <Text style={styles.optionWarning}>⚠️ Pipeline en développement</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Configuration Freebox */}
+          {imageSource === 'freebox' && (
+            <View style={styles.configBox}>
+              <Text style={styles.configTitle}>Configuration Freebox:</Text>
+              <TextInput
+                style={styles.urlInput}
+                placeholder="http://88.174.155.230:33437/generate"
+                value={freeboxUrl}
+                onChangeText={setFreeboxUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
+                <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Configuration SD Local */}
+          {imageSource === 'local' && (
+            <View style={styles.configBox}>
+              <Text style={styles.configTitle}>📱 Stable Diffusion Local:</Text>
+              
+              {/* Avertissement */}
+              <View style={styles.warningBox}>
+                <Text style={styles.warningText}>
+                  ⚠️ Le pipeline ONNX complet n'est pas encore implémenté.
+                  Vous pouvez télécharger le modèle pour préparer l'utilisation future.
+                  En attendant, la Freebox sera utilisée comme fallback.
+                </Text>
+              </View>
+
+              {/* Statut détaillé */}
+              {sdAvailability && (
+                <View style={styles.sdInfoBox}>
+                  <Text style={styles.sdInfoTitle}>📊 Statut du module</Text>
+                  
+                  <Text style={styles.sdInfoText}>
+                    📱 Module natif: {sdAvailability.moduleLoaded ? '✅ Chargé' : '❌ Non chargé'}
+                    {sdAvailability.moduleVersion && ` (v${sdAvailability.moduleVersion})`}
+                  </Text>
+                  
+                  <Text style={styles.sdInfoText}>
+                    📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
+                    {sdAvailability.modelSizeMB > 0 && ` (${typeof sdAvailability.modelSizeMB === 'number' ? sdAvailability.modelSizeMB.toFixed(0) : sdAvailability.modelSizeMB} MB)`}
+                  </Text>
+                  
+                  {sdAvailability.deviceModel && (
+                    <Text style={styles.sdInfoText}>
+                      📲 Appareil: {sdAvailability.deviceModel} (Android {sdAvailability.androidVersion})
+                    </Text>
+                  )}
+                  
+                  {sdAvailability.ramMB > 0 && (
+                    <Text style={styles.sdInfoText}>
+                      🧠 RAM: {sdAvailability.ramMB.toFixed(0)} MB max
+                      {sdAvailability.canRunSD ? ' ✅' : ' ⚠️'}
+                    </Text>
+                  )}
+                  
+                  {sdAvailability.freeStorageMB > 0 && (
+                    <Text style={styles.sdInfoText}>
+                      💾 Stockage libre: {(sdAvailability.freeStorageMB / 1024).toFixed(1)} GB
+                    </Text>
+                  )}
+                  
+                  <View style={styles.sdStatusBadge}>
+                    <Text style={styles.sdStatusText}>
+                      {sdAvailability.reason || 'Vérification...'}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Barre de progression */}
+              {sdDownloading && (
+                <View style={styles.progressContainer}>
+                  <Text style={styles.progressText}>
+                    📥 Téléchargement... {Math.round(sdDownloadProgress)}%
+                  </Text>
+                  <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
+                  </View>
+                </View>
+              )}
+
+              {/* Bouton téléchargement */}
+              <TouchableOpacity 
+                style={[
+                  styles.downloadButton, 
+                  sdDownloading && styles.downloadButtonDisabled
+                ]} 
+                onPress={downloadSDModel}
+                disabled={sdDownloading}
+              >
+                <Text style={styles.downloadButtonText}>
+                  {sdDownloading 
+                    ? '⏳ Téléchargement en cours...' 
+                    : sdAvailability?.modelDownloaded
+                      ? '🔄 Re-télécharger le modèle'
+                      : '📥 Télécharger le modèle (~2.5 GB)'}
+                </Text>
+              </TouchableOpacity>
+              
+              <Text style={styles.sdNote}>
+                💡 Conseil: Utilisez la Freebox pour l'instant. Le SD Local sera fonctionnel dans une future mise à jour.
+              </Text>
+            </View>
+          )}
+
+          <TouchableOpacity style={styles.saveButton} onPress={saveImageConfig}>
+            <Text style={styles.saveButtonText}>💾 Sauvegarder la configuration</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* COMPTE - Admin seulement */}
+      {isAdmin && (
+        <View style={styles.section}>
+          <View style={styles.adminBadge}>
+            <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
           </View>
-        )}
-
-        <TouchableOpacity style={styles.saveButton} onPress={saveImageConfig}>
-          <Text style={styles.saveButtonText}>💾 Sauvegarder la configuration</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* COMPTE */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>👤 Compte</Text>
-        
-        <View style={styles.accountBox}>
-          <Text style={styles.accountStatus}>
-            {AuthService?.isLoggedIn?.() 
-              ? `✅ Connecté: ${AuthService.getCurrentUser()?.email || 'Utilisateur'}`
-              : '⚪ Non connecté'}
-          </Text>
+          <Text style={styles.sectionTitle}>👤 Compte Admin</Text>
           
-          {AuthService?.isLoggedIn?.() ? (
+          <View style={styles.accountBox}>
+            <Text style={styles.accountStatus}>
+              ✅ Connecté: {AuthService.getCurrentUser()?.email || 'Admin'}
+            </Text>
+            
             <TouchableOpacity
               style={[styles.accountButton, styles.logoutButton]}
               onPress={async () => {
-                await AuthService.logout();
-                Alert.alert('Déconnexion', 'Vous avez été déconnecté');
+                Alert.alert(
+                  'Déconnexion',
+                  'Voulez-vous vraiment vous déconnecter ?',
+                  [
+                    { text: 'Annuler', style: 'cancel' },
+                    { 
+                      text: 'Déconnexion', 
+                      style: 'destructive',
+                      onPress: async () => {
+                        await AuthService.logout();
+                        // Force reload app
+                      }
+                    }
+                  ]
+                );
               }}
             >
               <Text style={styles.accountButtonText}>🚪 Se déconnecter</Text>
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[styles.accountButton, styles.loginButton]}
-              onPress={() => navigation.navigate('Login')}
-            >
-              <Text style={styles.accountButtonText}>🔐 Se connecter</Text>
-            </TouchableOpacity>
-          )}
-          
-          <Text style={styles.accountHint}>
-            La connexion permet de synchroniser vos données et personnages entre appareils.
-          </Text>
-        </View>
-      </View>
-
-      {/* SYNCHRONISATION FREEBOX */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>☁️ Synchronisation Freebox</Text>
-        
-        <View style={styles.syncStatusBox}>
-          <View style={styles.syncStatusRow}>
-            <Text style={styles.syncLabel}>Serveur:</Text>
-            <Text style={[
-              styles.syncValue, 
-              { color: syncStatus?.serverOnline ? '#059669' : '#dc2626' }
-            ]}>
-              {syncStatus?.serverOnline ? '🟢 En ligne' : '🔴 Hors ligne'}
-            </Text>
           </View>
+        </View>
+      )}
+
+      {/* SYNCHRONISATION FREEBOX - Admin seulement */}
+      {isAdmin && (
+        <View style={styles.section}>
+          <View style={styles.adminBadge}>
+            <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
+          </View>
+          <Text style={styles.sectionTitle}>☁️ Synchronisation Freebox</Text>
           
-          {syncStatus?.lastSync && (
+          <View style={styles.syncStatusBox}>
             <View style={styles.syncStatusRow}>
-              <Text style={styles.syncLabel}>Dernière sync:</Text>
-              <Text style={styles.syncValue}>
-                {new Date(syncStatus.lastSync).toLocaleString('fr-FR')}
+              <Text style={styles.syncLabel}>Serveur:</Text>
+              <Text style={[
+                styles.syncValue, 
+                { color: syncStatus?.serverOnline ? '#059669' : '#dc2626' }
+              ]}>
+                {syncStatus?.serverOnline ? '🟢 En ligne' : '🔴 Hors ligne'}
               </Text>
             </View>
-          )}
-          
-          {serverStats && (
-            <View style={styles.syncStatusRow}>
-              <Text style={styles.syncLabel}>Personnages publics:</Text>
-              <Text style={styles.syncValue}>{serverStats.publicCharacters || 0}</Text>
-            </View>
-          )}
-        </View>
-        
-        <View style={styles.syncButtons}>
-          <TouchableOpacity
-            style={[styles.syncButton, styles.syncUploadButton]}
-            onPress={handleSyncUpload}
-            disabled={syncing}
-          >
-            {syncing ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.syncButtonText}>📤 Sauvegarder</Text>
+            
+            {syncStatus?.lastSync && (
+              <View style={styles.syncStatusRow}>
+                <Text style={styles.syncLabel}>Dernière sync:</Text>
+                <Text style={styles.syncValue}>
+                  {new Date(syncStatus.lastSync).toLocaleString('fr-FR')}
+                </Text>
+              </View>
             )}
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[styles.syncButton, styles.syncDownloadButton]}
-            onPress={handleSyncDownload}
-            disabled={syncing}
-          >
-            {syncing ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.syncButtonText}>📥 Restaurer</Text>
+            
+            {serverStats && (
+              <View style={styles.syncStatusRow}>
+                <Text style={styles.syncLabel}>Personnages publics:</Text>
+                <Text style={styles.syncValue}>{serverStats.publicCharacters || 0}</Text>
+              </View>
             )}
-          </TouchableOpacity>
+          </View>
+          
+          <View style={styles.syncButtons}>
+            <TouchableOpacity
+              style={[styles.syncButton, styles.syncUploadButton]}
+              onPress={handleSyncUpload}
+              disabled={syncing}
+            >
+              {syncing ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.syncButtonText}>📤 Sauvegarder</Text>
+              )}
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.syncButton, styles.syncDownloadButton]}
+              onPress={handleSyncDownload}
+              disabled={syncing}
+            >
+              {syncing ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.syncButtonText}>📥 Restaurer</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.syncHint}>
+            Synchronise tes personnages, conversations et paramètres avec ta Freebox.
+            Les personnages publics sont partagés avec la communauté.
+          </Text>
         </View>
-        
-        <Text style={styles.syncHint}>
-          Synchronise tes personnages, conversations et paramètres avec ta Freebox.
-          Les personnages publics sont partagés avec la communauté.
-        </Text>
-      </View>
+      )}
 
       {/* À PROPOS */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.2.8</Text>
+          <Text style={styles.aboutText}>Version: 3.3.0</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>126+ personnages disponibles</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
@@ -1309,5 +1337,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     marginTop: 2,
+  },
+  // Style badge admin
+  adminBadge: {
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+  },
+  adminBadgeText: {
+    color: '#92400e',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

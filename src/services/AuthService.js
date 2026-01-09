@@ -9,9 +9,18 @@ import { Linking } from 'react-native';
  */
 class AuthService {
   constructor() {
-    this.baseUrl = 'http://88.174.155.230:33439';
+    // Port unique 33437 pour tous les services
+    this.baseUrl = 'http://88.174.155.230:33437';
     this.token = null;
     this.user = null;
+    this.ADMIN_EMAIL = 'douvdouv21@gmail.com';
+  }
+
+  /**
+   * Vérifie si l'utilisateur est admin
+   */
+  isAdmin() {
+    return this.user?.email?.toLowerCase() === this.ADMIN_EMAIL.toLowerCase() || this.user?.is_admin === true;
   }
 
   /**

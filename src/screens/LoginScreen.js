@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import AuthService from '../services/AuthService';
 
-export default function LoginScreen({ navigation, onLoginSuccess }) {
+export default function LoginScreen({ navigation, onLoginSuccess, forceLogin = false }) {
   const [mode, setMode] = useState('login'); // 'login' ou 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -214,10 +214,12 @@ export default function LoginScreen({ navigation, onLoginSuccess }) {
           </TouchableOpacity>
         </View>
 
-        {/* Passer */}
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipButtonText}>Continuer sans compte →</Text>
-        </TouchableOpacity>
+        {/* Passer - seulement si pas forceLogin */}
+        {!forceLogin && (
+          <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+            <Text style={styles.skipButtonText}>Continuer sans compte →</Text>
+          </TouchableOpacity>
+        )}
 
         <Text style={styles.privacyText}>
           En vous connectant, vous acceptez nos conditions d'utilisation.

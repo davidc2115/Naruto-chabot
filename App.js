@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
@@ -16,12 +16,14 @@ import GalleryScreen from './src/screens/GalleryScreen';
 import CharacterCarouselScreen from './src/screens/CharacterCarouselScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import MyCharactersScreen from './src/screens/MyCharactersScreen';
+import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
 import AuthService from './src/services/AuthService';
+import SyncService from './src/services/SyncService';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-function HomeTabs() {
+function HomeTabs({ isAdmin }) {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -54,27 +56,30 @@ function HomeTabs() {
           tabBarIcon: ({ color }) => <TabIcon name="✨" color={color} />,
         }}
       />
-      <Tab.Screen 
-        name="Settings" 
-        component={SettingsScreen}
-        options={{
-          tabBarLabel: 'Paramètres',
-          tabBarIcon: ({ color }) => <TabIcon name="⚙️" color={color} />,
-        }}
-      />
+      {/* Onglet Paramètres visible seulement pour admin */}
+      {isAdmin && (
+        <Tab.Screen 
+          name="Settings" 
+          component={SettingsScreen}
+          options={{
+            tabBarLabel: 'Paramètres',
+            tabBarIcon: ({ color }) => <TabIcon name="⚙️" color={color} />,
+          }}
+        />
+      )}
     </Tab.Navigator>
   );
 }
 
 function TabIcon({ name, color }) {
-  const { Text } = require('react-native');
   return <Text style={{ fontSize: 24, color }}>{name}</Text>;
 }
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const [showLogin, setShowLogin] = useState(false);
+  const [authState, setAuthState] = useState('loading'); // 'loading', 'login', 'profile_setup', 'ready'
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -84,116 +89,192 @@ export default function App() {
     try {
       // Vérifier si l'utilisateur est déjà connecté
       const isLoggedIn = await AuthService.init();
+      
       if (isLoggedIn) {
-        setUser(AuthService.getCurrentUser());
+        const currentUser = AuthService.getCurrentUser();
+        setUser(currentUser);
+        setIsAdmin(AuthService.isAdmin());
+        
+        // Vérifier si le profil est complété
+        if (!AuthService.isProfileCompleted()) {
+          setAuthState('profile_setup');
+        } else {
+          setAuthState('ready');
+          // Démarrer la sync auto des personnages publics
+          startBackgroundSync();
+        }
+      } else {
+        // Pas connecté, forcer la connexion
+        setAuthState('login');
       }
-      // Ne pas forcer la connexion, laisser l'utilisateur accéder à l'app
-      setShowLogin(false);
     } catch (error) {
       console.error('Erreur auth:', error);
+      setAuthState('login');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleLoginSuccess = (userData) => {
-    setUser(userData);
-    setShowLogin(false);
+  const startBackgroundSync = async () => {
+    try {
+      await SyncService.init();
+      // Sync auto toutes les 10 minutes
+      SyncService.startAutoSync(10);
+    } catch (error) {
+      console.error('Erreur démarrage sync:', error);
+    }
   };
 
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    setIsAdmin(AuthService.isAdmin());
+    
+    // Vérifier si le profil est complété
+    if (!userData.profile_completed) {
+      setAuthState('profile_setup');
+    } else {
+      setAuthState('ready');
+      startBackgroundSync();
+    }
+  };
+
+  const handleProfileComplete = (userData) => {
+    setUser(userData);
+    setAuthState('ready');
+    startBackgroundSync();
+  };
+
+  // Écran de chargement
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f9fa' }}>
-        <ActivityIndicator size="large" color="#6366f1" />
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingEmoji}>💬</Text>
+        <Text style={styles.loadingTitle}>Roleplay Chat</Text>
+        <ActivityIndicator size="large" color="#6366f1" style={{ marginTop: 20 }} />
+        <Text style={styles.loadingText}>Chargement...</Text>
       </View>
     );
   }
 
+  // Écran de connexion (obligatoire)
+  if (authState === 'login') {
+    return (
+      <NavigationContainer>
+        <StatusBar style="auto" />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Login">
+            {props => <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} forceLogin={true} />}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
+
+  // Écran de configuration du profil (première connexion)
+  if (authState === 'profile_setup') {
+    return (
+      <NavigationContainer>
+        <StatusBar style="auto" />
+        <View style={styles.profileSetupContainer}>
+          <ProfileSetupScreen onComplete={handleProfileComplete} />
+        </View>
+      </NavigationContainer>
+    );
+  }
+
+  // Application principale (utilisateur connecté et profil complété)
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
       <Stack.Navigator>
-        {showLogin ? (
-          <Stack.Screen 
-            name="Login" 
-            options={{ headerShown: false }}
-          >
-            {props => <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />}
-          </Stack.Screen>
-        ) : (
-          <>
-            <Stack.Screen 
-              name="MainTabs" 
-              component={HomeTabs}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen 
-              name="Login" 
-              options={{ 
-                title: 'Connexion',
-                headerStyle: { backgroundColor: '#6366f1' },
-                headerTintColor: '#fff',
-              }}
-            >
-              {props => <LoginScreen {...props} onLoginSuccess={handleLoginSuccess} />}
-            </Stack.Screen>
-            <Stack.Screen 
-              name="CharacterCarousel" 
-              component={CharacterCarouselScreen}
-              options={{ 
-                title: 'Découvrir',
-                headerStyle: { backgroundColor: '#8b5cf6' },
-                headerTintColor: '#fff',
-                headerShown: true
-              }}
-            />
-            <Stack.Screen 
-              name="UserProfile" 
-              component={UserProfileScreen}
-              options={{ 
-                title: 'Mon Profil',
-                headerStyle: { backgroundColor: '#6366f1' },
-                headerTintColor: '#fff',
-              }}
-            />
-            <Stack.Screen 
-              name="CharacterDetail" 
-              component={CharacterDetailScreen}
-              options={{ 
-                title: 'Détails du personnage',
-                headerStyle: { backgroundColor: '#6366f1' },
-                headerTintColor: '#fff',
-              }}
-            />
-            <Stack.Screen 
-              name="CreateCharacter" 
-              component={CreateCharacterScreen}
-              options={{ 
-                title: 'Créer un personnage',
-                headerStyle: { backgroundColor: '#6366f1' },
-                headerTintColor: '#fff',
-              }}
-            />
-            <Stack.Screen 
-              name="Gallery" 
-              component={GalleryScreen}
-              options={{ 
-                title: 'Galerie',
-                headerStyle: { backgroundColor: '#6366f1' },
-                headerTintColor: '#fff',
-              }}
-            />
-            <Stack.Screen 
-              name="Conversation" 
-              component={ConversationScreen}
-              options={{ 
-                headerStyle: { backgroundColor: '#6366f1' },
-                headerTintColor: '#fff',
-              }}
-            />
-          </>
-        )}
+        <Stack.Screen 
+          name="MainTabs" 
+          options={{ headerShown: false }}
+        >
+          {props => <HomeTabs {...props} isAdmin={isAdmin} />}
+        </Stack.Screen>
+        <Stack.Screen 
+          name="CharacterCarousel" 
+          component={CharacterCarouselScreen}
+          options={{ 
+            title: 'Découvrir',
+            headerStyle: { backgroundColor: '#8b5cf6' },
+            headerTintColor: '#fff',
+            headerShown: true
+          }}
+        />
+        <Stack.Screen 
+          name="UserProfile" 
+          component={UserProfileScreen}
+          options={{ 
+            title: 'Mon Profil',
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen 
+          name="CharacterDetail" 
+          component={CharacterDetailScreen}
+          options={{ 
+            title: 'Détails du personnage',
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen 
+          name="CreateCharacter" 
+          component={CreateCharacterScreen}
+          options={{ 
+            title: 'Créer un personnage',
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen 
+          name="Gallery" 
+          component={GalleryScreen}
+          options={{ 
+            title: 'Galerie',
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen 
+          name="Conversation" 
+          component={ConversationScreen}
+          options={{ 
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingEmoji: {
+    fontSize: 80,
+    marginBottom: 20,
+  },
+  loadingTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#6366f1',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  profileSetupContainer: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+});
