@@ -76,11 +76,18 @@ export default function LoginScreen({ navigation, onLoginSuccess, forceLogin = f
     try {
       const result = await AuthService.loginWithDiscord();
       if (!result.success && !result.pending) {
-        Alert.alert('Erreur', result.error || 'Impossible de se connecter avec Discord');
+        Alert.alert(
+          '🎮 Discord non disponible',
+          'La connexion via Discord n\'est pas encore configurée.\n\nVeuillez utiliser la connexion par email/mot de passe.',
+          [{ text: 'Compris' }]
+        );
       }
-      // Si pending, l'utilisateur sera redirigé vers Discord
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de se connecter avec Discord');
+      Alert.alert(
+        '🎮 Discord non disponible',
+        'Veuillez utiliser la connexion par email/mot de passe.',
+        [{ text: 'Compris' }]
+      );
     } finally {
       setLoading(false);
     }
@@ -91,10 +98,18 @@ export default function LoginScreen({ navigation, onLoginSuccess, forceLogin = f
     try {
       const result = await AuthService.loginWithGoogle();
       if (!result.success && !result.pending) {
-        Alert.alert('Erreur', result.error || 'Impossible de se connecter avec Google');
+        Alert.alert(
+          '🔵 Google non disponible',
+          'La connexion via Google n\'est pas encore configurée.\n\nVeuillez utiliser la connexion par email/mot de passe.',
+          [{ text: 'Compris' }]
+        );
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de se connecter avec Google');
+      Alert.alert(
+        '🔵 Google non disponible',
+        'Veuillez utiliser la connexion par email/mot de passe.',
+        [{ text: 'Compris' }]
+      );
     } finally {
       setLoading(false);
     }

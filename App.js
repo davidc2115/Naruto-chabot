@@ -19,6 +19,8 @@ import LoginScreen from './src/screens/LoginScreen';
 import MyCharactersScreen from './src/screens/MyCharactersScreen';
 import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
 import AdminPanelScreen from './src/screens/AdminPanelScreen';
+import PayPalConfigScreen from './src/screens/PayPalConfigScreen';
+import PremiumScreen from './src/screens/PremiumScreen';
 import AuthService from './src/services/AuthService';
 import SyncService from './src/services/SyncService';
 
@@ -278,6 +280,24 @@ export default function App() {
           name="Conversation" 
           component={ConversationScreen}
           options={{ 
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen 
+          name="PayPalConfig" 
+          component={PayPalConfigScreen}
+          options={{ 
+            title: 'Configuration PayPal',
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen 
+          name="Premium" 
+          component={PremiumScreen}
+          options={{ 
+            title: 'Premium',
             headerStyle: { backgroundColor: '#6366f1' },
             headerTintColor: '#fff',
           }}

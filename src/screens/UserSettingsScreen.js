@@ -178,6 +178,31 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         </TouchableOpacity>
       </View>
 
+      {/* PREMIUM */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>💎 Premium</Text>
+        
+        <TouchableOpacity
+          style={styles.premiumButton}
+          onPress={() => navigation.navigate('Premium')}
+        >
+          <View style={styles.premiumContent}>
+            <Text style={styles.premiumIcon}>⭐</Text>
+            <View style={styles.premiumInfo}>
+              <Text style={styles.premiumTitle}>
+                {AuthService.isPremium() ? 'Vous êtes Premium !' : 'Devenir Premium'}
+              </Text>
+              <Text style={styles.premiumDesc}>
+                {AuthService.isPremium() 
+                  ? 'Accédez à vos avantages'
+                  : 'Génération d\'images illimitée'}
+              </Text>
+            </View>
+            <Text style={styles.premiumArrow}>→</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
       {/* MODE NSFW */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🔞 Contenu Adulte</Text>
@@ -349,6 +374,40 @@ const styles = StyleSheet.create({
     color: '#6366f1',
     fontSize: 15,
     fontWeight: '600',
+  },
+  // Premium
+  premiumButton: {
+    backgroundColor: '#fef3c7',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+  },
+  premiumContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  premiumIcon: {
+    fontSize: 32,
+    marginRight: 15,
+  },
+  premiumInfo: {
+    flex: 1,
+  },
+  premiumTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#92400e',
+  },
+  premiumDesc: {
+    fontSize: 13,
+    color: '#b45309',
+    marginTop: 2,
+  },
+  premiumArrow: {
+    fontSize: 20,
+    color: '#92400e',
+    fontWeight: 'bold',
   },
   // Settings Row
   settingRow: {

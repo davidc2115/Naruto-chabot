@@ -24,6 +24,41 @@ class AuthService {
   }
 
   /**
+   * Vérifie si l'utilisateur a le statut premium
+   */
+  isPremium() {
+    return this.user?.is_premium === true || this.isAdmin();
+  }
+
+  /**
+   * Récupère le statut premium depuis le serveur
+   */
+  async checkPremiumStatus() {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/api/premium/check`,
+        { headers: this.getHeaders(), timeout: 5000 }
+      );
+
+      if (response.data.success) {
+        // Mettre à jour le statut local
+        if (this.user) {
+          this.user.is_premium = response.data.is_premium;
+        }
+        return {
+          is_premium: response.data.is_premium,
+          is_admin: response.data.is_admin,
+          premium_since: response.data.premium_since
+        };
+      }
+      return { is_premium: this.isPremium(), is_admin: this.isAdmin() };
+    } catch (error) {
+      console.error('❌ Erreur vérification premium:', error);
+      return { is_premium: this.isPremium(), is_admin: this.isAdmin() };
+    }
+  }
+
+  /**
    * Initialise le service et vérifie le token existant
    */
   async init() {
