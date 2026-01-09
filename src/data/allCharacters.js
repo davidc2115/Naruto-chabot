@@ -4,7 +4,9 @@ import characters from './characters';
 import friendCharacters from './friendCharacters';
 // Import des 30 personnages maman/belle-maman
 import momCharacters from './momCharacters';
+// Import des 30 personnages collègues de travail
+import colleagueCharacters from './colleagueCharacters';
 
 // Combiner tous les personnages
-export const enhancedCharacters = [...characters, ...friendCharacters, ...momCharacters];
+export const enhancedCharacters = [...characters, ...friendCharacters, ...momCharacters, ...colleagueCharacters];
 export default enhancedCharacters;
