@@ -1,0 +1,366 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import AuthService from '../services/AuthService';
+
+export default function LoginScreen({ navigation, onLoginSuccess }) {
+  const [mode, setMode] = useState('login'); // 'login' ou 'register'
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [serverOnline, setServerOnline] = useState(null);
+
+  useEffect(() => {
+    checkServer();
+  }, []);
+
+  const checkServer = async () => {
+    const online = await AuthService.checkServerHealth();
+    setServerOnline(online);
+  };
+
+  const handleEmailAuth = async () => {
+    if (!email || !password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      return;
+    }
+
+    if (mode === 'register') {
+      if (password !== confirmPassword) {
+        Alert.alert('Erreur', 'Les mots de passe ne correspondent pas');
+        return;
+      }
+      if (password.length < 6) {
+        Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères');
+        return;
+      }
+    }
+
+    setLoading(true);
+    try {
+      let result;
+      if (mode === 'register') {
+        result = await AuthService.register(email.trim(), password);
+      } else {
+        result = await AuthService.login(email.trim(), password);
+      }
+
+      if (result.success) {
+        if (onLoginSuccess) {
+          onLoginSuccess(result.user);
+        }
+      } else {
+        Alert.alert('Erreur', result.error || 'Une erreur est survenue');
+      }
+    } catch (error) {
+      Alert.alert('Erreur', error.message || 'Une erreur est survenue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDiscordLogin = async () => {
+    setLoading(true);
+    try {
+      const result = await AuthService.loginWithDiscord();
+      if (!result.success && !result.pending) {
+        Alert.alert('Erreur', result.error || 'Impossible de se connecter avec Discord');
+      }
+      // Si pending, l'utilisateur sera redirigé vers Discord
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de se connecter avec Discord');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const result = await AuthService.loginWithGoogle();
+      if (!result.success && !result.pending) {
+        Alert.alert('Erreur', result.error || 'Impossible de se connecter avec Google');
+      }
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de se connecter avec Google');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkip = () => {
+    if (onLoginSuccess) {
+      onLoginSuccess(null); // Connexion anonyme
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Logo */}
+        <View style={styles.header}>
+          <Text style={styles.logo}>💬</Text>
+          <Text style={styles.title}>Roleplay Chat</Text>
+          <Text style={styles.subtitle}>
+            {mode === 'login' ? 'Connexion' : 'Inscription'}
+          </Text>
+        </View>
+
+        {/* Statut serveur */}
+        {serverOnline !== null && (
+          <View style={[styles.serverStatus, { backgroundColor: serverOnline ? '#dcfce7' : '#fef2f2' }]}>
+            <Text style={[styles.serverStatusText, { color: serverOnline ? '#166534' : '#991b1b' }]}>
+              {serverOnline ? '🟢 Serveur en ligne' : '🔴 Serveur hors ligne'}
+            </Text>
+          </View>
+        )}
+
+        {/* Formulaire Email */}
+        <View style={styles.form}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="votre@email.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+          />
+
+          <Text style={styles.label}>Mot de passe</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••"
+            secureTextEntry
+          />
+
+          {mode === 'register' && (
+            <>
+              <Text style={styles.label}>Confirmer le mot de passe</Text>
+              <TextInput
+                style={styles.input}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="••••••••"
+                secureTextEntry
+              />
+            </>
+          )}
+
+          <TouchableOpacity
+            style={[styles.primaryButton, loading && styles.buttonDisabled]}
+            onPress={handleEmailAuth}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.primaryButtonText}>
+                {mode === 'login' ? '🔐 Se connecter' : '✨ S\'inscrire'}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => setMode(mode === 'login' ? 'register' : 'login')}>
+            <Text style={styles.switchText}>
+              {mode === 'login' 
+                ? 'Pas encore de compte ? S\'inscrire' 
+                : 'Déjà un compte ? Se connecter'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Séparateur */}
+        <View style={styles.separator}>
+          <View style={styles.separatorLine} />
+          <Text style={styles.separatorText}>ou</Text>
+          <View style={styles.separatorLine} />
+        </View>
+
+        {/* OAuth */}
+        <View style={styles.oauthButtons}>
+          <TouchableOpacity
+            style={[styles.oauthButton, styles.discordButton]}
+            onPress={handleDiscordLogin}
+            disabled={loading}
+          >
+            <Text style={styles.oauthButtonText}>🎮 Discord</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.oauthButton, styles.googleButton]}
+            onPress={handleGoogleLogin}
+            disabled={loading}
+          >
+            <Text style={styles.oauthButtonText}>🔵 Google</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Passer */}
+        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+          <Text style={styles.skipButtonText}>Continuer sans compte →</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.privacyText}>
+          En vous connectant, vous acceptez nos conditions d'utilisation.
+          Vos données sont stockées sur votre Freebox personnelle.
+        </Text>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  logo: {
+    fontSize: 60,
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#6366f1',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#6b7280',
+  },
+  serverStatus: {
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  serverStatusText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  form: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+    marginTop: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    backgroundColor: '#f9fafb',
+  },
+  primaryButton: {
+    backgroundColor: '#6366f1',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  switchText: {
+    color: '#6366f1',
+    textAlign: 'center',
+    marginTop: 15,
+    fontSize: 14,
+  },
+  separator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 25,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e5e7eb',
+  },
+  separatorText: {
+    marginHorizontal: 15,
+    color: '#9ca3af',
+    fontSize: 14,
+  },
+  oauthButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  oauthButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  discordButton: {
+    backgroundColor: '#5865F2',
+  },
+  googleButton: {
+    backgroundColor: '#4285F4',
+  },
+  oauthButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  skipButton: {
+    marginTop: 25,
+    alignItems: 'center',
+  },
+  skipButtonText: {
+    color: '#9ca3af',
+    fontSize: 14,
+  },
+  privacyText: {
+    marginTop: 30,
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#9ca3af',
+    lineHeight: 18,
+  },
+});

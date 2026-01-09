@@ -15,6 +15,7 @@ import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
 import TextGenerationService from '../services/TextGenerationService';
 import SyncService from '../services/SyncService';
+import AuthService from '../services/AuthService';
 import * as FileSystem from 'expo-file-system';
 
 export default function SettingsScreen({ navigation }) {
@@ -672,6 +673,42 @@ export default function SettingsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* COMPTE */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>👤 Compte</Text>
+        
+        <View style={styles.accountBox}>
+          <Text style={styles.accountStatus}>
+            {AuthService?.isLoggedIn?.() 
+              ? `✅ Connecté: ${AuthService.getCurrentUser()?.email || 'Utilisateur'}`
+              : '⚪ Non connecté'}
+          </Text>
+          
+          {AuthService?.isLoggedIn?.() ? (
+            <TouchableOpacity
+              style={[styles.accountButton, styles.logoutButton]}
+              onPress={async () => {
+                await AuthService.logout();
+                Alert.alert('Déconnexion', 'Vous avez été déconnecté');
+              }}
+            >
+              <Text style={styles.accountButtonText}>🚪 Se déconnecter</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.accountButton, styles.loginButton]}
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.accountButtonText}>🔐 Se connecter</Text>
+            </TouchableOpacity>
+          )}
+          
+          <Text style={styles.accountHint}>
+            La connexion permet de synchroniser vos données et personnages entre appareils.
+          </Text>
+        </View>
+      </View>
+
       {/* SYNCHRONISATION FREEBOX */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>☁️ Synchronisation Freebox</Text>
@@ -740,7 +777,7 @@ export default function SettingsScreen({ navigation }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.2.7</Text>
+          <Text style={styles.aboutText}>Version: 3.2.8</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>126+ personnages disponibles</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
@@ -1128,6 +1165,41 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   syncHint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  // Styles compte
+  accountBox: {
+    backgroundColor: '#f3f4f6',
+    padding: 15,
+    borderRadius: 10,
+  },
+  accountStatus: {
+    fontSize: 14,
+    color: '#374151',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  accountButton: {
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  loginButton: {
+    backgroundColor: '#6366f1',
+  },
+  logoutButton: {
+    backgroundColor: '#ef4444',
+  },
+  accountButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  accountHint: {
     fontSize: 12,
     color: '#9ca3af',
     textAlign: 'center',
