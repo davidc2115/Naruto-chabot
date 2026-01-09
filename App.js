@@ -18,6 +18,7 @@ import CharacterCarouselScreen from './src/screens/CharacterCarouselScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import MyCharactersScreen from './src/screens/MyCharactersScreen';
 import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
+import AdminPanelScreen from './src/screens/AdminPanelScreen';
 import AuthService from './src/services/AuthService';
 import SyncService from './src/services/SyncService';
 
@@ -33,12 +34,13 @@ function HomeTabs({ isAdmin, onLogout }) {
         headerShown: false,
       }}
     >
+      {/* Mode Découverte comme écran principal */}
       <Tab.Screen 
-        name="Home" 
-        component={HomeScreen}
+        name="Discover" 
+        component={CharacterCarouselScreen}
         options={{
-          tabBarLabel: 'Personnages',
-          tabBarIcon: ({ color }) => <TabIcon name="👥" color={color} />,
+          tabBarLabel: 'Découvrir',
+          tabBarIcon: ({ color }) => <TabIcon name="❤️" color={color} />,
         }}
       />
       <Tab.Screen 
@@ -53,16 +55,28 @@ function HomeTabs({ isAdmin, onLogout }) {
         name="MyCharacters" 
         component={MyCharactersScreen}
         options={{
-          tabBarLabel: 'Mes Créations',
+          tabBarLabel: 'Créations',
           tabBarIcon: ({ color }) => <TabIcon name="✨" color={color} />,
         }}
       />
+      {/* Onglet Admin pour gérer les membres (admin uniquement) */}
+      {isAdmin && (
+        <Tab.Screen 
+          name="AdminPanel" 
+          options={{
+            tabBarLabel: 'Admin',
+            tabBarIcon: ({ color }) => <TabIcon name="👑" color={color} />,
+          }}
+        >
+          {props => <AdminPanelScreen {...props} />}
+        </Tab.Screen>
+      )}
       {/* Admin = SettingsScreen complet, Utilisateur = UserSettingsScreen */}
       {isAdmin ? (
         <Tab.Screen 
           name="Settings" 
           options={{
-            tabBarLabel: 'Paramètres',
+            tabBarLabel: 'Config',
             tabBarIcon: ({ color }) => <TabIcon name="⚙️" color={color} />,
           }}
         >
@@ -72,8 +86,8 @@ function HomeTabs({ isAdmin, onLogout }) {
         <Tab.Screen 
           name="UserSettings" 
           options={{
-            tabBarLabel: 'Paramètres',
-            tabBarIcon: ({ color }) => <TabIcon name="⚙️" color={color} />,
+            tabBarLabel: 'Profil',
+            tabBarIcon: ({ color }) => <TabIcon name="👤" color={color} />,
           }}
         >
           {props => <UserSettingsScreen {...props} onLogout={onLogout} />}

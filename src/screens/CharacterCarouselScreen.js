@@ -8,6 +8,7 @@ import {
   ScrollView,
   Dimensions,
   ImageBackground,
+  TextInput,
 } from 'react-native';
 import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
@@ -15,11 +16,23 @@ import GalleryService from '../services/GalleryService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
+// Fonction pour mélanger un tableau (Fisher-Yates)
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export default function CharacterCarouselScreen({ navigation }) {
   const [allCharacters, setAllCharacters] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [characterImages, setCharacterImages] = useState({});
   const [selectedTags, setSelectedTags] = useState([]);
+  const [tagSearch, setTagSearch] = useState('');
+  const [showAllTags, setShowAllTags] = useState(false);
 
   useEffect(() => {
     loadAllCharacters();
@@ -34,10 +47,11 @@ export default function CharacterCarouselScreen({ navigation }) {
 
   const loadAllCharacters = async () => {
     const customChars = await CustomCharacterService.getCustomCharacters();
-    // Combiner les personnages de la base + customs
+    // Combiner les personnages de la base + customs et mélanger aléatoirement
     const combined = [...enhancedCharacters, ...customChars];
-    setAllCharacters(combined);
-    await loadGalleryImages(combined);
+    const shuffled = shuffleArray(combined);
+    setAllCharacters(shuffled);
+    await loadGalleryImages(shuffled);
   };
 
   const loadGalleryImages = async (chars) => {
@@ -55,11 +69,19 @@ export default function CharacterCarouselScreen({ navigation }) {
     setCharacterImages(images);
   };
 
+  // Filtrer par tags sélectionnés (avec vérification que tags existe)
   const filteredCharacters = selectedTags.length > 0
-    ? allCharacters.filter(char =>
-        selectedTags.every(tag => char.tags.includes(tag))
-      )
+    ? allCharacters.filter(char => {
+        const charTags = char.tags || [];
+        return selectedTags.every(tag => charTags.includes(tag));
+      })
     : allCharacters;
+  
+  // Filtrer les tags pour la recherche
+  const allTags = [...new Set(allCharacters.flatMap(char => char.tags || []))].sort();
+  const filteredTags = tagSearch 
+    ? allTags.filter(tag => tag.toLowerCase().includes(tagSearch.toLowerCase()))
+    : allTags;
 
   const currentCharacter = filteredCharacters[currentIndex];
 
@@ -92,8 +114,11 @@ export default function CharacterCarouselScreen({ navigation }) {
     setCurrentIndex(0); // Reset à 0 quand on filtre
   };
 
-  // Extraire tous les tags uniques
-  const allTags = [...new Set(allCharacters.flatMap(char => char.tags))].sort();
+  // Remélanger les personnages
+  const handleShuffle = () => {
+    setAllCharacters(shuffleArray([...allCharacters]));
+    setCurrentIndex(0);
+  };
 
   if (!currentCharacter) {
     return (
@@ -107,10 +132,43 @@ export default function CharacterCarouselScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Barre de recherche tags */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="🔍 Rechercher un tag..."
+          placeholderTextColor="#64748b"
+          value={tagSearch}
+          onChangeText={setTagSearch}
+        />
+        <TouchableOpacity style={styles.shuffleButton} onPress={handleShuffle}>
+          <Text style={styles.shuffleButtonText}>🔀</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {/* Tags sélectionnés */}
+      {selectedTags.length > 0 && (
+        <View style={styles.selectedTagsContainer}>
+          <Text style={styles.selectedLabel}>Filtres actifs:</Text>
+          {selectedTags.map((tag) => (
+            <TouchableOpacity
+              key={tag}
+              style={styles.selectedTag}
+              onPress={() => toggleTag(tag)}
+            >
+              <Text style={styles.selectedTagText}>{tag} ✕</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity onPress={() => setSelectedTags([])}>
+            <Text style={styles.clearAllText}>Effacer tout</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      
       {/* Filtres tags */}
       <View style={styles.filtersContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {allTags.slice(0, 15).map((tag) => (
+          {(showAllTags ? filteredTags : filteredTags.slice(0, 20)).map((tag) => (
             <TouchableOpacity
               key={tag}
               style={[
@@ -127,6 +185,14 @@ export default function CharacterCarouselScreen({ navigation }) {
               </Text>
             </TouchableOpacity>
           ))}
+          {filteredTags.length > 20 && !showAllTags && (
+            <TouchableOpacity 
+              style={styles.moreTagsButton}
+              onPress={() => setShowAllTags(true)}
+            >
+              <Text style={styles.moreTagsText}>+{filteredTags.length - 20}</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       </View>
 
@@ -167,7 +233,7 @@ export default function CharacterCarouselScreen({ navigation }) {
 
             {/* Tags */}
             <View style={styles.tagsContainer}>
-              {currentCharacter.tags.slice(0, 6).map((tag, index) => (
+              {(currentCharacter.tags || []).slice(0, 6).map((tag, index) => (
                 <View key={index} style={styles.tag}>
                   <Text style={styles.tagText}>{tag}</Text>
                 </View>
@@ -205,12 +271,82 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0f172a',
   },
+  searchContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: '#1e293b',
+    gap: 10,
+  },
+  searchInput: {
+    flex: 1,
+    backgroundColor: '#334155',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    color: '#fff',
+    fontSize: 14,
+  },
+  shuffleButton: {
+    backgroundColor: '#8b5cf6',
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shuffleButtonText: {
+    fontSize: 20,
+  },
+  selectedTagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: '#1e293b',
+    gap: 6,
+  },
+  selectedLabel: {
+    color: '#94a3b8',
+    fontSize: 12,
+    marginRight: 4,
+  },
+  selectedTag: {
+    backgroundColor: '#8b5cf6',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  selectedTagText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  clearAllText: {
+    color: '#ef4444',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
   filtersContainer: {
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 10,
     backgroundColor: '#1e293b',
     borderBottomWidth: 1,
     borderBottomColor: '#334155',
+  },
+  moreTagsButton: {
+    backgroundColor: '#475569',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+  },
+  moreTagsText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   filterTag: {
     paddingHorizontal: 12,

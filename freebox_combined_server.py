@@ -437,6 +437,139 @@ def generate_image():
     
     return jsonify({'error': 'Tous les modèles ont échoué'}), 503
 
+# ==================== ADMINISTRATION ====================
+
+def is_request_admin(request):
+    """Vérifie si la requête vient d'un admin"""
+    user = get_current_user(request)
+    if user and is_admin(user):
+        return True
+    # Fallback: vérifier le header X-Admin-Email
+    admin_email = request.headers.get('X-Admin-Email', '')
+    return admin_email.lower() == ADMIN_EMAIL.lower()
+
+@app.route('/admin/users', methods=['GET'])
+def admin_get_users():
+    """Liste tous les utilisateurs (admin uniquement)"""
+    if not is_request_admin(request):
+        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+    
+    try:
+        users = []
+        for filename in os.listdir(USERS_DIR):
+            if filename.endswith('.json') and not filename.endswith('_characters.json'):
+                user = load_json(os.path.join(USERS_DIR, filename))
+                if user:
+                    # Exclure le mot de passe
+                    user_safe = {k: v for k, v in user.items() if k != 'password_hash'}
+                    # Ajouter des infos du profil
+                    profile = user.get('profile', {}) or {}
+                    user_safe['username'] = profile.get('username', '')
+                    user_safe['age'] = profile.get('age', 0)
+                    user_safe['nsfw_enabled'] = profile.get('nsfwMode', False)
+                    user_safe['is_premium'] = user.get('is_premium', False)
+                    users.append(user_safe)
+        
+        # Trier par date de création (plus récent en premier)
+        users.sort(key=lambda x: x.get('created_at', 0), reverse=True)
+        
+        print(f"👑 Admin: Liste de {len(users)} utilisateurs")
+        return jsonify({'success': True, 'count': len(users), 'users': users})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/users/<user_id>/role', methods=['PUT'])
+def admin_update_user_role(user_id):
+    """Modifier le rôle admin d'un utilisateur"""
+    if not is_request_admin(request):
+        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+    
+    try:
+        filepath = os.path.join(USERS_DIR, f"{user_id}.json")
+        if not os.path.exists(filepath):
+            return jsonify({'success': False, 'error': 'Utilisateur non trouvé'}), 404
+        
+        user = load_json(filepath)
+        data = request.json
+        
+        # Ne pas permettre de retirer les droits admin à soi-même
+        current_admin = request.headers.get('X-Admin-Email', '').lower()
+        if user.get('email', '').lower() == current_admin and not data.get('is_admin', True):
+            return jsonify({'success': False, 'error': 'Impossible de retirer vos propres droits admin'}), 400
+        
+        user['is_admin'] = data.get('is_admin', False)
+        user['updated_at'] = int(time.time() * 1000)
+        
+        save_json(filepath, user)
+        print(f"👑 Admin: Rôle modifié pour {user.get('email')} -> admin={user['is_admin']}")
+        
+        return jsonify({'success': True, 'user': {k: v for k, v in user.items() if k != 'password_hash'}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/users/<user_id>/premium', methods=['PUT'])
+def admin_update_user_premium(user_id):
+    """Modifier le statut premium d'un utilisateur"""
+    if not is_request_admin(request):
+        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+    
+    try:
+        filepath = os.path.join(USERS_DIR, f"{user_id}.json")
+        if not os.path.exists(filepath):
+            return jsonify({'success': False, 'error': 'Utilisateur non trouvé'}), 404
+        
+        user = load_json(filepath)
+        data = request.json
+        
+        user['is_premium'] = data.get('is_premium', False)
+        user['premium_since'] = int(time.time() * 1000) if user['is_premium'] else None
+        user['updated_at'] = int(time.time() * 1000)
+        
+        save_json(filepath, user)
+        print(f"👑 Admin: Premium modifié pour {user.get('email')} -> premium={user['is_premium']}")
+        
+        return jsonify({'success': True, 'user': {k: v for k, v in user.items() if k != 'password_hash'}})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/users/<user_id>', methods=['DELETE'])
+def admin_delete_user(user_id):
+    """Supprimer un utilisateur"""
+    if not is_request_admin(request):
+        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+    
+    try:
+        filepath = os.path.join(USERS_DIR, f"{user_id}.json")
+        if not os.path.exists(filepath):
+            return jsonify({'success': False, 'error': 'Utilisateur non trouvé'}), 404
+        
+        user = load_json(filepath)
+        
+        # Ne pas permettre de supprimer l'admin principal
+        if user.get('email', '').lower() == ADMIN_EMAIL.lower():
+            return jsonify({'success': False, 'error': 'Impossible de supprimer l\'admin principal'}), 400
+        
+        # Supprimer le fichier utilisateur
+        os.remove(filepath)
+        
+        # Supprimer les sessions de l'utilisateur
+        for session_file in os.listdir(SESSIONS_DIR):
+            if session_file.endswith('.json'):
+                session = load_json(os.path.join(SESSIONS_DIR, session_file))
+                if session.get('user_id') == user_id:
+                    os.remove(os.path.join(SESSIONS_DIR, session_file))
+        
+        # Supprimer le dossier de sync de l'utilisateur
+        user_sync_dir = os.path.join(SYNC_DIR, user_id)
+        if os.path.exists(user_sync_dir):
+            import shutil
+            shutil.rmtree(user_sync_dir)
+        
+        print(f"👑 Admin: Utilisateur supprimé {user.get('email')}")
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ==================== HEALTH & INFO ====================
 
 @app.route('/health', methods=['GET'])

@@ -8,23 +8,30 @@ import {
   Alert,
 } from 'react-native';
 import StorageService from '../services/StorageService';
-import characters from '../data/characters';
+import enhancedCharacters from '../data/allCharacters';
+import CustomCharacterService from '../services/CustomCharacterService';
 
 export default function ChatsScreen({ navigation }) {
+  const [allCharacters, setAllCharacters] = useState([]);
   const [conversations, setConversations] = useState([]);
 
   useEffect(() => {
-    loadConversations();
+    loadData();
     
     // Refresh when screen is focused
     const unsubscribe = navigation.addListener('focus', () => {
-      loadConversations();
+      loadData();
     });
 
     return unsubscribe;
   }, [navigation]);
 
-  const loadConversations = async () => {
+  const loadData = async () => {
+    // Charger tous les personnages (de base + personnalisés)
+    const customChars = await CustomCharacterService.getCustomCharacters();
+    setAllCharacters([...enhancedCharacters, ...customChars]);
+    
+    // Charger les conversations
     const allConversations = await StorageService.getAllConversations();
     setConversations(allConversations);
   };
@@ -50,7 +57,7 @@ export default function ChatsScreen({ navigation }) {
   };
 
   const getCharacter = (characterId) => {
-    return characters.find(c => c.id === characterId);
+    return allCharacters.find(c => c.id === characterId || c.id === String(characterId));
   };
 
   const renderConversation = ({ item }) => {
