@@ -32,9 +32,16 @@ class AuthService {
 
   /**
    * Récupère le statut premium depuis le serveur
+   * @returns {Promise<boolean>} true si premium ou admin
    */
   async checkPremiumStatus() {
     try {
+      // Vérifier d'abord si admin (toujours premium)
+      if (this.isAdmin()) {
+        console.log('👑 Admin = Premium automatique');
+        return true;
+      }
+
       const response = await axios.get(
         `${this.baseUrl}/api/premium/check`,
         { headers: this.getHeaders(), timeout: 5000 }
@@ -44,7 +51,33 @@ class AuthService {
         // Mettre à jour le statut local
         if (this.user) {
           this.user.is_premium = response.data.is_premium;
+          this.user.is_admin = response.data.is_admin;
         }
+        
+        const isPremiumOrAdmin = response.data.is_premium || response.data.is_admin;
+        console.log(`💎 Premium check: ${isPremiumOrAdmin} (premium=${response.data.is_premium}, admin=${response.data.is_admin})`);
+        return isPremiumOrAdmin;
+      }
+      
+      return this.isPremium();
+    } catch (error) {
+      console.error('❌ Erreur vérification premium:', error.message);
+      // En cas d'erreur réseau, utiliser le statut local
+      return this.isPremium();
+    }
+  }
+
+  /**
+   * Récupère les détails complets du statut premium
+   */
+  async getPremiumDetails() {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/api/premium/check`,
+        { headers: this.getHeaders(), timeout: 5000 }
+      );
+
+      if (response.data.success) {
         return {
           is_premium: response.data.is_premium,
           is_admin: response.data.is_admin,
@@ -53,7 +86,6 @@ class AuthService {
       }
       return { is_premium: this.isPremium(), is_admin: this.isAdmin() };
     } catch (error) {
-      console.error('❌ Erreur vérification premium:', error);
       return { is_premium: this.isPremium(), is_admin: this.isAdmin() };
     }
   }

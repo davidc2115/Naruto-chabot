@@ -135,18 +135,30 @@ export default function ConversationScreen({ route, navigation }) {
 
   const checkPremiumStatus = async () => {
     try {
-      // Vérifier d'abord localement (admin = premium)
+      // Vérifier si admin (toujours premium)
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      
+      if (isAdmin) {
+        console.log('👑 Admin détecté - Premium automatique');
+        setIsPremium(true);
+        return;
+      }
+      
+      // Vérifier localement d'abord
       const localPremium = AuthService.isPremium();
       setIsPremium(localPremium);
       
       // Puis vérifier côté serveur
       const serverPremium = await AuthService.checkPremiumStatus();
       setIsPremium(serverPremium);
-      console.log('✅ Status Premium:', serverPremium ? 'Oui' : 'Non');
+      console.log('💎 Status Premium:', serverPremium ? 'Oui' : 'Non');
     } catch (error) {
       console.error('❌ Erreur vérification premium:', error);
-      // Fallback sur le statut local
-      setIsPremium(AuthService.isPremium());
+      // Fallback: vérifier si admin
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      setIsPremium(isAdmin || AuthService.isPremium());
     }
   };
 

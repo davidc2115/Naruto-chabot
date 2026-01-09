@@ -47,24 +47,47 @@ export default function CharacterDetailScreen({ route, navigation }) {
     
     // Vérifier le statut premium avant de générer l'image
     const premiumStatus = await checkPremiumStatus();
+    console.log('🎫 Premium status:', premiumStatus);
+    
     if (premiumStatus) {
-      generateCharacterImage();
+      // Passer le statut premium directement pour éviter les problèmes de timing
+      generateCharacterImage(true);
     } else {
       setLoadingImage(false);
+      // Charger une image existante de la galerie si disponible
+      const existingGallery = await GalleryService.getGallery(character.id);
+      if (existingGallery && existingGallery.length > 0) {
+        setCharacterImage(existingGallery[0]);
+      }
     }
   };
 
   const checkPremiumStatus = async () => {
     try {
+      // Vérifier d'abord localement (admin = premium automatiquement)
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      
+      if (isAdmin) {
+        console.log('👑 Admin détecté - Premium automatique');
+        setIsPremium(true);
+        return true;
+      }
+      
       const localPremium = AuthService.isPremium();
       setIsPremium(localPremium);
       
+      // Puis vérifier côté serveur
       const serverPremium = await AuthService.checkPremiumStatus();
       setIsPremium(serverPremium);
+      console.log('💎 Premium server check:', serverPremium);
       return serverPremium;
     } catch (error) {
       console.error('Erreur vérification premium:', error);
-      const fallback = AuthService.isPremium();
+      // En cas d'erreur, vérifier si admin
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      const fallback = isAdmin || AuthService.isPremium();
       setIsPremium(fallback);
       return fallback;
     }
@@ -88,9 +111,11 @@ export default function CharacterDetailScreen({ route, navigation }) {
     setHasConversation(conv !== null && conv.messages.length > 0);
   };
 
-  const generateCharacterImage = async () => {
-    // Vérifier le statut premium
-    if (!isPremium) {
+  const generateCharacterImage = async (forceAllowed = false) => {
+    // Vérifier le statut premium (utiliser le paramètre ou l'état)
+    const canGenerate = forceAllowed || isPremium;
+    
+    if (!canGenerate) {
       Alert.alert(
         '💎 Fonctionnalité Premium',
         'La génération d\'images est réservée aux membres Premium.\n\nDevenez Premium pour voir vos personnages prendre vie !',
@@ -107,23 +132,34 @@ export default function CharacterDetailScreen({ route, navigation }) {
 
     try {
       setLoadingImage(true);
+      console.log('🎨 Génération image pour:', character.name);
+      
       // Charger le profil utilisateur pour le mode NSFW
       const profile = userProfile || await UserProfileService.getProfile();
       const imageUrl = await ImageGenerationService.generateCharacterImage(character, profile);
+      
+      console.log('✅ Image générée:', imageUrl ? 'OK' : 'Échec');
       setCharacterImage(imageUrl);
       
       // SAUVEGARDER l'image dans la galerie du personnage
-      await GalleryService.saveImageToGallery(character.id, imageUrl);
-      
-      // Recharger la galerie pour afficher la nouvelle image
-      await loadGallery();
+      if (imageUrl) {
+        await GalleryService.saveImageToGallery(character.id, imageUrl);
+        // Recharger la galerie pour afficher la nouvelle image
+        await loadGallery();
+      }
     } catch (error) {
-      console.error('Error generating image:', error);
+      console.error('❌ Error generating image:', error);
       if (error.message?.includes('Premium') || error.message?.includes('403')) {
         Alert.alert(
           '💎 Premium Requis',
           'Vous devez être membre Premium pour générer des images.'
         );
+      } else {
+        // Essayer de charger une image existante
+        const existingGallery = await GalleryService.getGallery(character.id);
+        if (existingGallery && existingGallery.length > 0) {
+          setCharacterImage(existingGallery[0]);
+        }
       }
     } finally {
       setLoadingImage(false);

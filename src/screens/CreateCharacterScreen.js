@@ -48,12 +48,25 @@ export default function CreateCharacterScreen({ navigation, route }) {
 
   const checkPremiumStatus = async () => {
     try {
+      // Vérifier si admin (toujours premium)
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      
+      if (isAdmin) {
+        console.log('👑 Admin détecté - Premium automatique');
+        setIsPremium(true);
+        return;
+      }
+      
       const local = AuthService.isPremium();
       setIsPremium(local);
       const server = await AuthService.checkPremiumStatus();
       setIsPremium(server);
     } catch (error) {
-      setIsPremium(AuthService.isPremium());
+      // Fallback: vérifier si admin
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      setIsPremium(isAdmin || AuthService.isPremium());
     }
   };
 
