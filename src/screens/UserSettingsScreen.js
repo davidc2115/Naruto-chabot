@@ -100,11 +100,11 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
     
     Alert.alert(
       '🎮 Rejoindre Discord',
-      'Vous allez être redirigé vers notre serveur Discord communautaire.',
+      '⚠️ ATTENTION: Ce serveur Discord est un espace communautaire NSFW réservé exclusivement aux adultes (18+).\n\nEn rejoignant, vous confirmez avoir au moins 18 ans.',
       [
         { text: 'Annuler', style: 'cancel' },
         { 
-          text: 'Rejoindre', 
+          text: 'Je confirme avoir 18+', 
           onPress: () => Linking.openURL(DISCORD_INVITE)
         }
       ]
@@ -223,7 +223,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
             <Text style={styles.discordButtonTitle}>Rejoindre Discord</Text>
             <Text style={styles.discordButtonSubtitle}>
               {isAdult 
-                ? 'Communauté, support et nouveautés'
+                ? '🔞 Serveur communautaire NSFW - Adultes uniquement'
                 : '🔒 Réservé aux majeurs (18+)'}
             </Text>
           </View>
@@ -233,7 +233,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         {!isAdult && (
           <View style={styles.warningBox}>
             <Text style={styles.warningText}>
-              🔒 Le serveur Discord est réservé aux utilisateurs majeurs.
+              🔒 Le serveur Discord est un espace NSFW réservé exclusivement aux adultes de 18 ans et plus.
             </Text>
           </View>
         )}
@@ -259,7 +259,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.3.2</Text>
+          <Text style={styles.aboutText}>Version: 3.3.3</Text>
           <Text style={styles.aboutText}>Roleplay Chat - Application de conversation</Text>
           <Text style={styles.aboutText}>150+ personnages disponibles</Text>
         </View>

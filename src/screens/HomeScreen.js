@@ -37,7 +37,12 @@ export default function HomeScreen({ navigation }) {
   }, [searchQuery, selectedFilter, allCharacters]);
 
   const loadAllCharacters = async () => {
-    const customChars = await CustomCharacterService.getCustomCharacters();
+    // Migrer les anciens personnages si nécessaire
+    await CustomCharacterService.migrateOldCharacters();
+    
+    // Récupérer uniquement les personnages de l'utilisateur + publics des autres
+    const customChars = await CustomCharacterService.getAllVisibleCharacters();
+    
     // Combiner les personnages de base (avec NSFW) avec les personnages personnalisés
     const combined = [...enhancedCharacters, ...customChars];
     setAllCharacters(combined);

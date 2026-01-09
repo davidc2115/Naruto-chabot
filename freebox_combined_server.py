@@ -203,6 +203,24 @@ def login():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/auth/discord', methods=['GET'])
+def discord_auth():
+    """Discord OAuth - Non disponible pour le moment"""
+    return jsonify({
+        'success': False, 
+        'error': 'Connexion Discord non disponible. Utilisez email/mot de passe.',
+        'message': 'La connexion via Discord nécessite une configuration OAuth. Veuillez utiliser la connexion par email.'
+    }), 501
+
+@app.route('/auth/google', methods=['GET'])
+def google_auth():
+    """Google OAuth - Non disponible pour le moment"""
+    return jsonify({
+        'success': False, 
+        'error': 'Connexion Google non disponible. Utilisez email/mot de passe.',
+        'message': 'La connexion via Google nécessite une configuration OAuth. Veuillez utiliser la connexion par email.'
+    }), 501
+
 @app.route('/auth/verify', methods=['GET'])
 def verify_token():
     user = get_current_user(request)
