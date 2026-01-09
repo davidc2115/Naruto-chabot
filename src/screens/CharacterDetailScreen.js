@@ -14,6 +14,7 @@ import ImageGenerationService from '../services/ImageGenerationService';
 import CustomCharacterService from '../services/CustomCharacterService';
 import GalleryService from '../services/GalleryService';
 import UserProfileService from '../services/UserProfileService';
+import AuthService from '../services/AuthService';
 
 export default function CharacterDetailScreen({ route, navigation }) {
   const { character } = route.params;
@@ -23,22 +24,51 @@ export default function CharacterDetailScreen({ route, navigation }) {
   const [loadingImage, setLoadingImage] = useState(true);
   const [gallery, setGallery] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
-    loadCharacterData();
-    loadGallery();
-    loadUserProfile();
-    generateCharacterImage();
+    initializeScreen();
     navigation.setOptions({ title: character.name });
     
     // Recharger la galerie quand on revient sur cet écran
     const unsubscribe = navigation.addListener('focus', () => {
       loadGallery();
       loadUserProfile();
+      checkPremiumStatus();
     });
     
     return unsubscribe;
   }, [character]);
+
+  const initializeScreen = async () => {
+    loadCharacterData();
+    loadGallery();
+    loadUserProfile();
+    
+    // Vérifier le statut premium avant de générer l'image
+    const premiumStatus = await checkPremiumStatus();
+    if (premiumStatus) {
+      generateCharacterImage();
+    } else {
+      setLoadingImage(false);
+    }
+  };
+
+  const checkPremiumStatus = async () => {
+    try {
+      const localPremium = AuthService.isPremium();
+      setIsPremium(localPremium);
+      
+      const serverPremium = await AuthService.checkPremiumStatus();
+      setIsPremium(serverPremium);
+      return serverPremium;
+    } catch (error) {
+      console.error('Erreur vérification premium:', error);
+      const fallback = AuthService.isPremium();
+      setIsPremium(fallback);
+      return fallback;
+    }
+  };
 
   const loadUserProfile = async () => {
     const profile = await UserProfileService.getProfile();
@@ -59,6 +89,22 @@ export default function CharacterDetailScreen({ route, navigation }) {
   };
 
   const generateCharacterImage = async () => {
+    // Vérifier le statut premium
+    if (!isPremium) {
+      Alert.alert(
+        '💎 Fonctionnalité Premium',
+        'La génération d\'images est réservée aux membres Premium.\n\nDevenez Premium pour voir vos personnages prendre vie !',
+        [
+          { text: 'Plus tard', style: 'cancel' },
+          { 
+            text: 'Devenir Premium', 
+            onPress: () => navigation.navigate('Premium')
+          }
+        ]
+      );
+      return;
+    }
+
     try {
       setLoadingImage(true);
       // Charger le profil utilisateur pour le mode NSFW
@@ -73,6 +119,12 @@ export default function CharacterDetailScreen({ route, navigation }) {
       await loadGallery();
     } catch (error) {
       console.error('Error generating image:', error);
+      if (error.message?.includes('Premium') || error.message?.includes('403')) {
+        Alert.alert(
+          '💎 Premium Requis',
+          'Vous devez être membre Premium pour générer des images.'
+        );
+      }
     } finally {
       setLoadingImage(false);
     }
@@ -178,6 +230,16 @@ export default function CharacterDetailScreen({ route, navigation }) {
           </View>
         ) : characterImage ? (
           <Image source={{ uri: characterImage }} style={styles.characterImage} />
+        ) : !isPremium ? (
+          <View style={styles.premiumPlaceholder}>
+            <Text style={styles.premiumLockIcon}>🔒</Text>
+            <Text style={styles.avatarLarge}>
+              {character.name.split(' ').map(n => n[0]).join('')}
+            </Text>
+            <Text style={styles.premiumPlaceholderText}>
+              💎 Premium requis pour les images
+            </Text>
+          </View>
         ) : (
           <View style={styles.imagePlaceholder}>
             <Text style={styles.avatarLarge}>
@@ -202,10 +264,10 @@ export default function CharacterDetailScreen({ route, navigation }) {
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.refreshImageButton}
+            style={[styles.refreshImageButton, !isPremium && styles.refreshImageButtonLocked]}
             onPress={generateCharacterImage}
           >
-            <Text style={styles.refreshImageText}>🔄</Text>
+            <Text style={styles.refreshImageText}>{isPremium ? '🔄' : '🔒'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -395,6 +457,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  premiumPlaceholder: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#1e1b4b',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  premiumLockIcon: {
+    fontSize: 40,
+    marginBottom: 10,
+  },
+  premiumPlaceholderText: {
+    color: '#fbbf24',
+    fontSize: 14,
+    marginTop: 15,
+    fontWeight: '600',
+  },
   avatarLarge: {
     fontSize: 80,
     fontWeight: 'bold',
@@ -431,6 +510,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#6366f1',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  refreshImageButtonLocked: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
   },
   refreshImageText: {
     fontSize: 20,

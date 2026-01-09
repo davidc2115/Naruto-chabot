@@ -16,6 +16,7 @@ import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
 import UserProfileService from '../services/UserProfileService';
 import SyncService from '../services/SyncService';
+import AuthService from '../services/AuthService';
 
 export default function CreateCharacterScreen({ navigation, route }) {
   const { characterToEdit } = route.params || {};
@@ -38,11 +39,44 @@ export default function CreateCharacterScreen({ navigation, route }) {
   // Option public/privé
   const [isPublic, setIsPublic] = useState(characterToEdit?.isPublic || false);
   const [serverOnline, setServerOnline] = useState(null);
+  const [isPremium, setIsPremium] = useState(false);
+
+  // Vérifier le statut premium au montage
+  React.useEffect(() => {
+    checkPremiumStatus();
+  }, []);
+
+  const checkPremiumStatus = async () => {
+    try {
+      const local = AuthService.isPremium();
+      setIsPremium(local);
+      const server = await AuthService.checkPremiumStatus();
+      setIsPremium(server);
+    } catch (error) {
+      setIsPremium(AuthService.isPremium());
+    }
+  };
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
   const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
 
   const generateCharacterImage = async () => {
+    // Vérifier le statut premium
+    if (!isPremium) {
+      Alert.alert(
+        '💎 Fonctionnalité Premium',
+        'La génération d\'images est réservée aux membres Premium.\n\nVous pouvez créer votre personnage sans image, ou devenir Premium pour cette fonctionnalité.',
+        [
+          { text: 'Créer sans image', style: 'cancel' },
+          { 
+            text: 'Devenir Premium', 
+            onPress: () => navigation.navigate('Premium')
+          }
+        ]
+      );
+      return;
+    }
+
     if (!appearance && !hairColor) {
       Alert.alert('Info', 'Remplissez au moins l\'apparence et l\'âge pour générer une image');
       return;
@@ -74,7 +108,14 @@ export default function CreateCharacterScreen({ navigation, route }) {
       setImageUrl(url);
       Alert.alert('Succès', 'Image générée ! Vous pouvez maintenant sauvegarder le personnage.');
     } catch (error) {
-      Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+      if (error.message?.includes('Premium') || error.message?.includes('403')) {
+        Alert.alert(
+          '💎 Premium Requis',
+          'Vous devez être membre Premium pour générer des images.'
+        );
+      } else {
+        Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+      }
     } finally {
       setGeneratingImage(false);
     }
@@ -188,7 +229,7 @@ export default function CreateCharacterScreen({ navigation, route }) {
           </View>
         ) : (
           <TouchableOpacity
-            style={styles.generateImageButton}
+            style={[styles.generateImageButton, !isPremium && styles.generateImageButtonLocked]}
             onPress={generateCharacterImage}
             disabled={generatingImage}
           >
@@ -196,10 +237,14 @@ export default function CreateCharacterScreen({ navigation, route }) {
               <ActivityIndicator size="large" color="#6366f1" />
             ) : (
               <>
-                <Text style={styles.generateImageIcon}>🎨</Text>
-                <Text style={styles.generateImageText}>Générer une image</Text>
+                <Text style={styles.generateImageIcon}>{isPremium ? '🎨' : '🔒'}</Text>
+                <Text style={styles.generateImageText}>
+                  {isPremium ? 'Générer une image' : 'Génération d\'image (Premium)'}
+                </Text>
                 <Text style={styles.generateImageHint}>
-                  Remplissez d'abord l'apparence physique
+                  {isPremium 
+                    ? 'Remplissez d\'abord l\'apparence physique'
+                    : '💎 Devenez Premium pour générer des images'}
                 </Text>
               </>
             )}
@@ -515,6 +560,10 @@ const styles = StyleSheet.create({
     borderColor: '#6366f1',
     borderStyle: 'dashed',
     alignItems: 'center',
+  },
+  generateImageButtonLocked: {
+    backgroundColor: '#fef3c7',
+    borderColor: '#f59e0b',
   },
   generateImageIcon: {
     fontSize: 48,

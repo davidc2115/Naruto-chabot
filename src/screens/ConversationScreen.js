@@ -22,6 +22,7 @@ import UserProfileService from '../services/UserProfileService';
 import GalleryService from '../services/GalleryService';
 import ChatStyleService from '../services/ChatStyleService';
 import LevelService from '../services/LevelService';
+import AuthService from '../services/AuthService';
 
 export default function ConversationScreen({ route, navigation }) {
   const { character } = route.params || {};
@@ -47,6 +48,9 @@ export default function ConversationScreen({ route, navigation }) {
   const [selectedTheme, setSelectedTheme] = useState('default');
   const [opacity, setOpacity] = useState(1);
   const [borderRadius, setBorderRadius] = useState(15);
+  
+  // Premium status
+  const [isPremium, setIsPremium] = useState(false);
   
   const flatListRef = useRef(null);
 
@@ -77,6 +81,7 @@ export default function ConversationScreen({ route, navigation }) {
         loadBackground(),
         loadChatStyle(),
         loadUserLevel(),
+        checkPremiumStatus(),
       ]);
       
       setIsInitialized(true);
@@ -125,6 +130,23 @@ export default function ConversationScreen({ route, navigation }) {
       console.log('✅ Niveau chargé:', levelData.level, levelData.title);
     } catch (error) {
       console.error('❌ Erreur chargement niveau:', error);
+    }
+  };
+
+  const checkPremiumStatus = async () => {
+    try {
+      // Vérifier d'abord localement (admin = premium)
+      const localPremium = AuthService.isPremium();
+      setIsPremium(localPremium);
+      
+      // Puis vérifier côté serveur
+      const serverPremium = await AuthService.checkPremiumStatus();
+      setIsPremium(serverPremium);
+      console.log('✅ Status Premium:', serverPremium ? 'Oui' : 'Non');
+    } catch (error) {
+      console.error('❌ Erreur vérification premium:', error);
+      // Fallback sur le statut local
+      setIsPremium(AuthService.isPremium());
     }
   };
 
@@ -288,6 +310,29 @@ export default function ConversationScreen({ route, navigation }) {
   const generateImage = async () => {
     if (generatingImage) return;
 
+    // Vérifier le statut premium
+    if (!isPremium) {
+      Alert.alert(
+        '💎 Fonctionnalité Premium',
+        'La génération d\'images est réservée aux membres Premium.\n\nDevenez Premium pour débloquer cette fonctionnalité et bien plus encore !',
+        [
+          { text: 'Plus tard', style: 'cancel' },
+          { 
+            text: 'Devenir Premium', 
+            onPress: () => {
+              // Navigation vers l'écran Premium si disponible
+              try {
+                navigation.navigate('Premium');
+              } catch (e) {
+                Alert.alert('Premium', 'Rendez-vous dans les paramètres pour devenir Premium.');
+              }
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     setGeneratingImage(true);
     try {
       const imageUrl = await ImageGenerationService.generateSceneImage(
@@ -315,7 +360,19 @@ export default function ConversationScreen({ route, navigation }) {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
-      Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+      // Vérifier si c'est une erreur de premium
+      if (error.message?.includes('Premium') || error.message?.includes('403')) {
+        Alert.alert(
+          '💎 Premium Requis',
+          'Vous devez être membre Premium pour générer des images.',
+          [
+            { text: 'OK', style: 'cancel' },
+            { text: 'Devenir Premium', onPress: () => navigation.navigate('Premium') }
+          ]
+        );
+      } else {
+        Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+      }
     } finally {
       setGeneratingImage(false);
     }
@@ -707,14 +764,16 @@ export default function ConversationScreen({ route, navigation }) {
 
       <View style={styles.inputContainer}>
         <TouchableOpacity
-          style={styles.imageButton}
+          style={[styles.imageButton, !isPremium && styles.imageButtonLocked]}
           onPress={generateImage}
           disabled={generatingImage}
         >
           {generatingImage ? (
             <ActivityIndicator size="small" color="#6366f1" />
           ) : (
-            <Text style={styles.imageButtonText}>🎨</Text>
+            <Text style={styles.imageButtonText}>
+              {isPremium ? '🎨' : '🔒'}
+            </Text>
           )}
         </TouchableOpacity>
         
@@ -968,6 +1027,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
     marginBottom: 5,
+  },
+  imageButtonLocked: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
   },
   imageButtonText: {
     fontSize: 20,

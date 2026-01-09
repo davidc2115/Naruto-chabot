@@ -808,9 +808,9 @@ export default function SettingsScreen({ navigation, onLogout }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.5.0</Text>
+          <Text style={styles.aboutText}>Version: 3.7.0</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
-          <Text style={styles.aboutText}>216+ personnages disponibles</Text>
+          <Text style={styles.aboutText}>400+ personnages disponibles</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
           <Text style={styles.aboutText}>Synchronisation Freebox + Personnages publics</Text>
           <Text style={styles.aboutText}>Mode NSFW 100% français</Text>
