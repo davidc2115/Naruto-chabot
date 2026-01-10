@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import GroqService from '../services/GroqService';
 import TextGenerationService from '../services/TextGenerationService';
 import StorageService from '../services/StorageService';
@@ -194,6 +195,15 @@ export default function ConversationScreen({ route, navigation }) {
       console.error('❌ Erreur chargement background:', error);
     }
   };
+
+  // Recharger le fond quand l'écran reprend le focus
+  useFocusEffect(
+    useCallback(() => {
+      if (character?.id) {
+        loadBackground();
+      }
+    }, [character?.id])
+  );
 
   const loadConversation = async () => {
     try {

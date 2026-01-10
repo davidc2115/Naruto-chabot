@@ -183,11 +183,11 @@ export default function CharacterCarouselScreen({ navigation }) {
     );
   }
   
-  // Filtre par tags si tags sélectionnés
+  // Filtre par tags si tags sélectionnés (insensible à la casse)
   if (selectedTags.length > 0) {
     filteredCharacters = filteredCharacters.filter(char => {
-      const charTags = char.tags || [];
-      return selectedTags.every(tag => charTags.includes(tag));
+      const charTags = (char.tags || []).map(t => t.toLowerCase());
+      return selectedTags.every(tag => charTags.includes(tag.toLowerCase()));
     });
   }
   
@@ -228,9 +228,38 @@ export default function CharacterCarouselScreen({ navigation }) {
 
   if (!currentCharacter) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.emptyText}>Aucun personnage disponible</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyIcon}>🔍</Text>
+          <Text style={styles.emptyTitle}>Aucun personnage trouvé</Text>
+          <Text style={styles.emptySubtitle}>
+            {selectedTags.length > 0 || nameSearch.trim() 
+              ? 'Essayez de modifier vos filtres'
+              : 'Chargement en cours...'}
+          </Text>
+          
+          {(selectedTags.length > 0 || nameSearch.trim()) && (
+            <TouchableOpacity
+              style={styles.resetFiltersButton}
+              onPress={() => {
+                setSelectedTags([]);
+                setNameSearch('');
+                setTagSearch('');
+                setCurrentIndex(0);
+              }}
+            >
+              <Text style={styles.resetFiltersButtonText}>🔄 Réinitialiser les filtres</Text>
+            </TouchableOpacity>
+          )}
+          
+          <TouchableOpacity
+            style={styles.shuffleAllButton}
+            onPress={handleShuffle}
+          >
+            <Text style={styles.shuffleAllButtonText}>🔀 Mélanger tous les personnages</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -238,49 +267,42 @@ export default function CharacterCarouselScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header avec padding pour status bar */}
+      {/* Header Premium */}
       <View style={styles.headerSafe}>
-        {/* Toggle recherche nom/tags */}
-        <View style={styles.searchToggle}>
-          <TouchableOpacity 
-            style={[styles.toggleButton, searchMode === 'name' && styles.toggleButtonActive]}
-            onPress={() => setSearchMode('name')}
-          >
-            <Text style={[styles.toggleText, searchMode === 'name' && styles.toggleTextActive]}>👤 Nom</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.toggleButton, searchMode === 'tags' && styles.toggleButtonActive]}
-            onPress={() => setSearchMode('tags')}
-          >
-            <Text style={[styles.toggleText, searchMode === 'tags' && styles.toggleTextActive]}>🏷️ Tags</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Barre de recherche */}
+        {/* Barre de recherche unifiée */}
         <View style={styles.searchContainer}>
-          {searchMode === 'name' ? (
+          <View style={styles.searchInputWrapper}>
+            <Text style={styles.searchIconInline}>🔍</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="🔍 Rechercher par nom..."
+              placeholder="Nom ou tag..."
               placeholderTextColor="#64748b"
-              value={nameSearch}
+              value={nameSearch || tagSearch}
               onChangeText={(text) => {
                 setNameSearch(text);
+                setTagSearch(text);
                 setCurrentIndex(0);
               }}
             />
-          ) : (
-            <TextInput
-              style={styles.searchInput}
-              placeholder="🔍 Rechercher un tag..."
-              placeholderTextColor="#64748b"
-              value={tagSearch}
-              onChangeText={setTagSearch}
-            />
-          )}
+            {(nameSearch || tagSearch) ? (
+              <TouchableOpacity 
+                onPress={() => { setNameSearch(''); setTagSearch(''); }}
+                style={styles.clearInputButton}
+              >
+                <Text style={styles.clearInputText}>✕</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
           <TouchableOpacity style={styles.shuffleButton} onPress={handleShuffle}>
             <Text style={styles.shuffleButtonText}>🔀</Text>
           </TouchableOpacity>
+        </View>
+        
+        {/* Info résultats */}
+        <View style={styles.resultsInfoBar}>
+          <Text style={styles.resultsInfoText}>
+            💫 {filteredCharacters.length} personnage{filteredCharacters.length !== 1 ? 's' : ''}
+          </Text>
         </View>
       
         {/* Tags sélectionnés ou recherche nom active */}
@@ -310,38 +332,36 @@ export default function CharacterCarouselScreen({ navigation }) {
           </View>
         )}
       
-        {/* Filtres tags */}
-        {searchMode === 'tags' && (
-          <View style={styles.filtersContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {(showAllTags ? filteredTags : filteredTags.slice(0, 20)).map((tag) => (
-                <TouchableOpacity
-                  key={tag}
-                  style={[
-                    styles.filterTag,
-                    selectedTags.includes(tag) && styles.filterTagActive
-                  ]}
-                  onPress={() => toggleTag(tag)}
-                >
-                  <Text style={[
-                    styles.filterTagText,
-                    selectedTags.includes(tag) && styles.filterTagTextActive
-                  ]}>
-                    {tag}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              {filteredTags.length > 20 && !showAllTags && (
-                <TouchableOpacity 
-                  style={styles.moreTagsButton}
-                  onPress={() => setShowAllTags(true)}
-                >
-                  <Text style={styles.moreTagsText}>+{filteredTags.length - 20}</Text>
-                </TouchableOpacity>
-              )}
-            </ScrollView>
-          </View>
-        )}
+        {/* Tags populaires - toujours visible */}
+        <View style={styles.filtersContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {(showAllTags ? filteredTags : filteredTags.slice(0, 25)).map((tag) => (
+              <TouchableOpacity
+                key={tag}
+                style={[
+                  styles.filterTag,
+                  selectedTags.map(t => t.toLowerCase()).includes(tag.toLowerCase()) && styles.filterTagActive
+                ]}
+                onPress={() => toggleTag(tag)}
+              >
+                <Text style={[
+                  styles.filterTagText,
+                  selectedTags.map(t => t.toLowerCase()).includes(tag.toLowerCase()) && styles.filterTagTextActive
+                ]}>
+                  {tag}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            {filteredTags.length > 25 && !showAllTags && (
+              <TouchableOpacity 
+                style={styles.moreTagsButton}
+                onPress={() => setShowAllTags(true)}
+              >
+                <Text style={styles.moreTagsText}>+{filteredTags.length - 25}</Text>
+              </TouchableOpacity>
+            )}
+          </ScrollView>
+        </View>
       </View>
 
       {/* Carte personnage avec swipe */}
@@ -493,21 +513,48 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingVertical: 10,
     backgroundColor: '#1e293b',
     gap: 10,
     zIndex: 100,
     elevation: 10,
   },
+  searchInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: '#8b5cf6',
+    paddingHorizontal: 15,
+  },
+  searchIconInline: {
+    fontSize: 16,
+    marginRight: 8,
+  },
   searchInput: {
     flex: 1,
-    backgroundColor: '#334155',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingVertical: 12,
     color: '#fff',
-    fontSize: 14,
-    zIndex: 10,
+    fontSize: 15,
+  },
+  clearInputButton: {
+    padding: 5,
+  },
+  clearInputText: {
+    color: '#64748b',
+    fontSize: 16,
+  },
+  resultsInfoBar: {
+    paddingHorizontal: 15,
+    paddingVertical: 6,
+    backgroundColor: '#1e293b',
+  },
+  resultsInfoText: {
+    color: '#a78bfa',
+    fontSize: 13,
+    fontWeight: '600',
   },
   shuffleButton: {
     backgroundColor: '#8b5cf6',
@@ -752,5 +799,51 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     textAlign: 'center',
     marginTop: 100,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 30,
+  },
+  emptyIcon: {
+    fontSize: 80,
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  resetFiltersButton: {
+    backgroundColor: '#8b5cf6',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    marginBottom: 15,
+  },
+  resetFiltersButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  shuffleAllButton: {
+    backgroundColor: '#334155',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 20,
+  },
+  shuffleAllButtonText: {
+    color: '#94a3b8',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

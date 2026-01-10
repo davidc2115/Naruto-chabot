@@ -40,7 +40,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [updateInfo, setUpdateInfo] = useState(null);
 
   const DISCORD_INVITE = 'https://discord.gg/9KHCqSmz';
-  const CURRENT_VERSION = '3.7.10';
+  const CURRENT_VERSION = '3.7.11';
   const GITHUB_RELEASES_URL = 'https://api.github.com/repos/YOUR_USERNAME/roleplay-chat/releases/latest';
 
   useEffect(() => {
@@ -368,16 +368,16 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         }
       }
       
-      // Aucune source n'a fonctionné - afficher lien direct de téléchargement
+      // Aucune source n'a fonctionné - afficher lien vers les releases
       if (!foundVersion) {
         Alert.alert(
           '📥 Télécharger la dernière version',
-          `Version actuelle: ${CURRENT_VERSION}`,
+          `Version actuelle: ${CURRENT_VERSION}\n\nOuvrir la page des téléchargements ?`,
           [
             { text: 'Annuler', style: 'cancel' },
             { 
-              text: '📥 Télécharger APK', 
-              onPress: () => Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases/latest/download/roleplay-chat.apk')
+              text: '📥 Voir les APK', 
+              onPress: () => Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases/latest')
             }
           ]
         );
@@ -387,12 +387,12 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       console.error('Erreur vérification mise à jour:', error);
       Alert.alert(
         '📥 Télécharger la dernière version',
-        `Version actuelle: ${CURRENT_VERSION}`,
+        `Version actuelle: ${CURRENT_VERSION}\n\nOuvrir la page des téléchargements ?`,
         [
           { text: 'Annuler', style: 'cancel' },
           { 
-            text: '📥 Télécharger APK', 
-            onPress: () => Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases/latest/download/roleplay-chat.apk')
+            text: '📥 Voir les APK', 
+            onPress: () => Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases/latest')
           }
         ]
       );
@@ -432,11 +432,10 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         [
           { text: 'Plus tard', style: 'cancel' },
           { 
-            text: '📥 Télécharger APK', 
+            text: '📥 Télécharger', 
             onPress: () => {
-              // Utiliser le lien direct de téléchargement
-              const directUrl = downloadUrl || `https://github.com/davidc2115/Naruto-chabot/releases/latest/download/roleplay-chat.apk`;
-              Linking.openURL(directUrl);
+              // Ouvrir la page des releases GitHub
+              Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases/latest');
             }
           }
         ]
