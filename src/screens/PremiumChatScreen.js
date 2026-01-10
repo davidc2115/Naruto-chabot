@@ -147,7 +147,9 @@ export default function PremiumChatScreen({ navigation }) {
 
   const loadPremiumMembers = async () => {
     try {
-      // Essayer de récupérer les membres depuis le serveur
+      console.log('📋 Chargement des membres premium...');
+      
+      // Récupérer les membres premium depuis le serveur
       const response = await fetch(`${FREEBOX_SERVER}/api/users/premium-members`, {
         headers: {
           'Authorization': `Bearer ${currentUser?.token || ''}`,
@@ -157,18 +159,22 @@ export default function PremiumChatScreen({ navigation }) {
 
       if (response.ok) {
         const data = await response.json();
-        // Inclure les admins ET les membres premium, exclure l'utilisateur courant
+        console.log('✅ Membres reçus:', data);
+        
+        // Exclure l'utilisateur courant de la liste
         const members = (data.members || []).filter(m => 
-          m.email !== currentUser?.email && 
-          (m.is_premium || m.is_admin)
+          m.email?.toLowerCase() !== currentUser?.email?.toLowerCase()
         );
+        
+        console.log(`👥 ${members.length} autres membres premium/admin trouvés`);
         setPremiumMembers(members);
       } else {
+        console.log('❌ Erreur réponse:', response.status);
         // Fallback: récupérer tous les utilisateurs et filtrer
         await loadMembersFromAllUsers();
       }
     } catch (error) {
-      console.error('Erreur chargement membres premium:', error);
+      console.error('❌ Erreur chargement membres premium:', error);
       // Fallback en cas d'erreur
       await loadMembersFromAllUsers();
     }
@@ -176,8 +182,10 @@ export default function PremiumChatScreen({ navigation }) {
 
   const loadMembersFromAllUsers = async () => {
     try {
-      // Récupérer tous les utilisateurs depuis l'API admin
-      const response = await fetch(`${FREEBOX_SERVER}/api/users`, {
+      console.log('📋 Fallback: chargement de tous les utilisateurs...');
+      
+      // Récupérer tous les utilisateurs depuis l'API
+      const response = await fetch(`${FREEBOX_SERVER}/api/users/all`, {
         headers: {
           'Authorization': `Bearer ${currentUser?.token || ''}`,
           'X-User-Email': currentUser?.email || '',
@@ -186,26 +194,25 @@ export default function PremiumChatScreen({ navigation }) {
 
       if (response.ok) {
         const data = await response.json();
-        const allUsers = data.users || data || [];
+        const allUsers = data.users || [];
+        
+        console.log(`✅ ${allUsers.length} utilisateurs trouvés`);
         
         // Filtrer: admins + premium, exclure l'utilisateur courant
         const eligibleMembers = allUsers.filter(user => {
-          const isCurrentUser = user.email === currentUser?.email;
+          const isCurrentUser = user.email?.toLowerCase() === currentUser?.email?.toLowerCase();
           const isEligible = user.is_admin || user.is_premium;
           return !isCurrentUser && isEligible;
-        }).map(user => ({
-          id: user.id || user.email,
-          email: user.email,
-          username: user.profile?.username || user.username || user.email?.split('@')[0] || 'Membre',
-          is_admin: user.is_admin,
-          is_premium: user.is_premium,
-          online: false, // On ne peut pas savoir en mode fallback
-        }));
+        });
 
+        console.log(`👥 ${eligibleMembers.length} membres éligibles`);
         setPremiumMembers(eligibleMembers);
+      } else {
+        console.log('❌ Fallback échoué:', response.status);
+        setPremiumMembers([]);
       }
     } catch (error) {
-      console.error('Erreur fallback membres:', error);
+      console.error('❌ Erreur fallback membres:', error);
       setPremiumMembers([]);
     }
   };

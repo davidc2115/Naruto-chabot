@@ -71,9 +71,13 @@ class SyncService {
    */
   async checkServerHealth() {
     try {
-      const response = await axios.get(`${this.baseUrl}/api/health`, {
-        timeout: 5000
-      });
+      // Essayer d'abord /health puis /api/health
+      let response;
+      try {
+        response = await axios.get(`${this.baseUrl}/health`, { timeout: 5000 });
+      } catch {
+        response = await axios.get(`${this.baseUrl}/api/health`, { timeout: 5000 });
+      }
       return response.data.status === 'ok';
     } catch (error) {
       console.error('❌ Serveur inaccessible:', error.message);
@@ -341,15 +345,22 @@ class SyncService {
     try {
       if (!this.userId) await this.init();
 
-      const response = await axios.get(
-        `${this.baseUrl}/api/sync/status`,
-        { headers: this.getHeaders(), timeout: 5000 }
-      );
-
+      // Vérifier d'abord si le serveur est en ligne
+      const serverOnline = await this.checkServerHealth();
+      
+      if (serverOnline) {
+        return {
+          serverOnline: true,
+          synced: this.lastSync !== null,
+          lastSync: this.lastSync,
+          userId: this.userId
+        };
+      }
+      
       return {
-        serverOnline: true,
-        synced: response.data.synced,
-        lastSync: response.data.lastSync || this.lastSync,
+        serverOnline: false,
+        synced: false,
+        lastSync: this.lastSync,
         userId: this.userId
       };
     } catch (error) {

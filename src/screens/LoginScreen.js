@@ -256,23 +256,31 @@ export default function LoginScreen({ navigation, onLoginSuccess, forceLogin = f
           <View style={styles.separatorLine} />
         </View>
 
-        {/* OAuth */}
-        <View style={styles.oauthButtons}>
-          <TouchableOpacity
-            style={[styles.oauthButton, styles.discordButton]}
-            onPress={handleDiscordLogin}
-            disabled={loading}
-          >
-            <Text style={styles.oauthButtonText}>🎮 Discord</Text>
-          </TouchableOpacity>
+        {/* OAuth - Désactivé pour le moment */}
+        <View style={styles.oauthSection}>
+          <Text style={styles.oauthNote}>
+            ℹ️ Connexion rapide (bientôt disponible)
+          </Text>
+          <View style={styles.oauthButtons}>
+            <TouchableOpacity
+              style={[styles.oauthButton, styles.discordButton, styles.oauthButtonDisabled]}
+              onPress={handleDiscordLogin}
+              disabled={loading}
+            >
+              <Text style={styles.oauthButtonText}>🎮 Discord</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.oauthButton, styles.googleButton]}
-            onPress={handleGoogleLogin}
-            disabled={loading}
-          >
-            <Text style={styles.oauthButtonText}>🔵 Google</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.oauthButton, styles.googleButton, styles.oauthButtonDisabled]}
+              onPress={handleGoogleLogin}
+              disabled={loading}
+            >
+              <Text style={styles.oauthButtonText}>🔵 Google</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.oauthSubNote}>
+            💡 Utilisez email/mot de passe ci-dessus
+          </Text>
         </View>
 
         {/* Passer - seulement si pas forceLogin */}
@@ -390,15 +398,33 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     fontSize: 14,
   },
+  oauthSection: {
+    alignItems: 'center',
+  },
+  oauthNote: {
+    color: '#6b7280',
+    fontSize: 12,
+    marginBottom: 10,
+  },
+  oauthSubNote: {
+    color: '#9ca3af',
+    fontSize: 11,
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
   oauthButtons: {
     flexDirection: 'row',
     gap: 12,
+    width: '100%',
   },
   oauthButton: {
     flex: 1,
     padding: 14,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  oauthButtonDisabled: {
+    opacity: 0.6,
   },
   discordButton: {
     backgroundColor: '#5865F2',
