@@ -34,8 +34,14 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [sdDownloading, setSdDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
+  
+  // État pour les mises à jour
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState(null);
 
   const DISCORD_INVITE = 'https://discord.gg/9KHCqSmz';
+  const CURRENT_VERSION = '3.7.7';
+  const GITHUB_RELEASES_URL = 'https://api.github.com/repos/YOUR_USERNAME/roleplay-chat/releases/latest';
 
   useEffect(() => {
     loadUserData();
@@ -297,6 +303,106 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
 
   const currentUser = AuthService.getCurrentUser();
 
+  // Fonction pour vérifier les mises à jour
+  const checkForUpdates = async () => {
+    setCheckingUpdate(true);
+    try {
+      // Essayer d'abord le serveur Freebox
+      const serverUrl = 'http://88.174.155.230:33437/app/version';
+      
+      try {
+        const serverResponse = await fetch(serverUrl, { timeout: 5000 });
+        if (serverResponse.ok) {
+          const data = await serverResponse.json();
+          const latestVersion = data.version || data.latest_version;
+          
+          if (latestVersion) {
+            compareVersions(latestVersion, data.download_url, data.changelog);
+            return;
+          }
+        }
+      } catch (serverError) {
+        console.log('Serveur non disponible, vérification GitHub...');
+      }
+      
+      // Fallback: vérifier sur GitHub
+      try {
+        const githubResponse = await fetch(
+          'https://api.github.com/repos/douvdouv21/roleplay-chat/releases/latest',
+          { headers: { 'Accept': 'application/vnd.github.v3+json' } }
+        );
+        
+        if (githubResponse.ok) {
+          const release = await githubResponse.json();
+          const latestVersion = release.tag_name?.replace('v', '') || release.name?.replace('v', '');
+          const downloadUrl = release.assets?.[0]?.browser_download_url || release.html_url;
+          const changelog = release.body;
+          
+          compareVersions(latestVersion, downloadUrl, changelog);
+          return;
+        }
+      } catch (githubError) {
+        console.log('GitHub non disponible');
+      }
+      
+      // Aucune source disponible
+      Alert.alert(
+        '⚠️ Vérification impossible',
+        'Impossible de vérifier les mises à jour. Vérifiez votre connexion internet.'
+      );
+      
+    } catch (error) {
+      console.error('Erreur vérification mise à jour:', error);
+      Alert.alert('Erreur', 'Impossible de vérifier les mises à jour.');
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  const compareVersions = (latestVersion, downloadUrl, changelog) => {
+    const currentParts = CURRENT_VERSION.split('.').map(Number);
+    const latestParts = latestVersion.split('.').map(Number);
+    
+    let needsUpdate = false;
+    for (let i = 0; i < Math.max(currentParts.length, latestParts.length); i++) {
+      const current = currentParts[i] || 0;
+      const latest = latestParts[i] || 0;
+      
+      if (latest > current) {
+        needsUpdate = true;
+        break;
+      } else if (current > latest) {
+        break;
+      }
+    }
+    
+    setUpdateInfo({
+      latestVersion,
+      needsUpdate,
+      downloadUrl,
+      changelog
+    });
+    
+    if (needsUpdate) {
+      Alert.alert(
+        '🆕 Mise à jour disponible !',
+        `Version ${latestVersion} disponible (actuelle: ${CURRENT_VERSION}).\n\n${changelog ? 'Nouveautés:\n' + changelog.substring(0, 200) + '...' : ''}`,
+        [
+          { text: 'Plus tard', style: 'cancel' },
+          { 
+            text: 'Télécharger', 
+            onPress: () => downloadUrl && Linking.openURL(downloadUrl)
+          }
+        ]
+      );
+    } else {
+      Alert.alert(
+        '✅ Application à jour',
+        `Vous utilisez la dernière version (${CURRENT_VERSION}).`
+      );
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -359,6 +465,25 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
             <Text style={styles.premiumArrow}>→</Text>
           </View>
         </TouchableOpacity>
+        
+        {/* Chat Premium - Réservé aux membres premium */}
+        {isPremium && (
+          <TouchableOpacity
+            style={styles.premiumChatButton}
+            onPress={() => navigation.navigate('PremiumChat')}
+          >
+            <View style={styles.premiumContent}>
+              <Text style={styles.premiumIcon}>💬</Text>
+              <View style={styles.premiumInfo}>
+                <Text style={styles.premiumChatTitle}>Chat Communautaire</Text>
+                <Text style={styles.premiumChatDesc}>
+                  Discutez avec les autres membres Premium
+                </Text>
+              </View>
+              <Text style={styles.premiumArrow}>→</Text>
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* GÉNÉRATION D'IMAGES */}
@@ -565,10 +690,51 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.7.6</Text>
+          <Text style={styles.aboutText}>Version: {CURRENT_VERSION}</Text>
           <Text style={styles.aboutText}>Roleplay Chat - Application de conversation</Text>
           <Text style={styles.aboutText}>400+ personnages disponibles</Text>
         </View>
+        
+        {/* Vérification des mises à jour */}
+        <TouchableOpacity
+          style={[styles.updateButton, checkingUpdate && styles.updateButtonDisabled]}
+          onPress={checkForUpdates}
+          disabled={checkingUpdate}
+        >
+          {checkingUpdate ? (
+            <View style={styles.updateButtonContent}>
+              <ActivityIndicator color="#fff" size="small" />
+              <Text style={styles.updateButtonText}>Vérification...</Text>
+            </View>
+          ) : (
+            <View style={styles.updateButtonContent}>
+              <Text style={styles.updateButtonIcon}>🔄</Text>
+              <Text style={styles.updateButtonText}>Vérifier les mises à jour</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        
+        {updateInfo && (
+          <View style={[
+            styles.updateInfoBox,
+            updateInfo.needsUpdate ? styles.updateInfoBoxNew : styles.updateInfoBoxCurrent
+          ]}>
+            <Text style={styles.updateInfoText}>
+              {updateInfo.needsUpdate 
+                ? `🆕 Version ${updateInfo.latestVersion} disponible !`
+                : `✅ Vous êtes à jour (${CURRENT_VERSION})`
+              }
+            </Text>
+            {updateInfo.needsUpdate && updateInfo.downloadUrl && (
+              <TouchableOpacity
+                style={styles.downloadUpdateButton}
+                onPress={() => Linking.openURL(updateInfo.downloadUrl)}
+              >
+                <Text style={styles.downloadUpdateButtonText}>📥 Télécharger</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
 
       <View style={{ height: 50 }} />
@@ -690,6 +856,24 @@ const styles = StyleSheet.create({
     color: '#92400e',
     fontWeight: 'bold',
   },
+  premiumChatButton: {
+    backgroundColor: '#dbeafe',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#93c5fd',
+    marginTop: 10,
+  },
+  premiumChatTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e40af',
+  },
+  premiumChatDesc: {
+    fontSize: 13,
+    color: '#3b82f6',
+    marginTop: 2,
+  },
   // Settings Row
   settingRow: {
     flexDirection: 'row',
@@ -787,6 +971,63 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginBottom: 5,
+  },
+  // Update button styles
+  updateButton: {
+    backgroundColor: '#6366f1',
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  updateButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  updateButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  updateButtonIcon: {
+    fontSize: 18,
+  },
+  updateButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  updateInfoBox: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  updateInfoBoxNew: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+  },
+  updateInfoBoxCurrent: {
+    backgroundColor: '#d1fae5',
+    borderWidth: 1,
+    borderColor: '#6ee7b7',
+  },
+  updateInfoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  downloadUpdateButton: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  downloadUpdateButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   // Section subtitle
   sectionSubtitle: {

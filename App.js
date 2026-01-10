@@ -21,6 +21,7 @@ import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
 import AdminPanelScreen from './src/screens/AdminPanelScreen';
 import PayPalConfigScreen from './src/screens/PayPalConfigScreen';
 import PremiumScreen from './src/screens/PremiumScreen';
+import PremiumChatScreen from './src/screens/PremiumChatScreen';
 import AuthService from './src/services/AuthService';
 import SyncService from './src/services/SyncService';
 
@@ -298,6 +299,15 @@ export default function App() {
           component={PremiumScreen}
           options={{ 
             title: 'Premium',
+            headerStyle: { backgroundColor: '#6366f1' },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen 
+          name="PremiumChat" 
+          component={PremiumChatScreen}
+          options={{ 
+            title: 'Chat Premium',
             headerStyle: { backgroundColor: '#6366f1' },
             headerTintColor: '#fff',
           }}

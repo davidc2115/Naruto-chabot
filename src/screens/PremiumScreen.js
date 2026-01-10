@@ -137,7 +137,29 @@ export default function PremiumScreen({ navigation }) {
             </View>
             <Text style={styles.checkmark}>✓</Text>
           </View>
+
+          <View style={styles.benefitItem}>
+            <Text style={styles.benefitIcon}>💬</Text>
+            <View style={styles.benefitContent}>
+              <Text style={styles.benefitTitle}>Chat Communautaire</Text>
+              <Text style={styles.benefitDesc}>Discutez avec les membres Premium</Text>
+            </View>
+            <Text style={styles.checkmark}>✓</Text>
+          </View>
         </View>
+
+        {/* Bouton Chat Premium */}
+        <TouchableOpacity
+          style={styles.premiumChatButton}
+          onPress={() => navigation.navigate('PremiumChat')}
+        >
+          <Text style={styles.premiumChatButtonIcon}>💬</Text>
+          <View style={styles.premiumChatButtonContent}>
+            <Text style={styles.premiumChatButtonTitle}>Accéder au Chat Premium</Text>
+            <Text style={styles.premiumChatButtonDesc}>Discutez en public ou en privé</Text>
+          </View>
+          <Text style={styles.premiumChatButtonArrow}>→</Text>
+        </TouchableOpacity>
 
         <Text style={styles.thankYou}>
           Merci pour votre soutien ! 💜
@@ -192,6 +214,14 @@ export default function PremiumScreen({ navigation }) {
           <View style={styles.benefitContent}>
             <Text style={styles.benefitTitle}>Support prioritaire</Text>
             <Text style={styles.benefitDesc}>Accès Discord VIP</Text>
+          </View>
+        </View>
+
+        <View style={styles.benefitItem}>
+          <Text style={styles.benefitIcon}>💬</Text>
+          <View style={styles.benefitContent}>
+            <Text style={styles.benefitTitle}>Chat Communautaire</Text>
+            <Text style={styles.benefitDesc}>Échangez avec les membres Premium</Text>
           </View>
         </View>
       </View>
@@ -389,5 +419,41 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 20,
     marginBottom: 30,
+  },
+  premiumChatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6366f1',
+    marginHorizontal: 20,
+    marginTop: 20,
+    padding: 15,
+    borderRadius: 12,
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  premiumChatButtonIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  premiumChatButtonContent: {
+    flex: 1,
+  },
+  premiumChatButtonTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  premiumChatButtonDesc: {
+    fontSize: 13,
+    color: '#e0e7ff',
+    marginTop: 2,
+  },
+  premiumChatButtonArrow: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

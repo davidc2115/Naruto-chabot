@@ -463,6 +463,8 @@ const styles = StyleSheet.create({
   },
   headerSafe: {
     backgroundColor: '#1e293b',
+    zIndex: 100,
+    elevation: 10,
   },
   searchToggle: {
     flexDirection: 'row',
@@ -494,6 +496,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: '#1e293b',
     gap: 10,
+    zIndex: 100,
+    elevation: 10,
   },
   searchInput: {
     flex: 1,
@@ -589,6 +593,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 10,
+    zIndex: 1,
+    elevation: 1,
   },
   cardWrapper: {
     width: SCREEN_WIDTH - 20,
