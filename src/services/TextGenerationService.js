@@ -215,9 +215,38 @@ class TextGenerationService {
       }
     }
     
-    // Apparence
-    if (character.appearance) {
-      desc += `. Apparence: ${character.appearance}`;
+    // Apparence (supporte plusieurs champs)
+    const appearance = character.physicalDescription || character.appearance || '';
+    if (appearance) {
+      desc += `. Apparence physique: ${appearance}`;
+    }
+    
+    // Cheveux
+    if (character.hairColor || character.hairLength) {
+      const hair = [character.hairColor, character.hairLength].filter(Boolean).join(', ');
+      if (hair && !appearance.toLowerCase().includes('cheveux')) {
+        desc += `. Cheveux: ${hair}`;
+      }
+    }
+    
+    // Yeux
+    if (character.eyeColor && !appearance.toLowerCase().includes('yeux')) {
+      desc += `. Yeux: ${character.eyeColor}`;
+    }
+    
+    // Taille
+    if (character.height && !appearance.toLowerCase().includes('cm')) {
+      desc += `. Taille: ${character.height}`;
+    }
+    
+    // Type de corps
+    if (character.bodyType && !appearance.toLowerCase().includes(character.bodyType.toLowerCase())) {
+      desc += `. Morphologie: ${character.bodyType}`;
+    }
+    
+    // Tenue
+    if (character.outfit) {
+      desc += `. Tenue: ${character.outfit}`;
     }
     
     return desc;
