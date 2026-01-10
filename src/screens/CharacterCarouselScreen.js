@@ -666,12 +666,12 @@ const styles = StyleSheet.create({
   categoryFiltersContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    flexWrap: 'wrap',
     paddingVertical: 8,
     paddingHorizontal: 10,
     backgroundColor: '#0f172a',
     borderBottomWidth: 1,
     borderBottomColor: '#1e293b',
-    gap: 8,
   },
   categoryTag: {
     paddingHorizontal: 14,
@@ -680,6 +680,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1e293b',
     borderWidth: 2,
     borderColor: '#475569',
+    marginHorizontal: 4,
+    marginVertical: 2,
   },
   categoryTagActive: {
     backgroundColor: '#7c3aed',
