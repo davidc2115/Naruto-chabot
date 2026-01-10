@@ -607,25 +607,43 @@ export default function ConversationScreen({ route, navigation }) {
           <View style={styles.messageContent}>
             {formattedParts.map((part, index) => {
               if (part.type === 'action') {
-                // Actions en ROUGE avec guillemets
-                return (
-                  <Text key={index} style={[styles.actionText, { color: '#ef4444' }]}>
-                    "{part.text}"
-                  </Text>
-                );
+                if (isUser) {
+                  // UTILISATEUR: Actions avec *astérisques* en italique
+                  return (
+                    <Text key={index} style={[styles.actionText, { color: style.userText || '#fff' }]}>
+                      *{part.text}*
+                    </Text>
+                  );
+                } else {
+                  // PERSONNAGE: Actions en ROUGE sans décoration
+                  return (
+                    <Text key={index} style={[styles.actionText, { color: '#ef4444' }]}>
+                      {part.text}
+                    </Text>
+                  );
+                }
               } else if (part.type === 'thought') {
-                // Pensées en BLEU avec parenthèses
-                return (
-                  <Text key={index} style={[styles.thoughtText, { color: '#3b82f6' }]}>
-                    ({part.text})
-                  </Text>
-                );
+                if (isUser) {
+                  // UTILISATEUR: Pensées avec (parenthèses)
+                  return (
+                    <Text key={index} style={[styles.thoughtText, { color: style.userText || '#fff' }]}>
+                      ({part.text})
+                    </Text>
+                  );
+                } else {
+                  // PERSONNAGE: Pensées en BLEU sans parenthèses
+                  return (
+                    <Text key={index} style={[styles.thoughtText, { color: '#3b82f6' }]}>
+                      {part.text}
+                    </Text>
+                  );
+                }
               } else if (part.type === 'dialogue') {
-                // Paroles en BLANC sans décoration
+                // Paroles sans décoration (blanc pour tous)
                 return (
                   <Text key={index} style={[
                     styles.dialogueText, 
-                    { color: isUser ? (style.userText || '#fff') : '#ffffff' }
+                    { color: isUser ? (style.userText || '#fff') : '#1f2937' }
                   ]}>
                     {part.text}
                   </Text>
