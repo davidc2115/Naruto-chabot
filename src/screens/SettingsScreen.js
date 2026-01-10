@@ -434,6 +434,19 @@ export default function SettingsScreen({ navigation, onLogout }) {
             </View>
           )}
         </TouchableOpacity>
+        
+        {/* Chat Premium pour Admin */}
+        <TouchableOpacity
+          style={styles.premiumChatButton}
+          onPress={() => navigation.navigate('PremiumChat')}
+        >
+          <Text style={styles.premiumChatIcon}>💬</Text>
+          <View style={styles.premiumChatContent}>
+            <Text style={styles.premiumChatTitle}>Chat Communautaire</Text>
+            <Text style={styles.premiumChatDesc}>Discuter avec les membres Premium</Text>
+          </View>
+          <Text style={styles.premiumChatArrow}>→</Text>
+        </TouchableOpacity>
       </View>
 
       {/* CLÉS API GROQ - Admin seulement */}
@@ -869,7 +882,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.7.7</Text>
+          <Text style={styles.aboutText}>Version: 3.7.8</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>400+ personnages disponibles</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
@@ -1340,6 +1353,37 @@ const styles = StyleSheet.create({
   profileSubtext: {
     fontSize: 13,
     color: '#6b7280',
+  },
+  // Styles pour le chat premium
+  premiumChatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6366f1',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 15,
+  },
+  premiumChatIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  premiumChatContent: {
+    flex: 1,
+  },
+  premiumChatTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  premiumChatDesc: {
+    fontSize: 13,
+    color: '#e0e7ff',
+    marginTop: 2,
+  },
+  premiumChatArrow: {
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: 'bold',
   },
   // Styles pour les limites Groq
   groqLimitsBox: {

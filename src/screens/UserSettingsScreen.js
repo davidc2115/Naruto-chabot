@@ -40,7 +40,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [updateInfo, setUpdateInfo] = useState(null);
 
   const DISCORD_INVITE = 'https://discord.gg/9KHCqSmz';
-  const CURRENT_VERSION = '3.7.7';
+  const CURRENT_VERSION = '3.7.8';
   const GITHUB_RELEASES_URL = 'https://api.github.com/repos/YOUR_USERNAME/roleplay-chat/releases/latest';
 
   useEffect(() => {
@@ -306,31 +306,23 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   // Fonction pour vérifier les mises à jour
   const checkForUpdates = async () => {
     setCheckingUpdate(true);
+    let foundVersion = false;
+    
     try {
-      // Essayer d'abord le serveur Freebox
-      const serverUrl = 'http://88.174.155.230:33437/app/version';
-      
+      // Méthode 1: Vérifier sur GitHub (plus fiable)
       try {
-        const serverResponse = await fetch(serverUrl, { timeout: 5000 });
-        if (serverResponse.ok) {
-          const data = await serverResponse.json();
-          const latestVersion = data.version || data.latest_version;
-          
-          if (latestVersion) {
-            compareVersions(latestVersion, data.download_url, data.changelog);
-            return;
-          }
-        }
-      } catch (serverError) {
-        console.log('Serveur non disponible, vérification GitHub...');
-      }
-      
-      // Fallback: vérifier sur GitHub
-      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
         const githubResponse = await fetch(
-          'https://api.github.com/repos/douvdouv21/roleplay-chat/releases/latest',
-          { headers: { 'Accept': 'application/vnd.github.v3+json' } }
+          'https://api.github.com/repos/davidc2115/Naruto-chabot/releases/latest',
+          { 
+            headers: { 'Accept': 'application/vnd.github.v3+json' },
+            signal: controller.signal
+          }
         );
+        
+        clearTimeout(timeoutId);
         
         if (githubResponse.ok) {
           const release = await githubResponse.json();
@@ -338,22 +330,72 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
           const downloadUrl = release.assets?.[0]?.browser_download_url || release.html_url;
           const changelog = release.body;
           
-          compareVersions(latestVersion, downloadUrl, changelog);
-          return;
+          if (latestVersion) {
+            compareVersions(latestVersion, downloadUrl, changelog);
+            foundVersion = true;
+            return;
+          }
         }
       } catch (githubError) {
-        console.log('GitHub non disponible');
+        console.log('GitHub non disponible:', githubError.message);
       }
       
-      // Aucune source disponible
-      Alert.alert(
-        '⚠️ Vérification impossible',
-        'Impossible de vérifier les mises à jour. Vérifiez votre connexion internet.'
-      );
+      // Méthode 2: Essayer le serveur Freebox comme fallback
+      if (!foundVersion) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          const serverResponse = await fetch(
+            'http://88.174.155.230:33437/api/app/version',
+            { signal: controller.signal }
+          );
+          
+          clearTimeout(timeoutId);
+          
+          if (serverResponse.ok) {
+            const data = await serverResponse.json();
+            const latestVersion = data.version || data.latest_version;
+            
+            if (latestVersion) {
+              compareVersions(latestVersion, data.download_url, data.changelog);
+              foundVersion = true;
+              return;
+            }
+          }
+        } catch (serverError) {
+          console.log('Serveur Freebox non disponible:', serverError.message);
+        }
+      }
+      
+      // Aucune source n'a fonctionné - afficher message avec version actuelle
+      if (!foundVersion) {
+        Alert.alert(
+          '✅ Version actuelle',
+          `Vous utilisez la version ${CURRENT_VERSION}.\n\nLa vérification automatique n'est pas disponible pour le moment. Consultez GitHub pour les dernières mises à jour.`,
+          [
+            { text: 'OK' },
+            { 
+              text: 'Voir GitHub', 
+              onPress: () => Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases')
+            }
+          ]
+        );
+      }
       
     } catch (error) {
       console.error('Erreur vérification mise à jour:', error);
-      Alert.alert('Erreur', 'Impossible de vérifier les mises à jour.');
+      Alert.alert(
+        '✅ Version actuelle',
+        `Version installée: ${CURRENT_VERSION}\n\nConsultez GitHub pour vérifier les mises à jour.`,
+        [
+          { text: 'OK' },
+          { 
+            text: 'Voir GitHub', 
+            onPress: () => Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases')
+          }
+        ]
+      );
     } finally {
       setCheckingUpdate(false);
     }

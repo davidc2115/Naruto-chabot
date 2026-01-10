@@ -147,7 +147,8 @@ export default function PremiumChatScreen({ navigation }) {
 
   const loadPremiumMembers = async () => {
     try {
-      const response = await fetch(`${FREEBOX_SERVER}/premium-chat/members`, {
+      // Essayer de récupérer les membres depuis le serveur
+      const response = await fetch(`${FREEBOX_SERVER}/api/users/premium-members`, {
         headers: {
           'Authorization': `Bearer ${currentUser?.token || ''}`,
           'X-User-Email': currentUser?.email || '',
@@ -156,12 +157,56 @@ export default function PremiumChatScreen({ navigation }) {
 
       if (response.ok) {
         const data = await response.json();
-        // Exclure l'utilisateur courant de la liste
-        const members = (data.members || []).filter(m => m.email !== currentUser?.email);
+        // Inclure les admins ET les membres premium, exclure l'utilisateur courant
+        const members = (data.members || []).filter(m => 
+          m.email !== currentUser?.email && 
+          (m.is_premium || m.is_admin)
+        );
         setPremiumMembers(members);
+      } else {
+        // Fallback: récupérer tous les utilisateurs et filtrer
+        await loadMembersFromAllUsers();
       }
     } catch (error) {
       console.error('Erreur chargement membres premium:', error);
+      // Fallback en cas d'erreur
+      await loadMembersFromAllUsers();
+    }
+  };
+
+  const loadMembersFromAllUsers = async () => {
+    try {
+      // Récupérer tous les utilisateurs depuis l'API admin
+      const response = await fetch(`${FREEBOX_SERVER}/api/users`, {
+        headers: {
+          'Authorization': `Bearer ${currentUser?.token || ''}`,
+          'X-User-Email': currentUser?.email || '',
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const allUsers = data.users || data || [];
+        
+        // Filtrer: admins + premium, exclure l'utilisateur courant
+        const eligibleMembers = allUsers.filter(user => {
+          const isCurrentUser = user.email === currentUser?.email;
+          const isEligible = user.is_admin || user.is_premium;
+          return !isCurrentUser && isEligible;
+        }).map(user => ({
+          id: user.id || user.email,
+          email: user.email,
+          username: user.profile?.username || user.username || user.email?.split('@')[0] || 'Membre',
+          is_admin: user.is_admin,
+          is_premium: user.is_premium,
+          online: false, // On ne peut pas savoir en mode fallback
+        }));
+
+        setPremiumMembers(eligibleMembers);
+      }
+    } catch (error) {
+      console.error('Erreur fallback membres:', error);
+      setPremiumMembers([]);
     }
   };
 
@@ -292,13 +337,17 @@ export default function PremiumChatScreen({ navigation }) {
       style={styles.memberItem}
       onPress={() => selectMember(item)}
     >
-      <View style={styles.memberAvatar}>
+      <View style={[styles.memberAvatar, item.is_admin && styles.memberAvatarAdmin]}>
         <Text style={styles.memberAvatarText}>
           {item.username?.charAt(0)?.toUpperCase() || '?'}
         </Text>
       </View>
       <View style={styles.memberInfo}>
-        <Text style={styles.memberName}>{item.username || 'Membre Premium'}</Text>
+        <View style={styles.memberNameRow}>
+          <Text style={styles.memberName}>{item.username || 'Membre Premium'}</Text>
+          {item.is_admin && <Text style={styles.adminBadge}>👑 Admin</Text>}
+          {!item.is_admin && item.is_premium && <Text style={styles.premiumBadge}>💎</Text>}
+        </View>
         <Text style={styles.memberStatus}>
           {item.online ? '🟢 En ligne' : '⚪ Hors ligne'}
         </Text>
@@ -724,6 +773,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  memberAvatarAdmin: {
+    backgroundColor: '#f59e0b',
+    borderWidth: 2,
+    borderColor: '#fcd34d',
+  },
   memberAvatarText: {
     color: '#fff',
     fontSize: 18,
@@ -733,10 +787,23 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
   },
+  memberNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   memberName: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  adminBadge: {
+    fontSize: 11,
+    color: '#fcd34d',
+    fontWeight: '600',
+  },
+  premiumBadge: {
+    fontSize: 14,
   },
   memberStatus: {
     color: '#94a3b8',

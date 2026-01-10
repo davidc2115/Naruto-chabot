@@ -72,20 +72,43 @@ export default function LoginScreen({ navigation, onLoginSuccess, forceLogin = f
   };
 
   const handleDiscordLogin = async () => {
+    // Vérifier d'abord si le serveur est disponible
+    if (!serverOnline) {
+      Alert.alert(
+        '🔴 Serveur hors ligne',
+        'Le serveur est actuellement hors ligne. Veuillez réessayer plus tard ou utiliser la connexion par email.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
     setLoading(true);
     try {
       const result = await AuthService.loginWithDiscord();
-      if (!result.success && !result.pending) {
+      
+      if (result.success && result.pending) {
+        // Redirection en cours vers Discord
         Alert.alert(
-          '🎮 Discord non disponible',
-          'La connexion via Discord n\'est pas encore configurée.\n\nVeuillez utiliser la connexion par email/mot de passe.',
+          '🎮 Redirection Discord',
+          'Vous allez être redirigé vers Discord pour vous connecter.',
+          [{ text: 'OK' }]
+        );
+      } else if (result.success && result.user) {
+        // Connexion réussie
+        if (onLoginSuccess) {
+          onLoginSuccess(result.user);
+        }
+      } else {
+        Alert.alert(
+          '🎮 Discord',
+          'La connexion Discord nécessite une configuration serveur.\n\n💡 Utilisez la connexion par email/mot de passe qui fonctionne parfaitement !',
           [{ text: 'Compris' }]
         );
       }
     } catch (error) {
       Alert.alert(
-        '🎮 Discord non disponible',
-        'Veuillez utiliser la connexion par email/mot de passe.',
+        '🎮 Discord',
+        'La connexion Discord n\'est pas disponible actuellement.\n\n💡 Utilisez plutôt la connexion par email.',
         [{ text: 'Compris' }]
       );
     } finally {
@@ -94,20 +117,43 @@ export default function LoginScreen({ navigation, onLoginSuccess, forceLogin = f
   };
 
   const handleGoogleLogin = async () => {
+    // Vérifier d'abord si le serveur est disponible
+    if (!serverOnline) {
+      Alert.alert(
+        '🔴 Serveur hors ligne',
+        'Le serveur est actuellement hors ligne. Veuillez réessayer plus tard ou utiliser la connexion par email.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
     setLoading(true);
     try {
       const result = await AuthService.loginWithGoogle();
-      if (!result.success && !result.pending) {
+      
+      if (result.success && result.pending) {
+        // Redirection en cours vers Google
         Alert.alert(
-          '🔵 Google non disponible',
-          'La connexion via Google n\'est pas encore configurée.\n\nVeuillez utiliser la connexion par email/mot de passe.',
+          '🔵 Redirection Google',
+          'Vous allez être redirigé vers Google pour vous connecter.',
+          [{ text: 'OK' }]
+        );
+      } else if (result.success && result.user) {
+        // Connexion réussie
+        if (onLoginSuccess) {
+          onLoginSuccess(result.user);
+        }
+      } else {
+        Alert.alert(
+          '🔵 Google',
+          'La connexion Google nécessite une configuration serveur.\n\n💡 Utilisez la connexion par email/mot de passe qui fonctionne parfaitement !',
           [{ text: 'Compris' }]
         );
       }
     } catch (error) {
       Alert.alert(
-        '🔵 Google non disponible',
-        'Veuillez utiliser la connexion par email/mot de passe.',
+        '🔵 Google',
+        'La connexion Google n\'est pas disponible actuellement.\n\n💡 Utilisez plutôt la connexion par email.',
         [{ text: 'Compris' }]
       );
     } finally {
