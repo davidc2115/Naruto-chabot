@@ -691,7 +691,11 @@ FORMAT OBLIGATOIRE:
       throw new Error('Aucune clé API Groq configurée. Ajoutez des clés dans les paramètres.');
     }
 
-    const apiKey = this.getCurrentKey('groq');
+    // Reset le compteur de clés au début de chaque requête
+    this.keysTriedThisRequest = 0;
+    
+    // apiKey est maintenant une variable let pour pouvoir être mise à jour lors de la rotation
+    let apiKey = this.getCurrentKey('groq');
     const fullMessages = [];
     const isNSFW = userProfile?.nsfwMode && userProfile?.isAdult;
 
@@ -731,6 +735,14 @@ FORMAT OBLIGATOIRE:
     
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
+        // Vérifier que nous avons une clé valide
+        if (!apiKey) {
+          apiKey = this.getCurrentKey('groq');
+          if (!apiKey) {
+            throw new Error('Aucune clé API Groq disponible');
+          }
+        }
+        
         console.log(`📡 [Groq] Tentative ${attempt}/${retries} avec ${model}`);
         
         const response = await axios.post(
@@ -806,12 +818,14 @@ FORMAT OBLIGATOIRE:
           this.keysTriedThisRequest = keysTriedInThisAttempt;
           
           if (keysTriedInThisAttempt < totalKeys) {
-            // Essayer la prochaine clé
-            const newKey = this.rotateKey('groq');
+            // Essayer la prochaine clé - METTRE À JOUR apiKey
+            apiKey = this.rotateKey('groq');
             console.log(`🔑 Tentative avec une autre clé (${keysTriedInThisAttempt + 1}/${totalKeys})`);
             // Attendre un peu avant de réessayer
             await new Promise(resolve => setTimeout(resolve, 500));
-            continue; // Réessayer immédiatement avec la nouvelle clé (sans décrémenter attempt)
+            // Décrémenter attempt pour ne pas compter cette rotation comme une tentative
+            attempt--;
+            continue; // Réessayer avec la nouvelle clé
           } else {
             // Toutes les clés ont été essayées
             this.keysTriedThisRequest = 0; // Reset pour la prochaine requête
