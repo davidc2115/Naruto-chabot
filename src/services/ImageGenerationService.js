@@ -109,9 +109,16 @@ class ImageGenerationService {
 
   /**
    * Construit une description ultra-détaillée des caractéristiques physiques
+   * Prend en compte TOUS les champs du personnage
    */
   buildDetailedPhysicalDescription(character, isRealistic = false) {
     let description = '';
+    
+    // === UTILISER physicalDescription EN PRIORITÉ si disponible ===
+    if (character.physicalDescription) {
+      description += character.physicalDescription.replace(/\n/g, ', ').trim();
+      description += ', ';
+    }
     
     // === GENRE ET BASE ===
     if (character.gender === 'female') {
@@ -127,26 +134,34 @@ class ImageGenerationService {
         description += 'handsome anime man, male character, anime gentleman';
       }
     } else {
-      description += 'beautiful person, androgynous';
+      description += 'beautiful person, androgynous, non-binary appearance';
     }
     
     // === ÂGE PRÉCIS ===
-    description += `, ${character.age} years old`;
-    if (character.age >= 35 && character.age < 45) {
+    const age = parseInt(character.age) || 25;
+    description += `, ${age} years old`;
+    if (age >= 35 && age < 45) {
       description += ', mature adult, experienced, confident';
-    } else if (character.age >= 45) {
+    } else if (age >= 45 && age < 55) {
       description += ', mature, distinguished, elegant';
-    } else if (character.age >= 25 && character.age < 35) {
+    } else if (age >= 55) {
+      description += ', mature, seasoned, sophisticated';
+    } else if (age >= 25 && age < 35) {
       description += ', young adult, prime of life';
-    } else if (character.age >= 18 && character.age < 25) {
+    } else if (age >= 18 && age < 25) {
       description += ', youthful adult, young adult';
     }
     
-    // === CHEVEUX DÉTAILLÉS ===
-    const hairColor = character.hairColor || 'brown';
+    // === CHEVEUX DÉTAILLÉS (utilise hairColor en priorité) ===
+    const hairColor = character.hairColor || this.extractFromAppearance(character, 'hair') || 'brown';
     description += `, ${hairColor} hair`;
     
-    const appearance = (character.appearance || '').toLowerCase();
+    // Combiner appearance, physicalDescription et autres champs
+    const appearance = (
+      (character.appearance || '') + ' ' + 
+      (character.physicalDescription || '') + ' ' +
+      (character.bodyType || '')
+    ).toLowerCase();
     if (appearance.includes('long') || appearance.includes('longs')) {
       description += ', very long flowing hair reaching lower back';
     } else if (appearance.includes('mi-long') || appearance.includes('shoulder')) {
@@ -201,8 +216,11 @@ class ImageGenerationService {
       description += ', natural healthy skin';
     }
     
-    // === YEUX ===
-    if (appearance.includes('yeux bleu') || appearance.includes('blue eyes')) {
+    // === YEUX (utilise eyeColor en priorité) ===
+    const eyeColor = character.eyeColor?.toLowerCase() || '';
+    if (eyeColor) {
+      description += `, ${character.eyeColor} eyes`;
+    } else if (appearance.includes('yeux bleu') || appearance.includes('blue eyes')) {
       description += ', bright blue eyes';
     } else if (appearance.includes('yeux vert') || appearance.includes('green eyes')) {
       description += ', emerald green eyes';
@@ -214,8 +232,46 @@ class ImageGenerationService {
       description += ', steel gray eyes';
     } else if (appearance.includes('noisette') || appearance.includes('hazel')) {
       description += ', hazel eyes';
+    } else if (appearance.includes('améthyste') || appearance.includes('violet') || appearance.includes('purple')) {
+      description += ', mystical purple amethyst eyes';
+    } else if (appearance.includes('doré') || appearance.includes('gold') || appearance.includes('or')) {
+      description += ', striking golden eyes';
+    } else if (appearance.includes('rouge') || appearance.includes('red')) {
+      description += ', intense crimson red eyes';
     } else {
       description += ', expressive captivating eyes';
+    }
+    
+    // === TAILLE (utilise height en priorité) ===
+    if (character.height) {
+      const heightCm = parseInt(character.height);
+      if (heightCm >= 180) {
+        description += ', tall stature, impressive height';
+      } else if (heightCm >= 170) {
+        description += ', above average height';
+      } else if (heightCm <= 160) {
+        description += ', petite short stature';
+      } else {
+        description += ', average height';
+      }
+    }
+    
+    // === BODY TYPE (utilise bodyType en priorité) ===
+    if (character.bodyType) {
+      const bodyType = character.bodyType.toLowerCase();
+      if (bodyType.includes('athléti') || bodyType.includes('muscl') || bodyType.includes('athletic')) {
+        description += ', athletic toned muscular body';
+      } else if (bodyType.includes('voluptu') || bodyType.includes('curv') || bodyType.includes('généreus')) {
+        description += ', voluptuous curvy full-figured body';
+      } else if (bodyType.includes('élancé') || bodyType.includes('mince') || bodyType.includes('slim')) {
+        description += ', slim slender elegant body';
+      } else if (bodyType.includes('graci') || bodyType.includes('fine')) {
+        description += ', graceful slender refined body';
+      } else if (bodyType.includes('puissant') || bodyType.includes('massif')) {
+        description += ', powerful massive muscular build';
+      } else {
+        description += `, ${character.bodyType}`;
+      }
     }
     
     // === TRAITS ADDITIONNELS ===
@@ -236,13 +292,32 @@ class ImageGenerationService {
   }
 
   /**
+   * Extrait une information spécifique de l'apparence
+   */
+  extractFromAppearance(character, type) {
+    const text = ((character.appearance || '') + ' ' + (character.physicalDescription || '')).toLowerCase();
+    
+    if (type === 'hair') {
+      const hairColors = ['noir', 'black', 'brun', 'brown', 'blond', 'blonde', 'roux', 'red', 'auburn', 
+                          'châtain', 'gris', 'grey', 'gray', 'blanc', 'white', 'argenté', 'silver',
+                          'violet', 'purple', 'bleu', 'blue', 'vert', 'green', 'rose', 'pink'];
+      for (const color of hairColors) {
+        if (text.includes(color)) return color;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
    * Décrit l'anatomie de manière précise
    */
   buildAnatomyDescription(character, isRealistic = false) {
     let anatomy = '';
     
-    // === FEMMES - POITRINE ===
-    if (character.gender === 'female' && character.bust) {
+    // === FEMMES - POITRINE (utilise bust OU bustSize) ===
+    const bustSize = character.bust || character.bustSize;
+    if (character.gender === 'female' && bustSize) {
       const bustDetails = {
         'A': { size: 'small A cup breasts', details: 'petite chest, small perky bust, flat chested' },
         'B': { size: 'small B cup breasts', details: 'modest bust, small perky breasts, cute small chest' },
@@ -255,18 +330,31 @@ class ImageGenerationService {
         'H': { size: 'enormous H cup breasts', details: 'enormous massive bust, incredibly huge breasts' }
       };
       
-      const bustInfo = bustDetails[character.bust] || bustDetails['C'];
+      // Normaliser la taille (peut être "Moyenne", "Généreuse", etc.)
+      let normalizedBust = bustSize;
+      if (bustSize.toLowerCase().includes('petit') || bustSize.toLowerCase().includes('small')) {
+        normalizedBust = 'B';
+      } else if (bustSize.toLowerCase().includes('moyen') || bustSize.toLowerCase().includes('medium')) {
+        normalizedBust = 'C';
+      } else if (bustSize.toLowerCase().includes('génér') || bustSize.toLowerCase().includes('large') || bustSize.toLowerCase().includes('voluptu')) {
+        normalizedBust = 'D';
+      } else if (bustSize.toLowerCase().includes('très') || bustSize.toLowerCase().includes('very') || bustSize.toLowerCase().includes('énorme')) {
+        normalizedBust = 'E';
+      }
+      
+      const bustInfo = bustDetails[normalizedBust] || bustDetails[bustSize] || bustDetails['C'];
       anatomy += `, ${bustInfo.size}, ${bustInfo.details}`;
       
       // Ajouter des détails sur les hanches/taille
-      if (['D', 'DD', 'E', 'F', 'G', 'H'].includes(character.bust)) {
+      if (['D', 'DD', 'E', 'F', 'G', 'H'].includes(normalizedBust)) {
         anatomy += ', wide hips, hourglass figure, curvy body';
       }
     }
     
-    // === HOMMES - PHYSIQUE (basé sur la taille en cm) ===
-    if (character.gender === 'male' && character.penis) {
-      const penisSize = parseInt(character.penis) || 15;
+    // === HOMMES - PHYSIQUE (basé sur maleSize ou penis en cm) ===
+    const maleSize = character.maleSize || character.penis;
+    if (character.gender === 'male' && maleSize) {
+      const penisSize = parseInt(maleSize) || 15;
       
       if (penisSize >= 25) {
         anatomy += ', exceptionally muscular build, bodybuilder physique, massive muscles';
@@ -305,8 +393,9 @@ class ImageGenerationService {
     if (character.gender === 'female') {
       nsfw += ', seductive sexy pose, sensual expression, bedroom eyes, sultry gaze';
       
-      // Poitrine
-      if (character.bust) {
+      // Poitrine (utilise bust OU bustSize)
+      const bustSize = character.bust || character.bustSize;
+      if (bustSize) {
         const bustDescriptions = {
           'A': 'small perky breasts visible',
           'B': 'petite breasts showing',
@@ -315,9 +404,23 @@ class ImageGenerationService {
           'DD': 'very large breasts, impressive cleavage',
           'E': 'huge breasts prominently displayed, massive cleavage',
           'F': 'enormous breasts, gigantic bust emphasized',
-          'G': 'massive breasts, colossal bust'
+          'G': 'massive breasts, colossal bust',
+          'H': 'enormous massive breasts, gigantic bust'
         };
-        nsfw += `, ${bustDescriptions[character.bust] || 'beautiful breasts'}`;
+        
+        // Normaliser si nécessaire
+        let normalizedBust = bustSize;
+        if (bustSize.toLowerCase().includes('petit') || bustSize.toLowerCase().includes('small')) {
+          normalizedBust = 'B';
+        } else if (bustSize.toLowerCase().includes('moyen') || bustSize.toLowerCase().includes('medium')) {
+          normalizedBust = 'C';
+        } else if (bustSize.toLowerCase().includes('génér') || bustSize.toLowerCase().includes('large') || bustSize.toLowerCase().includes('voluptu')) {
+          normalizedBust = 'D';
+        } else if (bustSize.toLowerCase().includes('très') || bustSize.toLowerCase().includes('very') || bustSize.toLowerCase().includes('énorme')) {
+          normalizedBust = 'E';
+        }
+        
+        nsfw += `, ${bustDescriptions[normalizedBust] || bustDescriptions[bustSize] || 'beautiful breasts'}`;
       }
       
       // Tenue selon niveau
@@ -402,7 +505,8 @@ class ImageGenerationService {
    * Génère l'image du personnage (profil)
    */
   async generateCharacterImage(character, userProfile = null) {
-    if (character.age < 18) {
+    const charAge = parseInt(character.age) || 25;
+    if (charAge < 18) {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
@@ -413,6 +517,11 @@ class ImageGenerationService {
     
     let prompt = style;
     
+    // === UTILISER imagePrompt si disponible (ex: personnages fantasy) ===
+    if (character.imagePrompt) {
+      prompt += ', ' + character.imagePrompt;
+    }
+    
     // Description physique adaptée au style
     prompt += ', ' + this.buildDetailedPhysicalDescription(character, isRealistic);
     
@@ -421,7 +530,7 @@ class ImageGenerationService {
       prompt += `, ${character.appearance.replace(/\n/g, ' ').trim()}`;
     }
     
-    // Anatomie
+    // Anatomie (poitrine, physique masculin)
     prompt += this.buildAnatomyDescription(character, isRealistic);
     
     // Tenue
@@ -463,7 +572,8 @@ class ImageGenerationService {
    * Génère l'image de scène (conversation)
    */
   async generateSceneImage(character, userProfile = null, recentMessages = []) {
-    if (character.age < 18) {
+    const charAge = parseInt(character.age) || 25;
+    if (charAge < 18) {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
@@ -474,6 +584,11 @@ class ImageGenerationService {
     
     let prompt = style;
     
+    // === UTILISER imagePrompt si disponible ===
+    if (character.imagePrompt) {
+      prompt += ', ' + character.imagePrompt;
+    }
+    
     // Description physique
     prompt += ', ' + this.buildDetailedPhysicalDescription(character, isRealistic);
     
@@ -482,7 +597,7 @@ class ImageGenerationService {
       prompt += `, ${character.appearance.replace(/\n/g, ' ').trim()}`;
     }
     
-    // Anatomie
+    // Anatomie (poitrine, physique masculin)
     prompt += this.buildAnatomyDescription(character, isRealistic);
     
     // Tenue détectée ou aléatoire
