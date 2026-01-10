@@ -272,13 +272,35 @@ export default function PremiumChatScreen({ navigation }) {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
       } else {
-        Alert.alert('Erreur', 'Impossible d\'envoyer le message');
+        const errorText = await response.text();
+        console.error('❌ Erreur réponse serveur:', response.status, errorText);
+        Alert.alert('Erreur', `Impossible d'envoyer le message (${response.status})`);
         setInputText(messageContent); // Restore input
       }
     } catch (error) {
-      console.error('Erreur envoi message:', error);
-      Alert.alert('Erreur', 'Impossible d\'envoyer le message');
-      setInputText(messageContent);
+      console.error('❌ Erreur envoi message:', error.message);
+      
+      // Ajouter le message localement quand même (mode hors ligne)
+      const newMessage = {
+        id: Date.now().toString(),
+        content: messageContent,
+        sender: {
+          email: currentUser?.email,
+          username: currentUser?.profile?.username || currentUser?.email?.split('@')[0],
+        },
+        timestamp: new Date().toISOString(),
+        isOwn: true,
+        pending: true, // Marquer comme en attente
+      };
+
+      if (chatMode === 'public') {
+        setMessages(prev => [...prev, newMessage]);
+      }
+      
+      // Scroll to bottom
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     } finally {
       setSending(false);
     }
@@ -379,8 +401,9 @@ export default function PremiumChatScreen({ navigation }) {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
+      enabled
     >
       {/* Header */}
       <View style={styles.header}>
@@ -702,6 +725,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: 10,
+    paddingBottom: 20,
     backgroundColor: '#1e293b',
     borderTopWidth: 1,
     borderTopColor: '#334155',
