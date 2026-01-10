@@ -171,7 +171,7 @@ class TextGenerationService {
   }
 
   async generateResponse(messages, character, userProfile = null, retries = 3) {
-    if (this.apiKeys.groq.length === 0) {
+    if (!this.apiKeys.groq || this.apiKeys.groq.length === 0) {
       await this.loadConfig();
     }
 
@@ -499,8 +499,8 @@ ${character.background ? character.background : 'Pas d\'histoire particulière.'
 === PERSONNALITÉ DÉTAILLÉE ===
 ${character.personality || 'Personnalité naturelle et authentique.'}
 ${character.description ? `\nDescription: ${character.description}` : ''}
-${character.likes ? `\nCe que tu aimes: ${character.likes.join(', ')}` : ''}
-${character.fantasies ? `\nTes fantasmes secrets: ${character.fantasies.join(', ')}` : ''}
+${Array.isArray(character.likes) && character.likes.length > 0 ? `\nCe que tu aimes: ${character.likes.join(', ')}` : ''}
+${Array.isArray(character.fantasies) && character.fantasies.length > 0 ? `\nTes fantasmes secrets: ${character.fantasies.join(', ')}` : ''}
 ${behaviorGuidelines}
 ${interactionGuidelines}
 === RÈGLES CRITIQUES DE ROLEPLAY ===
@@ -687,7 +687,7 @@ FORMAT OBLIGATOIRE:
    * Génération avec Groq - NSFW ULTRA-PERMISSIF
    */
   async generateWithGroq(messages, character, userProfile, retries) {
-    if (this.apiKeys.groq.length === 0) {
+    if (!this.apiKeys.groq || this.apiKeys.groq.length === 0) {
       throw new Error('Aucune clé API Groq configurée. Ajoutez des clés dans les paramètres.');
     }
 
