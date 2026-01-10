@@ -173,17 +173,22 @@ export default function CharacterCarouselScreen({ navigation }) {
     setCharacterImages(images);
   };
 
-  // Filtrer par tags sélectionnés ET par nom
+  // Filtrer par recherche texte (nom OU tags) ET par tags sélectionnés
   let filteredCharacters = allCharacters;
   
-  // Filtre par nom si recherche active
-  if (nameSearch.trim()) {
-    filteredCharacters = filteredCharacters.filter(char => 
-      (char.name || '').toLowerCase().includes(nameSearch.toLowerCase())
-    );
+  // Filtre par recherche texte (cherche dans nom ET dans tags)
+  const searchText = nameSearch.trim().toLowerCase();
+  if (searchText) {
+    filteredCharacters = filteredCharacters.filter(char => {
+      const nameMatch = (char.name || '').toLowerCase().includes(searchText);
+      const tagMatch = (char.tags || []).some(tag => 
+        tag.toLowerCase().includes(searchText)
+      );
+      return nameMatch || tagMatch;
+    });
   }
   
-  // Filtre par tags si tags sélectionnés (insensible à la casse)
+  // Filtre par tags sélectionnés (en plus de la recherche texte)
   if (selectedTags.length > 0) {
     filteredCharacters = filteredCharacters.filter(char => {
       const charTags = (char.tags || []).map(t => t.toLowerCase());
@@ -275,18 +280,23 @@ export default function CharacterCarouselScreen({ navigation }) {
             <Text style={styles.searchIconInline}>🔍</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="Nom ou tag..."
+              placeholder="Rechercher nom ou tag..."
               placeholderTextColor="#64748b"
-              value={nameSearch || tagSearch}
+              value={nameSearch}
               onChangeText={(text) => {
                 setNameSearch(text);
-                setTagSearch(text);
+                setTagSearch(text); // Pour filtrer la liste de tags aussi
                 setCurrentIndex(0);
               }}
             />
-            {(nameSearch || tagSearch) ? (
+            {nameSearch ? (
               <TouchableOpacity 
-                onPress={() => { setNameSearch(''); setTagSearch(''); }}
+                onPress={() => { 
+                  setNameSearch(''); 
+                  setTagSearch(''); 
+                  setSelectedTags([]);
+                  setCurrentIndex(0);
+                }}
                 style={styles.clearInputButton}
               >
                 <Text style={styles.clearInputText}>✕</Text>
