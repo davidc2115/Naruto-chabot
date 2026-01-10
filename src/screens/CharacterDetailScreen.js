@@ -280,7 +280,7 @@ export default function CharacterDetailScreen({ route, navigation }) {
           <View style={styles.headerInfo}>
             <Text style={styles.name}>{character.name}</Text>
             <Text style={styles.info}>
-              {character.age} ans • {
+              {String(character.age || '').includes('ans') ? character.age : `${character.age || '?'} ans`} • {
                 character.gender === 'male' ? 'Homme' :
                 character.gender === 'female' ? 'Femme' :
                 'Non-binaire'
@@ -300,19 +300,21 @@ export default function CharacterDetailScreen({ route, navigation }) {
         </View>
 
         <View style={styles.tagsContainer}>
-          {character.tags.map((tag, index) => (
+          {(character.tags || []).map((tag, index) => (
             <View key={index} style={styles.tag}>
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>💭 Tempérament</Text>
-          <Text style={styles.sectionContent}>
-            {character.temperament.charAt(0).toUpperCase() + character.temperament.slice(1)}
-          </Text>
-        </View>
+        {(character.temperament || character.personality) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>💭 Tempérament</Text>
+            <Text style={styles.sectionContent}>
+              {(character.temperament || character.personality).charAt(0).toUpperCase() + (character.temperament || character.personality).slice(1)}
+            </Text>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✨ Apparence physique</Text>
@@ -362,10 +364,12 @@ export default function CharacterDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🎭 Personnalité</Text>
-          <Text style={styles.sectionContent}>{character.personality}</Text>
-        </View>
+        {character.personality && character.temperament && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🎭 Personnalité</Text>
+            <Text style={styles.sectionContent}>{character.personality}</Text>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📖 Scénario</Text>

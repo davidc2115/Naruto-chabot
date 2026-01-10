@@ -480,7 +480,9 @@ export default function CharacterCarouselScreen({ navigation }) {
               </View>
               
               <Text style={styles.ageGender}>
-                {currentCharacter.age ? `${currentCharacter.age} ans` : ''} 
+                {currentCharacter.age ? (
+                  String(currentCharacter.age).includes('ans') ? currentCharacter.age : `${currentCharacter.age} ans`
+                ) : ''} 
                 {currentCharacter.age && currentCharacter.gender ? ' • ' : ''}
                 {currentCharacter.gender === 'male' ? 'Homme' :
                  currentCharacter.gender === 'female' ? 'Femme' :
