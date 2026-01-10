@@ -415,22 +415,62 @@ export default function ConversationScreen({ route, navigation }) {
     const parts = [];
     const actionRegex = /\*([^*]+)\*/g;
     const dialogueRegex = /"([^"]+)"/g;
+    const thoughtRegex = /\(([^)]+)\)/g;
     
     let match;
     const allMatches = [];
     
+    // Parser les actions (entre astérisques)
     while ((match = actionRegex.exec(content)) !== null) {
       allMatches.push({ type: 'action', text: match[1], index: match.index, length: match[0].length });
     }
     
+    // Parser les dialogues (entre guillemets)
     while ((match = dialogueRegex.exec(content)) !== null) {
       allMatches.push({ type: 'dialogue', text: match[1], index: match.index, length: match[0].length });
     }
     
+    // Parser les pensées (entre parenthèses)
+    while ((match = thoughtRegex.exec(content)) !== null) {
+      // Vérifier que ce n'est pas un texte trop court (éviter les faux positifs comme "(2)")
+      if (match[1].length > 5) {
+        allMatches.push({ type: 'thought', text: match[1], index: match.index, length: match[0].length });
+      }
+    }
+    
     allMatches.sort((a, b) => a.index - b.index);
     
+    // Supprimer les chevauchements (garder le match le plus long)
+    const filteredMatches = [];
+    for (let i = 0; i < allMatches.length; i++) {
+      const current = allMatches[i];
+      let isOverlapping = false;
+      
+      for (let j = 0; j < filteredMatches.length; j++) {
+        const existing = filteredMatches[j];
+        const currentEnd = current.index + current.length;
+        const existingEnd = existing.index + existing.length;
+        
+        // Vérifier le chevauchement
+        if (current.index < existingEnd && currentEnd > existing.index) {
+          isOverlapping = true;
+          // Garder le plus long
+          if (current.length > existing.length) {
+            filteredMatches[j] = current;
+          }
+          break;
+        }
+      }
+      
+      if (!isOverlapping) {
+        filteredMatches.push(current);
+      }
+    }
+    
+    filteredMatches.sort((a, b) => a.index - b.index);
+    
     let currentIndex = 0;
-    allMatches.forEach(match => {
+    filteredMatches.forEach(match => {
       if (match.index > currentIndex) {
         const text = content.substring(currentIndex, match.index).trim();
         if (text) {
@@ -488,18 +528,27 @@ export default function ConversationScreen({ route, navigation }) {
           <View style={styles.messageContent}>
             {formattedParts.map((part, index) => {
               if (part.type === 'action') {
+                // Actions en ROUGE avec guillemets
                 return (
-                  <Text key={index} style={[styles.actionText, { color: style.actionColor || '#8b5cf6' }]}>
-                    *{part.text}*
+                  <Text key={index} style={[styles.actionText, { color: '#ef4444' }]}>
+                    "{part.text}"
+                  </Text>
+                );
+              } else if (part.type === 'thought') {
+                // Pensées en BLEU avec parenthèses
+                return (
+                  <Text key={index} style={[styles.thoughtText, { color: '#3b82f6' }]}>
+                    ({part.text})
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
+                // Paroles en BLANC sans décoration
                 return (
                   <Text key={index} style={[
                     styles.dialogueText, 
-                    { color: isUser ? (style.userText || '#fff') : (style.dialogueColor || '#111827') }
+                    { color: isUser ? (style.userText || '#fff') : '#ffffff' }
                   ]}>
-                    "{part.text}"
+                    {part.text}
                   </Text>
                 );
               } else {
@@ -632,9 +681,9 @@ export default function ConversationScreen({ route, navigation }) {
                     alignSelf: 'flex-start',
                   }
                 ]}>
-                  <Text style={{ color: chatStyle?.assistantText || '#111827' }}>
-                    *sourit* "Bonjour !"
-                  </Text>
+                  <Text style={{ color: '#ef4444', fontStyle: 'italic' }}>"sourit"</Text>
+                  <Text style={{ color: '#ffffff' }}> Bonjour !</Text>
+                  <Text style={{ color: '#3b82f6', fontStyle: 'italic' }}> (c'est vraiment lui...)</Text>
                 </View>
                 <View style={[
                   styles.previewBubble, 
@@ -980,6 +1029,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 3,
+  },
+  thoughtText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginBottom: 3,
+    opacity: 0.9,
   },
   dialogueText: {
     fontSize: 15,

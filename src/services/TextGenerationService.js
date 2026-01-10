@@ -485,9 +485,12 @@ ${interactionGuidelines}
 - Tu réagis aux caractéristiques physiques de ${userName} quand c'est pertinent
 - Tu restes authentique à ta personnalité même dans l'intimité
 
-=== FORMAT DE RÉPONSE ===
-- *actions entre astérisques* pour TES gestes et expressions
-- "paroles entre guillemets" pour TES dialogues
+=== FORMAT DE RÉPONSE (TRÈS IMPORTANT) ===
+- *actions entre astérisques* pour TES gestes, expressions et mouvements physiques
+- "paroles entre guillemets" pour TES dialogues parlés
+- (pensées entre parenthèses) pour TES pensées intérieures et réflexions
+- IMPORTANT: Ne répète JAMAIS une action, un dialogue ou une pensée
+- Chaque élément (action/dialogue/pensée) doit apparaître UNE SEULE FOIS
 - Décris ce que TOI (${character.name}) fais, pas ce que ${userName} fait
 - Appelle l'utilisateur par son prénom: "${userName}"
 - Sois naturel(le), expressif(ve), immersif(ve)
@@ -607,7 +610,9 @@ RÈGLES:
 
 STYLE:
 - *actions* pour les gestes
-- "paroles" pour les dialogues`;
+- "paroles" pour les dialogues
+- (pensées) pour les réflexions intérieures
+- NE JAMAIS répéter une action, dialogue ou pensée déjà dit`;
   }
 
   /**
@@ -668,8 +673,8 @@ STYLE:
             temperature: isNSFW ? 1.3 : 0.9,
             max_tokens: isNSFW ? 2500 : 1000,
             top_p: isNSFW ? 0.99 : 0.9,
-            presence_penalty: 0.5,
-            frequency_penalty: 0.3,
+            presence_penalty: 0.6,
+            frequency_penalty: 0.7,
           },
           {
             headers: {
@@ -680,10 +685,13 @@ STYLE:
           }
         );
 
-        const content = response.data?.choices?.[0]?.message?.content;
+        let content = response.data?.choices?.[0]?.message?.content;
         if (!content) {
           throw new Error('Réponse vide');
         }
+
+        // Nettoyer les répétitions dans le contenu
+        content = this.removeRepetitions(content);
 
         // Vérifier si la réponse contient un refus
         const refusPatterns = [
@@ -734,6 +742,120 @@ STYLE:
         }
       }
     }
+  }
+
+  /**
+   * Supprime les répétitions dans le contenu généré
+   * Détecte et supprime les blocs de texte dupliqués
+   */
+  removeRepetitions(content) {
+    if (!content) return content;
+    
+    // Normaliser les sauts de ligne
+    let cleaned = content.replace(/\r\n/g, '\n');
+    
+    // Séparer en paragraphes (par double saut de ligne ou action/dialogue)
+    const paragraphs = cleaned.split(/\n{2,}/);
+    const uniqueParagraphs = [];
+    const seenContent = new Set();
+    
+    for (const para of paragraphs) {
+      // Normaliser le paragraphe pour la comparaison (retirer espaces multiples)
+      const normalizedPara = para.trim().replace(/\s+/g, ' ').toLowerCase();
+      
+      // Ignorer les paragraphes vides
+      if (!normalizedPara) continue;
+      
+      // Vérifier si ce paragraphe est déjà vu (ou très similaire)
+      let isDuplicate = false;
+      
+      // Vérifier les duplications exactes
+      if (seenContent.has(normalizedPara)) {
+        isDuplicate = true;
+      }
+      
+      // Vérifier si ce paragraphe est une sous-partie d'un précédent ou vice versa
+      for (const seen of seenContent) {
+        // Si le nouveau paragraphe contient au moins 80% du contenu d'un précédent
+        if (normalizedPara.length > 50 && seen.length > 50) {
+          const similarity = this.calculateSimilarity(normalizedPara, seen);
+          if (similarity > 0.7) {
+            isDuplicate = true;
+            break;
+          }
+        }
+      }
+      
+      if (!isDuplicate) {
+        uniqueParagraphs.push(para.trim());
+        seenContent.add(normalizedPara);
+      }
+    }
+    
+    // Reconstruire le contenu
+    let result = uniqueParagraphs.join('\n\n');
+    
+    // Nettoyer les répétitions de phrases à l'intérieur des paragraphes
+    result = this.removeRepeatedSentences(result);
+    
+    return result;
+  }
+  
+  /**
+   * Calcule la similarité entre deux chaînes (0-1)
+   */
+  calculateSimilarity(str1, str2) {
+    if (str1 === str2) return 1;
+    if (str1.length === 0 || str2.length === 0) return 0;
+    
+    // Simple comparaison basée sur les mots communs
+    const words1 = new Set(str1.split(/\s+/));
+    const words2 = new Set(str2.split(/\s+/));
+    
+    let commonWords = 0;
+    for (const word of words1) {
+      if (words2.has(word)) commonWords++;
+    }
+    
+    const totalWords = Math.max(words1.size, words2.size);
+    return commonWords / totalWords;
+  }
+  
+  /**
+   * Supprime les phrases répétées à l'intérieur du texte
+   */
+  removeRepeatedSentences(content) {
+    // Regex pour trouver les actions et dialogues
+    const actionRegex = /\*([^*]+)\*/g;
+    const dialogueRegex = /"([^"]+)"/g;
+    
+    const seenActions = new Set();
+    const seenDialogues = new Set();
+    
+    // Supprimer les actions dupliquées
+    let cleaned = content.replace(actionRegex, (match, action) => {
+      const normalized = action.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (seenActions.has(normalized)) {
+        return ''; // Supprimer le duplicata
+      }
+      seenActions.add(normalized);
+      return match;
+    });
+    
+    // Supprimer les dialogues dupliqués
+    cleaned = cleaned.replace(dialogueRegex, (match, dialogue) => {
+      const normalized = dialogue.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (seenDialogues.has(normalized)) {
+        return ''; // Supprimer le duplicata
+      }
+      seenDialogues.add(normalized);
+      return match;
+    });
+    
+    // Nettoyer les espaces multiples et lignes vides résultants
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n').replace(/  +/g, ' ').trim();
+    
+    return cleaned;
   }
 
   async testProvider(provider) {
