@@ -126,9 +126,17 @@ export default function ConversationScreen({ route, navigation }) {
 
   const loadUserLevel = async () => {
     try {
-      const levelData = await LevelService.getFullStats();
-      setUserLevel(levelData);
-      console.log('✅ Niveau chargé:', levelData.level, levelData.title);
+      // Charger le niveau spécifique pour ce personnage
+      if (character?.id) {
+        const levelData = await LevelService.getCharacterStats(character.id);
+        setUserLevel(levelData);
+        console.log('✅ Niveau avec', character.name, ':', levelData.level, levelData.title);
+      } else {
+        // Fallback sur les stats globales
+        const levelData = await LevelService.getFullStats();
+        setUserLevel(levelData);
+        console.log('✅ Niveau global:', levelData.level, levelData.title);
+      }
     } catch (error) {
       console.error('❌ Erreur chargement niveau:', error);
     }
@@ -288,13 +296,15 @@ export default function ConversationScreen({ route, navigation }) {
       
       await saveConversation(finalMessages, newRelationship);
 
-      // Gagner de l'XP pour le message envoyé
+      // Gagner de l'XP pour le message envoyé (par personnage)
       try {
         const isNSFW = userProfile?.nsfwMode || false;
         const xpGained = LevelService.calculateMessageXP(userMessage.content.length, isNSFW);
-        const xpResult = await LevelService.addXP(xpGained, 'message');
         
-        // Enregistrer l'interaction avec ce personnage
+        // Utiliser le système de niveau par personnage
+        const xpResult = await LevelService.addXPForCharacter(character.id, xpGained, 'message');
+        
+        // Enregistrer l'interaction avec ce personnage (pour les stats globales)
         await LevelService.recordCharacterInteraction(character.id);
         
         // Mettre à jour l'état du niveau
@@ -306,14 +316,20 @@ export default function ConversationScreen({ route, navigation }) {
           progress: xpResult.progress,
         });
         
-        // Si level up, afficher l'animation
+        // Si level up, afficher l'animation et générer l'image récompense
         if (xpResult.leveledUp) {
           setLevelUpInfo(xpResult);
           setShowLevelUp(true);
-          setTimeout(() => setShowLevelUp(false), 3000);
+          
+          // Générer l'image de récompense si disponible
+          if (xpResult.reward && xpResult.reward.type === 'image') {
+            generateLevelUpRewardImage(xpResult.reward, xpResult.newLevel);
+          }
+          
+          setTimeout(() => setShowLevelUp(false), 5000);
         }
         
-        console.log(`✅ +${xpGained} XP → Niveau ${xpResult.level} (${xpResult.progress}%)`);
+        console.log(`✅ +${xpGained} XP avec ${character.name} → Niveau ${xpResult.level} "${xpResult.title}" (${xpResult.progress}%)`);
       } catch (xpError) {
         console.error('❌ Erreur XP:', xpError);
       }
@@ -326,6 +342,59 @@ export default function ConversationScreen({ route, navigation }) {
       setMessages(messages);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Génère l'image de récompense pour un level up (MÊME SANS PREMIUM)
+  const generateLevelUpRewardImage = async (reward, newLevel) => {
+    try {
+      console.log(`🎁 Génération image récompense niveau ${newLevel}: ${reward.imageType}`);
+      
+      // Construire le prompt spécial pour la récompense
+      const rewardPromptPart = LevelService.getRewardImagePrompt(reward.imageType, character);
+      
+      // Prompt ultra-détaillé hyperréaliste
+      const fullPrompt = `hyper-realistic photograph, professional photography, 8K ultra HD, 
+        ${character.gender === 'female' ? 'beautiful woman' : 'handsome man'}, 
+        ${character.age} years old, ${character.appearance || ''}, 
+        ${rewardPromptPart}, 
+        perfect anatomy, correct human proportions, anatomically correct body,
+        proper hands with five fingers each, correct arm and leg proportions,
+        studio lighting, high-end boudoir photography, sensual atmosphere,
+        skin texture visible, lifelike details, photographic quality,
+        single person, solo portrait, NOT deformed, NOT distorted, NOT extra limbs,
+        NOT bad anatomy, NOT mutated, masterpiece quality, award winning photo`;
+      
+      // Générer l'image via l'API Freebox (même sans premium)
+      const imageUrl = await ImageGenerationService.generateImage(fullPrompt);
+      
+      if (imageUrl) {
+        // Sauvegarder dans la galerie
+        await GalleryService.saveImageToGallery(character.id, imageUrl);
+        
+        // Enregistrer comme image débloquée
+        await LevelService.recordUnlockedImage(character.id, newLevel, imageUrl);
+        
+        // Recharger la galerie
+        await loadGallery();
+        
+        // Afficher un message avec l'image
+        Alert.alert(
+          `🎉 Niveau ${newLevel} atteint !`,
+          `${reward.description}\n\nUne image exclusive a été ajoutée à votre galerie avec ${character.name} !`,
+          [{ text: '👀 Super !', style: 'default' }]
+        );
+        
+        console.log(`✅ Image récompense générée et sauvegardée`);
+      }
+    } catch (error) {
+      console.error('❌ Erreur génération image récompense:', error);
+      // Ne pas bloquer l'expérience si l'image échoue
+      Alert.alert(
+        `🎉 Niveau ${newLevel} atteint !`,
+        `${reward.description}\n\nVotre relation avec ${character.name} évolue !`,
+        [{ text: 'Super !', style: 'default' }]
+      );
     }
   };
 
@@ -763,18 +832,18 @@ export default function ConversationScreen({ route, navigation }) {
         />
       )}
       
-      {/* Barre de niveau utilisateur */}
+      {/* Barre de niveau avec ce personnage */}
       {userLevel && (
         <View style={styles.levelBar}>
           <View style={styles.levelInfo}>
-            <Text style={styles.levelText}>⭐ Niv. {userLevel.level}</Text>
+            <Text style={styles.levelText}>💕 Niv. {userLevel.level}</Text>
             <Text style={styles.levelTitle}>{userLevel.title}</Text>
           </View>
           <View style={styles.xpBarContainer}>
             <View style={[styles.xpBar, { width: `${userLevel.progress || 0}%` }]} />
             <Text style={styles.xpText}>{userLevel.progress || 0}%</Text>
           </View>
-          <Text style={styles.xpDetail}>{userLevel.totalXP || 0} XP</Text>
+          <Text style={styles.xpDetail}>{userLevel.totalXP || 0} XP • {character?.name || ''}</Text>
         </View>
       )}
       

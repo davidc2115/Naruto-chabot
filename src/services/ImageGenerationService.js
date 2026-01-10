@@ -27,24 +27,31 @@ class ImageGenerationService {
       'cinematic photography, movie still quality, professional photoshoot',
     ];
     
-    // PROMPTS DE QUALITÉ ANATOMIQUE (pour réaliste)
+    // PROMPTS DE QUALITÉ ANATOMIQUE RENFORCÉS
     this.anatomyQualityPrompts = [
-      'perfect anatomy, correct human proportions, anatomically correct',
-      'proper hand anatomy with five fingers, correct arm proportions',
-      'natural body proportions, realistic human figure, proper limb placement',
-      'correct facial features, symmetrical face, natural pose',
-      'professional model pose, natural body position, balanced composition',
+      'perfect human anatomy, medically correct body proportions, anatomically accurate',
+      'exactly two arms, exactly two legs, proper limb attachment points',
+      'proper hand anatomy with exactly five fingers on each hand, correct finger length',
+      'natural body proportions, realistic human figure, proper skeletal structure',
+      'correct facial features, symmetrical face, natural expression, proper eye placement',
+      'professional model pose, natural body position, balanced composition, stable stance',
+      'single complete human body, one head, two eyes, one nose, one mouth',
     ];
     
-    // PROMPTS NÉGATIFS INTÉGRÉS (ajoutés au prompt pour contrer les défauts)
+    // PROMPTS NÉGATIFS INTÉGRÉS RENFORCÉS
     this.antiDeformationPrompts = 
-      'NOT deformed, NOT distorted, NOT disfigured, NOT mutated, ' +
-      'NOT bad anatomy, NOT wrong anatomy, NOT extra limbs, NOT missing limbs, ' +
-      'NOT floating limbs, NOT disconnected limbs, NOT malformed hands, ' +
-      'NOT extra fingers, NOT missing fingers, NOT fused fingers, ' +
-      'NOT too many fingers, NOT mutated hands, NOT bad hands, ' +
-      'NOT extra arms, NOT extra legs, NOT duplicate body parts, ' +
-      'normal human anatomy, correct proportions, natural pose';
+      'NOT deformed, NOT distorted, NOT disfigured, NOT mutated, NOT ugly, ' +
+      'NOT bad anatomy, NOT wrong anatomy, NOT anatomical errors, ' +
+      'NOT extra limbs, NOT missing limbs, NOT three arms, NOT four arms, ' +
+      'NOT three legs, NOT four legs, NOT extra body parts, ' +
+      'NOT floating limbs, NOT disconnected limbs, NOT merged limbs, ' +
+      'NOT malformed hands, NOT twisted hands, NOT backwards hands, ' +
+      'NOT extra fingers, NOT missing fingers, NOT fused fingers, NOT six fingers, ' +
+      'NOT too many fingers, NOT mutated hands, NOT bad hands, NOT clawed hands, ' +
+      'NOT extra arms, NOT extra legs, NOT duplicate body parts, NOT clone, ' +
+      'NOT two heads, NOT two faces, NOT multiple people in frame, ' +
+      'NOT blurry, NOT low quality, NOT pixelated, NOT watermark, ' +
+      'normal human anatomy, correct proportions, natural realistic pose, single subject only';
     
     // TENUES NSFW ALÉATOIRES
     this.nsfwOutfits = [
@@ -433,14 +440,17 @@ class ImageGenerationService {
     if (isRealistic) {
       // Prompts anti-déformation pour réaliste
       prompt += ', ' + this.buildRealisticQualityPrompts();
-      prompt += ', ultra-high quality photo, 4K resolution, sharp focus, professional photography';
+      prompt += ', ultra-high quality photo, 8K resolution, sharp focus, professional photography';
       prompt += ', realistic skin texture, lifelike details, photographic quality';
-      prompt += ', single person only, one subject, solo portrait';
+      prompt += ', single person only, one subject, solo portrait, no other people';
+      prompt += ', exactly two arms, exactly two legs, normal human body';
     } else {
-      // Qualité anime
-      prompt += ', masterpiece anime art, best quality illustration, highly detailed';
+      // Qualité anime AVEC anti-déformation
+      prompt += ', masterpiece anime art, best quality illustration, highly detailed anime';
       prompt += ', clean lines, vibrant colors, professional anime artwork';
-      prompt += ', single character, solo, one person';
+      prompt += ', single character, solo, one person, no other characters';
+      prompt += ', correct anime anatomy, proper body proportions, NOT extra limbs';
+      prompt += ', exactly two arms, exactly two legs, proper hands with five fingers';
     }
     
     prompt += ', adult 18+, mature';
@@ -497,14 +507,17 @@ class ImageGenerationService {
       prompt += this.buildSFWPrompt(character, isRealistic);
     }
     
-    // QUALITÉ
+    // QUALITÉ AVEC ANTI-DÉFORMATION
     if (isRealistic) {
       prompt += ', ' + this.buildRealisticQualityPrompts();
-      prompt += ', ultra-detailed photo, 4K, professional quality, sharp focus';
-      prompt += ', single person, solo, one subject';
+      prompt += ', ultra-detailed photo, 8K, professional quality, sharp focus';
+      prompt += ', single person, solo, one subject, no other people';
+      prompt += ', exactly two arms, exactly two legs, correct body';
     } else {
       prompt += ', masterpiece, best quality, highly detailed anime';
-      prompt += ', single character, solo';
+      prompt += ', single character, solo, no duplicates';
+      prompt += ', correct anime anatomy, NOT extra limbs, NOT deformed';
+      prompt += ', exactly two arms, exactly two legs, proper hands';
     }
     
     prompt += ', adult 18+, mature';
@@ -555,21 +568,68 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère une image - UNIQUEMENT FREEBOX
+   * Génère une image - UNIQUEMENT FREEBOX - AVEC RETRY AUTOMATIQUE
    */
-  async generateImage(prompt) {
+  async generateImage(prompt, retryCount = 0) {
     await CustomImageAPIService.loadConfig();
     
     const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🎨 Stratégie de génération: ${strategy}`);
+    console.log(`🎨 Stratégie de génération: ${strategy} (tentative ${retryCount + 1}/${this.maxRetries})`);
+    
+    let imageUrl;
     
     if (strategy === 'local') {
       console.log('📱 Génération locale (SD sur smartphone)...');
-      return await this.generateWithLocal(prompt);
+      imageUrl = await this.generateWithLocal(prompt);
+    } else {
+      console.log('🏠 Génération avec Freebox...');
+      imageUrl = await this.generateWithFreebox(prompt);
     }
     
-    console.log('🏠 Génération avec Freebox...');
-    return await this.generateWithFreebox(prompt);
+    // Vérifier si l'image est valide (pas d'erreur pollination, etc.)
+    const isValid = await this.validateImageUrl(imageUrl);
+    
+    if (!isValid && retryCount < this.maxRetries - 1) {
+      console.log(`⚠️ Image invalide, nouvelle tentative (${retryCount + 2}/${this.maxRetries})...`);
+      // Attendre un peu avant de réessayer
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return await this.generateImage(prompt, retryCount + 1);
+    }
+    
+    return imageUrl;
+  }
+
+  /**
+   * Valide qu'une URL d'image est correcte
+   */
+  async validateImageUrl(imageUrl) {
+    if (!imageUrl) return false;
+    
+    // Vérifier les patterns d'erreur connus
+    const errorPatterns = [
+      'pollination',
+      'error',
+      'failed',
+      'invalid',
+      'blocked',
+      'nsfw_blocked'
+    ];
+    
+    const lowerUrl = imageUrl.toLowerCase();
+    for (const pattern of errorPatterns) {
+      if (lowerUrl.includes(pattern)) {
+        console.log(`⚠️ URL contient pattern d'erreur: ${pattern}`);
+        return false;
+      }
+    }
+    
+    // Vérifier que c'est une URL valide
+    try {
+      new URL(imageUrl);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
