@@ -189,10 +189,41 @@ export default function CharacterCarouselScreen({ navigation }) {
   }
   
   // Filtre par tags sélectionnés (en plus de la recherche texte)
+  // Gestion spéciale des catégories principales (Homme, Femme, Non-binaire, Fantasy)
   if (selectedTags.length > 0) {
     filteredCharacters = filteredCharacters.filter(char => {
       const charTags = (char.tags || []).map(t => t.toLowerCase());
-      return selectedTags.every(tag => charTags.includes(tag.toLowerCase()));
+      const charGender = (char.gender || '').toLowerCase();
+      
+      return selectedTags.every(selectedTag => {
+        const tagLower = selectedTag.toLowerCase();
+        
+        // Catégorie "Femme" - vérifie le tag OU le gender
+        if (tagLower === 'femme') {
+          return charTags.includes('femme') || charGender === 'female' || charGender === 'femme';
+        }
+        // Catégorie "Homme" - vérifie le tag OU le gender
+        if (tagLower === 'homme') {
+          return charTags.includes('homme') || charGender === 'male' || charGender === 'homme';
+        }
+        // Catégorie "Non-binaire" - vérifie le tag OU le gender
+        if (tagLower === 'non-binaire') {
+          return charTags.includes('non-binaire') || charTags.includes('non binaire') || 
+                 charTags.includes('androgyne') || charGender === 'non-binary' || 
+                 charGender === 'non-binaire' || charGender === 'nonbinary';
+        }
+        // Catégorie "Fantasy" - vérifie les tags fantasy
+        if (tagLower === 'fantasy') {
+          const fantasyTags = ['fantasy', 'elfe', 'elf', 'démon', 'demon', 'ange', 'angel', 
+                               'vampire', 'loup-garou', 'werewolf', 'succube', 'incube', 
+                               'dragon', 'fée', 'fairy', 'sorcière', 'sorcier', 'magie', 
+                               'créature', 'monstre', 'mythique', 'surnaturel'];
+          return fantasyTags.some(ft => charTags.includes(ft));
+        }
+        
+        // Tag normal
+        return charTags.includes(tagLower);
+      });
     });
   }
   
@@ -342,10 +373,34 @@ export default function CharacterCarouselScreen({ navigation }) {
           </View>
         )}
       
+        {/* Catégories principales - Ligne 1 */}
+        <View style={styles.categoryFiltersContainer}>
+          {['Femme', 'Homme', 'Non-binaire', 'Fantasy'].map((category) => (
+            <TouchableOpacity
+              key={category}
+              style={[
+                styles.categoryTag,
+                selectedTags.map(t => t.toLowerCase()).includes(category.toLowerCase()) && styles.categoryTagActive
+              ]}
+              onPress={() => toggleTag(category)}
+            >
+              <Text style={[
+                styles.categoryTagText,
+                selectedTags.map(t => t.toLowerCase()).includes(category.toLowerCase()) && styles.categoryTagTextActive
+              ]}>
+                {category === 'Femme' ? '👩 ' : category === 'Homme' ? '👨 ' : category === 'Non-binaire' ? '⚧️ ' : '🧝 '}
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {/* Tags populaires - toujours visible */}
         <View style={styles.filtersContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {(showAllTags ? filteredTags : filteredTags.slice(0, 25)).map((tag) => (
+            {(showAllTags ? filteredTags : filteredTags.slice(0, 25)).filter(tag => 
+              !['femme', 'homme', 'non-binaire', 'fantasy'].includes(tag.toLowerCase())
+            ).map((tag) => (
               <TouchableOpacity
                 key={tag}
                 style={[
@@ -607,6 +662,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  categoryFiltersContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#0f172a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+    gap: 8,
+  },
+  categoryTag: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#1e293b',
+    borderWidth: 2,
+    borderColor: '#475569',
+  },
+  categoryTagActive: {
+    backgroundColor: '#7c3aed',
+    borderColor: '#a78bfa',
+  },
+  categoryTagText: {
+    color: '#94a3b8',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  categoryTagTextActive: {
+    color: '#fff',
   },
   filtersContainer: {
     paddingVertical: 10,

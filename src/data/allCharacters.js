@@ -26,8 +26,10 @@ import roommateCharacters from './roommateCharacters';
 import medicalCharacters from './medicalCharacters';
 // Import des 50 personnages dans diverses situations
 import situationCharacters from './situationCharacters';
+// Import des 16 personnages fantasy
+import fantasyCharacters from './fantasyCharacters';
 
-// Combiner tous les personnages (416+ personnages au total)
+// Combiner tous les personnages (430+ personnages au total)
 export const enhancedCharacters = [
   ...characters,          // 6 Naruto
   ...friendCharacters,    // 30 amies
@@ -43,6 +45,7 @@ export const enhancedCharacters = [
   ...roommateCharacters,  // 30 colocataires
   ...medicalCharacters,   // 30 médical
   ...situationCharacters, // 50 situations
+  ...fantasyCharacters,   // 16 fantasy
 ];
 
 export default enhancedCharacters;
