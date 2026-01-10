@@ -316,12 +316,42 @@ export default function CharacterDetailScreen({ route, navigation }) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✨ Apparence physique</Text>
-          <Text style={styles.sectionContent}>{character.appearance}</Text>
+          {/* Afficher la description principale */}
+          {(character.physicalDescription || character.appearance) ? (
+            <Text style={styles.sectionContent}>
+              {character.physicalDescription || character.appearance}
+            </Text>
+          ) : (
+            // Construire une description à partir des champs disponibles
+            <Text style={styles.sectionContent}>
+              {[
+                character.gender === 'female' ? 'Femme' : character.gender === 'male' ? 'Homme' : 'Personne',
+                character.age ? `de ${character.age} ans` : null,
+                character.height ? `mesurant ${character.height}` : null,
+                character.bodyType ? `au corps ${character.bodyType}` : null,
+                character.hairColor || character.hairLength ? `cheveux ${[character.hairColor, character.hairLength].filter(Boolean).join(' ')}` : null,
+                character.eyeColor ? `yeux ${character.eyeColor}` : null,
+              ].filter(Boolean).join(', ') || 'Description non disponible'}
+            </Text>
+          )}
+          {/* Détails supplémentaires */}
+          {character.hairColor && !character.appearance?.toLowerCase().includes('cheveux') && (
+            <Text style={styles.attributeDetail}>• Cheveux : {character.hairColor} {character.hairLength || ''}</Text>
+          )}
+          {character.eyeColor && !character.appearance?.toLowerCase().includes('yeux') && (
+            <Text style={styles.attributeDetail}>• Yeux : {character.eyeColor}</Text>
+          )}
+          {character.height && !character.appearance?.toLowerCase().includes('cm') && (
+            <Text style={styles.attributeDetail}>• Taille : {character.height}</Text>
+          )}
+          {character.bodyType && (
+            <Text style={styles.attributeDetail}>• Morphologie : {character.bodyType}</Text>
+          )}
           {character.gender === 'female' && character.bust && (
-            <Text style={styles.attributeDetail}>• Taille de poitrine : Bonnet {character.bust}</Text>
+            <Text style={styles.attributeDetail}>• Poitrine : Bonnet {character.bust}</Text>
           )}
           {character.gender === 'male' && character.penis && (
-            <Text style={styles.attributeDetail}>• Taille : {character.penis}</Text>
+            <Text style={styles.attributeDetail}>• Attribut : {character.penis} cm</Text>
           )}
         </View>
 
@@ -339,8 +369,20 @@ export default function CharacterDetailScreen({ route, navigation }) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📖 Scénario</Text>
-          <Text style={styles.sectionContent}>{character.scenario}</Text>
+          <Text style={styles.sectionContent}>
+            {character.scenario || character.background || 'Pas de scénario défini'}
+          </Text>
         </View>
+
+        {/* Message d'accroche */}
+        {(character.startMessage || character.greeting) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>💬 Premier message</Text>
+            <Text style={styles.sectionContent}>
+              {character.startMessage || character.greeting}
+            </Text>
+          </View>
+        )}
 
         {relationship && (
           <View style={styles.section}>

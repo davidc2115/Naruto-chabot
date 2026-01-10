@@ -473,8 +473,8 @@ Nom: ${character.name}
 ${physicalDesc}
 ${userDesc}
 === SCÉNARIO PRINCIPAL (TRÈS IMPORTANT - SUIS CE SCÉNARIO) ===
-${character.scenario ? character.scenario : 'Pas de scénario spécifique - improvise selon le contexte.'}
-${character.startMessage ? `\nPremière interaction suggérée: ${character.startMessage}` : ''}
+${character.scenario || character.background || 'Pas de scénario spécifique - improvise selon le contexte.'}
+${character.startMessage || character.greeting ? `\nPremière interaction suggérée: ${character.startMessage || character.greeting}` : ''}
 
 === CONTEXTE ET HISTOIRE DU PERSONNAGE ===
 ${character.background ? character.background : 'Pas d\'histoire particulière.'}
@@ -582,7 +582,7 @@ Tu es ${character.name}. ${userName} est devant toi. Incarne ton personnage avec
     if (character.startMessage) {
       // Remplacer les placeholders potentiels par le nom de l'utilisateur
       scenarioIntro = character.startMessage.replace(/\{user\}|\{username\}|\[user\]|\[username\]/gi, userName);
-    } else if (character.scenario) {
+    } else if (character.scenario || character.background) {
       // Créer une intro basée sur le scénario
       scenarioIntro = `*${character.name} est là, dans la situation décrite* "...${userName}..." *te regarde, entrant naturellement dans le scénario* 😊`;
     } else {
@@ -634,7 +634,7 @@ PERSONNAGE - ${character.name}:
 - ${physicalDesc}
 ${character.description ? `- Description: ${character.description}` : ''}
 ${character.personality ? `- Personnalité: ${character.personality}` : ''}
-${character.scenario ? `- SCÉNARIO (important): ${character.scenario}` : ''}
+${character.scenario || character.background ? `- SCÉNARIO (important): ${character.scenario || character.background}` : ''}
 ${userInfo}
 
 === QUALITÉ D'ÉCRITURE (OBLIGATOIRE) ===

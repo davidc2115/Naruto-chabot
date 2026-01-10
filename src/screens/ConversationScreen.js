@@ -227,7 +227,7 @@ export default function ConversationScreen({ route, navigation }) {
       } else {
         const initialMessage = {
           role: 'assistant',
-          content: character.startMessage || `Bonjour, je suis ${character.name}.`,
+          content: character.startMessage || character.greeting || `Bonjour, je suis ${character.name}.`,
         };
         console.log('✅ Nouveau conversation initialisée');
         setMessages([initialMessage]);

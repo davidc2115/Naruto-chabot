@@ -40,7 +40,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [updateInfo, setUpdateInfo] = useState(null);
 
   const DISCORD_INVITE = 'https://discord.gg/9KHCqSmz';
-  const CURRENT_VERSION = '3.7.13';
+  const CURRENT_VERSION = '3.7.14';
   const GITHUB_RELEASES_URL = 'https://api.github.com/repos/YOUR_USERNAME/roleplay-chat/releases/latest';
 
   useEffect(() => {
@@ -307,9 +307,10 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const checkForUpdates = async () => {
     setCheckingUpdate(true);
     let foundVersion = false;
+    let directDownloadUrl = null;
     
     try {
-      // Méthode 1: Vérifier sur GitHub (plus fiable)
+      // Vérifier sur GitHub
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -327,11 +328,17 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         if (githubResponse.ok) {
           const release = await githubResponse.json();
           const latestVersion = release.tag_name?.replace('v', '') || release.name?.replace('v', '');
-          const downloadUrl = release.assets?.[0]?.browser_download_url || release.html_url;
+          
+          // Trouver l'APK natif dans les assets
+          const apkAsset = release.assets?.find(a => 
+            a.name.endsWith('.apk') && a.name.includes('native')
+          ) || release.assets?.find(a => a.name.endsWith('.apk'));
+          
+          directDownloadUrl = apkAsset?.browser_download_url;
           const changelog = release.body;
           
-          if (latestVersion) {
-            compareVersions(latestVersion, downloadUrl, changelog);
+          if (latestVersion && directDownloadUrl) {
+            compareVersions(latestVersion, directDownloadUrl, changelog);
             foundVersion = true;
             return;
           }
@@ -340,44 +347,25 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         console.log('GitHub non disponible:', githubError.message);
       }
       
-      // Méthode 2: Essayer le serveur Freebox comme fallback
+      // Aucune source n'a fonctionné - proposer téléchargement direct
       if (!foundVersion) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
-          
-          const serverResponse = await fetch(
-            'http://88.174.155.230:33437/api/app/version',
-            { signal: controller.signal }
-          );
-          
-          clearTimeout(timeoutId);
-          
-          if (serverResponse.ok) {
-            const data = await serverResponse.json();
-            const latestVersion = data.version || data.latest_version;
-            
-            if (latestVersion) {
-              compareVersions(latestVersion, data.download_url, data.changelog);
-              foundVersion = true;
-              return;
-            }
-          }
-        } catch (serverError) {
-          console.log('Serveur Freebox non disponible:', serverError.message);
-        }
-      }
-      
-      // Aucune source n'a fonctionné - afficher lien vers les releases
-      if (!foundVersion) {
+        // Construire l'URL directe basée sur la version actuelle +1
+        const versionParts = CURRENT_VERSION.split('.');
+        const nextMinor = parseInt(versionParts[2] || 0) + 1;
+        const guessedVersion = `${versionParts[0]}.${versionParts[1]}.${nextMinor}`;
+        
         Alert.alert(
           '📥 Télécharger la dernière version',
-          `Version actuelle: ${CURRENT_VERSION}\n\nOuvrir la page des téléchargements ?`,
+          `Version actuelle: ${CURRENT_VERSION}\n\nVoulez-vous télécharger la dernière version ?`,
           [
             { text: 'Annuler', style: 'cancel' },
             { 
-              text: '📥 Voir les APK', 
-              onPress: () => Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases/latest')
+              text: '📥 Télécharger APK', 
+              onPress: () => {
+                // Lien direct vers le dernier APK
+                const directUrl = `https://github.com/davidc2115/Naruto-chabot/releases/latest/download/roleplay-chat-v${guessedVersion}-native.apk`;
+                Linking.openURL(directUrl);
+              }
             }
           ]
         );
@@ -386,12 +374,12 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
     } catch (error) {
       console.error('Erreur vérification mise à jour:', error);
       Alert.alert(
-        '📥 Télécharger la dernière version',
-        `Version actuelle: ${CURRENT_VERSION}\n\nOuvrir la page des téléchargements ?`,
+        '📥 Télécharger',
+        `Impossible de vérifier les mises à jour.\n\nTélécharger la dernière version ?`,
         [
           { text: 'Annuler', style: 'cancel' },
           { 
-            text: '📥 Voir les APK', 
+            text: '📥 Télécharger', 
             onPress: () => Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases/latest')
           }
         ]
@@ -428,14 +416,20 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
     if (needsUpdate) {
       Alert.alert(
         '🆕 Mise à jour disponible !',
-        `Version ${latestVersion} disponible\n(actuelle: ${CURRENT_VERSION})`,
+        `Version ${latestVersion} disponible\n(actuelle: ${CURRENT_VERSION})\n\nLe téléchargement va commencer...`,
         [
           { text: 'Plus tard', style: 'cancel' },
           { 
-            text: '📥 Télécharger', 
+            text: '📥 Télécharger APK', 
             onPress: () => {
-              // Ouvrir la page des releases GitHub
-              Linking.openURL('https://github.com/davidc2115/Naruto-chabot/releases/latest');
+              // Utiliser le lien direct de l'APK
+              if (downloadUrl && downloadUrl.endsWith('.apk')) {
+                Linking.openURL(downloadUrl);
+              } else {
+                // Fallback: construire l'URL directe
+                const directUrl = `https://github.com/davidc2115/Naruto-chabot/releases/download/v${latestVersion}/roleplay-chat-v${latestVersion}-native.apk`;
+                Linking.openURL(directUrl);
+              }
             }
           }
         ]
