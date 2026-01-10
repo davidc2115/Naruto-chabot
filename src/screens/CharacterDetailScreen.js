@@ -573,7 +573,6 @@ const styles = StyleSheet.create({
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
     marginBottom: 20,
   },
   tag: {
@@ -581,6 +580,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 15,
+    marginRight: 8,
+    marginBottom: 8,
   },
   tagText: {
     fontSize: 14,
@@ -710,7 +711,6 @@ const styles = StyleSheet.create({
   },
   customButtonsRow: {
     flexDirection: 'row',
-    gap: 10,
     marginTop: 10,
   },
   editButton: {
@@ -719,6 +719,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
+    marginRight: 10,
   },
   editButtonText: {
     fontSize: 16,
@@ -750,7 +751,6 @@ const styles = StyleSheet.create({
   },
   galleryPreview: {
     flexDirection: 'row',
-    gap: 10,
   },
   galleryThumbnail: {
     width: 100,
