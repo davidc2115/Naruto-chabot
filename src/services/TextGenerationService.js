@@ -685,17 +685,22 @@ FORMAT OBLIGATOIRE:
 
   /**
    * Génération avec Groq - NSFW ULTRA-PERMISSIF
+   * Système de rotation des clés robuste pour tous les utilisateurs
    */
   async generateWithGroq(messages, character, userProfile, retries) {
-    if (!this.apiKeys.groq || this.apiKeys.groq.length === 0) {
+    // Vérification des clés disponibles
+    const totalKeys = this.apiKeys.groq?.length || 0;
+    if (totalKeys === 0) {
       throw new Error('Aucune clé API Groq configurée. Ajoutez des clés dans les paramètres.');
     }
-
-    // Reset le compteur de clés au début de chaque requête
-    this.keysTriedThisRequest = 0;
     
-    // apiKey est maintenant une variable let pour pouvoir être mise à jour lors de la rotation
-    let apiKey = this.getCurrentKey('groq');
+    console.log(`🔑 ${totalKeys} clé(s) Groq disponible(s)`);
+
+    // Système de rotation robuste
+    let currentKeyIndex = this.currentKeyIndex.groq || 0;
+    let keysTriedCount = 0;
+    let apiKey = this.apiKeys.groq[currentKeyIndex];
+    
     const fullMessages = [];
     // Vérification NSFW robuste - vérifie plusieurs conditions
     const nsfwEnabled = userProfile?.nsfwMode === true || userProfile?.nsfwMode === 'true';
@@ -740,29 +745,31 @@ FORMAT OBLIGATOIRE:
     let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
     console.log(`🤖 Modèle sélectionné: ${model}`);
     
-    for (let attempt = 1; attempt <= retries; attempt++) {
+    // Boucle de tentatives avec rotation des clés
+    let attempt = 0;
+    const maxAttempts = retries * totalKeys; // Maximum = retries * nombre de clés
+    
+    while (attempt < maxAttempts) {
+      attempt++;
+      
       try {
         // Vérifier que nous avons une clé valide
         if (!apiKey) {
-          apiKey = this.getCurrentKey('groq');
-          if (!apiKey) {
-            throw new Error('Aucune clé API Groq disponible');
-          }
+          console.error('❌ Aucune clé API disponible');
+          throw new Error('Aucune clé API Groq disponible');
         }
         
-        console.log(`📡 [Groq] Tentative ${attempt}/${retries} avec ${model}`);
+        const keyDisplay = `clé ${currentKeyIndex + 1}/${totalKeys}`;
+        console.log(`📡 [Groq] Tentative ${attempt}/${maxAttempts} avec ${model} (${keyDisplay})`);
         
         const response = await axios.post(
           'https://api.groq.com/openai/v1/chat/completions',
           {
             model: model,
             messages: fullMessages,
-            // Température plus basse pour texte cohérent (0.8-0.9 = créatif mais cohérent)
             temperature: isNSFW ? 0.85 : 0.75,
             max_tokens: isNSFW ? 2000 : 1000,
-            // top_p légèrement réduit pour plus de cohérence
             top_p: isNSFW ? 0.92 : 0.88,
-            // Pénalités pour éviter les répétitions
             presence_penalty: 0.5,
             frequency_penalty: 0.6,
           },
@@ -785,72 +792,68 @@ FORMAT OBLIGATOIRE:
 
         // Vérifier si la réponse contient un refus
         const refusPatterns = [
-          'je ne peux pas',
-          'i cannot',
-          'i can\'t',
-          'inappropriate',
-          'not appropriate',
-          'as an ai',
-          'en tant qu\'ia',
-          'je refuse',
-          'i apologize',
-          'je m\'excuse',
-          'pas en mesure',
-          'unable to',
-          'policy',
-          'guidelines'
+          'je ne peux pas', 'i cannot', 'i can\'t', 'inappropriate',
+          'not appropriate', 'as an ai', 'en tant qu\'ia', 'je refuse',
+          'i apologize', 'je m\'excuse', 'pas en mesure', 'unable to',
+          'policy', 'guidelines'
         ];
         
         const contentLower = content.toLowerCase();
         const hasRefusal = refusPatterns.some(p => contentLower.includes(p));
         
-        if (hasRefusal && isNSFW && attempt < retries) {
+        if (hasRefusal && isNSFW && attempt < maxAttempts) {
           console.log('⚠️ Refus détecté, nouvelle tentative...');
-          // Rester sur le même modèle, juste réessayer
           continue;
         }
 
-        console.log('✅ [Groq] Réponse générée');
+        // Sauvegarder l'index de la clé qui a fonctionné
+        this.currentKeyIndex.groq = currentKeyIndex;
+        console.log(`✅ [Groq] Réponse générée avec clé ${currentKeyIndex + 1}`);
         return content.trim();
 
       } catch (error) {
         const errorStatus = error.response?.status;
         const errorMessage = error.response?.data?.error?.message || error.message;
-        console.error(`❌ [Groq] Tentative ${attempt} échouée (status ${errorStatus}):`, errorMessage);
+        console.error(`❌ [Groq] Échec (status ${errorStatus}): ${errorMessage}`);
         
-        // Gérer les erreurs de rate limit (429) ou clé invalide (401)
+        // Erreur de rate limit (429) ou clé invalide (401)
         if (errorStatus === 401 || errorStatus === 429) {
-          const totalKeys = this.getTotalKeys('groq');
-          const keysTriedInThisAttempt = (this.keysTriedThisRequest || 0) + 1;
-          this.keysTriedThisRequest = keysTriedInThisAttempt;
+          keysTriedCount++;
           
-          if (keysTriedInThisAttempt < totalKeys) {
-            // Essayer la prochaine clé - METTRE À JOUR apiKey
-            apiKey = this.rotateKey('groq');
-            console.log(`🔑 Tentative avec une autre clé (${keysTriedInThisAttempt + 1}/${totalKeys})`);
-            // Attendre un peu avant de réessayer
-            await new Promise(resolve => setTimeout(resolve, 500));
-            // Décrémenter attempt pour ne pas compter cette rotation comme une tentative
-            attempt--;
-            continue; // Réessayer avec la nouvelle clé
+          if (keysTriedCount < totalKeys) {
+            // Passer à la clé suivante
+            currentKeyIndex = (currentKeyIndex + 1) % totalKeys;
+            apiKey = this.apiKeys.groq[currentKeyIndex];
+            console.log(`🔄 Rotation vers clé ${currentKeyIndex + 1}/${totalKeys} (${keysTriedCount} clé(s) essayée(s))`);
+            await new Promise(resolve => setTimeout(resolve, 300));
+            continue;
           } else {
-            // Toutes les clés ont été essayées
-            this.keysTriedThisRequest = 0; // Reset pour la prochaine requête
-            if (errorStatus === 429) {
-              throw new Error(`⚠️ Limite de requêtes atteinte sur toutes les clés (${totalKeys}). Attendez quelques minutes.`);
+            // Toutes les clés ont été essayées pour cette erreur
+            // Reset le compteur et attendre plus longtemps
+            keysTriedCount = 0;
+            
+            if (attempt < maxAttempts) {
+              console.log(`⏳ Toutes les clés épuisées, attente de 5s avant réessai...`);
+              await new Promise(resolve => setTimeout(resolve, 5000));
+              // Reprendre avec la première clé
+              currentKeyIndex = 0;
+              apiKey = this.apiKeys.groq[currentKeyIndex];
+              continue;
             } else {
-              throw new Error(`❌ Toutes les clés API Groq (${totalKeys}) sont invalides.`);
+              const errorType = errorStatus === 429 ? 'Limite de requêtes' : 'Clés invalides';
+              throw new Error(`${errorType} sur toutes les ${totalKeys} clé(s). Attendez quelques minutes.`);
             }
           }
         }
         
-        if (attempt < retries) {
-          // En cas d'erreur, essayer le modèle de fallback
-          if (attempt === 1 && model !== this.fallbackModel) {
+        // Autres erreurs (réseau, timeout, etc.)
+        if (attempt < maxAttempts) {
+          // Essayer le modèle de fallback après quelques échecs
+          if (attempt === retries && model !== this.fallbackModel) {
             console.log(`⚠️ Tentative avec modèle de secours: ${this.fallbackModel}`);
             model = this.fallbackModel;
           }
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          await new Promise(resolve => setTimeout(resolve, 1000));
         } else {
           throw new Error(`Groq: ${errorMessage}`);
         }
