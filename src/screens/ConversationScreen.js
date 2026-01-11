@@ -513,101 +513,80 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   /**
-   * Formatage ULTRA-SIMPLE du texte RP
-   * Traite le texte caractère par caractère pour ne rien rater
+   * Détecte si un caractère est un astérisque (plusieurs variantes Unicode)
+   */
+  const isAsterisk = (char) => {
+    const asterisks = ['*', '\u002A', '\uFF0A', '\u2217', '\u204E', '\u2731', '\u273A', '\u273B', '\u273C', '\u273D', '\u2743'];
+    return asterisks.includes(char);
+  };
+
+  /**
+   * Formatage du texte RP avec support multi-astérisques
    */
   const formatRPMessage = (content) => {
     if (!content || typeof content !== 'string') {
       return [{ type: 'text', text: content || '' }];
     }
     
+    // ÉTAPE 1: Normaliser les astérisques - remplacer toutes les variantes par *
+    let normalizedContent = content;
+    const asteriskVariants = ['\uFF0A', '\u2217', '\u204E', '\u2731', '\u273A', '\u273B', '\u273C', '\u273D', '\u2743'];
+    asteriskVariants.forEach(variant => {
+      normalizedContent = normalizedContent.split(variant).join('*');
+    });
+    
+    // ÉTAPE 2: Utiliser une regex simple pour découper
     const result = [];
-    let current = '';
-    let i = 0;
     
-    while (i < content.length) {
-      const char = content[i];
-      
-      // Début d'une action *
-      if (char === '*') {
-        // Sauvegarder le texte courant
-        if (current.trim()) {
-          result.push({ type: 'text', text: current });
-          current = '';
-        }
-        
-        // Chercher la fin de l'action
-        let actionEnd = content.indexOf('*', i + 1);
-        
-        if (actionEnd !== -1 && actionEnd > i + 1) {
-          const actionText = content.substring(i, actionEnd + 1);
-          result.push({ type: 'action', text: actionText });
-          i = actionEnd + 1;
-          continue;
+    // Regex qui capture : *action*, (pensée), "dialogue", «dialogue»
+    const regex = /(\*[^*]+\*)|(\([^)]{2,}\))|(\"[^\"]+\")|(«[^»]+»)/g;
+    
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = regex.exec(normalizedContent)) !== null) {
+      // Texte avant le match
+      if (match.index > lastIndex) {
+        const beforeText = normalizedContent.substring(lastIndex, match.index);
+        if (beforeText.trim()) {
+          result.push({ type: 'text', text: beforeText });
         }
       }
       
-      // Début d'une pensée (
-      if (char === '(') {
-        // Sauvegarder le texte courant
-        if (current.trim()) {
-          result.push({ type: 'text', text: current });
-          current = '';
-        }
-        
-        // Chercher la fin de la pensée
-        let thoughtEnd = content.indexOf(')', i + 1);
-        
-        if (thoughtEnd !== -1 && (thoughtEnd - i) > 3) {
-          const thoughtText = content.substring(i, thoughtEnd + 1);
-          result.push({ type: 'thought', text: thoughtText });
-          i = thoughtEnd + 1;
-          continue;
-        }
+      const fullMatch = match[0];
+      
+      if (match[1]) {
+        // Action *texte*
+        result.push({ type: 'action', text: fullMatch });
+      } else if (match[2]) {
+        // Pensée (texte)
+        result.push({ type: 'thought', text: fullMatch });
+      } else if (match[3] || match[4]) {
+        // Dialogue "texte" ou «texte»
+        const dialogueText = fullMatch.slice(1, -1);
+        result.push({ type: 'dialogue', text: dialogueText });
       }
       
-      // Début d'un dialogue " « (guillemets droits et français seulement)
-      if (char === '"' || char === '«') {
-        // Sauvegarder le texte courant
-        if (current.trim()) {
-          result.push({ type: 'text', text: current });
-          current = '';
-        }
-        
-        // Chercher la fin du dialogue
-        let dialogueEnd = -1;
-        const closeChars = ['"', '»'];
-        for (let j = i + 1; j < content.length; j++) {
-          if (closeChars.includes(content[j])) {
-            dialogueEnd = j;
-            break;
-          }
-        }
-        
-        if (dialogueEnd !== -1) {
-          const dialogueText = content.substring(i + 1, dialogueEnd);
-          if (dialogueText.trim()) {
-            result.push({ type: 'dialogue', text: dialogueText });
-          }
-          i = dialogueEnd + 1;
-          continue;
-        }
-      }
-      
-      // Caractère normal
-      current += char;
-      i++;
+      lastIndex = match.index + fullMatch.length;
     }
     
-    // Ajouter le reste
-    if (current.trim()) {
-      result.push({ type: 'text', text: current });
+    // Texte après le dernier match
+    if (lastIndex < normalizedContent.length) {
+      const afterText = normalizedContent.substring(lastIndex);
+      if (afterText.trim()) {
+        result.push({ type: 'text', text: afterText });
+      }
     }
     
-    // Log pour debug
-    console.log('📝 Parsed message:', JSON.stringify(result.map(p => ({ t: p.type[0], txt: p.text.substring(0, 20) }))));
+    // Si aucun match, retourner le contenu original
+    if (result.length === 0) {
+      return [{ type: 'text', text: content }];
+    }
     
-    return result.length > 0 ? result : [{ type: 'text', text: content }];
+    // Debug log
+    console.log('📝 Parsed:', result.length, 'parts -', result.map(p => p.type[0]).join(','));
+    
+    return result;
   };
 
   const renderMessage = ({ item }) => {
@@ -644,26 +623,26 @@ export default function ConversationScreen({ route, navigation }) {
               {character.name}
             </Text>
           )}
-          <View style={styles.messageContent}>
+          <Text style={styles.messageContent}>
             {formattedParts.map((part, index) => {
               if (part.type === 'action') {
-                // ACTIONS: En ROUGE - couleur forcée inline
+                // ACTIONS: En ROUGE
                 return (
-                  <Text key={index} style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: '500' }}>
+                  <Text key={index} style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: 'bold' }}>
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'thought') {
-                // PENSÉES: En BLEU - couleur forcée inline
+                // PENSÉES: En BLEU
                 return (
                   <Text key={index} style={{ color: '#2563eb', fontStyle: 'italic' }}>
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
-                // PAROLES: Noir (personnage) ou Blanc (utilisateur)
+                // PAROLES: Noir ou Blanc
                 return (
-                  <Text key={index} style={{ color: isUser ? '#ffffff' : '#1f2937', fontWeight: '500' }}>
+                  <Text key={index} style={{ color: isUser ? '#ffffff' : '#1f2937' }}>
                     {part.text}
                   </Text>
                 );
@@ -676,7 +655,7 @@ export default function ConversationScreen({ route, navigation }) {
                 );
               }
             })}
-          </View>
+          </Text>
           <Text style={[styles.timestamp, { color: isUser ? 'rgba(255,255,255,0.7)' : '#9ca3af' }]}>
             {item.timestamp ? new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
           </Text>
@@ -1181,6 +1160,8 @@ const styles = StyleSheet.create({
   },
   messageContent: {
     marginBottom: 5,
+    fontSize: 15,
+    lineHeight: 22,
   },
   actionText: {
     fontSize: 14,
