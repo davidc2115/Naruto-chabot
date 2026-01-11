@@ -237,7 +237,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       
       // Sauvegarder localement
       const updatedProfile = { ...userProfile, nsfwMode: value };
-      await UserProfileService.saveProfile(updatedProfile);
+      await UserProfileService.updateProfile({ nsfwMode: value });
       
       // Sauvegarder sur le serveur
       await AuthService.updateProfile(updatedProfile);

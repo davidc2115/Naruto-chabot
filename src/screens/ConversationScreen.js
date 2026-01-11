@@ -175,7 +175,20 @@ export default function ConversationScreen({ route, navigation }) {
     try {
       const profile = await UserProfileService.getProfile();
       setUserProfile(profile);
-      console.log('✅ Profil utilisateur chargé');
+      console.log('✅ Profil utilisateur chargé:', JSON.stringify({
+        username: profile?.username,
+        nsfwMode: profile?.nsfwMode,
+        isAdult: profile?.isAdult,
+        age: profile?.age,
+        gender: profile?.gender
+      }));
+      
+      // Vérification NSFW détaillée
+      if (profile) {
+        const nsfwEnabled = profile.nsfwMode === true || profile.nsfwMode === 'true';
+        const isAdultUser = profile.isAdult === true || profile.isAdult === 'true' || (parseInt(profile.age) >= 18);
+        console.log(`🔞 NSFW Check: nsfwMode=${nsfwEnabled}, isAdult=${isAdultUser}, result=${nsfwEnabled && isAdultUser}`);
+      }
     } catch (error) {
       console.error('❌ Erreur chargement profil:', error);
     }
@@ -869,14 +882,25 @@ export default function ConversationScreen({ route, navigation }) {
       {relationship && (
         <View style={styles.relationshipBar}>
           <View style={styles.relationshipStat}>
-            <Text style={styles.relationshipLabel}>💫 Relation</Text>
-            <Text style={styles.relationshipValue}>Niv. {relationship.level}</Text>
+            <Text style={styles.relationshipLabel}>💫 Niv.{userLevel?.level || relationship.level || 1}</Text>
           </View>
           <View style={styles.relationshipStat}>
-            <Text style={styles.relationshipLabel}>💖 {relationship.affection}%</Text>
+            <View style={styles.statBarContainer}>
+              <Text style={styles.relationshipLabel}>Affection</Text>
+              <View style={styles.miniBarBg}>
+                <View style={[styles.miniBarFill, styles.affectionBar, { width: `${relationship.affection}%` }]} />
+              </View>
+              <Text style={styles.statPercent}>{relationship.affection}%</Text>
+            </View>
           </View>
           <View style={styles.relationshipStat}>
-            <Text style={styles.relationshipLabel}>🤝 {relationship.trust}%</Text>
+            <View style={styles.statBarContainer}>
+              <Text style={styles.relationshipLabel}>Confiance</Text>
+              <View style={styles.miniBarBg}>
+                <View style={[styles.miniBarFill, styles.trustBar, { width: `${relationship.trust}%` }]} />
+              </View>
+              <Text style={styles.statPercent}>{relationship.trust}%</Text>
+            </View>
           </View>
           <TouchableOpacity
             style={styles.galleryButton}
@@ -1091,6 +1115,32 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#e0e7ff',
     marginTop: 2,
+  },
+  statBarContainer: {
+    alignItems: 'center',
+  },
+  miniBarBg: {
+    width: 50,
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 3,
+    marginVertical: 2,
+    overflow: 'hidden',
+  },
+  miniBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  affectionBar: {
+    backgroundColor: '#f472b6',
+  },
+  trustBar: {
+    backgroundColor: '#34d399',
+  },
+  statPercent: {
+    fontSize: 9,
+    color: '#e0e7ff',
+    fontWeight: '600',
   },
   messagesList: {
     padding: 15,

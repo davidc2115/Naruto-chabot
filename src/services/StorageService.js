@@ -164,31 +164,84 @@ class StorageService {
   }
 
   calculateRelationshipChange(message, character) {
-    // Simple algorithm to adjust relationship based on interaction
+    // Algorithme amélioré basé sur le tempérament du personnage
     const messageLength = message.length;
-    const baseExp = Math.min(10, Math.floor(messageLength / 50));
+    const baseExp = Math.min(15, Math.floor(messageLength / 30) + 1);
     
     let affectionChange = 0;
     let trustChange = 0;
 
-    // Analyze message sentiment (simple keyword matching)
-    const positive = ['merci', 'super', 'génial', 'aime', 'adore', 'parfait', 'excellent'];
-    const negative = ['non', 'pas', 'jamais', 'déteste', 'arrête'];
+    // Mots-clés par catégorie
+    const affectionPositive = ['merci', 'super', 'génial', 'aime', 'adore', 'parfait', 'excellent', 'magnifique', 'belle', 'beau', 'sexy', 'attirant', 'désir', 'envie', 'plaisir', 'heureux', 'heureuse', 'content', 'contente', 'bisou', 'câlin', 'embrasse', 'caresse', 'tendresse', 'doux', 'douce'];
+    const affectionNegative = ['déteste', 'moche', 'laid', 'horrible', 'dégoûtant', 'ennuyeux', 'chiant', 'nul', 'nulle'];
+    const trustPositive = ['confiance', 'honnête', 'promis', 'jure', 'vérité', 'sincère', 'sérieux', 'fidèle', 'respecte', 'protège', 'soutien', 'aide', 'comprends', 'écoute'];
+    const trustNegative = ['menteur', 'menteuse', 'triche', 'trahis', 'abandonne', 'ignore', 'méprise'];
+    const intimateWords = ['embrasse', 'caresse', 'déshabille', 'touche', 'corps', 'peau', 'lèvres', 'baiser', 'lit', 'nuit', 'ensemble', 'proche', 'intime'];
     
     const lowerMessage = message.toLowerCase();
-    positive.forEach(word => {
-      if (lowerMessage.includes(word)) affectionChange += 2;
+    
+    // Calculer les changements d'affection
+    affectionPositive.forEach(word => {
+      if (lowerMessage.includes(word)) affectionChange += 3;
     });
-    negative.forEach(word => {
-      if (lowerMessage.includes(word)) affectionChange -= 1;
+    affectionNegative.forEach(word => {
+      if (lowerMessage.includes(word)) affectionChange -= 4;
+    });
+    
+    // Calculer les changements de confiance
+    trustPositive.forEach(word => {
+      if (lowerMessage.includes(word)) trustChange += 3;
+    });
+    trustNegative.forEach(word => {
+      if (lowerMessage.includes(word)) trustChange -= 5;
+    });
+    
+    // Bonus pour les messages intimes
+    intimateWords.forEach(word => {
+      if (lowerMessage.includes(word)) {
+        affectionChange += 2;
+        trustChange += 1;
+      }
     });
 
-    // Adjust based on character temperament
-    if (character.temperament === 'timide') {
-      trustChange = Math.floor(baseExp / 2);
-    } else if (character.temperament === 'direct') {
-      trustChange = baseExp;
+    // Ajuster selon le tempérament du personnage
+    const temperament = (character.temperament || character.personality || '').toLowerCase();
+    
+    if (temperament.includes('timide') || temperament.includes('shy')) {
+      // Les personnages timides gagnent la confiance lentement mais l'affection rapidement
+      trustChange = Math.floor(trustChange * 0.5);
+      affectionChange = Math.floor(affectionChange * 1.3);
+    } else if (temperament.includes('direct') || temperament.includes('bold') || temperament.includes('audacieux')) {
+      // Les personnages directs gagnent confiance rapidement
+      trustChange = Math.floor(trustChange * 1.5);
+    } else if (temperament.includes('séducteur') || temperament.includes('séductrice') || temperament.includes('charmeur')) {
+      // Les séducteurs réagissent plus à l'affection
+      affectionChange = Math.floor(affectionChange * 1.5);
+    } else if (temperament.includes('dominant') || temperament.includes('dominante')) {
+      // Les dominants demandent plus de confiance
+      trustChange = Math.floor(trustChange * 1.2);
+      affectionChange = Math.floor(affectionChange * 0.8);
+    } else if (temperament.includes('soumis') || temperament.includes('soumise')) {
+      // Les soumis gagnent l'affection très facilement
+      affectionChange = Math.floor(affectionChange * 1.5);
+      trustChange = Math.floor(trustChange * 1.2);
+    } else if (temperament.includes('mystérieux') || temperament.includes('mystérieuse')) {
+      // Les mystérieux sont difficiles à cerner
+      trustChange = Math.floor(trustChange * 0.6);
+      affectionChange = Math.floor(affectionChange * 0.8);
+    } else if (temperament.includes('passionné') || temperament.includes('passionnée')) {
+      // Les passionnés réagissent fortement
+      affectionChange = Math.floor(affectionChange * 1.8);
+      trustChange = Math.floor(trustChange * 1.3);
     }
+    
+    // Bonus de base pour chaque message (interaction = progression)
+    affectionChange += 1;
+    trustChange += 1;
+    
+    // Limiter les changements extrêmes
+    affectionChange = Math.max(-10, Math.min(15, affectionChange));
+    trustChange = Math.max(-10, Math.min(15, trustChange));
 
     return {
       expGain: baseExp,
