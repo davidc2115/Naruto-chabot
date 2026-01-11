@@ -734,16 +734,24 @@ FORMAT OBLIGATOIRE:
       });
     }
 
-    // Ajouter les messages de la conversation
-    const cleanedMessages = messages.map(msg => ({
+    // Ajouter les messages de la conversation (LIMITER pour éviter dépassement tokens)
+    // Garder seulement les 10 derniers messages pour éviter les erreurs de tokens
+    const maxMessages = 10;
+    const recentMessages = messages.slice(-maxMessages);
+    const cleanedMessages = recentMessages.map(msg => ({
       role: msg.role,
-      content: msg.content
+      content: msg.content.substring(0, 2000) // Limiter chaque message à 2000 caractères
     }));
     fullMessages.push(...cleanedMessages);
+    
+    console.log(`📝 ${cleanedMessages.length} messages (sur ${messages.length} total) envoyés`);
 
     // Modèle à utiliser (celui sélectionné par l'utilisateur)
     let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
     console.log(`🤖 Modèle sélectionné: ${model}`);
+    
+    // Tokens max pour la réponse (réduit pour éviter dépassement TPM)
+    let maxTokens = isNSFW ? 1200 : 800;
     
     // Boucle de tentatives avec rotation des clés
     let attempt = 0;
@@ -768,7 +776,7 @@ FORMAT OBLIGATOIRE:
             model: model,
             messages: fullMessages,
             temperature: isNSFW ? 0.85 : 0.75,
-            max_tokens: isNSFW ? 2000 : 1000,
+            max_tokens: maxTokens,
             top_p: isNSFW ? 0.92 : 0.88,
             presence_penalty: 0.5,
             frequency_penalty: 0.6,
@@ -815,6 +823,28 @@ FORMAT OBLIGATOIRE:
         const errorStatus = error.response?.status;
         const errorMessage = error.response?.data?.error?.message || error.message;
         console.error(`❌ [Groq] Échec (status ${errorStatus}): ${errorMessage}`);
+        
+        // Erreur "Request too large" - Réduire les tokens et réessayer
+        if (errorMessage && errorMessage.includes('Request too large')) {
+          console.log(`📉 Requête trop grande, réduction des tokens...`);
+          
+          // Réduire max_tokens de 30%
+          maxTokens = Math.max(400, Math.floor(maxTokens * 0.7));
+          console.log(`📝 Nouveaux max_tokens: ${maxTokens}`);
+          
+          // Réduire aussi l'historique si possible
+          if (fullMessages.length > 3) {
+            // Garder le system prompt et les 4 derniers messages
+            const systemMessages = fullMessages.filter(m => m.role === 'system');
+            const otherMessages = fullMessages.filter(m => m.role !== 'system').slice(-4);
+            fullMessages.length = 0;
+            fullMessages.push(...systemMessages, ...otherMessages);
+            console.log(`📝 Historique réduit à ${fullMessages.length} messages`);
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
         
         // Erreur de rate limit (429) ou clé invalide (401)
         if (errorStatus === 401 || errorStatus === 429) {
