@@ -15,6 +15,7 @@ import CustomCharacterService from '../services/CustomCharacterService';
 import GalleryService from '../services/GalleryService';
 import UserProfileService from '../services/UserProfileService';
 import AuthService from '../services/AuthService';
+import LevelService from '../services/LevelService';
 
 /**
  * Extrait un attribut physique depuis physicalDescription ou imagePrompt
@@ -98,6 +99,7 @@ export default function CharacterDetailScreen({ route, navigation }) {
     
     // Recharger la galerie quand on revient sur cet écran
     const unsubscribe = navigation.addListener('focus', () => {
+      loadCharacterData(); // Recharger les données de niveau
       loadGallery();
       loadUserProfile();
       checkPremiumStatus();
@@ -170,8 +172,23 @@ export default function CharacterDetailScreen({ route, navigation }) {
   };
 
   const loadCharacterData = async () => {
-    const rel = await StorageService.loadRelationship(character.id);
-    setRelationship(rel);
+    // Charger les données de niveau depuis LevelService (système principal)
+    try {
+      const levelData = await LevelService.getCharacterStats(character.id);
+      // Convertir en format relationship pour l'affichage
+      setRelationship({
+        level: levelData.level || 1,
+        affection: Math.min((levelData.level || 1) * 10, 100),
+        trust: Math.min((levelData.level || 1) * 8, 100),
+        interactions: levelData.totalMessages || 0,
+        experience: levelData.xp || 0,
+      });
+    } catch (error) {
+      console.log('Fallback sur StorageService:', error);
+      // Fallback sur l'ancien système
+      const rel = await StorageService.loadRelationship(character.id);
+      setRelationship(rel);
+    }
 
     const conv = await StorageService.loadConversation(character.id);
     setHasConversation(conv !== null && conv.messages.length > 0);
