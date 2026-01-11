@@ -505,8 +505,13 @@ export default function ConversationScreen({ route, navigation }) {
 
   const formatRPMessage = (content) => {
     const parts = [];
+    
+    // Regex améliorées pour capturer différents formats
+    // Actions: *texte* ou texte entre astérisques (y compris multilignes)
     const actionRegex = /\*([^*]+)\*/g;
-    const dialogueRegex = /"([^"]+)"/g;
+    // Dialogues: "texte" ou «texte» ou 'texte' (guillemets français et anglais)
+    const dialogueRegex = /["«»]([^"«»]+)["«»]|'([^']+)'/g;
+    // Pensées: (texte) entre parenthèses
     const thoughtRegex = /\(([^)]+)\)/g;
     
     let match;
@@ -514,19 +519,26 @@ export default function ConversationScreen({ route, navigation }) {
     
     // Parser les actions (entre astérisques)
     while ((match = actionRegex.exec(content)) !== null) {
-      allMatches.push({ type: 'action', text: match[1], index: match.index, length: match[0].length });
+      const text = match[1].trim();
+      if (text.length > 0) {
+        allMatches.push({ type: 'action', text: text, index: match.index, length: match[0].length });
+      }
     }
     
     // Parser les dialogues (entre guillemets)
     while ((match = dialogueRegex.exec(content)) !== null) {
-      allMatches.push({ type: 'dialogue', text: match[1], index: match.index, length: match[0].length });
+      const text = (match[1] || match[2] || '').trim();
+      if (text.length > 0) {
+        allMatches.push({ type: 'dialogue', text: text, index: match.index, length: match[0].length });
+      }
     }
     
     // Parser les pensées (entre parenthèses)
     while ((match = thoughtRegex.exec(content)) !== null) {
+      const text = match[1].trim();
       // Vérifier que ce n'est pas un texte trop court (éviter les faux positifs comme "(2)")
-      if (match[1].length > 5) {
-        allMatches.push({ type: 'thought', text: match[1], index: match.index, length: match[0].length });
+      if (text.length > 3) {
+        allMatches.push({ type: 'thought', text: text, index: match.index, length: match[0].length });
       }
     }
     
@@ -644,13 +656,45 @@ export default function ConversationScreen({ route, navigation }) {
                   </Text>
                 );
               } else {
-                // Texte normal
+                // Texte normal - vérifier s'il contient des * non parsés
+                const text = part.text;
+                
+                // Si le texte contient encore des *, les traiter comme des actions
+                if (text.includes('*')) {
+                  // Séparer par les * et alterner normal/action
+                  const segments = text.split(/(\*[^*]+\*)/g);
+                  return (
+                    <Text key={index}>
+                      {segments.map((segment, segIndex) => {
+                        if (segment.startsWith('*') && segment.endsWith('*') && segment.length > 2) {
+                          // C'est une action
+                          return (
+                            <Text key={segIndex} style={styles.actionText}>
+                              {segment}
+                            </Text>
+                          );
+                        } else if (segment.trim()) {
+                          return (
+                            <Text key={segIndex} style={[
+                              styles.normalText,
+                              { color: isUser ? '#ffffff' : '#4b5563' }
+                            ]}>
+                              {segment}
+                            </Text>
+                          );
+                        }
+                        return null;
+                      })}
+                    </Text>
+                  );
+                }
+                
                 return (
                   <Text key={index} style={[
                     styles.normalText, 
                     { color: isUser ? '#ffffff' : '#4b5563' }
                   ]}>
-                    {part.text}
+                    {text}
                   </Text>
                 );
               }

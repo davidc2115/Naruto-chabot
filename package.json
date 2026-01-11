@@ -1,6 +1,6 @@
 {
   "name": "roleplay-chat-app",
-  "version": "3.7.32",
+  "version": "3.7.33",
   "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
