@@ -620,52 +620,35 @@ export default function ConversationScreen({ route, navigation }) {
           <View style={styles.messageContent}>
             {formattedParts.map((part, index) => {
               if (part.type === 'action') {
-                if (isUser) {
-                  // UTILISATEUR: Actions avec *astérisques* en italique
-                  return (
-                    <Text key={index} style={[styles.actionText, { color: style.userText || '#fff' }]}>
-                      *{part.text}*
-                    </Text>
-                  );
-                } else {
-                  // PERSONNAGE: Actions en ROUGE sans décoration
-                  return (
-                    <Text key={index} style={[styles.actionText, { color: '#ef4444' }]}>
-                      {part.text}
-                    </Text>
-                  );
-                }
+                // ACTIONS: En ROUGE avec *astérisques* pour TOUS
+                return (
+                  <Text key={index} style={styles.actionText}>
+                    *{part.text}*
+                  </Text>
+                );
               } else if (part.type === 'thought') {
-                if (isUser) {
-                  // UTILISATEUR: Pensées avec (parenthèses)
-                  return (
-                    <Text key={index} style={[styles.thoughtText, { color: style.userText || '#fff' }]}>
-                      ({part.text})
-                    </Text>
-                  );
-                } else {
-                  // PERSONNAGE: Pensées en BLEU sans parenthèses
-                  return (
-                    <Text key={index} style={[styles.thoughtText, { color: '#3b82f6' }]}>
-                      {part.text}
-                    </Text>
-                  );
-                }
+                // PENSÉES: En BLEU avec (parenthèses) pour TOUS
+                return (
+                  <Text key={index} style={styles.thoughtText}>
+                    ({part.text})
+                  </Text>
+                );
               } else if (part.type === 'dialogue') {
-                // Paroles sans décoration (blanc pour tous)
+                // PAROLES: Blanc (utilisateur) ou Noir (personnage) SANS décoration
                 return (
                   <Text key={index} style={[
                     styles.dialogueText, 
-                    { color: isUser ? (style.userText || '#fff') : '#1f2937' }
+                    { color: isUser ? '#ffffff' : '#1f2937' }
                   ]}>
                     {part.text}
                   </Text>
                 );
               } else {
+                // Texte normal
                 return (
                   <Text key={index} style={[
                     styles.normalText, 
-                    { color: isUser ? (style.userText || '#fff') : (style.assistantText || '#4b5563') }
+                    { color: isUser ? '#ffffff' : '#4b5563' }
                   ]}>
                     {part.text}
                   </Text>
@@ -1176,12 +1159,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 3,
+    color: '#ef4444', // ROUGE pour les actions
+    fontWeight: '500',
   },
   thoughtText: {
     fontSize: 14,
     fontStyle: 'italic',
     marginBottom: 3,
-    opacity: 0.9,
+    color: '#3b82f6', // BLEU pour les pensées
+    opacity: 0.95,
   },
   dialogueText: {
     fontSize: 15,
