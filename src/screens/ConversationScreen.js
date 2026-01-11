@@ -513,11 +513,48 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   /**
-   * Formatage robuste du texte RP (gère multilignes)
-   * - *texte* = ACTION (rouge)
-   * - (texte) = PENSÉE (bleu)  
-   * - "texte" = PAROLE (noir/blanc)
-   * - reste = texte normal
+   * Parse un segment de texte pour extraire les *actions*
+   */
+  const parseTextSegment = (text) => {
+    if (!text || !text.trim()) return [];
+    
+    const parts = [];
+    const actionRegex = /\*([^*]+)\*/g;
+    let lastIdx = 0;
+    let m;
+    
+    while ((m = actionRegex.exec(text)) !== null) {
+      // Texte avant l'action
+      if (m.index > lastIdx) {
+        const before = text.substring(lastIdx, m.index);
+        if (before.trim()) {
+          parts.push({ type: 'text', text: before });
+        }
+      }
+      // L'action elle-même
+      parts.push({ type: 'action', text: m[0] });
+      lastIdx = m.index + m[0].length;
+    }
+    
+    // Texte après la dernière action
+    if (lastIdx < text.length) {
+      const after = text.substring(lastIdx);
+      if (after.trim()) {
+        parts.push({ type: 'text', text: after });
+      }
+    }
+    
+    // Si aucune action trouvée, retourner le texte original
+    if (parts.length === 0 && text.trim()) {
+      parts.push({ type: 'text', text: text });
+    }
+    
+    return parts;
+  };
+
+  /**
+   * Formatage robuste du texte RP
+   * STRATÉGIE: D'abord trouver toutes les *actions*, puis les pensées, puis les dialogues
    */
   const formatRPMessage = (content) => {
     if (!content || typeof content !== 'string') {
@@ -526,46 +563,67 @@ export default function ConversationScreen({ route, navigation }) {
     
     const parts = [];
     
-    // Regex avec flag 's' simulé via [\s\S] pour capturer multilignes
-    // Capture les *actions* même si elles contiennent des sauts de ligne
-    const mainRegex = /(\*[\s\S]*?\*)|\(([^)]{3,})\)|(["«][\s\S]*?["»])/g;
+    // ÉTAPE 1: Trouver toutes les *actions* d'abord (priorité maximale)
+    const actionRegex = /\*[^*]+\*/g;
+    const thoughtRegex = /\([^)]{3,}\)/g;
+    const dialogueRegex = /["«][^"«»]+["»]/g;
     
-    let lastIndex = 0;
-    let match;
+    // Collecter tous les matches avec leur position
+    const allMatches = [];
+    let m;
     
-    while ((match = mainRegex.exec(content)) !== null) {
-      // Ajouter le texte avant le match comme texte normal
-      if (match.index > lastIndex) {
-        const beforeText = content.substring(lastIndex, match.index);
-        if (beforeText.trim()) {
-          parts.push({ type: 'text', text: beforeText });
-        }
-      }
-      
-      const fullMatch = match[0];
-      
-      if (match[1]) {
-        // Action: *texte* - garder les astérisques, afficher en rouge
-        parts.push({ type: 'action', text: fullMatch });
-      } else if (match[2]) {
-        // Pensée: (texte) - garder les parenthèses, afficher en bleu
-        parts.push({ type: 'thought', text: '(' + match[2] + ')' });
-      } else if (match[3]) {
-        // Dialogue: "texte" - enlever les guillemets
-        const dialogueText = fullMatch.replace(/^["«]|["»]$/g, '').trim();
-        if (dialogueText) {
-          parts.push({ type: 'dialogue', text: dialogueText });
-        }
-      }
-      
-      lastIndex = match.index + fullMatch.length;
+    // Actions
+    while ((m = actionRegex.exec(content)) !== null) {
+      allMatches.push({ type: 'action', text: m[0], start: m.index, end: m.index + m[0].length });
     }
     
-    // Ajouter le reste du texte
-    if (lastIndex < content.length) {
-      const afterText = content.substring(lastIndex);
-      if (afterText.trim()) {
-        parts.push({ type: 'text', text: afterText });
+    // Pensées
+    while ((m = thoughtRegex.exec(content)) !== null) {
+      allMatches.push({ type: 'thought', text: m[0], start: m.index, end: m.index + m[0].length });
+    }
+    
+    // Dialogues
+    while ((m = dialogueRegex.exec(content)) !== null) {
+      const dialogueText = m[0].replace(/^["«]|["»]$/g, '').trim();
+      if (dialogueText) {
+        allMatches.push({ type: 'dialogue', text: dialogueText, start: m.index, end: m.index + m[0].length });
+      }
+    }
+    
+    // Trier par position
+    allMatches.sort((a, b) => a.start - b.start);
+    
+    // Supprimer les chevauchements (garder le premier trouvé)
+    const filtered = [];
+    for (const match of allMatches) {
+      const overlaps = filtered.some(f => 
+        (match.start >= f.start && match.start < f.end) ||
+        (match.end > f.start && match.end <= f.end)
+      );
+      if (!overlaps) {
+        filtered.push(match);
+      }
+    }
+    
+    // Construire les parts
+    let lastIdx = 0;
+    for (const match of filtered) {
+      // Texte avant ce match
+      if (match.start > lastIdx) {
+        const before = content.substring(lastIdx, match.start);
+        if (before.trim()) {
+          parts.push({ type: 'text', text: before });
+        }
+      }
+      parts.push({ type: match.type, text: match.text });
+      lastIdx = match.end;
+    }
+    
+    // Texte après le dernier match
+    if (lastIdx < content.length) {
+      const after = content.substring(lastIdx);
+      if (after.trim()) {
+        parts.push({ type: 'text', text: after });
       }
     }
     
