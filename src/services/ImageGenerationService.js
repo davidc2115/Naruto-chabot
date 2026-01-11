@@ -216,10 +216,10 @@ class ImageGenerationService {
       description += ', natural healthy skin';
     }
     
-    // === YEUX (utilise eyeColor en priorité) ===
-    const eyeColor = character.eyeColor?.toLowerCase() || '';
+    // === YEUX (utilise eyeColor en priorité, sinon extraction) ===
+    const eyeColor = character.eyeColor || this.extractFromAppearance(character, 'eyes');
     if (eyeColor) {
-      description += `, ${character.eyeColor} eyes`;
+      description += `, ${eyeColor} eyes`;
     } else if (appearance.includes('yeux bleu') || appearance.includes('blue eyes')) {
       description += ', bright blue eyes';
     } else if (appearance.includes('yeux vert') || appearance.includes('green eyes')) {
@@ -256,21 +256,26 @@ class ImageGenerationService {
       }
     }
     
-    // === BODY TYPE (utilise bodyType en priorité) ===
-    if (character.bodyType) {
-      const bodyType = character.bodyType.toLowerCase();
-      if (bodyType.includes('athléti') || bodyType.includes('muscl') || bodyType.includes('athletic')) {
+    // === BODY TYPE (utilise bodyType en priorité, sinon extraction) ===
+    const bodyType = character.bodyType || this.extractFromAppearance(character, 'body');
+    if (bodyType) {
+      const bodyTypeLower = bodyType.toLowerCase();
+      if (bodyTypeLower.includes('athléti') || bodyTypeLower.includes('muscl') || bodyTypeLower.includes('athletic')) {
         description += ', athletic toned muscular body';
-      } else if (bodyType.includes('voluptu') || bodyType.includes('curv') || bodyType.includes('généreus')) {
+      } else if (bodyTypeLower.includes('voluptu') || bodyTypeLower.includes('curv') || bodyTypeLower.includes('généreus')) {
         description += ', voluptuous curvy full-figured body';
-      } else if (bodyType.includes('élancé') || bodyType.includes('mince') || bodyType.includes('slim')) {
+      } else if (bodyTypeLower.includes('élancé') || bodyTypeLower.includes('mince') || bodyTypeLower.includes('slim')) {
         description += ', slim slender elegant body';
-      } else if (bodyType.includes('graci') || bodyType.includes('fine')) {
+      } else if (bodyTypeLower.includes('graci') || bodyTypeLower.includes('fine')) {
         description += ', graceful slender refined body';
-      } else if (bodyType.includes('puissant') || bodyType.includes('massif')) {
+      } else if (bodyTypeLower.includes('puissant') || bodyTypeLower.includes('massif')) {
         description += ', powerful massive muscular build';
+      } else if (bodyTypeLower.includes('ronde') || bodyTypeLower.includes('chubby') || bodyTypeLower.includes('plump')) {
+        description += ', curvy plump soft body';
+      } else if (bodyTypeLower.includes('matern') || bodyTypeLower.includes('maternel')) {
+        description += ', maternal soft curvy body';
       } else {
-        description += `, ${character.bodyType}`;
+        description += `, ${bodyType} body`;
       }
     }
     
@@ -295,14 +300,164 @@ class ImageGenerationService {
    * Extrait une information spécifique de l'apparence
    */
   extractFromAppearance(character, type) {
-    const text = ((character.appearance || '') + ' ' + (character.physicalDescription || '')).toLowerCase();
+    const text = ((character.appearance || '') + ' ' + (character.physicalDescription || '') + ' ' + (character.imagePrompt || '')).toLowerCase();
     
     if (type === 'hair') {
-      const hairColors = ['noir', 'black', 'brun', 'brown', 'blond', 'blonde', 'roux', 'red', 'auburn', 
-                          'châtain', 'gris', 'grey', 'gray', 'blanc', 'white', 'argenté', 'silver',
-                          'violet', 'purple', 'bleu', 'blue', 'vert', 'green', 'rose', 'pink'];
+      const hairColors = [
+        { key: 'platine', value: 'platinum blonde' },
+        { key: 'platinum', value: 'platinum blonde' },
+        { key: 'blond doré', value: 'golden blonde' },
+        { key: 'golden blonde', value: 'golden blonde' },
+        { key: 'blond cendré', value: 'ash blonde' },
+        { key: 'ash blonde', value: 'ash blonde' },
+        { key: 'blond miel', value: 'honey blonde' },
+        { key: 'honey blonde', value: 'honey blonde' },
+        { key: 'blonde', value: 'blonde' },
+        { key: 'blond', value: 'blonde' },
+        { key: 'roux flamboyant', value: 'fiery red' },
+        { key: 'fiery red', value: 'fiery red' },
+        { key: 'roux cuivré', value: 'copper red' },
+        { key: 'copper red', value: 'copper red' },
+        { key: 'rousse', value: 'red' },
+        { key: 'roux', value: 'red' },
+        { key: 'auburn', value: 'auburn' },
+        { key: 'brun chocolat', value: 'chocolate brown' },
+        { key: 'chocolate brown', value: 'chocolate brown' },
+        { key: 'brune', value: 'brunette' },
+        { key: 'brun', value: 'brown' },
+        { key: 'châtain', value: 'chestnut brown' },
+        { key: 'noir de jais', value: 'jet black' },
+        { key: 'jet black', value: 'jet black' },
+        { key: 'noire', value: 'black' },
+        { key: 'noir', value: 'black' },
+        { key: 'gris argenté', value: 'silver gray' },
+        { key: 'silver gray', value: 'silver gray' },
+        { key: 'argenté', value: 'silver' },
+        { key: 'silver', value: 'silver' },
+        { key: 'gris', value: 'gray' },
+        { key: 'grey', value: 'gray' },
+        { key: 'blanc', value: 'white' },
+        { key: 'white', value: 'white' },
+        { key: 'violet', value: 'purple' },
+        { key: 'purple', value: 'purple' },
+        { key: 'rose', value: 'pink' },
+        { key: 'pink', value: 'pink' },
+        { key: 'bleu', value: 'blue' },
+        { key: 'blue', value: 'blue' },
+        { key: 'vert', value: 'green' },
+        { key: 'green', value: 'green' },
+        { key: 'rouge vif', value: 'bright red' },
+        { key: 'bright red', value: 'bright red' },
+      ];
       for (const color of hairColors) {
-        if (text.includes(color)) return color;
+        if (text.includes(color.key)) return color.value;
+      }
+    }
+    
+    if (type === 'eyes') {
+      const eyeColors = [
+        { key: 'bleu clair', value: 'light blue' },
+        { key: 'bleu glacier', value: 'icy blue' },
+        { key: 'bleu électrique', value: 'electric blue' },
+        { key: 'blue eyes', value: 'blue' },
+        { key: 'bleus', value: 'blue' },
+        { key: 'bleu', value: 'blue' },
+        { key: 'vert émeraude', value: 'emerald green' },
+        { key: 'vert clair', value: 'light green' },
+        { key: 'green eyes', value: 'green' },
+        { key: 'verts', value: 'green' },
+        { key: 'vert', value: 'green' },
+        { key: 'noisette', value: 'hazel' },
+        { key: 'hazel', value: 'hazel' },
+        { key: 'ambre', value: 'amber' },
+        { key: 'amber', value: 'amber' },
+        { key: 'marron foncé', value: 'dark brown' },
+        { key: 'marron chaleureux', value: 'warm brown' },
+        { key: 'brown eyes', value: 'brown' },
+        { key: 'marron', value: 'brown' },
+        { key: 'gris acier', value: 'steel gray' },
+        { key: 'gray eyes', value: 'gray' },
+        { key: 'gris', value: 'gray' },
+        { key: 'noirs profonds', value: 'deep black' },
+        { key: 'black eyes', value: 'black' },
+        { key: 'noirs', value: 'black' },
+        { key: 'améthyste', value: 'purple amethyst' },
+        { key: 'violet', value: 'purple' },
+        { key: 'doré', value: 'golden' },
+        { key: 'golden', value: 'golden' },
+        { key: 'rouge', value: 'red' },
+        { key: 'red eyes', value: 'red' },
+      ];
+      for (const color of eyeColors) {
+        if (text.includes(color.key)) return color.value;
+      }
+    }
+    
+    if (type === 'bust') {
+      // Extraire la taille de bonnet du texte
+      const bustPatterns = [
+        { pattern: /bonnet\s*h/i, value: 'H' },
+        { pattern: /bonnet\s*g/i, value: 'G' },
+        { pattern: /bonnet\s*f/i, value: 'F' },
+        { pattern: /bonnet\s*e/i, value: 'E' },
+        { pattern: /bonnet\s*dd/i, value: 'DD' },
+        { pattern: /bonnet\s*d/i, value: 'D' },
+        { pattern: /bonnet\s*c/i, value: 'C' },
+        { pattern: /bonnet\s*b/i, value: 'B' },
+        { pattern: /bonnet\s*a/i, value: 'A' },
+        { pattern: /h\s*cup/i, value: 'H' },
+        { pattern: /g\s*cup/i, value: 'G' },
+        { pattern: /f\s*cup/i, value: 'F' },
+        { pattern: /e\s*cup/i, value: 'E' },
+        { pattern: /dd\s*cup/i, value: 'DD' },
+        { pattern: /d\s*cup/i, value: 'D' },
+        { pattern: /c\s*cup/i, value: 'C' },
+        { pattern: /b\s*cup/i, value: 'B' },
+        { pattern: /a\s*cup/i, value: 'A' },
+        { pattern: /énorme.*poitrine|huge.*breast|massive.*breast/i, value: 'H' },
+        { pattern: /très grosse.*poitrine|very large.*breast/i, value: 'G' },
+        { pattern: /grosse.*poitrine|large.*breast/i, value: 'F' },
+        { pattern: /généreuse.*poitrine|generous.*breast/i, value: 'E' },
+        { pattern: /poitrine.*généreuse/i, value: 'E' },
+        { pattern: /moyenne.*poitrine|medium.*breast/i, value: 'C' },
+        { pattern: /poitrine.*moyenne/i, value: 'C' },
+        { pattern: /petite.*poitrine|small.*breast/i, value: 'B' },
+        { pattern: /poitrine.*petite/i, value: 'B' },
+      ];
+      for (const p of bustPatterns) {
+        if (p.pattern.test(text)) return p.value;
+      }
+    }
+    
+    if (type === 'body') {
+      const bodyTypes = [
+        { key: 'très ronde', value: 'very curvy chubby' },
+        { key: 'very curvy', value: 'very curvy' },
+        { key: 'ronde', value: 'curvy plump' },
+        { key: 'chubby', value: 'chubby curvy' },
+        { key: 'voluptueuse', value: 'voluptuous curvy' },
+        { key: 'voluptuous', value: 'voluptuous' },
+        { key: 'pulpeuse', value: 'voluptuous full-figured' },
+        { key: 'généreuse', value: 'generous curvy' },
+        { key: 'curvy', value: 'curvy' },
+        { key: 'athlétique', value: 'athletic toned' },
+        { key: 'athletic', value: 'athletic' },
+        { key: 'musclée', value: 'muscular toned' },
+        { key: 'muscular', value: 'muscular' },
+        { key: 'tonique', value: 'toned fit' },
+        { key: 'toned', value: 'toned' },
+        { key: 'sportive', value: 'athletic sporty' },
+        { key: 'mince', value: 'slim slender' },
+        { key: 'slim', value: 'slim' },
+        { key: 'élancée', value: 'slender elegant' },
+        { key: 'slender', value: 'slender' },
+        { key: 'fine', value: 'slim petite' },
+        { key: 'petite', value: 'petite small' },
+        { key: 'maternelle', value: 'maternal soft' },
+        { key: 'maternal', value: 'maternal' },
+      ];
+      for (const bt of bodyTypes) {
+        if (text.includes(bt.key)) return bt.value;
       }
     }
     
@@ -315,8 +470,8 @@ class ImageGenerationService {
   buildAnatomyDescription(character, isRealistic = false) {
     let anatomy = '';
     
-    // === FEMMES - POITRINE (utilise bust OU bustSize) ===
-    const bustSize = character.bust || character.bustSize;
+    // === FEMMES - POITRINE (utilise bust OU bustSize OU extraction du texte) ===
+    let bustSize = character.bust || character.bustSize || this.extractFromAppearance(character, 'bust');
     if (character.gender === 'female' && bustSize) {
       const bustDetails = {
         'A': { size: 'small A cup breasts', details: 'petite chest, small perky bust, flat chested' },
