@@ -513,7 +513,7 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   /**
-   * Formatage simplifié et robuste du texte RP
+   * Formatage robuste du texte RP (gère multilignes)
    * - *texte* = ACTION (rouge)
    * - (texte) = PENSÉE (bleu)  
    * - "texte" = PAROLE (noir/blanc)
@@ -525,13 +525,10 @@ export default function ConversationScreen({ route, navigation }) {
     }
     
     const parts = [];
-    let remaining = content;
     
-    // Regex globale qui capture tous les patterns dans l'ordre
-    // Group 1: *action*
-    // Group 2: (pensée)
-    // Group 3: "dialogue" ou «dialogue»
-    const mainRegex = /(\*[^*]+\*)|(\([^)]{3,}\))|(["«][^"«»]+["»])/g;
+    // Regex avec flag 's' simulé via [\s\S] pour capturer multilignes
+    // Capture les *actions* même si elles contiennent des sauts de ligne
+    const mainRegex = /(\*[\s\S]*?\*)|\(([^)]{3,})\)|(["«][\s\S]*?["»])/g;
     
     let lastIndex = 0;
     let match;
@@ -548,15 +545,17 @@ export default function ConversationScreen({ route, navigation }) {
       const fullMatch = match[0];
       
       if (match[1]) {
-        // Action: *texte* - garder les astérisques pour l'affichage
+        // Action: *texte* - garder les astérisques, afficher en rouge
         parts.push({ type: 'action', text: fullMatch });
       } else if (match[2]) {
-        // Pensée: (texte) - garder les parenthèses pour l'affichage
-        parts.push({ type: 'thought', text: fullMatch });
+        // Pensée: (texte) - garder les parenthèses, afficher en bleu
+        parts.push({ type: 'thought', text: '(' + match[2] + ')' });
       } else if (match[3]) {
-        // Dialogue: "texte" - enlever les guillemets pour l'affichage
-        const dialogueText = fullMatch.replace(/^["«]|["»]$/g, '');
-        parts.push({ type: 'dialogue', text: dialogueText });
+        // Dialogue: "texte" - enlever les guillemets
+        const dialogueText = fullMatch.replace(/^["«]|["»]$/g, '').trim();
+        if (dialogueText) {
+          parts.push({ type: 'dialogue', text: dialogueText });
+        }
       }
       
       lastIndex = match.index + fullMatch.length;
