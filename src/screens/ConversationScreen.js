@@ -512,92 +512,61 @@ export default function ConversationScreen({ route, navigation }) {
     setChatStyle(newStyle);
   };
 
+  /**
+   * Formatage simplifié et robuste du texte RP
+   * - *texte* = ACTION (rouge)
+   * - (texte) = PENSÉE (bleu)  
+   * - "texte" = PAROLE (noir/blanc)
+   * - reste = texte normal
+   */
   const formatRPMessage = (content) => {
+    if (!content || typeof content !== 'string') {
+      return [{ type: 'text', text: content || '' }];
+    }
+    
     const parts = [];
+    let remaining = content;
     
-    // Regex améliorées pour capturer différents formats
-    // Actions: *texte* ou texte entre astérisques (y compris multilignes)
-    const actionRegex = /\*([^*]+)\*/g;
-    // Dialogues: "texte" ou «texte» ou 'texte' (guillemets français et anglais)
-    const dialogueRegex = /["«»]([^"«»]+)["«»]|'([^']+)'/g;
-    // Pensées: (texte) entre parenthèses
-    const thoughtRegex = /\(([^)]+)\)/g;
+    // Regex globale qui capture tous les patterns dans l'ordre
+    // Group 1: *action*
+    // Group 2: (pensée)
+    // Group 3: "dialogue" ou «dialogue»
+    const mainRegex = /(\*[^*]+\*)|(\([^)]{3,}\))|(["«][^"«»]+["»])/g;
     
+    let lastIndex = 0;
     let match;
-    const allMatches = [];
     
-    // Parser les actions (entre astérisques)
-    while ((match = actionRegex.exec(content)) !== null) {
-      const text = match[1].trim();
-      if (text.length > 0) {
-        allMatches.push({ type: 'action', text: text, index: match.index, length: match[0].length });
-      }
-    }
-    
-    // Parser les dialogues (entre guillemets)
-    while ((match = dialogueRegex.exec(content)) !== null) {
-      const text = (match[1] || match[2] || '').trim();
-      if (text.length > 0) {
-        allMatches.push({ type: 'dialogue', text: text, index: match.index, length: match[0].length });
-      }
-    }
-    
-    // Parser les pensées (entre parenthèses)
-    while ((match = thoughtRegex.exec(content)) !== null) {
-      const text = match[1].trim();
-      // Vérifier que ce n'est pas un texte trop court (éviter les faux positifs comme "(2)")
-      if (text.length > 3) {
-        allMatches.push({ type: 'thought', text: text, index: match.index, length: match[0].length });
-      }
-    }
-    
-    allMatches.sort((a, b) => a.index - b.index);
-    
-    // Supprimer les chevauchements (garder le match le plus long)
-    const filteredMatches = [];
-    for (let i = 0; i < allMatches.length; i++) {
-      const current = allMatches[i];
-      let isOverlapping = false;
-      
-      for (let j = 0; j < filteredMatches.length; j++) {
-        const existing = filteredMatches[j];
-        const currentEnd = current.index + current.length;
-        const existingEnd = existing.index + existing.length;
-        
-        // Vérifier le chevauchement
-        if (current.index < existingEnd && currentEnd > existing.index) {
-          isOverlapping = true;
-          // Garder le plus long
-          if (current.length > existing.length) {
-            filteredMatches[j] = current;
-          }
-          break;
+    while ((match = mainRegex.exec(content)) !== null) {
+      // Ajouter le texte avant le match comme texte normal
+      if (match.index > lastIndex) {
+        const beforeText = content.substring(lastIndex, match.index);
+        if (beforeText.trim()) {
+          parts.push({ type: 'text', text: beforeText });
         }
       }
       
-      if (!isOverlapping) {
-        filteredMatches.push(current);
+      const fullMatch = match[0];
+      
+      if (match[1]) {
+        // Action: *texte* - garder les astérisques pour l'affichage
+        parts.push({ type: 'action', text: fullMatch });
+      } else if (match[2]) {
+        // Pensée: (texte) - garder les parenthèses pour l'affichage
+        parts.push({ type: 'thought', text: fullMatch });
+      } else if (match[3]) {
+        // Dialogue: "texte" - enlever les guillemets pour l'affichage
+        const dialogueText = fullMatch.replace(/^["«]|["»]$/g, '');
+        parts.push({ type: 'dialogue', text: dialogueText });
       }
+      
+      lastIndex = match.index + fullMatch.length;
     }
     
-    filteredMatches.sort((a, b) => a.index - b.index);
-    
-    let currentIndex = 0;
-    filteredMatches.forEach(match => {
-      if (match.index > currentIndex) {
-        const text = content.substring(currentIndex, match.index).trim();
-        if (text) {
-          parts.push({ type: 'text', text });
-        }
-      }
-      parts.push({ type: match.type, text: match.text });
-      currentIndex = match.index + match.length;
-    });
-    
-    if (currentIndex < content.length) {
-      const text = content.substring(currentIndex).trim();
-      if (text) {
-        parts.push({ type: 'text', text });
+    // Ajouter le reste du texte
+    if (lastIndex < content.length) {
+      const afterText = content.substring(lastIndex);
+      if (afterText.trim()) {
+        parts.push({ type: 'text', text: afterText });
       }
     }
     
@@ -641,17 +610,17 @@ export default function ConversationScreen({ route, navigation }) {
           <View style={styles.messageContent}>
             {formattedParts.map((part, index) => {
               if (part.type === 'action') {
-                // ACTIONS: En ROUGE avec *astérisques* pour TOUS
+                // ACTIONS: En ROUGE (le texte inclut déjà les *)
                 return (
                   <Text key={index} style={styles.actionText}>
-                    *{part.text}*
+                    {part.text}
                   </Text>
                 );
               } else if (part.type === 'thought') {
-                // PENSÉES: En BLEU avec (parenthèses) pour TOUS
+                // PENSÉES: En BLEU (le texte inclut déjà les parenthèses)
                 return (
                   <Text key={index} style={styles.thoughtText}>
-                    ({part.text})
+                    {part.text}
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
@@ -665,45 +634,13 @@ export default function ConversationScreen({ route, navigation }) {
                   </Text>
                 );
               } else {
-                // Texte normal - vérifier s'il contient des * non parsés
-                const text = part.text;
-                
-                // Si le texte contient encore des *, les traiter comme des actions
-                if (text.includes('*')) {
-                  // Séparer par les * et alterner normal/action
-                  const segments = text.split(/(\*[^*]+\*)/g);
-                  return (
-                    <Text key={index}>
-                      {segments.map((segment, segIndex) => {
-                        if (segment.startsWith('*') && segment.endsWith('*') && segment.length > 2) {
-                          // C'est une action
-                          return (
-                            <Text key={segIndex} style={styles.actionText}>
-                              {segment}
-                            </Text>
-                          );
-                        } else if (segment.trim()) {
-                          return (
-                            <Text key={segIndex} style={[
-                              styles.normalText,
-                              { color: isUser ? '#ffffff' : '#4b5563' }
-                            ]}>
-                              {segment}
-                            </Text>
-                          );
-                        }
-                        return null;
-                      })}
-                    </Text>
-                  );
-                }
-                
+                // Texte normal
                 return (
                   <Text key={index} style={[
                     styles.normalText, 
                     { color: isUser ? '#ffffff' : '#4b5563' }
                   ]}>
-                    {text}
+                    {part.text}
                   </Text>
                 );
               }
