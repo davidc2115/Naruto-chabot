@@ -16,6 +16,72 @@ import GalleryService from '../services/GalleryService';
 import UserProfileService from '../services/UserProfileService';
 import AuthService from '../services/AuthService';
 
+/**
+ * Extrait un attribut physique depuis physicalDescription ou imagePrompt
+ */
+const extractAttribute = (character, type) => {
+  const text = ((character.physicalDescription || '') + ' ' + (character.appearance || '') + ' ' + (character.imagePrompt || '')).toLowerCase();
+  
+  if (type === 'hair') {
+    const patterns = [
+      { regex: /cheveux?\s+([\wéèêëàâäôöùûü\s-]+)/i, group: 1 },
+      { regex: /(blond[es]?|brun[es]?|roux?|rousse|noir[es]?|châtain|gris[es]?|argenté[es]?|blanc[hes]?|rose|violet[tes]?|bleu[es]?)\s*(cheveux|hair)?/i, group: 1 },
+      { regex: /(blonde|brunette|red|black|brown|gray|silver|white|pink|purple|blue)\s*hair/i, group: 1 },
+    ];
+    for (const p of patterns) {
+      const match = text.match(p.regex);
+      if (match) return match[p.group].trim();
+    }
+  }
+  
+  if (type === 'eyes') {
+    const patterns = [
+      { regex: /yeux\s+([\wéèêëàâäôöùûü\s-]+)/i, group: 1 },
+      { regex: /(bleu[s]?|vert[s]?|marron|noisette|gris|noir[s]?|ambre|doré[s]?|violet[s]?|rouge[s]?)\s*(yeux|eyes)?/i, group: 1 },
+      { regex: /(blue|green|brown|hazel|gray|black|amber|golden|purple|red)\s*eyes/i, group: 1 },
+    ];
+    for (const p of patterns) {
+      const match = text.match(p.regex);
+      if (match) return match[p.group].trim();
+    }
+  }
+  
+  if (type === 'height') {
+    const match = text.match(/(\d{2,3})\s*(cm|centimètres)/i);
+    if (match) return match[1] + ' cm';
+    // Estimer depuis description
+    if (text.includes('grande') || text.includes('tall')) return '175+ cm';
+    if (text.includes('petite') || text.includes('small')) return '155-160 cm';
+  }
+  
+  if (type === 'body') {
+    if (text.includes('athlétique') || text.includes('athletic') || text.includes('tonique')) return 'Athlétique';
+    if (text.includes('voluptueuse') || text.includes('voluptuous') || text.includes('pulpeuse')) return 'Voluptueuse';
+    if (text.includes('mince') || text.includes('slim') || text.includes('élancée')) return 'Mince et élancée';
+    if (text.includes('ronde') || text.includes('chubby') || text.includes('curvy')) return 'Ronde et généreuse';
+    if (text.includes('musclée') || text.includes('muscular')) return 'Musclée';
+    if (text.includes('maternelle') || text.includes('maternal')) return 'Maternelle';
+  }
+  
+  if (type === 'bust') {
+    const bustMatch = text.match(/bonnet\s*([A-H]{1,2})/i) || text.match(/([A-H])\s*cup/i);
+    if (bustMatch) return bustMatch[1].toUpperCase();
+    if (text.includes('énorme') || text.includes('massive') || text.includes('huge')) return 'H';
+    if (text.includes('très grosse') || text.includes('very large')) return 'G';
+    if (text.includes('grosse') || text.includes('large')) return 'F';
+    if (text.includes('généreuse') || text.includes('generous')) return 'E';
+    if (text.includes('moyenne') || text.includes('medium')) return 'C';
+    if (text.includes('petite poitrine') || text.includes('small breast')) return 'B';
+  }
+  
+  if (type === 'male') {
+    const match = text.match(/(\d{2})\s*(cm)?/);
+    if (match) return match[1];
+  }
+  
+  return null;
+};
+
 export default function CharacterDetailScreen({ route, navigation }) {
   const { character } = route.params;
   const [relationship, setRelationship] = useState(null);
@@ -319,42 +385,38 @@ export default function CharacterDetailScreen({ route, navigation }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✨ Apparence physique</Text>
           {/* Afficher la description principale */}
-          {(character.physicalDescription || character.appearance) ? (
+          {(character.physicalDescription || character.appearance) && (
             <Text style={styles.sectionContent}>
               {character.physicalDescription || character.appearance}
             </Text>
-          ) : (
-            // Construire une description à partir des champs disponibles
-            <Text style={styles.sectionContent}>
-              {[
-                character.gender === 'female' ? 'Femme' : character.gender === 'male' ? 'Homme' : 'Personne',
-                character.age ? `de ${character.age} ans` : null,
-                character.height ? `mesurant ${character.height}` : null,
-                character.bodyType ? `au corps ${character.bodyType}` : null,
-                character.hairColor || character.hairLength ? `cheveux ${[character.hairColor, character.hairLength].filter(Boolean).join(' ')}` : null,
-                character.eyeColor ? `yeux ${character.eyeColor}` : null,
-              ].filter(Boolean).join(', ') || 'Description non disponible'}
-            </Text>
           )}
-          {/* Détails supplémentaires */}
-          {character.hairColor && !character.appearance?.toLowerCase().includes('cheveux') && (
-            <Text style={styles.attributeDetail}>• Cheveux : {character.hairColor} {character.hairLength || ''}</Text>
-          )}
-          {character.eyeColor && !character.appearance?.toLowerCase().includes('yeux') && (
-            <Text style={styles.attributeDetail}>• Yeux : {character.eyeColor}</Text>
-          )}
-          {character.height && !character.appearance?.toLowerCase().includes('cm') && (
-            <Text style={styles.attributeDetail}>• Taille : {character.height}</Text>
-          )}
-          {character.bodyType && (
-            <Text style={styles.attributeDetail}>• Morphologie : {character.bodyType}</Text>
-          )}
-          {character.gender === 'female' && character.bust && (
-            <Text style={styles.attributeDetail}>• Poitrine : Bonnet {character.bust}</Text>
-          )}
-          {character.gender === 'male' && character.penis && (
-            <Text style={styles.attributeDetail}>• Attribut : {character.penis} cm</Text>
-          )}
+          {/* Toujours afficher les détails structurés */}
+          <View style={styles.attributesContainer}>
+            {/* Cheveux - depuis hairColor ou extraction */}
+            {(character.hairColor || extractAttribute(character, 'hair')) && (
+              <Text style={styles.attributeDetail}>• Cheveux : {character.hairColor || extractAttribute(character, 'hair')}</Text>
+            )}
+            {/* Yeux - depuis eyeColor ou extraction */}
+            {(character.eyeColor || extractAttribute(character, 'eyes')) && (
+              <Text style={styles.attributeDetail}>• Yeux : {character.eyeColor || extractAttribute(character, 'eyes')}</Text>
+            )}
+            {/* Taille */}
+            {(character.height || extractAttribute(character, 'height')) && (
+              <Text style={styles.attributeDetail}>• Taille : {character.height || extractAttribute(character, 'height')}</Text>
+            )}
+            {/* Morphologie */}
+            {(character.bodyType || extractAttribute(character, 'body')) && (
+              <Text style={styles.attributeDetail}>• Morphologie : {character.bodyType || extractAttribute(character, 'body')}</Text>
+            )}
+            {/* Poitrine pour femmes */}
+            {character.gender === 'female' && (character.bust || character.bustSize || extractAttribute(character, 'bust')) && (
+              <Text style={styles.attributeDetail}>• Poitrine : Bonnet {character.bust || character.bustSize || extractAttribute(character, 'bust')}</Text>
+            )}
+            {/* Attribut masculin */}
+            {character.gender === 'male' && (character.penis || character.maleSize || extractAttribute(character, 'male')) && (
+              <Text style={styles.attributeDetail}>• Attribut : {character.penis || character.maleSize || extractAttribute(character, 'male')} cm</Text>
+            )}
+          </View>
         </View>
 
         {character.outfit && (
@@ -707,11 +769,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  attributesContainer: {
+    marginTop: 12,
+    backgroundColor: '#f0f4ff',
+    borderRadius: 12,
+    padding: 12,
+  },
   attributeDetail: {
     fontSize: 14,
-    color: '#6366f1',
+    color: '#4f46e5',
     fontWeight: '600',
-    marginTop: 8,
+    marginBottom: 6,
+    paddingLeft: 4,
   },
   customButtonsRow: {
     flexDirection: 'row',
