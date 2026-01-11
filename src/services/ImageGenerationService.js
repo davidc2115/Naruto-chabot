@@ -79,6 +79,36 @@ class ImageGenerationService {
   }
 
   /**
+   * Parse l'âge du personnage (gère les formats fantastiques)
+   * Ex: "300 ans (apparence 25)" -> 25
+   * Ex: "42" -> 42
+   * Ex: "Immortelle (apparence 26)" -> 26
+   */
+  parseCharacterAge(ageValue) {
+    const ageStr = String(ageValue || '');
+    
+    // Chercher d'abord "apparence XX" pour les personnages fantastiques
+    const appearanceMatch = ageStr.match(/apparence\s*(\d+)/i);
+    if (appearanceMatch) {
+      return parseInt(appearanceMatch[1]);
+    }
+    
+    // Sinon prendre le premier nombre trouvé
+    const numMatch = ageStr.match(/(\d+)/);
+    if (numMatch) {
+      const age = parseInt(numMatch[1]);
+      // Si l'âge est > 100, c'est probablement un âge fantastique
+      // Utiliser une apparence raisonnable basée sur l'âge
+      if (age > 100) {
+        return Math.min(Math.max(Math.floor(age / 10), 20), 50);
+      }
+      return age;
+    }
+    
+    return 25; // Âge par défaut
+  }
+
+  /**
    * Choisit un style aléatoire (anime ou réaliste)
    * @returns {Object} { style: string, isRealistic: boolean }
    */
@@ -137,8 +167,24 @@ class ImageGenerationService {
       description += 'beautiful person, androgynous, non-binary appearance';
     }
     
-    // === ÂGE PRÉCIS ===
-    const age = parseInt(character.age) || 25;
+    // === ÂGE PRÉCIS (gère les formats comme "300 ans (apparence 25)") ===
+    let age = 25;
+    const ageStr = String(character.age || '');
+    // Chercher d'abord "apparence XX" pour les personnages fantastiques
+    const appearanceMatch = ageStr.match(/apparence\s*(\d+)/i);
+    if (appearanceMatch) {
+      age = parseInt(appearanceMatch[1]);
+    } else {
+      // Sinon prendre le premier nombre trouvé
+      const numMatch = ageStr.match(/(\d+)/);
+      if (numMatch) {
+        age = parseInt(numMatch[1]);
+        // Si l'âge est > 100, c'est probablement un âge fantastique, utiliser une apparence raisonnable
+        if (age > 100) {
+          age = Math.min(Math.max(Math.floor(age / 10), 20), 50);
+        }
+      }
+    }
     description += `, ${age} years old`;
     if (age >= 35 && age < 45) {
       description += ', mature adult, experienced, confident';
@@ -660,7 +706,8 @@ class ImageGenerationService {
    * Génère l'image du personnage (profil)
    */
   async generateCharacterImage(character, userProfile = null) {
-    const charAge = parseInt(character.age) || 25;
+    // Parser l'âge correctement (gère "300 ans (apparence 25)")
+    const charAge = this.parseCharacterAge(character.age);
     if (charAge < 18) {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
@@ -727,7 +774,8 @@ class ImageGenerationService {
    * Génère l'image de scène (conversation)
    */
   async generateSceneImage(character, userProfile = null, recentMessages = []) {
-    const charAge = parseInt(character.age) || 25;
+    // Parser l'âge correctement (gère "300 ans (apparence 25)")
+    const charAge = this.parseCharacterAge(character.age);
     if (charAge < 18) {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }

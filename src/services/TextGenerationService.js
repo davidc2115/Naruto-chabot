@@ -697,10 +697,17 @@ FORMAT OBLIGATOIRE:
     // apiKey est maintenant une variable let pour pouvoir être mise à jour lors de la rotation
     let apiKey = this.getCurrentKey('groq');
     const fullMessages = [];
-    const isNSFW = userProfile?.nsfwMode && userProfile?.isAdult;
+    // Vérification NSFW robuste - vérifie plusieurs conditions
+    const nsfwEnabled = userProfile?.nsfwMode === true || userProfile?.nsfwMode === 'true';
+    const isAdultUser = userProfile?.isAdult === true || userProfile?.isAdult === 'true' || (parseInt(userProfile?.age) >= 18);
+    const isNSFW = nsfwEnabled && isAdultUser;
 
     console.log(`🔞 Mode NSFW: ${isNSFW ? '✅ ACTIVÉ' : '❌ désactivé'}`);
-    console.log(`👤 Profile: nsfwMode=${userProfile?.nsfwMode}, isAdult=${userProfile?.isAdult}`);
+    console.log(`👤 Profile détaillé: nsfwMode=${userProfile?.nsfwMode} (type: ${typeof userProfile?.nsfwMode}), isAdult=${userProfile?.isAdult}, age=${userProfile?.age}`);
+    
+    if (userProfile && !isNSFW) {
+      console.log('⚠️ NSFW désactivé car:', !nsfwEnabled ? 'nsfwMode=false' : 'isAdult=false ou age<18');
+    }
 
     if (isNSFW) {
       console.log('🔥 JAILBREAK NSFW ULTRA-AGRESSIF ACTIVÉ');
