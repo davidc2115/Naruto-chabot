@@ -513,41 +513,33 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   /**
-   * Détecte si un caractère est un astérisque (plusieurs variantes Unicode)
-   */
-  const isAsterisk = (char) => {
-    const asterisks = ['*', '\u002A', '\uFF0A', '\u2217', '\u204E', '\u2731', '\u273A', '\u273B', '\u273C', '\u273D', '\u2743'];
-    return asterisks.includes(char);
-  };
-
-  /**
-   * Formatage du texte RP avec support multi-astérisques
+   * Formatage du texte RP - Version robuste
    */
   const formatRPMessage = (content) => {
     if (!content || typeof content !== 'string') {
       return [{ type: 'text', text: content || '' }];
     }
     
-    // ÉTAPE 1: Normaliser les astérisques - remplacer toutes les variantes par *
-    let normalizedContent = content;
-    const asteriskVariants = ['\uFF0A', '\u2217', '\u204E', '\u2731', '\u273A', '\u273B', '\u273C', '\u273D', '\u2743'];
-    asteriskVariants.forEach(variant => {
-      normalizedContent = normalizedContent.split(variant).join('*');
-    });
+    // ÉTAPE 1: Normaliser le contenu
+    let text = content;
     
-    // ÉTAPE 2: Utiliser une regex simple pour découper
+    // Remplacer les doubles astérisques par un espace entre
+    text = text.replace(/\*\*/g, '* *');
+    
+    // Ajouter un espace après * si suivi directement de texte sans espace
+    text = text.replace(/\*([A-Za-zÀ-ÿ])/g, '* $1');
+    
+    // ÉTAPE 2: Parser avec regex
     const result = [];
-    
-    // Regex qui capture : *action*, (pensée), "dialogue", «dialogue»
-    const regex = /(\*[^*]+\*)|(\([^)]{2,}\))|(\"[^\"]+\")|(«[^»]+»)/g;
+    const regex = /(\*[^*]+\*)|(\([^)]{2,}\))|(["«][^"»]+["»])/g;
     
     let lastIndex = 0;
     let match;
     
-    while ((match = regex.exec(normalizedContent)) !== null) {
+    while ((match = regex.exec(text)) !== null) {
       // Texte avant le match
       if (match.index > lastIndex) {
-        const beforeText = normalizedContent.substring(lastIndex, match.index);
+        const beforeText = text.substring(lastIndex, match.index);
         if (beforeText.trim()) {
           result.push({ type: 'text', text: beforeText });
         }
@@ -561,7 +553,7 @@ export default function ConversationScreen({ route, navigation }) {
       } else if (match[2]) {
         // Pensée (texte)
         result.push({ type: 'thought', text: fullMatch });
-      } else if (match[3] || match[4]) {
+      } else if (match[3]) {
         // Dialogue "texte" ou «texte»
         const dialogueText = fullMatch.slice(1, -1);
         result.push({ type: 'dialogue', text: dialogueText });
@@ -571,22 +563,14 @@ export default function ConversationScreen({ route, navigation }) {
     }
     
     // Texte après le dernier match
-    if (lastIndex < normalizedContent.length) {
-      const afterText = normalizedContent.substring(lastIndex);
+    if (lastIndex < text.length) {
+      const afterText = text.substring(lastIndex);
       if (afterText.trim()) {
         result.push({ type: 'text', text: afterText });
       }
     }
     
-    // Si aucun match, retourner le contenu original
-    if (result.length === 0) {
-      return [{ type: 'text', text: content }];
-    }
-    
-    // Debug log
-    console.log('📝 Parsed:', result.length, 'parts -', result.map(p => p.type[0]).join(','));
-    
-    return result;
+    return result.length > 0 ? result : [{ type: 'text', text: content }];
   };
 
   const renderMessage = ({ item }) => {
