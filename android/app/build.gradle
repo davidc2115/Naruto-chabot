@@ -170,8 +170,8 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     
-    // ONNX Runtime pour Stable Diffusion Local (optimisé mobile)
-    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.17.0'
+    // ONNX Runtime pour Stable Diffusion Local
+    implementation "com.microsoft.onnxruntime:onnxruntime-android:1.17.0"
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";

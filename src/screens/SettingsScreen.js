@@ -9,219 +9,200 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import GroqService from '../services/GroqService';
-import TextGenerationService from '../services/TextGenerationService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
+import TextGenerationService from '../services/TextGenerationService';
+import SyncService from '../services/SyncService';
+import AuthService from '../services/AuthService';
 import * as FileSystem from 'expo-file-system';
 
-export default function SettingsScreen({ navigation }) {
-  const [apiKeys, setApiKeys] = useState(['']);
+export default function SettingsScreen({ navigation, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
-  const [customImageApi, setCustomImageApi] = useState('');
-  const [useCustomImageApi, setUseCustomImageApi] = useState(false);
-  const [imageStrategy, setImageStrategy] = useState('freebox-first');
+  const [isAdmin, setIsAdmin] = useState(false);
   
-  // Configuration multi-providers pour génération de texte
-  const [textProvider, setTextProvider] = useState('groq');
-  const [availableProviders, setAvailableProviders] = useState([]);
-  const [providerApiKeys, setProviderApiKeys] = useState({
-    groq: [''],
-  });
-  const [testingProvider, setTestingProvider] = useState(null);
+  // Clés API Groq
+  const [groqApiKeys, setGroqApiKeys] = useState(['']);
+  const [testingApi, setTestingApi] = useState(false);
   
-  // Stable Diffusion Local
+  // Modèle Groq
+  const [groqModel, setGroqModel] = useState('llama-3.1-70b-versatile');
+  const [availableModels, setAvailableModels] = useState([]);
+  
+  // Configuration images
+  const [imageSource, setImageSource] = useState('freebox');
+  const [freeboxUrl, setFreeboxUrl] = useState('http://88.174.155.230:33437/generate');
+  
+  // SD Local
   const [sdAvailability, setSdAvailability] = useState(null);
   const [sdDownloading, setSdDownloading] = useState(false);
   const [sdDownloadProgress, setSdDownloadProgress] = useState(0);
+  
+  // Synchronisation
+  const [syncStatus, setSyncStatus] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const [serverStats, setServerStats] = useState(null);
 
   useEffect(() => {
-    loadSettings();
-    loadProfile();
-    loadImageApiConfig();
-    loadTextGenerationConfig();
-    checkSDAvailability();
+    loadAllSettings();
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       loadProfile();
+      checkSDAvailability();
     });
     return unsubscribe;
   }, [navigation]);
 
-  const loadSettings = async () => {
-    await GroqService.loadApiKeys();
-    if (GroqService.apiKeys.length > 0) {
-      setApiKeys(GroqService.apiKeys);
+  const loadAllSettings = async () => {
+    try {
+      // Vérifier si admin
+      const adminStatus = AuthService.isAdmin();
+      setIsAdmin(adminStatus);
+      console.log('👑 Admin status:', adminStatus);
+      
+      await loadProfile();
+      
+      // Charger les paramètres sensibles seulement si admin
+      if (adminStatus) {
+        await loadGroqKeys();
+        await loadGroqModel();
+        await loadImageConfig();
+        await checkSDAvailability();
+      }
+      await loadSyncStatus();
+    } catch (error) {
+      console.error('Erreur chargement paramètres:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const loadSyncStatus = async () => {
+    try {
+      await SyncService.init();
+      const status = await SyncService.getSyncStatus();
+      setSyncStatus(status);
+      
+      if (status.serverOnline) {
+        const stats = await SyncService.getServerStats();
+        setServerStats(stats);
+      }
+    } catch (error) {
+      console.error('Erreur vérification sync:', error);
+    }
+  };
+
+  const handleSyncUpload = async () => {
+    setSyncing(true);
+    try {
+      await SyncService.init();
+      await SyncService.syncUpload();
+      await loadSyncStatus();
+      Alert.alert('Succès', 'Données synchronisées avec le serveur !');
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de synchroniser: ' + error.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleSyncDownload = async () => {
+    Alert.alert(
+      'Restaurer les données',
+      'Cela remplacera vos données locales par celles du serveur. Continuer ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Restaurer',
+          onPress: async () => {
+            setSyncing(true);
+            try {
+              await SyncService.init();
+              const success = await SyncService.syncDownload();
+              if (success) {
+                await loadSyncStatus();
+                Alert.alert('Succès', 'Données restaurées depuis le serveur !');
+              } else {
+                Alert.alert('Info', 'Aucune donnée à restaurer sur le serveur.');
+              }
+            } catch (error) {
+              Alert.alert('Erreur', 'Impossible de restaurer: ' + error.message);
+            } finally {
+              setSyncing(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   const loadProfile = async () => {
-    const profile = await UserProfileService.getProfile();
-    setUserProfile(profile);
-  };
-
-  const loadImageApiConfig = async () => {
-    await CustomImageAPIService.loadConfig();
-    const hasApi = CustomImageAPIService.hasCustomApi();
-    const strategy = CustomImageAPIService.getStrategy();
-    
-    setUseCustomImageApi(hasApi);
-    setImageStrategy(strategy);
-    
-    if (hasApi) {
-      setCustomImageApi(CustomImageAPIService.getApiUrl());
-    } else {
-      // URL Freebox par défaut
-      setCustomImageApi('http://88.174.155.230:33437/generate');
+    try {
+      const profile = await UserProfileService.getProfile();
+      setUserProfile(profile);
+    } catch (error) {
+      console.error('Erreur chargement profil:', error);
     }
   };
 
-  const loadTextGenerationConfig = async () => {
+  const loadGroqKeys = async () => {
     try {
+      const saved = await AsyncStorage.getItem('groq_api_keys');
+      if (saved) {
+        const keys = JSON.parse(saved);
+        setGroqApiKeys(keys.length > 0 ? keys : ['']);
+      }
+    } catch (error) {
+      console.error('Erreur chargement clés Groq:', error);
+    }
+  };
+
+  const loadGroqModel = async () => {
+    try {
+      // Charger la config du service
       await TextGenerationService.loadConfig();
-      const providers = TextGenerationService.getAvailableProviders();
-      const currentProvider = TextGenerationService.getCurrentProvider();
       
-      setAvailableProviders(providers);
-      setTextProvider(currentProvider);
+      // Récupérer les modèles disponibles
+      const models = TextGenerationService.getAvailableGroqModels();
+      setAvailableModels(models);
       
-      // Charger les clés pour tous les providers qui en nécessitent
-      const newProviderKeys = {};
+      // Récupérer le modèle actuel
+      const currentModel = TextGenerationService.getGroqModel();
+      setGroqModel(currentModel);
       
-      providers.forEach(provider => {
-        if (provider.requiresApiKey) {
-          const keys = TextGenerationService.apiKeys[provider.id] || [];
-          newProviderKeys[provider.id] = keys.length > 0 ? keys : [''];
-        }
-      });
-      
-      setProviderApiKeys(newProviderKeys);
-      
-      console.log('✅ Config providers chargée:', currentProvider);
-      console.log('📋 Clés chargées pour:', Object.keys(newProviderKeys));
+      console.log('🤖 Modèles Groq chargés:', models.length);
+      console.log('🤖 Modèle actuel:', currentModel);
     } catch (error) {
-      console.error('Erreur chargement config text generation:', error);
+      console.error('Erreur chargement modèle Groq:', error);
     }
   };
 
-  const addKeyField = () => {
-    setApiKeys([...apiKeys, '']);
-  };
-
-  const removeKeyField = (index) => {
-    const newKeys = apiKeys.filter((_, i) => i !== index);
-    setApiKeys(newKeys.length === 0 ? [''] : newKeys);
-  };
-
-  const updateKey = (index, value) => {
-    const newKeys = [...apiKeys];
-    newKeys[index] = value;
-    setApiKeys(newKeys);
-  };
-
-  const saveSettings = async () => {
-    const validKeys = apiKeys.filter(key => key.trim() !== '');
-    
-    if (validKeys.length === 0) {
-      Alert.alert('Erreur', 'Veuillez ajouter au moins une clé API valide.');
-      return;
-    }
-
-    await GroqService.saveApiKeys(validKeys);
-    Alert.alert('Succès', `${validKeys.length} clé(s) API sauvegardée(s) avec succès!`);
-  };
-
-  const testKeys = async () => {
-    const validKeys = apiKeys.filter(key => key.trim() !== '');
-    
-    if (validKeys.length === 0) {
-      Alert.alert('Erreur', 'Veuillez ajouter au moins une clé API valide.');
-      return;
-    }
-
-    await GroqService.saveApiKeys(validKeys);
-    
+  const saveGroqModel = async (modelId) => {
     try {
-      const testMessage = [
-        { role: 'user', content: 'Dis bonjour en une phrase.' }
-      ];
-      
-      const testCharacter = {
-        name: 'Test',
-        appearance: 'Test',
-        personality: 'Test',
-        temperament: 'direct',
-        age: 25,
-        scenario: 'Test'
-      };
-
-      await GroqService.generateResponse(testMessage, testCharacter);
-      Alert.alert('Succès', 'Les clés API fonctionnent correctement!');
+      await TextGenerationService.setGroqModel(modelId);
+      setGroqModel(modelId);
+      Alert.alert('✅ Succès', `Modèle ${modelId} sélectionné !`);
     } catch (error) {
-      Alert.alert('Erreur', `Échec du test: ${error.message}`);
+      Alert.alert('❌ Erreur', error.message);
     }
   };
 
-  const saveImageApiConfig = async () => {
-    // Validation selon la stratégie
-    if ((imageStrategy === 'freebox-only' || imageStrategy === 'freebox-first') && customImageApi.trim() === '') {
-      Alert.alert('Erreur', 'Veuillez entrer une URL d\'API Freebox valide pour cette stratégie.');
-      return;
-    }
-
+  const loadImageConfig = async () => {
     try {
-      if (imageStrategy === 'local') {
-        // SD Local sur smartphone
-        await CustomImageAPIService.saveConfig('', 'local', 'local');
-        Alert.alert('✅ Succès', 'Stable Diffusion Local activé ! Téléchargez le modèle (450 MB) pour commencer.');
-      } else if (imageStrategy === 'pollinations-only') {
-        // Pollinations uniquement: pas besoin d'URL custom
-        await CustomImageAPIService.clearConfig();
-        // Mais sauvegarder la stratégie
-        await CustomImageAPIService.saveConfig('', 'pollinations', 'pollinations-only');
-        Alert.alert('✅ Succès', 'Pollinations.ai configuré comme source unique.');
-      } else {
-        // Freebox configuré
-        await CustomImageAPIService.saveConfig(customImageApi.trim(), 'freebox', imageStrategy);
-        
-        let message = '';
-        if (imageStrategy === 'freebox-only') {
-          message = 'API Freebox configurée comme source unique.';
-        } else if (imageStrategy === 'freebox-first') {
-          message = 'API Freebox configurée avec Pollinations en fallback.';
-        }
-        
-        Alert.alert('✅ Succès', message);
-      }
+      await CustomImageAPIService.loadConfig();
+      const strategy = CustomImageAPIService.getStrategy();
+      const url = CustomImageAPIService.getApiUrl();
       
-      await loadImageApiConfig();
-    } catch (error) {
-      Alert.alert('❌ Erreur', `Impossible de sauvegarder: ${error.message}`);
-    }
-  };
-
-  const testImageApi = async () => {
-    if (customImageApi.trim() === '') {
-      Alert.alert('Erreur', 'Veuillez entrer une URL d\'API.');
-      return;
-    }
-
-    try {
-      Alert.alert('Test en cours', 'Vérification de la connexion...');
-      const result = await CustomImageAPIService.testConnection(customImageApi.trim());
-      
-      if (result.success) {
-        Alert.alert('✅ Succès', 'Connexion à l\'API réussie !');
-      } else {
-        Alert.alert('❌ Échec', `Impossible de se connecter:\n${result.error}`);
+      setImageSource(strategy || 'freebox');
+      if (url) {
+        setFreeboxUrl(url);
       }
     } catch (error) {
-      Alert.alert('❌ Erreur', `Test échoué: ${error.message}`);
+      console.error('Erreur chargement config images:', error);
     }
   };
 
@@ -232,6 +213,98 @@ export default function SettingsScreen({ navigation }) {
       console.log('📱 SD Local availability:', availability);
     } catch (error) {
       console.error('❌ Error checking SD availability:', error);
+      setSdAvailability({ available: false, reason: error.message });
+    }
+  };
+
+  const saveGroqKeys = async () => {
+    try {
+      const validKeys = groqApiKeys.filter(key => key && key.trim() !== '');
+      
+      if (validKeys.length === 0) {
+        Alert.alert('Erreur', 'Veuillez ajouter au moins une clé API valide.');
+        return;
+      }
+
+      await AsyncStorage.setItem('groq_api_keys', JSON.stringify(validKeys));
+      Alert.alert('✅ Succès', `${validKeys.length} clé(s) API sauvegardée(s) !`);
+    } catch (error) {
+      Alert.alert('❌ Erreur', `Impossible de sauvegarder: ${error.message}`);
+    }
+  };
+
+  const testGroqKey = async () => {
+    const validKeys = groqApiKeys.filter(key => key && key.trim() !== '');
+    
+    if (validKeys.length === 0) {
+      Alert.alert('Erreur', 'Veuillez ajouter une clé API d\'abord.');
+      return;
+    }
+
+    setTestingApi(true);
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${validKeys[0]}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: 'Dis bonjour.' }],
+          max_tokens: 50,
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert('✅ Succès', 'La clé API fonctionne correctement !');
+      } else {
+        const error = await response.json();
+        Alert.alert('❌ Échec', `Erreur: ${error.error?.message || 'Clé invalide'}`);
+      }
+    } catch (error) {
+      Alert.alert('❌ Erreur', `Test échoué: ${error.message}`);
+    } finally {
+      setTestingApi(false);
+    }
+  };
+
+  const saveImageConfig = async () => {
+    try {
+      if (imageSource === 'local') {
+        await CustomImageAPIService.saveConfig('', 'local', 'local');
+        Alert.alert('✅ Succès', 'Stable Diffusion Local activé ! Téléchargez le modèle pour commencer.');
+      } else {
+        // Freebox
+        if (!freeboxUrl.trim()) {
+          Alert.alert('Erreur', 'Veuillez entrer l\'URL de la Freebox.');
+          return;
+        }
+        await CustomImageAPIService.saveConfig(freeboxUrl.trim(), 'freebox', 'freebox');
+        Alert.alert('✅ Succès', 'API Freebox configurée !');
+      }
+    } catch (error) {
+      Alert.alert('❌ Erreur', error.message);
+    }
+  };
+
+  const testFreeboxConnection = async () => {
+    if (!freeboxUrl.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer une URL.');
+      return;
+    }
+
+    try {
+      Alert.alert('Test en cours', 'Vérification de la connexion...');
+      const result = await CustomImageAPIService.testConnection(freeboxUrl.trim());
+      
+      if (result.success) {
+        Alert.alert('✅ Succès', 'Connexion à la Freebox réussie !');
+      } else {
+        Alert.alert('❌ Échec', `Impossible de se connecter:\n${result.error}`);
+      }
+    } catch (error) {
+      Alert.alert('❌ Erreur', `Test échoué: ${error.message}`);
     }
   };
 
@@ -242,7 +315,7 @@ export default function SettingsScreen({ navigation }) {
       
       Alert.alert(
         '📥 Téléchargement du modèle SD',
-        'Le téléchargement va commencer. Taille: ~450 MB\n\n⚠️ Assurez-vous d\'être connecté en WiFi.\n\nDurée estimée: 5-15 minutes',
+        'Le téléchargement va commencer.\nTaille: ~450 MB\n\n⚠️ Assurez-vous d\'être connecté en WiFi.',
         [
           { text: 'Annuler', style: 'cancel', onPress: () => setSdDownloading(false) },
           {
@@ -251,126 +324,81 @@ export default function SettingsScreen({ navigation }) {
               try {
                 console.log('📥 Début téléchargement modèle SD...');
                 
-                // URL du modèle - Utilisation d'une image de test pour validation
-                // TODO: Remplacer par le vrai modèle SD quand prêt
-                const modelUrl = 'https://raw.githubusercontent.com/onnx/models/main/README.md';
-                const modelPath = `${FileSystem.documentDirectory}sd_models/sd_turbo_test.onnx`;
-                
-                // Créer le dossier si nécessaire
+                // Créer le dossier
                 const modelDir = `${FileSystem.documentDirectory}sd_models/`;
                 const dirInfo = await FileSystem.getInfoAsync(modelDir);
                 if (!dirInfo.exists) {
-                  console.log('📁 Création dossier:', modelDir);
                   await FileSystem.makeDirectoryAsync(modelDir, { intermediates: true });
                 }
                 
-                console.log('🌐 URL:', modelUrl);
-                console.log('📂 Destination:', modelPath);
+                // URL du modèle (placeholder - sera remplacée par le vrai modèle)
+                const modelUrl = 'https://huggingface.co/stabilityai/sd-turbo/resolve/main/sd_turbo.safetensors';
+                const modelPath = `${modelDir}sd_turbo.safetensors`;
                 
-                Alert.alert(
-                  '⚠️ Mode Test',
-                  'Pour validation, un fichier de test sera téléchargé.\n\nLe modèle SD complet (1.7 GB) sera ajouté dans une prochaine version.\n\nContinuer ?',
-                  [
-                    { text: 'Annuler', style: 'cancel', onPress: () => { setSdDownloading(false); return; } },
-                    { 
-                      text: 'OK', 
-                      onPress: async () => {
-                        try {
-                          // Téléchargement avec progress
-                          const downloadResumable = FileSystem.createDownloadResumable(
-                            modelUrl,
-                            modelPath,
-                            {},
-                            (downloadProgress) => {
-                              if (downloadProgress.totalBytesExpectedToWrite > 0) {
-                                const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
-                                setSdDownloadProgress(progress);
-                                console.log(`📥 Progress: ${Math.round(progress)}% (${downloadProgress.totalBytesWritten}/${downloadProgress.totalBytesExpectedToWrite} bytes)`);
-                              } else {
-                                console.log(`📥 Téléchargé: ${downloadProgress.totalBytesWritten} bytes...`);
-                              }
-                            }
-                          );
-                          
-                          const result = await downloadResumable.downloadAsync();
+                console.log('🌐 Téléchargement depuis:', modelUrl);
                 
-                          if (result && result.uri) {
-                            console.log('✅ Téléchargement terminé:', result.uri);
-                            
-                            // Vérifier la taille du fichier
-                            const fileInfo = await FileSystem.getInfoAsync(result.uri);
-                            const sizeMB = fileInfo.size / 1024 / 1024;
-                            console.log('📊 Taille fichier:', sizeMB.toFixed(2), 'MB');
-                            
-                            setSdDownloading(false);
-                            setSdDownloadProgress(100);
-                            
-                            if (fileInfo.size === 0) {
-                              Alert.alert(
-                                '⚠️ Fichier vide',
-                                `Le téléchargement s'est terminé mais le fichier est vide (0 MB).\n\n` +
-                                `Causes possibles:\n` +
-                                `- URL incorrecte\n` +
-                                `- Serveur inaccessible\n` +
-                                `- Problème de connexion\n\n` +
-                                `Le modèle SD complet sera disponible dans une prochaine version.`
-                              );
-                            } else {
-                              Alert.alert(
-                                '✅ Téléchargement réussi !',
-                                `Fichier téléchargé avec succès.\n\nTaille: ${sizeMB.toFixed(2)} MB\n\n` +
-                                `📋 Note: C'est un fichier de test.\nLe vrai modèle SD-Turbo (1.7 GB) sera ajouté prochainement.`,
-                                [
-                                  { 
-                                    text: 'OK', 
-                                    onPress: () => {
-                                      checkSDAvailability();
-                                    } 
-                                  }
-                                ]
-                              );
-                            }
-                          } else {
-                            throw new Error('Téléchargement échoué: pas de résultat');
-                          }
-                        } catch (innerError) {
-                          console.error('❌ Erreur téléchargement inner:', innerError);
-                          setSdDownloading(false);
-                          setSdDownloadProgress(0);
-                          
-                          Alert.alert(
-                            '❌ Téléchargement échoué',
-                            `Erreur: ${innerError.message}\n\n` +
-                            `Réessayez plus tard.`
-                          );
-                        }
-                      }
+                const downloadResumable = FileSystem.createDownloadResumable(
+                  modelUrl,
+                  modelPath,
+                  {},
+                  (downloadProgress) => {
+                    if (downloadProgress.totalBytesExpectedToWrite > 0) {
+                      const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
+                      setSdDownloadProgress(progress);
                     }
-                  ]
+                  }
                 );
-                return; // Exit early after showing alert
+                
+                const result = await downloadResumable.downloadAsync();
+                
+                if (result && result.uri) {
+                  const fileInfo = await FileSystem.getInfoAsync(result.uri);
+                  const sizeMB = fileInfo.size / 1024 / 1024;
+                  
+                  setSdDownloading(false);
+                  setSdDownloadProgress(100);
+                  
+                  Alert.alert(
+                    '✅ Téléchargement réussi !',
+                    `Modèle téléchargé avec succès.\nTaille: ${sizeMB.toFixed(2)} MB`,
+                    [{ text: 'OK', onPress: () => checkSDAvailability() }]
+                  );
+                }
               } catch (error) {
-                console.error('❌ Erreur init:', error);
+                console.error('❌ Erreur téléchargement:', error);
                 setSdDownloading(false);
-                Alert.alert('❌ Erreur', error.message);
+                Alert.alert('❌ Erreur', `Téléchargement échoué: ${error.message}`);
               }
-              return; // Exit to avoid outer catch
             }
           }
         ]
       );
-      
     } catch (error) {
-      console.error('❌ Erreur init download:', error);
-      Alert.alert('❌ Erreur', error.message);
       setSdDownloading(false);
+      Alert.alert('❌ Erreur', error.message);
     }
+  };
+
+  const addKeyField = () => {
+    setGroqApiKeys([...groqApiKeys, '']);
+  };
+
+  const removeKeyField = (index) => {
+    const newKeys = groqApiKeys.filter((_, i) => i !== index);
+    setGroqApiKeys(newKeys.length === 0 ? [''] : newKeys);
+  };
+
+  const updateKey = (index, value) => {
+    const newKeys = [...groqApiKeys];
+    newKeys[index] = value;
+    setGroqApiKeys(newKeys);
   };
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <Text>Chargement...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6366f1" />
+        <Text style={styles.loadingText}>Chargement des paramètres...</Text>
       </View>
     );
   }
@@ -381,6 +409,7 @@ export default function SettingsScreen({ navigation }) {
         <Text style={styles.title}>Paramètres</Text>
       </View>
 
+      {/* PROFIL */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>👤 Mon Profil</Text>
         <TouchableOpacity
@@ -405,146 +434,55 @@ export default function SettingsScreen({ navigation }) {
             </View>
           )}
         </TouchableOpacity>
-        {!userProfile && (
-          <Text style={styles.profileHint}>
-            ℹ️ Un profil permet aux personnages de mieux vous connaître et d'adapter leurs réponses à vous !
-          </Text>
-        )}
+        
+        {/* Chat Premium pour Admin */}
+        <TouchableOpacity
+          style={styles.premiumChatButton}
+          onPress={() => navigation.navigate('PremiumChat')}
+        >
+          <Text style={styles.premiumChatIcon}>💬</Text>
+          <View style={styles.premiumChatContent}>
+            <Text style={styles.premiumChatTitle}>Chat Communautaire</Text>
+            <Text style={styles.premiumChatDesc}>Discuter avec les membres Premium</Text>
+          </View>
+          <Text style={styles.premiumChatArrow}>→</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* NOUVELLE SECTION: Sélecteur de Provider de Génération de Texte */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🤖 Moteur de Génération de Texte</Text>
-        <Text style={styles.sectionDescription}>
-          Choisissez le service d'IA pour générer les réponses des personnages. 
-          Testez plusieurs providers pour trouver le meilleur pour vos conversations.
-        </Text>
-
-        <View style={styles.providerContainer}>
-          {availableProviders.map((provider) => (
-            <TouchableOpacity
-              key={provider.id}
-              style={[
-                styles.providerOption,
-                textProvider === provider.id && styles.providerOptionSelected,
-              ]}
-              onPress={async () => {
-                setTextProvider(provider.id);
-                await TextGenerationService.setProvider(provider.id);
-                Alert.alert('✅ Provider changé', `${provider.name} activé`);
-              }}
-            >
-              <View style={styles.providerHeader}>
-                <View style={styles.providerRadio}>
-                  {textProvider === provider.id && <View style={styles.providerRadioSelected} />}
-                </View>
-                <View style={styles.providerInfo}>
-                  <Text style={styles.providerName}>{provider.name}</Text>
-                  {provider.uncensored && (
-                    <Text style={styles.providerBadge}>🔞 UNCENSORED</Text>
-                  )}
-                  {provider.id === 'kobold' && (
-                    <Text style={styles.providerBadgeFree}>💚 GRATUIT</Text>
-                  )}
-                  {provider.id === 'ollama' && (
-                    <Text style={styles.providerBadgeFreebox}>🏠 FREEBOX LOCAL</Text>
-                  )}
-                </View>
-              </View>
-              <Text style={styles.providerDescription}>{provider.description}</Text>
-              
-              {provider.requiresApiKey && (
-                <View style={styles.providerKeyInfo}>
-                  <Text style={styles.providerKeyText}>
-                    {TextGenerationService.hasApiKeys(provider.id) 
-                      ? '✅ Clés configurées' 
-                      : '⚠️ Clés API requises (voir ci-dessous)'}
-                  </Text>
-                </View>
-              )}
-              
-              {provider.requiresApiKey && (
-                <TouchableOpacity
-                  style={styles.providerTestButton}
-                  onPress={async () => {
-                    if (!TextGenerationService.hasApiKeys(provider.id)) {
-                      Alert.alert('❌ Erreur', `Veuillez d'abord configurer les clés API pour ${provider.name}`);
-                      return;
-                    }
-                    
-                    setTestingProvider(provider.id);
-                    try {
-                      const result = await TextGenerationService.testProvider(provider.id);
-                      if (result.success) {
-                        Alert.alert('✅ Succès', `${provider.name} fonctionne correctement!`);
-                      } else {
-                        Alert.alert('❌ Échec', `Test échoué:\n${result.error}`);
-                      }
-                    } catch (error) {
-                      Alert.alert('❌ Erreur', error.message);
-                    } finally {
-                      setTestingProvider(null);
-                    }
-                  }}
-                  disabled={testingProvider === provider.id}
-                >
-                  {testingProvider === provider.id ? (
-                    <ActivityIndicator color="#fff" size="small" />
-                  ) : (
-                    <Text style={styles.providerTestButtonText}>🧪 Tester</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Section Clés API pour chaque provider */}
-      {textProvider !== 'kobold' && (
+      {/* CLÉS API GROQ - Admin seulement */}
+      {isAdmin && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            🔑 Clés API - {availableProviders.find(p => p.id === textProvider)?.name}
-          </Text>
+          <View style={styles.adminBadge}>
+            <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
+          </View>
+          <Text style={styles.sectionTitle}>🔑 Clés API Groq</Text>
           <Text style={styles.sectionDescription}>
-            Ajoutez vos clés API pour {availableProviders.find(p => p.id === textProvider)?.name}. 
-            Vous pouvez ajouter plusieurs clés pour une rotation automatique.
+            Ajoutez vos clés API Groq pour la génération de texte. Gratuit sur console.groq.com
           </Text>
 
-          {textProvider === 'groq' && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>ℹ️ Obtenir une clé API gratuite:</Text>
-              <Text style={styles.infoSteps}>1. Visitez console.groq.com</Text>
-              <Text style={styles.infoSteps}>2. Créez un compte gratuit</Text>
-              <Text style={styles.infoSteps}>3. Générez une clé API</Text>
-              <Text style={styles.infoSteps}>4. Collez-la ci-dessous</Text>
-            </View>
-          )}
-          
-          {providerApiKeys[textProvider]?.map((key, index) => (
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>ℹ️ Comment obtenir une clé gratuite:</Text>
+            <Text style={styles.infoSteps}>1. Allez sur console.groq.com</Text>
+            <Text style={styles.infoSteps}>2. Créez un compte (gratuit)</Text>
+            <Text style={styles.infoSteps}>3. Créez une API Key</Text>
+            <Text style={styles.infoSteps}>4. Collez-la ci-dessous</Text>
+          </View>
+
+          {groqApiKeys.map((key, index) => (
             <View key={index} style={styles.keyInputContainer}>
               <TextInput
                 style={styles.keyInput}
                 placeholder={`Clé API ${index + 1}`}
                 value={key}
-                onChangeText={(value) => {
-                  const newKeys = { ...providerApiKeys };
-                  newKeys[textProvider][index] = value;
-                  setProviderApiKeys(newKeys);
-                }}
+                onChangeText={(value) => updateKey(index, value)}
                 autoCapitalize="none"
                 autoCorrect={false}
                 secureTextEntry={key.length > 0}
               />
-              {providerApiKeys[textProvider].length > 1 && (
+              {groqApiKeys.length > 1 && (
                 <TouchableOpacity
                   style={styles.removeButton}
-                  onPress={() => {
-                    const newKeys = { ...providerApiKeys };
-                    newKeys[textProvider] = newKeys[textProvider].filter((_, i) => i !== index);
-                    if (newKeys[textProvider].length === 0) newKeys[textProvider] = [''];
-                    setProviderApiKeys(newKeys);
-                  }}
+                  onPress={() => removeKeyField(index)}
                 >
                   <Text style={styles.removeButtonText}>✕</Text>
                 </TouchableOpacity>
@@ -552,393 +490,422 @@ export default function SettingsScreen({ navigation }) {
             </View>
           ))}
 
-          <TouchableOpacity 
-            style={styles.addButton} 
-            onPress={() => {
-              const newKeys = { ...providerApiKeys };
-              if (!newKeys[textProvider]) {
-                newKeys[textProvider] = [''];
-              }
-              newKeys[textProvider].push('');
-              setProviderApiKeys(newKeys);
-            }}
-          >
+          <TouchableOpacity style={styles.addButton} onPress={addKeyField}>
             <Text style={styles.addButtonText}>+ Ajouter une clé</Text>
           </TouchableOpacity>
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={styles.saveButton} 
-              onPress={async () => {
-                if (!providerApiKeys[textProvider]) {
-                  Alert.alert('Erreur', 'Erreur de configuration. Veuillez recharger l\'application.');
-                  return;
-                }
-                
-                const validKeys = providerApiKeys[textProvider].filter(key => key.trim() !== '');
-                
-                if (validKeys.length === 0) {
-                  Alert.alert('Erreur', 'Veuillez ajouter au moins une clé API valide.');
-                  return;
-                }
-
-                try {
-                  await TextGenerationService.saveApiKeys(textProvider, validKeys);
-                  Alert.alert('✅ Succès', `${validKeys.length} clé(s) API ${textProvider.toUpperCase()} sauvegardée(s)!`);
-                  await loadTextGenerationConfig(); // Recharger la config
-                } catch (error) {
-                  Alert.alert('❌ Erreur', `Impossible de sauvegarder: ${error.message}`);
-                }
-              }}
-            >
-              <Text style={styles.saveButtonText}>💾 Sauvegarder les clés</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {/* ANCIENNE SECTION GROQ - Gardée pour compatibilité mais masquée */}
-      <View style={[styles.section, { display: 'none' }]}>
-        <Text style={styles.sectionTitle}>🔑 Clés API Groq</Text>
-        <Text style={styles.sectionDescription}>
-          Ajoutez vos clés API Groq pour activer la génération de texte. Plus vous ajoutez de clés,
-          plus vous aurez de capacité de génération grâce à la rotation automatique.
-        </Text>
-
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>
-            ℹ️ Obtenir une clé API gratuite:
-          </Text>
-          <Text style={styles.infoSteps}>
-            1. Visitez console.groq.com
-          </Text>
-          <Text style={styles.infoSteps}>
-            2. Créez un compte gratuit
-          </Text>
-          <Text style={styles.infoSteps}>
-            3. Générez une clé API
-          </Text>
-          <Text style={styles.infoSteps}>
-            4. Collez-la ci-dessous
-          </Text>
-        </View>
-
-        {apiKeys.map((key, index) => (
-          <View key={index} style={styles.keyInputContainer}>
-            <TextInput
-              style={styles.keyInput}
-              placeholder={`Clé API ${index + 1}`}
-              value={key}
-              onChangeText={(value) => updateKey(index, value)}
-              autoCapitalize="none"
-              autoCorrect={false}
-              secureTextEntry={key.length > 0}
-            />
-            {apiKeys.length > 1 && (
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => removeKeyField(index)}
-              >
-                <Text style={styles.removeButtonText}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        ))}
-
-        <TouchableOpacity style={styles.addButton} onPress={addKeyField}>
-          <Text style={styles.addButtonText}>+ Ajouter une clé</Text>
-        </TouchableOpacity>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.testButton} onPress={testKeys}>
-            <Text style={styles.testButtonText}>🧪 Tester</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.saveButton} onPress={saveSettings}>
-            <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🖼️ API de Génération d'Images</Text>
-        <Text style={styles.sectionDescription}>
-          Choisissez la source pour générer les images de personnages et de scènes.
-        </Text>
-
-        {/* Stratégies de génération */}
-        <View style={styles.strategyContainer}>
-          <Text style={styles.strategyTitle}>📍 Source de génération:</Text>
-          
-          {/* Option 0: SD Local sur Smartphone (NOUVEAU) */}
-          <TouchableOpacity
-            style={[
-              styles.strategyOption,
-              imageStrategy === 'local' && styles.strategyOptionActive
-            ]}
-            onPress={() => setImageStrategy('local')}
-          >
-            <View style={styles.radioButton}>
-              {imageStrategy === 'local' && <View style={styles.radioButtonInner} />}
-            </View>
-            <View style={styles.strategyContent}>
-              <Text style={styles.strategyName}>📱 Local Smartphone (NOUVEAU) 🚀</Text>
-              <Text style={styles.strategyDescription}>
-                Stable Diffusion sur votre téléphone. Illimité, privé, offline ! (450 MB)
-              </Text>
-            </View>
-          </TouchableOpacity>
-          
-          {/* Option 1: Freebox + Pollinations (RECOMMANDÉ) */}
-          <TouchableOpacity
-            style={[
-              styles.strategyOption,
-              imageStrategy === 'freebox-first' && styles.strategyOptionActive
-            ]}
-            onPress={() => setImageStrategy('freebox-first')}
-          >
-            <View style={styles.radioButton}>
-              {imageStrategy === 'freebox-first' && <View style={styles.radioButtonInner} />}
-            </View>
-            <View style={styles.strategyContent}>
-              <Text style={styles.strategyName}>🏠 Freebox en premier (Recommandé)</Text>
-              <Text style={styles.strategyDescription}>
-                Essaie Freebox, puis Pollinations si échec. Meilleur des deux mondes !
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Option 2: Freebox uniquement */}
-          <TouchableOpacity
-            style={[
-              styles.strategyOption,
-              imageStrategy === 'freebox-only' && styles.strategyOptionActive
-            ]}
-            onPress={() => setImageStrategy('freebox-only')}
-          >
-            <View style={styles.radioButton}>
-              {imageStrategy === 'freebox-only' && <View style={styles.radioButtonInner} />}
-            </View>
-            <View style={styles.strategyContent}>
-              <Text style={styles.strategyName}>🏠 Freebox uniquement</Text>
-              <Text style={styles.strategyDescription}>
-                Uniquement API Freebox. Illimité mais nécessite que le serveur soit accessible.
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Option 3: Pollinations uniquement */}
-          <TouchableOpacity
-            style={[
-              styles.strategyOption,
-              imageStrategy === 'pollinations-only' && styles.strategyOptionActive
-            ]}
-            onPress={() => setImageStrategy('pollinations-only')}
-          >
-            <View style={styles.radioButton}>
-              {imageStrategy === 'pollinations-only' && <View style={styles.radioButtonInner} />}
-            </View>
-            <View style={styles.strategyContent}>
-              <Text style={styles.strategyName}>🌐 Pollinations uniquement</Text>
-              <Text style={styles.strategyDescription}>
-                Uniquement Pollinations.ai. Gratuit mais avec quotas.
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Configuration URL Freebox (si nécessaire) */}
-        {(imageStrategy === 'freebox-only' || imageStrategy === 'freebox-first') && (
-          <>
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                💡 Configuration API Freebox:
-              </Text>
-              <Text style={styles.infoSteps}>
-                IP: 88.174.155.230
-              </Text>
-              <Text style={styles.infoSteps}>
-                Port: 33437
-              </Text>
-              <Text style={styles.infoSteps}>
-                Status: {/* On pourrait ajouter un indicateur de status */}✅ En ligne
-              </Text>
-            </View>
-
-            <TextInput
-              style={styles.keyInput}
-              placeholder="URL de l'API Freebox"
-              value={customImageApi}
-              onChangeText={setCustomImageApi}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            <TouchableOpacity style={styles.testButton} onPress={testImageApi}>
-              <Text style={styles.testButtonText}>🧪 Tester la connexion Freebox</Text>
-            </TouchableOpacity>
-          </>
-        )}
-
-        {/* Info SD Local */}
-        {imageStrategy === 'local' && (
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              📱 Stable Diffusion Local
-            </Text>
-            <Text style={styles.infoSteps}>
-              ✅ Génération ILLIMITÉE sur votre téléphone
-            </Text>
-            <Text style={styles.infoSteps}>
-              🔒 100% PRIVÉ - Aucune donnée envoyée
-            </Text>
-            <Text style={styles.infoSteps}>
-              ⚡ Optimisé 8 GB RAM (15-30 sec/image)
-            </Text>
-            <Text style={styles.infoSteps}>
-              📦 Modèle: SD-Turbo ONNX (450 MB)
-            </Text>
-            <Text style={styles.infoSteps}>
-              🎨 Qualité: Hyper-réaliste + Anime
-            </Text>
-            <Text style={styles.infoSteps}>
-              ⚠️ Premier téléchargement: ~10 min (WiFi)
-            </Text>
-          </View>
-        )}
-        
-        {/* Info Pollinations */}
-        {imageStrategy === 'pollinations-only' && (
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              🌐 Pollinations.ai
-            </Text>
-            <Text style={styles.infoSteps}>
-              ✅ Génération gratuite
-            </Text>
-            <Text style={styles.infoSteps}>
-              ⚠️ Quotas limités (rate limiting possible)
-            </Text>
-            <Text style={styles.infoSteps}>
-              💡 Conseil: Utilisez "Freebox en premier" pour éviter les limites
-            </Text>
-          </View>
-        )}
-
-        {/* Bouton de sauvegarde */}
-        <TouchableOpacity style={styles.saveButton} onPress={saveImageApiConfig}>
-          <Text style={styles.saveButtonText}>💾 Sauvegarder la configuration</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* NOUVELLE SECTION: Téléchargement modèle SD Local */}
-      {imageStrategy === 'local' && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📥 Modèle Stable Diffusion Local</Text>
-          <Text style={styles.sectionDescription}>
-            Téléchargez le modèle SD-Turbo ONNX (450 MB) pour générer des images sur votre smartphone.
-          </Text>
-
-          {sdAvailability && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                📊 État du système:
-              </Text>
-              <Text style={styles.infoSteps}>
-                📱 RAM disponible: {sdAvailability.ramMB ? Math.round(sdAvailability.ramMB) : 'N/A'} MB
-              </Text>
-              <Text style={styles.infoSteps}>
-                {sdAvailability.canRunSD ? '✅ Compatible SD Local' : '⚠️ RAM insuffisante (min 2 GB)'}
-              </Text>
-              <Text style={styles.infoSteps}>
-                {sdAvailability.modelDownloaded 
-                  ? `✅ Modèle téléchargé (${Math.round(sdAvailability.modelSizeMB)} MB)` 
-                  : '❌ Modèle non téléchargé'}
-              </Text>
-            </View>
-          )}
-
-          {sdDownloading && (
-            <View style={styles.progressContainer}>
-              <Text style={styles.progressText}>
-                📥 Téléchargement en cours... {Math.round(sdDownloadProgress)}%
-              </Text>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
-              </View>
-            </View>
-          )}
-
-          <TouchableOpacity 
-            style={[
-              styles.downloadButton, 
-              (sdDownloading || (sdAvailability && sdAvailability.modelDownloaded)) && styles.downloadButtonDisabled
-            ]} 
-            onPress={downloadSDModel}
-            disabled={sdDownloading || (sdAvailability && sdAvailability.modelDownloaded)}
-          >
-            <Text style={styles.downloadButtonText}>
-              {sdDownloading 
-                ? '⏳ Téléchargement...' 
-                : (sdAvailability && sdAvailability.modelDownloaded)
-                  ? '✅ Modèle installé'
-                  : '📥 Télécharger le modèle (450 MB)'}
-            </Text>
-          </TouchableOpacity>
-
-          {sdAvailability && sdAvailability.modelDownloaded && (
+          <View style={styles.buttonRow}>
             <TouchableOpacity 
               style={styles.testButton} 
-              onPress={async () => {
-                try {
-                  const sysInfo = await StableDiffusionLocalService.getSystemInfo();
-                  Alert.alert(
-                    '📊 Infos Système',
-                    `RAM Max: ${Math.round(sysInfo.maxMemoryMB)} MB\n` +
-                    `RAM Utilisée: ${Math.round(sysInfo.usedMemoryMB)} MB\n` +
-                    `RAM Libre: ${Math.round(sysInfo.freeMemoryMB)} MB\n\n` +
-                    `${sysInfo.canRunSD ? '✅ Peut exécuter SD' : '⚠️ RAM insuffisante'}`
-                  );
-                } catch (error) {
-                  Alert.alert('❌ Erreur', error.message);
-                }
-              }}
+              onPress={testGroqKey}
+              disabled={testingApi}
             >
-              <Text style={styles.testButtonText}>📊 Infos Système</Text>
+              {testingApi ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.testButtonText}>🧪 Tester</Text>
+              )}
             </TouchableOpacity>
-          )}
+            <TouchableOpacity style={styles.saveButton} onPress={saveGroqKeys}>
+              <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Limites API Groq */}
+          <View style={styles.groqLimitsBox}>
+            <Text style={styles.groqLimitsTitle}>📊 Limites API Groq (Free Tier)</Text>
+            
+            <View style={styles.groqLimitsGrid}>
+              <View style={styles.groqLimitItem}>
+                <Text style={styles.groqLimitLabel}>🔑 Clés configurées</Text>
+                <Text style={styles.groqLimitValue}>
+                  {groqApiKeys.filter(k => k && k.trim()).length}
+                </Text>
+              </View>
+              
+              <View style={styles.groqLimitItem}>
+                <Text style={styles.groqLimitLabel}>⚡ Requêtes/min</Text>
+                <Text style={styles.groqLimitValue}>
+                  {30 * groqApiKeys.filter(k => k && k.trim()).length}
+                </Text>
+                <Text style={styles.groqLimitSub}>
+                  (30 × {groqApiKeys.filter(k => k && k.trim()).length} clés)
+                </Text>
+              </View>
+              
+              <View style={styles.groqLimitItem}>
+                <Text style={styles.groqLimitLabel}>📅 Requêtes/jour</Text>
+                <Text style={styles.groqLimitValue}>
+                  {(14400 * groqApiKeys.filter(k => k && k.trim()).length).toLocaleString('fr-FR')}
+                </Text>
+                <Text style={styles.groqLimitSub}>
+                  (14 400 × {groqApiKeys.filter(k => k && k.trim()).length} clés)
+                </Text>
+              </View>
+              
+              <View style={styles.groqLimitItem}>
+                <Text style={styles.groqLimitLabel}>📝 Tokens/min</Text>
+                <Text style={styles.groqLimitValue}>
+                  {(6000 * groqApiKeys.filter(k => k && k.trim()).length).toLocaleString('fr-FR')}
+                </Text>
+                <Text style={styles.groqLimitSub}>
+                  (6 000 × {groqApiKeys.filter(k => k && k.trim()).length} clés)
+                </Text>
+              </View>
+            </View>
+            
+            <View style={styles.groqLimitsNote}>
+              <Text style={styles.groqLimitsNoteText}>
+                💡 Ajoutez plus de clés pour augmenter les limites !
+                Chaque clé gratuite multiplie vos quotas.
+              </Text>
+            </View>
+            
+            {/* Fenêtre de contexte du modèle actuel */}
+            <View style={styles.groqContextInfo}>
+              <Text style={styles.groqContextLabel}>
+                🧠 Fenêtre de contexte ({groqModel.split('-')[0]}):
+              </Text>
+              <Text style={styles.groqContextValue}>
+                {availableModels.find(m => m.id === groqModel)?.contextWindow?.toLocaleString('fr-FR') || '128 000'} tokens
+              </Text>
+            </View>
+          </View>
+
+          {/* Sélection du modèle Groq */}
+          <View style={styles.modelSection}>
+            <Text style={styles.modelSectionTitle}>🤖 Modèle Groq</Text>
+            <Text style={styles.modelDescription}>
+              Sélectionnez le modèle IA pour les conversations
+            </Text>
+            
+            {availableModels.map((model) => (
+              <TouchableOpacity
+                key={model.id}
+                style={[
+                  styles.modelCard,
+                  groqModel === model.id && styles.modelCardActive
+                ]}
+                onPress={() => saveGroqModel(model.id)}
+              >
+                <View style={styles.modelRadio}>
+                  {groqModel === model.id && <View style={styles.modelRadioInner} />}
+                </View>
+                <View style={styles.modelContent}>
+                  <Text style={styles.modelName}>{model.name}</Text>
+                  <Text style={styles.modelDesc}>{model.description}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       )}
 
+      {/* GÉNÉRATION D'IMAGES - Admin seulement */}
+      {isAdmin && (
+        <View style={styles.section}>
+          <View style={styles.adminBadge}>
+            <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
+          </View>
+          <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
+          <Text style={styles.sectionDescription}>
+            Choisissez entre Freebox (serveur) ou SD Local (smartphone).
+          </Text>
+
+          {/* Option Freebox */}
+          <TouchableOpacity
+            style={[
+              styles.optionCard,
+              imageSource === 'freebox' && styles.optionCardActive
+            ]}
+            onPress={() => setImageSource('freebox')}
+          >
+            <View style={styles.radioButton}>
+              {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>🏠 Freebox (Recommandé)</Text>
+              <Text style={styles.optionDescription}>
+                Serveur Stable Diffusion sur Freebox. Rapide et illimité !
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Option SD Local */}
+          <TouchableOpacity
+            style={[
+              styles.optionCard,
+              imageSource === 'local' && styles.optionCardActive
+            ]}
+            onPress={() => setImageSource('local')}
+          >
+            <View style={styles.radioButton}>
+              {imageSource === 'local' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>📱 SD Local (Smartphone)</Text>
+              <Text style={styles.optionDescription}>
+                Génération sur téléphone. Offline, 100% privé.
+              </Text>
+              <Text style={styles.optionWarning}>⚠️ Pipeline en développement</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Configuration Freebox */}
+          {imageSource === 'freebox' && (
+            <View style={styles.configBox}>
+              <Text style={styles.configTitle}>Configuration Freebox:</Text>
+              <TextInput
+                style={styles.urlInput}
+                placeholder="http://88.174.155.230:33437/generate"
+                value={freeboxUrl}
+                onChangeText={setFreeboxUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
+                <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Configuration SD Local */}
+          {imageSource === 'local' && (
+            <View style={styles.configBox}>
+              <Text style={styles.configTitle}>📱 Stable Diffusion Local:</Text>
+              
+              {/* Avertissement */}
+              <View style={styles.warningBox}>
+                <Text style={styles.warningText}>
+                  ⚠️ Le pipeline ONNX complet n'est pas encore implémenté.
+                  Vous pouvez télécharger le modèle pour préparer l'utilisation future.
+                  En attendant, la Freebox sera utilisée comme fallback.
+                </Text>
+              </View>
+
+              {/* Statut détaillé */}
+              {sdAvailability && (
+                <View style={styles.sdInfoBox}>
+                  <Text style={styles.sdInfoTitle}>📊 Statut du module</Text>
+                  
+                  <Text style={styles.sdInfoText}>
+                    📱 Module natif: {sdAvailability.moduleLoaded ? '✅ Chargé' : '❌ Non chargé'}
+                    {sdAvailability.moduleVersion && ` (v${sdAvailability.moduleVersion})`}
+                  </Text>
+                  
+                  <Text style={styles.sdInfoText}>
+                    📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
+                    {sdAvailability.modelSizeMB > 0 && ` (${typeof sdAvailability.modelSizeMB === 'number' ? sdAvailability.modelSizeMB.toFixed(0) : sdAvailability.modelSizeMB} MB)`}
+                  </Text>
+                  
+                  {sdAvailability.deviceModel && (
+                    <Text style={styles.sdInfoText}>
+                      📲 Appareil: {sdAvailability.deviceModel} (Android {sdAvailability.androidVersion})
+                    </Text>
+                  )}
+                  
+                  {sdAvailability.ramMB > 0 && (
+                    <Text style={styles.sdInfoText}>
+                      🧠 RAM: {sdAvailability.ramMB.toFixed(0)} MB max
+                      {sdAvailability.canRunSD ? ' ✅' : ' ⚠️'}
+                    </Text>
+                  )}
+                  
+                  {sdAvailability.freeStorageMB > 0 && (
+                    <Text style={styles.sdInfoText}>
+                      💾 Stockage libre: {(sdAvailability.freeStorageMB / 1024).toFixed(1)} GB
+                    </Text>
+                  )}
+                  
+                  <View style={styles.sdStatusBadge}>
+                    <Text style={styles.sdStatusText}>
+                      {sdAvailability.reason || 'Vérification...'}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Barre de progression */}
+              {sdDownloading && (
+                <View style={styles.progressContainer}>
+                  <Text style={styles.progressText}>
+                    📥 Téléchargement... {Math.round(sdDownloadProgress)}%
+                  </Text>
+                  <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
+                  </View>
+                </View>
+              )}
+
+              {/* Bouton téléchargement */}
+              <TouchableOpacity 
+                style={[
+                  styles.downloadButton, 
+                  sdDownloading && styles.downloadButtonDisabled
+                ]} 
+                onPress={downloadSDModel}
+                disabled={sdDownloading}
+              >
+                <Text style={styles.downloadButtonText}>
+                  {sdDownloading 
+                    ? '⏳ Téléchargement en cours...' 
+                    : sdAvailability?.modelDownloaded
+                      ? '🔄 Re-télécharger le modèle'
+                      : '📥 Télécharger le modèle (~2.5 GB)'}
+                </Text>
+              </TouchableOpacity>
+              
+              <Text style={styles.sdNote}>
+                💡 Conseil: Utilisez la Freebox pour l'instant. Le SD Local sera fonctionnel dans une future mise à jour.
+              </Text>
+            </View>
+          )}
+
+          <TouchableOpacity style={styles.saveButton} onPress={saveImageConfig}>
+            <Text style={styles.saveButtonText}>💾 Sauvegarder la configuration</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* COMPTE - Admin seulement */}
+      {isAdmin && (
+        <View style={styles.section}>
+          <View style={styles.adminBadge}>
+            <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
+          </View>
+          <Text style={styles.sectionTitle}>👤 Compte Admin</Text>
+          
+          <View style={styles.accountBox}>
+            <Text style={styles.accountStatus}>
+              ✅ Connecté: {AuthService.getCurrentUser()?.email || 'Admin'}
+            </Text>
+            
+            <TouchableOpacity
+              style={[styles.accountButton, styles.logoutButton]}
+              onPress={() => {
+                Alert.alert(
+                  'Déconnexion',
+                  'Voulez-vous vraiment vous déconnecter ?',
+                  [
+                    { text: 'Annuler', style: 'cancel' },
+                    { 
+                      text: 'Déconnexion', 
+                      style: 'destructive',
+                      onPress: async () => {
+                        await AuthService.logout();
+                        // Appeler le callback pour retourner à l'écran de connexion
+                        if (onLogout) {
+                          onLogout();
+                        }
+                      }
+                    }
+                  ]
+                );
+              }}
+            >
+              <Text style={styles.accountButtonText}>🚪 Se déconnecter</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* SYNCHRONISATION FREEBOX - Admin seulement */}
+      {isAdmin && (
+        <View style={styles.section}>
+          <View style={styles.adminBadge}>
+            <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
+          </View>
+          <Text style={styles.sectionTitle}>☁️ Synchronisation Freebox</Text>
+          
+          <View style={styles.syncStatusBox}>
+            <View style={styles.syncStatusRow}>
+              <Text style={styles.syncLabel}>Serveur:</Text>
+              <Text style={[
+                styles.syncValue, 
+                { color: syncStatus?.serverOnline ? '#059669' : '#dc2626' }
+              ]}>
+                {syncStatus?.serverOnline ? '🟢 En ligne' : '🔴 Hors ligne'}
+              </Text>
+            </View>
+            
+            {syncStatus?.lastSync && (
+              <View style={styles.syncStatusRow}>
+                <Text style={styles.syncLabel}>Dernière sync:</Text>
+                <Text style={styles.syncValue}>
+                  {new Date(syncStatus.lastSync).toLocaleString('fr-FR')}
+                </Text>
+              </View>
+            )}
+            
+            {serverStats && (
+              <View style={styles.syncStatusRow}>
+                <Text style={styles.syncLabel}>Personnages publics:</Text>
+                <Text style={styles.syncValue}>{serverStats.publicCharacters || 0}</Text>
+              </View>
+            )}
+          </View>
+          
+          <View style={styles.syncButtons}>
+            <TouchableOpacity
+              style={[styles.syncButton, styles.syncUploadButton]}
+              onPress={handleSyncUpload}
+              disabled={syncing}
+            >
+              {syncing ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.syncButtonText}>📤 Sauvegarder</Text>
+              )}
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.syncButton, styles.syncDownloadButton]}
+              onPress={handleSyncDownload}
+              disabled={syncing}
+            >
+              {syncing ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.syncButtonText}>📥 Restaurer</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.syncHint}>
+            Synchronise tes personnages, conversations et paramètres avec ta Freebox.
+            Les personnages publics sont partagés avec la communauté.
+          </Text>
+        </View>
+      )}
+
+      {/* À PROPOS */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 1.0.0</Text>
-          <Text style={styles.aboutText}>
-            Application de roleplay conversationnel
-          </Text>
-          <Text style={styles.aboutText}>
-            200 personnages uniques
-          </Text>
-          <Text style={styles.aboutText}>
-            Système de relation dynamique
-          </Text>
-          <Text style={styles.aboutText}>
-            Génération d'images gratuite
-          </Text>
+          <Text style={styles.aboutText}>Version: 3.7.10</Text>
+          <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
+          <Text style={styles.aboutText}>400+ personnages disponibles</Text>
+          <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
+          <Text style={styles.aboutText}>Synchronisation Freebox + Personnages publics</Text>
+          <Text style={styles.aboutText}>Mode NSFW 100% français</Text>
         </View>
       </View>
 
+      {/* FONCTIONNALITÉS */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🎨 Fonctionnalités</Text>
         <View style={styles.featuresList}>
-          <Text style={styles.featureItem}>✓ Multi-clés Groq avec rotation automatique</Text>
-          <Text style={styles.featureItem}>✓ 200 personnages diversifiés</Text>
-          <Text style={styles.featureItem}>✓ Système de roleplay immersif</Text>
-          <Text style={styles.featureItem}>✓ Système d'expérience et d'affection</Text>
-          <Text style={styles.featureItem}>✓ Génération d'images illimitée</Text>
-          <Text style={styles.featureItem}>✓ Sauvegarde automatique des conversations</Text>
+          <Text style={styles.featureItem}>✓ Multi-clés Groq avec rotation</Text>
+          <Text style={styles.featureItem}>✓ Personnalisation des bulles de chat</Text>
+          <Text style={styles.featureItem}>✓ Mode NSFW pour adultes</Text>
+          <Text style={styles.featureItem}>✓ Génération d'images Freebox illimitée</Text>
+          <Text style={styles.featureItem}>✓ Option SD Local sur smartphone</Text>
+          <Text style={styles.featureItem}>✓ Galerie d'images par personnage</Text>
+          <Text style={styles.featureItem}>✓ Sauvegarde automatique</Text>
         </View>
       </View>
+
+      <View style={{ height: 50 }} />
     </ScrollView>
   );
 }
@@ -947,6 +914,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#6b7280',
   },
   header: {
     padding: 20,
@@ -1032,7 +1010,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#6366f1',
   },
-  buttonContainer: {
+  buttonRow: {
     flexDirection: 'row',
     gap: 10,
   },
@@ -1042,6 +1020,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   testButtonText: {
     fontSize: 16,
@@ -1049,6 +1028,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   saveButton: {
+    flex: 1,
     backgroundColor: '#6366f1',
     borderRadius: 10,
     padding: 15,
@@ -1060,53 +1040,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
-  downloadButton: {
-    backgroundColor: '#10b981',
-    borderRadius: 10,
-    padding: 15,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  downloadButtonDisabled: {
-    backgroundColor: '#9ca3af',
-  },
-  downloadButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  progressContainer: {
-    marginTop: 15,
-    marginBottom: 10,
-  },
-  progressText: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#e5e7eb',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#10b981',
-    borderRadius: 4,
-  },
-  strategyContainer: {
-    marginTop: 15,
-    marginBottom: 15,
-  },
-  strategyTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 12,
-  },
-  strategyOption: {
+  optionCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: '#f9fafb',
@@ -1116,7 +1050,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#e5e7eb',
   },
-  strategyOptionActive: {
+  optionCardActive: {
     borderColor: '#6366f1',
     backgroundColor: '#eef2ff',
   },
@@ -1137,19 +1071,149 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#6366f1',
   },
-  strategyContent: {
+  optionContent: {
     flex: 1,
   },
-  strategyName: {
+  optionTitle: {
     fontSize: 15,
     fontWeight: '600',
     color: '#1f2937',
     marginBottom: 4,
   },
-  strategyDescription: {
+  optionDescription: {
     fontSize: 13,
     color: '#6b7280',
     lineHeight: 18,
+  },
+  configBox: {
+    backgroundColor: '#f0f9ff',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  configTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0369a1',
+    marginBottom: 10,
+  },
+  urlInput: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 13,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 10,
+  },
+  testButtonSmall: {
+    backgroundColor: '#0ea5e9',
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+  },
+  testButtonSmallText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  sdInfoBox: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  sdInfoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  sdInfoText: {
+    fontSize: 12,
+    color: '#374151',
+    marginBottom: 4,
+  },
+  sdStatusBadge: {
+    backgroundColor: '#f0f9ff',
+    padding: 8,
+    borderRadius: 6,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+  },
+  sdStatusText: {
+    fontSize: 12,
+    color: '#0369a1',
+    textAlign: 'center',
+  },
+  sdInfoWarning: {
+    fontSize: 13,
+    color: '#dc2626',
+    marginTop: 5,
+  },
+  progressContainer: {
+    marginBottom: 10,
+  },
+  progressText: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#10b981',
+    borderRadius: 4,
+  },
+  downloadButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  downloadButtonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  downloadButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  optionWarning: {
+    fontSize: 11,
+    color: '#dc2626',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  warningBox: {
+    backgroundColor: '#fef3c7',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+  },
+  warningText: {
+    fontSize: 12,
+    color: '#92400e',
+    lineHeight: 18,
+  },
+  sdNote: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 10,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   aboutBox: {
     backgroundColor: '#f3f4f6',
@@ -1160,6 +1224,91 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#4b5563',
     marginBottom: 8,
+  },
+  // Styles synchronisation
+  syncStatusBox: {
+    backgroundColor: '#f3f4f6',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  syncStatusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  syncLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  syncValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  syncButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 15,
+  },
+  syncButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  syncUploadButton: {
+    backgroundColor: '#6366f1',
+  },
+  syncDownloadButton: {
+    backgroundColor: '#10b981',
+  },
+  syncButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  syncHint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  // Styles compte
+  accountBox: {
+    backgroundColor: '#f3f4f6',
+    padding: 15,
+    borderRadius: 10,
+  },
+  accountStatus: {
+    fontSize: 14,
+    color: '#374151',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  accountButton: {
+    padding: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  loginButton: {
+    backgroundColor: '#6366f1',
+  },
+  logoutButton: {
+    backgroundColor: '#ef4444',
+  },
+  accountButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  accountHint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    lineHeight: 18,
   },
   featuresList: {
     backgroundColor: '#f3f4f6',
@@ -1205,143 +1354,188 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6b7280',
   },
-  profileHint: {
-    fontSize: 12,
-    color: '#6b7280',
-    fontStyle: 'italic',
-    lineHeight: 18,
-  },
-  switchContainer: {
+  // Styles pour le chat premium
+  premiumChatButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    padding: 15,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-  },
-  switchLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  switch: {
-    width: 50,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#d1d5db',
-    justifyContent: 'center',
-    paddingHorizontal: 2,
-  },
-  switchActive: {
     backgroundColor: '#6366f1',
-  },
-  switchThumb: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#fff',
-  },
-  switchThumbActive: {
-    alignSelf: 'flex-end',
-  },
-  // Styles pour le sélecteur de provider
-  providerContainer: {
-    marginTop: 10,
-  },
-  providerOption: {
-    backgroundColor: '#f3f4f6',
-    borderRadius: 12,
     padding: 15,
+    borderRadius: 12,
+    marginTop: 15,
+  },
+  premiumChatIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  premiumChatContent: {
+    flex: 1,
+  },
+  premiumChatTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  premiumChatDesc: {
+    fontSize: 13,
+    color: '#e0e7ff',
+    marginTop: 2,
+  },
+  premiumChatArrow: {
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  // Styles pour les limites Groq
+  groqLimitsBox: {
+    backgroundColor: '#f0fdf4',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 20,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  groqLimitsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#166534',
     marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
   },
-  providerOptionSelected: {
-    borderColor: '#6366f1',
-    backgroundColor: '#e0e7ff',
+  groqLimitsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 12,
   },
-  providerHeader: {
+  groqLimitItem: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  groqLimitLabel: {
+    fontSize: 11,
+    color: '#166534',
+    marginBottom: 4,
+  },
+  groqLimitValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#15803d',
+  },
+  groqLimitSub: {
+    fontSize: 10,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  groqLimitsNote: {
+    backgroundColor: '#dcfce7',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  groqLimitsNoteText: {
+    fontSize: 12,
+    color: '#166534',
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  groqContextInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+  },
+  groqContextLabel: {
+    fontSize: 12,
+    color: '#166534',
+  },
+  groqContextValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#15803d',
+  },
+  // Styles pour la sélection du modèle Groq
+  modelSection: {
+    marginTop: 25,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  modelSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 5,
+  },
+  modelDescription: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginBottom: 15,
+  },
+  modelCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    padding: 12,
+    borderRadius: 10,
     marginBottom: 8,
-  },
-  providerRadio: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#6366f1',
+    borderColor: '#e5e7eb',
+  },
+  modelCardActive: {
+    borderColor: '#10b981',
+    backgroundColor: '#ecfdf5',
+  },
+  modelRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#10b981',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  providerRadioSelected: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#6366f1',
-  },
-  providerInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  providerName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginRight: 8,
-  },
-  providerBadge: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#fff',
-    backgroundColor: '#ef4444',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    overflow: 'hidden',
-    marginRight: 6,
-  },
-  providerBadgeFree: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#fff',
+  modelRadioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#10b981',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    overflow: 'hidden',
   },
-  providerDescription: {
-    fontSize: 13,
-    color: '#6b7280',
-    lineHeight: 18,
-    marginBottom: 10,
+  modelContent: {
+    flex: 1,
   },
-  providerKeyInfo: {
-    marginTop: 5,
-    marginBottom: 8,
+  modelName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
   },
-  providerKeyText: {
+  modelDesc: {
     fontSize: 12,
     color: '#6b7280',
-    fontStyle: 'italic',
+    marginTop: 2,
   },
-  providerTestButton: {
-    backgroundColor: '#6366f1',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+  // Style badge admin
+  adminBadge: {
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
     alignSelf: 'flex-start',
-    minWidth: 80,
-    alignItems: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#f59e0b',
   },
-  providerTestButtonText: {
-    color: '#fff',
-    fontSize: 13,
+  adminBadgeText: {
+    color: '#92400e',
+    fontSize: 12,
     fontWeight: '600',
   },
 });

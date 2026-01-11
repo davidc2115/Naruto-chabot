@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import UserProfileService from '../services/UserProfileService';
+import LevelService from '../services/LevelService';
 
 export default function UserProfileScreen({ navigation }) {
   const [username, setUsername] = useState('');
@@ -19,11 +20,15 @@ export default function UserProfileScreen({ navigation }) {
   const [penis, setPenis] = useState('17');
   const [nsfwMode, setNsfwMode] = useState(false);
   const [hasProfile, setHasProfile] = useState(false);
+  
+  // Système de niveaux
+  const [levelStats, setLevelStats] = useState(null);
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
 
   useEffect(() => {
     loadProfile();
+    loadLevelStats();
   }, []);
 
   const loadProfile = async () => {
@@ -36,6 +41,15 @@ export default function UserProfileScreen({ navigation }) {
       if (profile.bust) setBust(profile.bust);
       if (profile.penis) setPenis(profile.penis.replace('cm', ''));
       setNsfwMode(profile.nsfwMode || false);
+    }
+  };
+  
+  const loadLevelStats = async () => {
+    try {
+      const stats = await LevelService.getFullStats();
+      setLevelStats(stats);
+    } catch (error) {
+      console.error('Erreur chargement niveaux:', error);
     }
   };
 
@@ -101,6 +115,65 @@ export default function UserProfileScreen({ navigation }) {
       <Text style={styles.title}>
         {hasProfile ? 'Mon Profil' : 'Créer mon profil'}
       </Text>
+
+      {/* Section Niveau et XP */}
+      {levelStats && (
+        <View style={styles.levelSection}>
+          <View style={styles.levelHeader}>
+            <View style={styles.levelBadge}>
+              <Text style={styles.levelBadgeText}>⭐ {levelStats.level}</Text>
+            </View>
+            <View style={styles.levelTitleContainer}>
+              <Text style={styles.levelTitleText}>{levelStats.title}</Text>
+              <Text style={styles.levelXPText}>{levelStats.totalXP} XP total</Text>
+            </View>
+          </View>
+          
+          {/* Barre de progression */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBarBg}>
+              <View style={[styles.progressBarFill, { width: `${levelStats.progress}%` }]} />
+            </View>
+            <Text style={styles.progressText}>
+              {levelStats.progress}% vers niveau {levelStats.level + 1}
+            </Text>
+          </View>
+          
+          {/* Statistiques */}
+          <View style={styles.statsGrid}>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{levelStats.messagesCount || 0}</Text>
+              <Text style={styles.statLabel}>Messages</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{levelStats.streakDays || 0}</Text>
+              <Text style={styles.statLabel}>🔥 Streak</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statValue}>{levelStats.charactersInteracted?.length || 0}</Text>
+              <Text style={styles.statLabel}>Personnages</Text>
+            </View>
+          </View>
+          
+          {/* Prochaine récompense */}
+          {levelStats.nextReward && levelStats.nextRewardLevel && (
+            <View style={styles.nextRewardContainer}>
+              <Text style={styles.nextRewardTitle}>🎁 Prochaine récompense (Niv. {levelStats.nextRewardLevel})</Text>
+              <Text style={styles.nextRewardText}>{levelStats.nextReward.description}</Text>
+            </View>
+          )}
+          
+          {/* Récompenses débloquées */}
+          {levelStats.unlockedRewards && levelStats.unlockedRewards.length > 0 && (
+            <View style={styles.unlockedContainer}>
+              <Text style={styles.unlockedTitle}>✅ Récompenses débloquées</Text>
+              {levelStats.unlockedRewards.map((reward, index) => (
+                <Text key={index} style={styles.unlockedItem}>• {reward.description}</Text>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
 
       <Text style={styles.description}>
         Votre profil permet aux personnages de mieux vous connaître et d'adapter leurs réponses.
@@ -238,6 +311,119 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#6366f1',
+  },
+  // Section Niveau
+  levelSection: {
+    backgroundColor: '#1e1b4b',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+  },
+  levelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  levelBadge: {
+    backgroundColor: '#fbbf24',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  levelBadgeText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1e1b4b',
+  },
+  levelTitleContainer: {
+    flex: 1,
+  },
+  levelTitleText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#a78bfa',
+  },
+  levelXPText: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 2,
+  },
+  progressContainer: {
+    marginBottom: 15,
+  },
+  progressBarBg: {
+    height: 16,
+    backgroundColor: '#374151',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 5,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#8b5cf6',
+    borderRadius: 8,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 15,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#374151',
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 2,
+  },
+  nextRewardContainer: {
+    backgroundColor: '#4c1d95',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
+  },
+  nextRewardTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fbbf24',
+    marginBottom: 4,
+  },
+  nextRewardText: {
+    fontSize: 13,
+    color: '#e9d5ff',
+  },
+  unlockedContainer: {
+    backgroundColor: '#065f46',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
+  },
+  unlockedTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#34d399',
+    marginBottom: 8,
+  },
+  unlockedItem: {
+    fontSize: 12,
+    color: '#a7f3d0',
+    marginBottom: 3,
   },
   description: {
     fontSize: 14,

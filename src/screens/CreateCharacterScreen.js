@@ -9,11 +9,14 @@ import {
   Alert,
   Image,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
 import UserProfileService from '../services/UserProfileService';
+import SyncService from '../services/SyncService';
+import AuthService from '../services/AuthService';
 
 export default function CreateCharacterScreen({ navigation, route }) {
   const { characterToEdit } = route.params || {};
@@ -32,11 +35,61 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [startMessage, setStartMessage] = useState(characterToEdit?.startMessage || '');
   const [imageUrl, setImageUrl] = useState(characterToEdit?.imageUrl || '');
   const [generatingImage, setGeneratingImage] = useState(false);
+  
+  // Option public/privé
+  const [isPublic, setIsPublic] = useState(characterToEdit?.isPublic || false);
+  const [serverOnline, setServerOnline] = useState(null);
+  const [isPremium, setIsPremium] = useState(false);
+
+  // Vérifier le statut premium au montage
+  React.useEffect(() => {
+    checkPremiumStatus();
+  }, []);
+
+  const checkPremiumStatus = async () => {
+    try {
+      // Vérifier si admin (toujours premium)
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      
+      if (isAdmin) {
+        console.log('👑 Admin détecté - Premium automatique');
+        setIsPremium(true);
+        return;
+      }
+      
+      const local = AuthService.isPremium();
+      setIsPremium(local);
+      const server = await AuthService.checkPremiumStatus();
+      setIsPremium(server);
+    } catch (error) {
+      // Fallback: vérifier si admin
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      setIsPremium(isAdmin || AuthService.isPremium());
+    }
+  };
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
   const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
 
   const generateCharacterImage = async () => {
+    // Vérifier le statut premium
+    if (!isPremium) {
+      Alert.alert(
+        '💎 Fonctionnalité Premium',
+        'La génération d\'images est réservée aux membres Premium.\n\nVous pouvez créer votre personnage sans image, ou devenir Premium pour cette fonctionnalité.',
+        [
+          { text: 'Créer sans image', style: 'cancel' },
+          { 
+            text: 'Devenir Premium', 
+            onPress: () => navigation.navigate('Premium')
+          }
+        ]
+      );
+      return;
+    }
+
     if (!appearance && !hairColor) {
       Alert.alert('Info', 'Remplissez au moins l\'apparence et l\'âge pour générer une image');
       return;
@@ -68,11 +121,30 @@ export default function CreateCharacterScreen({ navigation, route }) {
       setImageUrl(url);
       Alert.alert('Succès', 'Image générée ! Vous pouvez maintenant sauvegarder le personnage.');
     } catch (error) {
-      Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+      if (error.message?.includes('Premium') || error.message?.includes('403')) {
+        Alert.alert(
+          '💎 Premium Requis',
+          'Vous devez être membre Premium pour générer des images.'
+        );
+      } else {
+        Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+      }
     } finally {
       setGeneratingImage(false);
     }
   };
+
+  const checkServerStatus = async () => {
+    const online = await SyncService.checkServerHealth();
+    setServerOnline(online);
+  };
+
+  // Vérifier le serveur au montage si on veut publier
+  React.useEffect(() => {
+    if (isPublic) {
+      checkServerStatus();
+    }
+  }, [isPublic]);
 
   const handleSave = async () => {
     if (!name || !age || !appearance || !personality || !scenario || !startMessage) {
@@ -95,25 +167,49 @@ export default function CreateCharacterScreen({ navigation, route }) {
         startMessage,
         imageUrl: imageUrl || undefined,
         isCustom: true,
+        isPublic: isPublic,
       };
 
       let savedCharacter;
       if (isEditing) {
         savedCharacter = await CustomCharacterService.updateCustomCharacter(characterToEdit.id, character);
-        // Si nouvelle image générée, l'ajouter à la galerie
+        
+        // Gérer le changement de statut public/privé
+        if (isPublic && !characterToEdit.isPublic) {
+          try {
+            await CustomCharacterService.publishCharacter(characterToEdit.id);
+          } catch (e) {
+            console.warn('Erreur publication:', e);
+          }
+        } else if (!isPublic && characterToEdit.isPublic) {
+          try {
+            await CustomCharacterService.unpublishCharacter(characterToEdit.id);
+          } catch (e) {
+            console.warn('Erreur dépublication:', e);
+          }
+        }
+        
         if (imageUrl && imageUrl !== characterToEdit.imageUrl) {
           await GalleryService.saveImageToGallery(characterToEdit.id, imageUrl);
         }
-        Alert.alert('Succès', 'Personnage modifié !', [
+        
+        const message = isPublic 
+          ? 'Personnage modifié et visible publiquement !' 
+          : 'Personnage modifié !';
+        Alert.alert('Succès', message, [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       } else {
-        savedCharacter = await CustomCharacterService.saveCustomCharacter(character);
-        // Ajouter l'image à la galerie du nouveau personnage
+        savedCharacter = await CustomCharacterService.saveCustomCharacter(character, isPublic);
+        
         if (imageUrl && savedCharacter.id) {
           await GalleryService.saveImageToGallery(savedCharacter.id, imageUrl);
         }
-        Alert.alert('Succès', 'Personnage créé ! L\'image a été ajoutée à la galerie.', [
+        
+        const message = isPublic 
+          ? 'Personnage créé et partagé avec la communauté !' 
+          : 'Personnage créé ! L\'image a été ajoutée à la galerie.';
+        Alert.alert('Succès', message, [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       }
@@ -146,7 +242,7 @@ export default function CreateCharacterScreen({ navigation, route }) {
           </View>
         ) : (
           <TouchableOpacity
-            style={styles.generateImageButton}
+            style={[styles.generateImageButton, !isPremium && styles.generateImageButtonLocked]}
             onPress={generateCharacterImage}
             disabled={generatingImage}
           >
@@ -154,10 +250,14 @@ export default function CreateCharacterScreen({ navigation, route }) {
               <ActivityIndicator size="large" color="#6366f1" />
             ) : (
               <>
-                <Text style={styles.generateImageIcon}>🎨</Text>
-                <Text style={styles.generateImageText}>Générer une image</Text>
+                <Text style={styles.generateImageIcon}>{isPremium ? '🎨' : '🔒'}</Text>
+                <Text style={styles.generateImageText}>
+                  {isPremium ? 'Générer une image' : 'Génération d\'image (Premium)'}
+                </Text>
                 <Text style={styles.generateImageHint}>
-                  Remplissez d'abord l'apparence physique
+                  {isPremium 
+                    ? 'Remplissez d\'abord l\'apparence physique'
+                    : '💎 Devenez Premium pour générer des images'}
                 </Text>
               </>
             )}
@@ -295,9 +395,42 @@ export default function CreateCharacterScreen({ navigation, route }) {
         numberOfLines={4}
       />
 
+      {/* Section Public/Privé */}
+      <View style={styles.publicSection}>
+        <View style={styles.publicHeader}>
+          <View style={styles.publicInfo}>
+            <Text style={styles.publicTitle}>🌐 Partager publiquement</Text>
+            <Text style={styles.publicDescription}>
+              Rendre ce personnage visible par tous les utilisateurs
+            </Text>
+          </View>
+          <Switch
+            value={isPublic}
+            onValueChange={(value) => {
+              setIsPublic(value);
+              if (value) checkServerStatus();
+            }}
+            trackColor={{ false: '#d1d5db', true: '#6366f1' }}
+            thumbColor={isPublic ? '#fff' : '#f4f3f4'}
+          />
+        </View>
+        
+        {isPublic && (
+          <View style={styles.publicStatus}>
+            {serverOnline === null ? (
+              <Text style={styles.statusChecking}>⏳ Vérification du serveur...</Text>
+            ) : serverOnline ? (
+              <Text style={styles.statusOnline}>✅ Serveur en ligne - Prêt à publier</Text>
+            ) : (
+              <Text style={styles.statusOffline}>⚠️ Serveur hors ligne - Sera publié plus tard</Text>
+            )}
+          </View>
+        )}
+      </View>
+
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>
-          {isEditing ? '💾 Sauvegarder' : '✨ Créer'}
+          {isEditing ? '💾 Sauvegarder' : isPublic ? '🌐 Créer et Partager' : '✨ Créer'}
         </Text>
       </TouchableOpacity>
 
@@ -441,6 +574,10 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     alignItems: 'center',
   },
+  generateImageButtonLocked: {
+    backgroundColor: '#fef3c7',
+    borderColor: '#f59e0b',
+  },
   generateImageIcon: {
     fontSize: 48,
     marginBottom: 10,
@@ -474,5 +611,53 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  // Styles pour public/privé
+  publicSection: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#eef2ff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#c7d2fe',
+  },
+  publicHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  publicInfo: {
+    flex: 1,
+    marginRight: 15,
+  },
+  publicTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4338ca',
+    marginBottom: 4,
+  },
+  publicDescription: {
+    fontSize: 13,
+    color: '#6366f1',
+  },
+  publicStatus: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#c7d2fe',
+  },
+  statusChecking: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  statusOnline: {
+    fontSize: 13,
+    color: '#059669',
+    fontWeight: '500',
+  },
+  statusOffline: {
+    fontSize: 13,
+    color: '#d97706',
+    fontWeight: '500',
   },
 });

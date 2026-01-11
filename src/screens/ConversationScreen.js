@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,19 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  Modal,
+  ScrollView,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import GroqService from '../services/GroqService';
 import TextGenerationService from '../services/TextGenerationService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
 import GalleryService from '../services/GalleryService';
+import ChatStyleService from '../services/ChatStyleService';
+import LevelService from '../services/LevelService';
+import AuthService from '../services/AuthService';
 
 export default function ConversationScreen({ route, navigation }) {
   const { character } = route.params || {};
@@ -31,6 +37,22 @@ export default function ConversationScreen({ route, navigation }) {
   const [conversationBackground, setConversationBackground] = useState(null);
   const [initError, setInitError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Système de niveaux
+  const [userLevel, setUserLevel] = useState(null);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpInfo, setLevelUpInfo] = useState(null);
+  
+  // Style settings
+  const [showSettings, setShowSettings] = useState(false);
+  const [chatStyle, setChatStyle] = useState(null);
+  const [selectedTheme, setSelectedTheme] = useState('default');
+  const [opacity, setOpacity] = useState(1);
+  const [borderRadius, setBorderRadius] = useState(15);
+  
+  // Premium status
+  const [isPremium, setIsPremium] = useState(false);
+  
   const flatListRef = useRef(null);
 
   // Vérification de sécurité
@@ -52,14 +74,15 @@ export default function ConversationScreen({ route, navigation }) {
 
   const initializeScreen = async () => {
     try {
-      // Les clés API Groq sont maintenant chargées automatiquement dans generateResponse
-      
-      // Charger le reste
+      // Charger tout en parallèle
       await Promise.all([
         loadConversation(),
         loadUserProfile(),
         loadGallery(),
-        loadBackground()
+        loadBackground(),
+        loadChatStyle(),
+        loadUserLevel(),
+        checkPremiumStatus(),
       ]);
       
       setIsInitialized(true);
@@ -67,12 +90,14 @@ export default function ConversationScreen({ route, navigation }) {
       navigation.setOptions({
         title: character?.name || 'Conversation',
         headerRight: () => (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('CharacterDetail', { character })}
-            style={{ marginRight: 15 }}
-          >
-            <Text style={{ color: '#fff', fontSize: 16 }}>ℹ️</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', marginRight: 10 }}>
+            <TouchableOpacity onPress={() => setShowSettings(true)} style={{ marginRight: 15 }}>
+              <Text style={{ color: '#fff', fontSize: 20 }}>⚙️</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('CharacterDetail', { character })}>
+              <Text style={{ color: '#fff', fontSize: 20 }}>ℹ️</Text>
+            </TouchableOpacity>
+          </View>
         ),
       });
     } catch (error) {
@@ -83,6 +108,66 @@ export default function ConversationScreen({ route, navigation }) {
         `Impossible d'initialiser la conversation: ${error.message}`,
         [{ text: 'Retour', onPress: () => navigation.goBack() }]
       );
+    }
+  };
+
+  const loadChatStyle = async () => {
+    try {
+      const style = await ChatStyleService.loadStyle();
+      setChatStyle(style);
+      setSelectedTheme(ChatStyleService.getCurrentTheme());
+      setOpacity(style.bubbleOpacity || 1);
+      setBorderRadius(style.borderRadius || 15);
+    } catch (error) {
+      console.error('❌ Erreur chargement style:', error);
+      setChatStyle(ChatStyleService.getCurrentStyle());
+    }
+  };
+
+  const loadUserLevel = async () => {
+    try {
+      // Charger le niveau spécifique pour ce personnage
+      if (character?.id) {
+        const levelData = await LevelService.getCharacterStats(character.id);
+        setUserLevel(levelData);
+        console.log('✅ Niveau avec', character.name, ':', levelData.level, levelData.title);
+      } else {
+        // Fallback sur les stats globales
+        const levelData = await LevelService.getFullStats();
+        setUserLevel(levelData);
+        console.log('✅ Niveau global:', levelData.level, levelData.title);
+      }
+    } catch (error) {
+      console.error('❌ Erreur chargement niveau:', error);
+    }
+  };
+
+  const checkPremiumStatus = async () => {
+    try {
+      // Vérifier si admin (toujours premium)
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      
+      if (isAdmin) {
+        console.log('👑 Admin détecté - Premium automatique');
+        setIsPremium(true);
+        return;
+      }
+      
+      // Vérifier localement d'abord
+      const localPremium = AuthService.isPremium();
+      setIsPremium(localPremium);
+      
+      // Puis vérifier côté serveur
+      const serverPremium = await AuthService.checkPremiumStatus();
+      setIsPremium(serverPremium);
+      console.log('💎 Status Premium:', serverPremium ? 'Oui' : 'Non');
+    } catch (error) {
+      console.error('❌ Erreur vérification premium:', error);
+      // Fallback: vérifier si admin
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      setIsPremium(isAdmin || AuthService.isPremium());
     }
   };
 
@@ -119,6 +204,15 @@ export default function ConversationScreen({ route, navigation }) {
     }
   };
 
+  // Recharger le fond quand l'écran reprend le focus
+  useFocusEffect(
+    useCallback(() => {
+      if (character?.id) {
+        loadBackground();
+      }
+    }, [character?.id])
+  );
+
   const loadConversation = async () => {
     try {
       if (!character || !character.id) {
@@ -131,10 +225,9 @@ export default function ConversationScreen({ route, navigation }) {
         setMessages(saved.messages);
         setRelationship(saved.relationship);
       } else {
-        // Start with character's initial message - PAS DE TIMESTAMP
         const initialMessage = {
           role: 'assistant',
-          content: character.startMessage || `Bonjour, je suis ${character.name}.`,
+          content: character.startMessage || character.greeting || `Bonjour, je suis ${character.name}.`,
         };
         console.log('✅ Nouveau conversation initialisée');
         setMessages([initialMessage]);
@@ -143,7 +236,6 @@ export default function ConversationScreen({ route, navigation }) {
       }
     } catch (error) {
       console.error('❌ Erreur chargement conversation:', error);
-      // Initialiser avec un message par défaut
       setMessages([{
         role: 'assistant',
         content: character?.startMessage || `Bonjour, je suis ${character?.name || 'votre personnage'}.`
@@ -174,7 +266,6 @@ export default function ConversationScreen({ route, navigation }) {
   const sendMessage = async () => {
     if (!inputText.trim() || isLoading) return;
 
-    // PAS DE TIMESTAMP - Groq ne l'accepte pas
     const userMessage = {
       role: 'user',
       content: inputText.trim(),
@@ -186,18 +277,15 @@ export default function ConversationScreen({ route, navigation }) {
     setIsLoading(true);
 
     try {
-      // Update relationship
       const newRelationship = updateRelationship(userMessage.content);
       setRelationship(newRelationship);
 
-      // Generate AI response (utilise TextGenerationService multi-providers)
       const response = await TextGenerationService.generateResponse(
         updatedMessages,
         character,
         userProfile
       );
 
-      // PAS DE TIMESTAMP - Groq ne l'accepte pas
       const assistantMessage = {
         role: 'assistant',
         content: response,
@@ -206,39 +294,147 @@ export default function ConversationScreen({ route, navigation }) {
       const finalMessages = [...updatedMessages, assistantMessage];
       setMessages(finalMessages);
       
-      // Save conversation
       await saveConversation(finalMessages, newRelationship);
 
-      // Scroll to bottom
+      // Gagner de l'XP pour le message envoyé (par personnage)
+      try {
+        const isNSFW = userProfile?.nsfwMode || false;
+        const xpGained = LevelService.calculateMessageXP(userMessage.content.length, isNSFW);
+        
+        // Utiliser le système de niveau par personnage
+        const xpResult = await LevelService.addXPForCharacter(character.id, xpGained, 'message');
+        
+        // Enregistrer l'interaction avec ce personnage (pour les stats globales)
+        await LevelService.recordCharacterInteraction(character.id);
+        
+        // Mettre à jour l'état du niveau
+        setUserLevel({
+          ...userLevel,
+          level: xpResult.level,
+          title: xpResult.title,
+          totalXP: xpResult.totalXP,
+          progress: xpResult.progress,
+        });
+        
+        // Si level up, afficher l'animation et générer l'image récompense
+        if (xpResult.leveledUp) {
+          setLevelUpInfo(xpResult);
+          setShowLevelUp(true);
+          
+          // Générer l'image de récompense si disponible
+          if (xpResult.reward && xpResult.reward.type === 'image') {
+            generateLevelUpRewardImage(xpResult.reward, xpResult.newLevel);
+          }
+          
+          setTimeout(() => setShowLevelUp(false), 5000);
+        }
+        
+        console.log(`✅ +${xpGained} XP avec ${character.name} → Niveau ${xpResult.level} "${xpResult.title}" (${xpResult.progress}%)`);
+      } catch (xpError) {
+        console.error('❌ Erreur XP:', xpError);
+      }
+
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
       Alert.alert('Erreur', error.message);
-      // Remove the user message if there was an error
       setMessages(messages);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Génère l'image de récompense pour un level up (MÊME SANS PREMIUM)
+  const generateLevelUpRewardImage = async (reward, newLevel) => {
+    try {
+      console.log(`🎁 Génération image récompense niveau ${newLevel}: ${reward.imageType}`);
+      
+      // Construire le prompt spécial pour la récompense
+      const rewardPromptPart = LevelService.getRewardImagePrompt(reward.imageType, character);
+      
+      // Prompt ultra-détaillé hyperréaliste
+      const fullPrompt = `hyper-realistic photograph, professional photography, 8K ultra HD, 
+        ${character.gender === 'female' ? 'beautiful woman' : 'handsome man'}, 
+        ${character.age} years old, ${character.appearance || ''}, 
+        ${rewardPromptPart}, 
+        perfect anatomy, correct human proportions, anatomically correct body,
+        proper hands with five fingers each, correct arm and leg proportions,
+        studio lighting, high-end boudoir photography, sensual atmosphere,
+        skin texture visible, lifelike details, photographic quality,
+        single person, solo portrait, NOT deformed, NOT distorted, NOT extra limbs,
+        NOT bad anatomy, NOT mutated, masterpiece quality, award winning photo`;
+      
+      // Générer l'image via l'API Freebox (même sans premium)
+      const imageUrl = await ImageGenerationService.generateImage(fullPrompt);
+      
+      if (imageUrl) {
+        // Sauvegarder dans la galerie
+        await GalleryService.saveImageToGallery(character.id, imageUrl);
+        
+        // Enregistrer comme image débloquée
+        await LevelService.recordUnlockedImage(character.id, newLevel, imageUrl);
+        
+        // Recharger la galerie
+        await loadGallery();
+        
+        // Afficher un message avec l'image
+        Alert.alert(
+          `🎉 Niveau ${newLevel} atteint !`,
+          `${reward.description}\n\nUne image exclusive a été ajoutée à votre galerie avec ${character.name} !`,
+          [{ text: '👀 Super !', style: 'default' }]
+        );
+        
+        console.log(`✅ Image récompense générée et sauvegardée`);
+      }
+    } catch (error) {
+      console.error('❌ Erreur génération image récompense:', error);
+      // Ne pas bloquer l'expérience si l'image échoue
+      Alert.alert(
+        `🎉 Niveau ${newLevel} atteint !`,
+        `${reward.description}\n\nVotre relation avec ${character.name} évolue !`,
+        [{ text: 'Super !', style: 'default' }]
+      );
+    }
+  };
+
   const generateImage = async () => {
     if (generatingImage) return;
 
+    // Vérifier le statut premium
+    if (!isPremium) {
+      Alert.alert(
+        '💎 Fonctionnalité Premium',
+        'La génération d\'images est réservée aux membres Premium.\n\nDevenez Premium pour débloquer cette fonctionnalité et bien plus encore !',
+        [
+          { text: 'Plus tard', style: 'cancel' },
+          { 
+            text: 'Devenir Premium', 
+            onPress: () => {
+              // Navigation vers l'écran Premium si disponible
+              try {
+                navigation.navigate('Premium');
+              } catch (e) {
+                Alert.alert('Premium', 'Rendez-vous dans les paramètres pour devenir Premium.');
+              }
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     setGeneratingImage(true);
     try {
-      // Utiliser generateSceneImage avec détection de tenue et mode NSFW
       const imageUrl = await ImageGenerationService.generateSceneImage(
         character,
         userProfile,
         messages
       );
       
-      // Sauvegarder dans la galerie
       await GalleryService.saveImageToGallery(character.id, imageUrl);
-      await loadGallery(); // Recharger la galerie
+      await loadGallery();
       
-      // PAS DE TIMESTAMP
       const imageMessage = {
         role: 'system',
         content: '[Image générée et sauvegardée dans la galerie]',
@@ -255,53 +451,115 @@ export default function ConversationScreen({ route, navigation }) {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     } catch (error) {
-      Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+      // Vérifier si c'est une erreur de premium
+      if (error.message?.includes('Premium') || error.message?.includes('403')) {
+        Alert.alert(
+          '💎 Premium Requis',
+          'Vous devez être membre Premium pour générer des images.',
+          [
+            { text: 'OK', style: 'cancel' },
+            { text: 'Devenir Premium', onPress: () => navigation.navigate('Premium') }
+          ]
+        );
+      } else {
+        Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+      }
     } finally {
       setGeneratingImage(false);
     }
   };
 
+  // Fonctions de personnalisation du style
+  const handleThemeChange = async (themeId) => {
+    setSelectedTheme(themeId);
+    const newStyle = await ChatStyleService.applyTheme(themeId);
+    setChatStyle(newStyle);
+    setOpacity(newStyle.bubbleOpacity);
+    setBorderRadius(newStyle.borderRadius);
+  };
+
+  const handleOpacityChange = async (value) => {
+    setOpacity(value);
+    const newStyle = await ChatStyleService.setOpacity(value);
+    setChatStyle(newStyle);
+  };
+
+  const handleBorderRadiusChange = async (value) => {
+    setBorderRadius(value);
+    const newStyle = await ChatStyleService.setBorderRadius(value);
+    setChatStyle(newStyle);
+  };
+
   const formatRPMessage = (content) => {
-    // Parse RP format: *actions* "dialogue" *thoughts*
     const parts = [];
-    let lastIndex = 0;
-    
-    // Match patterns for actions/thoughts (between asterisks) and dialogue (between quotes)
     const actionRegex = /\*([^*]+)\*/g;
     const dialogueRegex = /"([^"]+)"/g;
+    const thoughtRegex = /\(([^)]+)\)/g;
     
     let match;
     const allMatches = [];
     
-    // Find all actions
+    // Parser les actions (entre astérisques)
     while ((match = actionRegex.exec(content)) !== null) {
       allMatches.push({ type: 'action', text: match[1], index: match.index, length: match[0].length });
     }
     
-    // Find all dialogues
+    // Parser les dialogues (entre guillemets)
     while ((match = dialogueRegex.exec(content)) !== null) {
       allMatches.push({ type: 'dialogue', text: match[1], index: match.index, length: match[0].length });
     }
     
-    // Sort by index
+    // Parser les pensées (entre parenthèses)
+    while ((match = thoughtRegex.exec(content)) !== null) {
+      // Vérifier que ce n'est pas un texte trop court (éviter les faux positifs comme "(2)")
+      if (match[1].length > 5) {
+        allMatches.push({ type: 'thought', text: match[1], index: match.index, length: match[0].length });
+      }
+    }
+    
     allMatches.sort((a, b) => a.index - b.index);
     
-    // Build parts array
+    // Supprimer les chevauchements (garder le match le plus long)
+    const filteredMatches = [];
+    for (let i = 0; i < allMatches.length; i++) {
+      const current = allMatches[i];
+      let isOverlapping = false;
+      
+      for (let j = 0; j < filteredMatches.length; j++) {
+        const existing = filteredMatches[j];
+        const currentEnd = current.index + current.length;
+        const existingEnd = existing.index + existing.length;
+        
+        // Vérifier le chevauchement
+        if (current.index < existingEnd && currentEnd > existing.index) {
+          isOverlapping = true;
+          // Garder le plus long
+          if (current.length > existing.length) {
+            filteredMatches[j] = current;
+          }
+          break;
+        }
+      }
+      
+      if (!isOverlapping) {
+        filteredMatches.push(current);
+      }
+    }
+    
+    filteredMatches.sort((a, b) => a.index - b.index);
+    
     let currentIndex = 0;
-    allMatches.forEach(match => {
-      // Add text before this match
+    filteredMatches.forEach(match => {
       if (match.index > currentIndex) {
         const text = content.substring(currentIndex, match.index).trim();
         if (text) {
           parts.push({ type: 'text', text });
         }
       }
-      // Add the match
       parts.push({ type: match.type, text: match.text });
       currentIndex = match.index + match.length;
     });
     
-    // Add remaining text
     if (currentIndex < content.length) {
       const text = content.substring(currentIndex).trim();
       if (text) {
@@ -315,13 +573,14 @@ export default function ConversationScreen({ route, navigation }) {
   const renderMessage = ({ item }) => {
     const isUser = item.role === 'user';
     const isSystem = item.role === 'system';
+    const style = chatStyle || {};
 
     if (isSystem && item.image) {
       return (
         <View style={styles.imageMessageContainer}>
           <Image source={{ uri: item.image }} style={styles.generatedImage} />
           <Text style={styles.imageTimestamp}>
-            {new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            {item.timestamp ? new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
           </Text>
         </View>
       );
@@ -329,40 +588,225 @@ export default function ConversationScreen({ route, navigation }) {
 
     const formattedParts = formatRPMessage(item.content);
 
+    const bubbleStyle = {
+      backgroundColor: isUser 
+        ? (style.userBubble || '#6366f1') 
+        : (style.assistantBubble || '#ffffff'),
+      opacity: style.bubbleOpacity || 1,
+      borderRadius: style.borderRadius || 15,
+    };
+
     return (
       <View style={[styles.messageContainer, isUser ? styles.userMessage : styles.assistantMessage]}>
-        <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.assistantBubble]}>
+        <View style={[styles.messageBubble, bubbleStyle]}>
           {!isUser && (
-            <Text style={styles.characterName}>{character.name}</Text>
+            <Text style={[styles.characterName, { color: style.userBubble || '#6366f1' }]}>
+              {character.name}
+            </Text>
           )}
           <View style={styles.messageContent}>
             {formattedParts.map((part, index) => {
               if (part.type === 'action') {
-                return (
-                  <Text key={index} style={styles.actionText}>
-                    *{part.text}*
-                  </Text>
-                );
+                if (isUser) {
+                  // UTILISATEUR: Actions avec *astérisques* en italique
+                  return (
+                    <Text key={index} style={[styles.actionText, { color: style.userText || '#fff' }]}>
+                      *{part.text}*
+                    </Text>
+                  );
+                } else {
+                  // PERSONNAGE: Actions en ROUGE sans décoration
+                  return (
+                    <Text key={index} style={[styles.actionText, { color: '#ef4444' }]}>
+                      {part.text}
+                    </Text>
+                  );
+                }
+              } else if (part.type === 'thought') {
+                if (isUser) {
+                  // UTILISATEUR: Pensées avec (parenthèses)
+                  return (
+                    <Text key={index} style={[styles.thoughtText, { color: style.userText || '#fff' }]}>
+                      ({part.text})
+                    </Text>
+                  );
+                } else {
+                  // PERSONNAGE: Pensées en BLEU sans parenthèses
+                  return (
+                    <Text key={index} style={[styles.thoughtText, { color: '#3b82f6' }]}>
+                      {part.text}
+                    </Text>
+                  );
+                }
               } else if (part.type === 'dialogue') {
+                // Paroles sans décoration (blanc pour tous)
                 return (
-                  <Text key={index} style={styles.dialogueText}>
-                    "{part.text}"
+                  <Text key={index} style={[
+                    styles.dialogueText, 
+                    { color: isUser ? (style.userText || '#fff') : '#1f2937' }
+                  ]}>
+                    {part.text}
                   </Text>
                 );
               } else {
                 return (
-                  <Text key={index} style={styles.normalText}>
+                  <Text key={index} style={[
+                    styles.normalText, 
+                    { color: isUser ? (style.userText || '#fff') : (style.assistantText || '#4b5563') }
+                  ]}>
                     {part.text}
                   </Text>
                 );
               }
             })}
           </View>
-          <Text style={styles.timestamp}>
+          <Text style={[styles.timestamp, { color: isUser ? 'rgba(255,255,255,0.7)' : '#9ca3af' }]}>
             {item.timestamp ? new Date(item.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
           </Text>
         </View>
       </View>
+    );
+  };
+
+  // Modal de personnalisation
+  const renderSettingsModal = () => {
+    const themes = ChatStyleService.getThemes();
+    
+    return (
+      <Modal
+        visible={showSettings}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowSettings(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>⚙️ Style des bulles</Text>
+              <TouchableOpacity onPress={() => setShowSettings(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody}>
+              {/* Thèmes prédéfinis */}
+              <Text style={styles.settingLabel}>🎨 Thèmes</Text>
+              <View style={styles.themesGrid}>
+                {themes.map((theme) => (
+                  <TouchableOpacity
+                    key={theme.id}
+                    style={[
+                      styles.themeOption,
+                      selectedTheme === theme.id && styles.themeOptionSelected
+                    ]}
+                    onPress={() => handleThemeChange(theme.id)}
+                  >
+                    <View style={styles.themePreview}>
+                      <View style={[styles.themePreviewBubble, { backgroundColor: theme.preview.userBubble }]} />
+                      <View style={[styles.themePreviewBubble, { backgroundColor: theme.preview.assistantBubble, borderWidth: 1, borderColor: '#e5e7eb' }]} />
+                    </View>
+                    <Text style={styles.themeName}>{theme.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              {/* Opacité */}
+              <Text style={styles.settingLabel}>🔍 Opacité: {Math.round(opacity * 100)}%</Text>
+              <View style={styles.sliderContainer}>
+                <Text style={styles.sliderLabel}>50%</Text>
+                <View style={styles.sliderWrapper}>
+                  <View 
+                    style={[
+                      styles.sliderTrack,
+                      { width: `${((opacity - 0.5) / 0.5) * 100}%` }
+                    ]} 
+                  />
+                  <TouchableOpacity
+                    style={[
+                      styles.sliderThumb,
+                      { left: `${((opacity - 0.5) / 0.5) * 100}%` }
+                    ]}
+                    onPress={() => {}}
+                  />
+                </View>
+                <Text style={styles.sliderLabel}>100%</Text>
+              </View>
+              <View style={styles.sliderButtons}>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => handleOpacityChange(Math.max(0.5, opacity - 0.1))}
+                >
+                  <Text style={styles.sliderBtnText}>-</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => handleOpacityChange(Math.min(1, opacity + 0.1))}
+                >
+                  <Text style={styles.sliderBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Arrondi */}
+              <Text style={styles.settingLabel}>⭕ Arrondi: {Math.round(borderRadius)}px</Text>
+              <View style={styles.sliderButtons}>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => handleBorderRadiusChange(Math.max(0, borderRadius - 5))}
+                >
+                  <Text style={styles.sliderBtnText}>-</Text>
+                </TouchableOpacity>
+                <View style={styles.radiusPreview}>
+                  <View style={[styles.radiusPreviewBox, { borderRadius: borderRadius }]} />
+                </View>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => handleBorderRadiusChange(Math.min(30, borderRadius + 5))}
+                >
+                  <Text style={styles.sliderBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Aperçu */}
+              <Text style={styles.settingLabel}>👁️ Aperçu</Text>
+              <View style={styles.previewContainer}>
+                <View style={[
+                  styles.previewBubble, 
+                  { 
+                    backgroundColor: chatStyle?.assistantBubble || '#fff',
+                    opacity: opacity,
+                    borderRadius: borderRadius,
+                    alignSelf: 'flex-start',
+                  }
+                ]}>
+                  <Text style={{ color: '#ef4444', fontStyle: 'italic' }}>"sourit"</Text>
+                  <Text style={{ color: '#ffffff' }}> Bonjour !</Text>
+                  <Text style={{ color: '#3b82f6', fontStyle: 'italic' }}> (c'est vraiment lui...)</Text>
+                </View>
+                <View style={[
+                  styles.previewBubble, 
+                  { 
+                    backgroundColor: chatStyle?.userBubble || '#6366f1',
+                    opacity: opacity,
+                    borderRadius: borderRadius,
+                    alignSelf: 'flex-end',
+                  }
+                ]}>
+                  <Text style={{ color: chatStyle?.userText || '#fff' }}>
+                    Salut !
+                  </Text>
+                </View>
+              </View>
+            </ScrollView>
+            
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setShowSettings(false)}
+            >
+              <Text style={styles.modalButtonText}>✓ Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     );
   };
 
@@ -401,16 +845,32 @@ export default function ConversationScreen({ route, navigation }) {
       {conversationBackground && (
         <Image
           source={{ uri: conversationBackground }}
-          style={styles.backgroundImage}
+          style={[styles.backgroundImage, { opacity: opacity * 0.6 }]}
           blurRadius={2}
         />
       )}
       
+      {/* Barre de niveau avec ce personnage */}
+      {userLevel && (
+        <View style={styles.levelBar}>
+          <View style={styles.levelInfo}>
+            <Text style={styles.levelText}>💕 Niv. {userLevel.level}</Text>
+            <Text style={styles.levelTitle}>{userLevel.title}</Text>
+          </View>
+          <View style={styles.xpBarContainer}>
+            <View style={[styles.xpBar, { width: `${userLevel.progress || 0}%` }]} />
+            <Text style={styles.xpText}>{userLevel.progress || 0}%</Text>
+          </View>
+          <Text style={styles.xpDetail}>{userLevel.totalXP || 0} XP • {character?.name || ''}</Text>
+        </View>
+      )}
+      
+      {/* Barre de relation avec le personnage */}
       {relationship && (
         <View style={styles.relationshipBar}>
           <View style={styles.relationshipStat}>
-            <Text style={styles.relationshipLabel}>Niv. {relationship.level}</Text>
-            <Text style={styles.relationshipValue}>{relationship.experience} XP</Text>
+            <Text style={styles.relationshipLabel}>💫 Relation</Text>
+            <Text style={styles.relationshipValue}>Niv. {relationship.level}</Text>
           </View>
           <View style={styles.relationshipStat}>
             <Text style={styles.relationshipLabel}>💖 {relationship.affection}%</Text>
@@ -424,6 +884,23 @@ export default function ConversationScreen({ route, navigation }) {
           >
             <Text style={styles.galleryButtonText}>🖼️ {gallery.length}</Text>
           </TouchableOpacity>
+        </View>
+      )}
+      
+      {/* Animation Level Up */}
+      {showLevelUp && levelUpInfo && (
+        <View style={styles.levelUpOverlay}>
+          <View style={styles.levelUpModal}>
+            <Text style={styles.levelUpEmoji}>🎉</Text>
+            <Text style={styles.levelUpTitle}>NIVEAU SUPÉRIEUR !</Text>
+            <Text style={styles.levelUpLevel}>Niveau {levelUpInfo.newLevel}</Text>
+            <Text style={styles.levelUpTitleText}>{levelUpInfo.title}</Text>
+            {levelUpInfo.reward && (
+              <View style={styles.rewardBox}>
+                <Text style={styles.rewardText}>🎁 {levelUpInfo.reward.description}</Text>
+              </View>
+            )}
+          </View>
         </View>
       )}
 
@@ -445,14 +922,16 @@ export default function ConversationScreen({ route, navigation }) {
 
       <View style={styles.inputContainer}>
         <TouchableOpacity
-          style={styles.imageButton}
+          style={[styles.imageButton, !isPremium && styles.imageButtonLocked]}
           onPress={generateImage}
           disabled={generatingImage}
         >
           {generatingImage ? (
             <ActivityIndicator size="small" color="#6366f1" />
           ) : (
-            <Text style={styles.imageButtonText}>🎨</Text>
+            <Text style={styles.imageButtonText}>
+              {isPremium ? '🎨' : '🔒'}
+            </Text>
           )}
         </TouchableOpacity>
         
@@ -476,6 +955,8 @@ export default function ConversationScreen({ route, navigation }) {
           <Text style={styles.sendButtonText}>➤</Text>
         </TouchableOpacity>
       </View>
+      
+      {renderSettingsModal()}
     </KeyboardAvoidingView>
   );
 }
@@ -484,6 +965,112 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  // Barre de niveau utilisateur
+  levelBar: {
+    backgroundColor: '#1e1b4b',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  levelInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  levelText: {
+    color: '#fbbf24',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  levelTitle: {
+    color: '#a78bfa',
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+  xpBarContainer: {
+    flex: 1,
+    height: 12,
+    backgroundColor: '#374151',
+    borderRadius: 6,
+    marginHorizontal: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  xpBar: {
+    height: '100%',
+    backgroundColor: '#8b5cf6',
+    borderRadius: 6,
+  },
+  xpText: {
+    position: 'absolute',
+    width: '100%',
+    textAlign: 'center',
+    fontSize: 9,
+    color: '#fff',
+    fontWeight: 'bold',
+    lineHeight: 12,
+  },
+  xpDetail: {
+    color: '#9ca3af',
+    fontSize: 11,
+    minWidth: 50,
+    textAlign: 'right',
+  },
+  // Animation Level Up
+  levelUpOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  levelUpModal: {
+    backgroundColor: '#1e1b4b',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#fbbf24',
+  },
+  levelUpEmoji: {
+    fontSize: 50,
+    marginBottom: 10,
+  },
+  levelUpTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fbbf24',
+    marginBottom: 5,
+  },
+  levelUpLevel: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 5,
+  },
+  levelUpTitleText: {
+    fontSize: 18,
+    color: '#a78bfa',
+    fontStyle: 'italic',
+    marginBottom: 15,
+  },
+  rewardBox: {
+    backgroundColor: '#4c1d95',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  rewardText: {
+    color: '#fbbf24',
+    fontSize: 14,
+    fontWeight: '600',
   },
   relationshipBar: {
     flexDirection: 'row',
@@ -520,7 +1107,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   messageBubble: {
-    borderRadius: 15,
     padding: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -528,16 +1114,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  userBubble: {
-    backgroundColor: '#6366f1',
-  },
-  assistantBubble: {
-    backgroundColor: '#fff',
-  },
   characterName: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#6366f1',
     marginBottom: 5,
   },
   messageContent: {
@@ -546,23 +1125,25 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 14,
     fontStyle: 'italic',
-    color: '#8b5cf6', // Violet pour actions/pensées (même couleur pour user et assistant)
     marginBottom: 3,
+  },
+  thoughtText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    marginBottom: 3,
+    opacity: 0.9,
   },
   dialogueText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#111827',
     marginBottom: 3,
   },
   normalText: {
     fontSize: 14,
-    color: '#4b5563',
     marginBottom: 3,
   },
   timestamp: {
     fontSize: 10,
-    color: '#9ca3af',
     alignSelf: 'flex-end',
   },
   imageMessageContainer: {
@@ -611,6 +1192,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 5,
   },
+  imageButtonLocked: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+  },
   imageButtonText: {
     fontSize: 20,
   },
@@ -655,7 +1241,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     height: '100%',
-    opacity: 0.6,
     resizeMode: 'cover',
   },
   loadingScreen: {
@@ -704,5 +1289,163 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  modalClose: {
+    fontSize: 24,
+    color: '#6b7280',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 12,
+    marginTop: 10,
+  },
+  themesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 20,
+  },
+  themeOption: {
+    width: '30%',
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  themeOptionSelected: {
+    borderColor: '#6366f1',
+    backgroundColor: '#eef2ff',
+  },
+  themePreview: {
+    flexDirection: 'row',
+    gap: 5,
+    marginBottom: 5,
+  },
+  themePreviewBubble: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
+  themeName: {
+    fontSize: 11,
+    color: '#4b5563',
+    textAlign: 'center',
+  },
+  sliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sliderWrapper: {
+    flex: 1,
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    marginHorizontal: 10,
+    position: 'relative',
+  },
+  sliderTrack: {
+    height: '100%',
+    backgroundColor: '#6366f1',
+    borderRadius: 4,
+  },
+  sliderThumb: {
+    position: 'absolute',
+    top: -6,
+    width: 20,
+    height: 20,
+    backgroundColor: '#6366f1',
+    borderRadius: 10,
+    marginLeft: -10,
+  },
+  sliderLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    width: 40,
+    textAlign: 'center',
+  },
+  sliderButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 20,
+    marginBottom: 20,
+  },
+  sliderBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#6366f1',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sliderBtnText: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  radiusPreview: {
+    width: 60,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radiusPreviewBox: {
+    width: 50,
+    height: 30,
+    backgroundColor: '#6366f1',
+  },
+  previewContainer: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 15,
+    gap: 10,
+  },
+  previewBubble: {
+    padding: 12,
+    maxWidth: '70%',
+  },
+  modalButton: {
+    backgroundColor: '#6366f1',
+    margin: 20,
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

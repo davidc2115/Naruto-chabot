@@ -1,23 +1,59 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomImageAPIService from './CustomImageAPIService';
 import StableDiffusionLocalService from './StableDiffusionLocalService';
+import AuthService from './AuthService';
 
 class ImageGenerationService {
   constructor() {
-    this.baseURL = 'https://image.pollinations.ai/prompt/';
+    // URL Freebox par défaut
+    this.freeboxURL = 'http://88.174.155.230:33437/generate';
     this.lastRequestTime = 0;
-    this.minDelay = 3000; // 3 secondes minimum entre les requêtes
+    this.minDelay = 1000;
     this.maxRetries = 3;
     
-    // STYLES ALÉATOIRES pour variété
-    this.artStyles = [
-      'photorealistic, ultra-realistic photography',
-      'hyper-realistic, 8K ultra-detailed photography',
-      'anime style, anime art, manga illustration',
-      'semi-realistic anime style',
+    // STYLES SÉPARÉS - Anime vs Réaliste
+    this.animeStyles = [
+      'anime style, anime art, manga illustration, clean lineart, vibrant colors',
+      'anime artwork, japanese animation style, cel shading, detailed anime',
+      'manga style illustration, anime character design, 2D anime art',
+      'high quality anime, beautiful anime art, studio ghibli style',
     ];
     
-    // TENUES NSFW ALÉATOIRES (conversations)
+    this.realisticStyles = [
+      'photorealistic portrait photography, professional DSLR photo, 85mm lens',
+      'hyper-realistic photograph, studio lighting, high-end fashion photography',
+      'ultra-realistic photo, natural lighting, professional portrait',
+      'cinematic photography, movie still quality, professional photoshoot',
+    ];
+    
+    // PROMPTS DE QUALITÉ ANATOMIQUE RENFORCÉS
+    this.anatomyQualityPrompts = [
+      'perfect human anatomy, medically correct body proportions, anatomically accurate',
+      'exactly two arms, exactly two legs, proper limb attachment points',
+      'proper hand anatomy with exactly five fingers on each hand, correct finger length',
+      'natural body proportions, realistic human figure, proper skeletal structure',
+      'correct facial features, symmetrical face, natural expression, proper eye placement',
+      'professional model pose, natural body position, balanced composition, stable stance',
+      'single complete human body, one head, two eyes, one nose, one mouth',
+    ];
+    
+    // PROMPTS NÉGATIFS INTÉGRÉS RENFORCÉS
+    this.antiDeformationPrompts = 
+      'NOT deformed, NOT distorted, NOT disfigured, NOT mutated, NOT ugly, ' +
+      'NOT bad anatomy, NOT wrong anatomy, NOT anatomical errors, ' +
+      'NOT extra limbs, NOT missing limbs, NOT three arms, NOT four arms, ' +
+      'NOT three legs, NOT four legs, NOT extra body parts, ' +
+      'NOT floating limbs, NOT disconnected limbs, NOT merged limbs, ' +
+      'NOT malformed hands, NOT twisted hands, NOT backwards hands, ' +
+      'NOT extra fingers, NOT missing fingers, NOT fused fingers, NOT six fingers, ' +
+      'NOT too many fingers, NOT mutated hands, NOT bad hands, NOT clawed hands, ' +
+      'NOT extra arms, NOT extra legs, NOT duplicate body parts, NOT clone, ' +
+      'NOT two heads, NOT two faces, NOT multiple people in frame, ' +
+      'NOT blurry, NOT low quality, NOT pixelated, NOT watermark, ' +
+      'normal human anatomy, correct proportions, natural realistic pose, single subject only';
+    
+    // TENUES NSFW ALÉATOIRES
     this.nsfwOutfits = [
       'wearing sexy lingerie, lace underwear',
       'wearing silk robe, partially open',
@@ -32,8 +68,8 @@ class ImageGenerationService {
     // POSTURES NSFW ALÉATOIRES
     this.nsfwPoses = [
       'lying on bed, seductive pose',
-      'sitting provocatively, legs crossed',
-      'standing, hand on hip, confident',
+      'sitting elegantly, legs crossed',
+      'standing gracefully, hand on hip',
       'kneeling, looking up',
       'arching back, sensual pose',
       'leaning against wall, alluring',
@@ -43,453 +79,720 @@ class ImageGenerationService {
   }
 
   /**
-   * Construit une description ultra-détaillée des caractéristiques physiques
+   * Choisit un style aléatoire (anime ou réaliste)
+   * @returns {Object} { style: string, isRealistic: boolean }
    */
-  buildDetailedPhysicalDescription(character) {
+  getRandomStyle() {
+    // 50% chance anime, 50% chance réaliste
+    const isRealistic = Math.random() > 0.5;
+    
+    if (isRealistic) {
+      const style = this.realisticStyles[Math.floor(Math.random() * this.realisticStyles.length)];
+      return { style, isRealistic: true };
+    } else {
+      const style = this.animeStyles[Math.floor(Math.random() * this.animeStyles.length)];
+      return { style, isRealistic: false };
+    }
+  }
+
+  /**
+   * Construit les prompts de qualité pour images réalistes
+   */
+  buildRealisticQualityPrompts() {
+    // Sélectionner plusieurs prompts de qualité anatomique
+    const selectedPrompts = [];
+    const shuffled = [...this.anatomyQualityPrompts].sort(() => Math.random() - 0.5);
+    selectedPrompts.push(shuffled[0], shuffled[1]);
+    
+    return selectedPrompts.join(', ') + ', ' + this.antiDeformationPrompts;
+  }
+
+  /**
+   * Construit une description ultra-détaillée des caractéristiques physiques
+   * Prend en compte TOUS les champs du personnage
+   */
+  buildDetailedPhysicalDescription(character, isRealistic = false) {
     let description = '';
+    
+    // === UTILISER physicalDescription EN PRIORITÉ si disponible ===
+    if (character.physicalDescription) {
+      description += character.physicalDescription.replace(/\n/g, ', ').trim();
+      description += ', ';
+    }
     
     // === GENRE ET BASE ===
     if (character.gender === 'female') {
-      description += 'beautiful woman, female, lady';
+      if (isRealistic) {
+        description += 'beautiful real woman, female human, realistic lady, real person';
+      } else {
+        description += 'beautiful anime woman, female character, anime lady';
+      }
     } else if (character.gender === 'male') {
-      description += 'handsome man, male, gentleman';
+      if (isRealistic) {
+        description += 'handsome real man, male human, realistic gentleman, real person';
+      } else {
+        description += 'handsome anime man, male character, anime gentleman';
+      }
     } else {
-      description += 'beautiful person, androgynous';
+      description += 'beautiful person, androgynous, non-binary appearance';
     }
     
     // === ÂGE PRÉCIS ===
-    description += `, ${character.age} years old`;
-    if (character.age >= 35 && character.age < 45) {
-      description += ', mature, experienced, confident age';
-    } else if (character.age >= 45) {
-      description += ', mature, distinguished, elegant age';
-    } else if (character.age >= 25 && character.age < 35) {
-      description += ', young adult, prime age';
-    } else if (character.age >= 18 && character.age < 25) {
-      description += ', youthful, young adult';
+    const age = parseInt(character.age) || 25;
+    description += `, ${age} years old`;
+    if (age >= 35 && age < 45) {
+      description += ', mature adult, experienced, confident';
+    } else if (age >= 45 && age < 55) {
+      description += ', mature, distinguished, elegant';
+    } else if (age >= 55) {
+      description += ', mature, seasoned, sophisticated';
+    } else if (age >= 25 && age < 35) {
+      description += ', young adult, prime of life';
+    } else if (age >= 18 && age < 25) {
+      description += ', youthful adult, young adult';
     }
     
-    // === CHEVEUX ULTRA-DÉTAILLÉS ===
-    const hairColor = character.hairColor || 'brown';
+    // === CHEVEUX DÉTAILLÉS (utilise hairColor en priorité) ===
+    const hairColor = character.hairColor || this.extractFromAppearance(character, 'hair') || 'brown';
     description += `, ${hairColor} hair`;
     
-    // Longueur et style (extraits de l'apparence)
-    const appearance = (character.appearance || '').toLowerCase();
+    // Combiner appearance, physicalDescription et autres champs
+    const appearance = (
+      (character.appearance || '') + ' ' + 
+      (character.physicalDescription || '') + ' ' +
+      (character.bodyType || '')
+    ).toLowerCase();
     if (appearance.includes('long') || appearance.includes('longs')) {
-      description += ', very long flowing hair, hair reaching lower back';
+      description += ', very long flowing hair reaching lower back';
     } else if (appearance.includes('mi-long') || appearance.includes('shoulder')) {
-      description += ', shoulder-length hair, medium hair';
+      description += ', shoulder-length medium hair';
     } else if (appearance.includes('court') || appearance.includes('short')) {
-      description += ', short hair, short cut';
+      description += ', short cropped hair';
     } else {
       description += ', medium length hair';
     }
     
     if (appearance.includes('bouclé') || appearance.includes('curly') || appearance.includes('ondulé')) {
-      description += ', curly wavy hair, natural curls';
+      description += ', curly wavy hair with natural curls';
     } else if (appearance.includes('raides') || appearance.includes('straight') || appearance.includes('lisse')) {
-      description += ', straight sleek hair, silky straight';
+      description += ', straight sleek silky hair';
     }
     
-    // === TAILLE CORPORELLE ===
+    // === MORPHOLOGIE ===
     if (appearance.includes('grande') || appearance.includes('tall')) {
-      description += ', tall height, tall stature, 5\'8" to 6\'0"';
+      description += ', tall stature';
     } else if (appearance.includes('petite') || appearance.includes('small')) {
-      description += ', petite height, short stature, 5\'0" to 5\'4"';
+      description += ', petite short stature';
     } else {
-      description += ', average height, medium stature, 5\'4" to 5\'7"';
+      description += ', average height';
     }
     
-    // === BUILD / MORPHOLOGIE ===
     if (appearance.includes('musclé') || appearance.includes('muscular') || appearance.includes('athlétique') || appearance.includes('athletic')) {
-      description += ', athletic build, toned body, fit physique, defined muscles';
+      description += ', athletic toned fit body with defined muscles';
     } else if (appearance.includes('mince') || appearance.includes('slim') || appearance.includes('élancé') || appearance.includes('slender')) {
-      description += ', slim build, slender figure, lean body';
+      description += ', slim slender lean body';
     } else if (appearance.includes('voluptu') || appearance.includes('curvy') || appearance.includes('généreuses')) {
-      description += ', voluptuous build, curvy figure, full-figured body';
+      description += ', voluptuous curvy full-figured body';
+    } else if (appearance.includes('ronde') || appearance.includes('round')) {
+      description += ', curvy soft rounded body';
     } else {
-      description += ', balanced build, normal physique';
+      description += ', balanced normal physique';
     }
     
     // === COULEUR DE PEAU ===
-    if (appearance.includes('pâle') || appearance.includes('pale')) {
-      description += ', pale skin, fair complexion, porcelain skin';
-    } else if (appearance.includes('bronzé') || appearance.includes('tanned') || appearance.includes('caramel')) {
-      description += ', tanned skin, golden complexion, sun-kissed skin';
-    } else if (appearance.includes('ébène') || appearance.includes('noire') || appearance.includes('dark')) {
-      description += ', dark skin, ebony complexion, rich dark skin tone';
+    if (appearance.includes('pâle') || appearance.includes('pale') || appearance.includes('porcelaine')) {
+      description += ', pale fair porcelain skin';
+    } else if (appearance.includes('bronzé') || appearance.includes('tanned') || appearance.includes('doré')) {
+      description += ', tanned golden sun-kissed skin';
+    } else if (appearance.includes('ébène') || appearance.includes('noire') || appearance.includes('dark') || appearance.includes('noir')) {
+      description += ', beautiful dark ebony skin';
+    } else if (appearance.includes('caramel') || appearance.includes('métisse') || appearance.includes('mixed')) {
+      description += ', warm caramel mixed skin tone';
     } else if (appearance.includes('asiat') || appearance.includes('asian')) {
-      description += ', asian skin tone, light brown complexion';
-    } else if (appearance.includes('latin') || appearance.includes('mediterran')) {
-      description += ', mediterranean skin, olive complexion, warm skin tone';
+      description += ', asian light skin tone';
+    } else if (appearance.includes('latin') || appearance.includes('olive') || appearance.includes('mediterran')) {
+      description += ', mediterranean olive warm skin';
     } else {
-      description += ', natural skin tone, healthy complexion';
+      description += ', natural healthy skin';
     }
     
-    // === TRAITS DU VISAGE ===
-    if (appearance.includes('yeux bleu')) {
-      description += ', bright blue eyes, piercing blue gaze';
-    } else if (appearance.includes('yeux vert')) {
-      description += ', emerald green eyes, striking green gaze';
-    } else if (appearance.includes('yeux marron') || appearance.includes('yeux brun')) {
-      description += ', warm brown eyes, deep brown gaze';
-    } else if (appearance.includes('yeux noi')) {
-      description += ', dark eyes, intense black gaze';
-    } else if (appearance.includes('yeux gris')) {
-      description += ', steel gray eyes, mysterious gray gaze';
+    // === YEUX (utilise eyeColor en priorité, sinon extraction) ===
+    const eyeColor = character.eyeColor || this.extractFromAppearance(character, 'eyes');
+    if (eyeColor) {
+      description += `, ${eyeColor} eyes`;
+    } else if (appearance.includes('yeux bleu') || appearance.includes('blue eyes')) {
+      description += ', bright blue eyes';
+    } else if (appearance.includes('yeux vert') || appearance.includes('green eyes')) {
+      description += ', emerald green eyes';
+    } else if (appearance.includes('yeux marron') || appearance.includes('yeux brun') || appearance.includes('brown eyes')) {
+      description += ', warm brown eyes';
+    } else if (appearance.includes('yeux noi') || appearance.includes('black eyes') || appearance.includes('dark eyes')) {
+      description += ', deep dark eyes';
+    } else if (appearance.includes('yeux gris') || appearance.includes('grey eyes')) {
+      description += ', steel gray eyes';
+    } else if (appearance.includes('noisette') || appearance.includes('hazel')) {
+      description += ', hazel eyes';
+    } else if (appearance.includes('améthyste') || appearance.includes('violet') || appearance.includes('purple')) {
+      description += ', mystical purple amethyst eyes';
+    } else if (appearance.includes('doré') || appearance.includes('gold') || appearance.includes('or')) {
+      description += ', striking golden eyes';
+    } else if (appearance.includes('rouge') || appearance.includes('red')) {
+      description += ', intense crimson red eyes';
     } else {
-      description += ', expressive eyes, captivating gaze';
+      description += ', expressive captivating eyes';
     }
     
-    // Traits additionnels
+    // === TAILLE (utilise height en priorité) ===
+    if (character.height) {
+      const heightCm = parseInt(character.height);
+      if (heightCm >= 180) {
+        description += ', tall stature, impressive height';
+      } else if (heightCm >= 170) {
+        description += ', above average height';
+      } else if (heightCm <= 160) {
+        description += ', petite short stature';
+      } else {
+        description += ', average height';
+      }
+    }
+    
+    // === BODY TYPE (utilise bodyType en priorité, sinon extraction) ===
+    const bodyType = character.bodyType || this.extractFromAppearance(character, 'body');
+    if (bodyType) {
+      const bodyTypeLower = bodyType.toLowerCase();
+      if (bodyTypeLower.includes('athléti') || bodyTypeLower.includes('muscl') || bodyTypeLower.includes('athletic')) {
+        description += ', athletic toned muscular body';
+      } else if (bodyTypeLower.includes('voluptu') || bodyTypeLower.includes('curv') || bodyTypeLower.includes('généreus')) {
+        description += ', voluptuous curvy full-figured body';
+      } else if (bodyTypeLower.includes('élancé') || bodyTypeLower.includes('mince') || bodyTypeLower.includes('slim')) {
+        description += ', slim slender elegant body';
+      } else if (bodyTypeLower.includes('graci') || bodyTypeLower.includes('fine')) {
+        description += ', graceful slender refined body';
+      } else if (bodyTypeLower.includes('puissant') || bodyTypeLower.includes('massif')) {
+        description += ', powerful massive muscular build';
+      } else if (bodyTypeLower.includes('ronde') || bodyTypeLower.includes('chubby') || bodyTypeLower.includes('plump')) {
+        description += ', curvy plump soft body';
+      } else if (bodyTypeLower.includes('matern') || bodyTypeLower.includes('maternel')) {
+        description += ', maternal soft curvy body';
+      } else {
+        description += `, ${bodyType} body`;
+      }
+    }
+    
+    // === TRAITS ADDITIONNELS ===
     if (appearance.includes('taches de rousseur') || appearance.includes('freckles')) {
-      description += ', freckles on face, cute freckles';
+      description += ', cute freckles on face';
     }
     
     if (appearance.includes('lunettes') || appearance.includes('glasses')) {
-      description += ', wearing stylish glasses, elegant eyewear';
+      description += ', wearing stylish glasses';
+    }
+    
+    // Pour réaliste: ajouter des détails de peau réaliste
+    if (isRealistic) {
+      description += ', realistic skin texture, natural skin pores, lifelike appearance';
     }
     
     return description;
   }
 
   /**
-   * Décrit l'anatomie de manière ULTRA-PRÉCISE
+   * Extrait une information spécifique de l'apparence
    */
-  buildAnatomyDescription(character) {
-    let anatomy = '';
+  extractFromAppearance(character, type) {
+    const text = ((character.appearance || '') + ' ' + (character.physicalDescription || '') + ' ' + (character.imagePrompt || '')).toLowerCase();
     
-    // === FEMMES - POITRINE ULTRA-DÉTAILLÉE ===
-    if (character.gender === 'female' && character.bust) {
-      const bustDetails = {
-        'A': {
-          size: 'small A cup breasts',
-          details: 'petite chest, delicate small bust, subtle curves, slim upper body, athletic chest, perky small breasts, proportionate to slim frame',
-          emphasis: 'feminine delicate chest, natural small proportions'
-        },
-        'B': {
-          size: 'small B cup breasts',
-          details: 'modest bust, small perky breasts, slender figure, subtle feminine curves, petite chest, proportioned small bust, natural B cup shape',
-          emphasis: 'elegant modest chest, naturally proportioned'
-        },
-        'C': {
-          size: 'medium C cup breasts',
-          details: 'balanced bust, natural C cup proportions, moderate chest size, feminine curves, well-proportioned breasts, attractive medium bust, natural cleavage',
-          emphasis: 'perfectly balanced chest, ideal proportions, natural medium breasts'
-        },
-        'D': {
-          size: 'large D cup breasts',
-          details: 'voluptuous D cup bust, curvy figure, prominent chest, noticeable cleavage, full breasts, generous bust, shapely large breasts, eye-catching chest',
-          emphasis: 'impressive bust, prominent cleavage visible, large feminine curves, voluptuous chest emphasized'
-        },
-        'DD': {
-          size: 'very large DD cup breasts',
-          details: 'very voluptuous DD cup bust, very curvy figure, very generous chest, deep cleavage, very full heavy breasts, striking bust, remarkably large chest, attention-grabbing breasts',
-          emphasis: 'very prominent bust emphasized, deep visible cleavage, very large feminine curves highlighted, chest clearly defined'
-        },
-        'E': {
-          size: 'extremely large E cup breasts',
-          details: 'extremely voluptuous E cup bust, highly curvy figure, impressive large chest, dramatic cleavage, massive full breasts, extraordinary bust, remarkably large and full chest',
-          emphasis: 'extremely prominent bust emphasized, dramatic deep cleavage clearly visible, massive feminine curves highlighted, chest dominantly featured'
-        },
-        'F': {
-          size: 'huge F cup breasts',
-          details: 'huge voluptuous F cup bust, extremely curvy figure, massive chest, extreme deep cleavage, enormous heavy full breasts, spectacular bust, incredibly large chest',
-          emphasis: 'massively prominent bust emphasized, extreme dramatic cleavage clearly visible, huge feminine curves dominated, chest as focal point'
-        },
-        'G': {
-          size: 'gigantic G cup breasts',
-          details: 'gigantic G cup bust, extraordinarily voluptuous figure, colossal chest, extreme dramatic cleavage, gigantic massive breasts, phenomenal bust, unbelievably large chest',
-          emphasis: 'gigantically prominent bust heavily emphasized, extreme deep cleavage fully visible, gigantic feminine curves completely dominating, chest as main feature'
-        }
-      };
-      
-      const bustInfo = bustDetails[character.bust] || bustDetails['C'];
-      anatomy += `, ${bustInfo.size}, ${bustInfo.details}, ${bustInfo.emphasis}`;
+    if (type === 'hair') {
+      const hairColors = [
+        { key: 'platine', value: 'platinum blonde' },
+        { key: 'platinum', value: 'platinum blonde' },
+        { key: 'blond doré', value: 'golden blonde' },
+        { key: 'golden blonde', value: 'golden blonde' },
+        { key: 'blond cendré', value: 'ash blonde' },
+        { key: 'ash blonde', value: 'ash blonde' },
+        { key: 'blond miel', value: 'honey blonde' },
+        { key: 'honey blonde', value: 'honey blonde' },
+        { key: 'blonde', value: 'blonde' },
+        { key: 'blond', value: 'blonde' },
+        { key: 'roux flamboyant', value: 'fiery red' },
+        { key: 'fiery red', value: 'fiery red' },
+        { key: 'roux cuivré', value: 'copper red' },
+        { key: 'copper red', value: 'copper red' },
+        { key: 'rousse', value: 'red' },
+        { key: 'roux', value: 'red' },
+        { key: 'auburn', value: 'auburn' },
+        { key: 'brun chocolat', value: 'chocolate brown' },
+        { key: 'chocolate brown', value: 'chocolate brown' },
+        { key: 'brune', value: 'brunette' },
+        { key: 'brun', value: 'brown' },
+        { key: 'châtain', value: 'chestnut brown' },
+        { key: 'noir de jais', value: 'jet black' },
+        { key: 'jet black', value: 'jet black' },
+        { key: 'noire', value: 'black' },
+        { key: 'noir', value: 'black' },
+        { key: 'gris argenté', value: 'silver gray' },
+        { key: 'silver gray', value: 'silver gray' },
+        { key: 'argenté', value: 'silver' },
+        { key: 'silver', value: 'silver' },
+        { key: 'gris', value: 'gray' },
+        { key: 'grey', value: 'gray' },
+        { key: 'blanc', value: 'white' },
+        { key: 'white', value: 'white' },
+        { key: 'violet', value: 'purple' },
+        { key: 'purple', value: 'purple' },
+        { key: 'rose', value: 'pink' },
+        { key: 'pink', value: 'pink' },
+        { key: 'bleu', value: 'blue' },
+        { key: 'blue', value: 'blue' },
+        { key: 'vert', value: 'green' },
+        { key: 'green', value: 'green' },
+        { key: 'rouge vif', value: 'bright red' },
+        { key: 'bright red', value: 'bright red' },
+      ];
+      for (const color of hairColors) {
+        if (text.includes(color.key)) return color.value;
+      }
     }
     
-    // === HOMMES - PHYSIQUE DÉTAILLÉ ===
-    if (character.gender === 'male' && character.penis) {
-      const penisSize = parseInt(character.penis) || 15;
-      
-      if (penisSize >= 22) {
-        anatomy += ', exceptionally muscular build, very broad shoulders, extremely defined pecs, rock-hard abs, powerful arms, massive muscular thighs, dominant masculine physique, alpha male body';
-      } else if (penisSize >= 20) {
-        anatomy += ', very muscular athletic build, broad strong shoulders, well-defined pecs, six-pack abs, strong arms, muscular thighs, impressive masculine physique, powerful body';
-      } else if (penisSize >= 18) {
-        anatomy += ', muscular athletic build, broad shoulders, defined chest, toned abs, athletic arms, strong legs, fit masculine physique, sporty body';
-      } else {
-        anatomy += ', toned athletic build, proportioned shoulders, lean chest, athletic body, fit physique, healthy masculine frame';
+    if (type === 'eyes') {
+      const eyeColors = [
+        { key: 'bleu clair', value: 'light blue' },
+        { key: 'bleu glacier', value: 'icy blue' },
+        { key: 'bleu électrique', value: 'electric blue' },
+        { key: 'blue eyes', value: 'blue' },
+        { key: 'bleus', value: 'blue' },
+        { key: 'bleu', value: 'blue' },
+        { key: 'vert émeraude', value: 'emerald green' },
+        { key: 'vert clair', value: 'light green' },
+        { key: 'green eyes', value: 'green' },
+        { key: 'verts', value: 'green' },
+        { key: 'vert', value: 'green' },
+        { key: 'noisette', value: 'hazel' },
+        { key: 'hazel', value: 'hazel' },
+        { key: 'ambre', value: 'amber' },
+        { key: 'amber', value: 'amber' },
+        { key: 'marron foncé', value: 'dark brown' },
+        { key: 'marron chaleureux', value: 'warm brown' },
+        { key: 'brown eyes', value: 'brown' },
+        { key: 'marron', value: 'brown' },
+        { key: 'gris acier', value: 'steel gray' },
+        { key: 'gray eyes', value: 'gray' },
+        { key: 'gris', value: 'gray' },
+        { key: 'noirs profonds', value: 'deep black' },
+        { key: 'black eyes', value: 'black' },
+        { key: 'noirs', value: 'black' },
+        { key: 'améthyste', value: 'purple amethyst' },
+        { key: 'violet', value: 'purple' },
+        { key: 'doré', value: 'golden' },
+        { key: 'golden', value: 'golden' },
+        { key: 'rouge', value: 'red' },
+        { key: 'red eyes', value: 'red' },
+      ];
+      for (const color of eyeColors) {
+        if (text.includes(color.key)) return color.value;
       }
+    }
+    
+    if (type === 'bust') {
+      // Extraire la taille de bonnet du texte
+      const bustPatterns = [
+        { pattern: /bonnet\s*h/i, value: 'H' },
+        { pattern: /bonnet\s*g/i, value: 'G' },
+        { pattern: /bonnet\s*f/i, value: 'F' },
+        { pattern: /bonnet\s*e/i, value: 'E' },
+        { pattern: /bonnet\s*dd/i, value: 'DD' },
+        { pattern: /bonnet\s*d/i, value: 'D' },
+        { pattern: /bonnet\s*c/i, value: 'C' },
+        { pattern: /bonnet\s*b/i, value: 'B' },
+        { pattern: /bonnet\s*a/i, value: 'A' },
+        { pattern: /h\s*cup/i, value: 'H' },
+        { pattern: /g\s*cup/i, value: 'G' },
+        { pattern: /f\s*cup/i, value: 'F' },
+        { pattern: /e\s*cup/i, value: 'E' },
+        { pattern: /dd\s*cup/i, value: 'DD' },
+        { pattern: /d\s*cup/i, value: 'D' },
+        { pattern: /c\s*cup/i, value: 'C' },
+        { pattern: /b\s*cup/i, value: 'B' },
+        { pattern: /a\s*cup/i, value: 'A' },
+        { pattern: /énorme.*poitrine|huge.*breast|massive.*breast/i, value: 'H' },
+        { pattern: /très grosse.*poitrine|very large.*breast/i, value: 'G' },
+        { pattern: /grosse.*poitrine|large.*breast/i, value: 'F' },
+        { pattern: /généreuse.*poitrine|generous.*breast/i, value: 'E' },
+        { pattern: /poitrine.*généreuse/i, value: 'E' },
+        { pattern: /moyenne.*poitrine|medium.*breast/i, value: 'C' },
+        { pattern: /poitrine.*moyenne/i, value: 'C' },
+        { pattern: /petite.*poitrine|small.*breast/i, value: 'B' },
+        { pattern: /poitrine.*petite/i, value: 'B' },
+      ];
+      for (const p of bustPatterns) {
+        if (p.pattern.test(text)) return p.value;
+      }
+    }
+    
+    if (type === 'body') {
+      const bodyTypes = [
+        { key: 'très ronde', value: 'very curvy chubby' },
+        { key: 'very curvy', value: 'very curvy' },
+        { key: 'ronde', value: 'curvy plump' },
+        { key: 'chubby', value: 'chubby curvy' },
+        { key: 'voluptueuse', value: 'voluptuous curvy' },
+        { key: 'voluptuous', value: 'voluptuous' },
+        { key: 'pulpeuse', value: 'voluptuous full-figured' },
+        { key: 'généreuse', value: 'generous curvy' },
+        { key: 'curvy', value: 'curvy' },
+        { key: 'athlétique', value: 'athletic toned' },
+        { key: 'athletic', value: 'athletic' },
+        { key: 'musclée', value: 'muscular toned' },
+        { key: 'muscular', value: 'muscular' },
+        { key: 'tonique', value: 'toned fit' },
+        { key: 'toned', value: 'toned' },
+        { key: 'sportive', value: 'athletic sporty' },
+        { key: 'mince', value: 'slim slender' },
+        { key: 'slim', value: 'slim' },
+        { key: 'élancée', value: 'slender elegant' },
+        { key: 'slender', value: 'slender' },
+        { key: 'fine', value: 'slim petite' },
+        { key: 'petite', value: 'petite small' },
+        { key: 'maternelle', value: 'maternal soft' },
+        { key: 'maternal', value: 'maternal' },
+      ];
+      for (const bt of bodyTypes) {
+        if (text.includes(bt.key)) return bt.value;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Décrit l'anatomie de manière précise
+   */
+  buildAnatomyDescription(character, isRealistic = false) {
+    let anatomy = '';
+    
+    // === FEMMES - POITRINE (utilise bust OU bustSize OU extraction du texte) ===
+    let bustSize = character.bust || character.bustSize || this.extractFromAppearance(character, 'bust');
+    if (character.gender === 'female' && bustSize) {
+      const bustDetails = {
+        'A': { size: 'small A cup breasts', details: 'petite chest, small perky bust, flat chested' },
+        'B': { size: 'small B cup breasts', details: 'modest bust, small perky breasts, cute small chest' },
+        'C': { size: 'medium C cup breasts', details: 'balanced bust, natural medium breasts, nice cleavage' },
+        'D': { size: 'large D cup breasts', details: 'voluptuous bust, full generous breasts, impressive cleavage' },
+        'DD': { size: 'very large DD cup breasts', details: 'very generous bust, full heavy breasts, deep cleavage' },
+        'E': { size: 'extremely large E cup breasts', details: 'impressive huge bust, massive full breasts, enormous cleavage' },
+        'F': { size: 'huge F cup breasts', details: 'huge voluptuous bust, enormous full breasts, gigantic cleavage' },
+        'G': { size: 'gigantic G cup breasts', details: 'gigantic massive bust, colossal breasts, impossibly large' },
+        'H': { size: 'enormous H cup breasts', details: 'enormous massive bust, incredibly huge breasts' }
+      };
+      
+      // Normaliser la taille (peut être "Moyenne", "Généreuse", etc.)
+      let normalizedBust = bustSize;
+      if (bustSize.toLowerCase().includes('petit') || bustSize.toLowerCase().includes('small')) {
+        normalizedBust = 'B';
+      } else if (bustSize.toLowerCase().includes('moyen') || bustSize.toLowerCase().includes('medium')) {
+        normalizedBust = 'C';
+      } else if (bustSize.toLowerCase().includes('génér') || bustSize.toLowerCase().includes('large') || bustSize.toLowerCase().includes('voluptu')) {
+        normalizedBust = 'D';
+      } else if (bustSize.toLowerCase().includes('très') || bustSize.toLowerCase().includes('very') || bustSize.toLowerCase().includes('énorme')) {
+        normalizedBust = 'E';
+      }
+      
+      const bustInfo = bustDetails[normalizedBust] || bustDetails[bustSize] || bustDetails['C'];
+      anatomy += `, ${bustInfo.size}, ${bustInfo.details}`;
+      
+      // Ajouter des détails sur les hanches/taille
+      if (['D', 'DD', 'E', 'F', 'G', 'H'].includes(normalizedBust)) {
+        anatomy += ', wide hips, hourglass figure, curvy body';
+      }
+    }
+    
+    // === HOMMES - PHYSIQUE (basé sur maleSize ou penis en cm) ===
+    const maleSize = character.maleSize || character.penis;
+    if (character.gender === 'male' && maleSize) {
+      const penisSize = parseInt(maleSize) || 15;
+      
+      if (penisSize >= 25) {
+        anatomy += ', exceptionally muscular build, bodybuilder physique, massive muscles';
+        anatomy += ', very broad shoulders, huge pecs, rock-hard six-pack abs, V-shaped torso';
+      } else if (penisSize >= 22) {
+        anatomy += ', extremely muscular build, very broad shoulders, defined pecs, rock-hard abs';
+      } else if (penisSize >= 20) {
+        anatomy += ', very muscular athletic build, broad shoulders, six-pack abs, defined muscles';
+      } else if (penisSize >= 18) {
+        anatomy += ', muscular athletic build, defined chest, toned abs, fit body';
+      } else if (penisSize >= 15) {
+        anatomy += ', athletic build, toned physique, lean muscles';
+      } else {
+        anatomy += ', slim build, lean physique, slender body';
+      }
+    }
+    
+    // Pour réaliste: insister sur l'anatomie correcte
+    if (isRealistic) {
+      anatomy += ', correct human anatomy, proper body proportions, natural limb positions';
+      anatomy += ', realistic hands with five fingers each, proper arm length';
     }
     
     return anatomy;
   }
 
   /**
-   * MODE NSFW ULTRA-RÉALISTE (Suggestif, NON-EXPLICITE mais SEXY)
+   * MODE NSFW - Version explicite
    */
-  buildNSFWPrompt(character) {
+  buildNSFWPrompt(character, isRealistic = false) {
     let nsfw = '';
     
+    // Niveau d'explicité aléatoire (soft, medium, hard)
+    const explicitLevel = Math.random();
+    
     if (character.gender === 'female') {
-      // BASE NSFW FÉMININ - Plus explicite
-      nsfw += ', extremely sexy pose, highly sensual expression, intensely seductive look, sultry passionate gaze';
-      nsfw += ', alluring inviting smile, very provocative attitude, erotic energy';
-      nsfw += ', bedroom eyes, deeply inviting expression, intensely flirtatious look';
-      nsfw += ', suggestive sensual body language, confident sexy dominant pose';
+      nsfw += ', seductive sexy pose, sensual expression, bedroom eyes, sultry gaze';
       
-      // TENUE NSFW - Plus détaillée
-      nsfw += ', wearing very revealing lingerie, sexy transparent lace underwear, delicate silk bra and panties set';
-      nsfw += ', sheer see-through lingerie, lace details clearly visible, satin and silk fabric';
-      nsfw += ', extremely delicate intimate wear, luxury lingerie pieces';
-      nsfw += ', lingerie clearly visible and highlighted, straps prominently showing, intimate clothing fully revealed';
-      nsfw += ', transparent fabric showing skin beneath, lace patterns defined';
+      // Poitrine (utilise bust OU bustSize)
+      const bustSize = character.bust || character.bustSize;
+      if (bustSize) {
+        const bustDescriptions = {
+          'A': 'small perky breasts visible',
+          'B': 'petite breasts showing',
+          'C': 'medium breasts, nice cleavage',
+          'D': 'large breasts, deep cleavage, generous bust',
+          'DD': 'very large breasts, impressive cleavage',
+          'E': 'huge breasts prominently displayed, massive cleavage',
+          'F': 'enormous breasts, gigantic bust emphasized',
+          'G': 'massive breasts, colossal bust',
+          'H': 'enormous massive breasts, gigantic bust'
+        };
+        
+        // Normaliser si nécessaire
+        let normalizedBust = bustSize;
+        if (bustSize.toLowerCase().includes('petit') || bustSize.toLowerCase().includes('small')) {
+          normalizedBust = 'B';
+        } else if (bustSize.toLowerCase().includes('moyen') || bustSize.toLowerCase().includes('medium')) {
+          normalizedBust = 'C';
+        } else if (bustSize.toLowerCase().includes('génér') || bustSize.toLowerCase().includes('large') || bustSize.toLowerCase().includes('voluptu')) {
+          normalizedBust = 'D';
+        } else if (bustSize.toLowerCase().includes('très') || bustSize.toLowerCase().includes('very') || bustSize.toLowerCase().includes('énorme')) {
+          normalizedBust = 'E';
+        }
+        
+        nsfw += `, ${bustDescriptions[normalizedBust] || bustDescriptions[bustSize] || 'beautiful breasts'}`;
+      }
       
-      // POSE ET ATTITUDE - Plus suggestive
-      nsfw += ', sitting provocatively on bed edge, lying seductively on silk sheets';
-      nsfw += ', reclining in very seductive pose, positioned alluringly on luxurious bed';
-      nsfw += ', legs elegantly and suggestively crossed, one leg raised provocatively';
-      nsfw += ', highly suggestive leg position revealing thighs, very sensual body curve emphasized';
-      nsfw += ', looking seductively over shoulder, back beautifully arched, extremely sensual posture';
-      nsfw += ', inviting and open pose, body positioned to showcase curves';
+      // Tenue selon niveau
+      if (explicitLevel > 0.7) {
+        nsfw += ', topless, bare breasts exposed, nude upper body';
+        nsfw += ', nipples visible, exposed chest';
+      } else if (explicitLevel > 0.4) {
+        nsfw += ', wearing only panties, topless with arm covering';
+        nsfw += ', sheer see-through lingerie, nipples showing through';
+      } else {
+        nsfw += ', sexy lingerie, lace bra barely covering';
+        nsfw += ', revealing outfit, cleavage emphasized';
+      }
       
-      // PEAU ET EXPOSITION - Plus détaillée
-      nsfw += ', smooth flawless skin extensively visible, shoulders completely exposed and highlighted';
-      nsfw += ', décolleté prominently visible and emphasized, legs fully showing and featured';
-      nsfw += ', midriff fully exposed and toned, lower back visible and curved';
-      nsfw += ', thighs prominently visible and shapely, skin softly and romantically lit';
-      nsfw += ', silky smooth skin texture, body glistening subtly';
+      nsfw += ', lying on bed seductively, soft romantic lighting';
+      nsfw += ', smooth flawless skin, sensual body curves';
       
-      // EMPHASE POITRINE (selon taille) - Plus direct
-      if (character.bust) {
-        if (['D', 'DD', 'E', 'F', 'G'].includes(character.bust)) {
-          nsfw += ', cleavage very prominently and dramatically displayed, breasts heavily emphasized in revealing lingerie';
-          nsfw += ', bust clearly and boldly defined through transparent fabric, very deep visible cleavage featured';
-          nsfw += ', breast curves strongly highlighted and showcased, chest as primary focal point';
-          nsfw += ', bustline powerfully emphasized, breasts pressed closely together creating dramatic cleavage';
-          nsfw += ', bust enhanced and accentuated by provocative pose, cleavage deepened intentionally';
-          nsfw += ', large bust clearly visible and centered, generous curves fully displayed';
-        } else if (['B', 'C'].includes(character.bust)) {
-          nsfw += ', cleavage tastefully yet clearly visible, bust elegantly and attractively shown in sexy lingerie';
-          nsfw += ', chest naturally and beautifully defined, visible cleavage subtly revealed';
-          nsfw += ', breast curves delicately and sensually shown, natural bustline emphasized';
-          nsfw += ', feminine curves highlighted by lingerie, bust presented attractively';
+    } else if (character.gender === 'male') {
+      nsfw += ', sexy masculine pose, confident seductive expression';
+      nsfw += ', shirtless, bare muscular chest fully exposed';
+      nsfw += ', defined six-pack abs, muscular physique highlighted';
+      nsfw += ', V-line visible, low waist pants';
+      
+      // Physique selon "penis" qui représente la musculature
+      if (character.penis) {
+        const size = parseInt(character.penis) || 15;
+        if (size >= 20) {
+          nsfw += ', extremely muscular body, bodybuilder physique';
+          nsfw += ', massive muscles, powerful build, impressive physique';
+        } else if (size >= 17) {
+          nsfw += ', very muscular athletic body, ripped physique';
         }
       }
       
-      // AMBIANCE - Plus immersive
-      nsfw += ', intimate romantic bedroom setting, soft sensual lighting creating shadows';
-      nsfw += ', warm amber ambient light, dim seductive lighting, candlelit atmosphere';
-      nsfw += ', luxury silk sheets in warm tones, sumptuous bed with plush pillows';
-      nsfw += ', romantic dreamy atmosphere, intimate private mood, highly seductive environment';
-      nsfw += ', candles glowing softly in background, soft shadows enhancing curves';
-      nsfw += ', dreamy bokeh lighting effect, sensual warm ambiance';
-      
-    } else if (character.gender === 'male') {
-      // BASE NSFW MASCULIN - Plus intense
-      nsfw += ', very sexy masculine pose, intensely seductive confident look, powerful intense gaze';
-      nsfw += ', alluring attractive smile, dominant strong attitude, alpha male presence';
-      nsfw += ', powerful penetrating eyes, inviting masculine expression, confident dominant body language';
-      
-      // TENUE NSFW - Plus révélateur
-      nsfw += ', completely shirtless, bare muscular chest fully exposed, topless revealing physique';
-      nsfw += ', wearing only very tight underwear, boxer briefs clearly visible and form-fitting';
-      nsfw += ', very low-waisted pants revealing v-line, extremely revealing clothing';
-      nsfw += ', abs sharply and clearly defined, chest muscles prominently visible';
-      nsfw += ', defined v-line clearly showing, muscular definition strongly showcased';
-      
-      // POSE ET ATTITUDE - Plus dominant
-      nsfw += ', standing very confidently and dominantly, leaning seductively against wall';
-      nsfw += ', sitting on bed edge in dominant pose, reclining in masculine powerful pose';
-      nsfw += ', hands behind head showing muscles, arms flexed displaying physique';
-      nsfw += ', flexing subtly but noticeably, powerful dominant stance';
-      nsfw += ', looking intensely directly at camera, very dominant gaze, supremely confident posture';
-      nsfw += ', masculine powerful presence, body positioned to show strength';
-      
-      // PEAU ET MUSCLES - Plus défini
-      nsfw += ', tanned skin glistening with subtle sheen, muscles sharply defined by dramatic lighting';
-      nsfw += ', body highlighted and showcased, physique heavily emphasized and featured';
-      nsfw += ', six-pack abs clearly visible and defined, chest muscles well-defined and prominent';
-      nsfw += ', shoulders broad muscular and powerful, arms toned and strong';
-      nsfw += ', strong masculine features, rugged masculine appeal, raw masculine sexual energy';
-      nsfw += ', muscular athletic body clearly visible, definition in every muscle';
-      
-      // AMBIANCE - Plus virile
-      nsfw += ', intimate masculine bedroom setting, strong moody lighting, dramatic shadows emphasizing muscles';
-      nsfw += ', soft warm light highlighting skin and muscles, athletic powerful aesthetic';
-      nsfw += ', seductive intimate mood, sensual masculine atmosphere';
+      if (explicitLevel > 0.6) {
+        nsfw += ', wearing only underwear, bulge visible';
+      }
     }
     
-    // QUALITÉ FINALE - Plus haute
-    nsfw += ', ultra-realistic photorealistic rendering, extremely high detail and definition';
-    nsfw += ', professional fashion photography style, high-end magazine quality aesthetic';
-    nsfw += ', cinematic lighting and composition, editorial quality image';
-    nsfw += ', tasteful yet very sensual, artistic yet suggestive, elegant yet very sexy';
-    nsfw += ', sophisticated intimate photography, luxury sensual aesthetic';
+    if (isRealistic) {
+      nsfw += ', professional boudoir photography, high-end erotic photoshoot';
+      nsfw += ', intimate sensual photo, artistic nude, elegant erotica';
+      nsfw += ', perfect studio lighting, professional quality';
+    } else {
+      nsfw += ', beautiful ecchi anime art, detailed hentai style illustration';
+      nsfw += ', high quality nsfw anime, sensual anime artwork';
+    }
+    
+    nsfw += ', NSFW content, adult only, explicit, erotic, sexy';
     
     return nsfw;
   }
 
   /**
-   * MODE SFW (Safe For Work)
+   * MODE SFW
    */
-  buildSFWPrompt(character) {
-    let sfw = ', fully clothed, appropriate attire, decent outfit, respectful clothing';
+  buildSFWPrompt(character, isRealistic = false) {
+    let sfw = ', fully clothed, appropriate attire, decent outfit';
     
-    // Style vestimentaire basé sur l'apparence
     const appearance = (character.appearance || '').toLowerCase();
     
-    if (appearance.includes('élégant') || appearance.includes('elegant') || appearance.includes('sophistiqué')) {
-      sfw += ', elegant sophisticated outfit, classy clothing, refined attire, stylish dress';
-    } else if (appearance.includes('professionnel') || appearance.includes('professional') || appearance.includes('business')) {
-      sfw += ', professional business attire, suit, formal clothing, office outfit';
+    if (appearance.includes('élégant') || appearance.includes('elegant')) {
+      sfw += ', elegant sophisticated outfit, classy clothing';
+    } else if (appearance.includes('professionnel') || appearance.includes('professional')) {
+      sfw += ', professional business attire, formal clothing';
     } else if (appearance.includes('sport') || appearance.includes('athletic')) {
-      sfw += ', athletic sportswear, gym clothing, fitness outfit, sporty attire';
-    } else if (appearance.includes('casual') || appearance.includes('décontracté')) {
-      sfw += ', casual comfortable clothing, everyday outfit, relaxed attire';
-    } else if (appearance.includes('bohème') || appearance.includes('artistic')) {
-      sfw += ', bohemian artistic clothing, creative outfit, artistic attire';
+      sfw += ', athletic sportswear, fitness outfit';
     } else {
-      sfw += ', casual modern clothing, contemporary outfit, stylish attire';
+      sfw += ', casual modern clothing, stylish outfit';
     }
     
-    sfw += ', natural pose, confident stance, friendly expression, approachable demeanor';
-    sfw += ', natural lighting, clean background, professional setting, appropriate environment';
+    sfw += ', natural confident pose, friendly expression';
+    
+    if (isRealistic) {
+      sfw += ', professional portrait photography, natural lighting, clean background';
+    }
     
     return sfw;
   }
 
   /**
    * Génère l'image du personnage (profil)
-   * INCLUT: Descriptif physique complet + tenue + STYLE ALÉATOIRE
    */
   async generateCharacterImage(character, userProfile = null) {
-    // Filtrage d'âge
-    if (character.age < 18) {
+    const charAge = parseInt(character.age) || 25;
+    if (charAge < 18) {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // Détection mode NSFW
     const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
 
-    // CONSTRUCTION DU PROMPT ULTRA-DÉTAILLÉ
-    let prompt = '';
+    // Choisir le style (anime ou réaliste)
+    const { style, isRealistic } = this.getRandomStyle();
     
-    // 1. STYLE ALÉATOIRE (réaliste/hyper-réaliste/anime)
-    const randomStyle = this.artStyles[Math.floor(Math.random() * this.artStyles.length)];
-    prompt += randomStyle;
-    console.log('🎨 Style aléatoire choisi:', randomStyle);
+    let prompt = style;
     
-    // 2. Description physique détaillée (genre, âge, cheveux, traits)
-    prompt += ', ' + this.buildDetailedPhysicalDescription(character);
+    // === UTILISER imagePrompt si disponible (ex: personnages fantasy) ===
+    if (character.imagePrompt) {
+      prompt += ', ' + character.imagePrompt;
+    }
     
-    // 3. DESCRIPTIF PHYSIQUE COMPLET du personnage (character.appearance)
+    // Description physique adaptée au style
+    prompt += ', ' + this.buildDetailedPhysicalDescription(character, isRealistic);
+    
+    // Apparence du personnage
     if (character.appearance) {
-      const appearance = character.appearance.replace(/\n/g, ' ').trim();
-      prompt += `, ${appearance}`;
-      console.log('✅ Descriptif physique complet ajouté:', appearance.substring(0, 150));
+      prompt += `, ${character.appearance.replace(/\n/g, ' ').trim()}`;
     }
     
-    // 4. Anatomie ultra-précise (bust/penis)
-    prompt += this.buildAnatomyDescription(character);
+    // Anatomie (poitrine, physique masculin)
+    prompt += this.buildAnatomyDescription(character, isRealistic);
     
-    // 5. TENUE COMPLÈTE DU PERSONNAGE (critique pour profil)
+    // Tenue
     if (character.outfit) {
-      const outfit = character.outfit.replace(/\n/g, ' ').trim();
-      prompt += `, wearing: ${outfit}`;
-      console.log('✅ Tenue complète ajoutée:', outfit.substring(0, 150));
+      prompt += `, wearing: ${character.outfit.replace(/\n/g, ' ').trim()}`;
     }
     
-    // 6. Mode NSFW ou SFW
+    // Mode NSFW ou SFW
     if (nsfwMode) {
-      prompt += this.buildNSFWPrompt(character);
+      prompt += this.buildNSFWPrompt(character, isRealistic);
     } else {
-      prompt += this.buildSFWPrompt(character);
+      prompt += this.buildSFWPrompt(character, isRealistic);
     }
     
-    // 7. Qualité et sécurité
-    prompt += ', ultra-high quality, 4K resolution, professional photography';
-    prompt += ', realistic lighting, accurate proportions, lifelike, detailed features';
-    prompt += ', adult 18+, mature, age-appropriate, realistic age depiction';
+    // QUALITÉ SPÉCIFIQUE AU STYLE
+    if (isRealistic) {
+      // Prompts anti-déformation pour réaliste
+      prompt += ', ' + this.buildRealisticQualityPrompts();
+      prompt += ', ultra-high quality photo, 8K resolution, sharp focus, professional photography';
+      prompt += ', realistic skin texture, lifelike details, photographic quality';
+      prompt += ', single person only, one subject, solo portrait, no other people';
+      prompt += ', exactly two arms, exactly two legs, normal human body';
+    } else {
+      // Qualité anime AVEC anti-déformation
+      prompt += ', masterpiece anime art, best quality illustration, highly detailed anime';
+      prompt += ', clean lines, vibrant colors, professional anime artwork';
+      prompt += ', single character, solo, one person, no other characters';
+      prompt += ', correct anime anatomy, proper body proportions, NOT extra limbs';
+      prompt += ', exactly two arms, exactly two legs, proper hands with five fingers';
+    }
+    
+    prompt += ', adult 18+, mature';
 
-    console.log('🖼️ Prompt profil (AVEC tenue + style aléatoire):', prompt.substring(0, 300));
+    console.log(`🖼️ Génération image profil (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
     return await this.generateImage(prompt);
   }
 
   /**
    * Génère l'image de scène (conversation)
-   * INCLUT: Descriptif physique + TENUE/POSTURE ALÉATOIRE si NSFW + STYLE ALÉATOIRE
    */
   async generateSceneImage(character, userProfile = null, recentMessages = []) {
-    // Filtrage d'âge
-    if (character.age < 18) {
+    const charAge = parseInt(character.age) || 25;
+    if (charAge < 18) {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // Détection mode NSFW
     const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
 
-    // CONSTRUCTION DU PROMPT
-    let prompt = '';
+    // Choisir le style
+    const { style, isRealistic } = this.getRandomStyle();
     
-    // 1. STYLE ALÉATOIRE (réaliste/hyper-réaliste/anime)
-    const randomStyle = this.artStyles[Math.floor(Math.random() * this.artStyles.length)];
-    prompt += randomStyle;
-    console.log('🎨 Style aléatoire choisi (conversation):', randomStyle);
+    let prompt = style;
     
-    // 2. Description physique détaillée (genre, âge, cheveux, traits)
-    prompt += ', ' + this.buildDetailedPhysicalDescription(character);
-    
-    // 3. DESCRIPTIF PHYSIQUE COMPLET du personnage (character.appearance)
-    if (character.appearance) {
-      const appearance = character.appearance.replace(/\n/g, ' ').trim();
-      prompt += `, ${appearance}`;
-      console.log('✅ Descriptif physique complet ajouté (conversation):', appearance.substring(0, 150));
+    // === UTILISER imagePrompt si disponible ===
+    if (character.imagePrompt) {
+      prompt += ', ' + character.imagePrompt;
     }
     
-    // 4. Anatomie ultra-précise (bust/penis)
-    prompt += this.buildAnatomyDescription(character);
+    // Description physique
+    prompt += ', ' + this.buildDetailedPhysicalDescription(character, isRealistic);
     
-    // 5. TENUE: Détection conversation OU aléatoire si NSFW
+    // Apparence
+    if (character.appearance) {
+      prompt += `, ${character.appearance.replace(/\n/g, ' ').trim()}`;
+    }
+    
+    // Anatomie (poitrine, physique masculin)
+    prompt += this.buildAnatomyDescription(character, isRealistic);
+    
+    // Tenue détectée ou aléatoire
     const detectedOutfit = this.detectOutfit(recentMessages);
     if (detectedOutfit) {
       prompt += `, wearing ${detectedOutfit}`;
-      console.log('✅ Tenue détectée dans conversation:', detectedOutfit);
     } else if (nsfwMode) {
-      // NSFW: Tenue aléatoire
       const randomOutfit = this.nsfwOutfits[Math.floor(Math.random() * this.nsfwOutfits.length)];
       prompt += `, ${randomOutfit}`;
-      console.log('🎲 Tenue NSFW aléatoire:', randomOutfit);
-    } else {
-      console.log('ℹ️ Aucune tenue (SFW mode)');
     }
     
-    // 6. POSTURE: Aléatoire si NSFW
+    // Posture si NSFW
     if (nsfwMode) {
       const randomPose = this.nsfwPoses[Math.floor(Math.random() * this.nsfwPoses.length)];
       prompt += `, ${randomPose}`;
-      console.log('🎲 Posture NSFW aléatoire:', randomPose);
     }
     
-    // 7. Contexte conversationnel
-    const context = recentMessages.slice(-2).map(m => m.content).join(' ').substring(0, 200);
-    if (context && !detectedOutfit) {
-      prompt += `, scene context: ${context}`;
-    }
-    
-    // 8. Mode NSFW ou SFW
+    // Mode NSFW ou SFW
     if (nsfwMode) {
-      prompt += this.buildNSFWPrompt(character);
+      prompt += this.buildNSFWPrompt(character, isRealistic);
     } else {
-      prompt += this.buildSFWPrompt(character);
+      prompt += this.buildSFWPrompt(character, isRealistic);
     }
     
-    // 9. Qualité finale
-    prompt += ', ultra-detailed, 4K, professional quality, realistic lighting';
-    prompt += ', adult 18+, mature, age-appropriate';
+    // QUALITÉ AVEC ANTI-DÉFORMATION
+    if (isRealistic) {
+      prompt += ', ' + this.buildRealisticQualityPrompts();
+      prompt += ', ultra-detailed photo, 8K, professional quality, sharp focus';
+      prompt += ', single person, solo, one subject, no other people';
+      prompt += ', exactly two arms, exactly two legs, correct body';
+    } else {
+      prompt += ', masterpiece, best quality, highly detailed anime';
+      prompt += ', single character, solo, no duplicates';
+      prompt += ', correct anime anatomy, NOT extra limbs, NOT deformed';
+      prompt += ', exactly two arms, exactly two legs, proper hands';
+    }
+    
+    prompt += ', adult 18+, mature';
 
-    console.log('🖼️ Prompt conversation (tenue/posture aléatoire si NSFW):', prompt.substring(0, 300));
+    console.log(`🖼️ Génération image conversation (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
     return await this.generateImage(prompt);
   }
 
@@ -519,19 +822,7 @@ class ImageGenerationService {
   }
 
   /**
-   * Vérifie si une tenue est suggestive
-   */
-  isOutfitSuggestive(outfit) {
-    const suggestiveKeywords = [
-      'lingerie', 'underwear', 'bra', 'panties', 'string', 'thong',
-      'bikini', 'nuisette', 'nightgown', 'débardeur', 'déshabillé',
-      'torse nu', 'shirtless', 'topless'
-    ];
-    return suggestiveKeywords.some(kw => outfit.toLowerCase().includes(kw));
-  }
-
-  /**
-   * Attend le délai minimum entre les requêtes pour éviter le rate limiting
+   * Attend le délai minimum entre les requêtes
    */
   async waitForRateLimit() {
     const now = Date.now();
@@ -539,7 +830,7 @@ class ImageGenerationService {
     
     if (timeSinceLastRequest < this.minDelay) {
       const waitTime = this.minDelay - timeSinceLastRequest;
-      console.log(`⏳ Attente de ${waitTime}ms pour éviter le rate limit...`);
+      console.log(`⏳ Attente de ${waitTime}ms...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
     
@@ -547,378 +838,146 @@ class ImageGenerationService {
   }
 
   /**
-   * Appelle l'API Pollinations ou l'API personnalisée avec gestion du rate limiting
+   * Génère une image - UNIQUEMENT FREEBOX - AVEC RETRY AUTOMATIQUE
    */
-  async generateImage(prompt) {
-    // Charger la config de l'API personnalisée
+  async generateImage(prompt, retryCount = 0) {
     await CustomImageAPIService.loadConfig();
     
     const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🎨 Stratégie de génération: ${strategy}`);
+    console.log(`🎨 Stratégie de génération: ${strategy} (tentative ${retryCount + 1}/${this.maxRetries})`);
     
-    // Si stratégie = 'local', utiliser SD Local sur smartphone
+    let imageUrl;
+    
     if (strategy === 'local') {
       console.log('📱 Génération locale (SD sur smartphone)...');
-      return await this.generateWithLocal(prompt);
+      imageUrl = await this.generateWithLocal(prompt);
+    } else {
+      console.log('🏠 Génération avec Freebox...');
+      imageUrl = await this.generateWithFreebox(prompt);
     }
     
-    let lastError = null;
+    // Vérifier si l'image est valide (pas d'erreur pollination, etc.)
+    const isValid = await this.validateImageUrl(imageUrl);
     
-    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-      try {
-        console.log(`🎨 Tentative ${attempt}/${this.maxRetries} de génération d'image...`);
-        
-        const encodedPrompt = encodeURIComponent(prompt);
-        const seed = Date.now() + Math.floor(Math.random() * 10000);
-        
-        console.log(`📏 Taille prompt: ${prompt.length} chars, encodé: ${encodedPrompt.length} chars`);
-        
-        // Vérifier longueur UNIQUEMENT pour Pollinations (limite URL navigateur)
-        // Freebox peut gérer des prompts beaucoup plus longs (API serveur)
-        const needsPollinationsCheck = (strategy === 'pollinations-only') || 
-                                        (strategy === 'freebox-first' && !CustomImageAPIService.hasCustomApi());
-        
-        if (needsPollinationsCheck && encodedPrompt.length > 2000) {
-          console.warn('⚠️ Prompt très long pour Pollinations, peut causer des problèmes');
-          // Ne pas bloquer, juste avertir
-        }
-        
-        // STRATÉGIE 1: Freebox uniquement
-        if (strategy === 'freebox-only') {
-          console.log('🏠 Stratégie: Freebox uniquement');
-          if (!CustomImageAPIService.hasCustomApi()) {
-            throw new Error('API Freebox non configurée. Allez dans Paramètres > API d\'Images.');
-          }
-          // Pas de limite de longueur pour Freebox
-          return await this.generateWithFreebox(prompt, seed);
-        }
-        
-        // STRATÉGIE 2: Pollinations uniquement
-        if (strategy === 'pollinations-only') {
-          console.log('🌐 Stratégie: Pollinations uniquement');
-          
-          // Si prompt trop long, le tronquer pour Pollinations
-          let finalPrompt = prompt;
-          if (encodedPrompt.length > 2000) {
-            console.log('✂️ Prompt trop long pour Pollinations, réduction...');
-            // Tronquer intelligemment en gardant le début (description physique)
-            finalPrompt = prompt.substring(0, Math.floor(prompt.length * 0.6));
-            console.log(`📏 Nouveau prompt: ${finalPrompt.length} chars`);
-          }
-          
-          await this.waitForRateLimit();
-          return await this.generateWithPollinations(finalPrompt, seed);
-        }
-        
-        // STRATÉGIE 3: Freebox en premier, puis Pollinations en fallback (DÉFAUT)
-        if (strategy === 'freebox-first') {
-          console.log('🔄 Stratégie: Freebox en premier, Pollinations en fallback');
-          
-          // Essayer Freebox si configuré (pas de limite de longueur)
-          if (CustomImageAPIService.hasCustomApi()) {
-            try {
-              console.log('🏠 Tentative avec Freebox...');
-              return await this.generateWithFreebox(prompt, seed);
-            } catch (freeboxError) {
-              console.error('❌ Freebox a échoué:', freeboxError.message);
-              console.log('🔄 Passage à Pollinations en fallback...');
-              lastError = freeboxError;
-              // Continue vers Pollinations avec prompt potentiellement réduit
-            }
-          } else {
-            console.log('⚠️ API Freebox non configurée, utilisation de Pollinations directement');
-          }
-          
-          // Fallback: Pollinations (avec réduction si nécessaire)
-          let finalPrompt = prompt;
-          if (encodedPrompt.length > 2000) {
-            console.log('✂️ Prompt trop long pour Pollinations fallback, réduction...');
-            finalPrompt = prompt.substring(0, Math.floor(prompt.length * 0.6));
-          }
-          
-          await this.waitForRateLimit();
-          return await this.generateWithPollinations(finalPrompt, seed);
-        }
-        
-        // Fallback par défaut: Pollinations
-        console.log('⚠️ Stratégie inconnue, utilisation de Pollinations');
-        await this.waitForRateLimit();
-        return await this.generateWithPollinations(prompt, seed);
-        
-      } catch (error) {
-        lastError = error;
-        console.error(`❌ Tentative ${attempt} échouée:`, error.message);
-        
-        // Si rate limited, attendre plus longtemps avant de réessayer
-        if (error.response?.status === 429 || error.message.includes('rate limit')) {
-          const waitTime = attempt * 5000; // 5s, 10s, 15s...
-          console.log(`⏳ Rate limited détecté. Attente de ${waitTime}ms...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        } else if (attempt < this.maxRetries) {
-          // Attendre avant de réessayer (backoff exponentiel)
-          const waitTime = attempt * 2000;
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
+    if (!isValid && retryCount < this.maxRetries - 1) {
+      console.log(`⚠️ Image invalide, nouvelle tentative (${retryCount + 2}/${this.maxRetries})...`);
+      // Attendre un peu avant de réessayer
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return await this.generateImage(prompt, retryCount + 1);
+    }
+    
+    return imageUrl;
+  }
+
+  /**
+   * Valide qu'une URL d'image est correcte
+   */
+  async validateImageUrl(imageUrl) {
+    if (!imageUrl) return false;
+    
+    // Vérifier les patterns d'erreur connus
+    const errorPatterns = [
+      'pollination',
+      'error',
+      'failed',
+      'invalid',
+      'blocked',
+      'nsfw_blocked'
+    ];
+    
+    const lowerUrl = imageUrl.toLowerCase();
+    for (const pattern of errorPatterns) {
+      if (lowerUrl.includes(pattern)) {
+        console.log(`⚠️ URL contient pattern d'erreur: ${pattern}`);
+        return false;
       }
     }
     
-    // Toutes les tentatives ont échoué
-    console.error('❌ Échec de génération après toutes les tentatives');
-    throw new Error(`Impossible de générer l'image après ${this.maxRetries} tentatives. ${lastError?.message || 'Le service est peut-être temporairement surchargé.'}. Réessayez dans quelques minutes.`);
+    // Vérifier que c'est une URL valide
+    try {
+      new URL(imageUrl);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
    * Génère une image avec l'API Freebox
    */
-  async generateWithFreebox(prompt, seed) {
+  async generateWithFreebox(prompt) {
     console.log('🏠 Génération avec API Freebox...');
     
-    const imageUrl = CustomImageAPIService.buildImageUrl(prompt, {
-      width: 768,
-      height: 768,
-      seed: seed,
-    });
+    await this.waitForRateLimit();
     
-    console.log(`🔗 URL Freebox (${imageUrl.length} chars):`, imageUrl.substring(0, 100) + '...');
-    
-    try {
-      // IMPORTANT: Vérification légère pour Freebox
-      // L'API Freebox retourne l'URL directement, pas besoin de vérifier avec axios.get
-      // qui peut causer des timeouts inutiles
-      
-      console.log('✅ URL Freebox générée, l\'image sera chargée par l\'app');
-      return imageUrl;
-      
-      // Note: L'app chargera l'image elle-même avec son propre timeout
-      // Pas besoin de la télécharger ici juste pour vérifier
-    } catch (error) {
-      console.error('❌ Erreur génération URL Freebox:', error.message);
-      throw new Error(`API Freebox: ${error.message}`);
+    let freeboxUrl = CustomImageAPIService.getApiUrl();
+    if (!freeboxUrl) {
+      freeboxUrl = this.freeboxURL;
     }
-  }
-
-  /**
-   * Génère une image avec Pollinations.ai
-   */
-  async generateWithPollinations(prompt, seed) {
-    console.log('🌐 Génération avec Pollinations.ai...');
     
+    const seed = Date.now() + Math.floor(Math.random() * 10000);
     const encodedPrompt = encodeURIComponent(prompt);
-    const imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
     
-    console.log(`🔗 URL Pollinations (${imageUrl.length} chars):`, imageUrl.substring(0, 100) + '...');
+    // Récupérer le token et user_id pour l'authentification premium
+    const token = await AsyncStorage.getItem('auth_token');
+    const user = AuthService.getCurrentUser();
+    const userId = user?.id || '';
     
-    try {
-      // Attendre un peu pour la génération (Pollinations génère à la volée)
-      console.log('⏳ Attente de la génération (3s)...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Vérifier que l'URL est accessible avec un HEAD request
-      console.log('🔍 Vérification de l\'image...');
-      const headResponse = await axios.head(imageUrl, {
-        timeout: 10000,
-        maxRedirects: 5,
-        validateStatus: (status) => status === 200
-      });
-      
-      if (headResponse.status === 200) {
-        console.log('✅ Image Pollinations vérifiée et accessible');
-        return imageUrl;
-      } else {
-        throw new Error(`Pollinations a retourné le statut ${headResponse.status}`);
-      }
-    } catch (error) {
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        // Timeout lors de la vérification - l'image se génère peut-être encore
-        // On retourne l'URL quand même, elle se chargera dans l'app
-        console.log('⚠️ Timeout vérification Pollinations, mais URL retournée (génération en cours)');
-        return imageUrl;
-      } else if (error.response?.status === 429) {
-        throw new Error('Rate limit Pollinations. Attendez quelques secondes.');
-      }
-      throw new Error(`Pollinations: ${error.message}`);
+    const separator = freeboxUrl.includes('?') ? '&' : '?';
+    let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=768&height=768&seed=${seed}`;
+    
+    // Ajouter l'authentification pour les utilisateurs premium
+    if (token) {
+      imageUrl += `&token=${encodeURIComponent(token)}`;
     }
+    if (userId) {
+      imageUrl += `&user_id=${encodeURIComponent(userId)}`;
+    }
+    
+    console.log(`🔗 URL Freebox générée avec auth (${prompt.length} chars)`);
+    
+    return imageUrl;
   }
 
   /**
-   * ANCIENNE MÉTHODE - Conservée pour compatibilité mais dépréciée
-   */
-  async _generateImageLegacy(prompt) {
-    // Charger la config de l'API personnalisée
-    await CustomImageAPIService.loadConfig();
-    
-    let lastError = null;
-    
-    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-      try {
-        console.log(`🎨 Tentative ${attempt}/${this.maxRetries} de génération d'image...`);
-        
-        // Attendre pour éviter le rate limiting (seulement pour Pollinations)
-        if (!CustomImageAPIService.hasCustomApi()) {
-          await this.waitForRateLimit();
-        }
-        
-        const encodedPrompt = encodeURIComponent(prompt);
-        
-        // Ajouter un seed aléatoire pour varier les images
-        const seed = Date.now() + Math.floor(Math.random() * 10000);
-        
-        // Utiliser l'API personnalisée ou Pollinations
-        let imageUrl;
-        if (CustomImageAPIService.hasCustomApi()) {
-          console.log('🏠 Utilisation de l\'API personnalisée');
-          imageUrl = CustomImageAPIService.buildImageUrl(prompt, {
-            width: 768,
-            height: 768,
-            seed: seed,
-          });
-        } else {
-          // Utiliser plusieurs paramètres pour améliorer la qualité
-          imageUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
-        }
-        
-        console.log(`🔗 URL générée (longueur: ${imageUrl.length})`);
-        
-        // Vérifier que l'URL n'est pas trop longue (limite ~2000 caractères)
-        if (imageUrl.length > 2000) {
-          throw new Error('Prompt trop long. Réduisez la description.');
-        }
-        
-        // Vérification différente selon le type d'API
-        if (CustomImageAPIService.hasCustomApi()) {
-          // API personnalisée (Freebox, Stable Diffusion, etc.)
-          // Ces APIs prennent plus de temps mais génèrent l'image synchroniquement
-          console.log('🏠 Génération avec API personnalisée (peut prendre 20-30 secondes)...');
-          
-          try {
-            // Vérifier que l'image est accessible (timeout long pour la génération)
-            const testResponse = await axios.get(imageUrl, {
-              timeout: 60000, // 60 secondes pour la génération
-              responseType: 'arraybuffer',
-              maxContentLength: 10485760, // 10 MB pour les images complètes
-              validateStatus: (status) => status === 200
-            });
-            
-            // Vérifier que c'est bien une image
-            const contentType = testResponse.headers['content-type'];
-            if (contentType && contentType.includes('image')) {
-              console.log('✅ Image générée et vérifiée depuis API personnalisée');
-              return imageUrl;
-            } else {
-              throw new Error('Réponse invalide de l\'API personnalisée');
-            }
-          } catch (error) {
-            console.error('❌ Erreur API personnalisée:', error.message);
-            // Si l'API personnalisée échoue, essayer Pollinations en fallback
-            console.log('🔄 Tentative avec Pollinations en fallback...');
-            
-            try {
-              const pollinationsUrl = `${this.baseURL}${encodedPrompt}?width=768&height=768&model=flux&nologo=true&enhance=true&seed=${seed}&private=true`;
-              console.log('🌐 URL Pollinations:', pollinationsUrl.substring(0, 100) + '...');
-              
-              await this.waitForRateLimit();
-              await new Promise(resolve => setTimeout(resolve, 3000));
-              
-              const pollinationsTest = await axios.head(pollinationsUrl, {
-                timeout: 15000,
-                maxRedirects: 5,
-                validateStatus: (status) => status === 200 || status === 404
-              });
-              
-              if (pollinationsTest.status === 200) {
-                console.log('✅ Image générée avec Pollinations (fallback)');
-                return pollinationsUrl;
-              }
-            } catch (fallbackError) {
-              console.error('❌ Fallback Pollinations échoué:', fallbackError.message);
-            }
-            
-            throw new Error(`API personnalisée: ${error.message}`);
-          }
-        } else {
-          // API Pollinations - génération à la volée
-          console.log('🌐 Génération avec Pollinations.ai');
-          
-          // Attendre un délai pour la génération
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          
-          // Retourner l'URL directement - Pollinations génère à la volée
-          // L'image sera générée lors du premier accès
-          console.log('✅ URL Pollinations retournée');
-          return imageUrl;
-        }
-        
-      } catch (error) {
-        lastError = error;
-        console.error(`❌ Tentative ${attempt} échouée:`, error.message);
-        
-        // Si rate limited, attendre plus longtemps avant de réessayer
-        if (error.response?.status === 429 || error.message.includes('rate limit')) {
-          const waitTime = attempt * 5000; // 5s, 10s, 15s...
-          console.log(`⏳ Rate limited détecté. Attente de ${waitTime}ms...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        } else if (attempt < this.maxRetries) {
-          // Attendre avant de réessayer (backoff exponentiel)
-          const waitTime = attempt * 2000;
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-      }
-    }
-    
-    // Toutes les tentatives ont échoué
-    console.error('❌ Échec de génération après toutes les tentatives');
-    throw new Error(`Impossible de générer l'image après ${this.maxRetries} tentatives. Le service est peut-être temporairement surchargé. Réessayez dans quelques minutes.`);
-  }
-
-  /**
-   * Génère une image avec Stable Diffusion Local (Smartphone)
+   * Génère une image avec Stable Diffusion Local
    */
   async generateWithLocal(prompt) {
-    console.log('📱 Génération locale SD commencée...');
+    console.log('📱 Tentative génération locale SD...');
     
     try {
-      // Vérifie la disponibilité
       const availability = await StableDiffusionLocalService.checkAvailability();
       
-      if (!availability.available) {
-        throw new Error(availability.reason || 'Service non disponible');
+      if (!availability.available || !availability.modelDownloaded || !availability.canRunSD) {
+        console.log('⚠️ SD Local non disponible - Utilisation de Freebox');
+        return await this.generateWithFreebox(prompt);
       }
 
-      if (!availability.modelDownloaded) {
-        throw new Error('Modèle SD non téléchargé. Allez dans Paramètres > Génération d\'images');
-      }
-
-      if (!availability.canRunSD) {
-        throw new Error(`RAM insuffisante (${Math.round(availability.ramMB)} MB). Minimum: 2 GB`);
-      }
-
-      // Construire le prompt avec qualité + négatif
-      const fullPrompt = `${prompt}, masterpiece, best quality, ultra detailed, 8k, photorealistic`;
-      const negativePrompt = 'low quality, blurry, distorted, deformed, ugly, bad anatomy, worst quality, child, childish, young, underage';
+      const fullPrompt = `${prompt}, masterpiece, best quality, ultra detailed`;
+      const negativePrompt = 'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, ' +
+        'extra limbs, missing limbs, floating limbs, disconnected limbs, malformed hands, ' +
+        'extra fingers, missing fingers, fused fingers, too many fingers, mutated hands, ' +
+        'bad hands, extra arms, extra legs, duplicate, low quality, blurry, ugly';
 
       console.log('🎨 Génération avec SD-Turbo local...');
       
-      // Génération
       const result = await StableDiffusionLocalService.generateImage(fullPrompt, {
         negativePrompt,
-        steps: 2, // SD-Turbo optimal
-        guidanceScale: 1.0, // SD-Turbo optimal
+        steps: 2,
+        guidanceScale: 1.0,
       });
 
-      console.log('✅ Image générée localement:', result);
-      
-      // TODO: Pour l'instant, retourne un message de succès
-      // L'implémentation complète de l'inférence ONNX sera ajoutée
-      if (result.imagePath) {
+      if (result && result.imagePath) {
+        console.log('✅ Image générée localement');
         return result.imagePath;
       }
       
-      // Placeholder temporaire
-      return 'https://via.placeholder.com/512x512.png?text=SD+Local+Image';
+      console.log('⚠️ Pas de résultat SD Local, fallback Freebox');
+      return await this.generateWithFreebox(prompt);
       
     } catch (error) {
-      console.error('❌ Erreur génération locale:', error);
-      throw error;
+      console.error('❌ Erreur génération locale:', error.message);
+      return await this.generateWithFreebox(prompt);
     }
   }
 }

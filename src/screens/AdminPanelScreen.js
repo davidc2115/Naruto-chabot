@@ -1,0 +1,490 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  TextInput,
+  RefreshControl,
+} from 'react-native';
+import AuthService from '../services/AuthService';
+
+const FREEBOX_URL = 'http://88.174.155.230:33437';
+
+export default function AdminPanelScreen() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${FREEBOX_URL}/admin/users`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data.users || []);
+      } else {
+        console.error('Erreur chargement utilisateurs');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    loadUsers();
+  };
+
+  const toggleAdminStatus = async (userId, currentStatus) => {
+    const action = currentStatus ? 'retirer les droits admin' : 'donner les droits admin';
+    Alert.alert(
+      '👑 Modifier les droits',
+      `Voulez-vous ${action} à cet utilisateur ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Confirmer',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${FREEBOX_URL}/admin/users/${userId}/role`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+                },
+                body: JSON.stringify({ is_admin: !currentStatus })
+              });
+              
+              if (response.ok) {
+                Alert.alert('✅ Succès', 'Les droits ont été modifiés');
+                loadUsers();
+              } else {
+                Alert.alert('❌ Erreur', 'Impossible de modifier les droits');
+              }
+            } catch (error) {
+              Alert.alert('❌ Erreur', 'Erreur de connexion au serveur');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const togglePremiumStatus = async (userId, currentStatus) => {
+    const action = currentStatus ? 'retirer le statut premium' : 'donner le statut premium';
+    Alert.alert(
+      '⭐ Modifier le statut premium',
+      `Voulez-vous ${action} à cet utilisateur ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Confirmer',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${FREEBOX_URL}/admin/users/${userId}/premium`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+                },
+                body: JSON.stringify({ is_premium: !currentStatus })
+              });
+              
+              if (response.ok) {
+                Alert.alert('✅ Succès', 'Le statut premium a été modifié');
+                loadUsers();
+              } else {
+                Alert.alert('❌ Erreur', 'Impossible de modifier le statut');
+              }
+            } catch (error) {
+              Alert.alert('❌ Erreur', 'Erreur de connexion au serveur');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const deleteUser = async (userId, email) => {
+    Alert.alert(
+      '🗑️ Supprimer l\'utilisateur',
+      `Êtes-vous sûr de vouloir supprimer le compte de ${email} ? Cette action est irréversible.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await fetch(`${FREEBOX_URL}/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+                }
+              });
+              
+              if (response.ok) {
+                Alert.alert('✅ Supprimé', 'L\'utilisateur a été supprimé');
+                loadUsers();
+              } else {
+                Alert.alert('❌ Erreur', 'Impossible de supprimer l\'utilisateur');
+              }
+            } catch (error) {
+              Alert.alert('❌ Erreur', 'Erreur de connexion au serveur');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const filteredUsers = users.filter(user => 
+    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.username?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const renderUser = ({ item }) => {
+    const isCurrentUser = item.email === AuthService.getCurrentUser()?.email;
+    
+    return (
+      <View style={[styles.userCard, isCurrentUser && styles.currentUserCard]}>
+        <View style={styles.userInfo}>
+          <View style={styles.userHeader}>
+            <Text style={styles.userName}>
+              {item.username || 'Sans pseudo'}
+            </Text>
+            <View style={styles.badges}>
+              {item.is_admin && (
+                <View style={styles.adminBadge}>
+                  <Text style={styles.badgeText}>👑 Admin</Text>
+                </View>
+              )}
+              {item.is_premium && (
+                <View style={styles.premiumBadge}>
+                  <Text style={styles.badgeText}>⭐ Premium</Text>
+                </View>
+              )}
+            </View>
+          </View>
+          <Text style={styles.userEmail}>{item.email}</Text>
+          <View style={styles.userDetails}>
+            <Text style={styles.detailText}>
+              📅 Inscrit: {new Date(item.created_at).toLocaleDateString('fr-FR')}
+            </Text>
+            {item.age && (
+              <Text style={styles.detailText}>🎂 {item.age} ans</Text>
+            )}
+            {item.nsfw_enabled && (
+              <Text style={styles.detailText}>🔞 NSFW activé</Text>
+            )}
+          </View>
+        </View>
+        
+        {!isCurrentUser && (
+          <View style={styles.actions}>
+            <TouchableOpacity 
+              style={[styles.actionButton, item.is_admin ? styles.removeButton : styles.adminButton]}
+              onPress={() => toggleAdminStatus(item.id, item.is_admin)}
+            >
+              <Text style={styles.actionButtonText}>
+                {item.is_admin ? '➖ Admin' : '➕ Admin'}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.actionButton, item.is_premium ? styles.removeButton : styles.premiumButton]}
+              onPress={() => togglePremiumStatus(item.id, item.is_premium)}
+            >
+              <Text style={styles.actionButtonText}>
+                {item.is_premium ? '➖ Premium' : '➕ Premium'}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.actionButton, styles.deleteButton]}
+              onPress={() => deleteUser(item.id, item.email)}
+            >
+              <Text style={styles.actionButtonText}>🗑️</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        
+        {isCurrentUser && (
+          <View style={styles.currentUserLabel}>
+            <Text style={styles.currentUserText}>Vous</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  if (loading && !refreshing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6366f1" />
+        <Text style={styles.loadingText}>Chargement des utilisateurs...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>👑 Panel Admin</Text>
+        <Text style={styles.subtitle}>Gestion des membres</Text>
+      </View>
+      
+      <View style={styles.statsBar}>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>{users.length}</Text>
+          <Text style={styles.statLabel}>Membres</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>{users.filter(u => u.is_admin).length}</Text>
+          <Text style={styles.statLabel}>Admins</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>{users.filter(u => u.is_premium).length}</Text>
+          <Text style={styles.statLabel}>Premium</Text>
+        </View>
+      </View>
+      
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="🔍 Rechercher un membre..."
+          placeholderTextColor="#9ca3af"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+      </View>
+      
+      <FlatList
+        data={filteredUsers}
+        renderItem={renderUser}
+        keyExtractor={item => item.id?.toString() || item.email}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#6366f1"
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyEmoji}>👥</Text>
+            <Text style={styles.emptyText}>Aucun utilisateur trouvé</Text>
+          </View>
+        }
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  header: {
+    padding: 20,
+    paddingTop: 60,
+    backgroundColor: '#6366f1',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#e0e7ff',
+    marginTop: 4,
+  },
+  statsBar: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#6366f1',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  searchContainer: {
+    padding: 15,
+  },
+  searchInput: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  list: {
+    padding: 15,
+    paddingTop: 0,
+  },
+  userCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  currentUserCard: {
+    borderWidth: 2,
+    borderColor: '#6366f1',
+  },
+  userInfo: {
+    marginBottom: 12,
+  },
+  userHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#111827',
+    flex: 1,
+  },
+  badges: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  adminBadge: {
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  premiumBadge: {
+    backgroundColor: '#dbeafe',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  userDetails: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  detailText: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    paddingTop: 12,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  adminButton: {
+    backgroundColor: '#fef3c7',
+  },
+  premiumButton: {
+    backgroundColor: '#dbeafe',
+  },
+  removeButton: {
+    backgroundColor: '#fee2e2',
+  },
+  deleteButton: {
+    backgroundColor: '#ef4444',
+    flex: 0,
+    paddingHorizontal: 12,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  currentUserLabel: {
+    alignItems: 'center',
+    paddingTop: 8,
+  },
+  currentUserText: {
+    fontSize: 12,
+    color: '#6366f1',
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyEmoji: {
+    fontSize: 60,
+    marginBottom: 15,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+});

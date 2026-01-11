@@ -7,10 +7,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://maven.aliyun.com/repository/central") }
-    maven { url = uri("https://maven.aliyun.com/repository/public") }
-    maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
-    maven { url = uri("https://jitpack.io") }
 }
 
 gradlePlugin {

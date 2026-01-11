@@ -14,6 +14,73 @@ import ImageGenerationService from '../services/ImageGenerationService';
 import CustomCharacterService from '../services/CustomCharacterService';
 import GalleryService from '../services/GalleryService';
 import UserProfileService from '../services/UserProfileService';
+import AuthService from '../services/AuthService';
+
+/**
+ * Extrait un attribut physique depuis physicalDescription ou imagePrompt
+ */
+const extractAttribute = (character, type) => {
+  const text = ((character.physicalDescription || '') + ' ' + (character.appearance || '') + ' ' + (character.imagePrompt || '')).toLowerCase();
+  
+  if (type === 'hair') {
+    const patterns = [
+      { regex: /cheveux?\s+([\wéèêëàâäôöùûü\s-]+)/i, group: 1 },
+      { regex: /(blond[es]?|brun[es]?|roux?|rousse|noir[es]?|châtain|gris[es]?|argenté[es]?|blanc[hes]?|rose|violet[tes]?|bleu[es]?)\s*(cheveux|hair)?/i, group: 1 },
+      { regex: /(blonde|brunette|red|black|brown|gray|silver|white|pink|purple|blue)\s*hair/i, group: 1 },
+    ];
+    for (const p of patterns) {
+      const match = text.match(p.regex);
+      if (match) return match[p.group].trim();
+    }
+  }
+  
+  if (type === 'eyes') {
+    const patterns = [
+      { regex: /yeux\s+([\wéèêëàâäôöùûü\s-]+)/i, group: 1 },
+      { regex: /(bleu[s]?|vert[s]?|marron|noisette|gris|noir[s]?|ambre|doré[s]?|violet[s]?|rouge[s]?)\s*(yeux|eyes)?/i, group: 1 },
+      { regex: /(blue|green|brown|hazel|gray|black|amber|golden|purple|red)\s*eyes/i, group: 1 },
+    ];
+    for (const p of patterns) {
+      const match = text.match(p.regex);
+      if (match) return match[p.group].trim();
+    }
+  }
+  
+  if (type === 'height') {
+    const match = text.match(/(\d{2,3})\s*(cm|centimètres)/i);
+    if (match) return match[1] + ' cm';
+    // Estimer depuis description
+    if (text.includes('grande') || text.includes('tall')) return '175+ cm';
+    if (text.includes('petite') || text.includes('small')) return '155-160 cm';
+  }
+  
+  if (type === 'body') {
+    if (text.includes('athlétique') || text.includes('athletic') || text.includes('tonique')) return 'Athlétique';
+    if (text.includes('voluptueuse') || text.includes('voluptuous') || text.includes('pulpeuse')) return 'Voluptueuse';
+    if (text.includes('mince') || text.includes('slim') || text.includes('élancée')) return 'Mince et élancée';
+    if (text.includes('ronde') || text.includes('chubby') || text.includes('curvy')) return 'Ronde et généreuse';
+    if (text.includes('musclée') || text.includes('muscular')) return 'Musclée';
+    if (text.includes('maternelle') || text.includes('maternal')) return 'Maternelle';
+  }
+  
+  if (type === 'bust') {
+    const bustMatch = text.match(/bonnet\s*([A-H]{1,2})/i) || text.match(/([A-H])\s*cup/i);
+    if (bustMatch) return bustMatch[1].toUpperCase();
+    if (text.includes('énorme') || text.includes('massive') || text.includes('huge')) return 'H';
+    if (text.includes('très grosse') || text.includes('very large')) return 'G';
+    if (text.includes('grosse') || text.includes('large')) return 'F';
+    if (text.includes('généreuse') || text.includes('generous')) return 'E';
+    if (text.includes('moyenne') || text.includes('medium')) return 'C';
+    if (text.includes('petite poitrine') || text.includes('small breast')) return 'B';
+  }
+  
+  if (type === 'male') {
+    const match = text.match(/(\d{2})\s*(cm)?/);
+    if (match) return match[1];
+  }
+  
+  return null;
+};
 
 export default function CharacterDetailScreen({ route, navigation }) {
   const { character } = route.params;
@@ -23,22 +90,74 @@ export default function CharacterDetailScreen({ route, navigation }) {
   const [loadingImage, setLoadingImage] = useState(true);
   const [gallery, setGallery] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
-    loadCharacterData();
-    loadGallery();
-    loadUserProfile();
-    generateCharacterImage();
+    initializeScreen();
     navigation.setOptions({ title: character.name });
     
     // Recharger la galerie quand on revient sur cet écran
     const unsubscribe = navigation.addListener('focus', () => {
       loadGallery();
       loadUserProfile();
+      checkPremiumStatus();
     });
     
     return unsubscribe;
   }, [character]);
+
+  const initializeScreen = async () => {
+    loadCharacterData();
+    loadGallery();
+    loadUserProfile();
+    
+    // Vérifier le statut premium avant de générer l'image
+    const premiumStatus = await checkPremiumStatus();
+    console.log('🎫 Premium status:', premiumStatus);
+    
+    if (premiumStatus) {
+      // Passer le statut premium directement pour éviter les problèmes de timing
+      generateCharacterImage(true);
+    } else {
+      setLoadingImage(false);
+      // Charger une image existante de la galerie si disponible
+      const existingGallery = await GalleryService.getGallery(character.id);
+      if (existingGallery && existingGallery.length > 0) {
+        setCharacterImage(existingGallery[0]);
+      }
+    }
+  };
+
+  const checkPremiumStatus = async () => {
+    try {
+      // Vérifier d'abord localement (admin = premium automatiquement)
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      
+      if (isAdmin) {
+        console.log('👑 Admin détecté - Premium automatique');
+        setIsPremium(true);
+        return true;
+      }
+      
+      const localPremium = AuthService.isPremium();
+      setIsPremium(localPremium);
+      
+      // Puis vérifier côté serveur
+      const serverPremium = await AuthService.checkPremiumStatus();
+      setIsPremium(serverPremium);
+      console.log('💎 Premium server check:', serverPremium);
+      return serverPremium;
+    } catch (error) {
+      console.error('Erreur vérification premium:', error);
+      // En cas d'erreur, vérifier si admin
+      const user = AuthService.getCurrentUser();
+      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      const fallback = isAdmin || AuthService.isPremium();
+      setIsPremium(fallback);
+      return fallback;
+    }
+  };
 
   const loadUserProfile = async () => {
     const profile = await UserProfileService.getProfile();
@@ -58,21 +177,56 @@ export default function CharacterDetailScreen({ route, navigation }) {
     setHasConversation(conv !== null && conv.messages.length > 0);
   };
 
-  const generateCharacterImage = async () => {
+  const generateCharacterImage = async (forceAllowed = false) => {
+    // Vérifier le statut premium (utiliser le paramètre ou l'état)
+    const canGenerate = forceAllowed || isPremium;
+    
+    if (!canGenerate) {
+      Alert.alert(
+        '💎 Fonctionnalité Premium',
+        'La génération d\'images est réservée aux membres Premium.\n\nDevenez Premium pour voir vos personnages prendre vie !',
+        [
+          { text: 'Plus tard', style: 'cancel' },
+          { 
+            text: 'Devenir Premium', 
+            onPress: () => navigation.navigate('Premium')
+          }
+        ]
+      );
+      return;
+    }
+
     try {
       setLoadingImage(true);
+      console.log('🎨 Génération image pour:', character.name);
+      
       // Charger le profil utilisateur pour le mode NSFW
       const profile = userProfile || await UserProfileService.getProfile();
       const imageUrl = await ImageGenerationService.generateCharacterImage(character, profile);
+      
+      console.log('✅ Image générée:', imageUrl ? 'OK' : 'Échec');
       setCharacterImage(imageUrl);
       
       // SAUVEGARDER l'image dans la galerie du personnage
-      await GalleryService.saveImageToGallery(character.id, imageUrl);
-      
-      // Recharger la galerie pour afficher la nouvelle image
-      await loadGallery();
+      if (imageUrl) {
+        await GalleryService.saveImageToGallery(character.id, imageUrl);
+        // Recharger la galerie pour afficher la nouvelle image
+        await loadGallery();
+      }
     } catch (error) {
-      console.error('Error generating image:', error);
+      console.error('❌ Error generating image:', error);
+      if (error.message?.includes('Premium') || error.message?.includes('403')) {
+        Alert.alert(
+          '💎 Premium Requis',
+          'Vous devez être membre Premium pour générer des images.'
+        );
+      } else {
+        // Essayer de charger une image existante
+        const existingGallery = await GalleryService.getGallery(character.id);
+        if (existingGallery && existingGallery.length > 0) {
+          setCharacterImage(existingGallery[0]);
+        }
+      }
     } finally {
       setLoadingImage(false);
     }
@@ -171,7 +325,7 @@ export default function CharacterDetailScreen({ route, navigation }) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.imageContainer}>
-        {loadingImage ? (
+        {loadingImage && isPremium ? (
           <View style={styles.imagePlaceholder}>
             <ActivityIndicator size="large" color="#6366f1" />
             <Text style={styles.loadingText}>Génération de l'image...</Text>
@@ -189,10 +343,10 @@ export default function CharacterDetailScreen({ route, navigation }) {
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <View>
+          <View style={styles.headerInfo}>
             <Text style={styles.name}>{character.name}</Text>
             <Text style={styles.info}>
-              {character.age} ans • {
+              {String(character.age || '').includes('ans') ? character.age : `${character.age || '?'} ans`} • {
                 character.gender === 'male' ? 'Homme' :
                 character.gender === 'female' ? 'Femme' :
                 'Non-binaire'
@@ -201,38 +355,68 @@ export default function CharacterDetailScreen({ route, navigation }) {
               {character.gender === 'male' && character.penis && ` • ${character.penis}`}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.refreshImageButton}
-            onPress={generateCharacterImage}
-          >
-            <Text style={styles.refreshImageText}>🔄</Text>
-          </TouchableOpacity>
+          {isPremium && (
+            <TouchableOpacity
+              style={styles.refreshImageButton}
+              onPress={generateCharacterImage}
+            >
+              <Text style={styles.refreshImageText}>🔄</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.tagsContainer}>
-          {character.tags.map((tag, index) => (
+          {(character.tags || []).map((tag, index) => (
             <View key={index} style={styles.tag}>
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>💭 Tempérament</Text>
-          <Text style={styles.sectionContent}>
-            {character.temperament.charAt(0).toUpperCase() + character.temperament.slice(1)}
-          </Text>
-        </View>
+        {(character.temperament || character.personality) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>💭 Tempérament</Text>
+            <Text style={styles.sectionContent}>
+              {(character.temperament || character.personality).charAt(0).toUpperCase() + (character.temperament || character.personality).slice(1)}
+            </Text>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✨ Apparence physique</Text>
-          <Text style={styles.sectionContent}>{character.appearance}</Text>
-          {character.gender === 'female' && character.bust && (
-            <Text style={styles.attributeDetail}>• Taille de poitrine : Bonnet {character.bust}</Text>
+          {/* Afficher la description principale */}
+          {(character.physicalDescription || character.appearance) && (
+            <Text style={styles.sectionContent}>
+              {character.physicalDescription || character.appearance}
+            </Text>
           )}
-          {character.gender === 'male' && character.penis && (
-            <Text style={styles.attributeDetail}>• Taille : {character.penis}</Text>
-          )}
+          {/* Toujours afficher les détails structurés */}
+          <View style={styles.attributesContainer}>
+            {/* Cheveux - depuis hairColor ou extraction */}
+            {(character.hairColor || extractAttribute(character, 'hair')) && (
+              <Text style={styles.attributeDetail}>• Cheveux : {character.hairColor || extractAttribute(character, 'hair')}</Text>
+            )}
+            {/* Yeux - depuis eyeColor ou extraction */}
+            {(character.eyeColor || extractAttribute(character, 'eyes')) && (
+              <Text style={styles.attributeDetail}>• Yeux : {character.eyeColor || extractAttribute(character, 'eyes')}</Text>
+            )}
+            {/* Taille */}
+            {(character.height || extractAttribute(character, 'height')) && (
+              <Text style={styles.attributeDetail}>• Taille : {character.height || extractAttribute(character, 'height')}</Text>
+            )}
+            {/* Morphologie */}
+            {(character.bodyType || extractAttribute(character, 'body')) && (
+              <Text style={styles.attributeDetail}>• Morphologie : {character.bodyType || extractAttribute(character, 'body')}</Text>
+            )}
+            {/* Poitrine pour femmes */}
+            {character.gender === 'female' && (character.bust || character.bustSize || extractAttribute(character, 'bust')) && (
+              <Text style={styles.attributeDetail}>• Poitrine : Bonnet {character.bust || character.bustSize || extractAttribute(character, 'bust')}</Text>
+            )}
+            {/* Attribut masculin */}
+            {character.gender === 'male' && (character.penis || character.maleSize || extractAttribute(character, 'male')) && (
+              <Text style={styles.attributeDetail}>• Attribut : {character.penis || character.maleSize || extractAttribute(character, 'male')} cm</Text>
+            )}
+          </View>
         </View>
 
         {character.outfit && (
@@ -242,15 +426,29 @@ export default function CharacterDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🎭 Personnalité</Text>
-          <Text style={styles.sectionContent}>{character.personality}</Text>
-        </View>
+        {character.personality && character.temperament && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>🎭 Personnalité</Text>
+            <Text style={styles.sectionContent}>{character.personality}</Text>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📖 Scénario</Text>
-          <Text style={styles.sectionContent}>{character.scenario}</Text>
+          <Text style={styles.sectionContent}>
+            {character.scenario || character.background || 'Pas de scénario défini'}
+          </Text>
         </View>
+
+        {/* Message d'accroche */}
+        {(character.startMessage || character.greeting) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>💬 Premier message</Text>
+            <Text style={styles.sectionContent}>
+              {character.startMessage || character.greeting}
+            </Text>
+          </View>
+        )}
 
         {relationship && (
           <View style={styles.section}>
@@ -414,6 +612,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 15,
   },
+  headerInfo: {
+    flex: 1,
+  },
   name: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -438,7 +639,6 @@ const styles = StyleSheet.create({
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
     marginBottom: 20,
   },
   tag: {
@@ -446,6 +646,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 15,
+    marginRight: 8,
+    marginBottom: 8,
   },
   tagText: {
     fontSize: 14,
@@ -567,15 +769,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  attributesContainer: {
+    marginTop: 12,
+    backgroundColor: '#f0f4ff',
+    borderRadius: 12,
+    padding: 12,
+  },
   attributeDetail: {
     fontSize: 14,
-    color: '#6366f1',
+    color: '#4f46e5',
     fontWeight: '600',
-    marginTop: 8,
+    marginBottom: 6,
+    paddingLeft: 4,
   },
   customButtonsRow: {
     flexDirection: 'row',
-    gap: 10,
     marginTop: 10,
   },
   editButton: {
@@ -584,6 +792,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
+    marginRight: 10,
   },
   editButtonText: {
     fontSize: 16,
@@ -615,7 +824,6 @@ const styles = StyleSheet.create({
   },
   galleryPreview: {
     flexDirection: 'row',
-    gap: 10,
   },
   galleryThumbnail: {
     width: 100,

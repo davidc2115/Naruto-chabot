@@ -37,7 +37,12 @@ export default function HomeScreen({ navigation }) {
   }, [searchQuery, selectedFilter, allCharacters]);
 
   const loadAllCharacters = async () => {
-    const customChars = await CustomCharacterService.getCustomCharacters();
+    // Migrer les anciens personnages si nécessaire
+    await CustomCharacterService.migrateOldCharacters();
+    
+    // Récupérer uniquement les personnages de l'utilisateur + publics des autres
+    const customChars = await CustomCharacterService.getAllVisibleCharacters();
+    
     // Combiner les personnages de base (avec NSFW) avec les personnages personnalisés
     const combined = [...enhancedCharacters, ...customChars];
     setAllCharacters(combined);
@@ -71,13 +76,19 @@ export default function HomeScreen({ navigation }) {
       filtered = filtered.filter(char => char.gender === selectedFilter);
     }
 
-    // Filter by search query
+    // Filter by search query (avec vérification que tags existe)
     if (searchQuery) {
-      filtered = filtered.filter(char =>
-        char.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        char.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        char.personality.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(char => {
+        const name = char.name || '';
+        const tags = char.tags || [];
+        const personality = char.personality || '';
+        return (
+          name.toLowerCase().includes(query) ||
+          tags.some(tag => tag && tag.toLowerCase().includes(query)) ||
+          personality.toLowerCase().includes(query)
+        );
+      });
     }
 
     setFilteredCharacters(filtered);
@@ -121,7 +132,7 @@ export default function HomeScreen({ navigation }) {
               {item.scenario}
             </Text>
             <View style={styles.tagsContainer}>
-              {item.tags.slice(0, 5).map((tag, index) => (
+              {(item.tags || []).slice(0, 5).map((tag, index) => (
                 <View key={index} style={styles.tag}>
                   <Text style={styles.tagText}>{tag}</Text>
                 </View>
