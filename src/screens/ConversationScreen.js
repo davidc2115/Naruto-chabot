@@ -523,68 +523,85 @@ export default function ConversationScreen({ route, navigation }) {
     
     const result = [];
     let current = '';
-    let currentType = 'text';
     let i = 0;
     
     while (i < content.length) {
       const char = content[i];
       
-      // Début d'une action *
-      if (char === '*') {
+      // Début d'une action * (astérisque normal ou caractère similaire)
+      if (char === '*' || char === '＊') {
         // Sauvegarder le texte courant
         if (current.trim()) {
-          result.push({ type: currentType, text: current });
+          result.push({ type: 'text', text: current });
+          current = '';
         }
         
-        // Chercher la fin de l'action
-        let actionEnd = content.indexOf('*', i + 1);
-        if (actionEnd !== -1) {
+        // Chercher la fin de l'action (accepter * ou ＊)
+        let actionEnd = -1;
+        for (let j = i + 1; j < content.length; j++) {
+          if (content[j] === '*' || content[j] === '＊') {
+            actionEnd = j;
+            break;
+          }
+        }
+        
+        if (actionEnd !== -1 && actionEnd > i + 1) {
           const actionText = content.substring(i, actionEnd + 1);
           result.push({ type: 'action', text: actionText });
           i = actionEnd + 1;
-          current = '';
-          currentType = 'text';
           continue;
         }
       }
       
       // Début d'une pensée (
-      if (char === '(') {
+      if (char === '(' || char === '（') {
         // Sauvegarder le texte courant
         if (current.trim()) {
-          result.push({ type: currentType, text: current });
+          result.push({ type: 'text', text: current });
+          current = '';
         }
         
         // Chercher la fin de la pensée
-        let thoughtEnd = content.indexOf(')', i + 1);
+        let thoughtEnd = -1;
+        for (let j = i + 1; j < content.length; j++) {
+          if (content[j] === ')' || content[j] === '）') {
+            thoughtEnd = j;
+            break;
+          }
+        }
+        
         if (thoughtEnd !== -1 && (thoughtEnd - i) > 3) {
           const thoughtText = content.substring(i, thoughtEnd + 1);
           result.push({ type: 'thought', text: thoughtText });
           i = thoughtEnd + 1;
-          current = '';
-          currentType = 'text';
           continue;
         }
       }
       
-      // Début d'un dialogue "
-      if (char === '"' || char === '«') {
+      // Début d'un dialogue " « '
+      if (char === '"' || char === '«' || char === '"' || char === ''') {
         // Sauvegarder le texte courant
         if (current.trim()) {
-          result.push({ type: currentType, text: current });
+          result.push({ type: 'text', text: current });
+          current = '';
         }
         
         // Chercher la fin du dialogue
-        const closeChar = char === '«' ? '»' : '"';
-        let dialogueEnd = content.indexOf(closeChar, i + 1);
+        let dialogueEnd = -1;
+        for (let j = i + 1; j < content.length; j++) {
+          const c = content[j];
+          if (c === '"' || c === '»' || c === '"' || c === ''') {
+            dialogueEnd = j;
+            break;
+          }
+        }
+        
         if (dialogueEnd !== -1) {
           const dialogueText = content.substring(i + 1, dialogueEnd);
           if (dialogueText.trim()) {
             result.push({ type: 'dialogue', text: dialogueText });
           }
           i = dialogueEnd + 1;
-          current = '';
-          currentType = 'text';
           continue;
         }
       }
@@ -596,8 +613,11 @@ export default function ConversationScreen({ route, navigation }) {
     
     // Ajouter le reste
     if (current.trim()) {
-      result.push({ type: currentType, text: current });
+      result.push({ type: 'text', text: current });
     }
+    
+    // Log pour debug
+    console.log('📝 Parsed message:', JSON.stringify(result.map(p => ({ t: p.type[0], txt: p.text.substring(0, 20) }))));
     
     return result.length > 0 ? result : [{ type: 'text', text: content }];
   };
@@ -639,36 +659,30 @@ export default function ConversationScreen({ route, navigation }) {
           <View style={styles.messageContent}>
             {formattedParts.map((part, index) => {
               if (part.type === 'action') {
-                // ACTIONS: En ROUGE (le texte inclut déjà les *)
+                // ACTIONS: En ROUGE - couleur forcée inline
                 return (
-                  <Text key={index} style={styles.actionText}>
+                  <Text key={index} style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: '500' }}>
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'thought') {
-                // PENSÉES: En BLEU (le texte inclut déjà les parenthèses)
+                // PENSÉES: En BLEU - couleur forcée inline
                 return (
-                  <Text key={index} style={styles.thoughtText}>
+                  <Text key={index} style={{ color: '#2563eb', fontStyle: 'italic' }}>
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
-                // PAROLES: Blanc (utilisateur) ou Noir (personnage) SANS décoration
+                // PAROLES: Noir (personnage) ou Blanc (utilisateur)
                 return (
-                  <Text key={index} style={[
-                    styles.dialogueText, 
-                    { color: isUser ? '#ffffff' : '#1f2937' }
-                  ]}>
+                  <Text key={index} style={{ color: isUser ? '#ffffff' : '#1f2937', fontWeight: '500' }}>
                     {part.text}
                   </Text>
                 );
               } else {
                 // Texte normal
                 return (
-                  <Text key={index} style={[
-                    styles.normalText, 
-                    { color: isUser ? '#ffffff' : '#4b5563' }
-                  ]}>
+                  <Text key={index} style={{ color: isUser ? '#ffffff' : '#4b5563' }}>
                     {part.text}
                   </Text>
                 );
