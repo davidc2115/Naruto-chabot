@@ -528,22 +528,16 @@ export default function ConversationScreen({ route, navigation }) {
     while (i < content.length) {
       const char = content[i];
       
-      // Début d'une action * (astérisque normal ou caractère similaire)
-      if (char === '*' || char === '＊') {
+      // Début d'une action *
+      if (char === '*') {
         // Sauvegarder le texte courant
         if (current.trim()) {
           result.push({ type: 'text', text: current });
           current = '';
         }
         
-        // Chercher la fin de l'action (accepter * ou ＊)
-        let actionEnd = -1;
-        for (let j = i + 1; j < content.length; j++) {
-          if (content[j] === '*' || content[j] === '＊') {
-            actionEnd = j;
-            break;
-          }
-        }
+        // Chercher la fin de l'action
+        let actionEnd = content.indexOf('*', i + 1);
         
         if (actionEnd !== -1 && actionEnd > i + 1) {
           const actionText = content.substring(i, actionEnd + 1);
@@ -554,7 +548,7 @@ export default function ConversationScreen({ route, navigation }) {
       }
       
       // Début d'une pensée (
-      if (char === '(' || char === '（') {
+      if (char === '(') {
         // Sauvegarder le texte courant
         if (current.trim()) {
           result.push({ type: 'text', text: current });
@@ -562,13 +556,7 @@ export default function ConversationScreen({ route, navigation }) {
         }
         
         // Chercher la fin de la pensée
-        let thoughtEnd = -1;
-        for (let j = i + 1; j < content.length; j++) {
-          if (content[j] === ')' || content[j] === '）') {
-            thoughtEnd = j;
-            break;
-          }
-        }
+        let thoughtEnd = content.indexOf(')', i + 1);
         
         if (thoughtEnd !== -1 && (thoughtEnd - i) > 3) {
           const thoughtText = content.substring(i, thoughtEnd + 1);
@@ -578,8 +566,8 @@ export default function ConversationScreen({ route, navigation }) {
         }
       }
       
-      // Début d'un dialogue " « '
-      if (char === '"' || char === '«' || char === '"' || char === ''') {
+      // Début d'un dialogue " « (guillemets droits et français seulement)
+      if (char === '"' || char === '«') {
         // Sauvegarder le texte courant
         if (current.trim()) {
           result.push({ type: 'text', text: current });
@@ -588,9 +576,9 @@ export default function ConversationScreen({ route, navigation }) {
         
         // Chercher la fin du dialogue
         let dialogueEnd = -1;
+        const closeChars = ['"', '»'];
         for (let j = i + 1; j < content.length; j++) {
-          const c = content[j];
-          if (c === '"' || c === '»' || c === '"' || c === ''') {
+          if (closeChars.includes(content[j])) {
             dialogueEnd = j;
             break;
           }
