@@ -53,6 +53,9 @@ export default function ConversationScreen({ route, navigation }) {
   // Premium status
   const [isPremium, setIsPremium] = useState(false);
   
+  // Contrôle du scroll
+  const [userIsScrolling, setUserIsScrolling] = useState(false);
+  
   const flatListRef = useRef(null);
 
   // Vérification de sécurité
@@ -347,9 +350,12 @@ export default function ConversationScreen({ route, navigation }) {
         console.error('❌ Erreur XP:', xpError);
       }
 
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      // Scroll vers le bas seulement si l'utilisateur ne scroll pas manuellement
+      if (!userIsScrolling) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
     } catch (error) {
       Alert.alert('Erreur', error.message);
       setMessages(messages);
@@ -460,9 +466,12 @@ export default function ConversationScreen({ route, navigation }) {
 
       Alert.alert('Succès', 'Image générée et ajoutée à la galerie !');
 
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      // Scroll vers le bas seulement si l'utilisateur ne scroll pas manuellement
+      if (!userIsScrolling) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
     } catch (error) {
       // Vérifier si c'est une erreur de premium
       if (error.message?.includes('Premium') || error.message?.includes('403')) {
@@ -961,7 +970,13 @@ export default function ConversationScreen({ route, navigation }) {
         renderItem={renderMessage}
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.messagesList}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        // Désactivé: onContentSizeChange causait des scrolls intempestifs
+        // Le scroll vers le bas se fait uniquement après envoi d'un message
+        onScrollBeginDrag={() => setUserIsScrolling(true)}
+        onMomentumScrollEnd={() => setUserIsScrolling(false)}
+        maintainVisibleContentPosition={{
+          minIndexForVisible: 0,
+        }}
       />
 
       {isLoading && (
