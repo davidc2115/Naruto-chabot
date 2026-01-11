@@ -27,7 +27,45 @@ export default function AdminPanelScreen() {
   const loadUsers = async () => {
     try {
       setLoading(true);
+      console.log('📋 Chargement des utilisateurs...');
+      console.log('🔗 URL:', `${FREEBOX_URL}/admin/users`);
+      console.log('👤 Admin email:', AuthService.getCurrentUser()?.email);
+      
       const response = await fetch(`${FREEBOX_URL}/admin/users`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+        }
+      });
+      
+      console.log('📥 Response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Utilisateurs récupérés:', data.users?.length || 0);
+        setUsers(data.users || []);
+      } else {
+        const errorText = await response.text();
+        console.error('❌ Erreur chargement utilisateurs:', response.status, errorText);
+        
+        // Essayer un fallback avec l'endpoint /api/users/all
+        console.log('🔄 Tentative fallback /api/users/all...');
+        await loadUsersFromFallback();
+      }
+    } catch (error) {
+      console.error('❌ Erreur réseau:', error.message);
+      // Essayer le fallback
+      await loadUsersFromFallback();
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+  
+  const loadUsersFromFallback = async () => {
+    try {
+      console.log('🔄 Fallback: chargement via /api/users/all');
+      const response = await fetch(`${FREEBOX_URL}/api/users/all`, {
         headers: {
           'Content-Type': 'application/json',
           'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
@@ -36,15 +74,15 @@ export default function AdminPanelScreen() {
       
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.users || []);
+        console.log('✅ Fallback réussi:', data.users?.length || data.length || 0, 'utilisateurs');
+        // Gérer les deux formats de réponse possibles
+        const userList = data.users || data || [];
+        setUsers(userList);
       } else {
-        console.error('Erreur chargement utilisateurs');
+        console.error('❌ Fallback échoué:', response.status);
       }
     } catch (error) {
-      console.error('Erreur:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+      console.error('❌ Erreur fallback:', error.message);
     }
   };
 
@@ -174,12 +212,12 @@ export default function AdminPanelScreen() {
             </Text>
             <View style={styles.badges}>
               {item.is_admin && (
-                <View style={styles.adminBadge}>
+                <View style={[styles.adminBadge, styles.badge]}>
                   <Text style={styles.badgeText}>👑 Admin</Text>
                 </View>
               )}
               {item.is_premium && (
-                <View style={styles.premiumBadge}>
+                <View style={[styles.premiumBadge, styles.badge]}>
                   <Text style={styles.badgeText}>⭐ Premium</Text>
                 </View>
               )}
@@ -187,14 +225,14 @@ export default function AdminPanelScreen() {
           </View>
           <Text style={styles.userEmail}>{item.email}</Text>
           <View style={styles.userDetails}>
-            <Text style={styles.detailText}>
+            <Text style={[styles.detailText, styles.detailItem]}>
               📅 Inscrit: {new Date(item.created_at).toLocaleDateString('fr-FR')}
             </Text>
             {item.age && (
-              <Text style={styles.detailText}>🎂 {item.age} ans</Text>
+              <Text style={[styles.detailText, styles.detailItem]}>🎂 {item.age} ans</Text>
             )}
             {item.nsfw_enabled && (
-              <Text style={styles.detailText}>🔞 NSFW activé</Text>
+              <Text style={[styles.detailText, styles.detailItem]}>🔞 NSFW activé</Text>
             )}
           </View>
         </View>
@@ -202,7 +240,7 @@ export default function AdminPanelScreen() {
         {!isCurrentUser && (
           <View style={styles.actions}>
             <TouchableOpacity 
-              style={[styles.actionButton, item.is_admin ? styles.removeButton : styles.adminButton]}
+              style={[styles.actionButton, item.is_admin ? styles.removeButton : styles.adminButton, styles.actionItem]}
               onPress={() => toggleAdminStatus(item.id, item.is_admin)}
             >
               <Text style={styles.actionButtonText}>
@@ -211,7 +249,7 @@ export default function AdminPanelScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={[styles.actionButton, item.is_premium ? styles.removeButton : styles.premiumButton]}
+              style={[styles.actionButton, item.is_premium ? styles.removeButton : styles.premiumButton, styles.actionItem]}
               onPress={() => togglePremiumStatus(item.id, item.is_premium)}
             >
               <Text style={styles.actionButtonText}>
@@ -402,7 +440,9 @@ const styles = StyleSheet.create({
   },
   badges: {
     flexDirection: 'row',
-    gap: 6,
+  },
+  badge: {
+    marginRight: 6,
   },
   adminBadge: {
     backgroundColor: '#fef3c7',
@@ -428,7 +468,10 @@ const styles = StyleSheet.create({
   userDetails: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+  },
+  detailItem: {
+    marginRight: 10,
+    marginBottom: 4,
   },
   detailText: {
     fontSize: 12,
@@ -436,10 +479,12 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
-    gap: 8,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
     paddingTop: 12,
+  },
+  actionItem: {
+    marginRight: 8,
   },
   actionButton: {
     flex: 1,
