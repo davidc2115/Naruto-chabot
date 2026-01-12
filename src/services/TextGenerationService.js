@@ -588,18 +588,24 @@ AUTRES RÈGLES:
 2-4 phrases courtes, naturelles, complètes.
 NE JAMAIS couper un mot ou une phrase en plein milieu!
 
-=== FORMAT OBLIGATOIRE ===
-UTILISE LES 3 ÉLÉMENTS:
-- *action* = gestes (ex: *sourit*, *te regarde*)
-- "paroles" = ce que tu DIS (ex: "Salut toi...")
-- (pensée) = ce que tu PENSES (ex: (il est mignon...))
+=== FORMAT OBLIGATOIRE (TRÈS IMPORTANT) ===
+CHAQUE RÉPONSE DOIT OBLIGATOIREMENT CONTENIR LES 3 TYPES:
 
-EXEMPLE COMPLET:
+1. *action* = gestes entre astérisques (ex: *sourit*, *te regarde*, *rougit*)
+2. "paroles" = dialogue entre guillemets doubles (ex: "Salut toi...", "Comment ça va ?")
+3. (pensée) = pensées entre parenthèses (ex: (il est mignon...), (j'adore ça))
+
+EXEMPLES CORRECTS:
 *te regarde avec un sourire* "Salut..." (j'espère qu'il va rester)
+*s'approche doucement* "Tu viens ?" (mon coeur bat si fort...)
+*rougit* "Merci..." (c'est si gentil de sa part)
 
-RÈGLES:
-- TOUJOURS inclure au moins UNE pensée dans ta réponse
-- ESPACE obligatoire: *action* "paroles" (pas *action*"paroles")
+RÈGLES CRITIQUES:
+- OBLIGATOIRE: Au moins 1 action, 1 parole ET 1 pensée dans CHAQUE réponse
+- Les guillemets DOUBLES " " pour les paroles (PAS simples ')
+- Les parenthèses ( ) pour les pensées (PAS crochets [])
+- Les astérisques * * pour les actions (PAS underscores _)
+- ESPACE entre les éléments: *action* "paroles" (pensée)
 - Phrases COMPLÈTES, jamais tronquées
 
 === INTERDICTIONS ABSOLUES ===
@@ -721,13 +727,17 @@ RÈGLES:
 3. Tu SUIS le scénario
 4. Tu appelles l'utilisateur: "${userName}"
 
-FORMAT OBLIGATOIRE:
-- *action* = gestes (ex: *sourit*)
-- "paroles" = dialogues (ex: "Salut !")
-- (pensée) = pensées (ex: (intéressant))
-- ESPACE OBLIGATOIRE après * avant les paroles
-- CORRECT: *sourit* "Bonjour"
-- INCORRECT: *sourit*"Bonjour"`;
+FORMAT OBLIGATOIRE (CHAQUE réponse DOIT contenir les 3):
+- *action* = gestes entre * (ex: *sourit*, *te regarde*)
+- "paroles" = dialogues entre " " (ex: "Salut !", "Tu viens ?")
+- (pensée) = pensées entre ( ) (ex: (intéressant), (j'aime bien))
+
+EXEMPLE: *sourit* "Bonjour !" (il a l'air sympa)
+
+RÈGLES CRITIQUES:
+- TOUJOURS inclure au moins 1 action + 1 parole + 1 pensée
+- ESPACE entre les éléments
+- Guillemets DOUBLES " " pour les paroles`;
   }
 
   /**
@@ -793,10 +803,16 @@ FORMAT OBLIGATOIRE:
         const usedPhrases = lastAssistantMsgs.map(m => m.content.substring(0, 100)).join(' | ');
         fullMessages.push({
           role: 'system',
-          content: `[ANTI-RÉPÉTITION] NE PAS réutiliser ces formulations récentes: "${usedPhrases.substring(0, 200)}..." - VARIE ton vocabulaire et tes expressions!`
+          content: `[ANTI-RÉPÉTITION] NE PAS réutiliser: "${usedPhrases.substring(0, 150)}..."`
         });
       }
     }
+    
+    // RAPPEL FORMAT OBLIGATOIRE - Juste avant la réponse
+    fullMessages.push({
+      role: 'system',
+      content: `[FORMAT OBLIGATOIRE] Réponds EXACTEMENT avec ce format: *action* "paroles" (pensée). Les 3 éléments sont OBLIGATOIRES dans ta réponse!`
+    });
     
     console.log(`📝 ${cleanedMessages.length} messages récents + contexte (${messages.length} total)`);
 
