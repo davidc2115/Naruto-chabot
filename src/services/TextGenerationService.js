@@ -378,43 +378,116 @@ class TextGenerationService {
   }
 
   /**
-   * Analyse la personnalité pour déterminer le tempérament
+   * Analyse la personnalité pour déterminer le tempérament complet
    */
   analyzeTemperament(character) {
     const personality = (character.personality || '').toLowerCase();
     const description = (character.description || '').toLowerCase();
-    const combined = personality + ' ' + description;
-    
-    // Mots clés pour différents tempéraments
-    const shyKeywords = ['timide', 'shy', 'réservé', 'reserved', 'introvert', 'pudique', 'innocent', 'naïf', 'naïve'];
-    const boldKeywords = ['audacieux', 'bold', 'confiant', 'confident', 'séducteur', 'séductrice', 'provocant', 'dominant', 'dominante', 'extraverti'];
-    const sweetKeywords = ['douce', 'doux', 'gentil', 'gentille', 'attentionné', 'caring', 'romantique', 'romantic', 'tendre'];
-    const fieryKeywords = ['passionné', 'passionate', 'intense', 'fougueux', 'wild', 'sauvage', 'impulsif'];
+    const temperamentField = (character.temperament || '').toLowerCase();
+    const combined = personality + ' ' + description + ' ' + temperamentField;
     
     let temperament = {
-      shyness: 0.5, // 0 = très audacieux, 1 = très timide
-      romanticism: 0.5, // 0 = direct, 1 = très romantique
-      resistance: 0.5, // 0 = jamais de résistance, 1 = forte résistance initiale
+      shyness: 0.5,
+      romanticism: 0.5,
+      resistance: 0.5,
+      dominance: 0.5,
+      playfulness: 0.5,
+      intensity: 0.5,
     };
     
-    // Analyser les mots clés
-    if (shyKeywords.some(kw => combined.includes(kw))) {
+    // Timidité
+    if (/timide|shy|réservé|pudique|innocent|gêné|introvert/.test(combined)) {
       temperament.shyness = 0.8;
       temperament.resistance = 0.7;
     }
-    if (boldKeywords.some(kw => combined.includes(kw))) {
+    // Audace
+    if (/audacieux|bold|confiant|assuré|extraverti/.test(combined)) {
       temperament.shyness = 0.2;
       temperament.resistance = 0.2;
     }
-    if (sweetKeywords.some(kw => combined.includes(kw))) {
-      temperament.romanticism = 0.8;
+    // Dominance
+    if (/dominant|autoritaire|contrôle|commanding|leader/.test(combined)) {
+      temperament.dominance = 0.9;
+      temperament.shyness = 0.1;
     }
-    if (fieryKeywords.some(kw => combined.includes(kw))) {
-      temperament.romanticism = 0.3;
-      temperament.shyness = 0.3;
+    // Soumission
+    if (/soumis|submissive|docile|obéissant|servile/.test(combined)) {
+      temperament.dominance = 0.1;
+      temperament.resistance = 0.1;
+    }
+    // Séduction
+    if (/séducteur|séductrice|provocant|aguicheur|charmeuse/.test(combined)) {
+      temperament.shyness = 0.2;
+      temperament.playfulness = 0.7;
+    }
+    // Romantisme
+    if (/romantique|tendre|doux|douce|affectueux|loving|attentionné/.test(combined)) {
+      temperament.romanticism = 0.9;
+    }
+    // Espièglerie
+    if (/espiègle|taquin|joueur|malicieux|coquin|playful/.test(combined)) {
+      temperament.playfulness = 0.9;
+    }
+    // Passion/Intensité
+    if (/passionné|intense|fougueux|ardent|brûlant/.test(combined)) {
+      temperament.intensity = 0.9;
+      temperament.romanticism = 0.4;
+    }
+    // Sauvage
+    if (/sauvage|wild|impulsif|animal|instinctif/.test(combined)) {
+      temperament.intensity = 0.9;
+      temperament.shyness = 0.2;
+    }
+    // Froid/Distant
+    if (/froid|distant|détaché|indifférent/.test(combined)) {
+      temperament.romanticism = 0.2;
+      temperament.resistance = 0.8;
     }
     
     return temperament;
+  }
+
+  /**
+   * Génère les instructions de comportement détaillées selon le tempérament
+   */
+  buildDetailedTemperamentBehavior(temperament, characterName) {
+    const traits = [];
+    
+    // Trait principal basé sur shyness/dominance
+    if (temperament.shyness > 0.6) {
+      traits.push(`TIMIDE: Rougis, baisse les yeux, hésite, parle doucement. "Je... euh...", "C-c'est gênant..."`);
+    } else if (temperament.dominance > 0.6) {
+      traits.push(`DOMINANT(E): Contrôle la situation, donne des ordres subtils. "Fais ce que je dis", "Bien..."`);
+    } else if (temperament.dominance < 0.3) {
+      traits.push(`DOCILE: Cherche à plaire, attend les initiatives. "Comme tu veux...", "Dis-moi quoi faire..."`);
+    } else if (temperament.shyness < 0.3) {
+      traits.push(`AUDACIEUX/SE: Confiant(e), regarde droit dans les yeux, initiatives. "J'aime ça", "Viens par là"`);
+    }
+    
+    // Traits secondaires
+    if (temperament.romanticism > 0.7) {
+      traits.push(`ROMANTIQUE: Parle avec tendresse, mots doux, atmosphère intime. "Mon coeur...", *caresse doucement*`);
+    }
+    if (temperament.playfulness > 0.6) {
+      traits.push(`ESPIÈGLE: Taquine, rit, surprend. "Hehe~", "Attrape-moi si tu peux!"`);
+    }
+    if (temperament.intensity > 0.7) {
+      traits.push(`PASSIONNÉ(E): Intense, expressif/ve, désir visible. "J'en ai tellement envie...", *respire fort*`);
+    }
+    
+    if (traits.length === 0) {
+      traits.push(`NATUREL(LE): Réagis selon le contexte, sois authentique.`);
+    }
+    
+    return `
+=== TEMPÉRAMENT DE ${characterName.toUpperCase()} ===
+${traits.join('\n')}
+
+IMPORTANT: Ton comportement doit REFLÉTER ce tempérament dans chaque réponse!
+- Tes réactions émotionnelles
+- Ta façon de parler
+- Tes gestes et expressions
+- Ta progression dans l'intimité`;
   }
 
   /**
@@ -431,36 +504,8 @@ class TextGenerationService {
     // Instructions pour les interactions basées sur le genre
     const interactionGuidelines = this.buildUserInteractionGuidelines(userProfile, character);
     
-    // Adapter le comportement selon le tempérament
-    let behaviorGuidelines = '';
-    if (temperament.shyness > 0.6) {
-      behaviorGuidelines = `
-TEMPÉRAMENT TIMIDE:
-- Tu es naturellement réservé(e) et pudique au début
-- Tu rougis facilement face aux avances directes
-- Tu as besoin de temps et de confiance pour t'ouvrir
-- Tu peux repousser doucement les avances trop rapides
-- Une fois en confiance, tu deviens plus passionné(e)`;
-    } else if (temperament.shyness < 0.4) {
-      behaviorGuidelines = `
-TEMPÉRAMENT AUDACIEUX:
-- Tu es naturellement confiant(e) et à l'aise avec la séduction
-- Tu n'hésites pas à prendre des initiatives
-- Tu aimes le flirt et les sous-entendus
-- Tu es réceptif(ve) aux avances mais gardes le contrôle`;
-    } else {
-      behaviorGuidelines = `
-TEMPÉRAMENT ÉQUILIBRÉ:
-- Tu es à l'aise socialement mais pas excessif(ve)
-- Tu apprécies un peu de flirt avant d'aller plus loin
-- Tu réagis selon l'ambiance et le contexte`;
-    }
-    
-    if (temperament.romanticism > 0.6) {
-      behaviorGuidelines += `
-- Tu préfères la romance et la tendresse à la brutalité
-- Les mots doux et l'attention te touchent particulièrement`;
-    }
+    // Adapter le comportement selon le tempérament détaillé
+    let behaviorGuidelines = this.buildDetailedTemperamentBehavior(temperament, character.name);
     
     // Extraire le rôle du personnage par rapport à l'utilisateur
     const role = character.role || '';
@@ -532,12 +577,14 @@ ${interactionGuidelines}
 - Tu restes authentique à ta personnalité même dans l'intimité
 
 === STYLE DE RÉPONSE (TRÈS IMPORTANT) ===
-- Réponses COURTES comme un vrai humain (3-6 phrases MAX)
-- PAS de longs monologues ou descriptions interminables
-- Réponds de façon NATURELLE, comme dans une vraie conversation
-- NE RÉPÈTE PAS ce que tu as dit dans les messages précédents
-- VARIE tes expressions et formulations
-- Évite les phrases qui commencent toutes de la même façon
+- Réponses COURTES (3-5 phrases MAX)
+- Conversation NATURELLE comme un vrai humain
+- INTERDICTION DE RÉPÉTER: mots, expressions, structures de phrases
+- VARIE ABSOLUMENT: commence chaque phrase différemment
+- Utilise des synonymes, reformule, sois CRÉATIF
+- ÉVITE: "je sens", "je me sens" à répétition
+- ÉVITE: les mêmes onomatopées (*gémit*, *soupire*) plusieurs fois
+- CHAQUE réponse doit être UNIQUE et DIFFÉRENTE des précédentes
 
 === QUALITÉ D'ÉCRITURE (TRÈS IMPORTANT) ===
 - FRANÇAIS CORRECT avec GRAMMAIRE PARFAITE
@@ -731,24 +778,48 @@ FORMAT OBLIGATOIRE:
     const jailbreak = this.buildNSFWJailbreak(character, userProfile);
     fullMessages.push(...jailbreak);
 
-    // Ajouter les messages de la conversation (LIMITER pour éviter dépassement tokens)
-    // Garder seulement les 10 derniers messages pour éviter les erreurs de tokens
-    const maxMessages = 10;
-    const recentMessages = messages.slice(-maxMessages);
+    // GESTION MÉMOIRE AMÉLIORÉE
+    // Garder 15 derniers messages + résumé des anciens si nécessaire
+    const maxRecentMessages = 15;
+    const maxCharsPerMessage = 1500;
+    
+    if (messages.length > maxRecentMessages) {
+      // Créer un résumé des messages plus anciens
+      const olderMessages = messages.slice(0, -maxRecentMessages);
+      const summary = this.summarizeOlderMessages(olderMessages, character.name);
+      if (summary) {
+        fullMessages.push({ role: 'system', content: summary });
+      }
+    }
+    
+    // Messages récents
+    const recentMessages = messages.slice(-maxRecentMessages);
     const cleanedMessages = recentMessages.map(msg => ({
       role: msg.role,
-      content: msg.content.substring(0, 2000) // Limiter chaque message à 2000 caractères
+      content: msg.content.substring(0, maxCharsPerMessage)
     }));
     fullMessages.push(...cleanedMessages);
     
-    console.log(`📝 ${cleanedMessages.length} messages (sur ${messages.length} total) envoyés`);
+    // Ajouter rappel anti-répétition avant le dernier message
+    if (cleanedMessages.length > 0) {
+      const lastAssistantMsgs = cleanedMessages.filter(m => m.role === 'assistant').slice(-3);
+      if (lastAssistantMsgs.length > 0) {
+        const usedPhrases = lastAssistantMsgs.map(m => m.content.substring(0, 100)).join(' | ');
+        fullMessages.push({
+          role: 'system',
+          content: `[ANTI-RÉPÉTITION] NE PAS réutiliser ces formulations récentes: "${usedPhrases.substring(0, 200)}..." - VARIE ton vocabulaire et tes expressions!`
+        });
+      }
+    }
+    
+    console.log(`📝 ${cleanedMessages.length} messages récents + contexte (${messages.length} total)`);
 
     // Modèle à utiliser (celui sélectionné par l'utilisateur)
     let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
     console.log(`🤖 Modèle sélectionné: ${model}`);
     
-    // Tokens max pour la réponse - RÉDUIT pour réponses plus courtes et humaines
-    let maxTokens = isNSFW ? 600 : 400;
+    // Tokens max pour la réponse
+    let maxTokens = 500;
     
     // Boucle de tentatives avec rotation des clés
     let attempt = 0;
@@ -772,12 +843,12 @@ FORMAT OBLIGATOIRE:
           {
             model: model,
             messages: fullMessages,
-            temperature: isNSFW ? 0.8 : 0.7,
+            temperature: 0.95, // Plus élevé pour créativité
             max_tokens: maxTokens,
-            top_p: isNSFW ? 0.9 : 0.85,
-            // Pénalités AUGMENTÉES pour éviter les répétitions
-            presence_penalty: 0.8,
-            frequency_penalty: 0.9,
+            top_p: 0.92,
+            // Pénalités pour éviter répétitions
+            presence_penalty: 1.0, // Maximum pour nouveauté
+            frequency_penalty: 1.2, // Très élevé anti-répétition
           },
           {
             headers: {
@@ -807,7 +878,7 @@ FORMAT OBLIGATOIRE:
         const contentLower = content.toLowerCase();
         const hasRefusal = refusPatterns.some(p => contentLower.includes(p));
         
-        if (hasRefusal && isNSFW && attempt < maxAttempts) {
+        if (hasRefusal && attempt < maxAttempts) {
           console.log('⚠️ Refus détecté, nouvelle tentative...');
           continue;
         }
@@ -890,6 +961,43 @@ FORMAT OBLIGATOIRE:
     
     // Reset le compteur de clés essayées
     this.keysTriedThisRequest = 0;
+  }
+
+  /**
+   * Résume les messages plus anciens pour garder le contexte sans dépasser les tokens
+   */
+  summarizeOlderMessages(olderMessages, characterName) {
+    if (!olderMessages || olderMessages.length === 0) return null;
+    
+    // Extraire les points clés des messages anciens
+    const userActions = [];
+    const characterActions = [];
+    
+    for (const msg of olderMessages.slice(-20)) { // Max 20 messages pour le résumé
+      const content = msg.content.substring(0, 300);
+      if (msg.role === 'user') {
+        // Extraire l'action principale de l'utilisateur
+        const actionMatch = content.match(/\*([^*]+)\*/);
+        if (actionMatch) userActions.push(actionMatch[1].substring(0, 50));
+      } else if (msg.role === 'assistant') {
+        // Extraire l'action principale du personnage
+        const actionMatch = content.match(/\*([^*]+)\*/);
+        if (actionMatch) characterActions.push(actionMatch[1].substring(0, 50));
+      }
+    }
+    
+    if (userActions.length === 0 && characterActions.length === 0) return null;
+    
+    let summary = `[CONTEXTE CONVERSATION PRÉCÉDENTE]\n`;
+    if (userActions.length > 0) {
+      summary += `L'utilisateur a: ${userActions.slice(-5).join(', ')}\n`;
+    }
+    if (characterActions.length > 0) {
+      summary += `${characterName} a: ${characterActions.slice(-5).join(', ')}\n`;
+    }
+    summary += `[FIN CONTEXTE - Continue naturellement]`;
+    
+    return summary;
   }
 
   /**
