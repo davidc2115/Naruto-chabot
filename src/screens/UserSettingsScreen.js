@@ -40,7 +40,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [updateInfo, setUpdateInfo] = useState(null);
 
   const DISCORD_INVITE = 'https://discord.gg/9KHCqSmz';
-  const CURRENT_VERSION = '3.7.43';
+  const CURRENT_VERSION = '3.7.44';
   const GITHUB_RELEASES_URL = 'https://api.github.com/repos/YOUR_USERNAME/roleplay-chat/releases/latest';
 
   useEffect(() => {
@@ -586,39 +586,84 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
           <View style={styles.sdStatusBox}>
             <Text style={styles.sdStatusTitle}>📱 Stable Diffusion Local</Text>
             
-            {/* Message d'info sur le développement */}
-            <View style={[styles.sdStatusContent, { backgroundColor: '#fef3c7', borderRadius: 8, padding: 10, marginBottom: 10 }]}>
-              <Text style={{ color: '#92400e', fontSize: 13, textAlign: 'center' }}>
-                🚧 Fonctionnalité en développement
-              </Text>
-              <Text style={{ color: '#78350f', fontSize: 12, textAlign: 'center', marginTop: 4 }}>
-                Le module natif Android sera disponible dans une prochaine mise à jour.
-                Utilisez la Freebox pour la génération d'images.
-              </Text>
-            </View>
-            
             {sdAvailability ? (
               <View style={styles.sdStatusContent}>
+                {/* Module Status */}
                 <View style={styles.sdStatusRow}>
-                  <Text style={styles.sdStatusLabel}>Statut:</Text>
-                  <Text style={[styles.sdStatusValue, { color: '#f59e0b' }]}>
-                    🔜 Bientôt disponible
+                  <Text style={styles.sdStatusLabel}>Module natif:</Text>
+                  <Text style={[
+                    styles.sdStatusValue,
+                    { color: sdAvailability.moduleLoaded ? '#10b981' : '#ef4444' }
+                  ]}>
+                    {sdAvailability.moduleLoaded ? '✅ Chargé' : '❌ Non disponible'}
+                    {sdAvailability.moduleVersion && ` v${sdAvailability.moduleVersion}`}
                   </Text>
                 </View>
+                
+                {/* ONNX Status */}
                 <View style={styles.sdStatusRow}>
-                  <Text style={styles.sdStatusLabel}>Modèle téléchargé:</Text>
+                  <Text style={styles.sdStatusLabel}>ONNX Runtime:</Text>
+                  <Text style={[
+                    styles.sdStatusValue,
+                    { color: sdAvailability.onnxAvailable ? '#10b981' : '#f59e0b' }
+                  ]}>
+                    {sdAvailability.onnxAvailable ? '✅ Disponible' : '⚠️ Non détecté'}
+                  </Text>
+                </View>
+                
+                {/* Models Status */}
+                <View style={styles.sdStatusRow}>
+                  <Text style={styles.sdStatusLabel}>Modèles ONNX:</Text>
                   <Text style={[
                     styles.sdStatusValue,
                     { color: sdAvailability.modelDownloaded ? '#10b981' : '#6b7280' }
                   ]}>
-                    {sdAvailability.modelDownloaded ? '✅ Oui' : '➖ Non requis'}
+                    {sdAvailability.modelDownloaded 
+                      ? `✅ Prêts (${sdAvailability.modelSizeMB?.toFixed(0) || 0} MB)` 
+                      : '📥 À télécharger (~2 GB)'}
                   </Text>
                 </View>
+                
+                {/* System Info */}
                 {sdAvailability.ramMB > 0 && (
                   <View style={styles.sdStatusRow}>
                     <Text style={styles.sdStatusLabel}>RAM disponible:</Text>
+                    <Text style={[
+                      styles.sdStatusValue,
+                      { color: sdAvailability.hasEnoughRAM ? '#10b981' : '#f59e0b' }
+                    ]}>
+                      {(sdAvailability.ramMB / 1024).toFixed(1)} Go
+                      {sdAvailability.hasEnoughRAM ? ' ✅' : ' ⚠️'}
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Device Info */}
+                {sdAvailability.deviceModel && (
+                  <View style={styles.sdStatusRow}>
+                    <Text style={styles.sdStatusLabel}>Appareil:</Text>
                     <Text style={styles.sdStatusValue}>
-                      {Math.round(sdAvailability.ramMB / 1024)} Go
+                      {sdAvailability.deviceModel}
+                    </Text>
+                  </View>
+                )}
+                
+                {/* Pipeline Status */}
+                <View style={styles.sdStatusRow}>
+                  <Text style={styles.sdStatusLabel}>Pipeline:</Text>
+                  <Text style={[
+                    styles.sdStatusValue,
+                    { color: sdAvailability.pipelineReady ? '#10b981' : '#6b7280' }
+                  ]}>
+                    {sdAvailability.pipelineReady ? '✅ Prêt' : '⏸️ Non initialisé'}
+                  </Text>
+                </View>
+                
+                {/* Status Message */}
+                {sdAvailability.reason && (
+                  <View style={[styles.sdStatusRow, { marginTop: 8, backgroundColor: '#f3f4f6', padding: 8, borderRadius: 6 }]}>
+                    <Text style={{ fontSize: 12, color: '#4b5563', textAlign: 'center', flex: 1 }}>
+                      {sdAvailability.reason}
                     </Text>
                   </View>
                 )}

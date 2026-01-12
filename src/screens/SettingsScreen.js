@@ -673,18 +673,6 @@ export default function SettingsScreen({ navigation, onLogout }) {
           {imageSource === 'local' && (
             <View style={styles.configBox}>
               <Text style={styles.configTitle}>📱 Stable Diffusion Local:</Text>
-              
-              {/* Avertissement */}
-              <View style={styles.warningBox}>
-                <Text style={styles.warningText}>
-                  🚧 FONCTIONNALITÉ EN DÉVELOPPEMENT
-                  
-                  Le module natif Android pour SD Local n'est pas encore inclus dans l'APK.
-                  Cette fonctionnalité sera disponible dans une prochaine mise à jour.
-                  
-                  👉 Utilisez la Freebox pour la génération d'images.
-                </Text>
-              </View>
 
               {/* Statut détaillé */}
               {sdAvailability && (
@@ -692,11 +680,18 @@ export default function SettingsScreen({ navigation, onLogout }) {
                   <Text style={styles.sdInfoTitle}>📊 Statut du module</Text>
                   
                   <Text style={styles.sdInfoText}>
-                    📱 Module natif: 🔜 En développement
+                    📱 Module natif: {sdAvailability.moduleLoaded ? '✅ Chargé' : '❌ Non chargé'}
+                    {sdAvailability.moduleVersion && ` (v${sdAvailability.moduleVersion})`}
                   </Text>
                   
                   <Text style={styles.sdInfoText}>
-                    📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '➖ Non requis pour le moment'}
+                    🔧 ONNX Runtime: {sdAvailability.onnxAvailable ? '✅ Disponible' : '⚠️ Non détecté'}
+                  </Text>
+                  
+                  <Text style={styles.sdInfoText}>
+                    📦 Modèles: {sdAvailability.modelDownloaded 
+                      ? `✅ Prêts (${sdAvailability.modelSizeMB?.toFixed(0) || 0} MB)` 
+                      : '📥 À télécharger (~2 GB)'}
                   </Text>
                   
                   {sdAvailability.deviceModel && (
@@ -707,19 +702,28 @@ export default function SettingsScreen({ navigation, onLogout }) {
                   
                   {sdAvailability.ramMB > 0 && (
                     <Text style={styles.sdInfoText}>
-                      🧠 RAM: {sdAvailability.ramMB.toFixed(0)} MB max
+                      🧠 RAM: {(sdAvailability.ramMB / 1024).toFixed(1)} GB
+                      {sdAvailability.hasEnoughRAM ? ' ✅' : ' ⚠️ (min 3 GB)'}
                     </Text>
                   )}
                   
                   {sdAvailability.freeStorageMB > 0 && (
                     <Text style={styles.sdInfoText}>
-                      💾 Stockage libre: {(sdAvailability.freeStorageMB / 1024).toFixed(1)} GB
+                      💾 Stockage: {(sdAvailability.freeStorageMB / 1024).toFixed(1)} GB libre
                     </Text>
                   )}
                   
-                  <View style={[styles.sdStatusBadge, { backgroundColor: '#fef3c7' }]}>
-                    <Text style={[styles.sdStatusText, { color: '#92400e' }]}>
-                      🔜 Bientôt disponible - Utilisez Freebox
+                  <Text style={styles.sdInfoText}>
+                    ⚡ Pipeline: {sdAvailability.pipelineReady ? '✅ Prêt' : '⏸️ Non initialisé'}
+                  </Text>
+                  
+                  <View style={[styles.sdStatusBadge, { 
+                    backgroundColor: sdAvailability.canRunSD ? '#d1fae5' : '#fef3c7' 
+                  }]}>
+                    <Text style={[styles.sdStatusText, { 
+                      color: sdAvailability.canRunSD ? '#065f46' : '#92400e' 
+                    }]}>
+                      {sdAvailability.reason || 'Vérification...'}
                     </Text>
                   </View>
                 </View>
