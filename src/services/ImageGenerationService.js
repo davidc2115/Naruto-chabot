@@ -938,31 +938,28 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère une image - UNIQUEMENT FREEBOX - AVEC RETRY AUTOMATIQUE
+   * Génère une image avec retry et fallback
    */
   async generateImage(prompt, retryCount = 0) {
     await CustomImageAPIService.loadConfig();
     
     const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🎨 Stratégie de génération: ${strategy} (tentative ${retryCount + 1}/${this.maxRetries})`);
+    console.log(`🎨 Stratégie: ${strategy} (tentative ${retryCount + 1}/${this.maxRetries})`);
     
     let imageUrl;
     
     if (strategy === 'local') {
-      console.log('📱 Génération locale (SD sur smartphone)...');
       imageUrl = await this.generateWithLocal(prompt);
     } else {
-      console.log('🏠 Génération avec Freebox...');
       imageUrl = await this.generateWithFreebox(prompt);
     }
     
-    // Vérifier si l'image est valide (pas d'erreur pollination, etc.)
     const isValid = await this.validateImageUrl(imageUrl);
     
+    // Si échec, essayer un fallback direct
     if (!isValid && retryCount < this.maxRetries - 1) {
-      console.log(`⚠️ Image invalide, nouvelle tentative (${retryCount + 2}/${this.maxRetries})...`);
-      // Attendre un peu avant de réessayer
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log(`⚠️ Tentative ${retryCount + 2}/${this.maxRetries}...`);
+      await new Promise(r => setTimeout(r, 2000 + retryCount * 1000));
       return await this.generateImage(prompt, retryCount + 1);
     }
     

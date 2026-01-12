@@ -8,6 +8,10 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   build:
     name: Build APK avec Gradle Direct
@@ -88,24 +92,13 @@ jobs:
           path: roleplay-chat.apk
           retention-days: 30
 
-      - name: 🏷️ Create Release
+      - name: 🏷️ Upload to Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
           files: roleplay-chat.apk
-          body: |
-            # 🎉 Roleplay Chat App - Release ${{ github.ref_name }}
-            
-            ## 📱 Installation
-            1. Téléchargez `roleplay-chat.apk`
-            2. Installez sur Android
-            
-            ## 📊 Build Info
-            - **Taille**: ${{ steps.apk_info.outputs.apk_size }}
-            - **Version**: ${{ github.ref_name }}
-            - **Build**: Direct Gradle (No EAS)
-            
-            ## ✨ Vérifiez la version dans Paramètres après installation !
+          fail_on_unmatched_files: false
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
