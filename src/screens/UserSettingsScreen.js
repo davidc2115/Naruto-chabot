@@ -33,14 +33,16 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [sdAvailability, setSdAvailability] = useState(null);
   const [sdDownloading, setSdDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadStatus, setDownloadStatus] = useState('');
   const [isPremium, setIsPremium] = useState(false);
+  const [initializingPipeline, setInitializingPipeline] = useState(false);
   
   // État pour les mises à jour
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [updateInfo, setUpdateInfo] = useState(null);
 
   const DISCORD_INVITE = 'https://discord.gg/9KHCqSmz';
-  const CURRENT_VERSION = '3.7.44';
+  const CURRENT_VERSION = '3.7.45';
   const GITHUB_RELEASES_URL = 'https://api.github.com/repos/YOUR_USERNAME/roleplay-chat/releases/latest';
 
   useEffect(() => {
@@ -131,9 +133,14 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       return;
     }
 
+    // Obtenir la taille totale des modèles
+    const totalSize = StableDiffusionLocalService.getTotalModelSize();
+    const models = StableDiffusionLocalService.getRequiredModels();
+    const modelNames = Object.values(models).map(m => m.name).join('\n• ');
+
     Alert.alert(
-      '📥 Téléchargement SD-Turbo',
-      'Cela va télécharger le modèle SD-Turbo (~2 Go).\n\nAssurez-vous d\'avoir:\n• Une bonne connexion WiFi\n• Suffisamment d\'espace de stockage\n• Un appareil compatible (4+ Go RAM)',
+      '📥 Téléchargement Modèles ONNX',
+      `Cela va télécharger les modèles SD (~${(totalSize / 1024).toFixed(1)} Go):\n\n• ${modelNames}\n\nAssurez-vous d'avoir:\n• Une connexion WiFi stable\n• ${(totalSize / 1024 + 1).toFixed(0)}+ Go d'espace libre\n• 3+ Go RAM`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
@@ -142,23 +149,29 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
             try {
               setSdDownloading(true);
               setDownloadProgress(0);
+              setDownloadStatus('Préparation...');
               
-              await StableDiffusionLocalService.downloadModel((progress) => {
-                // progress est en pourcentage (0-100)
+              await StableDiffusionLocalService.downloadAllModels((progress, status) => {
                 setDownloadProgress(progress / 100);
+                setDownloadStatus(status);
               });
               
               setSdDownloading(false);
+              setDownloadStatus('');
               
               // Recharger la disponibilité
               const availability = await StableDiffusionLocalService.checkAvailability();
               setSdAvailability(availability);
               
-              Alert.alert('✅ Téléchargement Terminé', 'Le modèle SD-Turbo est prêt à utiliser !');
+              Alert.alert(
+                '✅ Téléchargement Terminé', 
+                'Les modèles ONNX sont prêts !\n\nVous pouvez maintenant initialiser le pipeline pour générer des images localement.'
+              );
             } catch (error) {
               setSdDownloading(false);
+              setDownloadStatus('');
               console.error('Erreur téléchargement SD:', error);
-              Alert.alert('❌ Erreur', 'Le téléchargement a échoué: ' + error.message);
+              Alert.alert('❌ Erreur', 'Le téléchargement a échoué:\n' + error.message);
             }
           }
         }
@@ -168,8 +181,8 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
 
   const handleDeleteSD = async () => {
     Alert.alert(
-      '🗑️ Supprimer Stable Diffusion',
-      'Voulez-vous supprimer le modèle SD-Turbo de votre appareil ?\n\nCela libérera environ 2 Go d\'espace.',
+      '🗑️ Supprimer les modèles SD',
+      'Voulez-vous supprimer tous les modèles ONNX de votre appareil ?\n\nCela libérera environ 2 Go d\'espace.',
       [
         { text: 'Annuler', style: 'cancel' },
         {
@@ -177,7 +190,11 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await StableDiffusionLocalService.deleteModel();
+              // Libérer le pipeline d'abord
+              await StableDiffusionLocalService.releasePipeline();
+              
+              // Supprimer les modèles
+              await StableDiffusionLocalService.deleteModels();
               
               // Revenir à Freebox
               setImageStrategy('freebox');
@@ -191,10 +208,53 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
               const availability = await StableDiffusionLocalService.checkAvailability();
               setSdAvailability(availability);
               
-              Alert.alert('✅ Supprimé', 'Le modèle SD a été supprimé de votre appareil.');
+              Alert.alert('✅ Supprimé', 'Les modèles SD ont été supprimés de votre appareil.');
             } catch (error) {
               console.error('Erreur suppression SD:', error);
-              Alert.alert('Erreur', 'Impossible de supprimer le modèle');
+              Alert.alert('Erreur', 'Impossible de supprimer les modèles');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleInitializePipeline = async () => {
+    if (!sdAvailability?.modelDownloaded) {
+      Alert.alert(
+        '📥 Modèles requis',
+        'Vous devez d\'abord télécharger les modèles ONNX avant d\'initialiser le pipeline.'
+      );
+      return;
+    }
+
+    Alert.alert(
+      '🚀 Initialiser le Pipeline',
+      'Cela va charger les modèles en mémoire pour la génération d\'images.\n\n⚠️ Cela peut prendre plusieurs minutes et utiliser beaucoup de RAM.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Initialiser',
+          onPress: async () => {
+            try {
+              setInitializingPipeline(true);
+              
+              await StableDiffusionLocalService.initializePipeline();
+              
+              // Recharger la disponibilité
+              const availability = await StableDiffusionLocalService.checkAvailability();
+              setSdAvailability(availability);
+              
+              setInitializingPipeline(false);
+              
+              Alert.alert(
+                '✅ Pipeline Prêt',
+                'Le pipeline SD est initialisé ! Vous pouvez maintenant générer des images localement.'
+              );
+            } catch (error) {
+              setInitializingPipeline(false);
+              console.error('Erreur initialisation pipeline:', error);
+              Alert.alert('❌ Erreur', 'Initialisation échouée:\n' + error.message);
             }
           }
         }
@@ -672,9 +732,28 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
               <ActivityIndicator color="#6366f1" style={{ marginTop: 10 }} />
             )}
             
+            {/* Barre de progression téléchargement */}
+            {sdDownloading && (
+              <View style={{ marginVertical: 10 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={{ fontSize: 12, color: '#6b7280' }}>{downloadStatus}</Text>
+                  <Text style={{ fontSize: 12, color: '#6b7280' }}>{Math.round(downloadProgress * 100)}%</Text>
+                </View>
+                <View style={{ height: 8, backgroundColor: '#e5e7eb', borderRadius: 4 }}>
+                  <View style={{ 
+                    height: 8, 
+                    backgroundColor: '#6366f1', 
+                    borderRadius: 4,
+                    width: `${Math.round(downloadProgress * 100)}%`
+                  }} />
+                </View>
+              </View>
+            )}
+
             {/* Boutons SD */}
             <View style={styles.sdButtonsRow}>
-              {!sdAvailability?.modelDownloaded ? (
+              {/* Bouton Télécharger */}
+              {!sdAvailability?.modelDownloaded && (
                 <TouchableOpacity
                   style={[styles.sdDownloadButton, sdDownloading && styles.sdButtonDisabled]}
                   onPress={handleDownloadSD}
@@ -683,31 +762,61 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
                   {sdDownloading ? (
                     <View style={styles.sdDownloadingContent}>
                       <ActivityIndicator color="#fff" size="small" />
-                      <Text style={styles.sdDownloadButtonText}>
-                        {Math.round(downloadProgress * 100)}%
-                      </Text>
+                      <Text style={styles.sdDownloadButtonText}>Téléchargement...</Text>
                     </View>
                   ) : (
                     <Text style={styles.sdDownloadButtonText}>
-                      📥 Télécharger SD-Turbo (~2 Go)
+                      📥 Télécharger les modèles (~2 Go)
                     </Text>
                   )}
                 </TouchableOpacity>
-              ) : (
+              )}
+              
+              {/* Bouton Initialiser Pipeline */}
+              {sdAvailability?.modelDownloaded && !sdAvailability?.pipelineReady && (
                 <TouchableOpacity
-                  style={styles.sdDeleteButton}
-                  onPress={handleDeleteSD}
+                  style={[styles.sdDownloadButton, { backgroundColor: '#10b981' }, initializingPipeline && styles.sdButtonDisabled]}
+                  onPress={handleInitializePipeline}
+                  disabled={initializingPipeline}
                 >
-                  <Text style={styles.sdDeleteButtonText}>
-                    🗑️ Supprimer le modèle
-                  </Text>
+                  {initializingPipeline ? (
+                    <View style={styles.sdDownloadingContent}>
+                      <ActivityIndicator color="#fff" size="small" />
+                      <Text style={styles.sdDownloadButtonText}>Initialisation...</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.sdDownloadButtonText}>
+                      🚀 Initialiser le Pipeline
+                    </Text>
+                  )}
                 </TouchableOpacity>
+              )}
+              
+              {/* Indicateur Pipeline Prêt */}
+              {sdAvailability?.pipelineReady && (
+                <View style={[styles.sdDownloadButton, { backgroundColor: '#10b981' }]}>
+                  <Text style={styles.sdDownloadButtonText}>
+                    ✅ Pipeline Prêt
+                  </Text>
+                </View>
               )}
             </View>
             
+            {/* Bouton Supprimer */}
+            {sdAvailability?.modelDownloaded && (
+              <TouchableOpacity
+                style={[styles.sdDeleteButton, { marginTop: 8 }]}
+                onPress={handleDeleteSD}
+              >
+                <Text style={styles.sdDeleteButtonText}>
+                  🗑️ Supprimer les modèles
+                </Text>
+              </TouchableOpacity>
+            )}
+            
             <Text style={styles.sdInfoText}>
-              ℹ️ La génération locale nécessite un smartphone puissant (4+ Go RAM).
-              Les images sont générées directement sur votre appareil sans passer par un serveur.
+              ℹ️ La génération locale nécessite un smartphone puissant (3+ Go RAM).
+              Les images sont générées directement sur votre appareil.
             </Text>
           </View>
         </View>

@@ -513,61 +513,131 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   /**
-   * Formatage du texte RP - Version robuste
+   * Vérifie si un caractère est un astérisque (toutes variantes)
+   */
+  const isAsterisk = (char) => {
+    return char === '*' || char === '\uFF0A' || char === '\u2217' || char === '\u204E' || char === '\u2731';
+  };
+
+  /**
+   * Trouve le prochain astérisque dans le texte
+   */
+  const findNextAsterisk = (text, startIndex) => {
+    for (let i = startIndex; i < text.length; i++) {
+      if (isAsterisk(text[i])) {
+        return i;
+      }
+    }
+    return -1;
+  };
+
+  /**
+   * Formatage du texte RP - Version robuste v6
+   * Parse: *actions*, (pensées), "dialogues"
+   * Gère les astérisques Unicode et les actions inline
    */
   const formatRPMessage = (content) => {
     if (!content || typeof content !== 'string') {
       return [{ type: 'text', text: content || '' }];
     }
     
-    // ÉTAPE 1: Normaliser le contenu
-    let text = content;
-    
-    // Remplacer les doubles astérisques par un espace entre
-    text = text.replace(/\*\*/g, '* *');
-    
-    // Ajouter un espace après * si suivi directement de texte sans espace
-    text = text.replace(/\*([A-Za-zÀ-ÿ])/g, '* $1');
-    
-    // ÉTAPE 2: Parser avec regex
     const result = [];
-    const regex = /(\*[^*]+\*)|(\([^)]{2,}\))|(["«][^"»]+["»])/g;
+    let i = 0;
+    const len = content.length;
+    let currentText = '';
     
-    let lastIndex = 0;
-    let match;
-    
-    while ((match = regex.exec(text)) !== null) {
-      // Texte avant le match
-      if (match.index > lastIndex) {
-        const beforeText = text.substring(lastIndex, match.index);
-        if (beforeText.trim()) {
-          result.push({ type: 'text', text: beforeText });
+    while (i < len) {
+      const char = content[i];
+      
+      // Détecter le début d'une action (astérisque)
+      if (isAsterisk(char)) {
+        // Sauvegarder le texte accumulé avant
+        if (currentText) {
+          result.push({ type: 'text', text: currentText });
+          currentText = '';
         }
+        
+        // Chercher la fin de l'action (prochain astérisque)
+        const actionEnd = findNextAsterisk(content, i + 1);
+        
+        if (actionEnd !== -1 && actionEnd > i + 1) {
+          // Action trouvée
+          const actionContent = content.substring(i + 1, actionEnd);
+          result.push({ type: 'action', text: '*' + actionContent + '*' });
+          i = actionEnd + 1;
+        } else {
+          // Pas de fermeture, traiter comme texte
+          currentText += char;
+          i++;
+        }
+        continue;
       }
       
-      const fullMatch = match[0];
-      
-      if (match[1]) {
-        // Action *texte*
-        result.push({ type: 'action', text: fullMatch });
-      } else if (match[2]) {
-        // Pensée (texte)
-        result.push({ type: 'thought', text: fullMatch });
-      } else if (match[3]) {
-        // Dialogue "texte" ou «texte»
-        const dialogueText = fullMatch.slice(1, -1);
-        result.push({ type: 'dialogue', text: dialogueText });
+      // Détecter le début d'une pensée (parenthèse)
+      if (char === '(' || char === '\uFF08') {
+        if (currentText) {
+          result.push({ type: 'text', text: currentText });
+          currentText = '';
+        }
+        
+        const closeChar = char === '\uFF08' ? '\uFF09' : ')';
+        let thoughtEnd = -1;
+        for (let j = i + 1; j < len; j++) {
+          if (content[j] === closeChar || content[j] === ')') {
+            thoughtEnd = j;
+            break;
+          }
+        }
+        
+        if (thoughtEnd !== -1 && thoughtEnd > i + 2) {
+          const thoughtContent = content.substring(i, thoughtEnd + 1);
+          result.push({ type: 'thought', text: thoughtContent });
+          i = thoughtEnd + 1;
+        } else {
+          currentText += char;
+          i++;
+        }
+        continue;
       }
       
-      lastIndex = match.index + fullMatch.length;
+      // Détecter le début d'un dialogue (guillemets)
+      if (char === '"' || char === '\u00AB' || char === '\u201C' || char === '\uFF02') {
+        if (currentText) {
+          result.push({ type: 'text', text: currentText });
+          currentText = '';
+        }
+        
+        // Trouver le guillemet fermant correspondant
+        let closeChars = ['"', '\u00BB', '\u201D', '\uFF02'];
+        if (char === '\u00AB') closeChars = ['\u00BB'];
+        
+        let dialogueEnd = -1;
+        for (let j = i + 1; j < len; j++) {
+          if (closeChars.includes(content[j])) {
+            dialogueEnd = j;
+            break;
+          }
+        }
+        
+        if (dialogueEnd !== -1 && dialogueEnd > i + 1) {
+          const dialogueContent = content.substring(i + 1, dialogueEnd);
+          result.push({ type: 'dialogue', text: dialogueContent });
+          i = dialogueEnd + 1;
+        } else {
+          currentText += char;
+          i++;
+        }
+        continue;
+      }
+      
+      // Caractère normal
+      currentText += char;
+      i++;
     }
     
-    // Texte après le dernier match
-    if (lastIndex < text.length) {
-      const afterText = text.substring(lastIndex);
-      if (afterText.trim()) {
-        result.push({ type: 'text', text: afterText });
-      }
+    // Ajouter le texte restant
+    if (currentText) {
+      result.push({ type: 'text', text: currentText });
     }
     
     return result.length > 0 ? result : [{ type: 'text', text: content }];
