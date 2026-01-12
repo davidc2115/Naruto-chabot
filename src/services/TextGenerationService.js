@@ -716,37 +716,20 @@ FORMAT OBLIGATOIRE:
     let apiKey = this.apiKeys.groq[currentKeyIndex];
     
     const fullMessages = [];
-    // Vérification NSFW robuste - vérifie plusieurs conditions
-    const nsfwEnabled = userProfile?.nsfwMode === true || userProfile?.nsfwMode === 'true';
-    const isAdultUser = userProfile?.isAdult === true || userProfile?.isAdult === 'true' || (parseInt(userProfile?.age) >= 18);
-    const isNSFW = nsfwEnabled && isAdultUser;
-
-    console.log(`🔞 Mode NSFW: ${isNSFW ? '✅ ACTIVÉ' : '❌ désactivé'}`);
-    console.log(`👤 Profile détaillé: nsfwMode=${userProfile?.nsfwMode} (type: ${typeof userProfile?.nsfwMode}), isAdult=${userProfile?.isAdult}, age=${userProfile?.age}`);
     
-    if (userProfile && !isNSFW) {
-      console.log('⚠️ NSFW désactivé car:', !nsfwEnabled ? 'nsfwMode=false' : 'isAdult=false ou age<18');
-    }
-
-    if (isNSFW) {
-      console.log('🔥 JAILBREAK NSFW ULTRA-AGRESSIF ACTIVÉ');
-      
-      // 1. System prompt NSFW en premier (avec userProfile pour le pseudo)
-      fullMessages.push({ 
-        role: 'system', 
-        content: this.buildNSFWSystemPrompt(character, userProfile) 
-      });
-      
-      // 2. Jailbreak conversationnel (avec userProfile pour le pseudo)
-      const jailbreak = this.buildNSFWJailbreak(character, userProfile);
-      fullMessages.push(...jailbreak);
-    } else {
-      // Mode SFW standard (avec userProfile pour le pseudo)
-      fullMessages.push({ 
-        role: 'system', 
-        content: this.buildSFWSystemPrompt(character, userProfile) 
-      });
-    }
+    // APPLICATION NSFW UNIQUEMENT - Plus de mode SFW
+    // L'accès à l'app est réservé aux adultes (18+)
+    console.log('🔥 MODE NSFW ACTIF (application 18+ uniquement)');
+    
+    // System prompt NSFW
+    fullMessages.push({ 
+      role: 'system', 
+      content: this.buildNSFWSystemPrompt(character, userProfile) 
+    });
+    
+    // Jailbreak conversationnel
+    const jailbreak = this.buildNSFWJailbreak(character, userProfile);
+    fullMessages.push(...jailbreak);
 
     // Ajouter les messages de la conversation (LIMITER pour éviter dépassement tokens)
     // Garder seulement les 10 derniers messages pour éviter les erreurs de tokens

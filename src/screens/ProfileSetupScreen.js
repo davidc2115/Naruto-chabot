@@ -80,10 +80,21 @@ export default function ProfileSetupScreen({ onComplete }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Text style={styles.emoji}>✨</Text>
-        <Text style={styles.title}>Créer votre profil</Text>
+        <Text style={styles.emoji}>🔞</Text>
+        <Text style={styles.title}>Application 18+</Text>
         <Text style={styles.subtitle}>
-          Complétez votre profil pour personnaliser votre expérience
+          Cette application contient du contenu réservé aux adultes.
+          Vous devez avoir au moins 18 ans pour continuer.
+        </Text>
+      </View>
+      
+      {/* Avertissement 18+ */}
+      <View style={[styles.inputGroup, { backgroundColor: '#fef2f2', padding: 15, borderRadius: 10, borderWidth: 1, borderColor: '#fca5a5' }]}>
+        <Text style={{ color: '#dc2626', fontWeight: 'bold', textAlign: 'center', fontSize: 14 }}>
+          ⚠️ CONTENU ADULTE (18+)
+        </Text>
+        <Text style={{ color: '#991b1b', textAlign: 'center', fontSize: 12, marginTop: 5 }}>
+          En continuant, vous confirmez avoir plus de 18 ans et acceptez de voir du contenu pour adultes.
         </Text>
       </View>
 

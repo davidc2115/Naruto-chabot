@@ -822,35 +822,20 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         </View>
       )}
 
-      {/* MODE NSFW */}
+      {/* INFO APPLICATION 18+ */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🔞 Contenu Adulte</Text>
+        <Text style={styles.sectionTitle}>🔞 Application 18+</Text>
         
-        <View style={styles.settingRow}>
+        <View style={[styles.settingRow, { backgroundColor: '#fef2f2', borderRadius: 10, padding: 12 }]}>
           <View style={styles.settingInfo}>
-            <Text style={styles.settingLabel}>Mode NSFW</Text>
+            <Text style={[styles.settingLabel, { color: '#dc2626' }]}>Mode NSFW Actif</Text>
             <Text style={styles.settingDescription}>
-              {isAdult 
-                ? 'Activer les contenus réservés aux adultes'
-                : '⚠️ Réservé aux utilisateurs de 18 ans et plus'}
+              Cette application est réservée aux adultes (18+).
+              Tout le contenu est explicite par défaut.
             </Text>
           </View>
-          <Switch
-            value={nsfwMode}
-            onValueChange={handleNSFWToggle}
-            disabled={!isAdult}
-            trackColor={{ false: '#e5e7eb', true: '#c4b5fd' }}
-            thumbColor={nsfwMode ? '#8b5cf6' : '#9ca3af'}
-          />
+          <Text style={{ fontSize: 24 }}>✅</Text>
         </View>
-
-        {!isAdult && (
-          <View style={styles.warningBox}>
-            <Text style={styles.warningText}>
-              🔒 Vous devez avoir au moins 18 ans pour accéder aux contenus adultes.
-            </Text>
-          </View>
-        )}
       </View>
 
       {/* DISCORD */}
@@ -858,29 +843,18 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         <Text style={styles.sectionTitle}>🎮 Communauté</Text>
         
         <TouchableOpacity
-          style={[styles.discordButton, !isAdult && styles.discordButtonDisabled]}
+          style={styles.discordButton}
           onPress={handleOpenDiscord}
-          disabled={!isAdult}
         >
           <Text style={styles.discordButtonIcon}>🎮</Text>
           <View style={styles.discordButtonContent}>
             <Text style={styles.discordButtonTitle}>Rejoindre Discord</Text>
             <Text style={styles.discordButtonSubtitle}>
-              {isAdult 
-                ? '🔞 Serveur communautaire NSFW - Adultes uniquement'
-                : '🔒 Réservé aux majeurs (18+)'}
+              🔞 Serveur communautaire NSFW - Adultes uniquement
             </Text>
           </View>
           <Text style={styles.discordButtonArrow}>→</Text>
         </TouchableOpacity>
-
-        {!isAdult && (
-          <View style={styles.warningBox}>
-            <Text style={styles.warningText}>
-              🔒 Le serveur Discord est un espace NSFW réservé exclusivement aux adultes de 18 ans et plus.
-            </Text>
-          </View>
-        )}
       </View>
 
       {/* DÉCONNEXION */}

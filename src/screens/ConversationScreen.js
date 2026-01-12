@@ -49,6 +49,7 @@ export default function ConversationScreen({ route, navigation }) {
   const [selectedTheme, setSelectedTheme] = useState('default');
   const [opacity, setOpacity] = useState(1);
   const [borderRadius, setBorderRadius] = useState(15);
+  const [backgroundBlur, setBackgroundBlur] = useState(0); // 0-100%
   
   // Premium status
   const [isPremium, setIsPremium] = useState(false);
@@ -445,10 +446,14 @@ export default function ConversationScreen({ route, navigation }) {
 
     setGeneratingImage(true);
     try {
+      // Niveau de relation pour adapter la tenue/pose
+      const currentLevel = userLevel?.level || 1;
+      
       const imageUrl = await ImageGenerationService.generateSceneImage(
         character,
         userProfile,
-        messages
+        messages,
+        currentLevel  // Passe le niveau pour tenue appropriée
       );
       
       await GalleryService.saveImageToGallery(character.id, imageUrl);
@@ -816,6 +821,35 @@ export default function ConversationScreen({ route, navigation }) {
                 </TouchableOpacity>
               </View>
               
+              {/* Flou du fond */}
+              <Text style={styles.settingLabel}>🌫️ Flou du fond: {Math.round(backgroundBlur)}%</Text>
+              <View style={styles.sliderButtons}>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => setBackgroundBlur(Math.max(0, backgroundBlur - 10))}
+                >
+                  <Text style={styles.sliderBtnText}>-</Text>
+                </TouchableOpacity>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={{ 
+                    width: 60, 
+                    height: 60, 
+                    backgroundColor: `rgba(0,0,0,${backgroundBlur / 100})`,
+                    borderRadius: 8,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                    <Text style={{ color: backgroundBlur > 50 ? '#fff' : '#000' }}>{Math.round(backgroundBlur)}%</Text>
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  style={styles.sliderBtn}
+                  onPress={() => setBackgroundBlur(Math.min(100, backgroundBlur + 10))}
+                >
+                  <Text style={styles.sliderBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+              
               {/* Aperçu */}
               <Text style={styles.settingLabel}>👁️ Aperçu</Text>
               <View style={styles.previewContainer}>
@@ -893,11 +927,22 @@ export default function ConversationScreen({ route, navigation }) {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
     >
       {conversationBackground && (
-        <Image
-          source={{ uri: conversationBackground }}
-          style={[styles.backgroundImage, { opacity: opacity * 0.6 }]}
-          blurRadius={2}
-        />
+        <>
+          <Image
+            source={{ uri: conversationBackground }}
+            style={[styles.backgroundImage, { opacity: opacity * 0.6 }]}
+            blurRadius={backgroundBlur / 5} // 0-20 blur radius
+          />
+          {/* Overlay pour le flou */}
+          {backgroundBlur > 0 && (
+            <View 
+              style={[
+                styles.backgroundImage, 
+                { backgroundColor: `rgba(0,0,0,${backgroundBlur / 200})` }
+              ]} 
+            />
+          )}
+        </>
       )}
       
       {/* Barre de niveau avec ce personnage */}

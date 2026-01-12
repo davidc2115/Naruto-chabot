@@ -38,20 +38,35 @@ class ImageGenerationService {
       'single complete human body, one head, two eyes, one nose, one mouth',
     ];
     
-    // PROMPTS NÉGATIFS INTÉGRÉS RENFORCÉS
-    this.antiDeformationPrompts = 
-      'NOT deformed, NOT distorted, NOT disfigured, NOT mutated, NOT ugly, ' +
-      'NOT bad anatomy, NOT wrong anatomy, NOT anatomical errors, ' +
-      'NOT extra limbs, NOT missing limbs, NOT three arms, NOT four arms, ' +
-      'NOT three legs, NOT four legs, NOT extra body parts, ' +
-      'NOT floating limbs, NOT disconnected limbs, NOT merged limbs, ' +
-      'NOT malformed hands, NOT twisted hands, NOT backwards hands, ' +
-      'NOT extra fingers, NOT missing fingers, NOT fused fingers, NOT six fingers, ' +
-      'NOT too many fingers, NOT mutated hands, NOT bad hands, NOT clawed hands, ' +
-      'NOT extra arms, NOT extra legs, NOT duplicate body parts, NOT clone, ' +
-      'NOT two heads, NOT two faces, NOT multiple people in frame, ' +
-      'NOT blurry, NOT low quality, NOT pixelated, NOT watermark, ' +
-      'normal human anatomy, correct proportions, natural realistic pose, single subject only';
+    // PROMPTS ANATOMIQUES ULTRA-STRICTS (intégrés au prompt positif)
+    this.anatomyStrictPrompt = 
+      'ANATOMICALLY PERFECT HUMAN BODY: ' +
+      'exactly ONE person, exactly TWO arms attached to shoulders, exactly TWO legs attached to hips, ' +
+      'exactly TWO hands with FIVE fingers each, exactly TWO feet with five toes each, ' +
+      'ONE head, ONE face, TWO eyes symmetrically placed, ONE nose centered, ONE mouth, TWO ears, ' +
+      'proper human proportions, arms extend from shoulders naturally, ' +
+      'legs extend from hips naturally, no floating body parts, ' +
+      'anatomically correct female or male body, natural muscle structure, ' +
+      'correct breast shape and size if female, natural nipple placement, ' +
+      'symmetrical body, balanced pose, stable stance';
+    
+    // NEGATIVE PROMPT ULTRA-COMPLET (pour SD local)
+    this.negativePromptFull = 
+      'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, anatomical errors, ' +
+      'extra limbs, missing limbs, three arms, four arms, three legs, four legs, extra body parts, ' +
+      'floating limbs, disconnected limbs, merged limbs, fused body parts, ' +
+      'malformed hands, twisted hands, backwards hands, extra fingers, missing fingers, ' +
+      'fused fingers, six fingers, seven fingers, too many fingers, mutated hands, bad hands, ' +
+      'clawed hands, webbed fingers, malformed feet, extra toes, ' +
+      'extra arms, extra legs, duplicate body parts, clone, conjoined, ' +
+      'two heads, two faces, multiple people, crowd, group, ' +
+      'malformed breasts, misshapen breasts, uneven breasts, extra nipples, ' +
+      'malformed face, asymmetrical face, cross-eyed, misaligned eyes, third eye, ' +
+      'double chin overlapping, long neck, twisted neck, broken neck, ' +
+      'blurry, low quality, pixelated, watermark, signature, text, logo, ' +
+      'bad proportions, giant head, tiny head, long arms, short arms, ' +
+      'jpeg artifacts, compression artifacts, noise, grainy, ' +
+      'ugly, grotesque, horror, creepy, nightmare, zombie';
     
     // TENUES NSFW ALÉATOIRES
     this.nsfwOutfits = [
@@ -76,6 +91,38 @@ class ImageGenerationService {
       'reclining on couch, relaxed',
       'stretching, body exposed',
     ];
+  }
+
+  /**
+   * Retourne une tenue basée sur le niveau de relation
+   */
+  getOutfitByLevel(level) {
+    const lvl = Math.min(Math.max(1, level || 1), 5);
+    const outfits = {
+      1: ['wearing casual clothes, slightly revealing', 'wearing tight dress, form-fitting', 'wearing crop top, midriff visible'],
+      2: ['wearing sexy lingerie, lace bra and panties', 'wearing silk lingerie set', 'wearing babydoll nightgown, see-through', 'wearing corset and thong'],
+      3: ['wearing only thong, topless, hands covering breasts', 'wearing sheer robe, see-through', 'wearing micro bikini, barely covering'],
+      4: ['topless, bare breasts, wearing only panties', 'nude from waist up, wearing only stockings', 'wearing open robe, one breast visible'],
+      5: ['completely nude, artistic full body', 'fully naked, lying elegantly', 'nude, confident pose, natural beauty'],
+    };
+    const levelOutfits = outfits[lvl] || outfits[1];
+    return levelOutfits[Math.floor(Math.random() * levelOutfits.length)];
+  }
+
+  /**
+   * Retourne une pose basée sur le niveau de relation
+   */
+  getPoseByLevel(level) {
+    const lvl = Math.min(Math.max(1, level || 1), 5);
+    const poses = {
+      1: ['standing casually, friendly smile', 'sitting relaxed, legs crossed', 'leaning, playful expression'],
+      2: ['lying on bed, seductive look', 'sitting on bed edge, inviting', 'standing with hand on hip'],
+      3: ['arching back, sensual pose', 'kneeling, looking up invitingly', 'lying on side, curves emphasized'],
+      4: ['lying back, one leg raised', 'on all fours, looking over shoulder', 'spreading legs slightly'],
+      5: ['legs spread, explicit pose', 'bent over, rear view', 'lying with legs open, intimate'],
+    };
+    const levelPoses = poses[lvl] || poses[1];
+    return levelPoses[Math.floor(Math.random() * levelPoses.length)];
   }
 
   /**
@@ -747,24 +794,22 @@ class ImageGenerationService {
       prompt += this.buildSFWPrompt(character, isRealistic);
     }
     
+    // ANATOMIE STRICTE (pour éviter les défauts)
+    prompt += ', ' + this.anatomyStrictPrompt;
+    
     // QUALITÉ SPÉCIFIQUE AU STYLE
     if (isRealistic) {
-      // Prompts anti-déformation pour réaliste
       prompt += ', ' + this.buildRealisticQualityPrompts();
       prompt += ', ultra-high quality photo, 8K resolution, sharp focus, professional photography';
       prompt += ', realistic skin texture, lifelike details, photographic quality';
-      prompt += ', single person only, one subject, solo portrait, no other people';
-      prompt += ', exactly two arms, exactly two legs, normal human body';
+      prompt += ', single person only, one subject, solo portrait';
     } else {
-      // Qualité anime AVEC anti-déformation
       prompt += ', masterpiece anime art, best quality illustration, highly detailed anime';
       prompt += ', clean lines, vibrant colors, professional anime artwork';
-      prompt += ', single character, solo, one person, no other characters';
-      prompt += ', correct anime anatomy, proper body proportions, NOT extra limbs';
-      prompt += ', exactly two arms, exactly two legs, proper hands with five fingers';
+      prompt += ', single character, solo, one person';
     }
     
-    prompt += ', adult 18+, mature';
+    prompt += ', adult 18+, mature content';
 
     console.log(`🖼️ Génération image profil (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
     return await this.generateImage(prompt);
@@ -772,15 +817,21 @@ class ImageGenerationService {
 
   /**
    * Génère l'image de scène (conversation)
+   * @param {Object} character - Le personnage
+   * @param {Object} userProfile - Le profil utilisateur
+   * @param {Array} recentMessages - Messages récents
+   * @param {number} relationLevel - Niveau de relation (1-5+)
    */
-  async generateSceneImage(character, userProfile = null, recentMessages = []) {
+  async generateSceneImage(character, userProfile = null, recentMessages = [], relationLevel = 1) {
     // Parser l'âge correctement (gère "300 ans (apparence 25)")
     const charAge = this.parseCharacterAge(character.age);
     if (charAge < 18) {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+    // Application 18+ uniquement - toujours NSFW
+    const level = Math.max(1, relationLevel || 1);
+    console.log(`🔞 Génération image niveau ${level}`);
 
     // Choisir le style
     const { style, isRealistic } = this.getRandomStyle();
@@ -803,20 +854,21 @@ class ImageGenerationService {
     // Anatomie (poitrine, physique masculin)
     prompt += this.buildAnatomyDescription(character, isRealistic);
     
-    // Tenue détectée ou aléatoire
+    // TENUE BASÉE SUR LE NIVEAU DE RELATION
     const detectedOutfit = this.detectOutfit(recentMessages);
     if (detectedOutfit) {
       prompt += `, wearing ${detectedOutfit}`;
-    } else if (nsfwMode) {
-      const randomOutfit = this.nsfwOutfits[Math.floor(Math.random() * this.nsfwOutfits.length)];
-      prompt += `, ${randomOutfit}`;
+    } else {
+      // Tenue basée sur le niveau
+      const levelOutfit = this.getOutfitByLevel(level);
+      prompt += `, ${levelOutfit}`;
+      console.log(`👗 Tenue niveau ${level}: ${levelOutfit}`);
     }
     
-    // Posture si NSFW
-    if (nsfwMode) {
-      const randomPose = this.nsfwPoses[Math.floor(Math.random() * this.nsfwPoses.length)];
-      prompt += `, ${randomPose}`;
-    }
+    // POSE BASÉE SUR LE NIVEAU DE RELATION
+    const levelPose = this.getPoseByLevel(level);
+    prompt += `, ${levelPose}`;
+    console.log(`🎭 Pose niveau ${level}: ${levelPose}`);
     
     // Mode NSFW ou SFW
     if (nsfwMode) {
@@ -825,20 +877,20 @@ class ImageGenerationService {
       prompt += this.buildSFWPrompt(character, isRealistic);
     }
     
+    // ANATOMIE STRICTE (pour éviter les défauts)
+    prompt += ', ' + this.anatomyStrictPrompt;
+    
     // QUALITÉ AVEC ANTI-DÉFORMATION
     if (isRealistic) {
       prompt += ', ' + this.buildRealisticQualityPrompts();
       prompt += ', ultra-detailed photo, 8K, professional quality, sharp focus';
-      prompt += ', single person, solo, one subject, no other people';
-      prompt += ', exactly two arms, exactly two legs, correct body';
+      prompt += ', single person, solo portrait';
     } else {
       prompt += ', masterpiece, best quality, highly detailed anime';
-      prompt += ', single character, solo, no duplicates';
-      prompt += ', correct anime anatomy, NOT extra limbs, NOT deformed';
-      prompt += ', exactly two arms, exactly two legs, proper hands';
+      prompt += ', single character, solo';
     }
     
-    prompt += ', adult 18+, mature';
+    prompt += ', adult 18+, mature content';
 
     console.log(`🖼️ Génération image conversation (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
     return await this.generateImage(prompt);
@@ -1001,18 +1053,14 @@ class ImageGenerationService {
         return await this.generateWithFreebox(prompt);
       }
 
-      const fullPrompt = `${prompt}, masterpiece, best quality, ultra detailed`;
-      const negativePrompt = 'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, ' +
-        'extra limbs, missing limbs, floating limbs, disconnected limbs, malformed hands, ' +
-        'extra fingers, missing fingers, fused fingers, too many fingers, mutated hands, ' +
-        'bad hands, extra arms, extra legs, duplicate, low quality, blurry, ugly';
+      const fullPrompt = `${prompt}, ${this.anatomyStrictPrompt}, masterpiece, best quality, ultra detailed`;
 
       console.log('🎨 Génération avec SD-Turbo local...');
       
       const result = await StableDiffusionLocalService.generateImage(fullPrompt, {
-        negativePrompt,
-        steps: 2,
-        guidanceScale: 1.0,
+        negativePrompt: this.negativePromptFull,
+        steps: 4, // Plus d'étapes pour meilleure qualité
+        guidanceScale: 7.5, // Plus de guidance pour respecter le prompt
       });
 
       if (result && result.imagePath) {
