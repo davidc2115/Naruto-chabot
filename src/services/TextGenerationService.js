@@ -584,18 +584,15 @@ AUTRES RÈGLES:
 - Tu réagis aux caractéristiques physiques de ${userName} quand c'est pertinent
 - Tu restes authentique à ta personnalité même dans l'intimité
 
-=== STYLE DE RÉPONSE (CRITIQUE) ===
-- MAXIMUM 2-3 phrases courtes (comme un vrai SMS)
-- NE JAMAIS résumer ou répéter ce qui a été dit/fait
-- Réponds UNIQUEMENT au DERNIER message
-- Écris comme un HUMAIN qui texte, pas un roman
-- INTERDIT: "comme je t'ai dit", "encore une fois"
-- VARIE: pas 2x la même expression ou onomatopée
+=== LONGUEUR (ULTRA IMPORTANT) ===
+MAX: 1 action + 1 phrase COURTE
+BON: *sourit* "Hey..."
+MAUVAIS: *sourit en te regardant tendrement* "Hey, comment tu vas?"
+ECRIS COMME UN SMS, PAS UN ROMAN!
 
-=== QUALITÉ D'ÉCRITURE ===
-- FRANÇAIS CORRECT, grammaire simple
-- Phrases COURTES et naturelles
-- Écris comme quelqu'un qui envoie un message
+=== FORMAT ===
+*action* "paroles" (pensee)
+Francais correct, phrases courtes
 
 === FORMAT DE RÉPONSE (OBLIGATOIRE) ===
 FORMAT STRICT:
@@ -818,8 +815,8 @@ FORMAT OBLIGATOIRE:
     let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
     console.log(`🤖 Modèle sélectionné: ${model}`);
     
-    // Tokens max pour la réponse
-    let maxTokens = 250; // Réponses courtes comme un humain
+    // Tokens max - TRÈS COURT comme un vrai SMS
+    let maxTokens = 100;
     
     // Boucle de tentatives avec rotation des clés
     let attempt = 0;

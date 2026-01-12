@@ -759,7 +759,8 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    const nsfwMode = userProfile?.nsfwMode && userProfile?.isAdult;
+    // App 18+ uniquement - toujours NSFW
+    const nsfwMode = true;
 
     // Choisir le style (anime ou réaliste)
     const { style, isRealistic } = this.getRandomStyle();
@@ -787,12 +788,8 @@ class ImageGenerationService {
       prompt += `, wearing: ${character.outfit.replace(/\n/g, ' ').trim()}`;
     }
     
-    // Mode NSFW ou SFW
-    if (nsfwMode) {
-      prompt += this.buildNSFWPrompt(character, isRealistic);
-    } else {
-      prompt += this.buildSFWPrompt(character, isRealistic);
-    }
+    // App 18+ - toujours NSFW
+    prompt += this.buildNSFWPrompt(character, isRealistic);
     
     // ANATOMIE STRICTE (pour éviter les défauts)
     prompt += ', ' + this.anatomyStrictPrompt;
@@ -870,12 +867,8 @@ class ImageGenerationService {
     prompt += `, ${levelPose}`;
     console.log(`🎭 Pose niveau ${level}: ${levelPose}`);
     
-    // Mode NSFW ou SFW
-    if (nsfwMode) {
-      prompt += this.buildNSFWPrompt(character, isRealistic);
-    } else {
-      prompt += this.buildSFWPrompt(character, isRealistic);
-    }
+    // App 18+ - toujours NSFW
+    prompt += this.buildNSFWPrompt(character, isRealistic);
     
     // ANATOMIE STRICTE (pour éviter les défauts)
     prompt += ', ' + this.anatomyStrictPrompt;

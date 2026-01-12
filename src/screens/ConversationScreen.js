@@ -938,18 +938,9 @@ export default function ConversationScreen({ route, navigation }) {
         <>
           <Image
             source={{ uri: conversationBackground }}
-            style={[styles.backgroundImage, { opacity: opacity * 0.6 }]}
-            blurRadius={backgroundBlur / 5} // 0-20 blur radius
+            style={styles.backgroundImage}
+            blurRadius={backgroundBlur / 5} // 0-20 blur radius (paramètres)
           />
-          {/* Overlay pour le flou */}
-          {backgroundBlur > 0 && (
-            <View 
-              style={[
-                styles.backgroundImage, 
-                { backgroundColor: `rgba(0,0,0,${backgroundBlur / 200})` }
-              ]} 
-            />
-          )}
         </>
       )}
       
