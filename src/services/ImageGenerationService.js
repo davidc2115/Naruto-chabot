@@ -767,29 +767,11 @@ class ImageGenerationService {
     
     let prompt = style;
     
-    // === UTILISER imagePrompt si disponible (ex: personnages fantasy) ===
-    if (character.imagePrompt) {
-      prompt += ', ' + character.imagePrompt;
-    }
+    // === CONSTRUIRE UN PROMPT ULTRA-DÉTAILLÉ BASÉ SUR LE PERSONNAGE ===
+    prompt += ', ' + this.buildUltraDetailedPrompt(character, isRealistic);
     
-    // Description physique adaptée au style
-    prompt += ', ' + this.buildDetailedPhysicalDescription(character, isRealistic);
-    
-    // Apparence du personnage
-    if (character.appearance) {
-      prompt += `, ${character.appearance.replace(/\n/g, ' ').trim()}`;
-    }
-    
-    // Anatomie (poitrine, physique masculin)
-    prompt += this.buildAnatomyDescription(character, isRealistic);
-    
-    // Tenue
-    if (character.outfit) {
-      prompt += `, wearing: ${character.outfit.replace(/\n/g, ' ').trim()}`;
-    }
-    
-    // App 18+ - toujours NSFW
-    prompt += this.buildNSFWPrompt(character, isRealistic);
+    // App 18+ - toujours NSFW (tenue sexy mais pas trop explicite pour le profil)
+    prompt += this.buildProfileNSFWPrompt(character, isRealistic);
     
     // ANATOMIE STRICTE (pour éviter les défauts)
     prompt += ', ' + this.anatomyStrictPrompt;
@@ -799,17 +781,125 @@ class ImageGenerationService {
       prompt += ', ' + this.buildRealisticQualityPrompts();
       prompt += ', ultra-high quality photo, 8K resolution, sharp focus, professional photography';
       prompt += ', realistic skin texture, lifelike details, photographic quality';
-      prompt += ', single person only, one subject, solo portrait';
+      prompt += ', single person only, one subject, solo portrait, perfect lighting';
     } else {
       prompt += ', masterpiece anime art, best quality illustration, highly detailed anime';
       prompt += ', clean lines, vibrant colors, professional anime artwork';
-      prompt += ', single character, solo, one person';
+      prompt += ', single character, solo, one person, detailed face';
     }
     
     prompt += ', adult 18+, mature content';
 
     console.log(`🖼️ Génération image profil (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
+    console.log(`📝 Prompt (début): ${prompt.substring(0, 300)}...`);
     return await this.generateImage(prompt);
+  }
+  
+  /**
+   * Construit un prompt ultra-détaillé basé sur TOUS les attributs du personnage
+   */
+  buildUltraDetailedPrompt(character, isRealistic = false) {
+    const parts = [];
+    
+    // === 1. imagePrompt en priorité si disponible ===
+    if (character.imagePrompt) {
+      parts.push(character.imagePrompt);
+    }
+    
+    // === 2. physicalDescription si disponible ===
+    if (character.physicalDescription) {
+      parts.push(character.physicalDescription.replace(/\n/g, ', '));
+    }
+    
+    // === 3. Genre et base ===
+    if (character.gender === 'female') {
+      parts.push(isRealistic ? 'beautiful real woman, female' : 'beautiful anime woman, female character');
+    } else if (character.gender === 'male') {
+      parts.push(isRealistic ? 'handsome real man, male' : 'handsome anime man, male character');
+    } else {
+      parts.push('beautiful androgynous person');
+    }
+    
+    // === 4. Âge précis ===
+    const age = this.parseCharacterAge(character.age);
+    parts.push(`${age} years old`);
+    if (age >= 40) parts.push('mature elegant');
+    else if (age >= 30) parts.push('adult confident');
+    else if (age >= 25) parts.push('young adult');
+    else parts.push('youthful adult');
+    
+    // === 5. Cheveux (couleur + longueur + style) ===
+    if (character.hairColor) {
+      let hairDesc = `${character.hairColor} hair`;
+      if (character.hairLength) hairDesc += `, ${character.hairLength}`;
+      parts.push(hairDesc);
+    }
+    
+    // === 6. Yeux ===
+    if (character.eyeColor) {
+      parts.push(`${character.eyeColor} eyes, expressive eyes`);
+    }
+    
+    // === 7. Morphologie / Body type ===
+    if (character.bodyType) {
+      parts.push(character.bodyType);
+    } else if (character.height) {
+      parts.push(`${character.height} tall`);
+    }
+    
+    // === 8. Poitrine (femmes) ===
+    if (character.gender === 'female' && (character.bust || character.bustSize)) {
+      const bustSize = character.bust || character.bustSize;
+      parts.push(`${bustSize} cup breasts`);
+    }
+    
+    // === 9. Attribut masculin - IGNORÉ dans le prompt (pas pertinent pour image) ===
+    
+    // === 10. Accessoires (lunettes, etc.) ===
+    if (character.glasses) {
+      parts.push('wearing elegant glasses, spectacles');
+    }
+    
+    // === 11. Apparence générale ===
+    if (character.appearance) {
+      parts.push(character.appearance.replace(/\n/g, ', '));
+    }
+    
+    // === 12. Tenue ===
+    if (character.outfit) {
+      parts.push(`wearing: ${character.outfit.replace(/\n/g, ', ')}`);
+    }
+    
+    return parts.filter(p => p && p.trim()).join(', ');
+  }
+  
+  /**
+   * Prompt NSFW spécifique pour le profil (plus soft que conversation)
+   */
+  buildProfileNSFWPrompt(character, isRealistic = false) {
+    const poses = [
+      'elegant pose, confident stance',
+      'alluring pose, seductive look',
+      'relaxed pose, inviting expression',
+      'graceful pose, soft smile',
+    ];
+    const pose = poses[Math.floor(Math.random() * poses.length)];
+    
+    let prompt = `, ${pose}`;
+    
+    if (character.gender === 'female') {
+      prompt += ', sensual, attractive, feminine beauty';
+      if (isRealistic) {
+        prompt += ', professional boudoir photography style';
+      }
+    } else if (character.gender === 'male') {
+      prompt += ', masculine, attractive, confident';
+      if (isRealistic) {
+        prompt += ', professional portrait photography';
+      }
+    }
+    
+    return prompt;
   }
 
   /**

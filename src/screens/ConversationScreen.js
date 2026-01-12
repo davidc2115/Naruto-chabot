@@ -24,6 +24,7 @@ import GalleryService from '../services/GalleryService';
 import ChatStyleService from '../services/ChatStyleService';
 import LevelService from '../services/LevelService';
 import AuthService from '../services/AuthService';
+import ColorPicker from '../components/ColorPicker';
 
 export default function ConversationScreen({ route, navigation }) {
   const { character } = route.params || {};
@@ -50,6 +51,11 @@ export default function ConversationScreen({ route, navigation }) {
   const [opacity, setOpacity] = useState(1);
   const [borderRadius, setBorderRadius] = useState(15);
   const [backgroundBlur, setBackgroundBlur] = useState(0); // 0-100%
+  
+  // Color picker states
+  const [colorPickerVisible, setColorPickerVisible] = useState(false);
+  const [colorPickerTarget, setColorPickerTarget] = useState(null);
+  const [colorPickerTitle, setColorPickerTitle] = useState('');
   
   // Premium status
   const [isPremium, setIsPremium] = useState(false);
@@ -858,95 +864,78 @@ export default function ConversationScreen({ route, navigation }) {
                 </TouchableOpacity>
               </View>
               
-              {/* PALETTE COULEURS - BULLE PERSONNAGE */}
-              <Text style={styles.settingLabel}>💬 Bulle personnage</Text>
-              <View style={styles.colorPalette}>
-                {[
-                  '#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#cbd5e1', '#94a3b8',
-                  '#1e1b4b', '#1f2937', '#111827', '#0f172a', '#020617', '#000000',
-                  '#fef2f8', '#fce7f3', '#fbcfe8', '#f9a8d4', '#f472b6', '#ec4899',
-                  '#ecfdf5', '#d1fae5', '#a7f3d0', '#6ee7b7', '#34d399', '#10b981',
-                  '#eff6ff', '#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6',
-                ].map(color => (
-                  <TouchableOpacity
-                    key={`ab_${color}`}
-                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.assistantBubble === color ? 3 : 1, borderColor: chatStyle?.assistantBubble === color ? '#f97316' : 'rgba(0,0,0,0.2)' }]}
-                    onPress={async () => { const s = await ChatStyleService.setAssistantBubbleColor(color); setChatStyle({...s}); }}
-                  />
-                ))}
-              </View>
+              {/* SÉLECTEURS DE COULEURS */}
+              <Text style={styles.settingLabel}>🎨 Personnalisation des couleurs</Text>
               
-              {/* PALETTE COULEURS - BULLE UTILISATEUR */}
-              <Text style={styles.settingLabel}>💬 Bulle utilisateur</Text>
-              <View style={styles.colorPalette}>
-                {[
-                  '#6366f1', '#4f46e5', '#4338ca', '#3730a3', '#312e81', '#1e1b4b',
-                  '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554',
-                  '#ec4899', '#db2777', '#be185d', '#9d174d', '#831843', '#500724',
-                  '#10b981', '#059669', '#047857', '#065f46', '#064e3b', '#022c22',
-                  '#f97316', '#ea580c', '#c2410c', '#9a3412', '#7c2d12', '#431407',
-                ].map(color => (
-                  <TouchableOpacity
-                    key={`ub_${color}`}
-                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.userBubble === color ? 3 : 1, borderColor: chatStyle?.userBubble === color ? '#fbbf24' : 'rgba(255,255,255,0.3)' }]}
-                    onPress={async () => { const s = await ChatStyleService.setUserBubbleColor(color); setChatStyle({...s}); }}
-                  />
-                ))}
-              </View>
-
-              {/* PALETTE COULEURS - ACTIONS */}
-              <Text style={styles.settingLabel}>🔴 Actions (*geste*)</Text>
-              <View style={styles.colorPalette}>
-                {[
-                  '#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d', '#450a0a',
-                  '#f97316', '#ea580c', '#c2410c', '#9a3412', '#7c2d12', '#431407',
-                  '#eab308', '#ca8a04', '#a16207', '#854d0e', '#713f12', '#422006',
-                  '#22c55e', '#16a34a', '#15803d', '#166534', '#14532d', '#052e16',
-                  '#ec4899', '#db2777', '#be185d', '#9d174d', '#831843', '#500724',
-                ].map(color => (
-                  <TouchableOpacity
-                    key={`ac_${color}`}
-                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.actionColor === color ? 3 : 1, borderColor: '#fff' }]}
-                    onPress={async () => { const s = await ChatStyleService.setActionColor(color); setChatStyle({...s}); }}
-                  />
-                ))}
-              </View>
-
-              {/* PALETTE COULEURS - PENSÉES */}
-              <Text style={styles.settingLabel}>🔵 Pensées ((pensée))</Text>
-              <View style={styles.colorPalette}>
-                {[
-                  '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554',
-                  '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63', '#083344',
-                  '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95', '#2e1065',
-                  '#14b8a6', '#0d9488', '#0f766e', '#115e59', '#134e4a', '#042f2e',
-                  '#a855f7', '#9333ea', '#7e22ce', '#6b21a8', '#581c87', '#3b0764',
-                ].map(color => (
-                  <TouchableOpacity
-                    key={`th_${color}`}
-                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.thoughtColor === color ? 3 : 1, borderColor: '#fff' }]}
-                    onPress={async () => { const s = await ChatStyleService.setThoughtColor(color); setChatStyle({...s}); }}
-                  />
-                ))}
-              </View>
-
-              {/* PALETTE COULEURS - PAROLES */}
-              <Text style={styles.settingLabel}>⚪ Paroles ("dialogue")</Text>
-              <View style={styles.colorPalette}>
-                {[
-                  '#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#cbd5e1', '#94a3b8',
-                  '#64748b', '#475569', '#334155', '#1e293b', '#0f172a', '#020617',
-                  '#fef3c7', '#fde68a', '#fcd34d', '#fbbf24', '#f59e0b', '#d97706',
-                  '#fce7f3', '#fbcfe8', '#f9a8d4', '#f472b6', '#ec4899', '#db2777',
-                  '#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb',
-                ].map(color => (
-                  <TouchableOpacity
-                    key={`di_${color}`}
-                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.dialogueColor === color ? 3 : 1, borderColor: color === '#ffffff' || color === '#f8fafc' ? '#333' : '#fff' }]}
-                    onPress={async () => { const s = await ChatStyleService.setDialogueColor(color); setChatStyle({...s}); }}
-                  />
-                ))}
-              </View>
+              {/* Bulle personnage */}
+              <TouchableOpacity 
+                style={styles.colorPickerBtn}
+                onPress={() => {
+                  setColorPickerTarget('assistantBubble');
+                  setColorPickerTitle('💬 Couleur bulle personnage');
+                  setColorPickerVisible(true);
+                }}
+              >
+                <View style={[styles.colorPreviewSmall, { backgroundColor: chatStyle?.assistantBubble || '#ffffff' }]} />
+                <Text style={styles.colorPickerBtnText}>Bulle personnage</Text>
+                <Text style={styles.colorPickerHex}>{(chatStyle?.assistantBubble || '#ffffff').toUpperCase()}</Text>
+              </TouchableOpacity>
+              
+              {/* Bulle utilisateur */}
+              <TouchableOpacity 
+                style={styles.colorPickerBtn}
+                onPress={() => {
+                  setColorPickerTarget('userBubble');
+                  setColorPickerTitle('💬 Couleur bulle utilisateur');
+                  setColorPickerVisible(true);
+                }}
+              >
+                <View style={[styles.colorPreviewSmall, { backgroundColor: chatStyle?.userBubble || '#6366f1' }]} />
+                <Text style={styles.colorPickerBtnText}>Bulle utilisateur</Text>
+                <Text style={styles.colorPickerHex}>{(chatStyle?.userBubble || '#6366f1').toUpperCase()}</Text>
+              </TouchableOpacity>
+              
+              {/* Couleur actions */}
+              <TouchableOpacity 
+                style={styles.colorPickerBtn}
+                onPress={() => {
+                  setColorPickerTarget('actionColor');
+                  setColorPickerTitle('🔴 Couleur des actions (*geste*)');
+                  setColorPickerVisible(true);
+                }}
+              >
+                <View style={[styles.colorPreviewSmall, { backgroundColor: chatStyle?.actionColor || '#ef4444' }]} />
+                <Text style={styles.colorPickerBtnText}>Actions *geste*</Text>
+                <Text style={styles.colorPickerHex}>{(chatStyle?.actionColor || '#ef4444').toUpperCase()}</Text>
+              </TouchableOpacity>
+              
+              {/* Couleur pensées */}
+              <TouchableOpacity 
+                style={styles.colorPickerBtn}
+                onPress={() => {
+                  setColorPickerTarget('thoughtColor');
+                  setColorPickerTitle('🔵 Couleur des pensées ((pensée))');
+                  setColorPickerVisible(true);
+                }}
+              >
+                <View style={[styles.colorPreviewSmall, { backgroundColor: chatStyle?.thoughtColor || '#3b82f6' }]} />
+                <Text style={styles.colorPickerBtnText}>Pensées (pensée)</Text>
+                <Text style={styles.colorPickerHex}>{(chatStyle?.thoughtColor || '#3b82f6').toUpperCase()}</Text>
+              </TouchableOpacity>
+              
+              {/* Couleur paroles */}
+              <TouchableOpacity 
+                style={styles.colorPickerBtn}
+                onPress={() => {
+                  setColorPickerTarget('dialogueColor');
+                  setColorPickerTitle('⚪ Couleur des paroles ("dialogue")');
+                  setColorPickerVisible(true);
+                }}
+              >
+                <View style={[styles.colorPreviewSmall, { backgroundColor: chatStyle?.dialogueColor || '#1f2937' }]} />
+                <Text style={styles.colorPickerBtnText}>Paroles "dialogue"</Text>
+                <Text style={styles.colorPickerHex}>{(chatStyle?.dialogueColor || '#1f2937').toUpperCase()}</Text>
+              </TouchableOpacity>
 
               {/* Aperçu */}
               <Text style={styles.settingLabel}>👁️ Aperçu</Text>
@@ -1158,6 +1147,43 @@ export default function ConversationScreen({ route, navigation }) {
       </View>
       
       {renderSettingsModal()}
+      
+      {/* Color Picker Modal */}
+      <ColorPicker
+        visible={colorPickerVisible}
+        onClose={() => setColorPickerVisible(false)}
+        title={colorPickerTitle}
+        currentColor={
+          colorPickerTarget === 'assistantBubble' ? (chatStyle?.assistantBubble || '#ffffff') :
+          colorPickerTarget === 'userBubble' ? (chatStyle?.userBubble || '#6366f1') :
+          colorPickerTarget === 'actionColor' ? (chatStyle?.actionColor || '#ef4444') :
+          colorPickerTarget === 'thoughtColor' ? (chatStyle?.thoughtColor || '#3b82f6') :
+          colorPickerTarget === 'dialogueColor' ? (chatStyle?.dialogueColor || '#1f2937') : '#ffffff'
+        }
+        onSelectColor={async (color) => {
+          let newStyle;
+          switch (colorPickerTarget) {
+            case 'assistantBubble':
+              newStyle = await ChatStyleService.setAssistantBubbleColor(color);
+              break;
+            case 'userBubble':
+              newStyle = await ChatStyleService.setUserBubbleColor(color);
+              break;
+            case 'actionColor':
+              newStyle = await ChatStyleService.setActionColor(color);
+              break;
+            case 'thoughtColor':
+              newStyle = await ChatStyleService.setThoughtColor(color);
+              break;
+            case 'dialogueColor':
+              newStyle = await ChatStyleService.setDialogueColor(color);
+              break;
+          }
+          if (newStyle) {
+            setChatStyle({...newStyle});
+          }
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -1707,5 +1733,33 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  // Color Picker Button Styles
+  colorPickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#374151',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  colorPreviewSmall: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#fff',
+    marginRight: 12,
+  },
+  colorPickerBtnText: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  colorPickerHex: {
+    color: '#9ca3af',
+    fontSize: 12,
+    fontFamily: 'monospace',
   },
 });
