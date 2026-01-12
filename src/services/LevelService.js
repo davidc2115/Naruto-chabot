@@ -33,19 +33,20 @@ class LevelService {
       100: 'Divin',
     };
     
-    // Récompenses par niveau - IMAGES EXCLUSIVES
+    // Récompenses par niveau - IMAGES EXCLUSIVES PROGRESSIVES
+    // Niveau 2 = Lingerie, Niveau 3 = Sexy/Provocante, Niveau 4 = Topless, etc.
     this.rewards = {
-      2: { type: 'image', description: 'Image sexy en lingerie', imageType: 'lingerie' },
-      3: { type: 'image', description: 'Image en tenue provocante', imageType: 'provocative' },
-      4: { type: 'image', description: 'Image en sous-vêtements', imageType: 'underwear' },
-      5: { type: 'image', description: 'Image topless exclusive', imageType: 'topless' },
-      6: { type: 'image', description: 'Image nue artistique', imageType: 'artistic_nude' },
-      7: { type: 'image', description: 'Image nue sensuelle', imageType: 'sensual_nude' },
-      8: { type: 'image', description: 'Image très sexy', imageType: 'very_sexy' },
-      9: { type: 'image', description: 'Image érotique exclusive', imageType: 'erotic' },
-      10: { type: 'image', description: 'Image ultra-hot', imageType: 'ultra_hot' },
-      15: { type: 'image', description: 'Galerie spéciale', imageType: 'special_gallery' },
-      20: { type: 'image', description: 'Image personnalisée', imageType: 'custom' },
+      2: { type: 'image', description: '🩱 Image sexy en lingerie', imageType: 'lingerie' },
+      3: { type: 'image', description: '👙 Image en tenue sexy et provocante', imageType: 'provocative' },
+      4: { type: 'image', description: '🔥 Image topless (seins visibles)', imageType: 'topless' },
+      5: { type: 'image', description: '💋 Image nue artistique', imageType: 'artistic_nude' },
+      6: { type: 'image', description: '🌹 Image nue sensuelle', imageType: 'sensual_nude' },
+      7: { type: 'image', description: '❤️‍🔥 Image très sexy', imageType: 'very_sexy' },
+      8: { type: 'image', description: '💕 Image érotique exclusive', imageType: 'erotic' },
+      9: { type: 'image', description: '🔞 Image ultra-hot', imageType: 'ultra_hot' },
+      10: { type: 'image', description: '👑 Collection exclusive', imageType: 'ultra_hot' },
+      15: { type: 'image', description: '🎁 Galerie spéciale', imageType: 'special_gallery' },
+      20: { type: 'image', description: '💎 Image personnalisée VIP', imageType: 'custom' },
     };
   }
 
@@ -380,20 +381,46 @@ class LevelService {
 
   /**
    * Génère le prompt pour l'image de récompense selon le type
+   * Les prompts sont TRÈS détaillés pour correspondre au niveau
    */
   getRewardImagePrompt(imageType, character) {
+    const genderPrefix = character?.gender === 'female' 
+      ? 'beautiful woman' 
+      : 'handsome man';
+    
     const basePrompts = {
-      'lingerie': 'wearing sexy lace lingerie, seductive pose, bedroom setting',
-      'provocative': 'wearing provocative revealing outfit, teasing pose, sensual lighting',
-      'underwear': 'wearing only underwear, confident pose, intimate atmosphere',
-      'topless': 'topless, bare chest, artistic sensual pose, soft lighting',
-      'artistic_nude': 'artistic nude, elegant pose, professional boudoir photography',
-      'sensual_nude': 'sensual nude, lying on silk sheets, romantic atmosphere',
-      'very_sexy': 'completely nude, very sexy pose, erotic atmosphere, bedroom',
-      'erotic': 'erotic nude pose, passionate expression, intimate setting',
-      'ultra_hot': 'extremely sexy nude, provocative pose, hot erotic atmosphere',
-      'special_gallery': 'exclusive nude photoshoot, multiple poses, professional erotica',
-      'custom': 'personalized nude, unique sexy pose, special intimate setting',
+      // Niveau 2 - Lingerie
+      'lingerie': `${genderPrefix}, wearing sexy lace lingerie set, matching bra and panties, seductive pose, bedroom setting, soft romantic lighting, sensual atmosphere`,
+      
+      // Niveau 3 - Provocante
+      'provocative': `${genderPrefix}, wearing sheer see-through negligee, nipples visible through fabric, teasing provocative pose, sensual lighting, intimate atmosphere`,
+      
+      // Niveau 4 - Sous-vêtements sexy
+      'underwear': `${genderPrefix}, wearing only tiny thong panties, confident seductive pose, intimate atmosphere, professional boudoir`,
+      
+      // Niveau 5 - Topless
+      'topless': `${genderPrefix}, topless, bare breasts fully visible, wearing only panties, artistic sensual pose, soft studio lighting, nipples visible`,
+      
+      // Niveau 6 - Nu artistique
+      'artistic_nude': `${genderPrefix}, completely nude, artistic elegant pose, professional boudoir photography, full frontal, nothing hidden, studio lighting`,
+      
+      // Niveau 7 - Nu sensuel
+      'sensual_nude': `${genderPrefix}, sensual nude, lying naked on silk sheets, romantic atmosphere, breasts and body fully exposed, intimate setting`,
+      
+      // Niveau 8 - Très sexy
+      'very_sexy': `${genderPrefix}, completely nude, very sexy provocative pose, erotic atmosphere, bedroom, legs spread slightly, nothing hidden`,
+      
+      // Niveau 9 - Érotique
+      'erotic': `${genderPrefix}, erotic nude pose, passionate expression, intimate setting, explicit sensual position, fully naked and exposed`,
+      
+      // Niveau 10 - Ultra hot
+      'ultra_hot': `${genderPrefix}, extremely sexy nude, very provocative explicit pose, hot erotic atmosphere, nothing left to imagination`,
+      
+      // Niveau 15 - Galerie spéciale
+      'special_gallery': `${genderPrefix}, exclusive nude photoshoot, professional erotica, multiple angles implied, artistic and erotic`,
+      
+      // Niveau 20 - Personnalisé
+      'custom': `${genderPrefix}, personalized intimate nude, unique sexy pose, special private setting, extremely detailed`,
     };
     
     return basePrompts[imageType] || basePrompts['lingerie'];

@@ -95,33 +95,111 @@ class ImageGenerationService {
 
   /**
    * Retourne une tenue basée sur le niveau de relation
+   * Niveau 1: Habillée (vêtements normaux)
+   * Niveau 2: Lingerie sexy
+   * Niveau 3: Tenue sexy et provocante
+   * Niveau 4: Topless / très dénudée
+   * Niveau 5+: Complètement nue
    */
   getOutfitByLevel(level) {
-    const lvl = Math.min(Math.max(1, level || 1), 5);
+    const lvl = Math.min(Math.max(1, level || 1), 10);
+    
     const outfits = {
-      1: ['wearing casual clothes, slightly revealing', 'wearing tight dress, form-fitting', 'wearing crop top, midriff visible'],
-      2: ['wearing sexy lingerie, lace bra and panties', 'wearing silk lingerie set', 'wearing babydoll nightgown, see-through', 'wearing corset and thong'],
-      3: ['wearing only thong, topless, hands covering breasts', 'wearing sheer robe, see-through', 'wearing micro bikini, barely covering'],
-      4: ['topless, bare breasts, wearing only panties', 'nude from waist up, wearing only stockings', 'wearing open robe, one breast visible'],
-      5: ['completely nude, artistic full body', 'fully naked, lying elegantly', 'nude, confident pose, natural beauty'],
+      // Niveau 1 - HABILLÉE (vêtements normaux mais suggestifs)
+      1: [
+        'wearing casual clothes, tight jeans and tank top',
+        'wearing form-fitting dress, elegant',
+        'wearing shorts and crop top, midriff visible',
+        'wearing sundress, cleavage hint',
+      ],
+      // Niveau 2 - LINGERIE (sous-vêtements sexy)
+      2: [
+        'wearing sexy lace lingerie set, matching bra and panties',
+        'wearing silk lingerie, elegant underwear',
+        'wearing babydoll nightgown with lace trim',
+        'wearing corset and lace panties, garter belt',
+        'wearing satin bra and thong, seductive lingerie',
+      ],
+      // Niveau 3 - TENUE SEXY ET PROVOCANTE
+      3: [
+        'wearing sheer see-through negligee, nipples visible through fabric',
+        'wearing open robe with lingerie underneath, seductive',
+        'wearing micro bikini barely covering anything',
+        'wearing fishnet bodysuit, provocative pose',
+        'wearing crotchless lingerie, teasing',
+      ],
+      // Niveau 4 - TOPLESS / TRÈS DÉNUDÉE
+      4: [
+        'topless, bare breasts exposed, wearing only tiny panties',
+        'nude from waist up, breasts visible, wearing only stockings and heels',
+        'wearing open robe, both breasts fully visible, no underwear',
+        'topless with nipples erect, wearing only thong',
+        'bare chested, one hand teasing, very revealing',
+      ],
+      // Niveau 5+ - COMPLÈTEMENT NUE
+      5: [
+        'completely nude, full frontal, artistic pose',
+        'fully naked, lying elegantly on bed, nothing hidden',
+        'nude, confident pose, natural beauty, all exposed',
+        'naked, sensual pose, breasts and body fully visible',
+        'completely undressed, intimate pose, beautiful nude',
+      ],
     };
-    const levelOutfits = outfits[lvl] || outfits[1];
+    
+    // Pour les niveaux 6+, utiliser les tenues niveau 5 avec variations
+    const effectiveLevel = lvl > 5 ? 5 : lvl;
+    const levelOutfits = outfits[effectiveLevel] || outfits[1];
     return levelOutfits[Math.floor(Math.random() * levelOutfits.length)];
   }
 
   /**
    * Retourne une pose basée sur le niveau de relation
+   * Les poses deviennent progressivement plus intimes
    */
   getPoseByLevel(level) {
-    const lvl = Math.min(Math.max(1, level || 1), 5);
+    const lvl = Math.min(Math.max(1, level || 1), 10);
+    
     const poses = {
-      1: ['standing casually, friendly smile', 'sitting relaxed, legs crossed', 'leaning, playful expression'],
-      2: ['lying on bed, seductive look', 'sitting on bed edge, inviting', 'standing with hand on hip'],
-      3: ['arching back, sensual pose', 'kneeling, looking up invitingly', 'lying on side, curves emphasized'],
-      4: ['lying back, one leg raised', 'on all fours, looking over shoulder', 'spreading legs slightly'],
-      5: ['legs spread, explicit pose', 'bent over, rear view', 'lying with legs open, intimate'],
+      // Niveau 1 - Poses normales, amicales
+      1: [
+        'standing casually, friendly smile, relaxed posture',
+        'sitting relaxed, legs crossed, natural expression',
+        'leaning against wall, playful expression',
+      ],
+      // Niveau 2 - Poses suggestives en lingerie
+      2: [
+        'lying on bed in lingerie, seductive look, inviting',
+        'sitting on bed edge, legs slightly apart, sensual',
+        'standing with hand on hip, showing off lingerie',
+        'posing confidently in underwear, bedroom eyes',
+      ],
+      // Niveau 3 - Poses provocantes
+      3: [
+        'arching back, sensual provocative pose, teasing',
+        'kneeling on bed, looking up invitingly, seductive',
+        'lying on side, curves emphasized, see-through outfit',
+        'bending forward, cleavage visible, teasing smile',
+      ],
+      // Niveau 4 - Poses topless sensuelles
+      4: [
+        'lying back on bed, one leg raised, topless, breasts visible',
+        'on hands and knees, looking over shoulder, bare chest',
+        'standing nude from waist up, confident pose, breasts exposed',
+        'sitting with legs open, topless, sensual expression',
+      ],
+      // Niveau 5+ - Poses explicites
+      5: [
+        'legs spread apart, fully nude, explicit intimate pose',
+        'bent over, rear view, completely naked',
+        'lying with legs open, intimate revealing pose, nothing hidden',
+        'kneeling nude, seductive pose, full body visible',
+        'lying on back, knees up, fully exposed, erotic pose',
+      ],
     };
-    const levelPoses = poses[lvl] || poses[1];
+    
+    // Pour les niveaux 6+, utiliser les poses niveau 5
+    const effectiveLevel = lvl > 5 ? 5 : lvl;
+    const levelPoses = poses[effectiveLevel] || poses[1];
     return levelPoses[Math.floor(Math.random() * levelPoses.length)];
   }
 

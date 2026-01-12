@@ -380,10 +380,17 @@ export default function ConversationScreen({ route, navigation }) {
       // Construire le prompt spécial pour la récompense
       const rewardPromptPart = LevelService.getRewardImagePrompt(reward.imageType, character);
       
-      // Prompt ultra-détaillé hyperréaliste
+      // UTILISER les caractéristiques EXACTES du personnage
+      const physicalDesc = ImageGenerationService.buildDetailedPhysicalDescription(character, true);
+      const anatomyDesc = ImageGenerationService.buildAnatomyDescription(character, true);
+      
+      // Prompt ultra-détaillé avec TOUTES les caractéristiques du personnage
       const fullPrompt = `hyper-realistic photograph, professional photography, 8K ultra HD, 
-        ${character.gender === 'female' ? 'beautiful woman' : 'handsome man'}, 
-        ${character.age} years old, ${character.appearance || ''}, 
+        ${physicalDesc}, 
+        ${anatomyDesc},
+        ${character.hairColor ? character.hairColor + ' hair' : ''},
+        ${character.eyeColor ? character.eyeColor + ' eyes' : ''},
+        ${character.physicalDescription || character.appearance || ''},
         ${rewardPromptPart}, 
         perfect anatomy, correct human proportions, anatomically correct body,
         proper hands with five fingers each, correct arm and leg proportions,
