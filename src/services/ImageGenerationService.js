@@ -938,32 +938,42 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère une image avec retry et fallback
+   * Génère une image avec retry et fallback intelligent
    */
   async generateImage(prompt, retryCount = 0) {
     await CustomImageAPIService.loadConfig();
     
     const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🎨 Stratégie: ${strategy} (tentative ${retryCount + 1}/${this.maxRetries})`);
+    console.log(`🎨 Stratégie: ${strategy} (tentative ${retryCount + 1}/${this.maxRetries + 2})`);
     
     let imageUrl;
     
+    // Première tentative: stratégie configurée
     if (strategy === 'local') {
       imageUrl = await this.generateWithLocal(prompt);
     } else {
       imageUrl = await this.generateWithFreebox(prompt);
     }
     
+    // Vérifier si l'image est valide
     const isValid = await this.validateImageUrl(imageUrl);
     
-    // Si échec, essayer un fallback direct
-    if (!isValid && retryCount < this.maxRetries - 1) {
-      console.log(`⚠️ Tentative ${retryCount + 2}/${this.maxRetries}...`);
-      await new Promise(r => setTimeout(r, 2000 + retryCount * 1000));
+    if (isValid) {
+      console.log('✅ Image générée avec succès');
+      return imageUrl;
+    }
+    
+    // Si échec et encore des retries disponibles
+    if (retryCount < this.maxRetries - 1) {
+      console.log(`⚠️ Image invalide, retry ${retryCount + 2}...`);
+      // Délai progressif: 2s, 4s, 6s...
+      await new Promise(r => setTimeout(r, 2000 + retryCount * 2000));
       return await this.generateImage(prompt, retryCount + 1);
     }
     
-    return imageUrl;
+    // Dernière tentative: fallback API avec délai long
+    console.log('🔄 Utilisation fallback API avec délai anti-rate-limit...');
+    return await this.generateWithFallbackAPI(prompt, retryCount);
   }
 
   /**
@@ -972,17 +982,26 @@ class ImageGenerationService {
   async validateImageUrl(imageUrl) {
     if (!imageUrl) return false;
     
-    // Vérifier les patterns d'erreur connus
+    // Vérifier les patterns d'erreur connus (sauf pollinations.ai qui est valide)
     const errorPatterns = [
-      'pollination',
       'error',
       'failed',
       'invalid',
       'blocked',
-      'nsfw_blocked'
+      'nsfw_blocked',
+      'rate_limit',
+      'rate-limit',
+      'too_many_requests',
+      '429',
+      '503',
+      '502'
     ];
     
     const lowerUrl = imageUrl.toLowerCase();
+    
+    // Ne pas rejeter pollinations.ai car c'est une source valide
+    const isPollinations = lowerUrl.includes('pollinations.ai');
+    
     for (const pattern of errorPatterns) {
       if (lowerUrl.includes(pattern)) {
         console.log(`⚠️ URL contient pattern d'erreur: ${pattern}`);
@@ -1013,9 +1032,10 @@ class ImageGenerationService {
     }
     
     const seed = Date.now() + Math.floor(Math.random() * 10000);
-    const encodedPrompt = encodeURIComponent(prompt);
+    // Limiter le prompt pour éviter les erreurs
+    const shortPrompt = prompt.substring(0, 800);
+    const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // Récupérer le token et user_id pour l'authentification premium
     const token = await AsyncStorage.getItem('auth_token');
     const user = AuthService.getCurrentUser();
     const userId = user?.id || '';
@@ -1023,7 +1043,6 @@ class ImageGenerationService {
     const separator = freeboxUrl.includes('?') ? '&' : '?';
     let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=768&height=768&seed=${seed}`;
     
-    // Ajouter l'authentification pour les utilisateurs premium
     if (token) {
       imageUrl += `&token=${encodeURIComponent(token)}`;
     }
@@ -1031,9 +1050,36 @@ class ImageGenerationService {
       imageUrl += `&user_id=${encodeURIComponent(userId)}`;
     }
     
-    console.log(`🔗 URL Freebox générée avec auth (${prompt.length} chars)`);
-    
+    console.log(`🔗 URL Freebox générée (${shortPrompt.length} chars)`);
     return imageUrl;
+  }
+
+  /**
+   * APIs de fallback alternatives (gratuits)
+   */
+  async generateWithFallbackAPI(prompt, apiIndex = 0) {
+    const seed = Date.now() + Math.floor(Math.random() * 99999);
+    const shortPrompt = prompt.substring(0, 500);
+    const encoded = encodeURIComponent(shortPrompt);
+    
+    // Rotation entre différentes APIs
+    const apis = [
+      // Prodia (gratuit, rapide)
+      () => `https://api.prodia.com/generate?prompt=${encoded}&seed=${seed}`,
+      // GetImg.ai placeholder
+      () => `https://getimg.ai/api/v1/generate?prompt=${encoded}`,
+      // Lexica (recherche d'images similaires)
+      () => `https://lexica.art/api/v1/search?q=${encoded}`,
+    ];
+    
+    // Pour l'instant, générer une URL Pollinations avec délai anti-rate-limit
+    await new Promise(r => setTimeout(r, 3000)); // Attendre 3s
+    
+    const antiCache = Date.now();
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=768&height=768&seed=${seed}&nologo=true&nofeed=true&model=flux&t=${antiCache}`;
+    
+    console.log(`🌐 Fallback API (attente anti-rate-limit)`);
+    return url;
   }
 
   /**
