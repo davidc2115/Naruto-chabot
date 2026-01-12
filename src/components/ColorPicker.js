@@ -1,17 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Modal,
-  PanResponder,
   Dimensions,
 } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const PICKER_WIDTH = SCREEN_WIDTH - 80;
-const PICKER_HEIGHT = 200;
 
 /**
  * Convertit HSL en HEX
@@ -29,7 +26,39 @@ const hslToHex = (h, s, l) => {
 };
 
 /**
- * ColorPicker - Sélecteur de couleur complet
+ * Convertit HEX en HSL
+ */
+const hexToHsl = (hex) => {
+  let r = 0, g = 0, b = 0;
+  if (hex.length === 4) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else if (hex.length === 7) {
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+  }
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+};
+
+/**
+ * ColorPicker Compact et Élégant
+ * Avec bouton de validation clair
  */
 export default function ColorPicker({ 
   visible, 
@@ -38,83 +67,52 @@ export default function ColorPicker({
   currentColor = '#ffffff',
   title = 'Choisir une couleur' 
 }) {
-  const [hue, setHue] = useState(0);
-  const [saturation, setSaturation] = useState(100);
-  const [lightness, setLightness] = useState(50);
   const [selectedColor, setSelectedColor] = useState(currentColor);
+  const [tempColor, setTempColor] = useState(currentColor);
 
-  // Couleurs prédéfinies populaires
-  const presetColors = [
-    // Rouges
-    '#ff0000', '#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d',
-    // Oranges
-    '#ff6600', '#f97316', '#ea580c', '#c2410c', '#9a3412', '#7c2d12',
-    // Jaunes
-    '#ffff00', '#eab308', '#ca8a04', '#a16207', '#854d0e', '#713f12',
-    // Verts
-    '#00ff00', '#22c55e', '#16a34a', '#15803d', '#166534', '#14532d',
-    // Cyans
-    '#00ffff', '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63',
-    // Bleus
-    '#0000ff', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a',
-    // Violets
-    '#8b00ff', '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95',
-    // Roses
-    '#ff00ff', '#ec4899', '#db2777', '#be185d', '#9d174d', '#831843',
-    // Gris et Neutres
-    '#ffffff', '#f8fafc', '#e2e8f0', '#94a3b8', '#64748b', '#475569',
-    '#334155', '#1e293b', '#0f172a', '#020617', '#000000', '#1f2937',
+  // Réinitialiser quand on ouvre le picker
+  useEffect(() => {
+    if (visible) {
+      setSelectedColor(currentColor);
+      setTempColor(currentColor);
+    }
+  }, [visible, currentColor]);
+
+  // Palette de couleurs organisée (plus compacte)
+  const colorPalette = [
+    // Ligne 1 - Rouges/Oranges
+    '#ff0000', '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
+    // Ligne 2 - Verts/Cyans
+    '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6',
+    // Ligne 3 - Bleus/Violets
+    '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e',
+    // Ligne 4 - Neutres
+    '#ffffff', '#f1f5f9', '#cbd5e1', '#94a3b8', '#64748b', '#1e293b',
   ];
 
-  const updateColor = useCallback((h, s, l) => {
-    const hex = hslToHex(h, s, l);
-    setSelectedColor(hex);
-  }, []);
+  // Nuances de la couleur sélectionnée
+  const getShades = (baseColor) => {
+    try {
+      const { h, s } = hexToHsl(baseColor);
+      return [
+        hslToHex(h, s, 90), // Très clair
+        hslToHex(h, s, 70), // Clair
+        hslToHex(h, s, 50), // Normal
+        hslToHex(h, s, 35), // Foncé
+        hslToHex(h, s, 20), // Très foncé
+      ];
+    } catch {
+      return [baseColor];
+    }
+  };
 
-  // Pan responder pour le spectre de teinte
-  const huePanResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (e) => {
-      const x = Math.max(0, Math.min(e.nativeEvent.locationX, PICKER_WIDTH));
-      const newHue = Math.round((x / PICKER_WIDTH) * 360);
-      setHue(newHue);
-      updateColor(newHue, saturation, lightness);
-    },
-    onPanResponderMove: (e) => {
-      const x = Math.max(0, Math.min(e.nativeEvent.locationX, PICKER_WIDTH));
-      const newHue = Math.round((x / PICKER_WIDTH) * 360);
-      setHue(newHue);
-      updateColor(newHue, saturation, lightness);
-    },
-  });
-
-  // Pan responder pour la saturation/luminosité
-  const slPanResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (e) => {
-      const x = Math.max(0, Math.min(e.nativeEvent.locationX, PICKER_WIDTH));
-      const y = Math.max(0, Math.min(e.nativeEvent.locationY, PICKER_HEIGHT));
-      const newSat = Math.round((x / PICKER_WIDTH) * 100);
-      const newLight = Math.round(100 - (y / PICKER_HEIGHT) * 100);
-      setSaturation(newSat);
-      setLightness(newLight);
-      updateColor(hue, newSat, newLight);
-    },
-    onPanResponderMove: (e) => {
-      const x = Math.max(0, Math.min(e.nativeEvent.locationX, PICKER_WIDTH));
-      const y = Math.max(0, Math.min(e.nativeEvent.locationY, PICKER_HEIGHT));
-      const newSat = Math.round((x / PICKER_WIDTH) * 100);
-      const newLight = Math.round(100 - (y / PICKER_HEIGHT) * 100);
-      setSaturation(newSat);
-      setLightness(newLight);
-      updateColor(hue, newSat, newLight);
-    },
-  });
-
-  const handleSelectPreset = (color) => {
+  const handleSelectBase = (color) => {
+    setTempColor(color);
     setSelectedColor(color);
+  };
+
+  const handleSelectShade = (shade) => {
+    setSelectedColor(shade);
   };
 
   const handleConfirm = () => {
@@ -122,82 +120,77 @@ export default function ColorPicker({
     onClose();
   };
 
+  const handleCancel = () => {
+    setSelectedColor(currentColor);
+    setTempColor(currentColor);
+    onClose();
+  };
+
   return (
     <Modal
       visible={visible}
       transparent={true}
-      animationType="slide"
-      onRequestClose={onClose}
+      animationType="fade"
+      onRequestClose={handleCancel}
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.title}>{title}</Text>
+          {/* En-tête */}
+          <View style={styles.header}>
+            <Text style={styles.title}>{title}</Text>
+            <TouchableOpacity onPress={handleCancel} style={styles.closeBtn}>
+              <Text style={styles.closeText}>✕</Text>
+            </TouchableOpacity>
+          </View>
 
-          {/* Aperçu de la couleur sélectionnée */}
-          <View style={styles.previewRow}>
-            <View style={[styles.colorPreview, { backgroundColor: selectedColor }]} />
+          {/* Aperçu de la couleur */}
+          <View style={styles.previewSection}>
+            <View style={[styles.colorPreview, { backgroundColor: selectedColor }]}>
+              <View style={styles.colorPreviewInner} />
+            </View>
             <Text style={styles.colorHex}>{selectedColor.toUpperCase()}</Text>
           </View>
 
-          {/* Spectre de saturation/luminosité */}
-          <View style={styles.pickerSection}>
-            <Text style={styles.sectionLabel}>Saturation & Luminosité</Text>
-            <View 
-              style={[styles.slPicker, { backgroundColor: `hsl(${hue}, 100%, 50%)` }]}
-              {...slPanResponder.panHandlers}
-            >
-              <View style={styles.saturationOverlay} />
-              <View style={styles.lightnessOverlay} />
-              <View 
+          {/* Palette principale */}
+          <Text style={styles.sectionLabel}>Couleurs</Text>
+          <View style={styles.paletteGrid}>
+            {colorPalette.map((color, index) => (
+              <TouchableOpacity
+                key={`color-${index}`}
                 style={[
-                  styles.slIndicator, 
-                  { 
-                    left: (saturation / 100) * PICKER_WIDTH - 10,
-                    top: ((100 - lightness) / 100) * PICKER_HEIGHT - 10,
-                  }
-                ]} 
+                  styles.paletteColor,
+                  { backgroundColor: color },
+                  tempColor === color && styles.paletteColorSelected,
+                  color === '#ffffff' && styles.paletteColorWhite,
+                ]}
+                onPress={() => handleSelectBase(color)}
               />
-            </View>
+            ))}
           </View>
 
-          {/* Spectre de teinte (arc-en-ciel) */}
-          <View style={styles.pickerSection}>
-            <Text style={styles.sectionLabel}>Teinte</Text>
-            <View style={styles.hueBar} {...huePanResponder.panHandlers}>
-              <View 
+          {/* Nuances de la couleur sélectionnée */}
+          <Text style={styles.sectionLabel}>Nuances</Text>
+          <View style={styles.shadesRow}>
+            {getShades(tempColor).map((shade, index) => (
+              <TouchableOpacity
+                key={`shade-${index}`}
                 style={[
-                  styles.hueIndicator, 
-                  { left: (hue / 360) * PICKER_WIDTH - 8 }
-                ]} 
+                  styles.shadeColor,
+                  { backgroundColor: shade },
+                  selectedColor === shade && styles.shadeColorSelected,
+                ]}
+                onPress={() => handleSelectShade(shade)}
               />
-            </View>
+            ))}
           </View>
 
-          {/* Couleurs prédéfinies */}
-          <View style={styles.pickerSection}>
-            <Text style={styles.sectionLabel}>Couleurs rapides</Text>
-            <View style={styles.presetsGrid}>
-              {presetColors.map((color, index) => (
-                <TouchableOpacity
-                  key={`${color}-${index}`}
-                  style={[
-                    styles.presetColor,
-                    { backgroundColor: color },
-                    selectedColor === color && styles.presetSelected,
-                  ]}
-                  onPress={() => handleSelectPreset(color)}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* Boutons */}
-          <View style={styles.buttons}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelText}>Annuler</Text>
+          {/* Boutons d'action */}
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
+              <Text style={styles.cancelBtnText}>Annuler</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
-              <Text style={styles.confirmText}>Confirmer</Text>
+              <Text style={styles.confirmBtnText}>✓ Valider</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -209,147 +202,143 @@ export default function ColorPicker({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   container: {
     backgroundColor: '#1f2937',
-    borderRadius: 20,
-    padding: 20,
-    width: SCREEN_WIDTH - 40,
-    maxHeight: '90%',
+    borderRadius: 16,
+    padding: 16,
+    width: Math.min(SCREEN_WIDTH - 40, 340),
+    maxWidth: 340,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   title: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 15,
+    fontSize: 16,
+    fontWeight: '600',
   },
-  previewRow: {
+  closeBtn: {
+    padding: 4,
+  },
+  closeText: {
+    color: '#9ca3af',
+    fontSize: 18,
+  },
+  previewSection: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-    gap: 15,
+    marginBottom: 16,
+    gap: 12,
   },
   colorPreview: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    borderWidth: 3,
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    borderWidth: 2,
     borderColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  colorPreviewInner: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   colorHex: {
-    color: '#fff',
-    fontSize: 18,
+    color: '#e5e7eb',
+    fontSize: 14,
     fontFamily: 'monospace',
-    fontWeight: 'bold',
-  },
-  pickerSection: {
-    marginBottom: 15,
+    fontWeight: '600',
+    letterSpacing: 1,
   },
   sectionLabel: {
     color: '#9ca3af',
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: '500',
     marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  slPicker: {
-    width: PICKER_WIDTH,
-    height: PICKER_HEIGHT,
-    borderRadius: 8,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  saturationOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'transparent',
-    backgroundImage: 'linear-gradient(to right, #fff, transparent)',
-  },
-  lightnessOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'transparent',
-    backgroundImage: 'linear-gradient(to bottom, transparent, #000)',
-  },
-  slIndicator: {
-    position: 'absolute',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: '#fff',
-    backgroundColor: 'transparent',
-  },
-  hueBar: {
-    width: PICKER_WIDTH,
-    height: 30,
-    borderRadius: 8,
-    background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)',
-    position: 'relative',
-  },
-  hueIndicator: {
-    position: 'absolute',
-    top: -3,
-    width: 16,
-    height: 36,
-    borderRadius: 4,
-    borderWidth: 3,
-    borderColor: '#fff',
-    backgroundColor: 'transparent',
-  },
-  presetsGrid: {
+  paletteGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 8,
+    gap: 6,
+    marginBottom: 16,
   },
-  presetColor: {
-    width: 36,
-    height: 36,
+  paletteColor: {
+    width: 40,
+    height: 40,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  presetSelected: {
+  paletteColorSelected: {
     borderColor: '#fbbf24',
     transform: [{ scale: 1.1 }],
   },
-  buttons: {
+  paletteColorWhite: {
+    borderColor: '#4b5563',
+    borderWidth: 1,
+  },
+  shadesRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    gap: 15,
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  shadeColor: {
+    width: 48,
+    height: 32,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  shadeColorSelected: {
+    borderColor: '#fbbf24',
+    transform: [{ scale: 1.1 }],
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
   },
   cancelBtn: {
     flex: 1,
-    padding: 15,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 10,
     backgroundColor: '#374151',
     alignItems: 'center',
   },
-  cancelText: {
-    color: '#fff',
-    fontSize: 16,
+  cancelBtnText: {
+    color: '#e5e7eb',
+    fontSize: 14,
+    fontWeight: '500',
   },
   confirmBtn: {
     flex: 1,
-    padding: 15,
-    borderRadius: 12,
-    backgroundColor: '#6366f1',
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: '#10b981',
     alignItems: 'center',
   },
-  confirmText: {
+  confirmBtnText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
