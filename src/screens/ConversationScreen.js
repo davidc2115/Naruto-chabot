@@ -858,6 +858,77 @@ export default function ConversationScreen({ route, navigation }) {
                 </TouchableOpacity>
               </View>
               
+              {/* Couleurs des bulles */}
+              <Text style={styles.settingLabel}>🎨 Couleur bulle personnage</Text>
+              <View style={styles.colorRow}>
+                {['#ffffff', '#1f2937', '#fdf2f8', '#ecfdf5', '#f0f9ff', '#1e1b4b'].map(color => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.assistantBubble === color ? 3 : 1, borderColor: chatStyle?.assistantBubble === color ? '#6366f1' : '#ccc' }]}
+                    onPress={async () => {
+                      const newStyle = await ChatStyleService.setAssistantBubbleColor(color);
+                      setChatStyle(newStyle);
+                    }}
+                  />
+                ))}
+              </View>
+              
+              <Text style={styles.settingLabel}>🎨 Couleur bulle utilisateur</Text>
+              <View style={styles.colorRow}>
+                {['#6366f1', '#3b82f6', '#ec4899', '#10b981', '#f97316', '#7c3aed'].map(color => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.userBubble === color ? 3 : 1, borderColor: chatStyle?.userBubble === color ? '#fff' : '#ccc' }]}
+                    onPress={async () => {
+                      const newStyle = await ChatStyleService.setUserBubbleColor(color);
+                      setChatStyle(newStyle);
+                    }}
+                  />
+                ))}
+              </View>
+
+              <Text style={styles.settingLabel}>🔴 Couleur actions (*geste*)</Text>
+              <View style={styles.colorRow}>
+                {['#ef4444', '#dc2626', '#f97316', '#8b5cf6', '#ec4899', '#10b981'].map(color => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.actionColor === color ? 3 : 1, borderColor: '#fff' }]}
+                    onPress={async () => {
+                      const newStyle = await ChatStyleService.setActionColor(color);
+                      setChatStyle(newStyle);
+                    }}
+                  />
+                ))}
+              </View>
+
+              <Text style={styles.settingLabel}>🔵 Couleur pensées ((pensée))</Text>
+              <View style={styles.colorRow}>
+                {['#3b82f6', '#0ea5e9', '#6366f1', '#8b5cf6', '#06b6d4', '#14b8a6'].map(color => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.thoughtColor === color ? 3 : 1, borderColor: '#fff' }]}
+                    onPress={async () => {
+                      const newStyle = await ChatStyleService.setThoughtColor(color);
+                      setChatStyle(newStyle);
+                    }}
+                  />
+                ))}
+              </View>
+
+              <Text style={styles.settingLabel}>⚪ Couleur paroles ("dialogue")</Text>
+              <View style={styles.colorRow}>
+                {['#ffffff', '#f3f4f6', '#e5e7eb', '#fef3c7', '#fce7f3', '#dbeafe'].map(color => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.dialogueColor === color ? 3 : 1, borderColor: '#333' }]}
+                    onPress={async () => {
+                      const newStyle = await ChatStyleService.setDialogueColor(color);
+                      setChatStyle(newStyle);
+                    }}
+                  />
+                ))}
+              </View>
+
               {/* Aperçu */}
               <Text style={styles.settingLabel}>👁️ Aperçu</Text>
               <View style={styles.previewContainer}>
@@ -870,9 +941,9 @@ export default function ConversationScreen({ route, navigation }) {
                     alignSelf: 'flex-start',
                   }
                 ]}>
-                  <Text style={{ color: '#ef4444', fontStyle: 'italic' }}>"sourit"</Text>
-                  <Text style={{ color: '#ffffff' }}> Bonjour !</Text>
-                  <Text style={{ color: '#3b82f6', fontStyle: 'italic' }}> (c'est vraiment lui...)</Text>
+                  <Text style={{ color: chatStyle?.actionColor || '#ef4444' }}>*sourit*</Text>
+                  <Text style={{ color: chatStyle?.dialogueColor || '#ffffff' }}> "Bonjour !"</Text>
+                  <Text style={{ color: chatStyle?.thoughtColor || '#3b82f6' }}> (c'est vraiment lui...)</Text>
                 </View>
                 <View style={[
                   styles.previewBubble, 
@@ -1384,6 +1455,19 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  colorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  colorBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   loadingScreen: {
     flex: 1,

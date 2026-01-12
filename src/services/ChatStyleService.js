@@ -163,6 +163,24 @@ class ChatStyleService {
     return this.currentStyle;
   }
 
+  async setActionColor(color) {
+    this.currentStyle.actionColor = color;
+    await this.saveStyle(this.currentStyle, 'custom');
+    return this.currentStyle;
+  }
+
+  async setThoughtColor(color) {
+    this.currentStyle.thoughtColor = color;
+    await this.saveStyle(this.currentStyle, 'custom');
+    return this.currentStyle;
+  }
+
+  async setDialogueColor(color) {
+    this.currentStyle.dialogueColor = color;
+    await this.saveStyle(this.currentStyle, 'custom');
+    return this.currentStyle;
+  }
+
   getThemes() {
     return Object.entries(this.themes).map(([id, theme]) => ({
       id,

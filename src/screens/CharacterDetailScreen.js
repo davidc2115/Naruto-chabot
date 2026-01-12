@@ -401,21 +401,17 @@ export default function CharacterDetailScreen({ route, navigation }) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✨ Apparence physique</Text>
-          {/* Afficher la description principale */}
+          {/* Afficher la description complète */}
           {(character.physicalDescription || character.appearance) && (
             <Text style={styles.sectionContent}>
               {character.physicalDescription || character.appearance}
             </Text>
           )}
-          {/* Toujours afficher les détails structurés */}
+          {/* Détails structurés ultra-complets */}
           <View style={styles.attributesContainer}>
-            {/* Cheveux - depuis hairColor ou extraction */}
-            {(character.hairColor || extractAttribute(character, 'hair')) && (
-              <Text style={styles.attributeDetail}>• Cheveux : {character.hairColor || extractAttribute(character, 'hair')}</Text>
-            )}
-            {/* Yeux - depuis eyeColor ou extraction */}
-            {(character.eyeColor || extractAttribute(character, 'eyes')) && (
-              <Text style={styles.attributeDetail}>• Yeux : {character.eyeColor || extractAttribute(character, 'eyes')}</Text>
+            {/* Âge */}
+            {character.age && (
+              <Text style={styles.attributeDetail}>• Âge : {character.age} ans</Text>
             )}
             {/* Taille */}
             {(character.height || extractAttribute(character, 'height')) && (
@@ -425,6 +421,14 @@ export default function CharacterDetailScreen({ route, navigation }) {
             {(character.bodyType || extractAttribute(character, 'body')) && (
               <Text style={styles.attributeDetail}>• Morphologie : {character.bodyType || extractAttribute(character, 'body')}</Text>
             )}
+            {/* Cheveux */}
+            {(character.hairColor || extractAttribute(character, 'hair')) && (
+              <Text style={styles.attributeDetail}>• Cheveux : {character.hairColor || extractAttribute(character, 'hair')}{character.hairLength ? ` (${character.hairLength})` : ''}</Text>
+            )}
+            {/* Yeux */}
+            {(character.eyeColor || extractAttribute(character, 'eyes')) && (
+              <Text style={styles.attributeDetail}>• Yeux : {character.eyeColor || extractAttribute(character, 'eyes')}</Text>
+            )}
             {/* Poitrine pour femmes */}
             {character.gender === 'female' && (character.bust || character.bustSize || extractAttribute(character, 'bust')) && (
               <Text style={styles.attributeDetail}>• Poitrine : Bonnet {character.bust || character.bustSize || extractAttribute(character, 'bust')}</Text>
@@ -433,17 +437,22 @@ export default function CharacterDetailScreen({ route, navigation }) {
             {character.gender === 'male' && (character.penis || character.maleSize || extractAttribute(character, 'male')) && (
               <Text style={styles.attributeDetail}>• Attribut : {character.penis || character.maleSize || extractAttribute(character, 'male')} cm</Text>
             )}
+            {/* Lunettes */}
+            {character.glasses && (
+              <Text style={styles.attributeDetail}>• Accessoires : Lunettes</Text>
+            )}
           </View>
         </View>
 
-        {character.outfit && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>👘 Tenue</Text>
-            <Text style={styles.sectionContent}>{character.outfit}</Text>
-          </View>
-        )}
+        {/* Tenue - Section séparée et détaillée */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>👘 Tenue</Text>
+          <Text style={styles.sectionContent}>
+            {character.outfit || 'Tenue non spécifiée'}
+          </Text>
+        </View>
 
-        {character.personality && character.temperament && (
+        {character.personality && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🎭 Personnalité</Text>
             <Text style={styles.sectionContent}>{character.personality}</Text>
