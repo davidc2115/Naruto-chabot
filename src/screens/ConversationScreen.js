@@ -122,6 +122,7 @@ export default function ConversationScreen({ route, navigation }) {
       setSelectedTheme(ChatStyleService.getCurrentTheme());
       setOpacity(style.bubbleOpacity || 1);
       setBorderRadius(style.borderRadius || 15);
+      setBackgroundBlur(style.backgroundBlur || 0);
     } catch (error) {
       console.error('❌ Erreur chargement style:', error);
       setChatStyle(ChatStyleService.getCurrentStyle());
@@ -517,6 +518,11 @@ export default function ConversationScreen({ route, navigation }) {
     setChatStyle(newStyle);
   };
 
+  const handleBlurChange = async (value) => {
+    setBackgroundBlur(value);
+    await ChatStyleService.setBlur(value);
+  };
+
   /**
    * Vérifie si un caractère est un astérisque (toutes variantes)
    */
@@ -826,7 +832,7 @@ export default function ConversationScreen({ route, navigation }) {
               <View style={styles.sliderButtons}>
                 <TouchableOpacity 
                   style={styles.sliderBtn}
-                  onPress={() => setBackgroundBlur(Math.max(0, backgroundBlur - 10))}
+                  onPress={() => handleBlurChange(Math.max(0, backgroundBlur - 10))}
                 >
                   <Text style={styles.sliderBtnText}>-</Text>
                 </TouchableOpacity>
@@ -838,13 +844,15 @@ export default function ConversationScreen({ route, navigation }) {
                     borderRadius: 8,
                     justifyContent: 'center',
                     alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: '#ccc',
                   }}>
-                    <Text style={{ color: backgroundBlur > 50 ? '#fff' : '#000' }}>{Math.round(backgroundBlur)}%</Text>
+                    <Text style={{ color: backgroundBlur > 50 ? '#fff' : '#000', fontWeight: 'bold' }}>{Math.round(backgroundBlur)}%</Text>
                   </View>
                 </View>
                 <TouchableOpacity 
                   style={styles.sliderBtn}
-                  onPress={() => setBackgroundBlur(Math.min(100, backgroundBlur + 10))}
+                  onPress={() => handleBlurChange(Math.min(100, backgroundBlur + 10))}
                 >
                   <Text style={styles.sliderBtnText}>+</Text>
                 </TouchableOpacity>

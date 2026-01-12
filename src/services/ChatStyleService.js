@@ -145,6 +145,12 @@ class ChatStyleService {
     return this.currentStyle;
   }
 
+  async setBlur(blur) {
+    this.currentStyle.backgroundBlur = Math.max(0, Math.min(100, blur));
+    await this.saveStyle(this.currentStyle, this.currentTheme);
+    return this.currentStyle;
+  }
+
   async setUserBubbleColor(color) {
     this.currentStyle.userBubble = color;
     await this.saveStyle(this.currentStyle, 'custom');
