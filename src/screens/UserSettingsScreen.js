@@ -40,7 +40,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [updateInfo, setUpdateInfo] = useState(null);
 
   const DISCORD_INVITE = 'https://discord.gg/9KHCqSmz';
-  const CURRENT_VERSION = '3.7.42';
+  const CURRENT_VERSION = '3.7.43';
   const GITHUB_RELEASES_URL = 'https://api.github.com/repos/YOUR_USERNAME/roleplay-chat/releases/latest';
 
   useEffect(() => {
@@ -586,33 +586,39 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
           <View style={styles.sdStatusBox}>
             <Text style={styles.sdStatusTitle}>📱 Stable Diffusion Local</Text>
             
+            {/* Message d'info sur le développement */}
+            <View style={[styles.sdStatusContent, { backgroundColor: '#fef3c7', borderRadius: 8, padding: 10, marginBottom: 10 }]}>
+              <Text style={{ color: '#92400e', fontSize: 13, textAlign: 'center' }}>
+                🚧 Fonctionnalité en développement
+              </Text>
+              <Text style={{ color: '#78350f', fontSize: 12, textAlign: 'center', marginTop: 4 }}>
+                Le module natif Android sera disponible dans une prochaine mise à jour.
+                Utilisez la Freebox pour la génération d'images.
+              </Text>
+            </View>
+            
             {sdAvailability ? (
               <View style={styles.sdStatusContent}>
                 <View style={styles.sdStatusRow}>
-                  <Text style={styles.sdStatusLabel}>Compatible:</Text>
-                  <Text style={[
-                    styles.sdStatusValue,
-                    { color: sdAvailability.canRunSD ? '#10b981' : '#ef4444' }
-                  ]}>
-                    {sdAvailability.canRunSD ? '✅ Oui' : '❌ Non'}
+                  <Text style={styles.sdStatusLabel}>Statut:</Text>
+                  <Text style={[styles.sdStatusValue, { color: '#f59e0b' }]}>
+                    🔜 Bientôt disponible
                   </Text>
                 </View>
                 <View style={styles.sdStatusRow}>
                   <Text style={styles.sdStatusLabel}>Modèle téléchargé:</Text>
                   <Text style={[
                     styles.sdStatusValue,
-                    { color: sdAvailability.modelDownloaded ? '#10b981' : '#f59e0b' }
+                    { color: sdAvailability.modelDownloaded ? '#10b981' : '#6b7280' }
                   ]}>
-                    {sdAvailability.modelDownloaded ? '✅ Oui' : '⬇️ Non'}
+                    {sdAvailability.modelDownloaded ? '✅ Oui' : '➖ Non requis'}
                   </Text>
                 </View>
-                {sdAvailability.deviceInfo && (
+                {sdAvailability.ramMB > 0 && (
                   <View style={styles.sdStatusRow}>
                     <Text style={styles.sdStatusLabel}>RAM disponible:</Text>
                     <Text style={styles.sdStatusValue}>
-                      {sdAvailability.deviceInfo.totalMemory 
-                        ? `${Math.round(sdAvailability.deviceInfo.totalMemory / 1024 / 1024 / 1024)} Go`
-                        : 'N/A'}
+                      {Math.round(sdAvailability.ramMB / 1024)} Go
                     </Text>
                   </View>
                 )}

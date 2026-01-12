@@ -677,9 +677,12 @@ export default function SettingsScreen({ navigation, onLogout }) {
               {/* Avertissement */}
               <View style={styles.warningBox}>
                 <Text style={styles.warningText}>
-                  ⚠️ Le pipeline ONNX complet n'est pas encore implémenté.
-                  Vous pouvez télécharger le modèle pour préparer l'utilisation future.
-                  En attendant, la Freebox sera utilisée comme fallback.
+                  🚧 FONCTIONNALITÉ EN DÉVELOPPEMENT
+                  
+                  Le module natif Android pour SD Local n'est pas encore inclus dans l'APK.
+                  Cette fonctionnalité sera disponible dans une prochaine mise à jour.
+                  
+                  👉 Utilisez la Freebox pour la génération d'images.
                 </Text>
               </View>
 
@@ -689,13 +692,11 @@ export default function SettingsScreen({ navigation, onLogout }) {
                   <Text style={styles.sdInfoTitle}>📊 Statut du module</Text>
                   
                   <Text style={styles.sdInfoText}>
-                    📱 Module natif: {sdAvailability.moduleLoaded ? '✅ Chargé' : '❌ Non chargé'}
-                    {sdAvailability.moduleVersion && ` (v${sdAvailability.moduleVersion})`}
+                    📱 Module natif: 🔜 En développement
                   </Text>
                   
                   <Text style={styles.sdInfoText}>
-                    📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
-                    {sdAvailability.modelSizeMB > 0 && ` (${typeof sdAvailability.modelSizeMB === 'number' ? sdAvailability.modelSizeMB.toFixed(0) : sdAvailability.modelSizeMB} MB)`}
+                    📦 Modèle: {sdAvailability.modelDownloaded ? '✅ Téléchargé' : '➖ Non requis pour le moment'}
                   </Text>
                   
                   {sdAvailability.deviceModel && (
@@ -707,7 +708,6 @@ export default function SettingsScreen({ navigation, onLogout }) {
                   {sdAvailability.ramMB > 0 && (
                     <Text style={styles.sdInfoText}>
                       🧠 RAM: {sdAvailability.ramMB.toFixed(0)} MB max
-                      {sdAvailability.canRunSD ? ' ✅' : ' ⚠️'}
                     </Text>
                   )}
                   
@@ -717,9 +717,9 @@ export default function SettingsScreen({ navigation, onLogout }) {
                     </Text>
                   )}
                   
-                  <View style={styles.sdStatusBadge}>
-                    <Text style={styles.sdStatusText}>
-                      {sdAvailability.reason || 'Vérification...'}
+                  <View style={[styles.sdStatusBadge, { backgroundColor: '#fef3c7' }]}>
+                    <Text style={[styles.sdStatusText, { color: '#92400e' }]}>
+                      🔜 Bientôt disponible - Utilisez Freebox
                     </Text>
                   </View>
                 </View>
