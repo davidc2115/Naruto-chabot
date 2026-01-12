@@ -691,30 +691,30 @@ export default function ConversationScreen({ route, navigation }) {
           <Text style={styles.messageContent}>
             {formattedParts.map((part, index) => {
               if (part.type === 'action') {
-                // ACTIONS: En ROUGE
+                // ACTIONS: Couleur personnalisée
                 return (
-                  <Text key={index} style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: 'bold' }}>
+                  <Text key={index} style={{ color: style.actionColor || '#ef4444', fontStyle: 'italic', fontWeight: 'bold' }}>
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'thought') {
-                // PENSÉES: En BLEU
+                // PENSÉES: Couleur personnalisée
                 return (
-                  <Text key={index} style={{ color: '#2563eb', fontStyle: 'italic' }}>
+                  <Text key={index} style={{ color: style.thoughtColor || '#3b82f6', fontStyle: 'italic' }}>
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
-                // PAROLES: Noir ou Blanc
+                // PAROLES: Couleur personnalisée
                 return (
-                  <Text key={index} style={{ color: isUser ? '#ffffff' : '#1f2937' }}>
+                  <Text key={index} style={{ color: isUser ? '#ffffff' : (style.dialogueColor || '#1f2937') }}>
                     {part.text}
                   </Text>
                 );
               } else {
                 // Texte normal
                 return (
-                  <Text key={index} style={{ color: isUser ? '#ffffff' : '#4b5563' }}>
+                  <Text key={index} style={{ color: isUser ? '#ffffff' : (style.dialogueColor || '#4b5563') }}>
                     {part.text}
                   </Text>
                 );
@@ -858,73 +858,92 @@ export default function ConversationScreen({ route, navigation }) {
                 </TouchableOpacity>
               </View>
               
-              {/* Couleurs des bulles */}
-              <Text style={styles.settingLabel}>🎨 Couleur bulle personnage</Text>
-              <View style={styles.colorRow}>
-                {['#ffffff', '#1f2937', '#fdf2f8', '#ecfdf5', '#f0f9ff', '#1e1b4b'].map(color => (
+              {/* PALETTE COULEURS - BULLE PERSONNAGE */}
+              <Text style={styles.settingLabel}>💬 Bulle personnage</Text>
+              <View style={styles.colorPalette}>
+                {[
+                  '#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#cbd5e1', '#94a3b8',
+                  '#1e1b4b', '#1f2937', '#111827', '#0f172a', '#020617', '#000000',
+                  '#fef2f8', '#fce7f3', '#fbcfe8', '#f9a8d4', '#f472b6', '#ec4899',
+                  '#ecfdf5', '#d1fae5', '#a7f3d0', '#6ee7b7', '#34d399', '#10b981',
+                  '#eff6ff', '#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6',
+                ].map(color => (
                   <TouchableOpacity
-                    key={color}
-                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.assistantBubble === color ? 3 : 1, borderColor: chatStyle?.assistantBubble === color ? '#6366f1' : '#ccc' }]}
-                    onPress={async () => {
-                      const newStyle = await ChatStyleService.setAssistantBubbleColor(color);
-                      setChatStyle(newStyle);
-                    }}
+                    key={`ab_${color}`}
+                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.assistantBubble === color ? 3 : 1, borderColor: chatStyle?.assistantBubble === color ? '#f97316' : 'rgba(0,0,0,0.2)' }]}
+                    onPress={async () => { const s = await ChatStyleService.setAssistantBubbleColor(color); setChatStyle({...s}); }}
                   />
                 ))}
               </View>
               
-              <Text style={styles.settingLabel}>🎨 Couleur bulle utilisateur</Text>
-              <View style={styles.colorRow}>
-                {['#6366f1', '#3b82f6', '#ec4899', '#10b981', '#f97316', '#7c3aed'].map(color => (
+              {/* PALETTE COULEURS - BULLE UTILISATEUR */}
+              <Text style={styles.settingLabel}>💬 Bulle utilisateur</Text>
+              <View style={styles.colorPalette}>
+                {[
+                  '#6366f1', '#4f46e5', '#4338ca', '#3730a3', '#312e81', '#1e1b4b',
+                  '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554',
+                  '#ec4899', '#db2777', '#be185d', '#9d174d', '#831843', '#500724',
+                  '#10b981', '#059669', '#047857', '#065f46', '#064e3b', '#022c22',
+                  '#f97316', '#ea580c', '#c2410c', '#9a3412', '#7c2d12', '#431407',
+                ].map(color => (
                   <TouchableOpacity
-                    key={color}
-                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.userBubble === color ? 3 : 1, borderColor: chatStyle?.userBubble === color ? '#fff' : '#ccc' }]}
-                    onPress={async () => {
-                      const newStyle = await ChatStyleService.setUserBubbleColor(color);
-                      setChatStyle(newStyle);
-                    }}
+                    key={`ub_${color}`}
+                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.userBubble === color ? 3 : 1, borderColor: chatStyle?.userBubble === color ? '#fbbf24' : 'rgba(255,255,255,0.3)' }]}
+                    onPress={async () => { const s = await ChatStyleService.setUserBubbleColor(color); setChatStyle({...s}); }}
                   />
                 ))}
               </View>
 
-              <Text style={styles.settingLabel}>🔴 Couleur actions (*geste*)</Text>
-              <View style={styles.colorRow}>
-                {['#ef4444', '#dc2626', '#f97316', '#8b5cf6', '#ec4899', '#10b981'].map(color => (
+              {/* PALETTE COULEURS - ACTIONS */}
+              <Text style={styles.settingLabel}>🔴 Actions (*geste*)</Text>
+              <View style={styles.colorPalette}>
+                {[
+                  '#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d', '#450a0a',
+                  '#f97316', '#ea580c', '#c2410c', '#9a3412', '#7c2d12', '#431407',
+                  '#eab308', '#ca8a04', '#a16207', '#854d0e', '#713f12', '#422006',
+                  '#22c55e', '#16a34a', '#15803d', '#166534', '#14532d', '#052e16',
+                  '#ec4899', '#db2777', '#be185d', '#9d174d', '#831843', '#500724',
+                ].map(color => (
                   <TouchableOpacity
-                    key={color}
-                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.actionColor === color ? 3 : 1, borderColor: '#fff' }]}
-                    onPress={async () => {
-                      const newStyle = await ChatStyleService.setActionColor(color);
-                      setChatStyle(newStyle);
-                    }}
+                    key={`ac_${color}`}
+                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.actionColor === color ? 3 : 1, borderColor: '#fff' }]}
+                    onPress={async () => { const s = await ChatStyleService.setActionColor(color); setChatStyle({...s}); }}
                   />
                 ))}
               </View>
 
-              <Text style={styles.settingLabel}>🔵 Couleur pensées ((pensée))</Text>
-              <View style={styles.colorRow}>
-                {['#3b82f6', '#0ea5e9', '#6366f1', '#8b5cf6', '#06b6d4', '#14b8a6'].map(color => (
+              {/* PALETTE COULEURS - PENSÉES */}
+              <Text style={styles.settingLabel}>🔵 Pensées ((pensée))</Text>
+              <View style={styles.colorPalette}>
+                {[
+                  '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554',
+                  '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63', '#083344',
+                  '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95', '#2e1065',
+                  '#14b8a6', '#0d9488', '#0f766e', '#115e59', '#134e4a', '#042f2e',
+                  '#a855f7', '#9333ea', '#7e22ce', '#6b21a8', '#581c87', '#3b0764',
+                ].map(color => (
                   <TouchableOpacity
-                    key={color}
-                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.thoughtColor === color ? 3 : 1, borderColor: '#fff' }]}
-                    onPress={async () => {
-                      const newStyle = await ChatStyleService.setThoughtColor(color);
-                      setChatStyle(newStyle);
-                    }}
+                    key={`th_${color}`}
+                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.thoughtColor === color ? 3 : 1, borderColor: '#fff' }]}
+                    onPress={async () => { const s = await ChatStyleService.setThoughtColor(color); setChatStyle({...s}); }}
                   />
                 ))}
               </View>
 
-              <Text style={styles.settingLabel}>⚪ Couleur paroles ("dialogue")</Text>
-              <View style={styles.colorRow}>
-                {['#ffffff', '#f3f4f6', '#e5e7eb', '#fef3c7', '#fce7f3', '#dbeafe'].map(color => (
+              {/* PALETTE COULEURS - PAROLES */}
+              <Text style={styles.settingLabel}>⚪ Paroles ("dialogue")</Text>
+              <View style={styles.colorPalette}>
+                {[
+                  '#ffffff', '#f8fafc', '#f1f5f9', '#e2e8f0', '#cbd5e1', '#94a3b8',
+                  '#64748b', '#475569', '#334155', '#1e293b', '#0f172a', '#020617',
+                  '#fef3c7', '#fde68a', '#fcd34d', '#fbbf24', '#f59e0b', '#d97706',
+                  '#fce7f3', '#fbcfe8', '#f9a8d4', '#f472b6', '#ec4899', '#db2777',
+                  '#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb',
+                ].map(color => (
                   <TouchableOpacity
-                    key={color}
-                    style={[styles.colorBtn, { backgroundColor: color, borderWidth: chatStyle?.dialogueColor === color ? 3 : 1, borderColor: '#333' }]}
-                    onPress={async () => {
-                      const newStyle = await ChatStyleService.setDialogueColor(color);
-                      setChatStyle(newStyle);
-                    }}
+                    key={`di_${color}`}
+                    style={[styles.paletteBtn, { backgroundColor: color, borderWidth: chatStyle?.dialogueColor === color ? 3 : 1, borderColor: color === '#ffffff' || color === '#f8fafc' ? '#333' : '#fff' }]}
+                    onPress={async () => { const s = await ChatStyleService.setDialogueColor(color); setChatStyle({...s}); }}
                   />
                 ))}
               </View>
@@ -1468,6 +1487,21 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#ccc',
+  },
+  colorPalette: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 5,
+    gap: 6,
+  },
+  paletteBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.2)',
   },
   loadingScreen: {
     flex: 1,
