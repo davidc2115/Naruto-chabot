@@ -303,18 +303,13 @@ export default function CharacterCarouselScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Titre Boys & Girls en or avec diamants */}
-      <View style={styles.appTitleContainer}>
-        <View style={styles.titleRow}>
-          <Text style={styles.diamond}>💎</Text>
-          <Text style={styles.appTitle}>Boys & Girls</Text>
-          <Text style={styles.diamond}>💎</Text>
-        </View>
-        <View style={styles.sparkleRow}>
-          <Text style={styles.sparkle}>✨</Text>
-          <Text style={styles.sparkle}>✨</Text>
-          <Text style={styles.sparkle}>✨</Text>
-        </View>
+      {/* Logo Boys & Girls avec diamants (image) */}
+      <View style={styles.logoContainer}>
+        <Image 
+          source={require('../../assets/boys-and-girls-logo.png')} 
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
       </View>
       
       {/* Header Premium */}
@@ -562,44 +557,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0a12',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  appTitleContainer: {
-    backgroundColor: '#12121f',
-    paddingVertical: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: '#C9A227',
-    alignItems: 'center',
-    shadowColor: '#8B0000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  titleRow: {
-    flexDirection: 'row',
+  logoContainer: {
+    backgroundColor: '#0a0a14',
+    paddingVertical: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  diamond: {
-    fontSize: 16,
-    marginHorizontal: 8,
-  },
-  sparkleRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  sparkle: {
-    fontSize: 10,
-    marginHorizontal: 12,
-  },
-  appTitle: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#C9A227',
-    textShadowColor: '#8B6914',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 6,
-    letterSpacing: 3,
+  logoImage: {
+    width: SCREEN_WIDTH * 0.6,
+    height: 50,
   },
   headerSafe: {
     backgroundColor: '#12121f',
