@@ -18,6 +18,54 @@ import AuthService from '../services/AuthService';
 import LevelService from '../services/LevelService';
 
 /**
+ * Traduit le tempérament en français
+ */
+const translateTemperament = (temperament) => {
+  if (!temperament) return 'Non défini';
+  
+  const translations = {
+    // Tempéraments anglais -> français
+    'dominant': 'Dominant(e) et confiant(e)',
+    'gentle': 'Doux/Douce et attentionné(e)',
+    'shy': 'Timide et réservé(e)',
+    'passionate': 'Passionné(e) et intense',
+    'mysterious': 'Mystérieux/Mystérieuse et énigmatique',
+    'playful': 'Joueur/Joueuse et espiègle',
+    'caring': 'Bienveillant(e) et protecteur/protectrice',
+    'flirtatious': 'Séducteur/Séductrice et charmeur/charmeuse',
+    'direct': 'Direct(e) et franc/franche',
+    'submissive': 'Soumis(e) et docile',
+    'confident': 'Confiant(e) et assuré(e)',
+    'romantic': 'Romantique et rêveur/rêveuse',
+    'aggressive': 'Fougueux/Fougueuse et intense',
+    'seductive': 'Séducteur/Séductrice',
+    'innocent': 'Innocent(e) et naïf/naïve',
+    'mature': 'Mature et posé(e)',
+    'wild': 'Sauvage et imprévisible',
+    'tender': 'Tendre et affectueux/affectueuse',
+    'assertive': 'Affirmé(e) et déterminé(e)',
+    'sensual': 'Sensuel(le) et voluptueux/voluptueuse',
+  };
+  
+  const temp = temperament.toLowerCase().trim();
+  
+  // Vérifier si c'est un tempérament connu
+  if (translations[temp]) {
+    return translations[temp];
+  }
+  
+  // Vérifier si le tempérament contient un mot-clé connu
+  for (const [key, value] of Object.entries(translations)) {
+    if (temp.includes(key)) {
+      return value;
+    }
+  }
+  
+  // Si c'est déjà en français ou inconnu, mettre la première lettre en majuscule
+  return temperament.charAt(0).toUpperCase() + temperament.slice(1);
+};
+
+/**
  * Extrait un attribut physique depuis physicalDescription ou imagePrompt
  */
 const extractAttribute = (character, type) => {
@@ -394,7 +442,7 @@ export default function CharacterDetailScreen({ route, navigation }) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>💭 Tempérament</Text>
             <Text style={styles.sectionContent}>
-              {(character.temperament || character.personality).charAt(0).toUpperCase() + (character.temperament || character.personality).slice(1)}
+              {translateTemperament(character.temperament || character.personality)}
             </Text>
           </View>
         )}

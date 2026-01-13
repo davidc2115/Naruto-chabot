@@ -76,17 +76,23 @@ export default function HomeScreen({ navigation }) {
       filtered = filtered.filter(char => char.gender === selectedFilter);
     }
 
-    // Filter by search query (avec vérification que tags existe)
+    // Filter by search query (recherche dans nom, tags, personnalité, id)
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
+      const queries = searchQuery.toLowerCase().split(/[\s|]+/).filter(q => q.length > 0);
       filtered = filtered.filter(char => {
-        const name = char.name || '';
+        const name = (char.name || '').toLowerCase();
         const tags = char.tags || [];
-        const personality = char.personality || '';
-        return (
-          name.toLowerCase().includes(query) ||
+        const personality = (char.personality || '').toLowerCase();
+        const charId = String(char.id || '').toLowerCase();
+        const scenario = (char.scenario || '').toLowerCase();
+        
+        // Vérifie si au moins une query matche
+        return queries.some(query => 
+          name.includes(query) ||
+          charId.includes(query) ||
+          scenario.includes(query) ||
           tags.some(tag => tag && tag.toLowerCase().includes(query)) ||
-          personality.toLowerCase().includes(query)
+          personality.includes(query)
         );
       });
     }
@@ -144,14 +150,40 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
+  // Tags populaires pour le filtre rapide
+  const popularTags = [
+    { label: '👩 Femmes', filter: 'female', type: 'gender' },
+    { label: '👨 Hommes', filter: 'male', type: 'gender' },
+    { label: '💋 Belles filles', filter: 'beauty_', type: 'id' },
+    { label: '👩‍💼 Collègues', filter: 'colleague', type: 'id' },
+    { label: '👨‍👩‍👧 Famille', filter: 'mom|sister|father|brother', type: 'id' },
+    { label: '🔥 MILF', filter: 'milf', type: 'id' },
+    { label: '💪 DILF', filter: 'dilf', type: 'id' },
+    { label: '🏠 Coloc', filter: 'roommate', type: 'id' },
+    { label: '🏥 Médical', filter: 'medical', type: 'id' },
+    { label: '🧝 Fantasy', filter: 'fantasy', type: 'id' },
+    { label: '🍑 Curvy', filter: 'curvy', type: 'id' },
+  ];
+
+  const handleTagFilter = (tag) => {
+    if (tag.type === 'gender') {
+      setSelectedFilter(tag.filter);
+      setSearchQuery('');
+    } else {
+      setSelectedFilter('tous');
+      setSearchQuery(tag.filter.replace('|', ' '));
+    }
+  };
+
   return (
     <View style={styles.container}>
+      {/* En-tête avec titre en or */}
       <View style={styles.header}>
-        <Text style={styles.title}>Personnages</Text>
-        <Text style={styles.subtitle}>{filteredCharacters.length} personnages disponibles</Text>
+        <Text style={styles.appTitle}>Boys & Girls</Text>
+        <Text style={styles.subtitle}>{filteredCharacters.length} personnages</Text>
       </View>
 
-      {/* Bouton Carrousel Tinder-like */}
+      {/* Bouton Carrousel */}
       <TouchableOpacity
         style={styles.carouselButton}
         onPress={() => navigation.navigate('CharacterCarousel')}
@@ -159,62 +191,58 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.carouselButtonIcon}>❤️</Text>
         <View style={styles.carouselButtonContent}>
           <Text style={styles.carouselButtonTitle}>Mode Découverte</Text>
-          <Text style={styles.carouselButtonSubtitle}>Swipe et découvre un par un</Text>
+          <Text style={styles.carouselButtonSubtitle}>Swipe et découvre</Text>
         </View>
         <Text style={styles.carouselButtonArrow}>→</Text>
       </TouchableOpacity>
 
+      {/* Bouton Créer */}
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => navigation.navigate('CreateCharacter')}
       >
-        <Text style={styles.createButtonText}>✨ Créer mon propre personnage</Text>
+        <Text style={styles.createButtonText}>✨ Créer mon personnage</Text>
       </TouchableOpacity>
 
+      {/* Recherche */}
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Rechercher un personnage..."
+          placeholder="🔍 Rechercher..."
+          placeholderTextColor="#9ca3af"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
       </View>
 
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[styles.filterButton, selectedFilter === 'tous' && styles.filterButtonActive]}
-          onPress={() => setSelectedFilter('tous')}
-        >
-          <Text style={[styles.filterText, selectedFilter === 'tous' && styles.filterTextActive]}>
-            Tous
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, selectedFilter === 'female' && styles.filterButtonActive]}
-          onPress={() => setSelectedFilter('female')}
-        >
-          <Text style={[styles.filterText, selectedFilter === 'female' && styles.filterTextActive]}>
-            Femmes
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, selectedFilter === 'male' && styles.filterButtonActive]}
-          onPress={() => setSelectedFilter('male')}
-        >
-          <Text style={[styles.filterText, selectedFilter === 'male' && styles.filterTextActive]}>
-            Hommes
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, selectedFilter === 'non-binary' && styles.filterButtonActive]}
-          onPress={() => setSelectedFilter('non-binary')}
-        >
-          <Text style={[styles.filterText, selectedFilter === 'non-binary' && styles.filterTextActive]}>
-            NB
-          </Text>
-        </TouchableOpacity>
+      {/* Filtres par tags - Style pro */}
+      <View style={styles.tagsFilterContainer}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={popularTags}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[
+                styles.tagFilterButton,
+                (item.type === 'gender' && selectedFilter === item.filter) && styles.tagFilterButtonActive
+              ]}
+              onPress={() => handleTagFilter(item)}
+            >
+              <Text style={[
+                styles.tagFilterText,
+                (item.type === 'gender' && selectedFilter === item.filter) && styles.tagFilterTextActive
+              ]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.tagsFilterList}
+        />
       </View>
 
+      {/* Liste des personnages */}
       <FlatList
         data={filteredCharacters}
         renderItem={renderCharacter}
@@ -229,56 +257,89 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#0f0f1a',
   },
   header: {
     padding: 20,
     paddingTop: 60,
-    backgroundColor: '#6366f1',
+    backgroundColor: '#1a1a2e',
+    borderBottomWidth: 1,
+    borderBottomColor: '#d4af37',
   },
-  title: {
-    fontSize: 32,
+  appTitle: {
+    fontSize: 36,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#d4af37',
+    textShadowColor: '#ffd700',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
+    letterSpacing: 2,
+    textAlign: 'center',
     marginBottom: 5,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#e0e7ff',
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  tagsFilterContainer: {
+    backgroundColor: '#1a1a2e',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2d2d44',
+  },
+  tagsFilterList: {
+    paddingHorizontal: 10,
+    gap: 8,
+  },
+  tagFilterButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#2d2d44',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#3d3d5c',
+  },
+  tagFilterButtonActive: {
+    backgroundColor: '#d4af37',
+    borderColor: '#ffd700',
+  },
+  tagFilterText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#9ca3af',
+  },
+  tagFilterTextActive: {
+    color: '#1a1a2e',
   },
   createButton: {
     margin: 15,
     marginTop: 5,
     marginBottom: 5,
     padding: 16,
-    backgroundColor: '#10b981',
+    backgroundColor: '#2d2d44',
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#d4af37',
   },
   createButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#d4af37',
   },
   carouselButton: {
     margin: 15,
     marginTop: 10,
     marginBottom: 5,
     padding: 18,
-    backgroundColor: '#8b5cf6',
+    backgroundColor: '#8b1a4a',
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#d4af37',
   },
   carouselButtonIcon: {
     fontSize: 32,
@@ -290,67 +351,41 @@ const styles = StyleSheet.create({
   carouselButtonTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#d4af37',
     marginBottom: 2,
   },
   carouselButtonSubtitle: {
     fontSize: 13,
-    color: '#e9d5ff',
+    color: '#f0c0d0',
   },
   carouselButtonArrow: {
     fontSize: 28,
-    color: '#fff',
+    color: '#d4af37',
     fontWeight: 'bold',
   },
   searchContainer: {
     padding: 15,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    backgroundColor: '#1a1a2e',
   },
   searchInput: {
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: '#2d2d44',
+    borderRadius: 12,
+    padding: 14,
     fontSize: 16,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    padding: 15,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    gap: 10,
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-  },
-  filterButtonActive: {
-    backgroundColor: '#6366f1',
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  filterTextActive: {
     color: '#fff',
+    borderWidth: 1,
+    borderColor: '#3d3d5c',
   },
   list: {
     padding: 15,
+    backgroundColor: '#0f0f1a',
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1a1a2e',
     borderRadius: 15,
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#2d2d44',
   },
   cardContent: {
     flexDirection: 'row',
@@ -360,7 +395,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#6366f1',
+    backgroundColor: '#8b1a4a',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -368,7 +403,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#d4af37',
   },
   info: {
     flex: 1,
@@ -376,17 +411,20 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#111827',
+    color: '#d4af37',
     marginBottom: 4,
+  },
+  customBadge: {
+    color: '#ffd700',
   },
   age: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#9ca3af',
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    color: '#4b5563',
+    color: '#a1a1aa',
     marginBottom: 10,
     lineHeight: 20,
   },
@@ -396,14 +434,16 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tag: {
-    backgroundColor: '#e0e7ff',
+    backgroundColor: '#2d2d44',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#3d3d5c',
   },
   tagText: {
     fontSize: 12,
-    color: '#4f46e5',
+    color: '#d4af37',
     fontWeight: '500',
   },
 });
