@@ -30,8 +30,10 @@ import situationCharacters from './situationCharacters';
 import fantasyCharacters from './fantasyCharacters';
 // Import des 20 belles filles variées
 import beautifulGirlsCharacters from './beautifulGirlsCharacters';
+// Import des 20 belles-filles (filles de ma femme)
+import stepdaughterCharacters from './stepdaughterCharacters';
 
-// Combiner tous les personnages (450+ personnages au total)
+// Combiner tous les personnages (470+ personnages au total)
 export const enhancedCharacters = [
   ...characters,          // 6 Naruto
   ...friendCharacters,    // 30 amies
@@ -49,6 +51,7 @@ export const enhancedCharacters = [
   ...situationCharacters, // 50 situations
   ...fantasyCharacters,   // 16 fantasy
   ...beautifulGirlsCharacters, // 20 belles filles variées
+  ...stepdaughterCharacters,   // 20 belles-filles (stepdaughter)
 ];
 
 export default enhancedCharacters;

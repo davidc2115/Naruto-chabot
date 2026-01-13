@@ -154,15 +154,18 @@ export default function HomeScreen({ navigation }) {
   const popularTags = [
     { label: '👩 Femmes', filter: 'female', type: 'gender' },
     { label: '👨 Hommes', filter: 'male', type: 'gender' },
-    { label: '💋 Belles filles', filter: 'beauty_', type: 'id' },
+    { label: '👧 Belle-fille', filter: 'stepdaughter', type: 'id' },
+    { label: '💋 Belles', filter: 'beauty_', type: 'id' },
     { label: '👩‍💼 Collègues', filter: 'colleague', type: 'id' },
-    { label: '👨‍👩‍👧 Famille', filter: 'mom|sister|father|brother', type: 'id' },
+    { label: '👩‍👧 Maman', filter: 'mom', type: 'id' },
+    { label: '👧 Sœur', filter: 'sister', type: 'id' },
     { label: '🔥 MILF', filter: 'milf', type: 'id' },
     { label: '💪 DILF', filter: 'dilf', type: 'id' },
     { label: '🏠 Coloc', filter: 'roommate', type: 'id' },
     { label: '🏥 Médical', filter: 'medical', type: 'id' },
     { label: '🧝 Fantasy', filter: 'fantasy', type: 'id' },
     { label: '🍑 Curvy', filter: 'curvy', type: 'id' },
+    { label: '👫 Amis', filter: 'friend', type: 'id' },
   ];
 
   const handleTagFilter = (tag) => {
