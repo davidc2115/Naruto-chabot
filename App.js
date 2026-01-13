@@ -32,11 +32,11 @@ function HomeTabs({ isAdmin, onLogout }) {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#d4af37',
+        tabBarActiveTintColor: '#DAA520',
         tabBarInactiveTintColor: '#6b7280',
         tabBarStyle: {
           backgroundColor: '#1a1a2e',
-          borderTopColor: '#d4af37',
+          borderTopColor: '#B8860B',
           borderTopWidth: 1,
         },
         headerShown: false,
@@ -193,7 +193,7 @@ export default function App() {
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingEmoji}>💋</Text>
         <Text style={styles.loadingTitle}>Boys & Girls</Text>
-        <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color="#DAA520" style={{ marginTop: 20 }} />
         <Text style={styles.loadingText}>Chargement...</Text>
       </View>
     );
@@ -242,7 +242,7 @@ export default function App() {
           options={{ 
             title: 'Découvrir',
             headerStyle: { backgroundColor: '#1a1a2e' },
-            headerTintColor: '#d4af37',
+            headerTintColor: '#DAA520',
             headerShown: true
           }}
         />
@@ -252,7 +252,7 @@ export default function App() {
           options={{ 
             title: 'Mon Profil',
             headerStyle: { backgroundColor: '#1a1a2e' },
-            headerTintColor: '#d4af37',
+            headerTintColor: '#DAA520',
           }}
         />
         <Stack.Screen 
@@ -261,7 +261,7 @@ export default function App() {
           options={{ 
             title: 'Détails du personnage',
             headerStyle: { backgroundColor: '#1a1a2e' },
-            headerTintColor: '#d4af37',
+            headerTintColor: '#DAA520',
           }}
         />
         <Stack.Screen 
@@ -270,7 +270,7 @@ export default function App() {
           options={{ 
             title: 'Créer un personnage',
             headerStyle: { backgroundColor: '#1a1a2e' },
-            headerTintColor: '#d4af37',
+            headerTintColor: '#DAA520',
           }}
         />
         <Stack.Screen 
@@ -279,7 +279,7 @@ export default function App() {
           options={{ 
             title: 'Galerie',
             headerStyle: { backgroundColor: '#1a1a2e' },
-            headerTintColor: '#d4af37',
+            headerTintColor: '#DAA520',
           }}
         />
         <Stack.Screen 
@@ -287,7 +287,7 @@ export default function App() {
           component={ConversationScreen}
           options={{ 
             headerStyle: { backgroundColor: '#1a1a2e' },
-            headerTintColor: '#d4af37',
+            headerTintColor: '#DAA520',
           }}
         />
         <Stack.Screen 
@@ -296,7 +296,7 @@ export default function App() {
           options={{ 
             title: 'Configuration PayPal',
             headerStyle: { backgroundColor: '#1a1a2e' },
-            headerTintColor: '#d4af37',
+            headerTintColor: '#DAA520',
           }}
         />
         <Stack.Screen 
@@ -305,7 +305,7 @@ export default function App() {
           options={{ 
             title: 'Premium',
             headerStyle: { backgroundColor: '#1a1a2e' },
-            headerTintColor: '#d4af37',
+            headerTintColor: '#DAA520',
           }}
         />
         <Stack.Screen 
@@ -314,7 +314,7 @@ export default function App() {
           options={{ 
             title: 'Chat Premium',
             headerStyle: { backgroundColor: '#1a1a2e' },
-            headerTintColor: '#d4af37',
+            headerTintColor: '#DAA520',
           }}
         />
       </Stack.Navigator>
@@ -334,13 +334,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   loadingTitle: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#d4af37',
-    textShadowColor: '#ffd700',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 15,
-    letterSpacing: 3,
+    color: '#DAA520',
+    textShadowColor: '#B8860B',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 10,
+    letterSpacing: 2,
   },
   loadingText: {
     marginTop: 10,
