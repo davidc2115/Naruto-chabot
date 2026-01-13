@@ -1,42 +1,86 @@
 /**
  * Service Stable Diffusion Local (génération sur smartphone)
- * Version 4.0 - Utilise le module natif Android avec ONNX Runtime
+ * Version 4.1 - URLs corrigées et meilleure gestion des erreurs
  * 
  * STATUT:
  * ✅ Module natif avec ONNX Runtime
  * ✅ Détection automatique des modèles
  * ✅ Événements de progression
- * ⚠️ Modèles ONNX à télécharger séparément
+ * ✅ URLs multiples avec fallback
+ * ✅ Validation des téléchargements
  */
 
 import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Récupération du module natif
 const { StableDiffusionLocal } = NativeModules;
 
-// URLs des modèles ONNX SD-Turbo (à héberger sur un serveur)
-const MODEL_BASE_URL = 'https://huggingface.co/stabilityai/sd-turbo-onnx/resolve/main/';
-const MODELS = {
-  textEncoder: {
-    name: 'text_encoder.onnx',
-    url: MODEL_BASE_URL + 'text_encoder/model.onnx',
-    sizeMB: 250,
+// Clé de stockage pour les URLs personnalisées
+const CUSTOM_SERVER_KEY = '@sd_custom_server';
+
+// URLs des modèles ONNX - Multiples sources avec fallback
+// Utilise SD-Turbo optimisé ONNX (modèle léger et rapide)
+const MODEL_SOURCES = {
+  // Source principale - Hugging Face (modèle communautaire optimisé)
+  primary: {
+    name: 'HuggingFace Optimized',
+    baseUrl: 'https://huggingface.co/AIPokemon/sd-turbo-onnx/resolve/main/',
+    models: {
+      textEncoder: { path: 'text_encoder/model.onnx', name: 'text_encoder.onnx', sizeMB: 250 },
+      unet: { path: 'unet/model.onnx', name: 'unet.onnx', sizeMB: 1700 },
+      vaeDecoder: { path: 'vae_decoder/model.onnx', name: 'vae_decoder.onnx', sizeMB: 100 },
+    }
   },
-  unet: {
-    name: 'unet.onnx',
-    url: MODEL_BASE_URL + 'unet/model.onnx',
-    sizeMB: 1700,
+  // Source de secours - Modèle SD 1.5 plus stable
+  fallback: {
+    name: 'SD 1.5 ONNX',
+    baseUrl: 'https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/onnx/',
+    models: {
+      textEncoder: { path: 'text_encoder/model.onnx', name: 'text_encoder.onnx', sizeMB: 245 },
+      unet: { path: 'unet/model.onnx', name: 'unet.onnx', sizeMB: 1660 },
+      vaeDecoder: { path: 'vae_decoder/model.onnx', name: 'vae_decoder.onnx', sizeMB: 99 },
+    }
   },
-  vaeDecoder: {
-    name: 'vae_decoder.onnx',
-    url: MODEL_BASE_URL + 'vae_decoder/model.onnx',
-    sizeMB: 100,
-  },
+  // Source alternative - SegMind (modèle très léger)
+  lightweight: {
+    name: 'SegMind SSD-1B',
+    baseUrl: 'https://huggingface.co/segmind/SSD-1B-onnx/resolve/main/',
+    models: {
+      textEncoder: { path: 'text_encoder/model.onnx', name: 'text_encoder.onnx', sizeMB: 200 },
+      unet: { path: 'unet/model.onnx', name: 'unet.onnx', sizeMB: 1200 },
+      vaeDecoder: { path: 'vae_decoder/model.onnx', name: 'vae_decoder.onnx', sizeMB: 80 },
+    }
+  }
 };
 
+// Modèles actuellement utilisés (par défaut: primary)
+let CURRENT_SOURCE = 'primary';
+let MODELS = {};
+
+// Fonction pour mettre à jour les modèles selon la source
+function updateModelsFromSource(sourceName) {
+  const source = MODEL_SOURCES[sourceName];
+  if (!source) return;
+  
+  CURRENT_SOURCE = sourceName;
+  MODELS = {};
+  
+  for (const [key, model] of Object.entries(source.models)) {
+    MODELS[key] = {
+      name: model.name,
+      url: source.baseUrl + model.path,
+      sizeMB: model.sizeMB,
+    };
+  }
+}
+
+// Initialiser avec la source principale
+updateModelsFromSource('primary');
+
 // Taille totale estimée
-const TOTAL_MODEL_SIZE_MB = Object.values(MODELS).reduce((sum, m) => sum + m.sizeMB, 0);
+const getTotalModelSize = () => Object.values(MODELS).reduce((sum, m) => sum + m.sizeMB, 0);
 
 class StableDiffusionLocalService {
   constructor() {
@@ -46,9 +90,12 @@ class StableDiffusionLocalService {
     this.eventEmitter = null;
     this.progressSubscription = null;
     this.moduleInfo = this._getModuleInfo();
+    this.downloadInProgress = false;
+    this.downloadCancelled = false;
+    this.customServerUrl = null;
     
     console.log('╔════════════════════════════════════════╗');
-    console.log('║  StableDiffusionLocalService v4.0      ║');
+    console.log('║  StableDiffusionLocalService v4.1      ║');
     console.log('╚════════════════════════════════════════╝');
     console.log('📱 Platform:', Platform.OS, Platform.Version);
     console.log('📱 Module natif:', this.moduleInfo.status);
@@ -56,11 +103,75 @@ class StableDiffusionLocalService {
     if (this.moduleInfo.isLoaded) {
       console.log('📱 Module version:', this.moduleInfo.version);
       console.log('📱 ONNX disponible:', this.moduleInfo.onnxAvailable);
-      
-      // Configurer l'écouteur d'événements si le module est chargé
       this._setupEventListener();
     }
+    console.log('📦 Source modèles:', MODEL_SOURCES[CURRENT_SOURCE].name);
     console.log('==========================================');
+    
+    // Charger les paramètres personnalisés
+    this._loadCustomSettings();
+  }
+
+  /**
+   * Charge les paramètres personnalisés
+   */
+  async _loadCustomSettings() {
+    try {
+      const customServer = await AsyncStorage.getItem(CUSTOM_SERVER_KEY);
+      if (customServer) {
+        this.customServerUrl = customServer;
+        console.log('📡 Serveur personnalisé:', customServer);
+      }
+    } catch (e) {
+      console.warn('⚠️ Erreur chargement paramètres:', e.message);
+    }
+  }
+
+  /**
+   * Définit un serveur personnalisé pour les modèles
+   */
+  async setCustomServer(serverUrl) {
+    try {
+      if (serverUrl) {
+        // Valider l'URL
+        const cleanUrl = serverUrl.endsWith('/') ? serverUrl : serverUrl + '/';
+        await AsyncStorage.setItem(CUSTOM_SERVER_KEY, cleanUrl);
+        this.customServerUrl = cleanUrl;
+        console.log('✅ Serveur personnalisé configuré:', cleanUrl);
+        return { success: true, url: cleanUrl };
+      } else {
+        await AsyncStorage.removeItem(CUSTOM_SERVER_KEY);
+        this.customServerUrl = null;
+        console.log('✅ Serveur personnalisé supprimé');
+        return { success: true, url: null };
+      }
+    } catch (e) {
+      console.error('❌ Erreur configuration serveur:', e);
+      return { success: false, error: e.message };
+    }
+  }
+
+  /**
+   * Change la source des modèles
+   */
+  setModelSource(sourceName) {
+    if (MODEL_SOURCES[sourceName]) {
+      updateModelsFromSource(sourceName);
+      console.log('📦 Source changée:', MODEL_SOURCES[sourceName].name);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Retourne les sources disponibles
+   */
+  getAvailableSources() {
+    return Object.entries(MODEL_SOURCES).map(([key, source]) => ({
+      id: key,
+      name: source.name,
+      totalSizeMB: Object.values(source.models).reduce((sum, m) => sum + m.sizeMB, 0),
+    }));
   }
 
   /**
@@ -114,7 +225,6 @@ class StableDiffusionLocalService {
       };
     }
 
-    // Le module existe, vérifions les constantes
     try {
       const constants = this.nativeModule.getConstants 
         ? this.nativeModule.getConstants() 
@@ -157,9 +267,10 @@ class StableDiffusionLocalService {
         exists: fileInfo.exists,
         size: fileInfo.size || 0,
         sizeMB: (fileInfo.size || 0) / 1024 / 1024,
+        path: modelPath,
       };
     } catch (error) {
-      return { exists: false, size: 0, sizeMB: 0 };
+      return { exists: false, size: 0, sizeMB: 0, path: null };
     }
   }
 
@@ -170,21 +281,29 @@ class StableDiffusionLocalService {
     const results = {};
     let totalSize = 0;
     let allPresent = true;
+    let missingModels = [];
 
     for (const [key, model] of Object.entries(MODELS)) {
       const check = await this.checkModelFile(model.name);
-      results[key] = check;
+      results[key] = {
+        ...check,
+        expectedMB: model.sizeMB,
+        complete: check.exists && check.sizeMB >= model.sizeMB * 0.9,
+      };
       totalSize += check.size;
-      if (!check.exists || check.sizeMB < model.sizeMB * 0.9) {
+      if (!results[key].complete) {
         allPresent = false;
+        missingModels.push(model.name);
       }
     }
 
     return {
       models: results,
       allPresent,
+      missingModels,
       totalSizeMB: totalSize / 1024 / 1024,
-      expectedSizeMB: TOTAL_MODEL_SIZE_MB,
+      expectedSizeMB: getTotalModelSize(),
+      source: MODEL_SOURCES[CURRENT_SOURCE].name,
     };
   }
 
@@ -194,20 +313,20 @@ class StableDiffusionLocalService {
   async checkAvailability() {
     console.log('🔍 Vérification disponibilité SD Local...');
     
-    // Vérifier les modèles côté JS
     const modelsCheck = await this.checkAllModels();
-    console.log('📁 Models check:', modelsCheck.allPresent ? 'Tous présents' : 'Incomplet');
+    console.log('📁 Models check:', modelsCheck.allPresent ? 'Tous présents' : `Manquants: ${modelsCheck.missingModels.join(', ')}`);
     
-    // Construire la réponse de base
     const baseResponse = {
       platform: Platform.OS,
       modelDownloaded: modelsCheck.allPresent,
       modelSizeMB: modelsCheck.totalSizeMB,
-      expectedSizeMB: TOTAL_MODEL_SIZE_MB,
+      expectedSizeMB: modelsCheck.expectedSizeMB,
       modelsDetail: modelsCheck.models,
+      missingModels: modelsCheck.missingModels,
+      modelSource: modelsCheck.source,
+      customServer: this.customServerUrl,
     };
     
-    // Si ce n'est pas Android
     if (!this.isAndroid) {
       return {
         ...baseResponse,
@@ -220,7 +339,6 @@ class StableDiffusionLocalService {
       };
     }
     
-    // Si le module natif n'est pas chargé
     if (!this.moduleInfo.isLoaded) {
       return {
         ...baseResponse,
@@ -233,7 +351,6 @@ class StableDiffusionLocalService {
       };
     }
 
-    // Le module est chargé, communiquons avec lui
     try {
       console.log('📡 Appel module natif...');
       
@@ -254,12 +371,10 @@ class StableDiffusionLocalService {
         modelDownloaded: modelStatus?.modelDownloaded || modelsCheck.allPresent,
         pipelineReady: modelStatus?.pipelineReady || false,
         
-        // Détails des modèles depuis le natif
         textEncoderReady: modelStatus?.textEncoderDownloaded || false,
         unetReady: modelStatus?.unetDownloaded || false,
         vaeDecoderReady: modelStatus?.vaeDecoderDownloaded || false,
         
-        // Infos système
         ramMB: systemInfo?.maxMemoryMB || 0,
         freeRamMB: systemInfo?.freeMemoryMB || 0,
         freeStorageMB: systemInfo?.freeStorageMB || 0,
@@ -299,11 +414,7 @@ class StableDiffusionLocalService {
     }
     
     if (!modelsCheck.allPresent) {
-      const missing = [];
-      for (const [key, check] of Object.entries(modelsCheck.models)) {
-        if (!check.exists) missing.push(MODELS[key].name);
-      }
-      return `📥 Modèles manquants: ${missing.join(', ')}`;
+      return `📥 Modèles manquants: ${modelsCheck.missingModels.join(', ')}`;
     }
     
     if (!systemInfo?.hasEnoughRAM) {
@@ -324,7 +435,52 @@ class StableDiffusionLocalService {
   }
 
   /**
-   * Télécharge un modèle spécifique
+   * Vérifie si une URL est accessible
+   */
+  async _checkUrlAccessible(url) {
+    try {
+      const response = await fetch(url, { method: 'HEAD', timeout: 10000 });
+      return response.ok;
+    } catch (e) {
+      console.warn(`⚠️ URL inaccessible: ${url} - ${e.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Trouve la meilleure source disponible
+   */
+  async findBestSource() {
+    console.log('🔍 Recherche meilleure source de modèles...');
+    
+    // D'abord vérifier le serveur personnalisé
+    if (this.customServerUrl) {
+      const testUrl = `${this.customServerUrl}text_encoder.onnx`;
+      if (await this._checkUrlAccessible(testUrl)) {
+        console.log('✅ Serveur personnalisé accessible');
+        return { type: 'custom', url: this.customServerUrl };
+      }
+      console.log('⚠️ Serveur personnalisé inaccessible');
+    }
+    
+    // Tester chaque source
+    for (const [key, source] of Object.entries(MODEL_SOURCES)) {
+      const testUrl = source.baseUrl + Object.values(source.models)[0].path;
+      console.log(`🔍 Test ${source.name}...`);
+      
+      if (await this._checkUrlAccessible(testUrl)) {
+        console.log(`✅ Source disponible: ${source.name}`);
+        updateModelsFromSource(key);
+        return { type: 'builtin', source: key, name: source.name };
+      }
+    }
+    
+    console.error('❌ Aucune source de modèles accessible');
+    return null;
+  }
+
+  /**
+   * Télécharge un modèle spécifique avec retry et validation
    */
   async downloadModel(modelKey, onProgress = null) {
     const model = MODELS[modelKey];
@@ -333,6 +489,7 @@ class StableDiffusionLocalService {
     }
 
     console.log(`📥 Téléchargement ${model.name}...`);
+    console.log(`📡 URL: ${model.url}`);
     
     // Créer le dossier si nécessaire
     const modelDir = this.getModelDirectory();
@@ -343,81 +500,189 @@ class StableDiffusionLocalService {
     
     const modelPath = `${modelDir}${model.name}`;
     
-    // Vérifier si déjà téléchargé
+    // Vérifier si déjà téléchargé et complet
     const existingFile = await FileSystem.getInfoAsync(modelPath);
-    if (existingFile.exists && existingFile.size > model.sizeMB * 0.9 * 1024 * 1024) {
-      console.log(`✅ ${model.name} déjà téléchargé`);
-      if (onProgress) onProgress(100, 'Déjà téléchargé');
-      return { success: true, alreadyExists: true };
+    if (existingFile.exists) {
+      const existingSizeMB = (existingFile.size || 0) / 1024 / 1024;
+      if (existingSizeMB >= model.sizeMB * 0.9) {
+        console.log(`✅ ${model.name} déjà téléchargé (${existingSizeMB.toFixed(0)} MB)`);
+        if (onProgress) onProgress(100, 'Déjà téléchargé');
+        return { success: true, alreadyExists: true, sizeMB: existingSizeMB };
+      } else {
+        // Fichier incomplet, supprimer
+        console.log(`⚠️ ${model.name} incomplet (${existingSizeMB.toFixed(0)}/${model.sizeMB} MB), suppression...`);
+        await FileSystem.deleteAsync(modelPath, { idempotent: true });
+      }
     }
     
-    // Télécharger
+    // Construire l'URL (serveur personnalisé ou source)
+    const downloadUrl = this.customServerUrl 
+      ? `${this.customServerUrl}${model.name}` 
+      : model.url;
+    
+    console.log(`📡 Téléchargement depuis: ${downloadUrl}`);
+    
+    // Vérifier l'accessibilité de l'URL
+    const urlAccessible = await this._checkUrlAccessible(downloadUrl);
+    if (!urlAccessible) {
+      throw new Error(`URL inaccessible: ${downloadUrl}`);
+    }
+    
+    // Télécharger avec suivi de progression
+    if (onProgress) onProgress(0, 'Connexion...');
+    
     const downloadResumable = FileSystem.createDownloadResumable(
-      model.url,
+      downloadUrl,
       modelPath,
-      {},
+      {
+        headers: {
+          'User-Agent': 'BoysAndGirls/4.1',
+        },
+      },
       (progress) => {
+        if (this.downloadCancelled) {
+          return;
+        }
         if (progress.totalBytesExpectedToWrite > 0) {
           const pct = (progress.totalBytesWritten / progress.totalBytesExpectedToWrite) * 100;
           const dlMB = progress.totalBytesWritten / 1024 / 1024;
-          if (onProgress) onProgress(pct, `${dlMB.toFixed(0)}/${model.sizeMB} MB`);
+          const totalMB = progress.totalBytesExpectedToWrite / 1024 / 1024;
+          if (onProgress) {
+            onProgress(pct, `${dlMB.toFixed(0)}/${totalMB.toFixed(0)} MB`);
+          }
         }
       }
     );
     
-    const result = await downloadResumable.downloadAsync();
-    
-    if (result?.uri) {
-      console.log(`✅ ${model.name} téléchargé`);
-      return { success: true, path: result.uri };
-    }
-    
-    throw new Error(`Échec du téléchargement de ${model.name}`);
-  }
-
-  /**
-   * Télécharge tous les modèles
-   */
-  async downloadAllModels(onProgress = null) {
-    const modelKeys = Object.keys(MODELS);
-    let totalProgress = 0;
-    
-    for (let i = 0; i < modelKeys.length; i++) {
-      const key = modelKeys[i];
-      const model = MODELS[key];
+    try {
+      const result = await downloadResumable.downloadAsync();
       
-      if (onProgress) {
-        onProgress(
-          totalProgress,
-          `Téléchargement ${model.name} (${i + 1}/${modelKeys.length})`
-        );
+      if (this.downloadCancelled) {
+        await FileSystem.deleteAsync(modelPath, { idempotent: true });
+        throw new Error('Téléchargement annulé');
       }
       
-      await this.downloadModel(key, (pct, msg) => {
-        const partProgress = pct / modelKeys.length;
-        const baseProgress = (i / modelKeys.length) * 100;
-        if (onProgress) {
-          onProgress(baseProgress + partProgress, `${model.name}: ${msg}`);
+      if (result?.uri) {
+        // Vérifier la taille du fichier téléchargé
+        const finalFile = await FileSystem.getInfoAsync(modelPath);
+        const finalSizeMB = (finalFile.size || 0) / 1024 / 1024;
+        
+        if (finalSizeMB < model.sizeMB * 0.5) {
+          // Fichier trop petit, probablement corrompu
+          await FileSystem.deleteAsync(modelPath, { idempotent: true });
+          throw new Error(`Fichier téléchargé trop petit (${finalSizeMB.toFixed(0)} MB au lieu de ${model.sizeMB} MB)`);
         }
-      });
+        
+        console.log(`✅ ${model.name} téléchargé (${finalSizeMB.toFixed(0)} MB)`);
+        return { success: true, path: result.uri, sizeMB: finalSizeMB };
+      }
       
-      totalProgress = ((i + 1) / modelKeys.length) * 100;
+      throw new Error(`Échec du téléchargement de ${model.name}`);
+    } catch (error) {
+      // Nettoyer le fichier partiel
+      await FileSystem.deleteAsync(modelPath, { idempotent: true });
+      throw error;
     }
-    
-    if (onProgress) onProgress(100, 'Tous les modèles téléchargés!');
-    return { success: true };
   }
 
   /**
-   * Initialise le pipeline de génération
+   * Télécharge tous les modèles avec meilleure gestion
    */
-  async initializePipeline() {
+  async downloadAllModels(onProgress = null) {
+    if (this.downloadInProgress) {
+      throw new Error('Téléchargement déjà en cours');
+    }
+    
+    this.downloadInProgress = true;
+    this.downloadCancelled = false;
+    
+    try {
+      // Trouver la meilleure source
+      if (onProgress) onProgress(0, 'Recherche serveur...');
+      
+      const bestSource = await this.findBestSource();
+      if (!bestSource) {
+        throw new Error('Aucun serveur de modèles accessible. Vérifiez votre connexion internet.');
+      }
+      
+      if (onProgress) {
+        onProgress(5, `Source: ${bestSource.name || bestSource.url || 'Serveur personnalisé'}`);
+      }
+      
+      const modelKeys = Object.keys(MODELS);
+      const totalModels = modelKeys.length;
+      
+      for (let i = 0; i < totalModels; i++) {
+        if (this.downloadCancelled) {
+          throw new Error('Téléchargement annulé par l\'utilisateur');
+        }
+        
+        const key = modelKeys[i];
+        const model = MODELS[key];
+        
+        const baseProgress = 5 + ((i / totalModels) * 90);
+        
+        if (onProgress) {
+          onProgress(baseProgress, `${model.name} (${i + 1}/${totalModels})`);
+        }
+        
+        await this.downloadModel(key, (pct, msg) => {
+          if (onProgress) {
+            const modelProgress = (pct / 100) * (90 / totalModels);
+            onProgress(baseProgress + modelProgress, `${model.name}: ${msg}`);
+          }
+        });
+      }
+      
+      if (onProgress) onProgress(100, '✅ Tous les modèles téléchargés!');
+      return { success: true, source: bestSource };
+      
+    } finally {
+      this.downloadInProgress = false;
+    }
+  }
+
+  /**
+   * Annule le téléchargement en cours
+   */
+  cancelDownload() {
+    if (this.downloadInProgress) {
+      this.downloadCancelled = true;
+      console.log('🛑 Annulation du téléchargement...');
+    }
+  }
+
+  /**
+   * Initialise le pipeline de génération avec vérification
+   */
+  async initializePipeline(onProgress = null) {
     if (!this.moduleInfo.isLoaded) {
       throw new Error('Module natif non disponible');
     }
     
+    // Vérifier que tous les modèles sont présents
+    const modelsCheck = await this.checkAllModels();
+    if (!modelsCheck.allPresent) {
+      throw new Error(`Modèles manquants: ${modelsCheck.missingModels.join(', ')}`);
+    }
+    
     console.log('🚀 Initialisation du pipeline SD...');
-    return await this.nativeModule.initializeModel();
+    if (onProgress) onProgress(0, 'Chargement des modèles...');
+    
+    try {
+      const result = await this.nativeModule.initializeModel();
+      
+      if (result?.success) {
+        console.log('✅ Pipeline initialisé avec succès');
+        if (onProgress) onProgress(100, 'Pipeline prêt!');
+        return { success: true, ...result };
+      } else {
+        throw new Error(result?.error || 'Échec de l\'initialisation');
+      }
+    } catch (error) {
+      console.error('❌ Erreur initialisation pipeline:', error);
+      throw error;
+    }
   }
 
   /**
@@ -430,13 +695,13 @@ class StableDiffusionLocalService {
     }
 
     const {
-      negativePrompt = '',
+      negativePrompt = 'bad anatomy, deformed, ugly, blurry, low quality',
       steps = 20,
       guidanceScale = 7.5,
       seed = -1,
     } = options;
 
-    console.log('🎨 Génération SD Local:', prompt);
+    console.log('🎨 Génération SD Local:', prompt.substring(0, 100) + '...');
     
     try {
       const result = await this.nativeModule.generateImage(
@@ -458,6 +723,7 @@ class StableDiffusionLocalService {
         };
       }
       
+      console.warn('⚠️ Génération échouée:', result?.error);
       return null;
     } catch (error) {
       console.error('❌ Erreur génération:', error);
@@ -470,6 +736,7 @@ class StableDiffusionLocalService {
    */
   async releasePipeline() {
     if (this.moduleInfo.isLoaded) {
+      console.log('🔄 Libération du pipeline...');
       return await this.nativeModule.releaseModel();
     }
   }
@@ -479,6 +746,7 @@ class StableDiffusionLocalService {
    */
   async cancelGeneration() {
     if (this.moduleInfo.isLoaded) {
+      console.log('🛑 Annulation de la génération...');
       return await this.nativeModule.cancelGeneration();
     }
   }
@@ -510,9 +778,9 @@ class StableDiffusionLocalService {
       if (dirInfo.exists) {
         await FileSystem.deleteAsync(modelDir, { idempotent: true });
         console.log('✅ Modèles supprimés');
-        return true;
+        return { success: true };
       }
-      return false;
+      return { success: true, message: 'Aucun modèle à supprimer' };
     } catch (error) {
       console.error('❌ Erreur suppression:', error);
       throw error;
@@ -530,7 +798,25 @@ class StableDiffusionLocalService {
    * Retourne la taille totale estimée
    */
   getTotalModelSize() {
-    return TOTAL_MODEL_SIZE_MB;
+    return getTotalModelSize();
+  }
+
+  /**
+   * Retourne les informations du service
+   */
+  getServiceInfo() {
+    return {
+      version: '4.1',
+      platform: Platform.OS,
+      moduleLoaded: this.moduleInfo.isLoaded,
+      moduleVersion: this.moduleInfo.version,
+      onnxAvailable: this.moduleInfo.onnxAvailable,
+      currentSource: CURRENT_SOURCE,
+      sourceName: MODEL_SOURCES[CURRENT_SOURCE]?.name,
+      customServer: this.customServerUrl,
+      availableSources: this.getAvailableSources(),
+      totalModelSizeMB: getTotalModelSize(),
+    };
   }
 }
 

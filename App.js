@@ -32,8 +32,13 @@ function HomeTabs({ isAdmin, onLogout }) {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#6366f1',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarActiveTintColor: '#d4af37',
+        tabBarInactiveTintColor: '#6b7280',
+        tabBarStyle: {
+          backgroundColor: '#1a1a2e',
+          borderTopColor: '#d4af37',
+          borderTopWidth: 1,
+        },
         headerShown: false,
       }}
     >
@@ -186,9 +191,9 @@ export default function App() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingEmoji}>💬</Text>
-        <Text style={styles.loadingTitle}>Roleplay Chat</Text>
-        <ActivityIndicator size="large" color="#6366f1" style={{ marginTop: 20 }} />
+        <Text style={styles.loadingEmoji}>💋</Text>
+        <Text style={styles.loadingTitle}>Boys & Girls</Text>
+        <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
         <Text style={styles.loadingText}>Chargement...</Text>
       </View>
     );
@@ -236,8 +241,8 @@ export default function App() {
           component={CharacterCarouselScreen}
           options={{ 
             title: 'Découvrir',
-            headerStyle: { backgroundColor: '#8b5cf6' },
-            headerTintColor: '#fff',
+            headerStyle: { backgroundColor: '#1a1a2e' },
+            headerTintColor: '#d4af37',
             headerShown: true
           }}
         />
@@ -246,8 +251,8 @@ export default function App() {
           component={UserProfileScreen}
           options={{ 
             title: 'Mon Profil',
-            headerStyle: { backgroundColor: '#6366f1' },
-            headerTintColor: '#fff',
+            headerStyle: { backgroundColor: '#1a1a2e' },
+            headerTintColor: '#d4af37',
           }}
         />
         <Stack.Screen 
@@ -255,8 +260,8 @@ export default function App() {
           component={CharacterDetailScreen}
           options={{ 
             title: 'Détails du personnage',
-            headerStyle: { backgroundColor: '#6366f1' },
-            headerTintColor: '#fff',
+            headerStyle: { backgroundColor: '#1a1a2e' },
+            headerTintColor: '#d4af37',
           }}
         />
         <Stack.Screen 
@@ -264,8 +269,8 @@ export default function App() {
           component={CreateCharacterScreen}
           options={{ 
             title: 'Créer un personnage',
-            headerStyle: { backgroundColor: '#6366f1' },
-            headerTintColor: '#fff',
+            headerStyle: { backgroundColor: '#1a1a2e' },
+            headerTintColor: '#d4af37',
           }}
         />
         <Stack.Screen 
@@ -273,16 +278,16 @@ export default function App() {
           component={GalleryScreen}
           options={{ 
             title: 'Galerie',
-            headerStyle: { backgroundColor: '#6366f1' },
-            headerTintColor: '#fff',
+            headerStyle: { backgroundColor: '#1a1a2e' },
+            headerTintColor: '#d4af37',
           }}
         />
         <Stack.Screen 
           name="Conversation" 
           component={ConversationScreen}
           options={{ 
-            headerStyle: { backgroundColor: '#6366f1' },
-            headerTintColor: '#fff',
+            headerStyle: { backgroundColor: '#1a1a2e' },
+            headerTintColor: '#d4af37',
           }}
         />
         <Stack.Screen 
@@ -290,8 +295,8 @@ export default function App() {
           component={PayPalConfigScreen}
           options={{ 
             title: 'Configuration PayPal',
-            headerStyle: { backgroundColor: '#6366f1' },
-            headerTintColor: '#fff',
+            headerStyle: { backgroundColor: '#1a1a2e' },
+            headerTintColor: '#d4af37',
           }}
         />
         <Stack.Screen 
@@ -299,8 +304,8 @@ export default function App() {
           component={PremiumScreen}
           options={{ 
             title: 'Premium',
-            headerStyle: { backgroundColor: '#6366f1' },
-            headerTintColor: '#fff',
+            headerStyle: { backgroundColor: '#1a1a2e' },
+            headerTintColor: '#d4af37',
           }}
         />
         <Stack.Screen 
@@ -308,8 +313,8 @@ export default function App() {
           component={PremiumChatScreen}
           options={{ 
             title: 'Chat Premium',
-            headerStyle: { backgroundColor: '#6366f1' },
-            headerTintColor: '#fff',
+            headerStyle: { backgroundColor: '#1a1a2e' },
+            headerTintColor: '#d4af37',
           }}
         />
       </Stack.Navigator>
@@ -322,24 +327,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#0f0f1a',
   },
   loadingEmoji: {
     fontSize: 80,
     marginBottom: 20,
   },
   loadingTitle: {
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: 'bold',
-    color: '#6366f1',
+    color: '#d4af37',
+    textShadowColor: '#ffd700',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 15,
+    letterSpacing: 3,
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#6b7280',
+    color: '#9ca3af',
   },
   profileSetupContainer: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#0f0f1a',
   },
 });
