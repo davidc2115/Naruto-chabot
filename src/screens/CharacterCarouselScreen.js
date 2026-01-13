@@ -457,13 +457,6 @@ export default function CharacterCarouselScreen({ navigation }) {
             style={styles.card}
             imageStyle={styles.cardImage}
           >
-            {/* Cadre doré overlay */}
-            <Image 
-              source={require('../../assets/gold-frame.png')}
-              style={styles.goldFrameOverlay}
-              resizeMode="stretch"
-            />
-            
             {/* Overlay gradient */}
             <View style={styles.overlay} />
             
@@ -544,6 +537,14 @@ export default function CharacterCarouselScreen({ navigation }) {
               {/* Instruction swipe */}
               <Text style={styles.swipeHint}>← Glissez pour naviguer →</Text>
             </View>
+            
+            {/* Cadre doré en bordure (ne bloque pas le contenu) */}
+            <Image 
+              source={require('../../assets/gold-frame.png')}
+              style={styles.goldFrameOverlay}
+              resizeMode="stretch"
+              pointerEvents="none"
+            />
           </ImageBackground>
         </Animated.View>
       </View>
@@ -551,14 +552,11 @@ export default function CharacterCarouselScreen({ navigation }) {
       {/* Bouton démarrer avec image dorée */}
       <View style={styles.buttonsContainer}>
         <TouchableOpacity style={styles.selectButton} onPress={handleSelect}>
-          <ImageBackground
+          <Image
             source={require('../../assets/gold-button.png')}
-            style={styles.goldButtonBg}
-            imageStyle={styles.goldButtonImage}
-            resizeMode="stretch"
-          >
-            <Text style={styles.selectButtonText}>💬 Démarrer</Text>
-          </ImageBackground>
+            style={styles.goldButtonImage}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -793,9 +791,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0a12',
   },
   cardWrapper: {
-    width: SCREEN_WIDTH - 16,
-    height: SCREEN_HEIGHT * 0.38,
-    maxHeight: 340,
+    width: SCREEN_WIDTH - 12,
+    height: SCREEN_HEIGHT * 0.42,
+    maxHeight: 380,
   },
   card: {
     width: '100%',
@@ -806,13 +804,13 @@ const styles = StyleSheet.create({
   },
   goldFrameOverlay: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 10,
+    top: -5,
+    left: -5,
+    right: -5,
+    bottom: -5,
+    width: '103%',
+    height: '103%',
+    opacity: 0.85,
   },
   cardImage: {
     borderRadius: 24,
@@ -950,28 +948,14 @@ const styles = StyleSheet.create({
   },
   selectButton: {
     flex: 1,
-    maxWidth: 280,
-    height: 50,
-    overflow: 'hidden',
-    borderRadius: 25,
-  },
-  goldButtonBg: {
-    flex: 1,
-    justifyContent: 'center',
+    maxWidth: 320,
+    height: 55,
     alignItems: 'center',
-    width: '100%',
-    height: '100%',
+    justifyContent: 'center',
   },
   goldButtonImage: {
-    borderRadius: 25,
-  },
-  selectButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-    textShadowColor: '#8B6914',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    width: '100%',
+    height: '100%',
   },
   emptyText: {
     fontSize: 18,
