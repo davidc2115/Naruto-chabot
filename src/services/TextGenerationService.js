@@ -1040,11 +1040,66 @@ RÈGLES CRITIQUES:
   }
 
   /**
+   * Corrige automatiquement le formatage RP (actions, paroles, pensées)
+   * Ajoute les symboles manquants pour le format correct
+   */
+  fixFormatting(content) {
+    if (!content) return content;
+    
+    let fixed = content;
+    
+    // Protéger les formats déjà corrects
+    const protectedActions = [];
+    const protectedDialogues = [];
+    const protectedThoughts = [];
+    
+    // Sauvegarder les formats corrects
+    fixed = fixed.replace(/\*[^*]+\*/g, (match) => {
+      protectedActions.push(match);
+      return `__ACTION_${protectedActions.length - 1}__`;
+    });
+    
+    fixed = fixed.replace(/"[^"]+"/g, (match) => {
+      protectedDialogues.push(match);
+      return `__DIALOGUE_${protectedDialogues.length - 1}__`;
+    });
+    
+    fixed = fixed.replace(/\([^)]+\)/g, (match) => {
+      protectedThoughts.push(match);
+      return `__THOUGHT_${protectedThoughts.length - 1}__`;
+    });
+    
+    // Détecter les actions sans astérisques (verbes en début de phrase)
+    const actionVerbs = /\b(elle|il|je|tu|nous|vous|ils|elles)\s+(s'approche|se lève|prend|pose|glisse|caresse|embrasse|murmure|regarde|sourit|rougit|se mord|frissonne|gémit|soupire|se penche|enlève|retire|attrape|tire|pousse|serre|masse|lèche|mordille|touche)/gi;
+    fixed = fixed.replace(actionVerbs, (match) => `*${match}*`);
+    
+    // Restaurer les formats protégés
+    protectedActions.forEach((action, i) => {
+      fixed = fixed.replace(`__ACTION_${i}__`, action);
+    });
+    protectedDialogues.forEach((dialogue, i) => {
+      fixed = fixed.replace(`__DIALOGUE_${i}__`, dialogue);
+    });
+    protectedThoughts.forEach((thought, i) => {
+      fixed = fixed.replace(`__THOUGHT_${i}__`, thought);
+    });
+    
+    // Nettoyer les doubles astérisques
+    fixed = fixed.replace(/\*\*+/g, '*');
+    fixed = fixed.replace(/\*\s*\*/g, '');
+    
+    return fixed;
+  }
+
+  /**
    * Supprime les répétitions dans le contenu généré
    * Détecte et supprime les blocs de texte dupliqués
    */
   removeRepetitions(content) {
     if (!content) return content;
+    
+    // D'abord, corriger le formatage
+    content = this.fixFormatting(content);
     
     // Normaliser les sauts de ligne
     let cleaned = content.replace(/\r\n/g, '\n');

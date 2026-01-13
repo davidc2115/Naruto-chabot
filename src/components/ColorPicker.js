@@ -1,17 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Modal,
-  PanResponder,
   Dimensions,
 } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const PICKER_WIDTH = SCREEN_WIDTH - 80;
-const PICKER_HEIGHT = 200;
 
 /**
  * Convertit HSL en HEX
@@ -29,91 +26,109 @@ const hslToHex = (h, s, l) => {
 };
 
 /**
- * ColorPicker - Sélecteur de couleur complet
+ * Convertit HEX en HSL
+ */
+const hexToHsl = (hex) => {
+  let r = 0, g = 0, b = 0;
+  if (hex.length === 4) {
+    r = parseInt(hex[1] + hex[1], 16);
+    g = parseInt(hex[2] + hex[2], 16);
+    b = parseInt(hex[3] + hex[3], 16);
+  } else if (hex.length === 7) {
+    r = parseInt(hex.slice(1, 3), 16);
+    g = parseInt(hex.slice(3, 5), 16);
+    b = parseInt(hex.slice(5, 7), 16);
+  }
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+};
+
+/**
+ * ColorPicker Pro - Design élégant et minimaliste
+ * Sans couleurs rapides, interface classe et professionnelle
  */
 export default function ColorPicker({ 
   visible, 
   onClose, 
   onSelectColor, 
-  currentColor = '#ffffff',
+  currentColor = '#6366f1',
   title = 'Choisir une couleur' 
 }) {
-  const [hue, setHue] = useState(0);
-  const [saturation, setSaturation] = useState(100);
-  const [lightness, setLightness] = useState(50);
+  const [hue, setHue] = useState(240);
+  const [saturation, setSaturation] = useState(80);
+  const [lightness, setLightness] = useState(60);
   const [selectedColor, setSelectedColor] = useState(currentColor);
 
-  // Couleurs prédéfinies populaires
-  const presetColors = [
-    // Rouges
-    '#ff0000', '#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d',
-    // Oranges
-    '#ff6600', '#f97316', '#ea580c', '#c2410c', '#9a3412', '#7c2d12',
-    // Jaunes
-    '#ffff00', '#eab308', '#ca8a04', '#a16207', '#854d0e', '#713f12',
-    // Verts
-    '#00ff00', '#22c55e', '#16a34a', '#15803d', '#166534', '#14532d',
-    // Cyans
-    '#00ffff', '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63',
-    // Bleus
-    '#0000ff', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a',
-    // Violets
-    '#8b00ff', '#8b5cf6', '#7c3aed', '#6d28d9', '#5b21b6', '#4c1d95',
-    // Roses
-    '#ff00ff', '#ec4899', '#db2777', '#be185d', '#9d174d', '#831843',
-    // Gris et Neutres
-    '#ffffff', '#f8fafc', '#e2e8f0', '#94a3b8', '#64748b', '#475569',
-    '#334155', '#1e293b', '#0f172a', '#020617', '#000000', '#1f2937',
-  ];
+  // Initialiser avec la couleur actuelle
+  useEffect(() => {
+    if (visible && currentColor) {
+      try {
+        const hsl = hexToHsl(currentColor);
+        setHue(hsl.h);
+        setSaturation(hsl.s);
+        setLightness(hsl.l);
+        setSelectedColor(currentColor);
+      } catch (e) {
+        // Couleur par défaut si erreur
+      }
+    }
+  }, [visible, currentColor]);
 
-  const updateColor = useCallback((h, s, l) => {
+  // Mettre à jour la couleur quand HSL change
+  const updateFromHSL = useCallback((h, s, l) => {
     const hex = hslToHex(h, s, l);
     setSelectedColor(hex);
   }, []);
 
-  // Pan responder pour le spectre de teinte
-  const huePanResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (e) => {
-      const x = Math.max(0, Math.min(e.nativeEvent.locationX, PICKER_WIDTH));
-      const newHue = Math.round((x / PICKER_WIDTH) * 360);
-      setHue(newHue);
-      updateColor(newHue, saturation, lightness);
-    },
-    onPanResponderMove: (e) => {
-      const x = Math.max(0, Math.min(e.nativeEvent.locationX, PICKER_WIDTH));
-      const newHue = Math.round((x / PICKER_WIDTH) * 360);
-      setHue(newHue);
-      updateColor(newHue, saturation, lightness);
-    },
-  });
+  // Génère les teintes (hues) pour la barre arc-en-ciel
+  const hueColors = Array.from({ length: 12 }, (_, i) => hslToHex(i * 30, 100, 50));
 
-  // Pan responder pour la saturation/luminosité
-  const slPanResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (e) => {
-      const x = Math.max(0, Math.min(e.nativeEvent.locationX, PICKER_WIDTH));
-      const y = Math.max(0, Math.min(e.nativeEvent.locationY, PICKER_HEIGHT));
-      const newSat = Math.round((x / PICKER_WIDTH) * 100);
-      const newLight = Math.round(100 - (y / PICKER_HEIGHT) * 100);
-      setSaturation(newSat);
-      setLightness(newLight);
-      updateColor(hue, newSat, newLight);
-    },
-    onPanResponderMove: (e) => {
-      const x = Math.max(0, Math.min(e.nativeEvent.locationX, PICKER_WIDTH));
-      const y = Math.max(0, Math.min(e.nativeEvent.locationY, PICKER_HEIGHT));
-      const newSat = Math.round((x / PICKER_WIDTH) * 100);
-      const newLight = Math.round(100 - (y / PICKER_HEIGHT) * 100);
-      setSaturation(newSat);
-      setLightness(newLight);
-      updateColor(hue, newSat, newLight);
-    },
-  });
+  // Génère les nuances de la teinte sélectionnée
+  const generateShades = () => {
+    const shades = [];
+    // Variations de luminosité (du clair au foncé)
+    for (let l = 90; l >= 10; l -= 20) {
+      shades.push(hslToHex(hue, saturation, l));
+    }
+    return shades;
+  };
 
-  const handleSelectPreset = (color) => {
+  // Génère les saturations de la teinte sélectionnée
+  const generateSaturations = () => {
+    const sats = [];
+    for (let s = 100; s >= 0; s -= 20) {
+      sats.push(hslToHex(hue, s, lightness));
+    }
+    return sats;
+  };
+
+  const handleHueSelect = (h) => {
+    setHue(h);
+    updateFromHSL(h, saturation, lightness);
+  };
+
+  const handleShadeSelect = (color) => {
+    const hsl = hexToHsl(color);
+    setLightness(hsl.l);
+    setSelectedColor(color);
+  };
+
+  const handleSaturationSelect = (color) => {
+    const hsl = hexToHsl(color);
+    setSaturation(hsl.s);
     setSelectedColor(color);
   };
 
@@ -122,82 +137,122 @@ export default function ColorPicker({
     onClose();
   };
 
+  const shades = generateShades();
+  const saturations = generateSaturations();
+
   return (
     <Modal
       visible={visible}
       transparent={true}
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <Text style={styles.title}>{title}</Text>
-
-          {/* Aperçu de la couleur sélectionnée */}
-          <View style={styles.previewRow}>
-            <View style={[styles.colorPreview, { backgroundColor: selectedColor }]} />
-            <Text style={styles.colorHex}>{selectedColor.toUpperCase()}</Text>
+          {/* En-tête avec titre et fermeture */}
+          <View style={styles.header}>
+            <Text style={styles.title}>{title}</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+              <Text style={styles.closeIcon}>✕</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Spectre de saturation/luminosité */}
-          <View style={styles.pickerSection}>
-            <Text style={styles.sectionLabel}>Saturation & Luminosité</Text>
-            <View 
-              style={[styles.slPicker, { backgroundColor: `hsl(${hue}, 100%, 50%)` }]}
-              {...slPanResponder.panHandlers}
+          {/* Aperçu de la couleur */}
+          <View style={styles.previewSection}>
+            <View style={styles.previewContainer}>
+              <View style={[styles.colorPreview, { backgroundColor: selectedColor }]}>
+                <View style={styles.previewShine} />
+              </View>
+              <View style={styles.previewInfo}>
+                <Text style={styles.colorHex}>{selectedColor.toUpperCase()}</Text>
+                <Text style={styles.colorLabel}>Couleur sélectionnée</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Sélecteur de teinte (arc-en-ciel) */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Teinte</Text>
+            <View style={styles.hueRow}>
+              {hueColors.map((color, index) => {
+                const h = index * 30;
+                const isSelected = Math.abs(hue - h) < 15;
+                return (
+                  <TouchableOpacity
+                    key={`hue-${index}`}
+                    style={[
+                      styles.hueColor,
+                      { backgroundColor: color },
+                      isSelected && styles.colorSelected,
+                    ]}
+                    onPress={() => handleHueSelect(h)}
+                    activeOpacity={0.7}
+                  />
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Sélecteur de luminosité */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Luminosité</Text>
+            <View style={styles.shadesRow}>
+              {shades.map((color, index) => {
+                const isSelected = selectedColor.toLowerCase() === color.toLowerCase() ||
+                  Math.abs(hexToHsl(color).l - lightness) < 5;
+                return (
+                  <TouchableOpacity
+                    key={`shade-${index}`}
+                    style={[
+                      styles.shadeColor,
+                      { backgroundColor: color },
+                      isSelected && styles.colorSelected,
+                    ]}
+                    onPress={() => handleShadeSelect(color)}
+                    activeOpacity={0.7}
+                  />
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Sélecteur de saturation */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Intensité</Text>
+            <View style={styles.shadesRow}>
+              {saturations.map((color, index) => {
+                const isSelected = Math.abs(hexToHsl(color).s - saturation) < 5;
+                return (
+                  <TouchableOpacity
+                    key={`sat-${index}`}
+                    style={[
+                      styles.shadeColor,
+                      { backgroundColor: color },
+                      isSelected && styles.colorSelected,
+                    ]}
+                    onPress={() => handleSaturationSelect(color)}
+                    activeOpacity={0.7}
+                  />
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Boutons d'action */}
+          <View style={styles.actions}>
+            <TouchableOpacity 
+              style={styles.cancelBtn} 
+              onPress={onClose}
+              activeOpacity={0.8}
             >
-              <View style={styles.saturationOverlay} />
-              <View style={styles.lightnessOverlay} />
-              <View 
-                style={[
-                  styles.slIndicator, 
-                  { 
-                    left: (saturation / 100) * PICKER_WIDTH - 10,
-                    top: ((100 - lightness) / 100) * PICKER_HEIGHT - 10,
-                  }
-                ]} 
-              />
-            </View>
-          </View>
-
-          {/* Spectre de teinte (arc-en-ciel) */}
-          <View style={styles.pickerSection}>
-            <Text style={styles.sectionLabel}>Teinte</Text>
-            <View style={styles.hueBar} {...huePanResponder.panHandlers}>
-              <View 
-                style={[
-                  styles.hueIndicator, 
-                  { left: (hue / 360) * PICKER_WIDTH - 8 }
-                ]} 
-              />
-            </View>
-          </View>
-
-          {/* Couleurs prédéfinies */}
-          <View style={styles.pickerSection}>
-            <Text style={styles.sectionLabel}>Couleurs rapides</Text>
-            <View style={styles.presetsGrid}>
-              {presetColors.map((color, index) => (
-                <TouchableOpacity
-                  key={`${color}-${index}`}
-                  style={[
-                    styles.presetColor,
-                    { backgroundColor: color },
-                    selectedColor === color && styles.presetSelected,
-                  ]}
-                  onPress={() => handleSelectPreset(color)}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* Boutons */}
-          <View style={styles.buttons}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
               <Text style={styles.cancelText}>Annuler</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
-              <Text style={styles.confirmText}>Confirmer</Text>
+            <TouchableOpacity 
+              style={[styles.confirmBtn, { backgroundColor: selectedColor }]} 
+              onPress={handleConfirm}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.confirmText}>✓ Valider</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -209,147 +264,165 @@ export default function ColorPicker({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 24,
   },
   container: {
-    backgroundColor: '#1f2937',
+    backgroundColor: '#1a1a2e',
     borderRadius: 20,
     padding: 20,
-    width: SCREEN_WIDTH - 40,
-    maxHeight: '90%',
+    width: Math.min(SCREEN_WIDTH - 48, 360),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 15,
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
-  previewRow: {
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeIcon: {
+    color: '#9ca3af',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  previewSection: {
+    marginBottom: 24,
+  },
+  previewContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    gap: 15,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    padding: 16,
   },
   colorPreview: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
+    width: 64,
+    height: 64,
+    borderRadius: 16,
     borderWidth: 3,
-    borderColor: '#fff',
+    borderColor: 'rgba(255,255,255,0.2)',
+    overflow: 'hidden',
+  },
+  previewShine: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderTopLeftRadius: 13,
+    borderTopRightRadius: 13,
+  },
+  previewInfo: {
+    marginLeft: 16,
+    flex: 1,
   },
   colorHex: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
+    fontWeight: '700',
     fontFamily: 'monospace',
-    fontWeight: 'bold',
+    letterSpacing: 1,
   },
-  pickerSection: {
-    marginBottom: 15,
+  colorLabel: {
+    color: '#6b7280',
+    fontSize: 12,
+    marginTop: 4,
   },
-  sectionLabel: {
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
     color: '#9ca3af',
     fontSize: 12,
-    marginBottom: 8,
+    fontWeight: '500',
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
-  slPicker: {
-    width: PICKER_WIDTH,
-    height: PICKER_HEIGHT,
-    borderRadius: 8,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  saturationOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'transparent',
-    backgroundImage: 'linear-gradient(to right, #fff, transparent)',
-  },
-  lightnessOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'transparent',
-    backgroundImage: 'linear-gradient(to bottom, transparent, #000)',
-  },
-  slIndicator: {
-    position: 'absolute',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: '#fff',
-    backgroundColor: 'transparent',
-  },
-  hueBar: {
-    width: PICKER_WIDTH,
-    height: 30,
-    borderRadius: 8,
-    background: 'linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)',
-    position: 'relative',
-  },
-  hueIndicator: {
-    position: 'absolute',
-    top: -3,
-    width: 16,
-    height: 36,
-    borderRadius: 4,
-    borderWidth: 3,
-    borderColor: '#fff',
-    backgroundColor: 'transparent',
-  },
-  presetsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  presetColor: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  presetSelected: {
-    borderColor: '#fbbf24',
-    transform: [{ scale: 1.1 }],
-  },
-  buttons: {
+  hueRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
-    gap: 15,
+  },
+  hueColor: {
+    width: 24,
+    height: 40,
+    borderRadius: 8,
+  },
+  shadesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  shadeColor: {
+    flex: 1,
+    height: 40,
+    marginHorizontal: 3,
+    borderRadius: 8,
+  },
+  colorSelected: {
+    borderWidth: 3,
+    borderColor: '#fff',
+    transform: [{ scale: 1.05 }],
+    shadowColor: '#fff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  actions: {
+    flexDirection: 'row',
+    marginTop: 8,
+    gap: 12,
   },
   cancelBtn: {
     flex: 1,
-    padding: 15,
+    paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#374151',
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   cancelText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#9ca3af',
+    fontSize: 15,
+    fontWeight: '500',
   },
   confirmBtn: {
     flex: 1,
-    padding: 15,
+    paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#6366f1',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   confirmText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });
