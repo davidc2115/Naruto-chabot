@@ -457,6 +457,13 @@ export default function CharacterCarouselScreen({ navigation }) {
             style={styles.card}
             imageStyle={styles.cardImage}
           >
+            {/* Cadre doré overlay */}
+            <Image 
+              source={require('../../assets/gold-frame.png')}
+              style={styles.goldFrameOverlay}
+              resizeMode="stretch"
+            />
+            
             {/* Overlay gradient */}
             <View style={styles.overlay} />
             
@@ -541,10 +548,17 @@ export default function CharacterCarouselScreen({ navigation }) {
         </Animated.View>
       </View>
 
-      {/* Bouton démarrer uniquement */}
+      {/* Bouton démarrer avec image dorée */}
       <View style={styles.buttonsContainer}>
         <TouchableOpacity style={styles.selectButton} onPress={handleSelect}>
-          <Text style={styles.selectButtonText}>💬 Démarrer la conversation</Text>
+          <ImageBackground
+            source={require('../../assets/gold-button.png')}
+            style={styles.goldButtonBg}
+            imageStyle={styles.goldButtonImage}
+            resizeMode="stretch"
+          >
+            <Text style={styles.selectButtonText}>💬 Démarrer</Text>
+          </ImageBackground>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -559,13 +573,13 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     backgroundColor: '#0a0a14',
-    paddingVertical: 8,
+    paddingVertical: 5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoImage: {
-    width: SCREEN_WIDTH * 0.85,
-    height: 70,
+    width: SCREEN_WIDTH * 0.95,
+    height: 85,
   },
   headerSafe: {
     backgroundColor: '#12121f',
@@ -786,15 +800,19 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     height: '100%',
-    borderRadius: 18,
+    borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#12121f',
-    borderWidth: 2,
-    borderColor: '#C9A227',
-    shadowColor: '#8B0000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+  },
+  goldFrameOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 10,
   },
   cardImage: {
     borderRadius: 24,
@@ -924,33 +942,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     backgroundColor: '#0a0a12',
-    borderTopWidth: 2,
-    borderTopColor: '#C9A227',
     zIndex: 10,
     elevation: 10,
   },
   selectButton: {
     flex: 1,
-    maxWidth: 260,
-    backgroundColor: '#C9A227',
-    paddingVertical: 10,
-    borderRadius: 22,
+    maxWidth: 280,
+    height: 50,
+    overflow: 'hidden',
+    borderRadius: 25,
+  },
+  goldButtonBg: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#8B0000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: '#8B6914',
+    width: '100%',
+    height: '100%',
+  },
+  goldButtonImage: {
+    borderRadius: 25,
   },
   selectButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#0a0a12',
+    color: '#fff',
+    textShadowColor: '#8B6914',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   emptyText: {
     fontSize: 18,
