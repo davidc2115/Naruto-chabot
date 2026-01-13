@@ -351,30 +351,62 @@ class ImageGenerationService {
       description += ', youthful adult, young adult';
     }
     
-    // === CHEVEUX DÉTAILLÉS (utilise hairColor en priorité) ===
+    // === CHEVEUX ULTRA-DÉTAILLÉS ===
     const hairColor = character.hairColor || this.extractFromAppearance(character, 'hair') || 'brown';
-    description += `, ${hairColor} hair`;
+    description += `, beautiful ${hairColor} hair`;
     
-    // Combiner appearance, physicalDescription et autres champs
+    // Combiner tous les champs pour analyse
     const appearance = (
       (character.appearance || '') + ' ' + 
       (character.physicalDescription || '') + ' ' +
-      (character.bodyType || '')
+      (character.bodyType || '') + ' ' +
+      (character.hairLength || '')
     ).toLowerCase();
-    if (appearance.includes('long') || appearance.includes('longs')) {
-      description += ', very long flowing hair reaching lower back';
-    } else if (appearance.includes('mi-long') || appearance.includes('shoulder')) {
-      description += ', shoulder-length medium hair';
-    } else if (appearance.includes('court') || appearance.includes('short')) {
-      description += ', short cropped hair';
+    
+    // Longueur des cheveux (utilise hairLength en priorité)
+    const hairLength = (character.hairLength || '').toLowerCase();
+    if (hairLength.includes('très long') || hairLength.includes('very long') || hairLength.includes('hanches') || hairLength.includes('taille')) {
+      description += ', extremely long flowing luxurious hair reaching waist or hips';
+    } else if (hairLength.includes('long') || appearance.includes('longs cheveux') || appearance.includes('long hair')) {
+      description += ', long beautiful flowing hair reaching lower back';
+    } else if (hairLength.includes('mi-long') || hairLength.includes('épaules') || appearance.includes('mi-long') || appearance.includes('shoulder')) {
+      description += ', medium shoulder-length hair';
+    } else if (hairLength.includes('court') || hairLength.includes('short') || appearance.includes('court')) {
+      description += ', short stylish cropped hair';
+    } else if (hairLength.includes('carré') || hairLength.includes('bob')) {
+      description += ', sleek bob cut hair';
+    } else if (hairLength.includes('pixie')) {
+      description += ', cute pixie cut short hair';
+    } else if (appearance.includes('long')) {
+      description += ', long flowing hair';
     } else {
       description += ', medium length hair';
     }
     
-    if (appearance.includes('bouclé') || appearance.includes('curly') || appearance.includes('ondulé')) {
-      description += ', curly wavy hair with natural curls';
-    } else if (appearance.includes('raides') || appearance.includes('straight') || appearance.includes('lisse')) {
-      description += ', straight sleek silky hair';
+    // Texture des cheveux
+    if (hairLength.includes('bouclé') || hairLength.includes('curly') || appearance.includes('bouclé') || appearance.includes('curly')) {
+      description += ', naturally curly bouncy hair with beautiful curls';
+    } else if (hairLength.includes('ondulé') || hairLength.includes('wavy') || appearance.includes('ondulé') || appearance.includes('wavy')) {
+      description += ', wavy flowing hair with soft waves';
+    } else if (hairLength.includes('lisse') || hairLength.includes('straight') || appearance.includes('raides') || appearance.includes('lisse')) {
+      description += ', perfectly straight sleek silky hair';
+    } else if (hairLength.includes('frisé') || appearance.includes('frisé')) {
+      description += ', tight curly frizzy hair';
+    } else if (hairLength.includes('tresse') || appearance.includes('tresse') || appearance.includes('braid')) {
+      description += ', beautifully braided hair';
+    }
+    
+    // Style spécifique
+    if (hairLength.includes('queue') || appearance.includes('queue de cheval') || appearance.includes('ponytail')) {
+      description += ', styled in ponytail';
+    } else if (hairLength.includes('chignon') || appearance.includes('chignon') || appearance.includes('bun')) {
+      description += ', styled in elegant bun';
+    } else if (hairLength.includes('frange') || appearance.includes('frange') || appearance.includes('bangs')) {
+      description += ', with cute bangs framing face';
+    } else if (hairLength.includes('undercut') || appearance.includes('undercut')) {
+      description += ', with edgy undercut style';
+    } else if (hairLength.includes('mèches') || appearance.includes('mèches') || appearance.includes('highlights')) {
+      description += ', with stylish highlights';
     }
     
     // === MORPHOLOGIE ===
@@ -669,70 +701,196 @@ class ImageGenerationService {
   buildAnatomyDescription(character, isRealistic = false) {
     let anatomy = '';
     
-    // === FEMMES - POITRINE (utilise bust OU bustSize OU extraction du texte) ===
+    // === FEMMES - POITRINE ULTRA-DÉTAILLÉE ===
     let bustSize = character.bust || character.bustSize || this.extractFromAppearance(character, 'bust');
-    if (character.gender === 'female' && bustSize) {
+    if (character.gender === 'female') {
       const bustDetails = {
-        'A': { size: 'small A cup breasts', details: 'petite chest, small perky bust, flat chested' },
-        'B': { size: 'small B cup breasts', details: 'modest bust, small perky breasts, cute small chest' },
-        'C': { size: 'medium C cup breasts', details: 'balanced bust, natural medium breasts, nice cleavage' },
-        'D': { size: 'large D cup breasts', details: 'voluptuous bust, full generous breasts, impressive cleavage' },
-        'DD': { size: 'very large DD cup breasts', details: 'very generous bust, full heavy breasts, deep cleavage' },
-        'E': { size: 'extremely large E cup breasts', details: 'impressive huge bust, massive full breasts, enormous cleavage' },
-        'F': { size: 'huge F cup breasts', details: 'huge voluptuous bust, enormous full breasts, gigantic cleavage' },
-        'G': { size: 'gigantic G cup breasts', details: 'gigantic massive bust, colossal breasts, impossibly large' },
-        'H': { size: 'enormous H cup breasts', details: 'enormous massive bust, incredibly huge breasts' }
+        'A': { size: 'small A cup breasts', details: 'petite perky chest, small firm breasts, delicate feminine bust, cute small nipples' },
+        'B': { size: 'natural B cup breasts', details: 'modest perky bust, small firm round breasts, cute feminine chest, pink nipples' },
+        'C': { size: 'medium C cup breasts', details: 'balanced natural bust, medium round firm breasts, nice feminine cleavage, perfect proportions' },
+        'D': { size: 'large D cup breasts', details: 'voluptuous generous bust, full round heavy breasts, impressive deep cleavage, feminine curves' },
+        'DD': { size: 'very large DD cup breasts', details: 'very generous voluptuous bust, full heavy round breasts, deep sensual cleavage, prominent nipples' },
+        'E': { size: 'huge E cup breasts', details: 'massive impressive bust, enormous full heavy breasts, extremely deep cleavage, large areolas' },
+        'F': { size: 'enormous F cup breasts', details: 'huge voluptuous bust, gigantic full heavy breasts, incredible cleavage, very large areolas' },
+        'G': { size: 'gigantic G cup breasts', details: 'gigantic massive bust, colossal heavy breasts, impossibly large chest, prominent nipples' },
+        'H': { size: 'massive H cup breasts', details: 'enormous massive bust, incredibly huge heavy breasts, extreme proportions' }
       };
       
-      // Normaliser la taille (peut être "Moyenne", "Généreuse", etc.)
-      let normalizedBust = bustSize;
-      if (bustSize.toLowerCase().includes('petit') || bustSize.toLowerCase().includes('small')) {
-        normalizedBust = 'B';
-      } else if (bustSize.toLowerCase().includes('moyen') || bustSize.toLowerCase().includes('medium')) {
-        normalizedBust = 'C';
-      } else if (bustSize.toLowerCase().includes('génér') || bustSize.toLowerCase().includes('large') || bustSize.toLowerCase().includes('voluptu')) {
-        normalizedBust = 'D';
-      } else if (bustSize.toLowerCase().includes('très') || bustSize.toLowerCase().includes('very') || bustSize.toLowerCase().includes('énorme')) {
-        normalizedBust = 'E';
+      // Normaliser la taille
+      let normalizedBust = 'C'; // Défaut
+      if (bustSize) {
+        const bustLower = bustSize.toLowerCase();
+        if (bustLower.includes('a') && !bustLower.includes('large')) normalizedBust = 'A';
+        else if (bustLower.includes('b') || bustLower.includes('petit') || bustLower.includes('small')) normalizedBust = 'B';
+        else if (bustLower.includes('c') || bustLower.includes('moyen') || bustLower.includes('medium')) normalizedBust = 'C';
+        else if (bustLower.includes('dd') || bustLower.includes('très') || bustLower.includes('very large')) normalizedBust = 'DD';
+        else if (bustLower.includes('d') || bustLower.includes('génér') || bustLower.includes('large') || bustLower.includes('voluptu')) normalizedBust = 'D';
+        else if (bustLower.includes('e') || bustLower.includes('énorme') || bustLower.includes('huge')) normalizedBust = 'E';
+        else if (bustLower.includes('f') || bustLower.includes('gigant')) normalizedBust = 'F';
+        else if (bustLower.includes('g')) normalizedBust = 'G';
+        else if (bustLower.includes('h')) normalizedBust = 'H';
+        // Si c'est une lettre seule
+        else if (['A','B','C','D','DD','E','F','G','H'].includes(bustSize.toUpperCase())) {
+          normalizedBust = bustSize.toUpperCase();
+        }
       }
       
-      const bustInfo = bustDetails[normalizedBust] || bustDetails[bustSize] || bustDetails['C'];
+      const bustInfo = bustDetails[normalizedBust] || bustDetails['C'];
       anatomy += `, ${bustInfo.size}, ${bustInfo.details}`;
       
-      // Ajouter des détails sur les hanches/taille
+      // Silhouette basée sur la poitrine
       if (['D', 'DD', 'E', 'F', 'G', 'H'].includes(normalizedBust)) {
-        anatomy += ', wide hips, hourglass figure, curvy body';
+        anatomy += ', wide feminine hips, hourglass figure, curvy sexy body, prominent bust';
+      } else if (['A', 'B'].includes(normalizedBust)) {
+        anatomy += ', slim elegant figure, petite feminine body, graceful silhouette';
+      } else {
+        anatomy += ', balanced feminine figure, natural curves, attractive proportions';
       }
     }
     
-    // === HOMMES - PHYSIQUE (basé sur maleSize ou penis en cm) ===
-    const maleSize = character.maleSize || character.penis;
-    if (character.gender === 'male' && maleSize) {
-      const penisSize = parseInt(maleSize) || 15;
+    // === HOMMES - PHYSIQUE ET ATTRIBUTS ===
+    if (character.gender === 'male') {
+      const bodyType = (character.bodyType || '').toLowerCase();
+      const appearance = (character.appearance || '').toLowerCase();
       
-      if (penisSize >= 25) {
-        anatomy += ', exceptionally muscular build, bodybuilder physique, massive muscles';
-        anatomy += ', very broad shoulders, huge pecs, rock-hard six-pack abs, V-shaped torso';
-      } else if (penisSize >= 22) {
-        anatomy += ', extremely muscular build, very broad shoulders, defined pecs, rock-hard abs';
-      } else if (penisSize >= 20) {
-        anatomy += ', very muscular athletic build, broad shoulders, six-pack abs, defined muscles';
-      } else if (penisSize >= 18) {
-        anatomy += ', muscular athletic build, defined chest, toned abs, fit body';
-      } else if (penisSize >= 15) {
-        anatomy += ', athletic build, toned physique, lean muscles';
+      // Déterminer le type de corps basé sur bodyType/appearance
+      if (bodyType.includes('muscl') || bodyType.includes('athléti') || appearance.includes('muscl')) {
+        anatomy += ', muscular athletic male body, broad shoulders, defined pecs, six-pack abs, V-shaped torso, strong arms';
+      } else if (bodyType.includes('mince') || bodyType.includes('slim') || bodyType.includes('élancé')) {
+        anatomy += ', slim lean male body, slender build, toned physique, narrow waist';
+      } else if (bodyType.includes('massif') || bodyType.includes('puissant') || bodyType.includes('trapu')) {
+        anatomy += ', massive powerful male body, very broad shoulders, thick muscular build, imposing physique';
+      } else if (bodyType.includes('moyen') || bodyType.includes('normal')) {
+        anatomy += ', average male build, normal proportions, healthy physique';
       } else {
-        anatomy += ', slim build, lean physique, slender body';
+        anatomy += ', fit male body, masculine build, natural proportions';
+      }
+      
+      // Taille du pénis (pour images explicites si mentionné)
+      const penisSize = character.penis || character.maleSize;
+      if (penisSize) {
+        const size = parseInt(penisSize) || 15;
+        if (size >= 22) {
+          anatomy += ', very well endowed, impressive masculine attributes';
+        } else if (size >= 18) {
+          anatomy += ', well endowed, masculine attributes';
+        }
+      }
+    }
+    
+    // === TEMPÉRAMENT (influence l'expression et la pose) ===
+    const temperament = (character.temperament || '').toLowerCase();
+    if (temperament) {
+      if (temperament.includes('dominant') || temperament.includes('confiant')) {
+        anatomy += ', confident powerful expression, dominant commanding presence, intense gaze';
+      } else if (temperament.includes('timide') || temperament.includes('shy') || temperament.includes('gentle')) {
+        anatomy += ', soft gentle expression, shy demure look, sweet innocent face';
+      } else if (temperament.includes('passionn') || temperament.includes('passion')) {
+        anatomy += ', passionate intense expression, burning desire in eyes, fiery presence';
+      } else if (temperament.includes('mysterious') || temperament.includes('mystér')) {
+        anatomy += ', mysterious enigmatic expression, alluring secretive gaze, intriguing presence';
+      } else if (temperament.includes('playful') || temperament.includes('joueur') || temperament.includes('espiègle')) {
+        anatomy += ', playful mischievous expression, teasing smile, fun spirited presence';
+      } else if (temperament.includes('caring') || temperament.includes('doux') || temperament.includes('tender')) {
+        anatomy += ', warm caring expression, gentle loving eyes, nurturing presence';
+      } else if (temperament.includes('flirt') || temperament.includes('séduct')) {
+        anatomy += ', flirtatious seductive expression, bedroom eyes, alluring inviting look';
+      } else if (temperament.includes('direct') || temperament.includes('assertive')) {
+        anatomy += ', direct assertive expression, confident bold gaze, straightforward presence';
       }
     }
     
     // Pour réaliste: insister sur l'anatomie correcte
     if (isRealistic) {
       anatomy += ', correct human anatomy, proper body proportions, natural limb positions';
-      anatomy += ', realistic hands with five fingers each, proper arm length';
+      anatomy += ', realistic hands with five fingers each, proper arm length, symmetrical features';
     }
     
     return anatomy;
+  }
+
+  /**
+   * Génère un profil d'apparence physique ULTRA-DÉTAILLÉ pour un personnage
+   * Utilisé pour la page de profil et les descriptions
+   */
+  generateCompletePhysicalProfile(character) {
+    let profile = '';
+    
+    // Genre et âge
+    if (character.gender === 'female') {
+      profile += `Femme de ${character.age || '?'} ans`;
+    } else if (character.gender === 'male') {
+      profile += `Homme de ${character.age || '?'} ans`;
+    } else {
+      profile += `Personne de ${character.age || '?'} ans`;
+    }
+    
+    // Taille
+    if (character.height) {
+      profile += ` mesurant ${character.height}`;
+    }
+    
+    // Type de corps
+    if (character.bodyType) {
+      profile += `, silhouette ${character.bodyType}`;
+    }
+    
+    profile += '.\n\n';
+    
+    // Cheveux
+    profile += '💇 CHEVEUX: ';
+    if (character.hairColor) {
+      profile += `${character.hairColor}`;
+    }
+    if (character.hairLength) {
+      profile += `, ${character.hairLength}`;
+    }
+    profile += '\n';
+    
+    // Yeux
+    profile += '👁️ YEUX: ';
+    if (character.eyeColor) {
+      profile += `${character.eyeColor}`;
+    }
+    profile += '\n';
+    
+    // Peau
+    if (character.skinTone) {
+      profile += `🎨 PEAU: ${character.skinTone}\n`;
+    }
+    
+    // Corps spécifique selon le genre
+    if (character.gender === 'female') {
+      profile += '👗 SILHOUETTE: ';
+      if (character.bust) {
+        profile += `Poitrine ${character.bust}`;
+      }
+      if (character.bodyType) {
+        profile += `, corps ${character.bodyType}`;
+      }
+      profile += '\n';
+    } else if (character.gender === 'male') {
+      profile += '💪 PHYSIQUE: ';
+      if (character.bodyType) {
+        profile += `Corps ${character.bodyType}`;
+      }
+      if (character.penis) {
+        profile += `, ${character.penis} cm`;
+      }
+      profile += '\n';
+    }
+    
+    // Tempérament
+    if (character.temperament) {
+      profile += `🎭 TEMPÉRAMENT: ${character.temperament}\n`;
+    }
+    
+    // Description complète
+    if (character.appearance) {
+      profile += `\n📝 DESCRIPTION COMPLÈTE:\n${character.appearance}`;
+    }
+    
+    return profile;
   }
 
   /**
