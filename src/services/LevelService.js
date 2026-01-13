@@ -381,6 +381,7 @@ class LevelService {
   /**
    * Génère le prompt ULTRA-DÉTAILLÉ pour l'image de récompense selon le type
    * Inclut qualité professionnelle et détails anatomiques
+   * MAINTENANT AVEC GRANDE VARIÉTÉ - Plusieurs options par type
    */
   getRewardImagePrompt(imageType, character) {
     // Préfixe selon le genre
@@ -388,41 +389,148 @@ class LevelService {
       ? 'beautiful gorgeous woman, feminine curves, perfect female body'
       : 'handsome attractive man, masculine features, perfect male body';
     
-    // Prompts ultra-détaillés par type avec qualité maximale
-    const detailedPrompts = {
-      // Niveau 2 - Lingerie
-      'lingerie': `${genderDesc}, wearing exquisite French lace lingerie set, matching elegant bra and panties with delicate lace patterns, garter belt with silk stockings, seductive confident pose sitting on luxurious bed, soft romantic bedroom lighting, silk sheets, intimate atmosphere, looking at viewer with desire`,
+    // Lieux variés pour les récompenses
+    const rewardLocations = [
+      'in luxurious master bedroom with silk sheets',
+      'in marble bathroom, steam rising',
+      'by infinity pool at sunset',
+      'on private yacht deck',
+      'in penthouse with city night view',
+      'on fur rug near fireplace',
+      'in tropical private beach bungalow',
+      'in modern minimalist studio',
+      'in vintage boudoir with velvet furniture',
+      'in candlelit spa room',
+    ];
+    
+    // Éclairages variés
+    const rewardLighting = [
+      'soft romantic golden hour lighting',
+      'dramatic chiaroscuro studio lighting',
+      'warm candlelight glow',
+      'natural window sunlight',
+      'pink and blue neon aesthetic',
+      'fireplace warm flickering light',
+      'moonlight through sheer curtains',
+      'professional softbox photography lighting',
+    ];
+    
+    // Sélection aléatoire
+    const location = rewardLocations[Math.floor(Math.random() * rewardLocations.length)];
+    const lighting = rewardLighting[Math.floor(Math.random() * rewardLighting.length)];
+    
+    // Prompts ultra-détaillés par type avec VARIÉTÉ - Plusieurs options chacun
+    const promptVariations = {
+      // Niveau 2 - Lingerie - 6 VARIATIONS
+      'lingerie': [
+        `${genderDesc}, wearing exquisite French lace lingerie set, matching elegant bra and panties, garter belt with silk stockings, ${location}, ${lighting}, seductive confident pose`,
+        `${genderDesc}, wearing red satin lingerie, push-up bra emphasizing cleavage, lace thong, ${location}, ${lighting}, lying seductively on bed`,
+        `${genderDesc}, wearing black velvet lingerie set, strappy details, ${location}, ${lighting}, standing by mirror admiring reflection`,
+        `${genderDesc}, wearing white bridal lingerie, innocent yet sexy, sheer fabric, ${location}, ${lighting}, sitting elegantly`,
+        `${genderDesc}, wearing mesh bodysuit over bare skin, provocative peek-a-boo style, ${location}, ${lighting}, confident pose`,
+        `${genderDesc}, wearing corset with garter straps, classic burlesque style, ${location}, ${lighting}, glamorous pose`,
+      ],
       
-      // Niveau 3 - Provocant
-      'provocative': `${genderDesc}, wearing sheer see-through negligee, fabric so thin that skin and curves visible underneath, nipples showing through delicate material, provocative teasing pose lying on satin sheets, sensual dim lighting with warm tones, bedroom boudoir setting, seductive inviting expression`,
+      // Niveau 3 - Provocant - 6 VARIATIONS
+      'provocative': [
+        `${genderDesc}, wearing sheer see-through negligee, body visible through fabric, ${location}, ${lighting}, provocative teasing pose`,
+        `${genderDesc}, wearing wet white t-shirt clinging to body, everything visible underneath, ${location}, ${lighting}, playful pose`,
+        `${genderDesc}, wearing open silk robe with nothing underneath, barely covered, ${location}, ${lighting}, sensual standing pose`,
+        `${genderDesc}, wearing fishnet dress over lingerie, skin visible through mesh, ${location}, ${lighting}, confident strut`,
+        `${genderDesc}, wearing backless dress with side cutouts, daring fashion, ${location}, ${lighting}, elegant turn`,
+        `${genderDesc}, wearing oversized shirt unbuttoned, hints of bare body, ${location}, ${lighting}, casual morning pose`,
+      ],
       
-      // Niveau 4 - Sous-vêtements
-      'underwear': `${genderDesc}, wearing only tiny elegant thong panties, upper body completely bare and exposed, perfect natural breasts fully visible, confident sensual pose with hands on hips, intimate private bedroom, soft golden hour lighting, artistic composition, nothing hidden`,
+      // Niveau 4 - Sous-vêtements/Topless - 6 VARIATIONS
+      'underwear': [
+        `${genderDesc}, topless wearing only tiny thong panties, bare breasts visible, ${location}, ${lighting}, confident pose hands on hips`,
+        `${genderDesc}, nude from waist up wearing only jeans unbuttoned, casual sexy, ${location}, ${lighting}, relaxed standing`,
+        `${genderDesc}, topless in shower steam, wearing only bikini bottom, wet body, ${location}, ${lighting}, sensual`,
+        `${genderDesc}, bare chested holding sheet across hips, just woke up look, ${location}, ${lighting}, sleepy sexy`,
+        `${genderDesc}, topless wearing garter belt and stockings only, classic boudoir, ${location}, ${lighting}, sitting on bed edge`,
+        `${genderDesc}, nude torso wearing only heels and jewelry, glamorous, ${location}, ${lighting}, standing profile`,
+      ],
       
-      // Niveau 5 - Topless
-      'topless': `${genderDesc}, topless with beautiful bare breasts fully exposed, perfect natural breast shape, visible nipples, wearing only delicate lace panties and high heels, elegant artistic sensual pose, professional boudoir photography lighting, silk backdrop, confident sexy expression`,
+      // Niveau 5 - Topless explicite - 6 VARIATIONS
+      'topless': [
+        `${genderDesc}, topless with breasts fully exposed, perfect natural shape, ${location}, ${lighting}, elegant artistic pose`,
+        `${genderDesc}, bare breasted kneeling on bed, hands in hair, ${location}, ${lighting}, sensual expression`,
+        `${genderDesc}, topless stretching arms up, body elongated, ${location}, ${lighting}, morning stretch`,
+        `${genderDesc}, nude from waist up in bathtub, bubbles partially covering, ${location}, ${lighting}, relaxed`,
+        `${genderDesc}, topless by pool, water glistening on skin, ${location}, ${lighting}, sun-kissed`,
+        `${genderDesc}, bare chested lying on fur rug, glamour style, ${location}, ${lighting}, vintage pose`,
+      ],
       
-      // Niveau 6 - Nu artistique
-      'artistic_nude': `${genderDesc}, completely nude artistic full body shot, every curve visible, breasts and full body exposed, elegant sophisticated pose like classical painting, professional studio boudoir lighting, artistic shadows enhancing curves, nothing hidden, natural beauty celebrated`,
+      // Niveau 6 - Nu artistique - 6 VARIATIONS
+      'artistic_nude': [
+        `${genderDesc}, completely nude artistic full body, classical painting pose, ${location}, ${lighting}, shadows enhancing curves`,
+        `${genderDesc}, fully naked by window, natural light silhouette, ${location}, ${lighting}, ethereal beauty`,
+        `${genderDesc}, nude on silk sheets, elegant reclining pose, ${location}, ${lighting}, nothing hidden`,
+        `${genderDesc}, completely bare in mirror reflection, artistic composition, ${location}, ${lighting}, confident`,
+        `${genderDesc}, naked kneeling meditation pose, peaceful sensuality, ${location}, ${lighting}, serene`,
+        `${genderDesc}, artistic nude standing back view, spine and curves visible, ${location}, ${lighting}, elegant`,
+      ],
       
-      // Niveau 7 - Nu sensuel
-      'sensual_nude': `${genderDesc}, sensual nude lying naked on luxurious silk sheets, romantic intimate atmosphere, body fully exposed from head to toe, breasts visible, legs slightly parted, soft candlelight and rose petals, passionate loving expression, bedroom setting`,
+      // Niveau 7 - Nu sensuel - 6 VARIATIONS
+      'sensual_nude': [
+        `${genderDesc}, sensual nude lying on luxurious silk sheets, ${location}, ${lighting}, romantic atmosphere`,
+        `${genderDesc}, naked body glistening with massage oil, ${location}, ${lighting}, sensual relaxation`,
+        `${genderDesc}, nude in candlelit bath with rose petals, ${location}, ${lighting}, romantic`,
+        `${genderDesc}, completely bare stretching on bed, morning sensuality, ${location}, ${lighting}, natural`,
+        `${genderDesc}, naked cuddling soft pillow, vulnerable intimate, ${location}, ${lighting}, tender`,
+        `${genderDesc}, fully nude in hot tub steam, relaxed sensual, ${location}, ${lighting}, steamy`,
+      ],
       
-      // Niveau 8 - Très sexy
-      'very_sexy': `${genderDesc}, very sexy completely nude pose on bed, legs parted invitingly, full frontal exposure nothing hidden, breasts and intimate areas visible, erotic provocative position, hot passionate atmosphere, bedroom with dim red lighting, intense desire in eyes`,
+      // Niveau 8 - Très sexy - 6 VARIATIONS
+      'very_sexy': [
+        `${genderDesc}, very sexy nude on bed, legs parted invitingly, ${location}, ${lighting}, erotic atmosphere`,
+        `${genderDesc}, completely naked on hands and knees, looking back seductively, ${location}, ${lighting}, provocative`,
+        `${genderDesc}, nude spread on leather couch, confident display, ${location}, ${lighting}, bold`,
+        `${genderDesc}, naked in shower with water streaming, everything visible, ${location}, ${lighting}, wet body`,
+        `${genderDesc}, fully bare bent over vanity, rear view emphasized, ${location}, ${lighting}, teasing`,
+        `${genderDesc}, completely nude legs spread in chair, inviting pose, ${location}, ${lighting}, hot`,
+      ],
       
-      // Niveau 9 - Érotique
-      'erotic': `${genderDesc}, highly erotic nude pose, explicit intimate position with legs spread, everything fully visible and exposed, passionate aroused expression, hot steamy bedroom atmosphere, body glistening, extremely provocative sensual position`,
+      // Niveau 9 - Érotique - 6 VARIATIONS
+      'erotic': [
+        `${genderDesc}, highly erotic nude, legs spread wide, everything exposed, ${location}, ${lighting}, passionate`,
+        `${genderDesc}, explicit nude position on bed, nothing hidden, ${location}, ${lighting}, intense desire`,
+        `${genderDesc}, naked spread eagle fully revealed, ${location}, ${lighting}, maximum intimacy`,
+        `${genderDesc}, erotic nude bent forward, rear exposed, ${location}, ${lighting}, provocative view`,
+        `${genderDesc}, completely open nude pose, legs high, ${location}, ${lighting}, explicit sensuality`,
+        `${genderDesc}, ultimate exposure nude kneeling, everything visible, ${location}, ${lighting}, erotic`,
+      ],
       
-      // Niveau 10 - Ultra hot
-      'ultra_hot': `${genderDesc}, maximum erotic nude, most explicit provocative pose possible, legs wide open revealing everything, complete full exposure, intensely sexual position, hot passionate atmosphere, nothing left to imagination, ultimate sensuality`,
+      // Niveau 10 - Ultra hot - 6 VARIATIONS
+      'ultra_hot': [
+        `${genderDesc}, maximum erotic nude, most explicit pose, legs wide revealing all, ${location}, ${lighting}, ultimate sensuality`,
+        `${genderDesc}, extremely explicit nude, complete exposure, nothing hidden, ${location}, ${lighting}, peak eroticism`,
+        `${genderDesc}, ultimate sexual pose, full frontal spread, ${location}, ${lighting}, intensely hot`,
+        `${genderDesc}, most provocative nude possible, absolute maximum display, ${location}, ${lighting}, passionate`,
+        `${genderDesc}, extreme explicit position, everything on show, ${location}, ${lighting}, ultimate intimacy`,
+        `${genderDesc}, maximum exposure nude, most revealing pose imaginable, ${location}, ${lighting}, complete vulnerability`,
+      ],
       
-      // Galerie spéciale
-      'special_gallery': `${genderDesc}, exclusive professional erotic nude photoshoot quality, multiple artistic poses implied, full body completely exposed, mix of elegant and provocative positions, professional erotica magazine quality, perfect lighting and composition`,
+      // Galerie spéciale - 4 VARIATIONS
+      'special_gallery': [
+        `${genderDesc}, professional erotic photoshoot, artistic nude poses, ${location}, ${lighting}, magazine quality`,
+        `${genderDesc}, exclusive boudoir session, mix of elegant and explicit, ${location}, ${lighting}, high-end erotica`,
+        `${genderDesc}, private intimate photography, artistic sensuality, ${location}, ${lighting}, personal collection`,
+        `${genderDesc}, luxury nude photoshoot, multiple poses implied, ${location}, ${lighting}, professional quality`,
+      ],
       
-      // Personnalisé
-      'custom': `${genderDesc}, personalized intimate nude session, unique creative sexy pose tailored to personality, special private romantic setting, ultimate exposure with artistic flair, deeply personal and sensual atmosphere`,
+      // Personnalisé - 4 VARIATIONS
+      'custom': [
+        `${genderDesc}, personalized intimate nude session, unique creative pose, ${location}, ${lighting}, deeply personal`,
+        `${genderDesc}, custom fantasy fulfillment, special request pose, ${location}, ${lighting}, tailored sensuality`,
+        `${genderDesc}, exclusive private moment captured, intimate exposure, ${location}, ${lighting}, personal connection`,
+        `${genderDesc}, one-of-a-kind erotic pose, special setting, ${location}, ${lighting}, unique experience`,
+      ],
     };
+    
+    // Sélectionner une variation aléatoire
+    const variations = promptVariations[imageType] || promptVariations['lingerie'];
+    const basePrompt = variations[Math.floor(Math.random() * variations.length)];
     
     // Prompt de qualité à ajouter
     const qualityBoost = ', hyper-realistic photograph, 8K ultra HD resolution, professional DSLR camera quality, perfect sharp focus, studio lighting, skin texture visible, photorealistic details, masterpiece quality, award-winning photography';
@@ -430,7 +538,6 @@ class LevelService {
     // Prompt anatomique pour éviter les défauts
     const anatomyBoost = ', anatomically perfect human body, correct proportions, exactly two arms two legs, proper hands with five fingers, symmetrical face, natural body position, single person solo';
     
-    const basePrompt = detailedPrompts[imageType] || detailedPrompts['lingerie'];
     return basePrompt + qualityBoost + anatomyBoost;
   }
 

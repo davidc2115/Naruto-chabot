@@ -68,7 +68,148 @@ class ImageGenerationService {
       'jpeg artifacts, compression artifacts, noise, grainy, ' +
       'ugly, grotesque, horror, creepy, nightmare, zombie';
     
-    // TENUES NSFW ALÉATOIRES
+    // === GRANDE VARIÉTÉ DE POSITIONS ===
+    this.positions = {
+      standing: [
+        'standing confidently, hand on hip, weight on one leg',
+        'standing tall against wall, one leg bent, seductive lean',
+        'standing in doorway, silhouette pose, dramatic lighting',
+        'standing by window, natural light, elegant posture',
+        'standing with arms raised above head, stretching sensually',
+        'standing from behind, looking over shoulder, back view',
+        'standing side profile, elegant curves emphasized',
+      ],
+      sitting: [
+        'sitting elegantly on velvet armchair, legs crossed',
+        'sitting on bed edge, legs slightly apart, inviting',
+        'sitting on floor, knees up, casual intimate',
+        'sitting in bathtub, surrounded by bubbles',
+        'sitting at vanity mirror, applying makeup',
+        'sitting cross-legged on silk sheets',
+        'sitting with legs to side, graceful pose',
+      ],
+      lying: [
+        'lying on back on bed, arms above head, relaxed',
+        'lying on stomach, feet up, playful pose',
+        'lying on side, propped on elbow, curves emphasized',
+        'lying in bathtub, only head and shoulders visible',
+        'lying on fur rug, luxurious sensual',
+        'lying sprawled on silk sheets, carefree',
+        'lying with one knee bent, inviting pose',
+      ],
+      kneeling: [
+        'kneeling on bed, sitting back on heels',
+        'kneeling upright, hands on thighs',
+        'kneeling forward, hands on bed, arched back',
+        'kneeling side view, elegant profile',
+        'kneeling from behind, looking back over shoulder',
+      ],
+      bending: [
+        'bending forward slightly, showing cleavage',
+        'bent over vanity, looking in mirror',
+        'bending to pick something up, rear view',
+        'arching back dramatically, sensual curve',
+        'leaning forward on hands and knees',
+      ],
+      special: [
+        'stretching like just woke up, natural beauty',
+        'getting out of shower, water droplets on skin',
+        'stepping into or out of bathtub',
+        'undressing, clothing halfway off',
+        'wrapped in sheet or towel, partially fallen',
+        'exercising, yoga pose, flexible body',
+        'dancing sensually, movement captured',
+      ],
+    };
+    
+    // === GRANDE VARIÉTÉ DE LIEUX ===
+    this.locations = {
+      bedroom: [
+        'in luxurious master bedroom, silk sheets, romantic atmosphere',
+        'on king-size bed with satin pillows, intimate setting',
+        'bedroom with fairy lights, dreamy ambiance',
+        'modern minimalist bedroom, clean aesthetic',
+        'vintage boudoir room, antique furniture, elegant',
+      ],
+      bathroom: [
+        'in marble bathroom, steam from hot water',
+        'near clawfoot bathtub, vintage elegant',
+        'in modern shower, glass walls, water streaming',
+        'by bathroom mirror, steamy atmosphere',
+        'in jacuzzi with bubbles, relaxing',
+      ],
+      pool: [
+        'by infinity pool, sunset background',
+        'in swimming pool, wet body glistening',
+        'poolside on lounger, tropical setting',
+        'near waterfall pool feature, exotic',
+      ],
+      nature: [
+        'on private beach, waves in background',
+        'in forest clearing, natural sunlight',
+        'near lake at sunset, golden hour',
+        'in flower field, romantic natural setting',
+        'on balcony overlooking ocean',
+      ],
+      interior: [
+        'in penthouse with city view at night',
+        'by fireplace, warm flickering light',
+        'on leather couch in living room',
+        'in artist studio with natural light',
+        'in front of large window, silhouette',
+        'on fur rug near fireplace',
+        'in walk-in closet, mirror reflection',
+      ],
+      special: [
+        'hotel room with rose petals on bed',
+        'yacht deck at sunset, luxury atmosphere',
+        'private sauna, steamy hot atmosphere',
+        'backstage dressing room, glamorous',
+        'photo studio with professional lighting',
+      ],
+    };
+    
+    // === VARIÉTÉ DE TYPES DE PHOTOS ===
+    this.shotTypes = [
+      'full body shot showing entire figure',
+      'three-quarter shot from thighs up',
+      'upper body portrait, chest and face focus',
+      'close-up portrait, face and shoulders',
+      'back view showing spine and curves',
+      'side profile emphasizing silhouette',
+      'from above looking down, unique angle',
+      'low angle looking up, dramatic perspective',
+    ];
+    
+    // === VARIÉTÉ D'ÉCLAIRAGES ===
+    this.lightingStyles = [
+      'soft romantic candlelight, warm golden glow',
+      'natural window light, gentle shadows',
+      'dramatic chiaroscuro, strong contrast',
+      'neon light pink and blue, modern aesthetic',
+      'golden hour sunset light, magical',
+      'studio professional lighting, flawless',
+      'moonlight through window, ethereal blue',
+      'fireplace warm glow, intimate cozy',
+      'backlit silhouette, mysterious',
+      'soft diffused light, dreamy atmosphere',
+    ];
+    
+    // === VARIÉTÉ D'AMBIANCES ===
+    this.moods = [
+      'romantic passionate atmosphere, desire in the air',
+      'playful teasing mood, mischievous smile',
+      'elegant sophisticated, classy sensuality',
+      'wild untamed energy, passionate intensity',
+      'soft tender intimate, loving gaze',
+      'mysterious seductive, enigmatic allure',
+      'confident powerful, dominant presence',
+      'innocent sweet, subtle sensuality',
+      'hot steamy, intense desire',
+      'relaxed comfortable, natural beauty',
+    ];
+    
+    // TENUES NSFW ALÉATOIRES - TRÈS VARIÉES
     this.nsfwOutfits = [
       'wearing sexy lingerie, lace underwear',
       'wearing silk robe, partially open',
@@ -92,68 +233,171 @@ class ImageGenerationService {
       'stretching, body exposed',
     ];
   }
+  
+  /**
+   * Sélectionne un élément aléatoire d'un tableau
+   */
+  randomChoice(array) {
+    return array[Math.floor(Math.random() * array.length)];
+  }
+  
+  /**
+   * Sélectionne un élément aléatoire d'une catégorie dans un objet
+   */
+  randomFromCategory(obj) {
+    const categories = Object.keys(obj);
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    return this.randomChoice(obj[category]);
+  }
+  
+  /**
+   * Génère une combinaison unique de position + lieu + éclairage + ambiance
+   */
+  generateVariedSceneElements() {
+    return {
+      position: this.randomFromCategory(this.positions),
+      location: this.randomFromCategory(this.locations),
+      shotType: this.randomChoice(this.shotTypes),
+      lighting: this.randomChoice(this.lightingStyles),
+      mood: this.randomChoice(this.moods),
+    };
+  }
 
   /**
    * Retourne une tenue basée sur le niveau de relation
    * Progression: habillé → suggestif → lingerie → topless → nu
+   * GRANDE VARIÉTÉ avec différentes options par niveau
    */
   getOutfitByLevel(level) {
     const lvl = Math.min(Math.max(1, level || 1), 10);
     const outfits = {
-      // Niveau 1 - Habillé mais suggestif
+      // Niveau 1 - Habillé mais suggestif - TRÈS VARIÉ
       1: [
-        'wearing elegant form-fitting dress showing curves, cleavage hint visible',
+        'wearing elegant form-fitting cocktail dress showing curves, cleavage hint visible',
         'wearing tight jeans and crop top exposing toned midriff, casual sexy',
         'wearing short skirt and blouse with top buttons undone, legs visible',
+        'wearing sundress with deep V neckline, summery and flirty',
+        'wearing bodycon mini dress, curves hugging fabric',
+        'wearing off-shoulder sweater dress, bare shoulders',
+        'wearing high slit evening gown, leg exposed',
+        'wearing yoga pants and sports bra, athletic sexy',
+        'wearing oversized shirt unbuttoned, hints of body underneath',
+        'wearing swimsuit coverup partially open, bikini peeking through',
       ],
-      // Niveau 2 - Lingerie sexy
+      // Niveau 2 - Lingerie sexy - TRÈS VARIÉ
       2: [
-        'wearing beautiful lace lingerie set, matching bra and panties, delicate lace details, feminine and seductive',
-        'wearing silk lingerie with lace trim, elegant underwear, sitting on bed',
-        'wearing sexy corset with garter belt and stockings, classic lingerie look',
-        'wearing satin babydoll nightgown, semi-transparent, romantic lighting',
+        'wearing beautiful French lace lingerie set, matching bra and panties, delicate lace details',
+        'wearing silk lingerie with lace trim, elegant underwear, on bed',
+        'wearing sexy corset with garter belt and stockings, classic burlesque',
+        'wearing satin babydoll nightgown, semi-transparent, romantic',
+        'wearing mesh bodysuit, body visible through fabric',
+        'wearing velvet lingerie set, luxurious sensual',
+        'wearing white bridal lingerie, innocent yet sexy',
+        'wearing red satin slip dress, seductive classic',
+        'wearing strappy harness lingerie, edgy bold',
+        'wearing sheer robe over bra and panties, teasing',
+        'wearing lace teddy, one-piece lingerie, elegant',
+        'wearing camisole and shorts pajama set, bedroom casual',
       ],
-      // Niveau 3 - Très suggestif / transparent
+      // Niveau 3 - Très suggestif / transparent - TRÈS VARIÉ
       3: [
-        'wearing sheer see-through negligee, nipples visible through thin fabric, teasing',
-        'wearing only tiny lace thong, arms crossed over chest, teasing topless',
-        'wearing open silk robe revealing lingerie underneath, sensual pose',
-        'wearing micro bikini barely covering anything, string bikini',
+        'wearing sheer see-through negligee, nipples visible through thin fabric',
+        'wearing only tiny lace thong, arms covering chest, teasing topless',
+        'wearing open silk robe revealing lingerie, sensual',
+        'wearing micro bikini barely covering, string bikini',
+        'wearing wet white t-shirt clinging to body, see-through',
+        'wearing fishnet bodysuit over bare skin, daring',
+        'wearing only apron from behind, kitchen fantasy',
+        'wearing transparent mesh dress, nothing underneath',
+        'wearing open shirt with just panties, morning after look',
+        'wearing body chain jewelry only over panties, decorative',
+        'wearing backless dress with no underwear, exposed back',
+        'wearing cutout swimsuit, strategic skin visible',
       ],
-      // Niveau 4 - Topless
+      // Niveau 4 - Topless - TRÈS VARIÉ
       4: [
-        'topless, bare breasts fully visible, perfect natural breasts, wearing only lace panties',
-        'nude from waist up, beautiful breasts exposed, wearing only stockings and heels',
-        'topless with erect nipples visible, hands on hips confidently, wearing only thong',
-        'bare chested, breasts natural and beautiful, elegant pose, minimal clothing',
+        'topless, bare breasts visible, wearing only lace panties',
+        'nude from waist up, breasts exposed, wearing stockings and heels',
+        'topless with hands on hips, wearing only thong',
+        'bare chested, wearing only jeans unbuttoned',
+        'topless wearing only garter belt and stockings, boudoir',
+        'upper body nude, wrapped in sheet from waist down',
+        'topless in shower, water streaming down body',
+        'nude torso, wearing only jewelry and heels',
+        'topless lying on stomach, back visible',
+        'bare breasted, holding pillow strategically',
+        'topless by pool, wearing only bikini bottom',
+        'nude from waist up, painter smock open, artistic',
       ],
-      // Niveau 5 - Nu artistique
+      // Niveau 5 - Nu artistique - TRÈS VARIÉ
       5: [
-        'completely nude, full frontal artistic pose, nothing hidden, natural beauty',
-        'fully naked lying elegantly on silk sheets, all curves visible, sensual',
-        'nude confident pose, breasts and body fully exposed, professional boudoir',
-        'naked standing gracefully, full body visible, artistic lighting',
+        'completely nude, full frontal artistic pose, natural beauty',
+        'fully naked lying on silk sheets, elegant',
+        'nude confident standing pose, professional boudoir',
+        'naked in bathtub, bubbles partially covering',
+        'artistic nude on fur rug, classic glamour',
+        'nude by window, natural light, ethereal',
+        'completely naked kneeling pose, graceful',
+        'nude from behind, full back and curves visible',
+        'naked sitting cross-legged, meditation pose',
+        'nude stretched out on bed, lazy morning',
+        'fully nude in mirror reflection, artistic',
+        'naked outdoors, natural setting, free spirit',
       ],
-      // Niveau 6+ - Nu sensuel/érotique
+      // Niveau 6 - Nu sensuel
       6: [
-        'sensual nude pose, lying naked invitingly, romantic atmosphere, everything visible',
-        'erotic nude, passionate expression, body fully exposed, intimate setting',
+        'sensual nude lying invitingly, romantic atmosphere',
+        'erotic nude, passionate expression, intimate setting',
+        'naked on silk sheets, body glistening with oil',
+        'nude in candlelight, warm romantic glow',
+        'fully exposed lying on stomach, arched back',
+        'naked cuddling pillow, vulnerable sexy',
+        'nude stretching in morning light, natural',
+        'completely bare in hot tub, steamy',
       ],
+      // Niveau 7 - Nu provocant
       7: [
-        'very sexy nude pose, legs slightly parted, provocative position, bedroom',
-        'hot erotic nude, seductive pose on bed, nothing left to imagination',
+        'sexy nude pose, legs slightly parted, provocative',
+        'hot erotic nude on bed, seductive pose',
+        'naked on hands and knees, looking back',
+        'nude spread on leather couch, luxurious',
+        'completely exposed in shower, wet body',
+        'naked with one leg raised, flexible',
+        'nude in provocative yoga pose, athletic',
+        'fully bare bent over, rear emphasized',
       ],
+      // Niveau 8 - Nu explicite
       8: [
-        'explicit nude pose, spread legs revealing everything, erotic atmosphere',
-        'extremely sexy naked, provocative open pose, passionate expression',
+        'explicit nude pose, legs spread, erotic',
+        'extremely sexy naked, provocative open pose',
+        'nude wide open on bed, nothing hidden',
+        'naked in very intimate position, hot',
+        'completely exposed in submission pose, erotic',
+        'nude with legs up, fully visible',
+        'explicit shower scene, everything exposed',
+        'naked spread eagle, maximum exposure',
       ],
+      // Niveau 9 - Nu ultra explicite
       9: [
-        'ultra erotic nude, very explicit pose, everything exposed and visible',
-        'intensely sexual nude position, provocative and inviting, hot atmosphere',
+        'ultra erotic nude, very explicit pose, everything visible',
+        'intensely sexual nude position, provocative',
+        'maximum exposure nude, legs wide apart',
+        'extremely explicit naked pose, hot atmosphere',
+        'nude in most intimate position, nothing hidden',
+        'ultra revealing pose, complete exposure',
+        'sexually explicit nude, intense desire',
+        'fully spread nude, ultimate intimacy',
       ],
+      // Niveau 10 - Maximum érotique
       10: [
-        'maximum explicit nude, most provocative pose possible, extremely erotic',
-        'ultimate erotic nude, nothing hidden, most intimate pose, passionate',
+        'maximum explicit nude, most provocative pose, extremely erotic',
+        'ultimate erotic nude, nothing hidden, most intimate',
+        'absolute maximum exposure, intensely sexual position',
+        'most explicit possible nude pose, complete vulnerability',
+        'ultimate intimacy pose, everything on display',
+        'maximum erotic exposure, passionate and explicit',
+        'most provocative nude imaginable, total exposure',
+        'extreme explicit position, ultimate sensuality',
       ],
     };
     
@@ -165,64 +409,134 @@ class ImageGenerationService {
   /**
    * Retourne une pose basée sur le niveau de relation
    * Progression: amicale → séductrice → intime → explicite
+   * GRANDE VARIÉTÉ avec beaucoup d'options différentes
    */
   getPoseByLevel(level) {
     const lvl = Math.min(Math.max(1, level || 1), 10);
     const poses = {
-      // Niveau 1 - Poses amicales
+      // Niveau 1 - Poses amicales - TRÈS VARIÉES
       1: [
         'standing casually with friendly warm smile, relaxed natural pose',
-        'sitting elegantly with legs crossed, confident expression, charming',
-        'leaning against wall playfully, flirty smile, inviting look',
+        'sitting elegantly with legs crossed, confident expression',
+        'leaning against wall playfully, flirty smile',
+        'walking towards camera, hair flowing, dynamic',
+        'twirling in dress, movement captured, joyful',
+        'laughing candidly, natural happy expression',
+        'looking over shoulder with smile, turning pose',
+        'hands in hair, carefree beautiful pose',
+        'sitting on stairs, casual relaxed, stylish',
+        'standing by window, thoughtful gaze, elegant',
       ],
-      // Niveau 2 - Poses séductrices
+      // Niveau 2 - Poses séductrices - TRÈS VARIÉES
       2: [
-        'lying on bed propped on elbow, seductive bedroom eyes, inviting',
-        'sitting on bed edge, legs slightly apart, sensual expression',
-        'standing with hand on hip, confident seductive pose, alluring gaze',
-        'posing like a model, showing off body, flirtatious smile',
+        'lying on bed propped on elbow, bedroom eyes',
+        'sitting on bed edge, sensual expression',
+        'standing with hand on hip, seductive pose',
+        'posing like model, showing off figure',
+        'lying on couch, glamorous Hollywood pose',
+        'sitting backwards on chair, arms on backrest',
+        'standing in doorway, silhouette emphasized',
+        'lying with head hanging off bed, hair flowing down',
+        'kneeling on bed, sitting on heels, elegant',
+        'stretching arms above head, body elongated',
+        'lying on fur rug, luxurious classic pose',
+        'standing profile, looking at camera, mysterious',
       ],
-      // Niveau 3 - Poses provocantes
+      // Niveau 3 - Poses provocantes - TRÈS VARIÉES
       3: [
-        'arching back sensually emphasizing curves, provocative teasing pose',
-        'kneeling on bed looking up invitingly, submissive but sexy',
-        'lying on side with curves emphasized, one hand on hip, seductive',
-        'bending forward showing cleavage, teasing smile, flirty pose',
+        'arching back sensually, curves emphasized',
+        'kneeling on bed looking up, submissive',
+        'lying on side, one hand on hip, seductive',
+        'bending forward showing cleavage, teasing',
+        'on hands and knees, crawling pose, playful',
+        'lying on stomach, feet up, looking back',
+        'straddling chair, confident provocative',
+        'standing bent at waist, rear emphasized',
+        'kneeling with back arched dramatically',
+        'lying with leg raised high, flexible',
+        'sitting with legs apart, inviting',
+        'squatting pose, powerful and sexy',
       ],
-      // Niveau 4 - Poses intimes
+      // Niveau 4 - Poses intimes - TRÈS VARIÉES
       4: [
-        'lying back on bed with one leg raised, intimate inviting pose',
-        'on all fours looking over shoulder seductively, rear view pose',
-        'legs apart sitting on edge of bed, open and inviting position',
-        'stretching sensually on bed, body fully displayed, intimate',
+        'lying back with one leg raised, intimate',
+        'on all fours looking over shoulder, rear view',
+        'legs apart on bed edge, open inviting',
+        'stretching sensually, body displayed',
+        'lying spread on bed, arms above head',
+        'kneeling with hands behind head, exposed',
+        'sitting legs open, leaning back on hands',
+        'lying with knees up and apart, vulnerable',
+        'on knees bent forward, back arched',
+        'standing spread against wall, pinned pose',
+        'lying on back, legs up in air',
+        'side lying with top leg raised high',
       ],
-      // Niveau 5 - Poses explicites
+      // Niveau 5 - Poses explicites - TRÈS VARIÉES
       5: [
-        'legs spread apart revealing everything, explicit intimate pose',
-        'bent over showing rear view, provocative explicit position',
-        'lying with legs open in intimate revealing pose, nothing hidden',
-        'kneeling with legs apart, full frontal exposed, erotic pose',
+        'legs spread revealing everything, explicit',
+        'bent over showing rear, provocative',
+        'lying legs open, nothing hidden',
+        'kneeling legs apart, frontal exposed',
+        'squatting wide, full exposure',
+        'lying spread eagle, complete view',
+        'on back legs over head, flexible',
+        'doggy style pose, rear view',
+        'sitting wide open, inviting',
+        'standing bent forward, rear exposed',
+        'lying sideways, leg raised high',
+        'kneeling back arched, everything visible',
       ],
-      // Niveau 6+ - Poses très explicites
+      // Niveau 6+ - Poses très explicites avec variations
       6: [
-        'very explicit spread pose, everything visible, erotic position',
-        'extremely provocative open legs pose, intimate and revealing',
+        'very explicit spread pose, everything visible',
+        'extremely provocative open legs, intimate',
+        'wide open missionary position on bed',
+        'rear view bent over, legs spread',
+        'on back legs pulled to chest, exposed',
+        'kneeling face down, rear elevated',
+        'spread open on chair, seated explicit',
+        'standing one leg up on furniture, spread',
       ],
       7: [
-        'highly erotic pose with maximum exposure, passionate position',
-        'intensely sexual pose, body fully open and displayed',
+        'highly erotic maximum exposure pose',
+        'intensely sexual fully open position',
+        'extreme spread on bed, passionate',
+        'most revealing rear view, bent over',
+        'legs behind head, ultimate flexibility',
+        'spread wide in chair, slouched open',
+        'on knees presenting, rear view',
+        'lying inverted, legs spread up wall',
       ],
       8: [
-        'ultra explicit pose, most revealing position, erotic atmosphere',
-        'maximum exposure pose, nothing hidden, very sexual position',
+        'ultra explicit pose, most revealing',
+        'maximum exposure, nothing hidden',
+        'extremely wide spread, passionate',
+        'ultimate intimate position, explicit',
+        'fully open presenting pose, erotic',
+        'maximum spread kneeling, exposed',
+        'most explicit standing pose, legs wide',
+        'extreme flexibility pose, everything visible',
       ],
       9: [
-        'extremely erotic wide open pose, ultimate exposure, hot position',
-        'most provocative pose possible, completely exposed, passionate',
+        'extremely erotic wide open, ultimate exposure',
+        'most provocative completely exposed',
+        'absolute maximum spread, hot passionate',
+        'ultra intimate explicit position',
+        'most revealing pose possible, total exposure',
+        'extreme explicit spread, intensely sexual',
+        'ultimate provocative display, nothing hidden',
+        'maximum erotic exposure position',
       ],
       10: [
-        'ultimate explicit pose, maximum eroticism, everything on display',
-        'most sexual pose imaginable, complete exposure, intense eroticism',
+        'ultimate explicit pose, maximum eroticism',
+        'most sexual pose imaginable, complete exposure',
+        'absolute peak explicitness, total display',
+        'maximum possible intimacy pose, extreme',
+        'ultimate erotic spread, everything shown',
+        'most provocative position ever, passionate',
+        'extreme maximum exposure, intense desire',
+        'absolute ultimate explicit pose, nothing hidden',
       ],
     };
     
@@ -1172,6 +1486,7 @@ class ImageGenerationService {
    * @param {Object} userProfile - Le profil utilisateur
    * @param {Array} recentMessages - Messages récents
    * @param {number} relationLevel - Niveau de relation (1-5+)
+   * MAINTENANT AVEC GRANDE VARIÉTÉ: positions, lieux, éclairages, ambiances
    */
   async generateSceneImage(character, userProfile = null, recentMessages = [], relationLevel = 1) {
     // Parser l'âge correctement (gère "300 ans (apparence 25)")
@@ -1182,10 +1497,16 @@ class ImageGenerationService {
 
     // Application 18+ uniquement - toujours NSFW
     const level = Math.max(1, relationLevel || 1);
-    console.log(`🔞 Génération image niveau ${level}`);
+    console.log(`🔞 Génération image niveau ${level} - AVEC VARIÉTÉ`);
 
     // Choisir le style
     const { style, isRealistic } = this.getRandomStyle();
+    
+    // === GÉNÉRER LES ÉLÉMENTS VARIÉS ===
+    const sceneElements = this.generateVariedSceneElements();
+    console.log(`📍 Lieu: ${sceneElements.location.substring(0, 50)}...`);
+    console.log(`💡 Éclairage: ${sceneElements.lighting.substring(0, 40)}...`);
+    console.log(`🎬 Type de prise: ${sceneElements.shotType.substring(0, 40)}...`);
     
     let prompt = style;
     
@@ -1205,21 +1526,40 @@ class ImageGenerationService {
     // Anatomie (poitrine, physique masculin)
     prompt += this.buildAnatomyDescription(character, isRealistic);
     
-    // TENUE BASÉE SUR LE NIVEAU DE RELATION
+    // === LIEU / SETTING VARIÉ ===
+    prompt += `, ${sceneElements.location}`;
+    
+    // === ÉCLAIRAGE VARIÉ ===
+    prompt += `, ${sceneElements.lighting}`;
+    
+    // === TYPE DE PRISE DE VUE VARIÉ ===
+    prompt += `, ${sceneElements.shotType}`;
+    
+    // === AMBIANCE VARIÉE ===
+    prompt += `, ${sceneElements.mood}`;
+    
+    // TENUE BASÉE SUR LE NIVEAU DE RELATION - TRÈS VARIÉE
     const detectedOutfit = this.detectOutfit(recentMessages);
     if (detectedOutfit) {
       prompt += `, wearing ${detectedOutfit}`;
     } else {
-      // Tenue basée sur le niveau
+      // Tenue basée sur le niveau - maintenant avec 8-12 options par niveau
       const levelOutfit = this.getOutfitByLevel(level);
       prompt += `, ${levelOutfit}`;
-      console.log(`👗 Tenue niveau ${level}: ${levelOutfit}`);
+      console.log(`👗 Tenue niveau ${level}: ${levelOutfit.substring(0, 50)}...`);
     }
     
-    // POSE BASÉE SUR LE NIVEAU DE RELATION
-    const levelPose = this.getPoseByLevel(level);
-    prompt += `, ${levelPose}`;
-    console.log(`🎭 Pose niveau ${level}: ${levelPose}`);
+    // POSE BASÉE SUR LE NIVEAU DE RELATION - TRÈS VARIÉE
+    // Utiliser soit la pose de niveau, soit la position variée
+    const useLevelPose = Math.random() > 0.5;
+    if (useLevelPose) {
+      const levelPose = this.getPoseByLevel(level);
+      prompt += `, ${levelPose}`;
+      console.log(`🎭 Pose niveau ${level}: ${levelPose.substring(0, 50)}...`);
+    } else {
+      prompt += `, ${sceneElements.position}`;
+      console.log(`🎭 Position variée: ${sceneElements.position.substring(0, 50)}...`);
+    }
     
     // App 18+ - toujours NSFW
     prompt += this.buildNSFWPrompt(character, isRealistic);
@@ -1239,7 +1579,7 @@ class ImageGenerationService {
     
     prompt += ', adult 18+, mature content';
 
-    console.log(`🖼️ Génération image conversation (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
+    console.log(`🖼️ Génération image conversation (${isRealistic ? 'RÉALISTE' : 'ANIME'}) - VARIÉTÉ MAXIMALE`);
     return await this.generateImage(prompt);
   }
 
