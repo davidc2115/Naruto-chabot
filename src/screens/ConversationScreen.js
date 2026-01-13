@@ -377,22 +377,41 @@ export default function ConversationScreen({ route, navigation }) {
     try {
       console.log(`🎁 Génération image récompense niveau ${newLevel}: ${reward.imageType}`);
       
-      // Construire le prompt spécial pour la récompense
+      // Construire le prompt ULTRA-DÉTAILLÉ avec TOUTES les caractéristiques du personnage
       const rewardPromptPart = LevelService.getRewardImagePrompt(reward.imageType, character);
       
-      // Prompt ultra-détaillé hyperréaliste
-      const fullPrompt = `hyper-realistic photograph, professional photography, 8K ultra HD, 
-        ${character.gender === 'female' ? 'beautiful woman' : 'handsome man'}, 
-        ${character.age} years old, ${character.appearance || ''}, 
-        ${rewardPromptPart}, 
-        perfect anatomy, correct human proportions, anatomically correct body,
-        proper hands with five fingers each, correct arm and leg proportions,
-        studio lighting, high-end boudoir photography, sensual atmosphere,
-        skin texture visible, lifelike details, photographic quality,
-        single person, solo portrait, NOT deformed, NOT distorted, NOT extra limbs,
-        NOT bad anatomy, NOT mutated, masterpiece quality, award winning photo`;
+      // Utiliser les fonctions de ImageGenerationService pour les détails physiques
+      const physicalDesc = ImageGenerationService.buildDetailedPhysicalDescription(character, true);
+      const anatomyDesc = ImageGenerationService.buildAnatomyDescription(character, true);
       
-      // Générer l'image via l'API Freebox (même sans premium)
+      // Extraire les caractéristiques spécifiques du personnage
+      const hairDesc = character.hairColor ? `${character.hairColor} hair` : '';
+      const eyeDesc = character.eyeColor ? `${character.eyeColor} eyes` : '';
+      const skinDesc = character.skinTone || '';
+      const heightDesc = character.height || '';
+      const bustDesc = character.bust ? `${character.bust} cup breasts` : '';
+      
+      // Prompt ULTRA-DÉTAILLÉ avec qualité maximale
+      const fullPrompt = `masterpiece, best quality, hyper-realistic photograph, professional photography, 8K ultra HD resolution, 
+        ${physicalDesc},
+        ${anatomyDesc},
+        ${hairDesc}, ${eyeDesc}, ${skinDesc},
+        ${character.appearance || ''},
+        ${character.physicalDescription || ''},
+        ${rewardPromptPart},
+        perfect human anatomy, anatomically correct perfect body,
+        proper symmetrical face, exactly two arms attached to shoulders, exactly two legs,
+        proper hands with exactly five fingers each, correct natural proportions,
+        professional studio lighting, high-end boudoir photography,
+        skin texture visible with pores, ultra-realistic skin details, lifelike photograph,
+        single person in frame, solo portrait shot,
+        sharp focus, bokeh background, cinematic lighting,
+        NEGATIVE: deformed, distorted, extra limbs, missing limbs, bad anatomy, mutated, 
+        extra fingers, fused fingers, bad hands, wrong proportions, ugly, blurry, watermark`;
+      
+      console.log(`📸 Prompt récompense niveau ${newLevel} généré avec détails complets du personnage`);
+      
+      // Générer l'image via l'API (même sans premium pour les récompenses)
       const imageUrl = await ImageGenerationService.generateImage(fullPrompt);
       
       if (imageUrl) {

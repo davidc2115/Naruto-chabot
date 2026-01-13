@@ -379,24 +379,59 @@ class LevelService {
   }
 
   /**
-   * Génère le prompt pour l'image de récompense selon le type
+   * Génère le prompt ULTRA-DÉTAILLÉ pour l'image de récompense selon le type
+   * Inclut qualité professionnelle et détails anatomiques
    */
   getRewardImagePrompt(imageType, character) {
-    const basePrompts = {
-      'lingerie': 'wearing sexy lace lingerie, seductive pose, bedroom setting',
-      'provocative': 'wearing provocative revealing outfit, teasing pose, sensual lighting',
-      'underwear': 'wearing only underwear, confident pose, intimate atmosphere',
-      'topless': 'topless, bare chest, artistic sensual pose, soft lighting',
-      'artistic_nude': 'artistic nude, elegant pose, professional boudoir photography',
-      'sensual_nude': 'sensual nude, lying on silk sheets, romantic atmosphere',
-      'very_sexy': 'completely nude, very sexy pose, erotic atmosphere, bedroom',
-      'erotic': 'erotic nude pose, passionate expression, intimate setting',
-      'ultra_hot': 'extremely sexy nude, provocative pose, hot erotic atmosphere',
-      'special_gallery': 'exclusive nude photoshoot, multiple poses, professional erotica',
-      'custom': 'personalized nude, unique sexy pose, special intimate setting',
+    // Préfixe selon le genre
+    const genderDesc = character?.gender === 'female' 
+      ? 'beautiful gorgeous woman, feminine curves, perfect female body'
+      : 'handsome attractive man, masculine features, perfect male body';
+    
+    // Prompts ultra-détaillés par type avec qualité maximale
+    const detailedPrompts = {
+      // Niveau 2 - Lingerie
+      'lingerie': `${genderDesc}, wearing exquisite French lace lingerie set, matching elegant bra and panties with delicate lace patterns, garter belt with silk stockings, seductive confident pose sitting on luxurious bed, soft romantic bedroom lighting, silk sheets, intimate atmosphere, looking at viewer with desire`,
+      
+      // Niveau 3 - Provocant
+      'provocative': `${genderDesc}, wearing sheer see-through negligee, fabric so thin that skin and curves visible underneath, nipples showing through delicate material, provocative teasing pose lying on satin sheets, sensual dim lighting with warm tones, bedroom boudoir setting, seductive inviting expression`,
+      
+      // Niveau 4 - Sous-vêtements
+      'underwear': `${genderDesc}, wearing only tiny elegant thong panties, upper body completely bare and exposed, perfect natural breasts fully visible, confident sensual pose with hands on hips, intimate private bedroom, soft golden hour lighting, artistic composition, nothing hidden`,
+      
+      // Niveau 5 - Topless
+      'topless': `${genderDesc}, topless with beautiful bare breasts fully exposed, perfect natural breast shape, visible nipples, wearing only delicate lace panties and high heels, elegant artistic sensual pose, professional boudoir photography lighting, silk backdrop, confident sexy expression`,
+      
+      // Niveau 6 - Nu artistique
+      'artistic_nude': `${genderDesc}, completely nude artistic full body shot, every curve visible, breasts and full body exposed, elegant sophisticated pose like classical painting, professional studio boudoir lighting, artistic shadows enhancing curves, nothing hidden, natural beauty celebrated`,
+      
+      // Niveau 7 - Nu sensuel
+      'sensual_nude': `${genderDesc}, sensual nude lying naked on luxurious silk sheets, romantic intimate atmosphere, body fully exposed from head to toe, breasts visible, legs slightly parted, soft candlelight and rose petals, passionate loving expression, bedroom setting`,
+      
+      // Niveau 8 - Très sexy
+      'very_sexy': `${genderDesc}, very sexy completely nude pose on bed, legs parted invitingly, full frontal exposure nothing hidden, breasts and intimate areas visible, erotic provocative position, hot passionate atmosphere, bedroom with dim red lighting, intense desire in eyes`,
+      
+      // Niveau 9 - Érotique
+      'erotic': `${genderDesc}, highly erotic nude pose, explicit intimate position with legs spread, everything fully visible and exposed, passionate aroused expression, hot steamy bedroom atmosphere, body glistening, extremely provocative sensual position`,
+      
+      // Niveau 10 - Ultra hot
+      'ultra_hot': `${genderDesc}, maximum erotic nude, most explicit provocative pose possible, legs wide open revealing everything, complete full exposure, intensely sexual position, hot passionate atmosphere, nothing left to imagination, ultimate sensuality`,
+      
+      // Galerie spéciale
+      'special_gallery': `${genderDesc}, exclusive professional erotic nude photoshoot quality, multiple artistic poses implied, full body completely exposed, mix of elegant and provocative positions, professional erotica magazine quality, perfect lighting and composition`,
+      
+      // Personnalisé
+      'custom': `${genderDesc}, personalized intimate nude session, unique creative sexy pose tailored to personality, special private romantic setting, ultimate exposure with artistic flair, deeply personal and sensual atmosphere`,
     };
     
-    return basePrompts[imageType] || basePrompts['lingerie'];
+    // Prompt de qualité à ajouter
+    const qualityBoost = ', hyper-realistic photograph, 8K ultra HD resolution, professional DSLR camera quality, perfect sharp focus, studio lighting, skin texture visible, photorealistic details, masterpiece quality, award-winning photography';
+    
+    // Prompt anatomique pour éviter les défauts
+    const anatomyBoost = ', anatomically perfect human body, correct proportions, exactly two arms two legs, proper hands with five fingers, symmetrical face, natural body position, single person solo';
+    
+    const basePrompt = detailedPrompts[imageType] || detailedPrompts['lingerie'];
+    return basePrompt + qualityBoost + anatomyBoost;
   }
 
   /**
