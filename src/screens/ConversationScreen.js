@@ -235,12 +235,17 @@ export default function ConversationScreen({ route, navigation }) {
         loadBackground();
         
         // Scroll automatique en bas quand on revient sur la conversation
-        setTimeout(() => {
+        // Utiliser plusieurs tentatives pour s'assurer que le scroll fonctionne
+        const scrollToBottom = () => {
           if (flatListRef.current && messages.length > 0) {
             flatListRef.current.scrollToEnd({ animated: false });
             console.log('📜 Scroll automatique (focus)');
           }
-        }, 150);
+        };
+        // Essayer plusieurs fois pour être sûr
+        setTimeout(scrollToBottom, 100);
+        setTimeout(scrollToBottom, 300);
+        setTimeout(scrollToBottom, 500);
       }
     }, [character?.id, messages.length])
   );
@@ -258,13 +263,18 @@ export default function ConversationScreen({ route, navigation }) {
         setRelationship(saved.relationship);
         
         // SCROLL AUTOMATIQUE EN BAS après chargement
-        // Utiliser un timeout pour s'assurer que le FlatList est rendu
-        setTimeout(() => {
+        // Utiliser plusieurs timeouts pour s'assurer que le FlatList est rendu
+        const scrollToBottom = () => {
           if (flatListRef.current) {
             flatListRef.current.scrollToEnd({ animated: false });
             console.log('📜 Scroll automatique vers le bas');
           }
-        }, 100);
+        };
+        // Essayer plusieurs fois pour être sûr que le scroll fonctionne
+        setTimeout(scrollToBottom, 100);
+        setTimeout(scrollToBottom, 300);
+        setTimeout(scrollToBottom, 600);
+        setTimeout(scrollToBottom, 1000);
         
       } else {
         const initialMessage = {

@@ -1552,11 +1552,63 @@ class ImageGenerationService {
     
     // === SELON LE MODE SFW/NSFW ===
     if (isNSFW) {
-      // === MODE NSFW (niveau 2+) ===
+      // === MODE NSFW (niveau 2+) - VARIÉTÉ MAXIMALE ===
       console.log(`🔞 Mode NSFW actif - Niveau ${level}`);
       
       // Anatomie détaillée pour NSFW
       prompt += this.buildAnatomyDescription(character, isRealistic);
+      
+      // === ANGLE/TYPE DE PHOTO NSFW VARIÉ ===
+      const nsfwAngles = [
+        // Corps entier
+        'full body shot showing entire figure from head to toe, naked or lingerie',
+        'full body frontal nude, entire body visible, standing pose',
+        'full body view lying on bed, complete figure shown',
+        'full length shot, whole body exposed, sensual pose',
+        // Vues de face
+        'frontal view, breasts fully visible, sexy confident pose',
+        'front facing camera, nude body, seductive expression',
+        'facing viewer, topless or nude, inviting pose',
+        // Vues de profil
+        'side profile showing breast and butt curves',
+        'profile view, breast silhouette, elegant nude',
+        'three-quarter angle, curves emphasized',
+        // Vues de dos
+        'back view, full butt visible, looking over shoulder',
+        'rear view on all fours, butt emphasized, arched back',
+        'from behind, nude back and butt, seductive glance back',
+        // Zooms intimes
+        'close-up on breasts, nipples visible, sensual',
+        'zoom on butt and hips, rear focus',
+        'upper body shot, bare breasts prominent',
+        // Poses provocantes
+        'lying on bed with legs spread, inviting',
+        'on knees, looking up seductively',
+        'bent over, rear view, provocative',
+        'straddling position, dominant pose',
+      ];
+      const randomAngle = nsfwAngles[Math.floor(Math.random() * nsfwAngles.length)];
+      prompt += `, ${randomAngle}`;
+      console.log(`📷 ANGLE: ${randomAngle.substring(0, 50)}...`);
+      
+      // === POSITION NSFW VARIÉE ===
+      const nsfwPositions = [
+        'standing nude, confident sexy pose, hand on hip',
+        'lying on bed on back, legs slightly spread, inviting',
+        'lying on stomach, butt raised, looking back seductively',
+        'sitting on edge of bed, legs open, topless',
+        'kneeling on bed, breasts visible, sensual pose',
+        'on all fours, rear view, arched back',
+        'leaning against wall, nude, provocative stance',
+        'in bathtub, wet skin, sensual relaxed',
+        'by window, nude silhouette, natural light',
+        'on leather couch, legs spread, confident',
+        'stretching on bed, full body exposed',
+        'bending over, rear fully visible',
+      ];
+      const randomPosition = nsfwPositions[Math.floor(Math.random() * nsfwPositions.length)];
+      prompt += `, ${randomPosition}`;
+      console.log(`🎭 POSITION: ${randomPosition.substring(0, 50)}...`);
       
       // Lieu intime
       prompt += `, ${sceneElements.location}`;
@@ -1565,21 +1617,27 @@ class ImageGenerationService {
       // === TENUE NSFW BASÉE SUR LE NIVEAU ===
       const levelOutfit = this.getOutfitByLevel(level);
       prompt += `, ${levelOutfit}`;
-      console.log(`👗 TENUE NSFW niveau ${level}: ${levelOutfit.substring(0, 60)}...`);
-      
-      // === POSE NSFW BASÉE SUR LE NIVEAU ===
-      const levelPose = this.getPoseByLevel(level);
-      prompt += `, ${levelPose}`;
-      console.log(`🎭 POSE NSFW niveau ${level}: ${levelPose.substring(0, 60)}...`);
+      console.log(`👗 TENUE niveau ${level}: ${levelOutfit.substring(0, 60)}...`);
       
       // Ambiance sensuelle
       prompt += `, ${sceneElements.mood}`;
-      prompt += `, ${sceneElements.shotType}`;
       
-      // Prompt NSFW explicite
+      // Prompt NSFW explicite RENFORCÉ
       prompt += this.buildNSFWPrompt(character, isRealistic);
-      prompt += ', NSFW, erotic, sensual, sexy, seductive';
-      prompt += ', adult content, mature, explicit';
+      prompt += ', NSFW, erotic, sensual, sexy, seductive, provocative';
+      prompt += ', adult content, mature, explicit, nude, naked';
+      prompt += ', beautiful naked body, exposed skin, intimate';
+      
+      // Forcer le contenu adulte
+      if (level >= 3) {
+        prompt += ', topless, bare breasts, nipples visible';
+      }
+      if (level >= 4) {
+        prompt += ', fully nude, naked, nothing hidden';
+      }
+      if (level >= 5) {
+        prompt += ', explicit nudity, erotic pose, intimate exposure';
+      }
       
     } else {
       // === MODE SFW (niveau 1) ===
