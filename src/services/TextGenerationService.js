@@ -609,15 +609,37 @@ AUTRES RÈGLES:
 - Signes de fin d'intimité: ${userName} parle d'autre chose, pose des questions, etc.
 - Ne reste PAS dans un mode "sensuel permanent" si ${userName} veut autre chose
 
-=== QUALITÉ DU FRANÇAIS (TRÈS IMPORTANT) ===
-- ORTHOGRAPHE PARFAITE obligatoire
-- GRAMMAIRE CORRECTE: accords sujet-verbe, accords en genre et nombre
-- CONJUGAISONS CORRECTES: vérifie les temps (présent, passé composé, imparfait)
-- ACCENTS CORRECTS: é, è, ê, à, ù, ç, etc.
-- Pas de fautes de frappe ou d'erreurs
-- Phrases bien construites et fluides
-- Si tu es une femme, accorde les adjectifs au féminin: "excitée", "mouillée", "satisfaite"
-- Si tu es un homme, accorde au masculin: "excité", "dur", "satisfait"
+=== QUALITÉ DU FRANÇAIS - OBLIGATOIRE ===
+⚠️ ORTHOGRAPHE PARFAITE - Vérifie chaque mot!
+⚠️ GRAMMAIRE CORRECTE - Accords sujet-verbe, genre/nombre!
+⚠️ CONJUGAISONS - Présent, passé composé, imparfait corrects!
+⚠️ ACCENTS - é, è, ê, à, ù, ô, î, ç obligatoires!
+
+RÈGLES DE BASE:
+- "c'est" (pas "ces" ou "c'es")
+- "j'ai" (pas "j'est" ou "jai")
+- "tu es" (pas "tu est")
+- "je suis" (pas "je suit")
+- "qu'est-ce que" (pas "qu'es ce que")
+- "parce que" (pas "par ce que")
+
+ACCORDS FÉMININS (si personnage femme):
+- "je suis excitée" (pas "excité")
+- "je suis mouillée" (pas "mouillé")
+- "je suis satisfaite" (pas "satisfait")
+- "je me sens comblée" (pas "comblé")
+
+ACCORDS MASCULINS (si personnage homme):
+- "je suis excité" (pas "excitée")
+- "je suis dur" (pas "dure")
+- "je suis satisfait" (pas "satisfaite")
+
+ERREURS FRÉQUENTES À ÉVITER:
+- "sa" vs "ça" (sa = possession, ça = cela)
+- "a" vs "à" (a = avoir, à = préposition)
+- "ou" vs "où" (ou = choix, où = lieu)
+- "et" vs "est" (et = addition, est = être)
+- "ces" vs "ses" vs "c'est" (ces = démonstratif, ses = possession, c'est = cela est)
 
 === STYLE CONVERSATIONNEL HUMAIN ===
 - Réponses COURTES et NATURELLES (2-3 phrases max)
@@ -1000,24 +1022,27 @@ COHÉRENCE: Continue dans le ton de la conversation précédente!`;
     }
     
     // RAPPEL FORMAT + CRÉATIVITÉ + QUALITÉ FRANÇAIS - Juste avant la réponse
-    const creativityBoost = [
-      '*action NOUVELLE et ORIGINALE* "parole SPONTANÉE et UNIQUE" (pensée FRAÎCHE)',
-      'SOIS CRÉATIF(VE): utilise des verbes VARIÉS, des expressions ORIGINALES',
-      'INTERDIT: répéter "je sens", "mon désir", "ton excitation" - utilise des expressions DIRECTES',
-    ];
-    
-    const frenchQuality = [
-      '⚠️ FRANÇAIS PARFAIT OBLIGATOIRE:',
-      '- Orthographe correcte (pas de fautes!)',
-      '- Grammaire correcte (accords, conjugaisons)',
-      '- Accents corrects (é, è, ê, à, ù, ç)',
-      '- Accords au féminin si tu es une femme: "excitée", "mouillée", "ravie"',
-      '- Accords au masculin si tu es un homme: "excité", "ravi", "satisfait"',
-    ];
+    const isFemaleChar = character?.gender === 'female';
+    const genderAccord = isFemaleChar ? 'féminin (excitée, mouillée, ravie)' : 'masculin (excité, dur, ravi)';
     
     fullMessages.push({
       role: 'system',
-      content: `[🎨 CRÉATIVITÉ + ✍️ QUALITÉ FRANÇAIS]\n${creativityBoost.join('\n')}\n\n${frenchQuality.join('\n')}\n\nRéponds de façon UNIQUE, ORIGINALE et en FRANÇAIS PARFAIT!`
+      content: `[⚠️ RAPPEL FINAL - TRÈS IMPORTANT]
+
+✍️ FRANÇAIS PARFAIT:
+- Orthographe: vérifie chaque mot!
+- Accords: tu es ${isFemaleChar ? 'une FEMME' : 'un HOMME'} → utilise le ${genderAccord}
+- Conjugaisons: "je suis", "tu es", "j'ai", "c'est" (pas de fautes!)
+- Accents: é, è, ê, à, ù, ç obligatoires
+
+🎨 CRÉATIVITÉ:
+- Action NOUVELLE (pas répétée)
+- Parole UNIQUE et SPONTANÉE  
+- Pensée ORIGINALE
+
+FORMAT: *action* "parole" (pensée)
+
+Réponds MAINTENANT en français PARFAIT!`
     });
     
     console.log(`📝 ${cleanedMessages.length} messages récents + contexte (${messages.length} total)`);
