@@ -1252,93 +1252,59 @@ class ImageGenerationService {
 
   /**
    * MODE NSFW - Version explicite
+   * NE PAS ajouter de tenues ici - la tenue vient de getOutfitByLevel
    */
   buildNSFWPrompt(character, isRealistic = false) {
     let nsfw = '';
     
-    // Niveau d'explicité aléatoire (soft, medium, hard)
-    const explicitLevel = Math.random();
+    // Expressions sensuelles (PAS de tenues, juste l'ambiance)
+    nsfw += ', seductive sexy expression, bedroom eyes, sultry gaze, sensual atmosphere';
+    nsfw += ', smooth flawless skin, beautiful body, attractive physique';
     
     if (character.gender === 'female') {
-      nsfw += ', seductive sexy pose, sensual expression, bedroom eyes, sultry gaze';
-      
-      // Poitrine (utilise bust OU bustSize)
+      // Poitrine (description uniquement, pas de vêtements)
       const bustSize = character.bust || character.bustSize;
       if (bustSize) {
         const bustDescriptions = {
-          'A': 'small perky breasts visible',
-          'B': 'petite breasts showing',
-          'C': 'medium breasts, nice cleavage',
-          'D': 'large breasts, deep cleavage, generous bust',
-          'DD': 'very large breasts, impressive cleavage',
-          'E': 'huge breasts prominently displayed, massive cleavage',
-          'F': 'enormous breasts, gigantic bust emphasized',
-          'G': 'massive breasts, colossal bust',
-          'H': 'enormous massive breasts, gigantic bust'
+          'A': 'small perky breasts',
+          'B': 'petite natural breasts',
+          'C': 'medium beautiful breasts',
+          'D': 'large generous breasts, full bust',
+          'DD': 'very large breasts, impressive bust',
+          'E': 'huge breasts, massive bust',
+          'F': 'enormous breasts, gigantic bust',
+          'G': 'massive huge breasts',
+          'H': 'enormous massive breasts'
         };
         
-        // Normaliser si nécessaire
         let normalizedBust = bustSize;
-        if (bustSize.toLowerCase().includes('petit') || bustSize.toLowerCase().includes('small')) {
-          normalizedBust = 'B';
-        } else if (bustSize.toLowerCase().includes('moyen') || bustSize.toLowerCase().includes('medium')) {
-          normalizedBust = 'C';
-        } else if (bustSize.toLowerCase().includes('génér') || bustSize.toLowerCase().includes('large') || bustSize.toLowerCase().includes('voluptu')) {
-          normalizedBust = 'D';
-        } else if (bustSize.toLowerCase().includes('très') || bustSize.toLowerCase().includes('very') || bustSize.toLowerCase().includes('énorme')) {
-          normalizedBust = 'E';
-        }
+        if (bustSize.toLowerCase().includes('petit')) normalizedBust = 'B';
+        else if (bustSize.toLowerCase().includes('moyen')) normalizedBust = 'C';
+        else if (bustSize.toLowerCase().includes('génér') || bustSize.toLowerCase().includes('voluptu')) normalizedBust = 'D';
+        else if (bustSize.toLowerCase().includes('énorme')) normalizedBust = 'E';
         
         nsfw += `, ${bustDescriptions[normalizedBust] || bustDescriptions[bustSize] || 'beautiful breasts'}`;
       }
       
-      // Tenue selon niveau
-      if (explicitLevel > 0.7) {
-        nsfw += ', topless, bare breasts exposed, nude upper body';
-        nsfw += ', nipples visible, exposed chest';
-      } else if (explicitLevel > 0.4) {
-        nsfw += ', wearing only panties, topless with arm covering';
-        nsfw += ', sheer see-through lingerie, nipples showing through';
-      } else {
-        nsfw += ', sexy lingerie, lace bra barely covering';
-        nsfw += ', revealing outfit, cleavage emphasized';
-      }
-      
-      nsfw += ', lying on bed seductively, soft romantic lighting';
-      nsfw += ', smooth flawless skin, sensual body curves';
+      nsfw += ', feminine curves, hourglass figure, sensual body';
       
     } else if (character.gender === 'male') {
-      nsfw += ', sexy masculine pose, confident seductive expression';
-      nsfw += ', shirtless, bare muscular chest fully exposed';
-      nsfw += ', defined six-pack abs, muscular physique highlighted';
-      nsfw += ', V-line visible, low waist pants';
-      
-      // Physique selon "penis" qui représente la musculature
+      nsfw += ', masculine physique, attractive male body';
       if (character.penis) {
         const size = parseInt(character.penis) || 15;
-        if (size >= 20) {
-          nsfw += ', extremely muscular body, bodybuilder physique';
-          nsfw += ', massive muscles, powerful build, impressive physique';
-        } else if (size >= 17) {
-          nsfw += ', very muscular athletic body, ripped physique';
-        }
-      }
-      
-      if (explicitLevel > 0.6) {
-        nsfw += ', wearing only underwear, bulge visible';
+        if (size >= 20) nsfw += ', extremely muscular body, powerful build';
+        else if (size >= 17) nsfw += ', athletic muscular body';
       }
     }
     
     if (isRealistic) {
       nsfw += ', professional boudoir photography, high-end erotic photoshoot';
-      nsfw += ', intimate sensual photo, artistic nude, elegant erotica';
-      nsfw += ', perfect studio lighting, professional quality';
+      nsfw += ', intimate sensual photo, elegant erotica, perfect lighting';
     } else {
-      nsfw += ', beautiful ecchi anime art, detailed hentai style illustration';
-      nsfw += ', high quality nsfw anime, sensual anime artwork';
+      nsfw += ', beautiful ecchi anime art, high quality nsfw anime';
     }
     
-    nsfw += ', NSFW content, adult only, explicit, erotic, sexy';
+    nsfw += ', NSFW content, adult only, erotic, sexy, sensual';
     
     return nsfw;
   }
@@ -1581,28 +1547,18 @@ class ImageGenerationService {
     // === AMBIANCE VARIÉE ===
     prompt += `, ${sceneElements.mood}`;
     
-    // TENUE BASÉE SUR LE NIVEAU DE RELATION - TRÈS VARIÉE
-    const detectedOutfit = this.detectOutfit(recentMessages);
-    if (detectedOutfit) {
-      prompt += `, wearing ${detectedOutfit}`;
-    } else {
-      // Tenue basée sur le niveau - maintenant avec 8-12 options par niveau
-      const levelOutfit = this.getOutfitByLevel(level);
-      prompt += `, ${levelOutfit}`;
-      console.log(`👗 Tenue niveau ${level}: ${levelOutfit.substring(0, 50)}...`);
-    }
+    // === TENUE TOUJOURS BASÉE SUR LE NIVEAU (OBLIGATOIRE) ===
+    const levelOutfit = this.getOutfitByLevel(level);
+    prompt += `, ${levelOutfit}`;
+    console.log(`👗 TENUE niveau ${level}: ${levelOutfit.substring(0, 60)}...`);
     
-    // POSE BASÉE SUR LE NIVEAU DE RELATION - TRÈS VARIÉE
-    // Utiliser soit la pose de niveau, soit la position variée
-    const useLevelPose = Math.random() > 0.5;
-    if (useLevelPose) {
-      const levelPose = this.getPoseByLevel(level);
-      prompt += `, ${levelPose}`;
-      console.log(`🎭 Pose niveau ${level}: ${levelPose.substring(0, 50)}...`);
-    } else {
-      prompt += `, ${sceneElements.position}`;
-      console.log(`🎭 Position variée: ${sceneElements.position.substring(0, 50)}...`);
-    }
+    // === POSE TOUJOURS BASÉE SUR LE NIVEAU (OBLIGATOIRE) ===
+    const levelPose = this.getPoseByLevel(level);
+    prompt += `, ${levelPose}`;
+    console.log(`🎭 POSE niveau ${level}: ${levelPose.substring(0, 60)}...`);
+    
+    // Ajouter aussi la position variée pour plus de diversité (en complément)
+    prompt += `, ${sceneElements.position}`;
     
     // App 18+ - toujours NSFW
     prompt += this.buildNSFWPrompt(character, isRealistic);

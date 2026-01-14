@@ -641,13 +641,20 @@ ERREURS FRÉQUENTES À ÉVITER:
 - "et" vs "est" (et = addition, est = être)
 - "ces" vs "ses" vs "c'est" (ces = démonstratif, ses = possession, c'est = cela est)
 
-=== STYLE CONVERSATIONNEL HUMAIN ===
-- Réponses COURTES et NATURELLES (2-3 phrases max)
-- Comme un vrai SMS/chat entre deux personnes
-- RÉAGIS directement au dernier message de ${userName}
-- Pas de résumé, pas de récapitulatif
-- Sois SPONTANÉ(E) et AUTHENTIQUE
-- FRANÇAIS SOIGNÉ mais naturel (pas de langage SMS type "pk", "tkt")
+=== STYLE CONVERSATIONNEL - COURT ET IMMERSIF ===
+⚠️ RÉPONSES TRÈS COURTES: 1-2 phrases MAXIMUM!
+⚠️ TOUJOURS inclure une PENSÉE entre parenthèses!
+⚠️ NE JAMAIS répéter ce que l'utilisateur a dit!
+
+FORMAT OBLIGATOIRE:
+*action courte* "parole courte et spontanée" (pensée intime)
+
+RÈGLES:
+- RÉAGIS au message, ne le répète PAS
+- Pas de résumé de ce que l'utilisateur a fait
+- Pas de narration de ce que l'utilisateur fait
+- TU décris UNIQUEMENT TES actions et pensées
+- FRANÇAIS SOIGNÉ (pas de "pk", "tkt")
 
 === CRÉATIVITÉ ET VARIÉTÉ MAXIMALE (ULTRA IMPORTANT) ===
 - CHAQUE réponse doit être UNIQUE, CRÉATIVE et DIFFÉRENTE
@@ -1021,28 +1028,32 @@ COHÉRENCE: Continue dans le ton de la conversation précédente!`;
       fullMessages.push({ role: 'system', content: contextHint });
     }
     
-    // RAPPEL FORMAT + CRÉATIVITÉ + QUALITÉ FRANÇAIS - Juste avant la réponse
+    // RAPPEL FORMAT - COURT + PENSÉES + PAS DE RÉPÉTITION
     const isFemaleChar = character?.gender === 'female';
-    const genderAccord = isFemaleChar ? 'féminin (excitée, mouillée, ravie)' : 'masculin (excité, dur, ravi)';
+    const genderAccord = isFemaleChar ? 'féminin (excitée, mouillée)' : 'masculin (excité, dur)';
     
     fullMessages.push({
       role: 'system',
-      content: `[⚠️ RAPPEL FINAL - TRÈS IMPORTANT]
+      content: `[⚠️ RÈGLES ABSOLUES]
 
-✍️ FRANÇAIS PARFAIT:
-- Orthographe: vérifie chaque mot!
-- Accords: tu es ${isFemaleChar ? 'une FEMME' : 'un HOMME'} → utilise le ${genderAccord}
-- Conjugaisons: "je suis", "tu es", "j'ai", "c'est" (pas de fautes!)
-- Accents: é, è, ê, à, ù, ç obligatoires
+📏 LONGUEUR: 1-2 phrases MAXIMUM! Pas plus!
 
-🎨 CRÉATIVITÉ:
-- Action NOUVELLE (pas répétée)
-- Parole UNIQUE et SPONTANÉE  
-- Pensée ORIGINALE
+💭 PENSÉE OBLIGATOIRE: Termine TOUJOURS par (une pensée entre parenthèses)
 
-FORMAT: *action* "parole" (pensée)
+🚫 INTERDICTIONS:
+- NE répète PAS ce que l'utilisateur a dit
+- NE décris PAS les actions de l'utilisateur  
+- NE résume PAS ce qui s'est passé
+- AUCUNE répétition de mots
 
-Réponds MAINTENANT en français PARFAIT!`
+✍️ ACCORDS: ${genderAccord}
+
+FORMAT: *action* "parole courte" (pensée)
+
+EXEMPLE BON: *frissonne* "Mmh oui..." (c'est trop bon)
+EXEMPLE MAUVAIS: *sent ta main sur moi quand tu me caresses* "Tu me caresses..." (RÉPÉTITION!)
+
+Réponds MAINTENANT - COURT avec PENSÉE!`
     });
     
     console.log(`📝 ${cleanedMessages.length} messages récents + contexte (${messages.length} total)`);
@@ -1051,8 +1062,8 @@ Réponds MAINTENANT en français PARFAIT!`
     let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
     console.log(`🤖 Modèle sélectionné: ${model}`);
     
-    // Tokens max - court mais pas tronqué
-    let maxTokens = 200;
+    // Tokens max - TRÈS COURT pour réponses concises
+    let maxTokens = 120;
     
     // Boucle de tentatives avec rotation des clés
     let attempt = 0;
