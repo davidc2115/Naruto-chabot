@@ -1337,7 +1337,8 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère l'image du personnage (profil)
+   * Génère l'image du personnage (profil) - MODE SFW
+   * Les images de profil sont TOUJOURS SFW (élégantes mais pas explicites)
    */
   async generateCharacterImage(character, userProfile = null) {
     // Parser l'âge correctement (gère "300 ans (apparence 25)")
@@ -1346,19 +1347,41 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // App 18+ uniquement - toujours NSFW
-    const nsfwMode = true;
+    console.log(`✨ Génération image PROFIL (SFW) pour ${character.name}`);
 
     // Choisir le style (anime ou réaliste)
     const { style, isRealistic } = this.getRandomStyle();
     
     let prompt = style;
     
-    // === CONSTRUIRE UN PROMPT ULTRA-DÉTAILLÉ BASÉ SUR LE PERSONNAGE ===
+    // === CONSTRUIRE UN PROMPT DÉTAILLÉ ===
     prompt += ', ' + this.buildUltraDetailedPrompt(character, isRealistic);
     
-    // App 18+ - toujours NSFW (tenue sexy mais pas trop explicite pour le profil)
-    prompt += this.buildProfileNSFWPrompt(character, isRealistic);
+    // === TENUES SFW ÉLÉGANTES POUR PROFIL ===
+    const sfwOutfits = [
+      'wearing elegant casual outfit, fashionable, stylish',
+      'wearing beautiful dress, classy, sophisticated',
+      'wearing smart casual clothes, well-dressed, attractive',
+      'wearing trendy modern outfit, chic fashion',
+      'wearing stylish blouse and pants, elegant',
+      'wearing fashionable sundress, feminine charm',
+      'wearing professional yet attractive attire',
+    ];
+    prompt += `, ${sfwOutfits[Math.floor(Math.random() * sfwOutfits.length)]}`;
+    
+    // === POSES SFW NATURELLES ===
+    const sfwPoses = [
+      'natural confident pose, warm genuine smile',
+      'elegant standing pose, friendly expression',
+      'relaxed casual pose, inviting look',
+      'charming pose, attractive smile',
+      'graceful pose, soft natural expression',
+    ];
+    prompt += `, ${sfwPoses[Math.floor(Math.random() * sfwPoses.length)]}`;
+    
+    // Qualités positives SFW
+    prompt += ', beautiful, attractive, charming, approachable';
+    prompt += ', tasteful, classy, SFW, safe for work';
     
     // ANATOMIE STRICTE (pour éviter les défauts)
     prompt += ', ' + this.anatomyStrictPrompt;
@@ -1374,11 +1397,8 @@ class ImageGenerationService {
       prompt += ', clean lines, vibrant colors, professional anime artwork';
       prompt += ', single character, solo, one person, detailed face';
     }
-    
-    prompt += ', adult 18+, mature content';
 
-    console.log(`🖼️ Génération image profil (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
-    console.log(`📝 Prompt (début): ${prompt.substring(0, 300)}...`);
+    console.log(`🖼️ Génération image profil SFW (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
     return await this.generateImage(prompt);
   }
   
@@ -1504,18 +1524,16 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
-    // Application 18+ uniquement - toujours NSFW
     const level = Math.max(1, relationLevel || 1);
-    console.log(`🔞 Génération image niveau ${level} - AVEC VARIÉTÉ`);
+    const isNSFW = level >= 2; // NSFW seulement à partir du niveau 2
+    
+    console.log(`🖼️ Génération image niveau ${level} - ${isNSFW ? '🔞 NSFW' : '✨ SFW'}`);
 
     // Choisir le style
     const { style, isRealistic } = this.getRandomStyle();
     
     // === GÉNÉRER LES ÉLÉMENTS VARIÉS ===
     const sceneElements = this.generateVariedSceneElements();
-    console.log(`📍 Lieu: ${sceneElements.location.substring(0, 50)}...`);
-    console.log(`💡 Éclairage: ${sceneElements.lighting.substring(0, 40)}...`);
-    console.log(`🎬 Type de prise: ${sceneElements.shotType.substring(0, 40)}...`);
     
     let prompt = style;
     
@@ -1532,53 +1550,97 @@ class ImageGenerationService {
       prompt += `, ${character.appearance.replace(/\n/g, ' ').trim()}`;
     }
     
-    // Anatomie (poitrine, physique masculin)
-    prompt += this.buildAnatomyDescription(character, isRealistic);
-    
-    // === LIEU / SETTING VARIÉ ===
-    prompt += `, ${sceneElements.location}`;
-    
-    // === ÉCLAIRAGE VARIÉ ===
-    prompt += `, ${sceneElements.lighting}`;
-    
-    // === TYPE DE PRISE DE VUE VARIÉ ===
-    prompt += `, ${sceneElements.shotType}`;
-    
-    // === AMBIANCE VARIÉE ===
-    prompt += `, ${sceneElements.mood}`;
-    
-    // === TENUE TOUJOURS BASÉE SUR LE NIVEAU (OBLIGATOIRE) ===
-    const levelOutfit = this.getOutfitByLevel(level);
-    prompt += `, ${levelOutfit}`;
-    console.log(`👗 TENUE niveau ${level}: ${levelOutfit.substring(0, 60)}...`);
-    
-    // === POSE TOUJOURS BASÉE SUR LE NIVEAU (OBLIGATOIRE) ===
-    const levelPose = this.getPoseByLevel(level);
-    prompt += `, ${levelPose}`;
-    console.log(`🎭 POSE niveau ${level}: ${levelPose.substring(0, 60)}...`);
-    
-    // Ajouter aussi la position variée pour plus de diversité (en complément)
-    prompt += `, ${sceneElements.position}`;
-    
-    // App 18+ - toujours NSFW
-    prompt += this.buildNSFWPrompt(character, isRealistic);
+    // === SELON LE MODE SFW/NSFW ===
+    if (isNSFW) {
+      // === MODE NSFW (niveau 2+) ===
+      console.log(`🔞 Mode NSFW actif - Niveau ${level}`);
+      
+      // Anatomie détaillée pour NSFW
+      prompt += this.buildAnatomyDescription(character, isRealistic);
+      
+      // Lieu intime
+      prompt += `, ${sceneElements.location}`;
+      prompt += `, ${sceneElements.lighting}`;
+      
+      // === TENUE NSFW BASÉE SUR LE NIVEAU ===
+      const levelOutfit = this.getOutfitByLevel(level);
+      prompt += `, ${levelOutfit}`;
+      console.log(`👗 TENUE NSFW niveau ${level}: ${levelOutfit.substring(0, 60)}...`);
+      
+      // === POSE NSFW BASÉE SUR LE NIVEAU ===
+      const levelPose = this.getPoseByLevel(level);
+      prompt += `, ${levelPose}`;
+      console.log(`🎭 POSE NSFW niveau ${level}: ${levelPose.substring(0, 60)}...`);
+      
+      // Ambiance sensuelle
+      prompt += `, ${sceneElements.mood}`;
+      prompt += `, ${sceneElements.shotType}`;
+      
+      // Prompt NSFW explicite
+      prompt += this.buildNSFWPrompt(character, isRealistic);
+      prompt += ', NSFW, erotic, sensual, sexy, seductive';
+      prompt += ', adult content, mature, explicit';
+      
+    } else {
+      // === MODE SFW (niveau 1) ===
+      console.log(`✨ Mode SFW actif - Niveau ${level}`);
+      
+      // Lieu neutre/élégant
+      const sfwLocations = [
+        'at elegant cafe terrace, daytime',
+        'at park with trees, natural setting',
+        'at modern apartment, stylish interior',
+        'at beach boardwalk, sunny day',
+        'at rooftop bar, city skyline behind',
+        'at art gallery, sophisticated setting',
+        'at cozy bookstore, warm lighting',
+      ];
+      prompt += `, ${sfwLocations[Math.floor(Math.random() * sfwLocations.length)]}`;
+      
+      // Tenue SFW élégante
+      const sfwOutfits = [
+        'wearing elegant casual outfit, fashionable',
+        'wearing stylish summer dress, classy',
+        'wearing smart casual clothes, well-dressed',
+        'wearing trendy outfit, modern fashion',
+        'wearing chic blouse with jeans, casual elegant',
+        'wearing beautiful sundress, feminine',
+        'wearing fitted blazer with pants, sophisticated',
+      ];
+      prompt += `, ${sfwOutfits[Math.floor(Math.random() * sfwOutfits.length)]}`;
+      
+      // Poses SFW naturelles
+      const sfwPoses = [
+        'natural relaxed pose, friendly smile',
+        'confident standing pose, warm expression',
+        'sitting comfortably, inviting look',
+        'leaning casually, playful smile',
+        'walking pose, looking at camera',
+        'candid pose, genuine smile',
+        'elegant pose, sophisticated demeanor',
+      ];
+      prompt += `, ${sfwPoses[Math.floor(Math.random() * sfwPoses.length)]}`;
+      
+      // Qualités SFW
+      prompt += ', beautiful, attractive, charming';
+      prompt += ', professional photography, natural lighting';
+      prompt += ', SFW, safe for work, tasteful, classy';
+    }
     
     // ANATOMIE STRICTE (pour éviter les défauts)
     prompt += ', ' + this.anatomyStrictPrompt;
     
-    // QUALITÉ AVEC ANTI-DÉFORMATION
+    // QUALITÉ
     if (isRealistic) {
       prompt += ', ' + this.buildRealisticQualityPrompts();
-      prompt += ', ultra-detailed photo, 8K, professional quality, sharp focus';
+      prompt += ', ultra-detailed photo, 8K, professional quality';
       prompt += ', single person, solo portrait';
     } else {
       prompt += ', masterpiece, best quality, highly detailed anime';
       prompt += ', single character, solo';
     }
-    
-    prompt += ', adult 18+, mature content';
 
-    console.log(`🖼️ Génération image conversation (${isRealistic ? 'RÉALISTE' : 'ANIME'}) - VARIÉTÉ MAXIMALE`);
+    console.log(`🖼️ Génération ${isNSFW ? 'NSFW' : 'SFW'} (${isRealistic ? 'RÉALISTE' : 'ANIME'})`);
     return await this.generateImage(prompt);
   }
 
