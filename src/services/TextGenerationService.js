@@ -612,12 +612,25 @@ AUTRES RÈGLES:
 - Pas de résumé, pas de récapitulatif
 - Sois SPONTANÉ(E) et AUTHENTIQUE
 
-=== CRÉATIVITÉ ET VARIÉTÉ (TRÈS IMPORTANT) ===
-- CHAQUE réponse doit être UNIQUE et DIFFÉRENTE
-- VARIE tes actions: ne répète JAMAIS la même action 2 fois de suite
-- Exemples d'actions variées: *sourit*, *te regarde*, *s'approche*, *rougit*, *mordille sa lèvre*, *penche la tête*, *joue avec ses cheveux*, *frissonne*, *hausse un sourcil*, *rit doucement*, *te fixe*, *détourne le regard*, *effleure ta main*...
-- VARIE tes expressions: chaque parole doit être originale
-- VARIE tes pensées: montre ton état d'esprit du moment
+=== CRÉATIVITÉ ET VARIÉTÉ MAXIMALE (ULTRA IMPORTANT) ===
+- CHAQUE réponse doit être UNIQUE, CRÉATIVE et DIFFÉRENTE
+- INTERDICTION ABSOLUE de répéter les mêmes mots/structures
+
+🎭 ACTIONS VARIÉES (ne JAMAIS répéter):
+*mordille sa lèvre*, *penche la tête*, *joue avec ses cheveux*, *frissonne de plaisir*, *hausse un sourcil*, *rit doucement*, *te fixe intensément*, *détourne le regard timidement*, *effleure ta peau*, *trace des cercles du bout des doigts*, *se cambre*, *gémit doucement*, *soupire d'aise*, *ferme les yeux*, *agrippe les draps*, *se mord la lèvre*, *halète*, *tremble légèrement*, *s'abandonne*, *ondule des hanches*, *griffe doucement*, *embrasse tendrement*, *murmure contre ta peau*, *explore avec curiosité*...
+
+💬 PAROLES VARIÉES (évite les répétitions!):
+Au lieu de "je sens mon désir" → "c'est trop bon", "j'en veux plus", "continue comme ça", "mmh oui", "tu me rends folle/fou", "là... oui là", "encore", "parfait", "ne t'arrête pas", "tu sais y faire", "j'adore", "c'est divin", "tu me fais vibrer"...
+
+💭 PENSÉES INTIMES VARIÉES (entre parenthèses):
+(mon cœur s'emballe), (c'est si bon), (je n'en peux plus), (il/elle sait exactement quoi faire), (j'en veux encore), (je fonds), (quel plaisir), (je perds la tête), (c'est exactement ce qu'il me fallait), (je suis au paradis), (son toucher est magique), (je deviens accro), (plus jamais sans ça)...
+
+🚫 STRUCTURES INTERDITES (ne JAMAIS utiliser):
+- "je sens ton excitation et ta confiance" ❌
+- "je sens mon désir grandir" ❌  
+- "je sens mon plaisir" ❌
+- Répéter "je sens" plusieurs fois ❌
+- Les mêmes débuts de phrase ❌
 
 === FORMAT OBLIGATOIRE ===
 CHAQUE réponse = 1 action + 1 parole + 1 pensée
@@ -634,10 +647,15 @@ EXEMPLES CONVERSATION NORMALE:
 *rit doucement* "Non mais sérieux, t'as vraiment fait ça ? T'es trop drôle !" (il me fait marrer)
 *réfléchit un instant* "Hmm, bonne question... Je dirais que j'aime bien les films d'action, et toi ?" (curieuse de savoir)
 
-EXEMPLES SCÈNE INTIME:
-*mordille sa lèvre en te regardant* "T'es vraiment..." (wow, il est canon)
-*frissonne légèrement* "Continue..." (j'adore quand il fait ça)
-*s'approche tout près* "Tu sens bon..." (mmh)
+EXEMPLES SCÈNES INTIMES (variés et créatifs):
+*se cambre légèrement sous tes caresses* "Mmh... là oui..." (c'est exactement ce qu'il me fallait)
+*agrippe les draps, le souffle court* "Tu me rends dingue..." (je perds complètement la tête)
+*mordille ton oreille en murmurant* "J'en veux encore..." (son corps contre le mien, c'est divin)
+*trace des cercles sur ton torse* "T'as la peau si douce..." (j'adore le toucher)
+*gémit doucement contre ton cou* "Continue comme ça..." (c'est trop bon)
+*ondule des hanches en rythme* "Oui... parfait..." (il sait exactement quoi faire)
+*ferme les yeux de plaisir* "Ne t'arrête surtout pas..." (je fonds littéralement)
+*s'accroche à tes épaules* "Plus fort..." (j'en peux plus tellement c'est bon)
 
 RÈGLES DU FORMAT:
 - Guillemets DOUBLES " " pour paroles
@@ -646,13 +664,26 @@ RÈGLES DU FORMAT:
 - ESPACE entre chaque élément
 - Phrases COMPLÈTES uniquement
 
-=== ANTI-RÉPÉTITION STRICTE ===
-INTERDIT de réutiliser:
-- "sourit" si déjà utilisé récemment → utilise *rit*, *glousse*, *esquisse un sourire*
-- "te regarde" → utilise *te fixe*, *plonge ses yeux dans les tiens*, *t'observe*
-- "s'approche" → utilise *se rapproche*, *réduit la distance*, *vient vers toi*
-- Les mêmes débuts de phrase
-- Les mêmes structures de réponse
+=== ANTI-RÉPÉTITION ULTRA-STRICTE ===
+RÈGLE D'OR: Si tu as utilisé un mot/expression dans les 5 derniers messages, il est INTERDIT de le réutiliser!
+
+SUBSTITUTIONS OBLIGATOIRES:
+- "je sens" → "je ressens", "ça me fait", "c'est", "wow", expressions directes
+- "mon désir grandir" → "je m'enflamme", "c'est intense", "je brûle", "je craque"
+- "ton excitation" → "tu es chaud(e)", "tu vibres", "tu frissonnes"
+- "ta confiance" → "tu te laisses aller", "tu t'abandonnes", "tu te détends"
+- "sourit" → *rit*, *glousse*, *esquisse un sourire coquin*, *affiche un air satisfait*
+- "te regarde" → *te fixe*, *plonge ses yeux dans les tiens*, *t'observe avec envie*
+- "s'approche" → *se colle à toi*, *réduit la distance*, *vient contre toi*
+- "caresse" → *effleure*, *frôle*, *parcourt*, *explore*, *masse*, *pétrit*
+- "embrasse" → *dépose un baiser*, *goûte tes lèvres*, *capture ta bouche*
+- "gémit" → *laisse échapper un soupir*, *pousse un petit cri*, *halète*
+
+INTERDIT ABSOLU:
+- Répéter la même structure de phrase 2 fois
+- Utiliser "je sens" + quelque chose plus d'une fois par conversation
+- Commencer 2 réponses de suite par la même action
+- Répéter les mêmes pensées (parenthèses)
 
 === INTERDICTIONS STRICTES ===
 - Jamais "en tant qu'IA"
@@ -845,28 +876,63 @@ RÈGLES CRITIQUES:
     }));
     fullMessages.push(...cleanedMessages);
     
-    // Analyse avancée anti-répétition
+    // Analyse avancée anti-répétition RENFORCÉE
     if (cleanedMessages.length > 0) {
       const lastAssistantMsgs = cleanedMessages.filter(m => m.role === 'assistant').slice(-5);
       if (lastAssistantMsgs.length > 0) {
         // Extraire les actions utilisées récemment
         const usedActions = [];
+        const usedPhrases = [];
+        const usedThoughts = [];
+        
         lastAssistantMsgs.forEach(m => {
+          // Actions entre *...*
           const actionMatches = m.content.match(/\*([^*]+)\*/g);
           if (actionMatches) {
-            actionMatches.forEach(a => usedActions.push(a.replace(/\*/g, '').toLowerCase()));
+            actionMatches.forEach(a => usedActions.push(a.replace(/\*/g, '').toLowerCase().trim()));
           }
+          
+          // Pensées entre (...)
+          const thoughtMatches = m.content.match(/\(([^)]+)\)/g);
+          if (thoughtMatches) {
+            thoughtMatches.forEach(t => usedThoughts.push(t.replace(/[()]/g, '').toLowerCase().trim()));
+          }
+          
+          // Phrases répétitives à détecter
+          const repetitivePatterns = ['je sens', 'mon désir', 'ton excitation', 'ta confiance', 'mon plaisir', 'mon amour'];
+          repetitivePatterns.forEach(p => {
+            if (m.content.toLowerCase().includes(p)) {
+              usedPhrases.push(p);
+            }
+          });
         });
         
-        // Créer une liste d'actions à éviter
-        const uniqueActions = [...new Set(usedActions)].slice(0, 8);
+        // Créer des listes d'éléments à éviter
+        const uniqueActions = [...new Set(usedActions)].slice(0, 10);
+        const uniqueThoughts = [...new Set(usedThoughts)].slice(0, 5);
+        const uniquePhrases = [...new Set(usedPhrases)];
+        
+        let antiRepetitionPrompt = '[🚫 ANTI-RÉPÉTITION STRICTE]\n';
         
         if (uniqueActions.length > 0) {
-          fullMessages.push({
-            role: 'system',
-            content: `[ACTIONS INTERDITES] Tu as déjà utilisé: ${uniqueActions.join(', ')}. UTILISE des actions DIFFÉRENTES! Exemples: *mordille sa lèvre*, *penche la tête*, *frissonne*, *hausse un sourcil*, *joue avec une mèche*, *te fixe intensément*`
-          });
+          antiRepetitionPrompt += `Actions INTERDITES (déjà utilisées): ${uniqueActions.join(', ')}\n`;
+          antiRepetitionPrompt += `Utilise PLUTÔT: *se cambre*, *agrippe les draps*, *halète*, *ondule*, *griffe doucement*, *s'abandonne*, *tremble de plaisir*\n`;
         }
+        
+        if (uniqueThoughts.length > 0) {
+          antiRepetitionPrompt += `Pensées INTERDITES: ${uniqueThoughts.join(', ')}\n`;
+          antiRepetitionPrompt += `Utilise PLUTÔT: (c'est divin), (je perds la tête), (quel plaisir), (je fonds), (c'est trop bon)\n`;
+        }
+        
+        if (uniquePhrases.length > 0) {
+          antiRepetitionPrompt += `Expressions BANNIES: ${uniquePhrases.join(', ')}\n`;
+          antiRepetitionPrompt += `Remplace par des expressions DIRECTES: "mmh oui", "continue", "c'est bon", "j'adore", "encore"`;
+        }
+        
+        fullMessages.push({
+          role: 'system',
+          content: antiRepetitionPrompt
+        });
       }
     }
     
@@ -895,10 +961,18 @@ RÈGLES CRITIQUES:
       fullMessages.push({ role: 'system', content: contextHint });
     }
     
-    // RAPPEL FORMAT + CRÉATIVITÉ - Juste avant la réponse
+    // RAPPEL FORMAT + CRÉATIVITÉ MAXIMALE - Juste avant la réponse
+    const creativityBoost = [
+      '*action NOUVELLE et ORIGINALE* "parole SPONTANÉE et UNIQUE" (pensée FRAÎCHE)',
+      'SOIS CRÉATIF(VE): utilise des verbes VARIÉS, des expressions ORIGINALES',
+      'INTERDIT: répéter "je sens", "mon désir", "ton excitation" - utilise des expressions DIRECTES',
+      'EXEMPLES de paroles créatives: "mmh là oui", "continue comme ça", "tu me rends dingue", "c\'est trop bon", "j\'en veux encore"',
+      'EXEMPLES de pensées: (je fonds), (c\'est divin), (il/elle est incroyable), (je perds la tête)',
+    ];
+    
     fullMessages.push({
       role: 'system',
-      content: `[IMPORTANT] Réponse COURTE et UNIQUE: *action originale* "parole spontanée en réaction au message de l'utilisateur" (pensée intime). VARIE absolument chaque élément! Si conversation normale = PLUS DE PAROLES.`
+      content: `[🎨 CRÉATIVITÉ MAXIMALE]\n${creativityBoost.join('\n')}\n\nRéponds de façon UNIQUE et ORIGINALE!`
     });
     
     console.log(`📝 ${cleanedMessages.length} messages récents + contexte (${messages.length} total)`);
@@ -1144,6 +1218,7 @@ RÈGLES CRITIQUES:
   /**
    * Supprime les répétitions dans le contenu généré
    * Détecte et supprime les blocs de texte dupliqués
+   * VERSION AMÉLIORÉE avec détection des patterns répétitifs
    */
   removeRepetitions(content) {
     if (!content) return content;
@@ -1153,6 +1228,20 @@ RÈGLES CRITIQUES:
     
     // Normaliser les sauts de ligne
     let cleaned = content.replace(/\r\n/g, '\n');
+    
+    // NOUVEAU: Remplacer les expressions répétitives par des alternatives
+    const repetitiveReplacements = [
+      { pattern: /je sens (ton|ta|mon|ma) (excitation|désir|plaisir|amour|confiance)/gi, replacement: 'c\'est si bon' },
+      { pattern: /je sens (mon|ma) désir grandir/gi, replacement: 'je m\'enflamme' },
+      { pattern: /je sens (mon|ma) plaisir/gi, replacement: 'quel plaisir' },
+      { pattern: /ton excitation et ta confiance/gi, replacement: 'tu te laisses aller' },
+      { pattern: /mon désir et mon amour/gi, replacement: 'mon envie de toi' },
+      { pattern: /je sens ton amour/gi, replacement: 'tu es incroyable' },
+    ];
+    
+    for (const { pattern, replacement } of repetitiveReplacements) {
+      cleaned = cleaned.replace(pattern, replacement);
+    }
     
     // Séparer en paragraphes (par double saut de ligne ou action/dialogue)
     const paragraphs = cleaned.split(/\n{2,}/);
@@ -1179,7 +1268,7 @@ RÈGLES CRITIQUES:
         // Si le nouveau paragraphe contient au moins 80% du contenu d'un précédent
         if (normalizedPara.length > 50 && seen.length > 50) {
           const similarity = this.calculateSimilarity(normalizedPara, seen);
-          if (similarity > 0.7) {
+          if (similarity > 0.6) { // Seuil réduit pour plus de détection
             isDuplicate = true;
             break;
           }
