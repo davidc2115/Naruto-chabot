@@ -375,8 +375,11 @@ class StableDiffusionLocalService {
         unetReady: modelStatus?.unetDownloaded || false,
         vaeDecoderReady: modelStatus?.vaeDecoderDownloaded || false,
         
-        ramMB: systemInfo?.maxMemoryMB || 0,
-        freeRamMB: systemInfo?.freeMemoryMB || 0,
+        // RAM système réelle (pas JVM)
+        ramMB: systemInfo?.totalRamMB || systemInfo?.maxMemoryMB || 0,
+        freeRamMB: systemInfo?.availableRamMB || systemInfo?.freeMemoryMB || 0,
+        totalSystemRamMB: systemInfo?.totalRamMB || 0,
+        availableSystemRamMB: systemInfo?.availableRamMB || 0,
         freeStorageMB: systemInfo?.freeStorageMB || 0,
         processors: systemInfo?.availableProcessors || 0,
         hasEnoughRAM: systemInfo?.hasEnoughRAM || false,

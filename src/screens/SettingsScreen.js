@@ -700,12 +700,11 @@ export default function SettingsScreen({ navigation, onLogout }) {
                     </Text>
                   )}
                   
-                  {sdAvailability.ramMB > 0 && (
-                    <Text style={styles.sdInfoText}>
-                      🧠 RAM: {(sdAvailability.ramMB / 1024).toFixed(1)} GB
-                      {sdAvailability.hasEnoughRAM ? ' ✅' : ' ⚠️ (min 3 GB)'}
-                    </Text>
-                  )}
+                  <Text style={styles.sdInfoText}>
+                    🧠 RAM Totale: {sdAvailability.ramMB > 0 ? (sdAvailability.ramMB / 1024).toFixed(1) : '?'} GB
+                    {sdAvailability.freeRamMB > 0 ? ` (${(sdAvailability.freeRamMB / 1024).toFixed(1)} GB dispo)` : ''}
+                    {sdAvailability.hasEnoughRAM ? ' ✅' : ' ⚠️'}
+                  </Text>
                   
                   {sdAvailability.freeStorageMB > 0 && (
                     <Text style={styles.sdInfoText}>

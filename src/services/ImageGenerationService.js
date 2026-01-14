@@ -1828,36 +1828,41 @@ class ImageGenerationService {
    * Génère une image avec l'API Freebox
    */
   async generateWithFreebox(prompt) {
-    console.log('🔥 Génération image NSFW...');
+    console.log('🔥 Génération image NSFW EXPLICITE...');
     
     await this.waitForRateLimit();
     
     const seed = Date.now() + Math.floor(Math.random() * 100000);
     
     // Utiliser Pollinations.ai qui supporte les contenus NSFW
-    // C'est une API gratuite et sans censure
     const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
     
-    // Construire le prompt optimisé pour NSFW
-    let nsfwPrompt = prompt;
+    // === FORCER LE CONTENU NSFW EXPLICITE ===
+    // Nettoyer le prompt des termes SFW qui pourraient interférer
+    let nsfwPrompt = prompt
+      .replace(/SFW|safe for work|tasteful|classy/gi, '')
+      .replace(/elegant casual|casual outfit|fashionable/gi, 'sexy revealing');
     
-    // S'assurer que le prompt contient des termes NSFW explicites
-    if (!prompt.toLowerCase().includes('nsfw') && !prompt.toLowerCase().includes('nude')) {
-      nsfwPrompt += ', NSFW, erotic, sensual, sexy';
-    }
+    // Ajouter des termes NSFW TRÈS EXPLICITES au début pour priorité
+    const nsfwPrefix = 'NSFW explicit content, nude naked woman, ';
+    const nsfwSuffix = ', sexy erotic sensual, bare skin exposed, ' +
+      'topless breasts visible nipples, lingerie underwear bra panties, ' +
+      'provocative pose seductive, intimate bedroom setting, ' +
+      'adult content 18+, uncensored explicit, ' +
+      'high quality detailed photography, beautiful body';
     
-    // Ajouter des termes de qualité
-    nsfwPrompt += ', high quality, detailed, professional photography';
+    // Construire le prompt final
+    nsfwPrompt = nsfwPrefix + nsfwPrompt + nsfwSuffix;
     
     // Limiter et encoder
-    const shortPrompt = nsfwPrompt.substring(0, 1500);
+    const shortPrompt = nsfwPrompt.substring(0, 1800);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // Pollinations.ai URL format avec paramètres
-    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux`;
+    // Pollinations.ai URL format - modèle flux-realism pour meilleure qualité
+    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux-realism`;
     
-    console.log(`🔗 URL Pollinations générée (seed: ${seed})`);
-    console.log(`📝 Prompt NSFW: ${shortPrompt.substring(0, 100)}...`);
+    console.log(`🔗 URL Pollinations NSFW (seed: ${seed})`);
+    console.log(`📝 Prompt: ${shortPrompt.substring(0, 150)}...`);
     
     return imageUrl;
   }

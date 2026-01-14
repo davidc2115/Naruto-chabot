@@ -62,16 +62,29 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
         this.reactContext = reactContext;
         Log.i(TAG, "╔════════════════════════════════════════╗");
         Log.i(TAG, "║  StableDiffusionModule v" + VERSION + " LOADED   ║");
-        Log.i(TAG, "║  ONNX Runtime: ENABLED                 ║");
         Log.i(TAG, "╚════════════════════════════════════════╝");
         
-        // Initialiser ONNX Runtime
+        // Initialiser ONNX Runtime avec gestion d'erreur améliorée
         try {
             ortEnv = OrtEnvironment.getEnvironment();
-            Log.i(TAG, "✅ ONNX Runtime Environment créé");
+            if (ortEnv != null) {
+                Log.i(TAG, "✅ ONNX Runtime Environment créé avec succès");
+                Log.i(TAG, "✅ ONNX Version: " + OrtEnvironment.getApiBase());
+            } else {
+                Log.e(TAG, "❌ OrtEnvironment.getEnvironment() retourné null");
+            }
+        } catch (NoClassDefFoundError e) {
+            Log.e(TAG, "❌ ONNX Runtime classes non trouvées: " + e.getMessage());
+            Log.e(TAG, "❌ Vérifiez que onnxruntime-android est dans build.gradle");
+        } catch (UnsatisfiedLinkError e) {
+            Log.e(TAG, "❌ ONNX Runtime native library non trouvée: " + e.getMessage());
         } catch (Exception e) {
             Log.e(TAG, "❌ Erreur création ONNX Environment: " + e.getMessage());
+            e.printStackTrace();
         }
+        
+        // Log du statut final
+        Log.i(TAG, "📊 ONNX disponible: " + (ortEnv != null));
     }
 
     @Override
