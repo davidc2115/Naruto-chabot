@@ -530,4 +530,41 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
     public void removeListeners(int count) {
         // Required for RN event emitter
     }
+    
+    /**
+     * Méthode de test simple pour vérifier que le module fonctionne
+     */
+    @ReactMethod
+    public void testModule(Promise promise) {
+        try {
+            Log.i(TAG, "🧪 TEST MODULE APPELÉ");
+            
+            // Récupérer les infos RAM via ActivityManager
+            ActivityManager activityManager = (ActivityManager) reactContext.getSystemService(Context.ACTIVITY_SERVICE);
+            ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+            activityManager.getMemoryInfo(memInfo);
+            
+            double totalRamGB = memInfo.totalMem / 1024.0 / 1024.0 / 1024.0;
+            double availRamGB = memInfo.availMem / 1024.0 / 1024.0 / 1024.0;
+            
+            Log.i(TAG, "📊 RAM Totale: " + String.format("%.2f", totalRamGB) + " GB");
+            Log.i(TAG, "📊 RAM Disponible: " + String.format("%.2f", availRamGB) + " GB");
+            Log.i(TAG, "📊 ONNX Runtime: " + (ortEnv != null ? "DISPONIBLE" : "NON DISPONIBLE"));
+            
+            WritableMap result = Arguments.createMap();
+            result.putString("status", "OK");
+            result.putString("moduleVersion", VERSION);
+            result.putDouble("totalRamGB", totalRamGB);
+            result.putDouble("availableRamGB", availRamGB);
+            result.putBoolean("onnxAvailable", ortEnv != null);
+            result.putString("device", Build.MODEL);
+            result.putString("manufacturer", Build.MANUFACTURER);
+            
+            promise.resolve(result);
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Erreur test module: " + e.getMessage());
+            e.printStackTrace();
+            promise.reject("TEST_ERROR", e.getMessage());
+        }
+    }
 }

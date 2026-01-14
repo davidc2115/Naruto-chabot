@@ -758,6 +758,39 @@ export default function SettingsScreen({ navigation, onLogout }) {
                 </Text>
               </TouchableOpacity>
               
+              {/* Bouton de test du module */}
+              <TouchableOpacity
+                style={[styles.sdButton, { backgroundColor: '#6366f1', marginTop: 10 }]}
+                onPress={async () => {
+                  try {
+                    Alert.alert('🧪 Test...', 'Test du module natif en cours...');
+                    const result = await StableDiffusionLocalService.testModule();
+                    if (result.success) {
+                      Alert.alert(
+                        '✅ Module OK',
+                        `Version: ${result.moduleVersion || 'N/A'}\n` +
+                        `RAM Totale: ${result.totalRamGB?.toFixed(2) || '?'} GB\n` +
+                        `RAM Disponible: ${result.availableRamGB?.toFixed(2) || '?'} GB\n` +
+                        `ONNX: ${result.onnxAvailable ? '✅ Disponible' : '❌ Non disponible'}\n` +
+                        `Appareil: ${result.device || 'N/A'} (${result.manufacturer || 'N/A'})`
+                      );
+                    } else {
+                      Alert.alert(
+                        '❌ Erreur',
+                        `Module: ${result.moduleExists ? '✅' : '❌'}\n` +
+                        `Méthode: ${result.methodExists !== false ? '✅' : '❌'}\n` +
+                        `Erreur: ${result.error || 'Inconnue'}`
+                      );
+                    }
+                    checkSDAvailability();
+                  } catch (e) {
+                    Alert.alert('❌ Erreur', e.message);
+                  }
+                }}
+              >
+                <Text style={styles.sdButtonText}>🧪 Tester le module natif</Text>
+              </TouchableOpacity>
+              
               <Text style={styles.sdNote}>
                 💡 Conseil: Utilisez la Freebox pour l'instant. Le SD Local sera fonctionnel dans une future mise à jour.
               </Text>

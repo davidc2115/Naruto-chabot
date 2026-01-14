@@ -1828,41 +1828,46 @@ class ImageGenerationService {
    * Génère une image avec l'API Freebox
    */
   async generateWithFreebox(prompt) {
-    console.log('🔥 Génération image NSFW EXPLICITE...');
+    console.log('🖼️ Génération image via Pollinations.ai...');
     
     await this.waitForRateLimit();
     
     const seed = Date.now() + Math.floor(Math.random() * 100000);
     
-    // Utiliser Pollinations.ai qui supporte les contenus NSFW
+    // Utiliser Pollinations.ai
     const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
     
-    // === FORCER LE CONTENU NSFW EXPLICITE ===
-    // Nettoyer le prompt des termes SFW qui pourraient interférer
-    let nsfwPrompt = prompt
-      .replace(/SFW|safe for work|tasteful|classy/gi, '')
-      .replace(/elegant casual|casual outfit|fashionable/gi, 'sexy revealing');
+    // Détecter si le prompt est NSFW ou SFW basé sur son contenu
+    const isNSFWPrompt = prompt.toLowerCase().includes('nsfw') || 
+                         prompt.toLowerCase().includes('nude') ||
+                         prompt.toLowerCase().includes('topless') ||
+                         prompt.toLowerCase().includes('naked') ||
+                         prompt.toLowerCase().includes('lingerie');
     
-    // Ajouter des termes NSFW TRÈS EXPLICITES au début pour priorité
-    const nsfwPrefix = 'NSFW explicit content, nude naked woman, ';
-    const nsfwSuffix = ', sexy erotic sensual, bare skin exposed, ' +
-      'topless breasts visible nipples, lingerie underwear bra panties, ' +
-      'provocative pose seductive, intimate bedroom setting, ' +
-      'adult content 18+, uncensored explicit, ' +
-      'high quality detailed photography, beautiful body';
+    let finalPrompt = prompt;
     
-    // Construire le prompt final
-    nsfwPrompt = nsfwPrefix + nsfwPrompt + nsfwSuffix;
+    // Si NSFW, renforcer les termes explicites
+    if (isNSFWPrompt) {
+      console.log('🔞 Prompt NSFW détecté - renforcement...');
+      // Ajouter un préfixe pour s'assurer que le contenu est NSFW
+      finalPrompt = 'NSFW explicit uncensored adult content, ' + prompt;
+      // Ajouter qualité à la fin
+      finalPrompt += ', high quality, detailed, professional erotic photography';
+    } else {
+      console.log('✨ Prompt SFW détecté');
+      // Pour SFW, juste ajouter qualité
+      finalPrompt = prompt + ', high quality, detailed, professional photography';
+    }
     
     // Limiter et encoder
-    const shortPrompt = nsfwPrompt.substring(0, 1800);
+    const shortPrompt = finalPrompt.substring(0, 2000);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // Pollinations.ai URL format - modèle flux-realism pour meilleure qualité
-    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux-realism`;
+    // Pollinations.ai URL - modèle flux pour meilleure qualité
+    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux`;
     
-    console.log(`🔗 URL Pollinations NSFW (seed: ${seed})`);
-    console.log(`📝 Prompt: ${shortPrompt.substring(0, 150)}...`);
+    console.log(`🔗 URL Pollinations (seed: ${seed}, ${isNSFWPrompt ? 'NSFW' : 'SFW'})`);
+    console.log(`📝 Prompt (début): ${shortPrompt.substring(0, 100)}...`);
     
     return imageUrl;
   }

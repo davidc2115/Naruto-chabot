@@ -772,6 +772,49 @@ class StableDiffusionLocalService {
       return { moduleLoaded: true, canRunSD: false, error: error.message };
     }
   }
+  
+  /**
+   * Test simple du module natif - pour debug
+   */
+  async testModule() {
+    console.log('🧪 Test du module natif StableDiffusion...');
+    
+    if (!this.nativeModule) {
+      console.error('❌ Module natif non trouvé!');
+      return {
+        success: false,
+        error: 'Module natif non disponible',
+        moduleExists: false,
+      };
+    }
+    
+    if (!this.nativeModule.testModule) {
+      console.error('❌ Méthode testModule non trouvée dans le module natif!');
+      return {
+        success: false,
+        error: 'Méthode testModule non disponible',
+        moduleExists: true,
+        methodExists: false,
+      };
+    }
+    
+    try {
+      const result = await this.nativeModule.testModule();
+      console.log('✅ Test module réussi:', JSON.stringify(result));
+      return {
+        success: true,
+        ...result,
+      };
+    } catch (error) {
+      console.error('❌ Erreur test module:', error);
+      return {
+        success: false,
+        error: error.message,
+        moduleExists: true,
+        methodExists: true,
+      };
+    }
+  }
 
   /**
    * Supprime tous les modèles téléchargés
