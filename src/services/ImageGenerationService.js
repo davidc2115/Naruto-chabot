@@ -1828,9 +1828,45 @@ class ImageGenerationService {
    * Génère une image avec l'API Freebox
    */
   async generateWithFreebox(prompt) {
-    console.log('🏠 Génération avec API Freebox...');
+    console.log('🔥 Génération image NSFW...');
     
     await this.waitForRateLimit();
+    
+    const seed = Date.now() + Math.floor(Math.random() * 100000);
+    
+    // Utiliser Pollinations.ai qui supporte les contenus NSFW
+    // C'est une API gratuite et sans censure
+    const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
+    
+    // Construire le prompt optimisé pour NSFW
+    let nsfwPrompt = prompt;
+    
+    // S'assurer que le prompt contient des termes NSFW explicites
+    if (!prompt.toLowerCase().includes('nsfw') && !prompt.toLowerCase().includes('nude')) {
+      nsfwPrompt += ', NSFW, erotic, sensual, sexy';
+    }
+    
+    // Ajouter des termes de qualité
+    nsfwPrompt += ', high quality, detailed, professional photography';
+    
+    // Limiter et encoder
+    const shortPrompt = nsfwPrompt.substring(0, 1500);
+    const encodedPrompt = encodeURIComponent(shortPrompt);
+    
+    // Pollinations.ai URL format avec paramètres
+    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux`;
+    
+    console.log(`🔗 URL Pollinations générée (seed: ${seed})`);
+    console.log(`📝 Prompt NSFW: ${shortPrompt.substring(0, 100)}...`);
+    
+    return imageUrl;
+  }
+  
+  /**
+   * API de secours avec Freebox
+   */
+  async generateWithFreeboxBackup(prompt) {
+    console.log('🏠 Génération avec API Freebox (backup)...');
     
     let freeboxUrl = CustomImageAPIService.getApiUrl();
     if (!freeboxUrl) {
@@ -1838,25 +1874,13 @@ class ImageGenerationService {
     }
     
     const seed = Date.now() + Math.floor(Math.random() * 10000);
-    // Limiter le prompt pour éviter les erreurs
     const shortPrompt = prompt.substring(0, 800);
     const encodedPrompt = encodeURIComponent(shortPrompt);
-    
-    const token = await AsyncStorage.getItem('auth_token');
-    const user = AuthService.getCurrentUser();
-    const userId = user?.id || '';
     
     const separator = freeboxUrl.includes('?') ? '&' : '?';
     let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=768&height=768&seed=${seed}`;
     
-    if (token) {
-      imageUrl += `&token=${encodeURIComponent(token)}`;
-    }
-    if (userId) {
-      imageUrl += `&user_id=${encodeURIComponent(userId)}`;
-    }
-    
-    console.log(`🔗 URL Freebox générée (${shortPrompt.length} chars)`);
+    console.log(`🔗 URL Freebox générée`);
     return imageUrl;
   }
 

@@ -1,5 +1,7 @@
 package com.roleplaychat.app.sdlocal;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Environment;
@@ -163,31 +165,62 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getSystemInfo(Promise promise) {
         try {
-            Runtime runtime = Runtime.getRuntime();
-            long maxMemory = runtime.maxMemory();
-            long totalMemory = runtime.totalMemory();
-            long freeMemory = runtime.freeMemory();
-            long usedMemory = totalMemory - freeMemory;
+            // Utiliser ActivityManager pour obtenir la VRAIE RAM du système
+            ActivityManager activityManager = (ActivityManager) reactContext.getSystemService(Context.ACTIVITY_SERVICE);
+            ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+            activityManager.getMemoryInfo(memInfo);
             
+            // RAM totale du système (pas juste l'allocation JVM)
+            long totalSystemRam = memInfo.totalMem;
+            long availableSystemRam = memInfo.availMem;
+            long threshold = memInfo.threshold;
+            boolean lowMemory = memInfo.lowMemory;
+            
+            // RAM JVM pour référence
+            Runtime runtime = Runtime.getRuntime();
+            long jvmMaxMemory = runtime.maxMemory();
+            long jvmTotalMemory = runtime.totalMemory();
+            long jvmFreeMemory = runtime.freeMemory();
+            
+            // Stockage
             StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
             long availableBytes = stat.getAvailableBytes();
             long totalBytes = stat.getTotalBytes();
             
-            // Vérifier si l'appareil peut exécuter SD (besoin de ~4GB RAM)
-            boolean hasEnoughRAM = maxMemory > 3L * 1024 * 1024 * 1024; // 3GB minimum
-            boolean hasEnoughStorage = availableBytes > 5L * 1024 * 1024 * 1024; // 5GB minimum
+            // Calculs en MB
+            double totalRamMB = totalSystemRam / 1024.0 / 1024.0;
+            double availableRamMB = availableSystemRam / 1024.0 / 1024.0;
+            double freeStorageMB = availableBytes / 1024.0 / 1024.0;
+            
+            // Vérifier si l'appareil peut exécuter SD
+            // Besoin de 4GB+ RAM totale et 2GB+ disponible
+            boolean hasEnoughRAM = totalSystemRam > 4L * 1024 * 1024 * 1024 && availableSystemRam > 2L * 1024 * 1024 * 1024;
+            boolean hasEnoughStorage = availableBytes > 3L * 1024 * 1024 * 1024; // 3GB pour modèles
+            
+            Log.i(TAG, "📊 RAM Totale: " + String.format("%.0f", totalRamMB) + " MB");
+            Log.i(TAG, "📊 RAM Disponible: " + String.format("%.0f", availableRamMB) + " MB");
+            Log.i(TAG, "📊 Stockage Libre: " + String.format("%.0f", freeStorageMB) + " MB");
+            Log.i(TAG, "📊 Peut exécuter SD: " + (hasEnoughRAM && hasEnoughStorage && ortEnv != null));
             
             WritableMap result = Arguments.createMap();
-            result.putDouble("maxMemoryMB", maxMemory / 1024.0 / 1024.0);
-            result.putDouble("totalMemoryMB", totalMemory / 1024.0 / 1024.0);
-            result.putDouble("freeMemoryMB", freeMemory / 1024.0 / 1024.0);
-            result.putDouble("usedMemoryMB", usedMemory / 1024.0 / 1024.0);
-            result.putDouble("freeStorageMB", availableBytes / 1024.0 / 1024.0);
+            // RAM système réelle
+            result.putDouble("totalRamMB", totalRamMB);
+            result.putDouble("availableRamMB", availableRamMB);
+            result.putDouble("ramThresholdMB", threshold / 1024.0 / 1024.0);
+            result.putBoolean("systemLowMemory", lowMemory);
+            // RAM JVM (pour compatibilité)
+            result.putDouble("maxMemoryMB", jvmMaxMemory / 1024.0 / 1024.0);
+            result.putDouble("totalMemoryMB", jvmTotalMemory / 1024.0 / 1024.0);
+            result.putDouble("freeMemoryMB", jvmFreeMemory / 1024.0 / 1024.0);
+            // Stockage
+            result.putDouble("freeStorageMB", freeStorageMB);
             result.putDouble("totalStorageMB", totalBytes / 1024.0 / 1024.0);
+            // Capacités
             result.putInt("availableProcessors", runtime.availableProcessors());
             result.putBoolean("hasEnoughRAM", hasEnoughRAM);
             result.putBoolean("hasEnoughStorage", hasEnoughStorage);
             result.putBoolean("canRunSD", hasEnoughRAM && hasEnoughStorage && ortEnv != null);
+            // Module info
             result.putBoolean("moduleLoaded", true);
             result.putBoolean("onnxAvailable", ortEnv != null);
             result.putString("moduleVersion", VERSION);

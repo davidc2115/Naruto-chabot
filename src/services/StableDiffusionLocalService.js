@@ -417,21 +417,24 @@ class StableDiffusionLocalService {
       return `📥 Modèles manquants: ${modelsCheck.missingModels.join(', ')}`;
     }
     
+    // Utiliser la RAM système réelle (totalRamMB) au lieu de maxMemoryMB
+    const totalRamGB = ((systemInfo?.totalRamMB || systemInfo?.maxMemoryMB || 0) / 1024).toFixed(1);
+    const availableRamGB = ((systemInfo?.availableRamMB || systemInfo?.freeMemoryMB || 0) / 1024).toFixed(1);
+    
     if (!systemInfo?.hasEnoughRAM) {
-      const ramGB = ((systemInfo?.maxMemoryMB || 0) / 1024).toFixed(1);
-      return `⚠️ RAM insuffisante (${ramGB} GB, besoin 3+ GB)`;
+      return `⚠️ RAM insuffisante (${totalRamGB} GB total, ${availableRamGB} GB dispo - besoin 4+ GB)`;
     }
     
     if (!systemInfo?.hasEnoughStorage) {
       const storageGB = ((systemInfo?.freeStorageMB || 0) / 1024).toFixed(1);
-      return `⚠️ Stockage insuffisant (${storageGB} GB libre)`;
+      return `⚠️ Stockage insuffisant (${storageGB} GB libre, besoin 3+ GB)`;
     }
     
     if (modelStatus?.pipelineReady) {
-      return '✅ Pipeline prêt! Vous pouvez générer des images.';
+      return `✅ Pipeline prêt! RAM: ${totalRamGB} GB (${availableRamGB} GB dispo)`;
     }
     
-    return '✅ Modèles OK. Initialisez le pipeline pour générer.';
+    return `✅ Modèles OK. RAM: ${totalRamGB} GB. Initialisez le pipeline.`;
   }
 
   /**
