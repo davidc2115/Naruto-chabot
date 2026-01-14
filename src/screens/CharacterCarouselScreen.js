@@ -457,7 +457,7 @@ export default function CharacterCarouselScreen({ navigation }) {
             style={styles.card}
             imageStyle={styles.cardImage}
           >
-            {/* Overlay gradient */}
+            {/* Overlay gradient léger pour lisibilité texte */}
             <View style={styles.overlay} />
             
             {/* Indicateurs de swipe */}
@@ -476,7 +476,7 @@ export default function CharacterCarouselScreen({ navigation }) {
               <Text style={styles.swipeIndicatorText}>Suivant ▶</Text>
             </Animated.View>
             
-            {/* Contenu */}
+            {/* Contenu principal du personnage */}
             <View style={styles.cardContent}>
               <View style={styles.header}>
                 <Text style={styles.name}>{currentCharacter.name || 'Personnage'}</Text>
@@ -508,14 +508,14 @@ export default function CharacterCarouselScreen({ navigation }) {
               )}
 
               {/* Description avec fallback */}
-              <Text style={styles.description} numberOfLines={4}>
+              <Text style={styles.description} numberOfLines={3}>
                 {getDisplayDescription(currentCharacter)}
               </Text>
 
               {/* Tags avec fallback */}
               <View style={styles.tagsContainer}>
                 {(currentCharacter.tags && currentCharacter.tags.length > 0) ? (
-                  currentCharacter.tags.slice(0, 6).map((tag, index) => (
+                  currentCharacter.tags.slice(0, 5).map((tag, index) => (
                     <View key={index} style={styles.tag}>
                       <Text style={styles.tagText}>{tag}</Text>
                     </View>
@@ -537,14 +537,6 @@ export default function CharacterCarouselScreen({ navigation }) {
               {/* Instruction swipe */}
               <Text style={styles.swipeHint}>← Glissez pour naviguer →</Text>
             </View>
-            
-            {/* Cadre doré en bordure (ne bloque pas le contenu) */}
-            <Image 
-              source={require('../../assets/gold-frame.png')}
-              style={styles.goldFrameOverlay}
-              resizeMode="stretch"
-              pointerEvents="none"
-            />
           </ImageBackground>
         </Animated.View>
       </View>
@@ -791,34 +783,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0a12',
   },
   cardWrapper: {
-    width: SCREEN_WIDTH - 12,
-    height: SCREEN_HEIGHT * 0.42,
-    maxHeight: 380,
+    width: SCREEN_WIDTH - 20,
+    height: SCREEN_HEIGHT * 0.46,
+    maxHeight: 420,
   },
   card: {
     width: '100%',
     height: '100%',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#12121f',
-  },
-  goldFrameOverlay: {
-    position: 'absolute',
-    top: -5,
-    left: -5,
-    right: -5,
-    bottom: -5,
-    width: '103%',
-    height: '103%',
-    opacity: 0.85,
+    // Bord doré fin et élégant
+    borderWidth: 3,
+    borderColor: '#C9A227',
+    // Effet de brillance avec shadow
+    shadowColor: '#C9A227',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 10,
   },
   cardImage: {
-    borderRadius: 24,
-    opacity: 0.9,
+    borderRadius: 14,
+    opacity: 1,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    // Gradient plus léger pour voir l'image
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   swipeIndicatorLeft: {
     position: 'absolute',
@@ -850,20 +842,28 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
     justifyContent: 'flex-end',
-    padding: 20,
+    padding: 16,
+    paddingBottom: 12,
+    // Fond dégradé en bas pour lisibilité
+    backgroundColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   name: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#C9A227',
-    textShadowColor: '#8B6914',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 6,
+    color: '#FFD700',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 8,
   },
   customBadge: {
     fontSize: 20,
@@ -874,67 +874,81 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   ageGender: {
-    fontSize: 13,
-    color: '#D4AF37',
-    marginBottom: 4,
+    fontSize: 14,
+    color: '#fff',
+    marginBottom: 6,
     fontWeight: '600',
-    textShadowColor: '#8B6914',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
   },
   role: {
-    fontSize: 11,
-    color: '#C9A227',
-    marginBottom: 4,
+    fontSize: 12,
+    color: '#FFD700',
+    marginBottom: 6,
     fontWeight: '600',
     fontStyle: 'italic',
-    textShadowColor: 'rgba(139,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
   },
   description: {
     fontSize: 13,
-    color: '#E8D5A3',
+    color: '#fff',
     lineHeight: 18,
     marginBottom: 10,
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   tag: {
-    backgroundColor: 'rgba(201, 162, 39, 0.9)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    marginRight: 3,
-    marginBottom: 3,
+    backgroundColor: '#C9A227',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginRight: 4,
+    marginBottom: 4,
     borderWidth: 1,
-    borderColor: 'rgba(139,0,0,0.3)',
+    borderColor: '#FFD700',
   },
   tagText: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#0a0a12',
     fontWeight: 'bold',
   },
   counter: {
-    fontSize: 12,
-    color: '#C9A227',
+    fontSize: 13,
+    color: '#FFD700',
     textAlign: 'center',
-    fontWeight: '600',
-    textShadowColor: '#8B6914',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    fontWeight: 'bold',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    alignSelf: 'center',
   },
   swipeHint: {
-    fontSize: 12,
-    color: '#64748b',
+    fontSize: 11,
+    color: '#aaa',
     textAlign: 'center',
-    marginTop: 6,
+    marginTop: 4,
   },
   buttonsContainer: {
     flexDirection: 'row',
