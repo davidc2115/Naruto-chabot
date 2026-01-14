@@ -503,11 +503,29 @@ export default function ConversationScreen({ route, navigation }) {
       // Niveau de relation pour adapter la tenue/pose
       const currentLevel = userLevel?.level || 1;
       
+      // LOG IMPORTANT pour debug
+      console.log('🖼️ ===== GÉNÉRATION IMAGE =====');
+      console.log('🖼️ userLevel:', JSON.stringify(userLevel));
+      console.log('🖼️ currentLevel utilisé:', currentLevel);
+      console.log('🖼️ Personnage:', character?.name);
+      
+      // S'assurer que le niveau est au moins 2 pour avoir des images NSFW si progression
+      // (si l'utilisateur a un niveau mais qu'il est à 0, on utilise au moins 1)
+      const effectiveLevel = Math.max(1, currentLevel);
+      console.log('🖼️ effectiveLevel final:', effectiveLevel);
+      
+      // Afficher le niveau utilisé pour debug
+      const nsfwType = effectiveLevel >= 5 ? '🔥 NUE EXPLICITE' :
+                       effectiveLevel >= 4 ? '👙 TOPLESS' :
+                       effectiveLevel >= 3 ? '💋 LINGERIE' :
+                       effectiveLevel >= 2 ? '😈 PROVOCANTE' : '✨ SFW';
+      console.log(`🎨 Génération image: Niveau ${effectiveLevel} = ${nsfwType}`);
+      
       const imageUrl = await ImageGenerationService.generateSceneImage(
         character,
         userProfile,
         messages,
-        currentLevel  // Passe le niveau pour tenue appropriée
+        effectiveLevel  // Passe le niveau pour tenue appropriée
       );
       
       await GalleryService.saveImageToGallery(character.id, imageUrl);

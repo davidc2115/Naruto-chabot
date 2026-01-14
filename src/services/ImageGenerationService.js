@@ -1622,21 +1622,34 @@ class ImageGenerationService {
       // Ambiance sensuelle
       prompt += `, ${sceneElements.mood}`;
       
-      // Prompt NSFW explicite RENFORCÉ
+      // Prompt NSFW explicite RENFORCÉ SELON LE NIVEAU
       prompt += this.buildNSFWPrompt(character, isRealistic);
-      prompt += ', NSFW, erotic, sensual, sexy, seductive, provocative';
-      prompt += ', adult content, mature, explicit, nude, naked';
-      prompt += ', beautiful naked body, exposed skin, intimate';
       
-      // Forcer le contenu adulte
-      if (level >= 3) {
-        prompt += ', topless, bare breasts, nipples visible';
-      }
-      if (level >= 4) {
-        prompt += ', fully nude, naked, nothing hidden';
-      }
-      if (level >= 5) {
-        prompt += ', explicit nudity, erotic pose, intimate exposure';
+      // Forcer le contenu NSFW selon le niveau
+      if (level === 2) {
+        // Niveau 2: Provocante
+        prompt += ', NSFW, sexy, seductive, provocative outfit';
+        prompt += ', revealing clothes, cleavage visible, short skirt, tight dress';
+        prompt += ', sexy pose, flirtatious, adult content';
+        console.log('📸 Mode NIVEAU 2: Provocante');
+      } else if (level === 3) {
+        // Niveau 3: Lingerie
+        prompt += ', NSFW, sexy lingerie, bra and panties, lace underwear';
+        prompt += ', in underwear, revealing lingerie, seductive pose';
+        prompt += ', adult content, erotic, sensual';
+        console.log('📸 Mode NIVEAU 3: Lingerie');
+      } else if (level === 4) {
+        // Niveau 4: Topless
+        prompt += ', NSFW, topless, bare breasts, nipples visible';
+        prompt += ', naked from waist up, exposed chest, sensual nude';
+        prompt += ', adult content, erotic, intimate';
+        console.log('📸 Mode NIVEAU 4: Topless');
+      } else if (level >= 5) {
+        // Niveau 5+: Nue explicite
+        prompt += ', NSFW, fully nude, completely naked, nothing hidden';
+        prompt += ', explicit nudity, naked body fully exposed, nipples visible';
+        prompt += ', erotic pose, intimate, adult only, uncensored';
+        console.log('📸 Mode NIVEAU 5+: Nue explicite');
       }
       
     } else {
