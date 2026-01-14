@@ -14,8 +14,15 @@ import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Récupération du module natif
-const { StableDiffusionLocal } = NativeModules;
+// Récupération du module natif avec logs détaillés
+console.log('🔍 Recherche du module StableDiffusionLocal...');
+console.log('📱 NativeModules disponibles:', Object.keys(NativeModules || {}).join(', '));
+
+const StableDiffusionLocal = NativeModules?.StableDiffusionLocal;
+console.log('📱 StableDiffusionLocal trouvé:', !!StableDiffusionLocal);
+if (StableDiffusionLocal) {
+  console.log('📱 Méthodes disponibles:', Object.keys(StableDiffusionLocal).join(', '));
+}
 
 // Clé de stockage pour les URLs personnalisées
 const CUSTOM_SERVER_KEY = '@sd_custom_server';
@@ -778,42 +785,78 @@ class StableDiffusionLocalService {
    */
   async testModule() {
     console.log('🧪 Test du module natif StableDiffusion...');
+    console.log('🔍 Platform:', Platform.OS);
+    console.log('🔍 NativeModules:', Object.keys(NativeModules || {}).length, 'modules');
+    console.log('🔍 StableDiffusionLocal existe:', !!NativeModules?.StableDiffusionLocal);
+    
+    // Lister tous les modules natifs pour debug
+    const allModules = Object.keys(NativeModules || {});
+    console.log('🔍 Modules disponibles:', allModules.slice(0, 10).join(', '), allModules.length > 10 ? '...' : '');
     
     if (!this.nativeModule) {
       console.error('❌ Module natif non trouvé!');
       return {
         success: false,
-        error: 'Module natif non disponible',
+        error: 'Module natif StableDiffusionLocal non trouvé dans NativeModules',
         moduleExists: false,
+        platform: Platform.OS,
+        availableModules: allModules.slice(0, 20),
       };
     }
     
-    if (!this.nativeModule.testModule) {
-      console.error('❌ Méthode testModule non trouvée dans le module natif!');
-      return {
-        success: false,
-        error: 'Méthode testModule non disponible',
-        moduleExists: true,
-        methodExists: false,
-      };
+    console.log('🔍 Méthodes du module:', Object.keys(this.nativeModule || {}).join(', '));
+    
+    // Essayer d'abord getSystemInfo qui est plus fiable
+    if (this.nativeModule.getSystemInfo) {
+      try {
+        console.log('🔍 Appel getSystemInfo...');
+        const sysInfo = await this.nativeModule.getSystemInfo();
+        console.log('✅ getSystemInfo réussi:', JSON.stringify(sysInfo));
+        return {
+          success: true,
+          source: 'getSystemInfo',
+          moduleVersion: sysInfo.moduleVersion || 'N/A',
+          totalRamGB: (sysInfo.totalRamMB || 0) / 1024,
+          availableRamGB: (sysInfo.availableRamMB || 0) / 1024,
+          onnxAvailable: sysInfo.onnxAvailable || false,
+          device: sysInfo.deviceModel || 'N/A',
+          manufacturer: sysInfo.manufacturer || 'N/A',
+          canRunSD: sysInfo.canRunSD || false,
+          rawData: sysInfo,
+        };
+      } catch (e) {
+        console.error('❌ Erreur getSystemInfo:', e.message);
+      }
     }
     
-    try {
-      const result = await this.nativeModule.testModule();
-      console.log('✅ Test module réussi:', JSON.stringify(result));
-      return {
-        success: true,
-        ...result,
-      };
-    } catch (error) {
-      console.error('❌ Erreur test module:', error);
-      return {
-        success: false,
-        error: error.message,
-        moduleExists: true,
-        methodExists: true,
-      };
+    // Sinon essayer testModule
+    if (this.nativeModule.testModule) {
+      try {
+        console.log('🔍 Appel testModule...');
+        const result = await this.nativeModule.testModule();
+        console.log('✅ testModule réussi:', JSON.stringify(result));
+        return {
+          success: true,
+          source: 'testModule',
+          ...result,
+        };
+      } catch (error) {
+        console.error('❌ Erreur testModule:', error.message);
+        return {
+          success: false,
+          error: error.message,
+          moduleExists: true,
+          methodExists: true,
+        };
+      }
     }
+    
+    return {
+      success: false,
+      error: 'Aucune méthode de test disponible',
+      moduleExists: true,
+      methodsAvailable: Object.keys(this.nativeModule || {}),
+    };
   }
 
   /**

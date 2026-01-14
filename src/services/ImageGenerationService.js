@@ -1698,7 +1698,13 @@ class ImageGenerationService {
       prompt += ', single character, solo';
     }
 
-    console.log(`🖼️ Génération ${isNSFW ? 'NSFW' : 'SFW'} (${isRealistic ? 'RÉALISTE' : 'ANIME'})`);
+    // Ajouter un marqueur de niveau pour forcer le mode NSFW
+    if (isNSFW) {
+      prompt = `[NSFW_LEVEL_${level}] ` + prompt;
+    }
+    
+    console.log(`🖼️ Génération ${isNSFW ? 'NSFW' : 'SFW'} niveau ${level} (${isRealistic ? 'RÉALISTE' : 'ANIME'})`);
+    console.log(`📝 Prompt FINAL (100 chars): ${prompt.substring(0, 100)}...`);
     return await this.generateImage(prompt);
   }
 
@@ -1837,26 +1843,47 @@ class ImageGenerationService {
     // Utiliser Pollinations.ai
     const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
     
-    // Détecter si le prompt est NSFW ou SFW basé sur son contenu
-    const isNSFWPrompt = prompt.toLowerCase().includes('nsfw') || 
-                         prompt.toLowerCase().includes('nude') ||
-                         prompt.toLowerCase().includes('topless') ||
-                         prompt.toLowerCase().includes('naked') ||
-                         prompt.toLowerCase().includes('lingerie');
+    // Détecter le niveau NSFW via le marqueur [NSFW_LEVEL_X]
+    const nsfwMatch = prompt.match(/\[NSFW_LEVEL_(\d+)\]/);
+    const nsfwLevel = nsfwMatch ? parseInt(nsfwMatch[1]) : 0;
+    const isNSFW = nsfwLevel >= 2;
     
-    let finalPrompt = prompt;
+    // Retirer le marqueur du prompt
+    let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/, '');
     
-    // Si NSFW, renforcer les termes explicites
-    if (isNSFWPrompt) {
-      console.log('🔞 Prompt NSFW détecté - renforcement...');
-      // Ajouter un préfixe pour s'assurer que le contenu est NSFW
-      finalPrompt = 'NSFW explicit uncensored adult content, ' + prompt;
-      // Ajouter qualité à la fin
-      finalPrompt += ', high quality, detailed, professional erotic photography';
+    let finalPrompt = cleanPrompt;
+    
+    if (isNSFW) {
+      console.log(`🔞 MODE NSFW FORCÉ - Niveau ${nsfwLevel}`);
+      
+      // Préfixe NSFW TRÈS EXPLICITE selon le niveau
+      let nsfwPrefix = '';
+      let nsfwSuffix = '';
+      
+      if (nsfwLevel >= 5) {
+        // Niveau 5+ : Très explicite
+        nsfwPrefix = 'NSFW explicit nude naked woman, full nudity, erotic, ';
+        nsfwSuffix = ', completely naked, nude body fully exposed, nipples visible, intimate pose, explicit adult content, uncensored';
+      } else if (nsfwLevel >= 4) {
+        // Niveau 4 : Nu artistique
+        nsfwPrefix = 'NSFW nude woman, artistic nudity, ';
+        nsfwSuffix = ', naked body, bare breasts, topless, sensual nude pose, adult content';
+      } else if (nsfwLevel >= 3) {
+        // Niveau 3 : Lingerie
+        nsfwPrefix = 'NSFW sexy woman in lingerie, ';
+        nsfwSuffix = ', wearing sexy lingerie, bra and panties, lace underwear, seductive, adult content';
+      } else {
+        // Niveau 2 : Provocant
+        nsfwPrefix = 'NSFW sexy provocative woman, ';
+        nsfwSuffix = ', revealing outfit, cleavage visible, seductive pose, adult content';
+      }
+      
+      finalPrompt = nsfwPrefix + cleanPrompt + nsfwSuffix;
+      finalPrompt += ', high quality, detailed, professional erotic photography, beautiful';
+      
     } else {
-      console.log('✨ Prompt SFW détecté');
-      // Pour SFW, juste ajouter qualité
-      finalPrompt = prompt + ', high quality, detailed, professional photography';
+      console.log('✨ Mode SFW');
+      finalPrompt = cleanPrompt + ', high quality, detailed, professional photography, beautiful';
     }
     
     // Limiter et encoder
@@ -1866,8 +1893,8 @@ class ImageGenerationService {
     // Pollinations.ai URL - modèle flux pour meilleure qualité
     const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux`;
     
-    console.log(`🔗 URL Pollinations (seed: ${seed}, ${isNSFWPrompt ? 'NSFW' : 'SFW'})`);
-    console.log(`📝 Prompt (début): ${shortPrompt.substring(0, 100)}...`);
+    console.log(`🔗 URL Pollinations (seed: ${seed}, niveau: ${nsfwLevel})`);
+    console.log(`📝 Prompt NSFW: ${shortPrompt.substring(0, 150)}...`);
     
     return imageUrl;
   }
