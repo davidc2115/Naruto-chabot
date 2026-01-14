@@ -169,16 +169,30 @@ class ImageGenerationService {
       ],
     };
     
-    // === VARIÉTÉ DE TYPES DE PHOTOS ===
+    // === VARIÉTÉ DE TYPES DE PHOTOS ET ANGLES ===
     this.shotTypes = [
-      'full body shot showing entire figure',
-      'three-quarter shot from thighs up',
-      'upper body portrait, chest and face focus',
-      'close-up portrait, face and shoulders',
-      'back view showing spine and curves',
-      'side profile emphasizing silhouette',
-      'from above looking down, unique angle',
-      'low angle looking up, dramatic perspective',
+      // Vues de face
+      'full body frontal shot showing entire figure from the front',
+      'frontal view, facing camera directly, confident pose',
+      'front view portrait, looking at camera, seductive gaze',
+      // Vues de profil
+      'side profile view, elegant silhouette emphasized',
+      'profile shot showing curves, side view',
+      'three-quarter angle, partial profile, mysterious',
+      // Vues de dos
+      'back view, showing spine and rear curves, looking over shoulder',
+      'rear view, back turned to camera, glancing back seductively',
+      'from behind, full back visible, arched spine',
+      // Zooms spécifiques
+      'close-up on chest and cleavage, sensual focus',
+      'zoomed on curves and hips, body emphasis',
+      'focus on rear and thighs, from behind',
+      'upper body close-up, face and bust prominent',
+      // Angles créatifs
+      'from above looking down, unique perspective',
+      'low angle looking up, powerful dramatic',
+      'dutch angle, artistic tilt, dynamic',
+      'mirror reflection shot, voyeuristic',
     ];
     
     // === VARIÉTÉ D'ÉCLAIRAGES ===
@@ -265,139 +279,163 @@ class ImageGenerationService {
 
   /**
    * Retourne une tenue basée sur le niveau de relation
-   * Progression: habillé → suggestif → lingerie → topless → nu
-   * GRANDE VARIÉTÉ avec différentes options par niveau
+   * REFAIT SELON DEMANDE:
+   * - Niveau 1: Habillé (robes, jupes, tops, décolletés)
+   * - Niveau 2: Provocant (nuisettes, robes moulantes, mini-jupes, collants, bas, talons, transparent)
+   * - Niveau 3: Lingerie (sous-vêtements, bikini, nuisette transparente)
+   * - Niveau 4+: De plus en plus explicite
    */
   getOutfitByLevel(level) {
     const lvl = Math.min(Math.max(1, level || 1), 10);
     const outfits = {
-      // Niveau 1 - Habillé mais suggestif - TRÈS VARIÉ
+      // === NIVEAU 1 - HABILLÉ SEXY (robes, jupes, tops, décolletés) ===
       1: [
-        'wearing elegant form-fitting cocktail dress showing curves, cleavage hint visible',
-        'wearing tight jeans and crop top exposing toned midriff, casual sexy',
-        'wearing short skirt and blouse with top buttons undone, legs visible',
-        'wearing sundress with deep V neckline, summery and flirty',
-        'wearing bodycon mini dress, curves hugging fabric',
-        'wearing off-shoulder sweater dress, bare shoulders',
-        'wearing high slit evening gown, leg exposed',
-        'wearing yoga pants and sports bra, athletic sexy',
-        'wearing oversized shirt unbuttoned, hints of body underneath',
-        'wearing swimsuit coverup partially open, bikini peeking through',
+        // Robes variées
+        'wearing elegant red cocktail dress with plunging neckline, cleavage visible',
+        'wearing tight black little dress, curves emphasized, short length',
+        'wearing flowing summer dress with thin straps, shoulders bare',
+        'wearing bodycon dress hugging every curve, side slit showing leg',
+        'wearing off-shoulder evening gown, elegant and sexy',
+        'wearing wrap dress with deep V showing cleavage, form-fitting',
+        // Jupes variées
+        'wearing short pleated skirt with tight blouse, legs visible',
+        'wearing pencil skirt with silk blouse unbuttoned, professional sexy',
+        'wearing denim mini skirt with crop top, casual and hot',
+        'wearing leather skirt with lace top, edgy sexy',
+        // Tops et décolletés
+        'wearing low-cut top showing generous cleavage, jeans',
+        'wearing crop top exposing toned midriff, high-waisted pants',
+        'wearing halter top with plunging neckline, back exposed',
+        'wearing tight sweater emphasizing bust, casual chic',
+        'wearing corset top with jeans, cinched waist, cleavage pushed up',
+        'wearing tank top with visible bra straps, casual sexy',
       ],
-      // Niveau 2 - Lingerie sexy - TRÈS VARIÉ
+      // === NIVEAU 2 - PROVOCANT (nuisettes, robes moulantes, collants, bas, talons) ===
       2: [
-        'wearing beautiful French lace lingerie set, matching bra and panties, delicate lace details',
-        'wearing silk lingerie with lace trim, elegant underwear, on bed',
-        'wearing sexy corset with garter belt and stockings, classic burlesque',
-        'wearing satin babydoll nightgown, semi-transparent, romantic',
-        'wearing mesh bodysuit, body visible through fabric',
-        'wearing velvet lingerie set, luxurious sensual',
-        'wearing white bridal lingerie, innocent yet sexy',
-        'wearing red satin slip dress, seductive classic',
-        'wearing strappy harness lingerie, edgy bold',
-        'wearing sheer robe over bra and panties, teasing',
-        'wearing lace teddy, one-piece lingerie, elegant',
-        'wearing camisole and shorts pajama set, bedroom casual',
+        // Nuisettes et robes de soirée moulantes
+        'wearing silky short nightgown barely covering thighs, suggestive',
+        'wearing ultra-tight evening dress, every curve visible, almost see-through',
+        'wearing satin slip dress clinging to body, no bra visible',
+        'wearing sheer evening gown with strategic coverage, glamorous',
+        // Mini-jupes provocantes
+        'wearing extremely short mini-skirt, panties almost visible when sitting',
+        'wearing leather mini-skirt with thigh-high boots, dominatrix vibe',
+        'wearing pleated micro-skirt with garter belt visible underneath',
+        // Collants, bas et talons
+        'wearing sheer black stockings with garter belt, high heels, short skirt',
+        'wearing fishnet stockings with suspenders, visible under dress',
+        'wearing thigh-high boots with mini dress, powerful sexy',
+        'wearing stiletto heels with ankle straps, showing off legs',
+        // Tenues transparentes/suggestives
+        'wearing semi-transparent blouse, bra visible underneath',
+        'wearing mesh top over lace bra, skin visible through fabric',
+        'wearing backless dress with no underwear, spine exposed',
+        'wearing side-boob revealing top, daring fashion',
+        'wearing wet-look leggings with crop top, shiny and tight',
       ],
-      // Niveau 3 - Très suggestif / transparent - TRÈS VARIÉ
+      // === NIVEAU 3 - LINGERIE (sous-vêtements, bikini, nuisette transparente) ===
       3: [
-        'wearing sheer see-through negligee, nipples visible through thin fabric',
-        'wearing only tiny lace thong, arms covering chest, teasing topless',
-        'wearing open silk robe revealing lingerie, sensual',
-        'wearing micro bikini barely covering, string bikini',
-        'wearing wet white t-shirt clinging to body, see-through',
-        'wearing fishnet bodysuit over bare skin, daring',
-        'wearing only apron from behind, kitchen fantasy',
-        'wearing transparent mesh dress, nothing underneath',
-        'wearing open shirt with just panties, morning after look',
-        'wearing body chain jewelry only over panties, decorative',
-        'wearing backless dress with no underwear, exposed back',
-        'wearing cutout swimsuit, strategic skin visible',
+        // Sous-vêtements classiques
+        'wearing matching lace bra and panties set, feminine and sexy',
+        'wearing push-up bra and thong, cleavage emphasized',
+        'wearing satin underwear set, elegant and sensual',
+        'wearing cotton panties and sports bra, innocent sexy',
+        // Bikinis variés
+        'wearing string bikini, minimal coverage, beach ready',
+        'wearing triangle bikini, ties on sides, sexy vacation look',
+        'wearing high-cut bikini bottom with bandeau top',
+        'wearing micro bikini barely covering essentials',
+        // Nuisettes et lingerie élaborée
+        'wearing sheer transparent negligee, body visible through fabric',
+        'wearing lace babydoll with matching thong, romantic',
+        'wearing see-through chemise, nipples visible through lace',
+        'wearing silk robe open over lingerie, teasing',
+        // Ensembles lingerie
+        'wearing corset with garter belt and stockings, burlesque style',
+        'wearing bodysuit lingerie, lace detailing, one-piece sexy',
+        'wearing bralette and high-waist panties, modern lingerie',
+        'wearing crotchless panties with demi-cup bra, erotic lingerie',
       ],
-      // Niveau 4 - Topless - TRÈS VARIÉ
+      // === NIVEAU 4 - TOPLESS ===
       4: [
-        'topless, bare breasts visible, wearing only lace panties',
-        'nude from waist up, breasts exposed, wearing stockings and heels',
-        'topless with hands on hips, wearing only thong',
-        'bare chested, wearing only jeans unbuttoned',
-        'topless wearing only garter belt and stockings, boudoir',
-        'upper body nude, wrapped in sheet from waist down',
-        'topless in shower, water streaming down body',
-        'nude torso, wearing only jewelry and heels',
-        'topless lying on stomach, back visible',
-        'bare breasted, holding pillow strategically',
-        'topless by pool, wearing only bikini bottom',
-        'nude from waist up, painter smock open, artistic',
+        'topless, bare breasts fully visible, wearing only lace panties',
+        'nude from waist up, breasts exposed, wearing thong and heels',
+        'topless with hands on hips confidently, wearing only stockings',
+        'bare chested, wearing only unbuttoned jeans, casual topless',
+        'topless wearing garter belt and stockings only, boudoir',
+        'upper body completely nude, sheet covering from waist down',
+        'topless in steamy shower, water on breasts',
+        'nude torso, wearing only jewelry necklace between breasts',
+        'topless lying on stomach, back and side of breast visible',
+        'breasts fully exposed, holding panties playfully',
+        'topless by pool in just bikini bottom, wet skin',
+        'completely topless, nipples erect, confident pose',
       ],
-      // Niveau 5 - Nu artistique - TRÈS VARIÉ
+      // === NIVEAU 5 - NU ARTISTIQUE ===
       5: [
         'completely nude, full frontal artistic pose, natural beauty',
-        'fully naked lying on silk sheets, elegant',
-        'nude confident standing pose, professional boudoir',
-        'naked in bathtub, bubbles partially covering',
-        'artistic nude on fur rug, classic glamour',
-        'nude by window, natural light, ethereal',
-        'completely naked kneeling pose, graceful',
-        'nude from behind, full back and curves visible',
-        'naked sitting cross-legged, meditation pose',
-        'nude stretched out on bed, lazy morning',
-        'fully nude in mirror reflection, artistic',
-        'naked outdoors, natural setting, free spirit',
+        'fully naked lying elegantly on silk sheets, curves visible',
+        'nude confident standing pose, nothing hidden, boudoir lighting',
+        'naked in bathtub, bubbles strategically placed, relaxed',
+        'artistic nude on fur rug, classic glamour photography',
+        'nude by window, natural light on body, ethereal',
+        'completely naked kneeling pose, graceful feminine',
+        'nude from behind, full back and butt visible, looking over shoulder',
+        'naked sitting cross-legged on bed, meditation nude',
+        'nude stretched out on bed, morning light, lazy sensual',
+        'fully nude in mirror reflection, voyeuristic artistic',
+        'naked outdoors, natural setting, free spirit nude',
       ],
-      // Niveau 6 - Nu sensuel
+      // === NIVEAU 6+ - DE PLUS EN PLUS EXPLICITE ===
       6: [
-        'sensual nude lying invitingly, romantic atmosphere',
-        'erotic nude, passionate expression, intimate setting',
-        'naked on silk sheets, body glistening with oil',
-        'nude in candlelight, warm romantic glow',
-        'fully exposed lying on stomach, arched back',
-        'naked cuddling pillow, vulnerable sexy',
-        'nude stretching in morning light, natural',
-        'completely bare in hot tub, steamy',
+        'sensual nude lying invitingly on bed, legs slightly parted',
+        'erotic nude, passionate expression, touching self',
+        'naked on silk sheets, body glistening with oil, sensual',
+        'nude in candlelight, hands exploring own body',
+        'fully exposed lying on stomach, butt raised, arched back',
+        'naked cuddling pillow between legs, vulnerable sexy',
+        'nude stretching provocatively, body fully displayed',
+        'completely bare in hot tub, breasts above water, steamy',
       ],
-      // Niveau 7 - Nu provocant
       7: [
-        'sexy nude pose, legs slightly parted, provocative',
-        'hot erotic nude on bed, seductive pose',
-        'naked on hands and knees, looking back',
-        'nude spread on leather couch, luxurious',
-        'completely exposed in shower, wet body',
-        'naked with one leg raised, flexible',
-        'nude in provocative yoga pose, athletic',
-        'fully bare bent over, rear emphasized',
+        'sexy nude pose, legs parted invitingly, bedroom eyes',
+        'hot erotic nude on bed, hand between thighs',
+        'naked on hands and knees, looking back seductively, rear view',
+        'nude spread on leather couch, luxurious explicit',
+        'completely exposed in shower, hands on body, wet',
+        'naked with legs spread, touching intimately',
+        'nude provocative pose, fingers near sex, teasing',
+        'fully bare bent over, rear fully exposed and inviting',
       ],
-      // Niveau 8 - Nu explicite
       8: [
-        'explicit nude pose, legs spread, erotic',
-        'extremely sexy naked, provocative open pose',
-        'nude wide open on bed, nothing hidden',
-        'naked in very intimate position, hot',
-        'completely exposed in submission pose, erotic',
-        'nude with legs up, fully visible',
-        'explicit shower scene, everything exposed',
-        'naked spread eagle, maximum exposure',
+        'explicit nude pose, legs wide spread, sex visible',
+        'extremely sexy naked, open provocative pose, nothing hidden',
+        'nude wide open on bed, fingers spreading labia',
+        'naked in very intimate position, explicit view',
+        'completely exposed masturbation pose, erotic',
+        'nude with legs up and spread, explicit full view',
+        'explicit position, touching sex openly',
+        'naked spread eagle on bed, maximum explicit exposure',
       ],
-      // Niveau 9 - Nu ultra explicite
       9: [
-        'ultra erotic nude, very explicit pose, everything visible',
-        'intensely sexual nude position, provocative',
-        'maximum exposure nude, legs wide apart',
-        'extremely explicit naked pose, hot atmosphere',
-        'nude in most intimate position, nothing hidden',
-        'ultra revealing pose, complete exposure',
-        'sexually explicit nude, intense desire',
-        'fully spread nude, ultimate intimacy',
+        'ultra erotic nude, very explicit pose, penetration implied',
+        'intensely sexual nude position, toys visible',
+        'maximum exposure nude, legs wide, fingers inside',
+        'extremely explicit naked pose, orgasmic expression',
+        'nude in most intimate position, masturbating openly',
+        'ultra revealing pose, complete explicit exposure',
+        'sexually explicit nude, intense self-pleasure',
+        'fully spread nude, ultimate explicit intimacy',
       ],
-      // Niveau 10 - Maximum érotique
       10: [
-        'maximum explicit nude, most provocative pose, extremely erotic',
-        'ultimate erotic nude, nothing hidden, most intimate',
-        'absolute maximum exposure, intensely sexual position',
+        'maximum explicit nude, most provocative pose, extreme erotic',
+        'ultimate erotic nude, nothing hidden, explicit masturbation',
+        'absolute maximum exposure, orgasm captured, intensely sexual',
         'most explicit possible nude pose, complete vulnerability',
-        'ultimate intimacy pose, everything on display',
-        'maximum erotic exposure, passionate and explicit',
-        'most provocative nude imaginable, total exposure',
-        'extreme explicit position, ultimate sensuality',
+        'ultimate intimacy pose, toy penetration, everything visible',
+        'maximum erotic exposure, passionate explicit climax',
+        'most provocative nude imaginable, total explicit display',
+        'extreme explicit position, ultimate sensual pleasure',
       ],
     };
     

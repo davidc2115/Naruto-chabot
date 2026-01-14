@@ -228,13 +228,21 @@ export default function ConversationScreen({ route, navigation }) {
     }
   };
 
-  // Recharger le fond quand l'écran reprend le focus
+  // Recharger le fond et scroll en bas quand l'écran reprend le focus
   useFocusEffect(
     useCallback(() => {
       if (character?.id) {
         loadBackground();
+        
+        // Scroll automatique en bas quand on revient sur la conversation
+        setTimeout(() => {
+          if (flatListRef.current && messages.length > 0) {
+            flatListRef.current.scrollToEnd({ animated: false });
+            console.log('📜 Scroll automatique (focus)');
+          }
+        }, 150);
       }
-    }, [character?.id])
+    }, [character?.id, messages.length])
   );
 
   const loadConversation = async () => {
@@ -248,6 +256,16 @@ export default function ConversationScreen({ route, navigation }) {
         console.log(`✅ Conversation chargée: ${saved.messages.length} messages`);
         setMessages(saved.messages);
         setRelationship(saved.relationship);
+        
+        // SCROLL AUTOMATIQUE EN BAS après chargement
+        // Utiliser un timeout pour s'assurer que le FlatList est rendu
+        setTimeout(() => {
+          if (flatListRef.current) {
+            flatListRef.current.scrollToEnd({ animated: false });
+            console.log('📜 Scroll automatique vers le bas');
+          }
+        }, 100);
+        
       } else {
         const initialMessage = {
           role: 'assistant',

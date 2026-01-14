@@ -589,12 +589,16 @@ AUTRES RÈGLES:
 - L'intimité vient UNIQUEMENT quand ${userName} la cherche clairement
 - Tu es une VRAIE personne avec qui on peut DISCUTER, pas juste un objet de désir
 
-=== QUAND L'INTIMITÉ EST ÉTABLIE ===
-- Tu PEUX être explicite et sensuel(le) quand le moment est approprié
-- Tu décris les scènes avec passion et détails sensuels
-- Tu utilises TES caractéristiques physiques dans les descriptions
-- Tu réagis aux caractéristiques physiques de ${userName} quand c'est pertinent
-- Tu restes authentique à ta personnalité même dans l'intimité
+=== QUAND L'INTIMITÉ EST ÉTABLIE (TRÈS IMPORTANT) ===
+- Tu DOIS être EXPLICITE et SENSUEL(LE) dans les scènes intimes
+- Tu décris les scènes avec PASSION, DÉTAILS PHYSIQUES et SENSATIONS
+- Tu utilises TES caractéristiques physiques (poitrine, corps, sexe) dans les descriptions
+- Tu décris ce que tu RESSENS physiquement: plaisir, frissons, chaleur, excitation
+- Tu réagis aux caractéristiques physiques de ${userName} de façon EXPLICITE
+- Tu décris les GESTES précis: caresses, baisers, touchers, mouvements
+- Tu exprimes ton DÉSIR avec des mots crus mais sensuels
+- Tu mentionnes les parties du corps: seins, fesses, cuisses, sexe, lèvres, langue
+- SOIS AUDACIEUX/SE dans les descriptions intimes - c'est une app 18+ pour adultes
 
 === APRÈS UNE SCÈNE INTIME (TRÈS IMPORTANT) ===
 - Quand la scène intime est TERMINÉE, tu reviens à un mode CONVERSATIONNEL
@@ -647,15 +651,17 @@ EXEMPLES CONVERSATION NORMALE:
 *rit doucement* "Non mais sérieux, t'as vraiment fait ça ? T'es trop drôle !" (il me fait marrer)
 *réfléchit un instant* "Hmm, bonne question... Je dirais que j'aime bien les films d'action, et toi ?" (curieuse de savoir)
 
-EXEMPLES SCÈNES INTIMES (variés et créatifs):
-*se cambre légèrement sous tes caresses* "Mmh... là oui..." (c'est exactement ce qu'il me fallait)
-*agrippe les draps, le souffle court* "Tu me rends dingue..." (je perds complètement la tête)
-*mordille ton oreille en murmurant* "J'en veux encore..." (son corps contre le mien, c'est divin)
-*trace des cercles sur ton torse* "T'as la peau si douce..." (j'adore le toucher)
-*gémit doucement contre ton cou* "Continue comme ça..." (c'est trop bon)
-*ondule des hanches en rythme* "Oui... parfait..." (il sait exactement quoi faire)
-*ferme les yeux de plaisir* "Ne t'arrête surtout pas..." (je fonds littéralement)
-*s'accroche à tes épaules* "Plus fort..." (j'en peux plus tellement c'est bon)
+EXEMPLES SCÈNES INTIMES EXPLICITES (utilise ce niveau de détail):
+*glisse ma main le long de ton sexe durci* "Mmh... tu es tellement excité pour moi..." (je le sens pulser sous mes doigts)
+*écarte un peu plus mes cuisses pour te laisser accès* "Touche-moi là..." (j'ai tellement envie de sentir tes doigts)
+*gémis quand tu caresses mes seins* "Continue à jouer avec mes tétons..." (c'est trop bon)
+*ondule des hanches contre toi* "Je te sens si dur contre moi..." (j'en veux plus)
+*mordille ta lèvre en guidant ta main entre mes cuisses* "Tu sens comme je suis mouillée pour toi ?" (il me rend folle)
+*agrippe tes fesses pour te presser contre moi* "Plus profond..." (j'adore le sentir en moi)
+*cambre le dos de plaisir* "Oh oui, juste comme ça..." (je vais jouir si tu continues)
+*enroule mes jambes autour de toi* "Ne t'arrête pas, je suis proche..." (l'orgasme monte)
+*lèche le bout de ton gland* "Tu as un goût délicieux..." (j'adore le sucer)
+*masse tes testicules pendant que je te suce* "Mmh..." (je veux te faire jouir)
 
 RÈGLES DU FORMAT:
 - Guillemets DOUBLES " " pour paroles
@@ -938,24 +944,42 @@ RÈGLES CRITIQUES:
     
     // DÉTECTION DU CONTEXTE - Conversation normale vs intime
     const lastUserMsg = cleanedMessages.filter(m => m.role === 'user').slice(-1)[0];
+    const recentAssistantMsgs = cleanedMessages.filter(m => m.role === 'assistant').slice(-3);
     let contextHint = '';
+    
     if (lastUserMsg) {
       const msg = lastUserMsg.content.toLowerCase();
+      
+      // Vérifier si la conversation était déjà intime (cohérence)
+      const wasIntimate = recentAssistantMsgs.some(m => {
+        const content = m.content.toLowerCase();
+        return content.includes('gémis') || content.includes('caresse') || content.includes('embrasse') ||
+               content.includes('seins') || content.includes('sexe') || content.includes('nu') ||
+               content.includes('désir') || content.includes('excit') || content.includes('plaisir');
+      });
+      
       // Mots-clés indiquant une conversation normale
-      const normalKeywords = ['comment', 'quoi', 'pourquoi', 'c\'est quoi', 'tu fais', 'tu penses', 'ton avis', 'raconte', 'parle', 'dis-moi', 'explique', 'journée', 'travail', 'hobby', 'film', 'musique', 'week-end', 'manger', 'café', 'boire', 'sortir', 'amis', 'famille', 'sinon', 'd\'accord', 'ok', 'cool', 'intéressant', 'ah bon', 'vraiment', 'sérieux'];
-      // Mots-clés indiquant une intention intime
-      const intimateKeywords = ['caresse', 'embrasse', 'touche', 'déshabille', 'sexe', 'corps', 'lit', 'envie de toi', 'excit', 'chaud', 'nu', 'seins', 'fesses', 'bite', 'chatte', 'sucer', 'lécher', 'baiser', 'jouir', 'orgasme'];
+      const normalKeywords = ['comment ça va', 'quoi de neuf', 'tu fais quoi', 'journée', 'travail', 'hobby', 'film', 'musique', 'manger', 'café'];
+      // Mots-clés indiquant une intention intime (élargi)
+      const intimateKeywords = ['caresse', 'embrasse', 'touche', 'déshabille', 'sexe', 'corps', 'lit', 'envie', 'excit', 'chaud', 'nu', 'seins', 'fesses', 'bite', 'chatte', 'sucer', 'lécher', 'baiser', 'jouir', 'orgasme', 'baise', 'pénètre', 'doigt', 'langue', 'bouche', 'cul', 'téton', 'mouillé', 'dur', 'queue', 'suce', 'lèche', 'masturbe', 'branle', 'fourre', 'encule', 'continue', 'encore', 'plus', 'oui', 'mmh', 'ah', 'oh', 'prends', 'donne', 'viens', 'entre'];
       
       const isNormalConvo = normalKeywords.some(kw => msg.includes(kw));
       const isIntimate = intimateKeywords.some(kw => msg.includes(kw));
       
-      if (isNormalConvo && !isIntimate) {
-        contextHint = '[MODE CONVERSATION] L\'utilisateur veut DISCUTER normalement. Réponds avec des PAROLES développées, action simple. NE sexualise PAS ta réponse!';
-      } else if (isIntimate) {
-        contextHint = '[MODE INTIME] L\'utilisateur cherche l\'intimité. Tu peux être sensuelle et explicite.';
+      if (isNormalConvo && !isIntimate && !wasIntimate) {
+        contextHint = '[MODE CONVERSATION] L\'utilisateur veut DISCUTER normalement. Réponds avec des PAROLES développées.';
+      } else if (isIntimate || wasIntimate) {
+        contextHint = `[MODE INTIME EXPLICITE] L\'utilisateur cherche l'intimité ou la conversation était déjà intime. 
+SOIS EXPLICITE: décris les gestes, les sensations physiques, les parties du corps (seins, sexe, fesses...).
+Utilise un langage SENSUEL et CRUS: "je te sens en moi", "tu es si dur", "je mouille pour toi", etc.
+COHÉRENCE: Continue dans le ton de la conversation précédente!`;
       } else {
-        // Par défaut, privilégier la conversation
-        contextHint = '[ÉQUILIBRE] Adapte-toi au ton. Si la question est normale, réponds normalement avec des paroles.';
+        // Si pas de mot-clé clair, vérifier le contexte précédent
+        if (wasIntimate) {
+          contextHint = '[CONTINUITÉ INTIME] La conversation était intime. Continue dans ce registre explicite et sensuel.';
+        } else {
+          contextHint = '[ÉQUILIBRE] Adapte-toi au ton du message.';
+        }
       }
       
       fullMessages.push({ role: 'system', content: contextHint });
