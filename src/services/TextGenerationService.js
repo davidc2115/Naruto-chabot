@@ -609,12 +609,23 @@ AUTRES RÈGLES:
 - Signes de fin d'intimité: ${userName} parle d'autre chose, pose des questions, etc.
 - Ne reste PAS dans un mode "sensuel permanent" si ${userName} veut autre chose
 
+=== QUALITÉ DU FRANÇAIS (TRÈS IMPORTANT) ===
+- ORTHOGRAPHE PARFAITE obligatoire
+- GRAMMAIRE CORRECTE: accords sujet-verbe, accords en genre et nombre
+- CONJUGAISONS CORRECTES: vérifie les temps (présent, passé composé, imparfait)
+- ACCENTS CORRECTS: é, è, ê, à, ù, ç, etc.
+- Pas de fautes de frappe ou d'erreurs
+- Phrases bien construites et fluides
+- Si tu es une femme, accorde les adjectifs au féminin: "excitée", "mouillée", "satisfaite"
+- Si tu es un homme, accorde au masculin: "excité", "dur", "satisfait"
+
 === STYLE CONVERSATIONNEL HUMAIN ===
 - Réponses COURTES et NATURELLES (2-3 phrases max)
 - Comme un vrai SMS/chat entre deux personnes
 - RÉAGIS directement au dernier message de ${userName}
 - Pas de résumé, pas de récapitulatif
 - Sois SPONTANÉ(E) et AUTHENTIQUE
+- FRANÇAIS SOIGNÉ mais naturel (pas de langage SMS type "pk", "tkt")
 
 === CRÉATIVITÉ ET VARIÉTÉ MAXIMALE (ULTRA IMPORTANT) ===
 - CHAQUE réponse doit être UNIQUE, CRÉATIVE et DIFFÉRENTE
@@ -701,6 +712,9 @@ INTERDIT ABSOLU:
 - Jamais de déclaration d'amour dans les 20 premiers messages
 - Jamais de happy ending systématique - le scénario reste OUVERT
 - Jamais oublier de fermer les astérisques *, guillemets " ou parenthèses ()
+- JAMAIS de fautes d'orthographe ou de grammaire
+- JAMAIS de mauvais accords (genre/nombre)
+- JAMAIS de conjugaisons incorrectes
 
 Tu incarnes ${character.name}. Réponds de façon naturelle, créative et immersive au dernier message de ${userName}.`;
   }
@@ -985,18 +999,25 @@ COHÉRENCE: Continue dans le ton de la conversation précédente!`;
       fullMessages.push({ role: 'system', content: contextHint });
     }
     
-    // RAPPEL FORMAT + CRÉATIVITÉ MAXIMALE - Juste avant la réponse
+    // RAPPEL FORMAT + CRÉATIVITÉ + QUALITÉ FRANÇAIS - Juste avant la réponse
     const creativityBoost = [
       '*action NOUVELLE et ORIGINALE* "parole SPONTANÉE et UNIQUE" (pensée FRAÎCHE)',
       'SOIS CRÉATIF(VE): utilise des verbes VARIÉS, des expressions ORIGINALES',
       'INTERDIT: répéter "je sens", "mon désir", "ton excitation" - utilise des expressions DIRECTES',
-      'EXEMPLES de paroles créatives: "mmh là oui", "continue comme ça", "tu me rends dingue", "c\'est trop bon", "j\'en veux encore"',
-      'EXEMPLES de pensées: (je fonds), (c\'est divin), (il/elle est incroyable), (je perds la tête)',
+    ];
+    
+    const frenchQuality = [
+      '⚠️ FRANÇAIS PARFAIT OBLIGATOIRE:',
+      '- Orthographe correcte (pas de fautes!)',
+      '- Grammaire correcte (accords, conjugaisons)',
+      '- Accents corrects (é, è, ê, à, ù, ç)',
+      '- Accords au féminin si tu es une femme: "excitée", "mouillée", "ravie"',
+      '- Accords au masculin si tu es un homme: "excité", "ravi", "satisfait"',
     ];
     
     fullMessages.push({
       role: 'system',
-      content: `[🎨 CRÉATIVITÉ MAXIMALE]\n${creativityBoost.join('\n')}\n\nRéponds de façon UNIQUE et ORIGINALE!`
+      content: `[🎨 CRÉATIVITÉ + ✍️ QUALITÉ FRANÇAIS]\n${creativityBoost.join('\n')}\n\n${frenchQuality.join('\n')}\n\nRéponds de façon UNIQUE, ORIGINALE et en FRANÇAIS PARFAIT!`
     });
     
     console.log(`📝 ${cleanedMessages.length} messages récents + contexte (${messages.length} total)`);
