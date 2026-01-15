@@ -685,8 +685,15 @@ export default function SettingsScreen({ navigation, onLogout }) {
                   </Text>
                   
                   <Text style={styles.sdInfoText}>
-                    🔧 ONNX Runtime: {sdAvailability.onnxAvailable ? '✅ Disponible' : '⚠️ Non détecté'}
+                    🔧 ONNX Runtime: {sdAvailability.onnxAvailable ? '✅ Disponible' : '❌ Non disponible'}
                   </Text>
+                  
+                  {!sdAvailability.onnxAvailable && (
+                    <Text style={[styles.sdInfoText, { color: '#dc2626', fontSize: 11, marginLeft: 20 }]}>
+                      ⚠️ La génération locale n'est pas disponible sur cet appareil.
+                      {'\n'}   Utilisez la Freebox ou l'API externe pour générer des images.
+                    </Text>
+                  )}
                   
                   <Text style={styles.sdInfoText}>
                     📦 Modèles: {sdAvailability.modelDownloaded 

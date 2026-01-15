@@ -237,12 +237,26 @@ class StableDiffusionLocalService {
         ? this.nativeModule.getConstants() 
         : this.nativeModule;
       
+      const onnxError = constants?.ONNX_ERROR || '';
+      const onnxAvailable = constants?.ONNX_AVAILABLE || false;
+      
+      let status = '✅ Module natif chargé';
+      if (!onnxAvailable && onnxError) {
+        status = `⚠️ Module chargé, ONNX indisponible: ${onnxError}`;
+      } else if (!onnxAvailable) {
+        status = '⚠️ Module chargé, ONNX non détecté';
+      }
+      
       return {
         isLoaded: true,
-        status: '✅ Module natif chargé',
+        status: status,
         version: constants?.VERSION || 'unknown',
-        onnxAvailable: constants?.ONNX_AVAILABLE || false,
+        onnxAvailable: onnxAvailable,
+        onnxError: onnxError,
         pipelineReady: constants?.PIPELINE_READY || false,
+        deviceModel: constants?.DEVICE_MODEL || 'unknown',
+        manufacturer: constants?.MANUFACTURER || 'unknown',
+        cpuAbi: constants?.CPU_ABI || 'unknown',
         constants: constants,
       };
     } catch (e) {
@@ -419,8 +433,13 @@ class StableDiffusionLocalService {
    * Construit un message de statut clair
    */
   _buildStatusMessage(modelStatus, systemInfo, modelsCheck) {
+    // Vérifier ONNX en premier - c'est le plus important
     if (!modelStatus?.onnxAvailable && !this.moduleInfo.onnxAvailable) {
-      return '❌ ONNX Runtime non disponible';
+      const onnxError = this.moduleInfo.onnxError || modelStatus?.onnxError || '';
+      if (onnxError) {
+        return `❌ ONNX indisponible: ${onnxError}. Utilisez Freebox/API externe.`;
+      }
+      return '❌ ONNX Runtime non disponible sur cet appareil. Utilisez Freebox/API externe.';
     }
     
     if (!modelsCheck.allPresent) {
@@ -430,6 +449,11 @@ class StableDiffusionLocalService {
     // Utiliser la RAM système réelle (totalRamMB) au lieu de maxMemoryMB
     const totalRamGB = ((systemInfo?.totalRamMB || systemInfo?.maxMemoryMB || 0) / 1024).toFixed(1);
     const availableRamGB = ((systemInfo?.availableRamMB || systemInfo?.freeMemoryMB || 0) / 1024).toFixed(1);
+    
+    // Si RAM détectée à 0, c'est un problème de détection
+    if (parseFloat(totalRamGB) < 0.5) {
+      return '⚠️ Impossible de détecter la RAM. Le module peut ne pas fonctionner correctement.';
+    }
     
     if (!systemInfo?.hasEnoughRAM) {
       return `⚠️ RAM insuffisante (${totalRamGB} GB total, ${availableRamGB} GB dispo - besoin 4+ GB)`;

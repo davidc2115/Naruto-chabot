@@ -36,13 +36,16 @@ import javax.annotation.Nonnull;
 /**
  * Module natif Stable Diffusion pour Android
  * Utilise ONNX Runtime pour l'inférence sur appareil
- * Version 4.0 - Implémentation complète
+ * Version 4.3.3 - Diagnostic ONNX amélioré
  */
 public class StableDiffusionModule extends ReactContextBaseJavaModule {
     private static final String TAG = "SDLocalModule";
     private static final String MODULE_NAME = "StableDiffusionLocal";
-    private static final String VERSION = "4.0";
+    private static final String VERSION = "4.3.3";
     private static final String MODELS_DIR = "sd_models";
+    
+    // Message d'erreur ONNX pour diagnostic
+    private String onnxErrorMessage = null;
     
     // Noms des fichiers modèles ONNX
     private static final String TEXT_ENCODER_MODEL = "text_encoder.onnx";
@@ -62,49 +65,55 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
         this.reactContext = reactContext;
         
         Log.i(TAG, "╔════════════════════════════════════════════════════╗");
-        Log.i(TAG, "║  StableDiffusionModule v" + VERSION + " INITIALISATION     ║");
+        Log.i(TAG, "║  StableDiffusionModule v" + VERSION + " INIT         ║");
         Log.i(TAG, "╚════════════════════════════════════════════════════╝");
         Log.i(TAG, "📱 Appareil: " + Build.MODEL + " (" + Build.MANUFACTURER + ")");
         Log.i(TAG, "📱 Android: " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + ")");
+        Log.i(TAG, "📱 CPU ABI: " + Build.SUPPORTED_ABIS[0]);
         
         // Initialiser ONNX Runtime avec gestion d'erreur améliorée
-        String onnxError = null;
         try {
             Log.i(TAG, "🔄 Tentative d'initialisation ONNX Runtime...");
+            
+            // Tenter de charger ONNX
             ortEnv = OrtEnvironment.getEnvironment();
+            
             if (ortEnv != null) {
-                Log.i(TAG, "✅ ONNX Runtime Environment créé avec succès!");
+                Log.i(TAG, "✅ ONNX Runtime Environment créé!");
+                onnxErrorMessage = null;
                 try {
                     String apiBase = OrtEnvironment.getApiBase();
-                    Log.i(TAG, "✅ ONNX API Base: " + apiBase);
+                    Log.i(TAG, "✅ ONNX API: " + apiBase);
                 } catch (Exception e) {
-                    Log.w(TAG, "⚠️ Impossible de lire ONNX API Base: " + e.getMessage());
+                    Log.w(TAG, "⚠️ ONNX API info indisponible");
                 }
             } else {
-                onnxError = "OrtEnvironment.getEnvironment() a retourné null";
-                Log.e(TAG, "❌ " + onnxError);
+                onnxErrorMessage = "ONNX Environment null - vérifiez la compatibilité de votre appareil";
+                Log.e(TAG, "❌ " + onnxErrorMessage);
             }
         } catch (NoClassDefFoundError e) {
-            onnxError = "Classes ONNX non trouvées: " + e.getMessage();
-            Log.e(TAG, "❌ " + onnxError);
-            Log.e(TAG, "❌ Vérifiez que onnxruntime-android est dans build.gradle");
+            onnxErrorMessage = "Bibliothèque ONNX non incluse dans l'APK";
+            Log.e(TAG, "❌ NoClassDefFoundError: " + e.getMessage());
         } catch (UnsatisfiedLinkError e) {
-            onnxError = "Native library ONNX non trouvée: " + e.getMessage();
-            Log.e(TAG, "❌ " + onnxError);
+            onnxErrorMessage = "Bibliothèque native ONNX incompatible avec " + Build.SUPPORTED_ABIS[0];
+            Log.e(TAG, "❌ UnsatisfiedLinkError: " + e.getMessage());
+        } catch (ExceptionInInitializerError e) {
+            onnxErrorMessage = "Erreur initialisation ONNX: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+            Log.e(TAG, "❌ ExceptionInInitializerError: " + e.getMessage());
+            if (e.getCause() != null) {
+                Log.e(TAG, "❌ Cause: " + e.getCause().getMessage());
+            }
         } catch (Throwable e) {
-            onnxError = "Erreur inattendue: " + e.getClass().getName() + " - " + e.getMessage();
-            Log.e(TAG, "❌ " + onnxError);
+            onnxErrorMessage = e.getClass().getSimpleName() + ": " + e.getMessage();
+            Log.e(TAG, "❌ " + onnxErrorMessage);
             e.printStackTrace();
         }
         
         // Log du statut final
         Log.i(TAG, "════════════════════════════════════════════════════");
-        Log.i(TAG, "📊 STATUT FINAL:");
-        Log.i(TAG, "   - Module chargé: ✅ OUI");
-        Log.i(TAG, "   - ONNX disponible: " + (ortEnv != null ? "✅ OUI" : "❌ NON"));
-        if (onnxError != null) {
-            Log.i(TAG, "   - Erreur ONNX: " + onnxError);
-        }
+        Log.i(TAG, "📊 STATUT:");
+        Log.i(TAG, "   Module: v" + VERSION + " ✅");
+        Log.i(TAG, "   ONNX: " + (ortEnv != null ? "✅ OK" : "❌ " + onnxErrorMessage));
         Log.i(TAG, "════════════════════════════════════════════════════");
     }
 
@@ -121,9 +130,13 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
         constants.put("VERSION", VERSION);
         constants.put("IS_LOADED", true);
         constants.put("ONNX_AVAILABLE", ortEnv != null);
+        constants.put("ONNX_ERROR", onnxErrorMessage != null ? onnxErrorMessage : "");
         constants.put("PIPELINE_READY", isInitialized);
         constants.put("DEVICE_MODEL", Build.MODEL);
+        constants.put("MANUFACTURER", Build.MANUFACTURER);
         constants.put("ANDROID_VERSION", Build.VERSION.RELEASE);
+        constants.put("SDK_VERSION", Build.VERSION.SDK_INT);
+        constants.put("CPU_ABI", Build.SUPPORTED_ABIS[0]);
         constants.put("TEXT_ENCODER_MODEL", TEXT_ENCODER_MODEL);
         constants.put("UNET_MODEL", UNET_MODEL);
         constants.put("VAE_DECODER_MODEL", VAE_DECODER_MODEL);
