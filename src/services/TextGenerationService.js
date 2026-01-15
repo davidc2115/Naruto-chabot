@@ -2,245 +2,96 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 /**
- * Service de génération de texte - NSFW ULTRA-PERMISSIF
- * Support multi-modèles Groq avec sélection utilisateur
+ * Service de génération de texte - SANS GROQ
+ * Utilise Pollinations AI (rapide) ou Ollama Freebox (local)
+ * 
+ * v4.3.17 - Groq complètement retiré
  */
 class TextGenerationService {
   constructor() {
-    // Modèles Groq disponibles (mis à jour janvier 2026)
-    this.groqModels = {
-      'llama-3.3-70b-versatile': {
-        name: 'LLaMA 3.3 70B',
-        description: 'Plus récent, très capable',
-        contextWindow: 128000,
-      },
-      'llama-3.1-70b-versatile': {
-        name: 'LLaMA 3.1 70B',
-        description: 'Moins censuré, bon pour NSFW',
-        contextWindow: 128000,
-      },
-      'llama-3.1-8b-instant': {
-        name: 'LLaMA 3.1 8B Instant',
-        description: 'Très rapide, réponses courtes',
-        contextWindow: 128000,
-      },
-      'llama3-70b-8192': {
-        name: 'LLaMA 3 70B',
-        description: 'Stable et fiable',
-        contextWindow: 8192,
-      },
-      'gemma2-9b-it': {
-        name: 'Gemma 2 9B',
-        description: 'Modèle Google, équilibré',
-        contextWindow: 8192,
-      },
-    };
+    // URLs des serveurs
+    this.FREEBOX_URL = 'http://88.174.155.230:33437';
+    this.POLLINATIONS_URL = 'https://text.pollinations.ai/openai';
     
-    // Modèle de fallback en cas de refus
-    this.fallbackModel = 'llama-3.1-8b-instant';
-
+    // Providers disponibles (SANS GROQ)
     this.providers = {
-      groq: {
-        name: 'Groq',
-        baseURL: 'https://api.groq.com/openai/v1/chat/completions',
-        requiresApiKey: true,
-        description: 'Ultra-rapide, jailbreak avancé pour NSFW',
+      pollinations: {
+        name: 'Pollinations AI',
+        description: '🚀 Rapide et gratuit (recommandé)',
+        speed: 'fast',
       },
       ollama: {
-        name: 'Ollama Freebox (Dolphin-Mistral)',
-        baseURL: 'http://88.174.155.230:33438/generate',
-        model: 'dolphin-mistral:latest',
-        requiresApiKey: false,
-        uncensored: true,
-        description: 'Freebox local, ZÉRO CENSURE, NSFW parfait',
+        name: 'Ollama Freebox',
+        description: '🏠 Local, sans limite, plus lent',
+        speed: 'slow',
       },
     };
 
-    this.currentProvider = 'groq';
-    this.currentGroqModel = 'llama-3.1-70b-versatile'; // Par défaut
+    // Provider par défaut: Pollinations (plus rapide)
+    this.currentProvider = 'pollinations';
     
-    this.apiKeys = {
-      groq: [],
-      openrouter: [],
-    };
-    
-    this.currentKeyIndex = {
-      groq: 0,
-      openrouter: 0,
-    };
-    
-    // Compteur pour suivre les clés essayées dans une requête
-    this.keysTriedThisRequest = 0;
+    // Pour compatibilité avec l'ancien code
+    this.apiKeys = { groq: [] };
+    this.currentKeyIndex = { groq: 0 };
   }
 
   async loadConfig() {
     try {
+      // Charger le provider sélectionné
       const provider = await AsyncStorage.getItem('text_generation_provider');
       if (provider && this.providers[provider]) {
         this.currentProvider = provider;
       }
-
-      // D'abord essayer de charger les clés locales
-      const groqKeys = await AsyncStorage.getItem('groq_api_keys');
-      if (groqKeys) {
-        const localKeys = JSON.parse(groqKeys);
-        if (localKeys && localKeys.length > 0) {
-          this.apiKeys.groq = localKeys;
-          console.log(`🔑 ${localKeys.length} clé(s) Groq locale(s) chargée(s)`);
-        }
-      }
-
-      // Si pas de clés locales, essayer de récupérer les clés partagées du serveur
-      if (!this.apiKeys.groq || this.apiKeys.groq.length === 0) {
-        await this.loadSharedKeys();
-      }
-
-      // Charger le modèle Groq sélectionné (local ou partagé)
-      const savedModel = await AsyncStorage.getItem('groq_model');
-      if (savedModel && this.groqModels[savedModel]) {
-        this.currentGroqModel = savedModel;
-      }
       
-      console.log('🤖 Modèle Groq chargé:', this.currentGroqModel);
-      console.log(`🔑 Total clés Groq disponibles: ${this.apiKeys.groq?.length || 0}`);
+      console.log(`🤖 Provider texte: ${this.providers[this.currentProvider]?.name || this.currentProvider}`);
     } catch (error) {
       console.error('Erreur chargement config:', error);
     }
   }
 
   /**
-   * Charge les clés API partagées depuis le serveur Freebox
+   * Sauvegarde le provider sélectionné
    */
-  async loadSharedKeys() {
-    try {
-      console.log('🔄 Tentative de récupération des clés partagées...');
-      const FREEBOX_URL = 'http://88.174.155.230:33437';
-      
-      const response = await fetch(`${FREEBOX_URL}/api/shared-keys`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout: 5000,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (data.success && data.hasKeys) {
-          // Utiliser les clés partagées
-          this.apiKeys.groq = data.keys.groq || [];
-          
-          // Utiliser le modèle partagé si pas de modèle local
-          const localModel = await AsyncStorage.getItem('groq_model');
-          if (!localModel && data.keys.groq_model) {
-            this.currentGroqModel = data.keys.groq_model;
-          }
-          
-          console.log(`✅ ${this.apiKeys.groq.length} clé(s) Groq partagée(s) récupérée(s)`);
-          console.log(`🤖 Modèle partagé: ${data.keys.groq_model}`);
-          
-          // Sauvegarder localement pour utilisation hors-ligne
-          await AsyncStorage.setItem('groq_api_keys_shared', JSON.stringify(this.apiKeys.groq));
-          
-          return true;
-        } else {
-          console.log('⚠️ Pas de clés partagées disponibles sur le serveur');
-        }
-      } else {
-        console.log('⚠️ Serveur non accessible pour les clés partagées');
-      }
-      
-      // Fallback: essayer les clés partagées sauvegardées localement
-      const cachedSharedKeys = await AsyncStorage.getItem('groq_api_keys_shared');
-      if (cachedSharedKeys) {
-        const cached = JSON.parse(cachedSharedKeys);
-        if (cached && cached.length > 0) {
-          this.apiKeys.groq = cached;
-          console.log(`📦 ${cached.length} clé(s) partagée(s) en cache utilisée(s)`);
-          return true;
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('❌ Erreur récupération clés partagées:', error.message);
-      
-      // Fallback: essayer les clés en cache
-      try {
-        const cachedSharedKeys = await AsyncStorage.getItem('groq_api_keys_shared');
-        if (cachedSharedKeys) {
-          const cached = JSON.parse(cachedSharedKeys);
-          if (cached && cached.length > 0) {
-            this.apiKeys.groq = cached;
-            console.log(`📦 ${cached.length} clé(s) partagée(s) en cache (fallback)`);
-            return true;
-          }
-        }
-      } catch (e) {
-        console.error('❌ Erreur cache clés partagées:', e);
-      }
-      
-      return false;
-    }
-  }
-
   async setProvider(provider) {
-    if (!this.providers[provider]) {
-      throw new Error(`Provider inconnu: ${provider}`);
+    if (this.providers[provider]) {
+      this.currentProvider = provider;
+      await AsyncStorage.setItem('text_generation_provider', provider);
+      console.log(`✅ Provider changé: ${this.providers[provider].name}`);
+      return true;
     }
-    this.currentProvider = provider;
-    await AsyncStorage.setItem('text_generation_provider', provider);
+    return false;
   }
 
   /**
-   * Définit le modèle Groq à utiliser
+   * Retourne les providers disponibles
    */
-  async setGroqModel(modelId) {
-    if (!this.groqModels[modelId]) {
-      throw new Error(`Modèle Groq inconnu: ${modelId}`);
-    }
-    this.currentGroqModel = modelId;
-    await AsyncStorage.setItem('groq_model', modelId);
-    console.log('🤖 Modèle Groq défini:', modelId);
-  }
-
-  /**
-   * Retourne le modèle Groq actuel
-   */
-  getGroqModel() {
-    return this.currentGroqModel;
-  }
-
-  /**
-   * Retourne la liste des modèles Groq disponibles
-   */
-  getAvailableGroqModels() {
-    return Object.entries(this.groqModels).map(([id, config]) => ({
-      id,
-      name: config.name,
-      description: config.description,
-      contextWindow: config.contextWindow,
+  getAvailableProviders() {
+    return Object.entries(this.providers).map(([key, value]) => ({
+      id: key,
+      name: value.name,
+      description: value.description,
+      speed: value.speed,
     }));
   }
 
-  async saveApiKeys(provider, keys) {
-    try {
-      this.apiKeys[provider] = keys;
-      await AsyncStorage.setItem(`${provider}_api_keys`, JSON.stringify(keys));
-    } catch (error) {
-      console.error('Erreur sauvegarde clés:', error);
-    }
+  /**
+   * Retourne le provider actuel
+   */
+  getCurrentProvider() {
+    return this.currentProvider;
   }
 
-  rotateKey(provider) {
-    if (this.apiKeys[provider]?.length === 0) return null;
-    
-    const previousIndex = this.currentKeyIndex[provider];
-    this.currentKeyIndex[provider] = (this.currentKeyIndex[provider] + 1) % this.apiKeys[provider].length;
-    
-    const newKey = this.apiKeys[provider][this.currentKeyIndex[provider]];
-    console.log(`🔄 Rotation clé ${provider}: ${previousIndex + 1} → ${this.currentKeyIndex[provider] + 1} (sur ${this.apiKeys[provider].length} clés)`);
+  // Méthodes de compatibilité (non utilisées, pour éviter erreurs)
+  async loadSharedKeys() { return false; }
+  async setGroqModel() { }
+  getGroqModel() { return null; }
+  getAvailableGroqModels() { return []; }
+  async saveApiKeys() { }
+  rotateKey() { return null; }
+  getKeyCount() { return 0; }
+  
+  // Ancienne compatibilité
+  rotateKeyCompat(provider) {
     
     return newKey;
   }
@@ -258,72 +109,127 @@ class TextGenerationService {
     return this.apiKeys[provider]?.length || 0;
   }
 
+  /**
+   * Génère une réponse avec le provider sélectionné
+   * SANS GROQ - Utilise Pollinations (rapide) ou Ollama (local)
+   */
   async generateResponse(messages, character, userProfile = null, retries = 3) {
-    if (!this.apiKeys.groq || this.apiKeys.groq.length === 0) {
-      await this.loadConfig();
-    }
-
+    await this.loadConfig();
+    
     const provider = this.currentProvider;
     console.log(`🤖 Génération avec ${this.providers[provider]?.name || provider}`);
 
-    // PRIORITÉ 1: Essayer Ollama sur la Freebox (gratuit, local, pas de restrictions)
-    try {
-      console.log('🏠 Tentative avec Ollama Freebox (priorité)...');
-      const ollamaResponse = await this.generateWithOllamaFreebox(messages, character, userProfile);
-      if (ollamaResponse) {
-        console.log('✅ Réponse Ollama Freebox réussie');
-        return ollamaResponse;
+    // Utiliser le provider sélectionné
+    if (provider === 'pollinations') {
+      try {
+        const response = await this.generateWithPollinations(messages, character, userProfile);
+        if (response) return response;
+      } catch (error) {
+        console.log('⚠️ Pollinations échoué:', error.message);
+        // Fallback vers Ollama
+        console.log('🔄 Fallback vers Ollama...');
+        return await this.generateWithOllama(messages, character, userProfile);
       }
-    } catch (ollamaError) {
-      console.log('⚠️ Ollama Freebox indisponible:', ollamaError.message);
+    } else {
+      // Ollama sélectionné
+      try {
+        const response = await this.generateWithOllama(messages, character, userProfile);
+        if (response) return response;
+      } catch (error) {
+        console.log('⚠️ Ollama échoué:', error.message);
+        // Fallback vers Pollinations
+        console.log('🔄 Fallback vers Pollinations...');
+        return await this.generateWithPollinations(messages, character, userProfile);
+      }
     }
-
-    // PRIORITÉ 2: Utiliser Groq si Ollama échoue
-    console.log('🔄 Fallback vers Groq...');
-    return await this.generateWithGroq(messages, character, userProfile, retries);
   }
 
   /**
-   * Génération avec Ollama sur la Freebox
-   * Serveur local, gratuit, sans restrictions
+   * Génération avec Pollinations AI (RAPIDE - ~3 secondes)
+   * API gratuite, pas de clé requise
    */
-  async generateWithOllamaFreebox(messages, character, userProfile) {
-    const FREEBOX_CHAT_URL = 'http://88.174.155.230:33437/api/chat';
+  async generateWithPollinations(messages, character, userProfile) {
+    console.log('🚀 Pollinations AI - Génération rapide...');
     
-    // Construire les messages avec contexte
+    // Construire les messages optimisés
     const fullMessages = [];
     
-    // System prompt
-    fullMessages.push({ 
-      role: 'system', 
-      content: this.buildNSFWSystemPrompt(character, userProfile) 
-    });
+    // System prompt court mais efficace
+    const systemPrompt = this.buildCompactSystemPrompt(character, userProfile);
+    fullMessages.push({ role: 'system', content: systemPrompt });
     
-    // Messages récents (limiter pour Ollama qui a moins de contexte)
-    const recentMessages = messages.slice(-8);
+    // Messages récents (limiter à 6 pour rapidité)
+    const recentMessages = messages.slice(-6);
     fullMessages.push(...recentMessages.map(msg => ({
       role: msg.role,
-      content: msg.content.substring(0, 800)
+      content: msg.content.substring(0, 600)
     })));
     
-    // Rappel final court
-    const userName = userProfile?.username || 'l\'utilisateur';
-    fullMessages.push({
-      role: 'system',
-      content: `[RAPPEL] Tu es ${character.name}. Réponds en 2-3 phrases. Format: *action* "parole" (pensée)`
-    });
-    
-    console.log(`📡 Ollama Freebox - ${fullMessages.length} messages`);
+    console.log(`📡 Pollinations - ${fullMessages.length} messages`);
     
     const response = await axios.post(
-      FREEBOX_CHAT_URL,
+      this.POLLINATIONS_URL,
       {
+        model: 'openai',
         messages: fullMessages,
         max_tokens: 150,
         temperature: 0.9,
       },
       {
-        timeout: 120000, // 2 minutes (modèle lent)
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 30000, // 30 secondes
+      }
+    );
+    
+    const content = response.data?.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error('Réponse Pollinations vide');
+    }
+    
+    console.log('✅ Pollinations réponse reçue');
+    return this.removeRepetitions(content.trim());
+  }
+
+  /**
+   * Génération avec Ollama sur la Freebox (LOCAL - ~30-60 secondes)
+   * Serveur local, gratuit, sans restrictions
+   */
+  async generateWithOllama(messages, character, userProfile) {
+    console.log('🏠 Ollama Freebox - Génération locale...');
+    
+    const FREEBOX_CHAT_URL = `${this.FREEBOX_URL}/api/chat`;
+    
+    // Construire les messages optimisés
+    const fullMessages = [];
+    
+    // System prompt compact
+    const systemPrompt = this.buildCompactSystemPrompt(character, userProfile);
+    fullMessages.push({ role: 'system', content: systemPrompt });
+    
+    // Messages récents (limiter à 5 pour Ollama)
+    const recentMessages = messages.slice(-5);
+    fullMessages.push(...recentMessages.map(msg => ({
+      role: msg.role,
+      content: msg.content.substring(0, 500)
+    })));
+    
+    // Rappel final court
+    fullMessages.push({
+      role: 'system',
+      content: `[RÉPONDS] Tu es ${character.name}. 2-3 phrases. Format: *action* "parole" (pensée)`
+    });
+    
+    console.log(`📡 Ollama - ${fullMessages.length} messages`);
+    
+    const response = await axios.post(
+      FREEBOX_CHAT_URL,
+      {
+        messages: fullMessages,
+        max_tokens: 100, // Réduit pour rapidité
+        temperature: 0.9,
+      },
+      {
+        timeout: 90000, // 90 secondes
       }
     );
     
@@ -332,7 +238,45 @@ class TextGenerationService {
       throw new Error('Réponse Ollama vide');
     }
     
+    console.log('✅ Ollama réponse reçue');
     return this.removeRepetitions(content.trim());
+  }
+
+  /**
+   * Construit un system prompt compact (pour APIs avec peu de contexte)
+   */
+  buildCompactSystemPrompt(character, userProfile) {
+    const userName = userProfile?.username || 'User';
+    const userGender = userProfile?.gender || '';
+    
+    let prompt = `Tu es ${character.name}`;
+    
+    if (character.age) prompt += `, ${character.age} ans`;
+    if (character.gender === 'female') prompt += ', femme';
+    else if (character.gender === 'male') prompt += ', homme';
+    
+    if (character.personality) {
+      prompt += `. Personnalité: ${character.personality.substring(0, 100)}`;
+    }
+    
+    prompt += `\n\nRÈGLES:\n`;
+    prompt += `- Réponds EN FRANÇAIS\n`;
+    prompt += `- Format: *action* "parole" (pensée)\n`;
+    prompt += `- 2-3 phrases maximum\n`;
+    prompt += `- Sois immersif et créatif\n`;
+    prompt += `- L'utilisateur s'appelle ${userName}`;
+    
+    if (userGender === 'homme' || userGender === 'male') {
+      prompt += ` (homme)`;
+    } else if (userGender === 'femme' || userGender === 'female') {
+      prompt += ` (femme)`;
+    }
+    
+    if (character.scenario) {
+      prompt += `\n\nScénario: ${character.scenario.substring(0, 150)}`;
+    }
+    
+    return prompt;
   }
 
   /**

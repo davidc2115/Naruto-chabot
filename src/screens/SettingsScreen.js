@@ -26,12 +26,17 @@ export default function SettingsScreen({ navigation, onLogout }) {
   const [userProfile, setUserProfile] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   
-  // Clés API Groq
+  // Provider de génération de texte (Pollinations ou Ollama)
+  const [textProvider, setTextProvider] = useState('pollinations');
+  const [textProviders, setTextProviders] = useState([
+    { id: 'pollinations', name: 'Pollinations AI', description: '🚀 Rapide (~3s)', speed: 'fast' },
+    { id: 'ollama', name: 'Ollama Freebox', description: '🏠 Local (~30s)', speed: 'slow' },
+  ]);
+  
+  // Anciens états Groq (pour compatibilité)
   const [groqApiKeys, setGroqApiKeys] = useState(['']);
   const [testingApi, setTestingApi] = useState(false);
-  
-  // Modèle Groq
-  const [groqModel, setGroqModel] = useState('llama-3.1-70b-versatile');
+  const [groqModel, setGroqModel] = useState('');
   const [availableModels, setAvailableModels] = useState([]);
   
   // Configuration images
@@ -68,11 +73,10 @@ export default function SettingsScreen({ navigation, onLogout }) {
       console.log('👑 Admin status:', adminStatus);
       
       await loadProfile();
+      await loadTextProvider();
       
       // Charger les paramètres sensibles seulement si admin
       if (adminStatus) {
-        await loadGroqKeys();
-        await loadGroqModel();
         await loadImageConfig();
         await checkSDAvailability();
       }
@@ -81,6 +85,30 @@ export default function SettingsScreen({ navigation, onLogout }) {
       console.error('Erreur chargement paramètres:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Charger le provider de texte sélectionné
+  const loadTextProvider = async () => {
+    try {
+      const provider = await AsyncStorage.getItem('text_generation_provider');
+      if (provider) {
+        setTextProvider(provider);
+      }
+    } catch (error) {
+      console.error('Erreur chargement provider texte:', error);
+    }
+  };
+
+  // Sauvegarder le provider de texte
+  const saveTextProvider = async (providerId) => {
+    try {
+      setTextProvider(providerId);
+      await AsyncStorage.setItem('text_generation_provider', providerId);
+      await TextGenerationService.setProvider(providerId);
+      Alert.alert('✅ Succès', `Provider changé: ${textProviders.find(p => p.id === providerId)?.name}`);
+    } catch (error) {
+      Alert.alert('Erreur', error.message);
     }
   };
 
@@ -505,165 +533,51 @@ export default function SettingsScreen({ navigation, onLogout }) {
         </TouchableOpacity>
       </View>
 
-      {/* CLÉS API GROQ - Admin seulement */}
-      {isAdmin && (
-        <View style={styles.section}>
-          <View style={styles.adminBadge}>
-            <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
-          </View>
-          <Text style={styles.sectionTitle}>🔑 Clés API Groq</Text>
-          <Text style={styles.sectionDescription}>
-            Ajoutez vos clés API Groq pour la génération de texte. Gratuit sur console.groq.com
-          </Text>
+      {/* GÉNÉRATION DE TEXTE - Pour tous les utilisateurs */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🤖 Génération de Texte</Text>
+        <Text style={styles.sectionDescription}>
+          Choisissez le service pour générer les réponses des personnages
+        </Text>
 
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>ℹ️ Comment obtenir une clé gratuite:</Text>
-            <Text style={styles.infoSteps}>1. Allez sur console.groq.com</Text>
-            <Text style={styles.infoSteps}>2. Créez un compte (gratuit)</Text>
-            <Text style={styles.infoSteps}>3. Créez une API Key</Text>
-            <Text style={styles.infoSteps}>4. Collez-la ci-dessous</Text>
-          </View>
-
-          {groqApiKeys.map((key, index) => (
-            <View key={index} style={styles.keyInputContainer}>
-              <TextInput
-                style={styles.keyInput}
-                placeholder={`Clé API ${index + 1}`}
-                value={key}
-                onChangeText={(value) => updateKey(index, value)}
-                autoCapitalize="none"
-                autoCorrect={false}
-                secureTextEntry={key.length > 0}
-              />
-              {groqApiKeys.length > 1 && (
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => removeKeyField(index)}
-                >
-                  <Text style={styles.removeButtonText}>✕</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ))}
-
-          <TouchableOpacity style={styles.addButton} onPress={addKeyField}>
-            <Text style={styles.addButtonText}>+ Ajouter une clé</Text>
-          </TouchableOpacity>
-
-          <View style={styles.buttonRow}>
-            <TouchableOpacity 
-              style={styles.testButton} 
-              onPress={testGroqKey}
-              disabled={testingApi}
-            >
-              {testingApi ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Text style={styles.testButtonText}>🧪 Tester</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.saveButton} onPress={saveGroqKeys}>
-              <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Bouton Partager les clés avec tous les utilisateurs */}
-          <TouchableOpacity style={styles.shareButton} onPress={shareGroqKeys}>
-            <Text style={styles.shareButtonText}>🔗 Partager avec tous les utilisateurs</Text>
-          </TouchableOpacity>
-          <Text style={styles.shareHint}>
-            Les clés partagées seront utilisées par tous les membres qui n'ont pas configuré leurs propres clés.
-          </Text>
-
-          {/* Limites API Groq */}
-          <View style={styles.groqLimitsBox}>
-            <Text style={styles.groqLimitsTitle}>📊 Limites API Groq (Free Tier)</Text>
-            
-            <View style={styles.groqLimitsGrid}>
-              <View style={styles.groqLimitItem}>
-                <Text style={styles.groqLimitLabel}>🔑 Clés configurées</Text>
-                <Text style={styles.groqLimitValue}>
-                  {groqApiKeys.filter(k => k && k.trim()).length}
-                </Text>
-              </View>
-              
-              <View style={styles.groqLimitItem}>
-                <Text style={styles.groqLimitLabel}>⚡ Requêtes/min</Text>
-                <Text style={styles.groqLimitValue}>
-                  {30 * groqApiKeys.filter(k => k && k.trim()).length}
-                </Text>
-                <Text style={styles.groqLimitSub}>
-                  (30 × {groqApiKeys.filter(k => k && k.trim()).length} clés)
-                </Text>
-              </View>
-              
-              <View style={styles.groqLimitItem}>
-                <Text style={styles.groqLimitLabel}>📅 Requêtes/jour</Text>
-                <Text style={styles.groqLimitValue}>
-                  {(14400 * groqApiKeys.filter(k => k && k.trim()).length).toLocaleString('fr-FR')}
-                </Text>
-                <Text style={styles.groqLimitSub}>
-                  (14 400 × {groqApiKeys.filter(k => k && k.trim()).length} clés)
-                </Text>
-              </View>
-              
-              <View style={styles.groqLimitItem}>
-                <Text style={styles.groqLimitLabel}>📝 Tokens/min</Text>
-                <Text style={styles.groqLimitValue}>
-                  {(6000 * groqApiKeys.filter(k => k && k.trim()).length).toLocaleString('fr-FR')}
-                </Text>
-                <Text style={styles.groqLimitSub}>
-                  (6 000 × {groqApiKeys.filter(k => k && k.trim()).length} clés)
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.groqLimitsNote}>
-              <Text style={styles.groqLimitsNoteText}>
-                💡 Ajoutez plus de clés pour augmenter les limites !
-                Chaque clé gratuite multiplie vos quotas.
-              </Text>
-            </View>
-            
-            {/* Fenêtre de contexte du modèle actuel */}
-            <View style={styles.groqContextInfo}>
-              <Text style={styles.groqContextLabel}>
-                🧠 Fenêtre de contexte ({groqModel.split('-')[0]}):
-              </Text>
-              <Text style={styles.groqContextValue}>
-                {availableModels.find(m => m.id === groqModel)?.contextWindow?.toLocaleString('fr-FR') || '128 000'} tokens
-              </Text>
-            </View>
-          </View>
-
-          {/* Sélection du modèle Groq */}
-          <View style={styles.modelSection}>
-            <Text style={styles.modelSectionTitle}>🤖 Modèle Groq</Text>
-            <Text style={styles.modelDescription}>
-              Sélectionnez le modèle IA pour les conversations
-            </Text>
-            
-            {availableModels.map((model) => (
-              <TouchableOpacity
-                key={model.id}
-                style={[
-                  styles.modelCard,
-                  groqModel === model.id && styles.modelCardActive
-                ]}
-                onPress={() => saveGroqModel(model.id)}
-              >
-                <View style={styles.modelRadio}>
-                  {groqModel === model.id && <View style={styles.modelRadioInner} />}
-                </View>
-                <View style={styles.modelContent}>
-                  <Text style={styles.modelName}>{model.name}</Text>
-                  <Text style={styles.modelDesc}>{model.description}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+        <View style={styles.infoBox}>
+          <Text style={styles.infoText}>ℹ️ Deux options disponibles:</Text>
+          <Text style={styles.infoSteps}>🚀 Pollinations AI - Rapide (~3 secondes)</Text>
+          <Text style={styles.infoSteps}>🏠 Ollama Freebox - Local (~30 secondes)</Text>
         </View>
-      )}
+
+        {textProviders.map((provider) => (
+          <TouchableOpacity
+            key={provider.id}
+            style={[
+              styles.optionCard,
+              textProvider === provider.id && styles.optionCardActive
+            ]}
+            onPress={() => saveTextProvider(provider.id)}
+          >
+            <View style={styles.radioButton}>
+              {textProvider === provider.id && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>{provider.name}</Text>
+              <Text style={styles.optionDescription}>{provider.description}</Text>
+              {provider.id === 'pollinations' && (
+                <Text style={styles.optionHint}>✨ Recommandé - Plus rapide</Text>
+              )}
+              {provider.id === 'ollama' && (
+                <Text style={styles.optionHint}>📡 Serveur Freebox requis</Text>
+              )}
+            </View>
+          </TouchableOpacity>
+        ))}
+        
+        <View style={styles.providerNote}>
+          <Text style={styles.providerNoteText}>
+            💡 Pollinations AI est gratuit et ne nécessite aucune clé API.
+            Si Pollinations est lent, l'application basculera automatiquement sur Ollama.
+          </Text>
+        </View>
+      </View>
 
       {/* GÉNÉRATION D'IMAGES - Admin seulement */}
       {isAdmin && (
@@ -1701,5 +1615,25 @@ const styles = StyleSheet.create({
     color: '#92400e',
     fontSize: 12,
     fontWeight: '600',
+  },
+  // Styles pour le choix de provider de texte
+  optionHint: {
+    fontSize: 11,
+    color: '#10b981',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  providerNote: {
+    backgroundColor: '#ecfdf5',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+  },
+  providerNoteText: {
+    fontSize: 12,
+    color: '#065f46',
+    lineHeight: 18,
   },
 });
