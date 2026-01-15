@@ -1625,7 +1625,7 @@ class ImageGenerationService {
       // Prompt NSFW explicite RENFORCÉ SELON LE NIVEAU
       prompt += this.buildNSFWPrompt(character, isRealistic);
       
-      // Forcer le contenu NSFW selon le niveau
+      // Forcer le contenu NSFW selon le niveau - CHAQUE NIVEAU A SON STYLE
       if (level === 2) {
         // Niveau 2: Provocante
         prompt += ', NSFW, sexy, seductive, provocative outfit';
@@ -1644,12 +1644,43 @@ class ImageGenerationService {
         prompt += ', naked from waist up, exposed chest, sensual nude';
         prompt += ', adult content, erotic, intimate';
         console.log('📸 Mode NIVEAU 4: Topless');
-      } else if (level >= 5) {
-        // Niveau 5+: Nue explicite
-        prompt += ', NSFW, fully nude, completely naked, nothing hidden';
-        prompt += ', explicit nudity, naked body fully exposed, nipples visible';
-        prompt += ', erotic pose, intimate, adult only, uncensored';
-        console.log('📸 Mode NIVEAU 5+: Nue explicite');
+      } else if (level === 5) {
+        // Niveau 5: Nu artistique
+        prompt += ', NSFW, fully nude, completely naked, artistic nudity';
+        prompt += ', naked body fully exposed, nipples visible, sensual pose';
+        prompt += ', erotic, intimate, adult only';
+        console.log('📸 Mode NIVEAU 5: Nu artistique');
+      } else if (level === 6) {
+        // Niveau 6: Nu sensuel
+        prompt += ', NSFW, nude sensual pose, naked body glistening';
+        prompt += ', legs slightly parted, hands exploring body, erotic';
+        prompt += ', explicit adult content, passionate, intimate exposure';
+        console.log('📸 Mode NIVEAU 6: Nu sensuel');
+      } else if (level === 7) {
+        // Niveau 7: Nu érotique
+        prompt += ', NSFW, erotic nude pose, legs spread invitingly';
+        prompt += ', naked on bed, hand between thighs, provocative';
+        prompt += ', explicit, sexual pose, adult only, uncensored';
+        console.log('📸 Mode NIVEAU 7: Nu érotique');
+      } else if (level === 8) {
+        // Niveau 8: Très explicite
+        prompt += ', NSFW, very explicit nude, legs wide open';
+        prompt += ', touching intimately, naked spread on bed, nothing hidden';
+        prompt += ', extreme explicit, masturbation pose, adult content';
+        console.log('📸 Mode NIVEAU 8: Très explicite');
+      } else if (level === 9) {
+        // Niveau 9: Ultra explicite
+        prompt += ', NSFW, ultra explicit nude, maximum exposure';
+        prompt += ', fingers inside, orgasmic expression, most intimate pose';
+        prompt += ', extreme sexual content, explicit masturbation, uncensored';
+        console.log('📸 Mode NIVEAU 9: Ultra explicite');
+      } else if (level >= 10) {
+        // Niveau 10+: Maximum explicite
+        prompt += ', NSFW, maximum explicit nude, ultimate erotic exposure';
+        prompt += ', most provocative pose possible, extreme intimacy';
+        prompt += ', explicit self-pleasure, toy penetration visible, orgasm';
+        prompt += ', absolute maximum adult content, nothing censored';
+        console.log('📸 Mode NIVEAU 10+: Maximum explicite');
       }
       
     } else {

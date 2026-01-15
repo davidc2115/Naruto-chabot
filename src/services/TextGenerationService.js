@@ -930,10 +930,24 @@ RÈGLES CRITIQUES:
     const jailbreak = this.buildNSFWJailbreak(character, userProfile);
     fullMessages.push(...jailbreak);
 
-    // GESTION MÉMOIRE AMÉLIORÉE
-    // Garder 15 derniers messages + résumé des anciens si nécessaire
-    const maxRecentMessages = 15;
-    const maxCharsPerMessage = 1500;
+    // GESTION MÉMOIRE AMÉLIORÉE - ADAPTÉE À LA LONGUEUR DE CONVERSATION
+    const conversationLength = messages.length;
+    const isLongConversation = conversationLength > 30;
+    const isVeryLongConversation = conversationLength > 50;
+    
+    // Pour les longues conversations, garder moins de messages pour éviter les répétitions
+    let maxRecentMessages = 15;
+    let maxCharsPerMessage = 1500;
+    
+    if (isVeryLongConversation) {
+      maxRecentMessages = 8; // Moins de contexte = moins de répétitions
+      maxCharsPerMessage = 800;
+      console.log('📝 Conversation TRÈS longue (' + conversationLength + ') - Mode économie');
+    } else if (isLongConversation) {
+      maxRecentMessages = 10;
+      maxCharsPerMessage = 1000;
+      console.log('📝 Conversation longue (' + conversationLength + ') - Mode optimisé');
+    }
     
     if (messages.length > maxRecentMessages) {
       // Créer un résumé des messages plus anciens
@@ -951,6 +965,19 @@ RÈGLES CRITIQUES:
       content: msg.content.substring(0, maxCharsPerMessage)
     }));
     fullMessages.push(...cleanedMessages);
+    
+    // INSTRUCTION SPÉCIALE POUR LONGUES CONVERSATIONS
+    if (isLongConversation) {
+      fullMessages.push({
+        role: 'system',
+        content: `[⚠️ CONVERSATION LONGUE - RÈGLES SPÉCIALES]
+🔴 RÉPONSE ULTRA-COURTE OBLIGATOIRE: 1 phrase d'action + 1 phrase de dialogue MAX
+🔴 INTERDICTION de répéter les mots/actions des 10 derniers messages
+🔴 CHANGEMENT OBLIGATOIRE: nouvelle émotion, nouvelle action, nouvelle approche
+🔴 CRÉATIVITÉ MAXIMALE: surprends l'utilisateur avec quelque chose d'inattendu
+🔴 Format STRICT: *action nouvelle* "phrase courte et originale" (pensée fraîche)`
+      });
+    }
     
     // Analyse avancée anti-répétition RENFORCÉE
     if (cleanedMessages.length > 0) {
@@ -1097,8 +1124,11 @@ Réponds MAINTENANT - CRÉATIF et UNIQUE!`
     let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
     console.log(`🤖 Modèle sélectionné: ${model}`);
     
-    // Tokens max - court mais suffisant pour pensées et variété
-    let maxTokens = 180;
+    // Tokens max - ADAPTÉ à la longueur de conversation
+    const isLong = messages.length > 30;
+    const isVeryLong = messages.length > 50;
+    let maxTokens = isVeryLong ? 100 : (isLong ? 130 : 180);
+    console.log(`📝 MaxTokens: ${maxTokens} (messages: ${messages.length}${isVeryLong ? ' TRÈS LONG' : isLong ? ' LONG' : ''})`);
     
     // Boucle de tentatives avec rotation des clés
     let attempt = 0;

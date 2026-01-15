@@ -235,17 +235,28 @@ export default function ConversationScreen({ route, navigation }) {
         loadBackground();
         
         // Scroll automatique en bas quand on revient sur la conversation
-        // Utiliser plusieurs tentatives pour s'assurer que le scroll fonctionne
+        // Utiliser scrollToIndex pour un scroll fiable jusqu'au dernier message
         const scrollToBottom = () => {
           if (flatListRef.current && messages.length > 0) {
-            flatListRef.current.scrollToEnd({ animated: false });
-            console.log('📜 Scroll automatique (focus)');
+            try {
+              flatListRef.current.scrollToIndex({
+                index: messages.length - 1,
+                animated: false,
+                viewPosition: 1, // 1 = en bas de la vue
+              });
+              console.log('📜 Scroll vers message #' + (messages.length - 1) + ' (focus)');
+            } catch (e) {
+              // Fallback si erreur
+              flatListRef.current.scrollToEnd({ animated: false });
+              console.log('📜 Scroll fallback (focus)');
+            }
           }
         };
-        // Essayer plusieurs fois pour être sûr
-        setTimeout(scrollToBottom, 100);
-        setTimeout(scrollToBottom, 300);
+        // Essayer plusieurs fois avec des délais progressifs
+        setTimeout(scrollToBottom, 200);
         setTimeout(scrollToBottom, 500);
+        setTimeout(scrollToBottom, 1000);
+        setTimeout(scrollToBottom, 1500);
       }
     }, [character?.id, messages.length])
   );
@@ -263,18 +274,30 @@ export default function ConversationScreen({ route, navigation }) {
         setRelationship(saved.relationship);
         
         // SCROLL AUTOMATIQUE EN BAS après chargement
-        // Utiliser plusieurs timeouts pour s'assurer que le FlatList est rendu
+        // Utiliser scrollToOffset pour un scroll plus fiable
         const scrollToBottom = () => {
-          if (flatListRef.current) {
-            flatListRef.current.scrollToEnd({ animated: false });
-            console.log('📜 Scroll automatique vers le bas');
+          if (flatListRef.current && saved.messages.length > 0) {
+            // Utiliser scrollToIndex pour aller au dernier élément
+            try {
+              flatListRef.current.scrollToIndex({
+                index: saved.messages.length - 1,
+                animated: false,
+                viewPosition: 1, // 1 = en bas de la vue
+              });
+              console.log('📜 Scroll vers message #' + (saved.messages.length - 1));
+            } catch (e) {
+              // Fallback sur scrollToEnd si erreur
+              flatListRef.current.scrollToEnd({ animated: false });
+              console.log('📜 Scroll fallback vers le bas');
+            }
           }
         };
-        // Essayer plusieurs fois pour être sûr que le scroll fonctionne
-        setTimeout(scrollToBottom, 100);
-        setTimeout(scrollToBottom, 300);
-        setTimeout(scrollToBottom, 600);
+        // Essayer plusieurs fois avec délais plus longs
+        setTimeout(scrollToBottom, 200);
+        setTimeout(scrollToBottom, 500);
         setTimeout(scrollToBottom, 1000);
+        setTimeout(scrollToBottom, 1500);
+        setTimeout(scrollToBottom, 2000);
         
       } else {
         const initialMessage = {
@@ -1166,6 +1189,24 @@ export default function ConversationScreen({ route, navigation }) {
         maintainVisibleContentPosition={{
           minIndexForVisible: 0,
         }}
+        // Gestion des erreurs de scroll vers index
+        onScrollToIndexFailed={(info) => {
+          console.log('⚠️ Scroll vers index échoué:', info);
+          // Attendre et réessayer
+          setTimeout(() => {
+            if (flatListRef.current && messages.length > 0) {
+              flatListRef.current.scrollToOffset({ 
+                offset: info.averageItemLength * messages.length, 
+                animated: false 
+              });
+            }
+          }, 100);
+        }}
+        // Améliorer le rendu
+        removeClippedSubviews={false}
+        initialNumToRender={20}
+        maxToRenderPerBatch={15}
+        windowSize={21}
       />
 
       {isLoading && (
