@@ -43,6 +43,14 @@ export default function AdminPanelScreen() {
       if (response.ok) {
         const data = await response.json();
         console.log('✅ Utilisateurs récupérés:', data.users?.length || 0);
+        // Vérifier les IDs des utilisateurs
+        if (data.users?.length > 0) {
+          console.log('📋 Premier utilisateur:', JSON.stringify(data.users[0], null, 2));
+          const usersWithoutId = data.users.filter(u => !u.id);
+          if (usersWithoutId.length > 0) {
+            console.warn('⚠️ Utilisateurs sans ID:', usersWithoutId.length);
+          }
+        }
         setUsers(data.users || []);
       } else {
         const errorText = await response.text();
@@ -92,6 +100,12 @@ export default function AdminPanelScreen() {
   };
 
   const toggleAdminStatus = async (userId, currentStatus) => {
+    if (!userId) {
+      Alert.alert('❌ Erreur', 'ID utilisateur manquant');
+      console.error('❌ toggleAdminStatus: userId est undefined/null');
+      return;
+    }
+    
     const action = currentStatus ? 'retirer les droits admin' : 'donner les droits admin';
     Alert.alert(
       '👑 Modifier les droits',
@@ -102,7 +116,11 @@ export default function AdminPanelScreen() {
           text: 'Confirmer',
           onPress: async () => {
             try {
-              const response = await fetch(`${FREEBOX_URL}/admin/users/${userId}/role`, {
+              console.log(`👑 Modification admin pour userId=${userId}, nouveau statut=${!currentStatus}`);
+              const url = `${FREEBOX_URL}/admin/users/${userId}/role`;
+              console.log('🔗 URL:', url);
+              
+              const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
@@ -111,14 +129,19 @@ export default function AdminPanelScreen() {
                 body: JSON.stringify({ is_admin: !currentStatus })
               });
               
-              if (response.ok) {
+              console.log('📥 Response status:', response.status);
+              const responseData = await response.json().catch(() => ({}));
+              console.log('📥 Response data:', responseData);
+              
+              if (response.ok && responseData.success !== false) {
                 Alert.alert('✅ Succès', 'Les droits ont été modifiés');
                 loadUsers();
               } else {
-                Alert.alert('❌ Erreur', 'Impossible de modifier les droits');
+                Alert.alert('❌ Erreur', responseData.error || 'Impossible de modifier les droits');
               }
             } catch (error) {
-              Alert.alert('❌ Erreur', 'Erreur de connexion au serveur');
+              console.error('❌ Erreur toggleAdminStatus:', error);
+              Alert.alert('❌ Erreur', `Erreur de connexion: ${error.message}`);
             }
           }
         }
@@ -127,6 +150,12 @@ export default function AdminPanelScreen() {
   };
 
   const togglePremiumStatus = async (userId, currentStatus) => {
+    if (!userId) {
+      Alert.alert('❌ Erreur', 'ID utilisateur manquant');
+      console.error('❌ togglePremiumStatus: userId est undefined/null');
+      return;
+    }
+    
     const action = currentStatus ? 'retirer le statut premium' : 'donner le statut premium';
     Alert.alert(
       '⭐ Modifier le statut premium',
@@ -137,7 +166,11 @@ export default function AdminPanelScreen() {
           text: 'Confirmer',
           onPress: async () => {
             try {
-              const response = await fetch(`${FREEBOX_URL}/admin/users/${userId}/premium`, {
+              console.log(`⭐ Modification premium pour userId=${userId}, nouveau statut=${!currentStatus}`);
+              const url = `${FREEBOX_URL}/admin/users/${userId}/premium`;
+              console.log('🔗 URL:', url);
+              
+              const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
@@ -146,14 +179,19 @@ export default function AdminPanelScreen() {
                 body: JSON.stringify({ is_premium: !currentStatus })
               });
               
-              if (response.ok) {
+              console.log('📥 Response status:', response.status);
+              const responseData = await response.json().catch(() => ({}));
+              console.log('📥 Response data:', responseData);
+              
+              if (response.ok && responseData.success !== false) {
                 Alert.alert('✅ Succès', 'Le statut premium a été modifié');
                 loadUsers();
               } else {
-                Alert.alert('❌ Erreur', 'Impossible de modifier le statut');
+                Alert.alert('❌ Erreur', responseData.error || 'Impossible de modifier le statut');
               }
             } catch (error) {
-              Alert.alert('❌ Erreur', 'Erreur de connexion au serveur');
+              console.error('❌ Erreur togglePremiumStatus:', error);
+              Alert.alert('❌ Erreur', `Erreur de connexion: ${error.message}`);
             }
           }
         }

@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, Text, StyleSheet, Linking, TouchableOpacity, Alert } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
@@ -71,6 +71,15 @@ function HomeTabs({ isAdmin, onLogout }) {
           tabBarIcon: ({ color }) => <TabIcon name="✨" color={color} />,
         }}
       />
+      {/* Onglet Discord */}
+      <Tab.Screen 
+        name="Discord" 
+        component={DiscordScreen}
+        options={{
+          tabBarLabel: 'Discord',
+          tabBarIcon: ({ color }) => <TabIcon name="🎮" color={color} />,
+        }}
+      />
       {/* Onglet Admin pour gérer les membres (admin uniquement) */}
       {isAdmin && (
         <Tab.Screen 
@@ -112,6 +121,84 @@ function HomeTabs({ isAdmin, onLogout }) {
 function TabIcon({ name, color }) {
   return <Text style={{ fontSize: 24, color }}>{name}</Text>;
 }
+
+// Lien Discord - à personnaliser
+const DISCORD_INVITE_URL = 'https://discord.gg/boysandgirls';
+
+// Écran Discord (ouvre le lien externe)
+function DiscordScreen() {
+  const openDiscord = async () => {
+    try {
+      const supported = await Linking.canOpenURL(DISCORD_INVITE_URL);
+      if (supported) {
+        await Linking.openURL(DISCORD_INVITE_URL);
+      } else {
+        Alert.alert('Erreur', 'Impossible d\'ouvrir le lien Discord');
+      }
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible d\'ouvrir Discord');
+    }
+  };
+
+  // Ouvrir automatiquement au montage
+  useEffect(() => {
+    openDiscord();
+  }, []);
+
+  return (
+    <View style={discordStyles.container}>
+      <Text style={discordStyles.icon}>🎮</Text>
+      <Text style={discordStyles.title}>Serveur Discord</Text>
+      <Text style={discordStyles.subtitle}>Rejoignez notre communauté !</Text>
+      <TouchableOpacity style={discordStyles.button} onPress={openDiscord}>
+        <Text style={discordStyles.buttonText}>Ouvrir Discord</Text>
+      </TouchableOpacity>
+      <Text style={discordStyles.link}>{DISCORD_INVITE_URL}</Text>
+    </View>
+  );
+}
+
+const discordStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0a0a12',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  icon: {
+    fontSize: 80,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#C9A227',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#D4AF37',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  button: {
+    backgroundColor: '#5865F2',
+    paddingHorizontal: 40,
+    paddingVertical: 15,
+    borderRadius: 25,
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  link: {
+    color: '#6b7280',
+    fontSize: 12,
+  },
+});
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
