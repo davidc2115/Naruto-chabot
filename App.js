@@ -127,22 +127,45 @@ const DISCORD_INVITE_URL = 'https://discord.gg/W52qQtNqFt';
 
 // Écran Discord (ouvre le lien externe)
 function DiscordScreen() {
+  const [opening, setOpening] = useState(false);
+  
   const openDiscord = async () => {
+    if (opening) return;
+    setOpening(true);
+    
     try {
-      const supported = await Linking.canOpenURL(DISCORD_INVITE_URL);
-      if (supported) {
-        await Linking.openURL(DISCORD_INVITE_URL);
+      // Essayer d'abord l'app Discord directement
+      const discordAppUrl = 'discord://discord.gg/W52qQtNqFt';
+      const canOpenApp = await Linking.canOpenURL(discordAppUrl).catch(() => false);
+      
+      if (canOpenApp) {
+        await Linking.openURL(discordAppUrl);
       } else {
-        Alert.alert('Erreur', 'Impossible d\'ouvrir le lien Discord');
+        // Sinon ouvrir dans le navigateur
+        await Linking.openURL(DISCORD_INVITE_URL);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible d\'ouvrir Discord');
+      // En cas d'erreur, essayer quand même d'ouvrir
+      try {
+        await Linking.openURL(DISCORD_INVITE_URL);
+      } catch (e) {
+        Alert.alert(
+          'Discord', 
+          `Copiez ce lien dans votre navigateur:\n\n${DISCORD_INVITE_URL}`,
+          [{ text: 'OK' }]
+        );
+      }
+    } finally {
+      setOpening(false);
     }
   };
 
-  // Ouvrir automatiquement au montage
+  // Ouvrir automatiquement au montage (avec délai)
   useEffect(() => {
-    openDiscord();
+    const timer = setTimeout(() => {
+      openDiscord();
+    }, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -150,10 +173,19 @@ function DiscordScreen() {
       <Text style={discordStyles.icon}>🎮</Text>
       <Text style={discordStyles.title}>Serveur Discord</Text>
       <Text style={discordStyles.subtitle}>Rejoignez notre communauté !</Text>
-      <TouchableOpacity style={discordStyles.button} onPress={openDiscord}>
-        <Text style={discordStyles.buttonText}>Ouvrir Discord</Text>
+      <TouchableOpacity 
+        style={[discordStyles.button, opening && { opacity: 0.7 }]} 
+        onPress={openDiscord}
+        disabled={opening}
+      >
+        <Text style={discordStyles.buttonText}>
+          {opening ? 'Ouverture...' : 'Ouvrir Discord'}
+        </Text>
       </TouchableOpacity>
       <Text style={discordStyles.link}>{DISCORD_INVITE_URL}</Text>
+      <Text style={discordStyles.hint}>
+        Si Discord ne s'ouvre pas, copiez le lien ci-dessus
+      </Text>
     </View>
   );
 }
@@ -197,6 +229,13 @@ const discordStyles = StyleSheet.create({
   link: {
     color: '#6b7280',
     fontSize: 12,
+    marginBottom: 15,
+  },
+  hint: {
+    color: '#9ca3af',
+    fontSize: 11,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });
 
