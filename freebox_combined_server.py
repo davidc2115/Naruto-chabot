@@ -1013,6 +1013,87 @@ def shared_keys_status():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ==================== DIAGNOSTIC ADMIN ====================
+
+@app.route('/admin/diagnostic', methods=['GET'])
+def admin_diagnostic():
+    """Diagnostic complet du système admin"""
+    if not is_request_admin(request):
+        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+    
+    try:
+        users_info = []
+        users_without_id = 0
+        users_fixed = 0
+        
+        for filename in os.listdir(USERS_DIR):
+            if filename.endswith('.json') and not filename.endswith('_characters.json'):
+                filepath = os.path.join(USERS_DIR, filename)
+                user = load_json(filepath)
+                
+                if user:
+                    user_id = user.get('id')
+                    
+                    # Corriger les utilisateurs sans ID
+                    if not user_id:
+                        users_without_id += 1
+                        user_id = filename.replace('.json', '')
+                        user['id'] = user_id
+                        save_json(filepath, user)
+                        users_fixed += 1
+                        print(f"🔧 Corrigé: {user.get('email')} -> ID: {user_id}")
+                    
+                    users_info.append({
+                        'email': user.get('email'),
+                        'id': user.get('id'),
+                        'filename': filename,
+                        'has_id': bool(user.get('id')),
+                        'is_admin': user.get('is_admin', False),
+                        'is_premium': user.get('is_premium', False),
+                    })
+        
+        return jsonify({
+            'success': True,
+            'diagnostic': {
+                'total_users': len(users_info),
+                'users_without_id_before': users_without_id,
+                'users_fixed': users_fixed,
+                'admin_email': ADMIN_EMAIL,
+                'data_dir': DATA_DIR,
+                'users_dir': USERS_DIR,
+            },
+            'users': users_info
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/fix-users', methods=['POST'])
+def admin_fix_users():
+    """Corrige tous les utilisateurs sans ID"""
+    if not is_request_admin(request):
+        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+    
+    try:
+        fixed = 0
+        for filename in os.listdir(USERS_DIR):
+            if filename.endswith('.json') and not filename.endswith('_characters.json'):
+                filepath = os.path.join(USERS_DIR, filename)
+                user = load_json(filepath)
+                
+                if user and not user.get('id'):
+                    user['id'] = filename.replace('.json', '')
+                    save_json(filepath, user)
+                    fixed += 1
+                    print(f"🔧 Corrigé: {user.get('email')} -> ID: {user['id']}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'{fixed} utilisateur(s) corrigé(s)',
+            'fixed': fixed
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ==================== HEALTH & INFO ====================
 
 @app.route('/health', methods=['GET'])
@@ -1021,8 +1102,9 @@ def health():
     return jsonify({
         'status': 'ok',
         'service': 'Roleplay Chat Combined Server',
-        'version': '3.0.0',
-        'time': datetime.now().isoformat()
+        'version': '4.3.10',
+        'time': datetime.now().isoformat(),
+        'admin_email': ADMIN_EMAIL
     })
 
 @app.route('/api/stats', methods=['GET'])
@@ -1043,8 +1125,9 @@ def stats():
 def home():
     return jsonify({
         'name': 'Roleplay Chat Combined Server',
-        'version': '3.0.0',
-        'services': ['auth', 'images', 'sync', 'characters', 'premium', 'paypal']
+        'version': '4.3.10',
+        'services': ['auth', 'images', 'sync', 'characters', 'premium', 'paypal', 'admin', 'shared-keys'],
+        'admin_email': ADMIN_EMAIL
     })
 
 if __name__ == '__main__':

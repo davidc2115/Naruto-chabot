@@ -99,6 +99,74 @@ export default function AdminPanelScreen() {
     loadUsers();
   };
 
+  // Diagnostic et correction des utilisateurs
+  const runDiagnostic = async () => {
+    try {
+      console.log('🔧 Lancement du diagnostic...');
+      
+      const response = await fetch(`${FREEBOX_URL}/admin/diagnostic`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        let message = `📊 Diagnostic du serveur\n\n`;
+        message += `👥 Total utilisateurs: ${data.diagnostic?.total_users || 0}\n`;
+        message += `⚠️ Sans ID (avant): ${data.diagnostic?.users_without_id_before || 0}\n`;
+        message += `✅ Corrigés: ${data.diagnostic?.users_fixed || 0}\n`;
+        message += `👑 Admin email: ${data.diagnostic?.admin_email || 'N/A'}\n\n`;
+        
+        if (data.users) {
+          message += `📋 Utilisateurs:\n`;
+          data.users.forEach(u => {
+            message += `• ${u.email}\n  ID: ${u.id || 'MANQUANT'}\n`;
+          });
+        }
+        
+        Alert.alert('🔧 Diagnostic', message, [
+          { text: 'Fermer' },
+          { 
+            text: 'Recharger', 
+            onPress: () => loadUsers() 
+          }
+        ]);
+      } else {
+        const error = await response.json().catch(() => ({}));
+        Alert.alert('❌ Erreur', error.error || `Erreur ${response.status}`);
+      }
+    } catch (error) {
+      Alert.alert('❌ Erreur', `Erreur connexion: ${error.message}`);
+    }
+  };
+
+  // Corriger tous les utilisateurs
+  const fixAllUsers = async () => {
+    try {
+      const response = await fetch(`${FREEBOX_URL}/admin/fix-users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        Alert.alert('✅ Correction terminée', `${data.fixed} utilisateur(s) corrigé(s)`);
+        loadUsers();
+      } else {
+        const error = await response.json().catch(() => ({}));
+        Alert.alert('❌ Erreur', error.error || 'Erreur lors de la correction');
+      }
+    } catch (error) {
+      Alert.alert('❌ Erreur', `Erreur connexion: ${error.message}`);
+    }
+  };
+
   const toggleAdminStatus = async (userId, currentStatus) => {
     if (!userId) {
       Alert.alert('❌ Erreur', 'ID utilisateur manquant');
@@ -298,6 +366,7 @@ export default function AdminPanelScreen() {
             </View>
           </View>
           <Text style={styles.userEmail}>{item.email}</Text>
+          <Text style={styles.userId}>🆔 {item.id || '⚠️ ID MANQUANT'}</Text>
           <View style={styles.userDetails}>
             <Text style={[styles.detailText, styles.detailItem]}>
               📅 Inscrit: {new Date(item.created_at).toLocaleDateString('fr-FR')}
@@ -305,8 +374,13 @@ export default function AdminPanelScreen() {
             {item.age && (
               <Text style={[styles.detailText, styles.detailItem]}>🎂 {item.age} ans</Text>
             )}
+            {item.gender && (
+              <Text style={[styles.detailText, styles.detailItem]}>
+                {item.gender === 'male' ? '👨' : item.gender === 'female' ? '👩' : '🧑'} {item.gender}
+              </Text>
+            )}
             {item.nsfw_enabled && (
-              <Text style={[styles.detailText, styles.detailItem]}>🔞 NSFW activé</Text>
+              <Text style={[styles.detailText, styles.detailItem]}>🔞 NSFW</Text>
             )}
           </View>
         </View>
@@ -398,6 +472,16 @@ export default function AdminPanelScreen() {
         />
       </View>
       
+      {/* Boutons de diagnostic */}
+      <View style={styles.diagnosticBar}>
+        <TouchableOpacity style={styles.diagnosticButton} onPress={runDiagnostic}>
+          <Text style={styles.diagnosticButtonText}>🔧 Diagnostic</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.fixButton} onPress={fixAllUsers}>
+          <Text style={styles.fixButtonText}>🔄 Corriger IDs</Text>
+        </TouchableOpacity>
+      </View>
+      
       <FlatList
         data={filteredUsers}
         renderItem={renderUser}
@@ -486,6 +570,36 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
+  diagnosticBar: {
+    flexDirection: 'row',
+    paddingHorizontal: 15,
+    paddingBottom: 10,
+    gap: 10,
+  },
+  diagnosticButton: {
+    flex: 1,
+    backgroundColor: '#f59e0b',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  diagnosticButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  fixButton: {
+    flex: 1,
+    backgroundColor: '#10b981',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  fixButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
   list: {
     padding: 15,
     paddingTop: 0,
@@ -545,7 +659,13 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: 14,
     color: '#6b7280',
+    marginBottom: 4,
+  },
+  userId: {
+    fontSize: 11,
+    color: '#9ca3af',
     marginBottom: 8,
+    fontFamily: 'monospace',
   },
   userDetails: {
     flexDirection: 'row',
