@@ -233,6 +233,59 @@ export default function SettingsScreen({ navigation, onLogout }) {
     }
   };
 
+  // Partager les clés avec tous les utilisateurs (Admin seulement)
+  const shareGroqKeys = async () => {
+    try {
+      const validKeys = groqApiKeys.filter(key => key && key.trim() !== '');
+      
+      if (validKeys.length === 0) {
+        Alert.alert('Erreur', 'Veuillez ajouter au moins une clé API avant de partager.');
+        return;
+      }
+
+      Alert.alert(
+        '🔗 Partager les clés',
+        `Voulez-vous partager ${validKeys.length} clé(s) API Groq avec tous les utilisateurs de l'application ?`,
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Partager',
+            onPress: async () => {
+              try {
+                const response = await fetch(`${FREEBOX_URL}/api/shared-keys`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+                  },
+                  body: JSON.stringify({
+                    groq: validKeys,
+                    groq_model: groqModel
+                  })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                  Alert.alert(
+                    '✅ Clés partagées !',
+                    `${validKeys.length} clé(s) Groq sont maintenant disponibles pour tous les utilisateurs.\n\nModèle: ${groqModel}`
+                  );
+                } else {
+                  Alert.alert('❌ Erreur', data.error || 'Impossible de partager les clés');
+                }
+              } catch (error) {
+                Alert.alert('❌ Erreur', `Erreur serveur: ${error.message}`);
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('❌ Erreur', error.message);
+    }
+  };
+
   const testGroqKey = async () => {
     const validKeys = groqApiKeys.filter(key => key && key.trim() !== '');
     
@@ -510,6 +563,14 @@ export default function SettingsScreen({ navigation, onLogout }) {
               <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Bouton Partager les clés avec tous les utilisateurs */}
+          <TouchableOpacity style={styles.shareButton} onPress={shareGroqKeys}>
+            <Text style={styles.shareButtonText}>🔗 Partager avec tous les utilisateurs</Text>
+          </TouchableOpacity>
+          <Text style={styles.shareHint}>
+            Les clés partagées seront utilisées par tous les membres qui n'ont pas configuré leurs propres clés.
+          </Text>
 
           {/* Limites API Groq */}
           <View style={styles.groqLimitsBox}>
@@ -1120,6 +1181,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  shareButton: {
+    backgroundColor: '#10b981',
+    borderRadius: 10,
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  shareButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  shareHint: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   optionCard: {
     flexDirection: 'row',

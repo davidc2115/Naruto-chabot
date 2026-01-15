@@ -80,20 +80,108 @@ class TextGenerationService {
         this.currentProvider = provider;
       }
 
+      // D'abord essayer de charger les clés locales
       const groqKeys = await AsyncStorage.getItem('groq_api_keys');
       if (groqKeys) {
-        this.apiKeys.groq = JSON.parse(groqKeys);
+        const localKeys = JSON.parse(groqKeys);
+        if (localKeys && localKeys.length > 0) {
+          this.apiKeys.groq = localKeys;
+          console.log(`🔑 ${localKeys.length} clé(s) Groq locale(s) chargée(s)`);
+        }
       }
 
-      // Charger le modèle Groq sélectionné
+      // Si pas de clés locales, essayer de récupérer les clés partagées du serveur
+      if (!this.apiKeys.groq || this.apiKeys.groq.length === 0) {
+        await this.loadSharedKeys();
+      }
+
+      // Charger le modèle Groq sélectionné (local ou partagé)
       const savedModel = await AsyncStorage.getItem('groq_model');
       if (savedModel && this.groqModels[savedModel]) {
         this.currentGroqModel = savedModel;
       }
       
       console.log('🤖 Modèle Groq chargé:', this.currentGroqModel);
+      console.log(`🔑 Total clés Groq disponibles: ${this.apiKeys.groq?.length || 0}`);
     } catch (error) {
       console.error('Erreur chargement config:', error);
+    }
+  }
+
+  /**
+   * Charge les clés API partagées depuis le serveur Freebox
+   */
+  async loadSharedKeys() {
+    try {
+      console.log('🔄 Tentative de récupération des clés partagées...');
+      const FREEBOX_URL = 'http://88.174.155.230:33437';
+      
+      const response = await fetch(`${FREEBOX_URL}/api/shared-keys`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 5000,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.hasKeys) {
+          // Utiliser les clés partagées
+          this.apiKeys.groq = data.keys.groq || [];
+          
+          // Utiliser le modèle partagé si pas de modèle local
+          const localModel = await AsyncStorage.getItem('groq_model');
+          if (!localModel && data.keys.groq_model) {
+            this.currentGroqModel = data.keys.groq_model;
+          }
+          
+          console.log(`✅ ${this.apiKeys.groq.length} clé(s) Groq partagée(s) récupérée(s)`);
+          console.log(`🤖 Modèle partagé: ${data.keys.groq_model}`);
+          
+          // Sauvegarder localement pour utilisation hors-ligne
+          await AsyncStorage.setItem('groq_api_keys_shared', JSON.stringify(this.apiKeys.groq));
+          
+          return true;
+        } else {
+          console.log('⚠️ Pas de clés partagées disponibles sur le serveur');
+        }
+      } else {
+        console.log('⚠️ Serveur non accessible pour les clés partagées');
+      }
+      
+      // Fallback: essayer les clés partagées sauvegardées localement
+      const cachedSharedKeys = await AsyncStorage.getItem('groq_api_keys_shared');
+      if (cachedSharedKeys) {
+        const cached = JSON.parse(cachedSharedKeys);
+        if (cached && cached.length > 0) {
+          this.apiKeys.groq = cached;
+          console.log(`📦 ${cached.length} clé(s) partagée(s) en cache utilisée(s)`);
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('❌ Erreur récupération clés partagées:', error.message);
+      
+      // Fallback: essayer les clés en cache
+      try {
+        const cachedSharedKeys = await AsyncStorage.getItem('groq_api_keys_shared');
+        if (cachedSharedKeys) {
+          const cached = JSON.parse(cachedSharedKeys);
+          if (cached && cached.length > 0) {
+            this.apiKeys.groq = cached;
+            console.log(`📦 ${cached.length} clé(s) partagée(s) en cache (fallback)`);
+            return true;
+          }
+        }
+      } catch (e) {
+        console.error('❌ Erreur cache clés partagées:', e);
+      }
+      
+      return false;
     }
   }
 

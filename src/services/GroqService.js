@@ -11,12 +11,69 @@ class GroqService {
 
   async loadApiKeys() {
     try {
+      // D'abord essayer les clés locales
       const keys = await AsyncStorage.getItem('groq_api_keys');
       if (keys) {
-        this.apiKeys = JSON.parse(keys);
+        const localKeys = JSON.parse(keys);
+        if (localKeys && localKeys.length > 0) {
+          this.apiKeys = localKeys;
+          console.log(`🔑 GroqService: ${localKeys.length} clé(s) locale(s) chargée(s)`);
+          return;
+        }
       }
+      
+      // Si pas de clés locales, essayer les clés partagées du serveur
+      await this.loadSharedKeys();
     } catch (error) {
       console.error('Error loading API keys:', error);
+    }
+  }
+
+  async loadSharedKeys() {
+    try {
+      console.log('🔄 GroqService: Tentative récupération clés partagées...');
+      const FREEBOX_URL = 'http://88.174.155.230:33437';
+      
+      const response = await fetch(`${FREEBOX_URL}/api/shared-keys`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.hasKeys && data.keys.groq?.length > 0) {
+          this.apiKeys = data.keys.groq;
+          console.log(`✅ GroqService: ${this.apiKeys.length} clé(s) partagée(s) récupérée(s)`);
+          
+          // Cache pour utilisation hors-ligne
+          await AsyncStorage.setItem('groq_api_keys_shared', JSON.stringify(this.apiKeys));
+          return;
+        }
+      }
+      
+      // Fallback: clés en cache
+      const cached = await AsyncStorage.getItem('groq_api_keys_shared');
+      if (cached) {
+        const cachedKeys = JSON.parse(cached);
+        if (cachedKeys?.length > 0) {
+          this.apiKeys = cachedKeys;
+          console.log(`📦 GroqService: ${cachedKeys.length} clé(s) en cache`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ GroqService: Erreur clés partagées:', error.message);
+      
+      // Fallback cache
+      try {
+        const cached = await AsyncStorage.getItem('groq_api_keys_shared');
+        if (cached) {
+          const cachedKeys = JSON.parse(cached);
+          if (cachedKeys?.length > 0) {
+            this.apiKeys = cachedKeys;
+            console.log(`📦 GroqService: ${cachedKeys.length} clé(s) en cache (fallback)`);
+          }
+        }
+      } catch (e) {}
     }
   }
 

@@ -849,6 +849,91 @@ def admin_confirm_payment(transaction_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ==================== CLÉS API PARTAGÉES ====================
+
+SHARED_KEYS_FILE = os.path.join(CONFIG_DIR, "shared_api_keys.json")
+
+def load_shared_keys():
+    """Charge les clés API partagées"""
+    if os.path.exists(SHARED_KEYS_FILE):
+        return load_json(SHARED_KEYS_FILE, {})
+    return {}
+
+def save_shared_keys(keys):
+    """Sauvegarde les clés API partagées"""
+    save_json(SHARED_KEYS_FILE, keys)
+
+@app.route('/api/shared-keys', methods=['GET'])
+def get_shared_keys():
+    """Récupère les clés API partagées (pour tous les utilisateurs)"""
+    try:
+        shared = load_shared_keys()
+        
+        # Retourner les clés sans les masquer (l'app en a besoin)
+        return jsonify({
+            'success': True,
+            'keys': {
+                'groq': shared.get('groq', []),
+                'groq_model': shared.get('groq_model', 'llama-3.1-70b-versatile'),
+            },
+            'hasKeys': len(shared.get('groq', [])) > 0
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/shared-keys', methods=['POST'])
+def set_shared_keys():
+    """Définit les clés API partagées (admin uniquement)"""
+    if not is_request_admin(request):
+        return jsonify({'success': False, 'error': 'Accès refusé - Admin uniquement'}), 403
+    
+    try:
+        data = request.json
+        shared = load_shared_keys()
+        
+        # Mettre à jour les clés Groq
+        if 'groq' in data:
+            shared['groq'] = data['groq']
+            print(f"🔑 Admin: {len(data['groq'])} clé(s) Groq partagée(s)")
+        
+        # Mettre à jour le modèle Groq
+        if 'groq_model' in data:
+            shared['groq_model'] = data['groq_model']
+            print(f"🤖 Admin: Modèle Groq partagé: {data['groq_model']}")
+        
+        shared['updated_at'] = int(time.time() * 1000)
+        shared['updated_by'] = request.headers.get('X-Admin-Email', 'admin')
+        
+        save_shared_keys(shared)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Clés partagées mises à jour',
+            'keysCount': len(shared.get('groq', []))
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/shared-keys/status', methods=['GET'])
+def shared_keys_status():
+    """Vérifie le statut des clés partagées"""
+    try:
+        shared = load_shared_keys()
+        groq_keys = shared.get('groq', [])
+        
+        return jsonify({
+            'success': True,
+            'status': {
+                'hasGroqKeys': len(groq_keys) > 0,
+                'groqKeysCount': len(groq_keys),
+                'groqModel': shared.get('groq_model', 'llama-3.1-70b-versatile'),
+                'lastUpdated': shared.get('updated_at'),
+                'updatedBy': shared.get('updated_by', 'N/A')
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ==================== HEALTH & INFO ====================
 
 @app.route('/health', methods=['GET'])
