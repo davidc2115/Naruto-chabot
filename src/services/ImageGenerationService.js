@@ -675,6 +675,368 @@ class ImageGenerationService {
   }
 
   /**
+   * Extrait le contexte de la conversation pour l'image
+   * Détecte: lieu, position, tenue, action en cours
+   */
+  extractConversationContext(recentMessages = []) {
+    if (!recentMessages || recentMessages.length === 0) {
+      return { location: null, position: null, outfit: null, action: null };
+    }
+    
+    // Analyser les 5 derniers messages
+    const lastMessages = recentMessages.slice(-5).map(m => m.content?.toLowerCase() || '').join(' ');
+    
+    // === DÉTECTION DU LIEU ===
+    const locations = {
+      // Intérieur maison
+      'chambre|bedroom|lit|bed|draps': 'in bedroom, on comfortable bed, intimate setting',
+      'cuisine|kitchen|comptoir': 'in kitchen, domestic setting',
+      'salon|living room|canapé|sofa': 'in living room, on couch, relaxed atmosphere',
+      'salle de bain|bathroom|douche|shower|bain|bath': 'in bathroom, wet environment, steamy atmosphere',
+      'bureau|office|travail': 'in office, professional setting',
+      // Extérieur
+      'jardin|garden|dehors|outside|terrasse': 'outside in garden, natural light, outdoor setting',
+      'plage|beach|mer|sea|sable': 'at the beach, ocean view, sandy environment',
+      'forêt|forest|bois|nature': 'in forest, natural surroundings, trees',
+      'piscine|pool|eau': 'by the pool, water nearby, summer setting',
+      // Lieux publics
+      'restaurant|café|bar': 'in restaurant or cafe, ambient lighting',
+      'hôtel|hotel|suite': 'in luxury hotel room, elegant decor',
+      'voiture|car|siège': 'in car, vehicle interior',
+      'ascenseur|elevator': 'in elevator, confined space',
+    };
+    
+    let detectedLocation = null;
+    for (const [keywords, location] of Object.entries(locations)) {
+      if (new RegExp(keywords, 'i').test(lastMessages)) {
+        detectedLocation = location;
+        break;
+      }
+    }
+    
+    // === DÉTECTION DE LA POSITION ===
+    const positions = {
+      'allongé|couché|lying|lying down': 'lying down, horizontal position',
+      'assis|sitting|assise': 'sitting position',
+      'debout|standing': 'standing upright',
+      'à genoux|kneeling|agenouillé': 'kneeling position',
+      'quatre pattes|all fours|doggy': 'on all fours position',
+      'penché|bent over|bending': 'bent over, leaning forward',
+      'contre le mur|against wall': 'against the wall',
+      'sur le dos|on back': 'lying on back, face up',
+      'sur le ventre|on stomach': 'lying on stomach, face down',
+      'chevauch|straddl|riding': 'straddling position',
+    };
+    
+    let detectedPosition = null;
+    for (const [keywords, position] of Object.entries(positions)) {
+      if (new RegExp(keywords, 'i').test(lastMessages)) {
+        detectedPosition = position;
+        break;
+      }
+    }
+    
+    // === DÉTECTION DE LA TENUE ===
+    const outfits = {
+      'nue?|naked|nu ': 'completely naked, nude',
+      'lingerie|sous-vêtements|underwear': 'wearing sexy lingerie',
+      'robe|dress': 'wearing a dress',
+      'jupe|skirt': 'wearing a skirt',
+      'jean|pantalon|pants': 'wearing jeans/pants',
+      'maillot|bikini|swimsuit': 'wearing bikini/swimsuit',
+      'pyjama|nuisette|nightgown': 'wearing nightwear',
+      'uniforme|uniform': 'wearing uniform',
+      'costume|suit': 'wearing formal suit',
+      'topless|seins nus': 'topless, bare breasts',
+    };
+    
+    let detectedOutfit = null;
+    for (const [keywords, outfit] of Object.entries(outfits)) {
+      if (new RegExp(keywords, 'i').test(lastMessages)) {
+        detectedOutfit = outfit;
+        break;
+      }
+    }
+    
+    // === DÉTECTION DE L'ACTION ===
+    const actions = {
+      'embrass|kiss': 'romantic kissing moment',
+      'câlin|hug|enlacer': 'embracing, hugging',
+      'caress|touche|touch': 'being touched sensually',
+      'déshabill|undress': 'undressing, removing clothes',
+      'danse|dancing': 'dancing sensually',
+      'regard|looking|regarde': 'making eye contact, looking seductively',
+      'sourit|smile': 'smiling warmly',
+      'rougit|blush': 'blushing shyly',
+    };
+    
+    let detectedAction = null;
+    for (const [keywords, action] of Object.entries(actions)) {
+      if (new RegExp(keywords, 'i').test(lastMessages)) {
+        detectedAction = action;
+        break;
+      }
+    }
+    
+    console.log(`📍 Contexte détecté - Lieu: ${detectedLocation || 'auto'}, Position: ${detectedPosition || 'auto'}, Tenue: ${detectedOutfit || 'auto'}`);
+    
+    return {
+      location: detectedLocation,
+      position: detectedPosition,
+      outfit: detectedOutfit,
+      action: detectedAction,
+    };
+  }
+
+  /**
+   * Construit une description physique ULTRA-DÉTAILLÉE pour les prompts d'image
+   * Inclut: visage, cheveux (couleur, longueur, type), corps, peau, attributs
+   */
+  buildUltraDetailedPhysicalPrompt(character, isRealistic = false) {
+    const parts = [];
+    const appearance = (
+      (character.appearance || '') + ' ' + 
+      (character.physicalDescription || '') + ' ' +
+      (character.bodyType || '') + ' ' +
+      (character.imagePrompt || '')
+    ).toLowerCase();
+    
+    // === 1. GENRE ===
+    if (character.gender === 'female') {
+      parts.push(isRealistic ? 'beautiful real woman, female' : 'beautiful anime woman, female character');
+    } else if (character.gender === 'male') {
+      parts.push(isRealistic ? 'handsome real man, male' : 'handsome anime man, male character');
+    } else {
+      const nbType = this.getNonBinaryAppearanceType(character);
+      parts.push(`androgynous ${nbType}-presenting person`);
+    }
+    
+    // === 2. ÂGE ===
+    const age = this.parseCharacterAge(character.age) || 25;
+    parts.push(`${age} years old`);
+    
+    // === 3. FORME DU VISAGE ===
+    const faceShapes = {
+      'ovale|oval': 'oval face shape',
+      'rond|round face': 'round soft face',
+      'carré|square': 'square strong jawline',
+      'coeur|heart': 'heart-shaped face',
+      'long|oblong': 'long elegant face',
+      'diamant|diamond': 'diamond-shaped face with high cheekbones',
+      'triangul': 'triangular face',
+      'angul': 'angular defined features',
+      'doux|soft': 'soft gentle facial features',
+    };
+    let faceShape = 'harmonious face';
+    for (const [key, value] of Object.entries(faceShapes)) {
+      if (new RegExp(key, 'i').test(appearance)) {
+        faceShape = value;
+        break;
+      }
+    }
+    parts.push(faceShape);
+    
+    // === 4. COULEUR DE PEAU ===
+    const skinColors = {
+      'porcelaine|très pale|très claire': 'porcelain pale white skin',
+      'pale|claire|fair|pâle': 'fair light skin',
+      'ivoire|ivory': 'ivory cream skin',
+      'pêche|peach|rosé': 'peachy rosy skin',
+      'bronzé|tan|doré|golden': 'tanned golden sun-kissed skin',
+      'olive|méditerran': 'olive mediterranean skin',
+      'caramel|métis': 'warm caramel mixed skin',
+      'marron|brown|brun': 'warm brown skin',
+      'ébène|noir|dark|foncé': 'beautiful dark ebony skin',
+      'asiat|asian|jaune': 'asian warm-toned skin',
+      'latin|hispani': 'latin warm skin tone',
+    };
+    let skinColor = 'natural healthy skin';
+    for (const [key, value] of Object.entries(skinColors)) {
+      if (new RegExp(key, 'i').test(appearance)) {
+        skinColor = value;
+        break;
+      }
+    }
+    parts.push(skinColor);
+    
+    // === 5. TYPE DE PEAU ===
+    const skinTypes = {
+      'taches de rousseur|freckles': 'with cute freckles',
+      'grain de beauté|beauty mark|mole': 'with beauty mark',
+      'lisse|smooth': 'smooth flawless skin',
+      'velout|velvet': 'velvety soft skin',
+      'satin|satiny': 'satiny glowing skin',
+    };
+    for (const [key, value] of Object.entries(skinTypes)) {
+      if (new RegExp(key, 'i').test(appearance)) {
+        parts.push(value);
+        break;
+      }
+    }
+    
+    // === 6. COULEUR DES CHEVEUX ===
+    const hairColor = character.hairColor || this.extractFromAppearance(character, 'hair') || 'brown';
+    parts.push(`${hairColor} hair`);
+    
+    // === 7. LONGUEUR DES CHEVEUX ===
+    const hairLengths = {
+      'très long|very long|hanches|waist': 'extremely long hair reaching waist',
+      'long|longs': 'long flowing hair',
+      'mi-long|shoulder|épaules': 'medium shoulder-length hair',
+      'court|short': 'short stylish hair',
+      'très court|very short|pixie': 'very short pixie cut',
+      'carré|bob': 'sleek bob haircut',
+      'rasé|shaved|buzz': 'shaved/buzzcut hair',
+    };
+    let hairLength = 'medium length hair';
+    const hairLengthField = (character.hairLength || '').toLowerCase();
+    for (const [key, value] of Object.entries(hairLengths)) {
+      if (new RegExp(key, 'i').test(hairLengthField) || new RegExp(key, 'i').test(appearance)) {
+        hairLength = value;
+        break;
+      }
+    }
+    parts.push(hairLength);
+    
+    // === 8. TYPE DE CHEVEUX ===
+    const hairTypes = {
+      'crépu|kinky|afro|coily': 'kinky coily afro-textured hair',
+      'frisé|curly|boucl': 'curly bouncy hair',
+      'ondulé|wavy': 'wavy flowing hair',
+      'lisse|straight|raide': 'straight sleek hair',
+      'épais|thick|volum': 'thick voluminous hair',
+      'fin|thin|fine': 'fine delicate hair',
+      'soyeux|silky': 'silky smooth hair',
+      'brillant|shiny': 'shiny glossy hair',
+    };
+    for (const [key, value] of Object.entries(hairTypes)) {
+      if (new RegExp(key, 'i').test(hairLengthField) || new RegExp(key, 'i').test(appearance)) {
+        parts.push(value);
+        break;
+      }
+    }
+    
+    // === 9. COULEUR DES YEUX ===
+    const eyeColor = character.eyeColor || 'expressive eyes';
+    parts.push(`${eyeColor} eyes`);
+    
+    // === 10. MORPHOLOGIE / BODY TYPE ===
+    const bodyTypes = {
+      'très mince|very slim|maigre': 'very slim thin body',
+      'mince|slim|élancé|slender': 'slim slender body',
+      'athlétique|athletic|musclé|toned|fit': 'athletic toned fit body',
+      'moyenne|average|normal': 'average balanced body',
+      'voluptu|curvy|généreuse': 'voluptuous curvy full-figured body',
+      'pulpeuse|thick|épaisse': 'thick curvy body with curves',
+      'ronde|plump|chubby|potelé': 'soft plump rounded body',
+      'très ronde|very curvy|bbw': 'very curvy plump body, BBW',
+      'matern|maternal': 'soft maternal curvy body',
+    };
+    let bodyType = 'balanced proportionate body';
+    const bodyField = (character.bodyType || '').toLowerCase();
+    for (const [key, value] of Object.entries(bodyTypes)) {
+      if (new RegExp(key, 'i').test(bodyField) || new RegExp(key, 'i').test(appearance)) {
+        bodyType = value;
+        break;
+      }
+    }
+    parts.push(bodyType);
+    
+    // === 11. TAILLE ===
+    if (character.height) {
+      const h = parseInt(character.height);
+      if (h >= 180) parts.push('tall stature');
+      else if (h >= 170) parts.push('above average height');
+      else if (h <= 155) parts.push('petite short stature');
+      else if (h <= 165) parts.push('average height');
+    }
+    
+    // === 12. POITRINE (femmes) ===
+    if (character.gender === 'female') {
+      const bust = character.bust || '';
+      const bustDescriptions = {
+        'A': 'small petite A-cup breasts',
+        'B': 'modest B-cup breasts',
+        'C': 'medium C-cup breasts',
+        'D': 'full D-cup breasts',
+        'DD': 'large DD-cup breasts',
+        'E': 'very large E-cup breasts',
+        'F': 'huge F-cup breasts',
+        'G': 'massive G-cup breasts',
+      };
+      if (bustDescriptions[bust]) {
+        parts.push(bustDescriptions[bust]);
+      }
+    }
+    
+    // === 13. PÉNIS (hommes) ===
+    if (character.gender === 'male' && character.penis) {
+      const size = parseInt(character.penis);
+      if (size >= 22) parts.push('very large endowed');
+      else if (size >= 18) parts.push('well endowed');
+      else if (size >= 14) parts.push('average endowment');
+    }
+    
+    // === 14. FESSES ===
+    const buttTypes = {
+      'énorme fesse|huge butt|très grosse': 'huge massive round butt',
+      'grosse fesse|big butt|large butt': 'big round plump butt',
+      'fesses rebond|bubble butt|fesses rondes': 'round bubble butt',
+      'fesses généreuses|curvy butt': 'generous curvy butt',
+      'fesses musclé|toned butt|fit butt': 'toned muscular firm butt',
+      'fesses plates|flat butt|petites fesses': 'small flat butt',
+      'fesses fermes|firm butt|perky': 'firm perky butt',
+    };
+    for (const [key, value] of Object.entries(buttTypes)) {
+      if (new RegExp(key, 'i').test(appearance)) {
+        parts.push(value);
+        break;
+      }
+    }
+    
+    // === 15. HANCHES ===
+    if (appearance.includes('hanches larges') || appearance.includes('wide hips')) {
+      parts.push('wide generous hips');
+    } else if (appearance.includes('hanches étroites') || appearance.includes('narrow hips')) {
+      parts.push('narrow slim hips');
+    }
+    
+    // === 16. CUISSES ===
+    if (appearance.includes('cuisses épaisses') || appearance.includes('thick thighs')) {
+      parts.push('thick meaty thighs');
+    } else if (appearance.includes('cuisses fines') || appearance.includes('slim thighs')) {
+      parts.push('slim slender thighs');
+    }
+    
+    // === 17. VENTRE ===
+    if (appearance.includes('ventre rond') || appearance.includes('round belly')) {
+      parts.push('soft round belly');
+    } else if (appearance.includes('ventre plat') || appearance.includes('flat stomach')) {
+      parts.push('flat toned stomach');
+    }
+    
+    // === 18. ACCESSOIRES ===
+    if (appearance.includes('lunettes') || appearance.includes('glasses')) {
+      parts.push('wearing glasses');
+    }
+    if (appearance.includes('piercing')) {
+      parts.push('with piercings');
+    }
+    if (appearance.includes('tatouage') || appearance.includes('tattoo')) {
+      parts.push('with tattoos');
+    }
+    
+    // === QUALITÉ IMAGE ===
+    if (isRealistic) {
+      parts.push('photorealistic, ultra detailed, 8K, professional photography');
+    } else {
+      parts.push('high quality anime art, detailed illustration');
+    }
+    
+    return parts.join(', ');
+  }
+
+  /**
    * Calcule un hash simple et déterministe pour un personnage
    * Utilisé pour garantir la cohérence des images non-binaires
    */
@@ -1955,22 +2317,54 @@ class ImageGenerationService {
     // Choisir le style
     const { style, isRealistic } = this.getRandomStyle();
     
+    // === EXTRAIRE LE CONTEXTE DE CONVERSATION ===
+    const conversationContext = this.extractConversationContext(recentMessages);
+    console.log(`📍 Contexte conversation:`, conversationContext);
+    
     // === GÉNÉRER LES ÉLÉMENTS VARIÉS ===
     const sceneElements = this.generateVariedSceneElements();
     
     let prompt = style;
     
+    // === DESCRIPTION PHYSIQUE ULTRA-DÉTAILLÉE ===
+    prompt += ', ' + this.buildUltraDetailedPhysicalPrompt(character, isRealistic);
+    
     // === UTILISER imagePrompt si disponible ===
     if (character.imagePrompt) {
-      prompt += ', ' + character.imagePrompt;
+      // Nettoyer et ajouter l'imagePrompt du personnage
+      const cleanImagePrompt = character.imagePrompt.replace(/\n/g, ' ').trim();
+      prompt += ', ' + cleanImagePrompt;
     }
     
-    // Description physique
-    prompt += ', ' + this.buildDetailedPhysicalDescription(character, isRealistic);
+    // === APPLIQUER LE CONTEXTE DE CONVERSATION ===
+    // Lieu détecté dans la conversation (priorité sur le lieu aléatoire)
+    if (conversationContext.location) {
+      prompt += `, ${conversationContext.location}`;
+      console.log(`📍 Lieu conversation: ${conversationContext.location}`);
+    }
     
-    // Apparence
-    if (character.appearance) {
-      prompt += `, ${character.appearance.replace(/\n/g, ' ').trim()}`;
+    // Position détectée
+    if (conversationContext.position) {
+      prompt += `, ${conversationContext.position}`;
+      console.log(`🎭 Position conversation: ${conversationContext.position}`);
+    }
+    
+    // Tenue détectée (pour SFW/NSFW)
+    if (conversationContext.outfit && isNSFW) {
+      prompt += `, ${conversationContext.outfit}`;
+      console.log(`👗 Tenue conversation: ${conversationContext.outfit}`);
+    }
+    
+    // Action en cours
+    if (conversationContext.action) {
+      prompt += `, ${conversationContext.action}`;
+    }
+    
+    // === CARACTÉRISTIQUES CORPORELLES SPÉCIFIQUES ===
+    const bodyFeatures = this.extractBodyFeatures(character);
+    if (bodyFeatures) {
+      prompt += `, ${bodyFeatures}`;
+      console.log(`💪 CORPS: ${bodyFeatures.substring(0, 100)}...`);
     }
     
     // === SELON LE MODE SFW/NSFW ===
