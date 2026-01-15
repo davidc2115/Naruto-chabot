@@ -266,8 +266,73 @@ class TextGenerationService {
     const provider = this.currentProvider;
     console.log(`🤖 Génération avec ${this.providers[provider]?.name || provider}`);
 
-    // Toujours utiliser Groq
+    // PRIORITÉ 1: Essayer Ollama sur la Freebox (gratuit, local, pas de restrictions)
+    try {
+      console.log('🏠 Tentative avec Ollama Freebox (priorité)...');
+      const ollamaResponse = await this.generateWithOllamaFreebox(messages, character, userProfile);
+      if (ollamaResponse) {
+        console.log('✅ Réponse Ollama Freebox réussie');
+        return ollamaResponse;
+      }
+    } catch (ollamaError) {
+      console.log('⚠️ Ollama Freebox indisponible:', ollamaError.message);
+    }
+
+    // PRIORITÉ 2: Utiliser Groq si Ollama échoue
+    console.log('🔄 Fallback vers Groq...');
     return await this.generateWithGroq(messages, character, userProfile, retries);
+  }
+
+  /**
+   * Génération avec Ollama sur la Freebox
+   * Serveur local, gratuit, sans restrictions
+   */
+  async generateWithOllamaFreebox(messages, character, userProfile) {
+    const FREEBOX_CHAT_URL = 'http://88.174.155.230:33437/api/chat';
+    
+    // Construire les messages avec contexte
+    const fullMessages = [];
+    
+    // System prompt
+    fullMessages.push({ 
+      role: 'system', 
+      content: this.buildNSFWSystemPrompt(character, userProfile) 
+    });
+    
+    // Messages récents (limiter pour Ollama qui a moins de contexte)
+    const recentMessages = messages.slice(-8);
+    fullMessages.push(...recentMessages.map(msg => ({
+      role: msg.role,
+      content: msg.content.substring(0, 800)
+    })));
+    
+    // Rappel final court
+    const userName = userProfile?.username || 'l\'utilisateur';
+    fullMessages.push({
+      role: 'system',
+      content: `[RAPPEL] Tu es ${character.name}. Réponds en 2-3 phrases. Format: *action* "parole" (pensée)`
+    });
+    
+    console.log(`📡 Ollama Freebox - ${fullMessages.length} messages`);
+    
+    const response = await axios.post(
+      FREEBOX_CHAT_URL,
+      {
+        messages: fullMessages,
+        max_tokens: 150,
+        temperature: 0.9,
+      },
+      {
+        timeout: 120000, // 2 minutes (modèle lent)
+      }
+    );
+    
+    const content = response.data?.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error('Réponse Ollama vide');
+    }
+    
+    return this.removeRepetitions(content.trim());
   }
 
   /**
