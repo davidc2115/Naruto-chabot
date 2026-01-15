@@ -1475,6 +1475,25 @@ Réponds à ${userName} MAINTENANT!`
           continue;
         }
         
+        // Erreur "Organization restricted" - Compte Groq bloqué
+        if (errorMessage && (errorMessage.includes('restricted') || errorMessage.includes('Organization has been'))) {
+          console.log('🚫 Compte Groq restreint - Tentative de fallback vers OpenRouter...');
+          
+          try {
+            // Essayer OpenRouter avec modèles gratuits
+            const fallbackResponse = await this.generateWithOpenRouterFallback(fullMessages, maxTokens);
+            if (fallbackResponse) {
+              console.log('✅ Fallback OpenRouter réussi');
+              return this.removeRepetitions(fallbackResponse.trim());
+            }
+          } catch (fallbackError) {
+            console.log('⚠️ Fallback OpenRouter échoué:', fallbackError.message);
+          }
+          
+          // Si le fallback échoue aussi, afficher un message clair
+          throw new Error('Compte Groq restreint par Groq.com. Vous devez:\n\n1. Créer un nouveau compte sur console.groq.com\n2. Générer une nouvelle clé API\n3. L\'ajouter dans Paramètres > Clés API Groq\n\nOu contacter support@groq.com');
+        }
+        
         // Erreur de rate limit (429) ou clé invalide (401)
         if (errorStatus === 401 || errorStatus === 429) {
           keysTriedCount++;
@@ -1521,6 +1540,95 @@ Réponds à ${userName} MAINTENANT!`
     
     // Reset le compteur de clés essayées
     this.keysTriedThisRequest = 0;
+  }
+
+  /**
+   * Fallback vers OpenRouter avec modèles gratuits
+   * Utilisé quand Groq est indisponible ou restreint
+   */
+  async generateWithOpenRouterFallback(messages, maxTokens = 200) {
+    console.log('🔄 Tentative de fallback vers OpenRouter (modèles gratuits)...');
+    
+    // Modèles gratuits disponibles sur OpenRouter
+    const freeModels = [
+      'meta-llama/llama-3.2-3b-instruct:free',
+      'meta-llama/llama-3.2-1b-instruct:free',
+      'google/gemma-2-9b-it:free',
+      'mistralai/mistral-7b-instruct:free',
+      'huggingfaceh4/zephyr-7b-beta:free'
+    ];
+    
+    // Essayer chaque modèle gratuit
+    for (const model of freeModels) {
+      try {
+        console.log(`📡 Essai de ${model}...`);
+        
+        const response = await axios.post(
+          'https://openrouter.ai/api/v1/chat/completions',
+          {
+            model: model,
+            messages: messages.slice(-10), // Garder seulement les 10 derniers messages
+            max_tokens: maxTokens,
+            temperature: 0.9,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://roleplay-chat.app',
+              'X-Title': 'Roleplay Chat',
+            },
+            timeout: 30000,
+          }
+        );
+        
+        const content = response.data?.choices?.[0]?.message?.content;
+        if (content) {
+          console.log(`✅ Réponse obtenue de ${model}`);
+          return content;
+        }
+      } catch (error) {
+        console.log(`❌ ${model} échoué: ${error.message}`);
+        continue;
+      }
+    }
+    
+    // Essayer aussi HuggingFace Inference API (gratuit)
+    try {
+      console.log('📡 Essai de HuggingFace Inference...');
+      
+      const lastUserMessage = messages.filter(m => m.role === 'user').slice(-1)[0];
+      const systemMessage = messages.find(m => m.role === 'system');
+      
+      const prompt = `${systemMessage?.content || ''}\n\nUser: ${lastUserMessage?.content || ''}\nAssistant:`;
+      
+      const response = await axios.post(
+        'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
+        {
+          inputs: prompt.substring(0, 2000),
+          parameters: {
+            max_new_tokens: maxTokens,
+            temperature: 0.9,
+            return_full_text: false,
+          }
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000,
+        }
+      );
+      
+      const content = response.data?.[0]?.generated_text;
+      if (content) {
+        console.log('✅ Réponse obtenue de HuggingFace');
+        return content;
+      }
+    } catch (error) {
+      console.log(`❌ HuggingFace échoué: ${error.message}`);
+    }
+    
+    return null;
   }
 
   /**

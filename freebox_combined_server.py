@@ -1161,17 +1161,149 @@ def admin_fix_users():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ==================== OLLAMA TEXT GENERATION ====================
+
+OLLAMA_URL = "http://localhost:11434"
+OLLAMA_MODEL = "qwen2:0.5b"
+
+@app.route('/api/chat', methods=['POST'])
+@app.route('/chat', methods=['POST'])
+def ollama_chat():
+    """
+    Génération de texte via Ollama local
+    Remplace Groq pour les utilisateurs
+    """
+    try:
+        data = request.json
+        messages = data.get('messages', [])
+        max_tokens = data.get('max_tokens', 200)
+        temperature = data.get('temperature', 0.9)
+        
+        if not messages:
+            return jsonify({'error': 'Messages requis'}), 400
+        
+        # Construire le prompt pour Ollama
+        prompt = ""
+        system_prompt = ""
+        
+        for msg in messages:
+            role = msg.get('role', 'user')
+            content = msg.get('content', '')
+            
+            if role == 'system':
+                system_prompt += content + "\n"
+            elif role == 'user':
+                prompt += f"User: {content}\n"
+            elif role == 'assistant':
+                prompt += f"Assistant: {content}\n"
+        
+        # Ajouter le system prompt au début
+        if system_prompt:
+            full_prompt = f"{system_prompt}\n\n{prompt}\nAssistant:"
+        else:
+            full_prompt = f"{prompt}\nAssistant:"
+        
+        # Limiter la taille du prompt (Ollama/qwen2 a une limite)
+        if len(full_prompt) > 4000:
+            full_prompt = full_prompt[-4000:]
+        
+        print(f"🤖 Ollama request - Model: {OLLAMA_MODEL}, Prompt length: {len(full_prompt)}")
+        
+        # Appeler Ollama
+        response = requests.post(
+            f"{OLLAMA_URL}/api/generate",
+            json={
+                "model": OLLAMA_MODEL,
+                "prompt": full_prompt,
+                "stream": False,
+                "options": {
+                    "num_predict": max_tokens,
+                    "temperature": temperature,
+                }
+            },
+            timeout=120
+        )
+        
+        if response.status_code != 200:
+            print(f"❌ Ollama error: {response.status_code}")
+            return jsonify({'error': f'Ollama error: {response.status_code}'}), 500
+        
+        result = response.json()
+        generated_text = result.get('response', '')
+        
+        # Nettoyer la réponse (enlever "User:" ou "Assistant:" si présent)
+        generated_text = generated_text.strip()
+        if generated_text.startswith("User:"):
+            generated_text = generated_text.split("Assistant:", 1)[-1].strip()
+        
+        print(f"✅ Ollama response length: {len(generated_text)}")
+        
+        # Retourner au format OpenAI-compatible
+        return jsonify({
+            'choices': [{
+                'message': {
+                    'role': 'assistant',
+                    'content': generated_text
+                }
+            }],
+            'model': OLLAMA_MODEL,
+            'usage': {
+                'prompt_tokens': len(full_prompt.split()),
+                'completion_tokens': len(generated_text.split())
+            }
+        })
+        
+    except requests.exceptions.Timeout:
+        print("❌ Ollama timeout")
+        return jsonify({'error': 'Ollama timeout - Le modèle est lent'}), 504
+    except requests.exceptions.ConnectionError:
+        print("❌ Ollama not running")
+        return jsonify({'error': 'Ollama non démarré sur la Freebox'}), 503
+    except Exception as e:
+        print(f"❌ Ollama error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ollama/status', methods=['GET'])
+def ollama_status():
+    """Vérifie si Ollama est disponible"""
+    try:
+        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
+        if response.status_code == 200:
+            models = response.json().get('models', [])
+            return jsonify({
+                'available': True,
+                'models': [m.get('name') for m in models],
+                'current_model': OLLAMA_MODEL
+            })
+        return jsonify({'available': False, 'error': 'Ollama not responding'})
+    except:
+        return jsonify({'available': False, 'error': 'Ollama not running'})
+
 # ==================== HEALTH & INFO ====================
 
 @app.route('/health', methods=['GET'])
 @app.route('/api/health', methods=['GET'])
 def health():
+    # Vérifier Ollama
+    ollama_ok = False
+    try:
+        r = requests.get(f"{OLLAMA_URL}/api/tags", timeout=2)
+        ollama_ok = r.status_code == 200
+    except:
+        pass
+    
     return jsonify({
         'status': 'ok',
         'service': 'Roleplay Chat Combined Server',
-        'version': '4.3.10',
+        'version': '4.3.16',
         'time': datetime.now().isoformat(),
-        'admin_email': ADMIN_EMAIL
+        'admin_email': ADMIN_EMAIL,
+        'ollama': {
+            'available': ollama_ok,
+            'model': OLLAMA_MODEL if ollama_ok else None
+        }
     })
 
 @app.route('/api/stats', methods=['GET'])
