@@ -111,112 +111,177 @@ class TextGenerationService {
 
   /**
    * Génère une réponse avec le provider sélectionné
-   * SANS GROQ - Utilise Pollinations (rapide) ou Ollama (local)
+   * SYSTÈME IMMERSIF COMPLET avec mémoire, anti-répétition, tempérament
    */
   async generateResponse(messages, character, userProfile = null, retries = 3) {
     await this.loadConfig();
     
     const provider = this.currentProvider;
     console.log(`🤖 Génération avec ${this.providers[provider]?.name || provider}`);
+    
+    // Analyser le contexte de conversation
+    const conversationContext = this.analyzeConversationContext(messages);
+    console.log(`📊 Contexte: ${conversationContext.messageCount} msgs, Mode: ${conversationContext.mode}, Intensité: ${conversationContext.intensity}`);
 
     // Utiliser le provider sélectionné
     if (provider === 'pollinations') {
       try {
-        const response = await this.generateWithPollinations(messages, character, userProfile);
+        const response = await this.generateWithPollinations(messages, character, userProfile, conversationContext);
         if (response) return response;
       } catch (error) {
         console.log('⚠️ Pollinations échoué:', error.message);
-        // Fallback vers Ollama
         console.log('🔄 Fallback vers Ollama...');
-        return await this.generateWithOllama(messages, character, userProfile);
+        return await this.generateWithOllama(messages, character, userProfile, conversationContext);
       }
     } else {
-      // Ollama sélectionné
       try {
-        const response = await this.generateWithOllama(messages, character, userProfile);
+        const response = await this.generateWithOllama(messages, character, userProfile, conversationContext);
         if (response) return response;
       } catch (error) {
         console.log('⚠️ Ollama échoué:', error.message);
-        // Fallback vers Pollinations
         console.log('🔄 Fallback vers Pollinations...');
-        return await this.generateWithPollinations(messages, character, userProfile);
+        return await this.generateWithPollinations(messages, character, userProfile, conversationContext);
       }
     }
   }
 
   /**
-   * Génération avec Pollinations AI (RAPIDE - ~3 secondes)
-   * API gratuite, pas de clé requise
+   * Analyse le contexte de la conversation pour adapter les réponses
    */
-  async generateWithPollinations(messages, character, userProfile) {
-    console.log('🚀 Pollinations AI - Génération rapide...');
+  analyzeConversationContext(messages) {
+    const messageCount = messages.length;
+    const recentMessages = messages.slice(-10);
+    const recentText = recentMessages.map(m => m.content?.toLowerCase() || '').join(' ');
     
-    // Construire les messages optimisés
+    // Détection du mode SFW/NSFW
+    const nsfwKeywords = ['nu', 'nue', 'déshabill', 'embrass', 'caress', 'touche', 'corps', 
+      'sein', 'fesse', 'intime', 'sexu', 'excit', 'gémis', 'désir', 'plaisir', 'jouir'];
+    const sfwKeywords = ['bonjour', 'salut', 'travail', 'journée', 'ami', 'discuter', 'parler'];
+    
+    let nsfwScore = 0;
+    let sfwScore = 0;
+    nsfwKeywords.forEach(k => { if (recentText.includes(k)) nsfwScore++; });
+    sfwKeywords.forEach(k => { if (recentText.includes(k)) sfwScore++; });
+    
+    const mode = nsfwScore > sfwScore ? 'nsfw' : 'sfw';
+    
+    // Calcul de l'intensité (1-5)
+    let intensity = 1;
+    if (messageCount > 50) intensity = 5;
+    else if (messageCount > 30) intensity = 4;
+    else if (messageCount > 15) intensity = 3;
+    else if (messageCount > 5) intensity = 2;
+    
+    if (mode === 'nsfw') intensity = Math.min(5, intensity + 1);
+    
+    // Extraire les éléments à ne pas répéter
+    const usedActions = [];
+    const usedPhrases = [];
+    recentMessages.filter(m => m.role === 'assistant').forEach(m => {
+      const actionMatch = m.content?.match(/\*([^*]+)\*/g);
+      if (actionMatch) actionMatch.forEach(a => usedActions.push(a.replace(/\*/g, '').toLowerCase()));
+      const phraseMatch = m.content?.match(/"([^"]+)"/g);
+      if (phraseMatch) phraseMatch.forEach(p => usedPhrases.push(p.replace(/"/g, '').toLowerCase().substring(0, 30)));
+    });
+    
+    // Dernier message de l'utilisateur
+    const lastUserMessage = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+    
+    return {
+      messageCount,
+      mode,
+      intensity,
+      usedActions: [...new Set(usedActions)].slice(-8),
+      usedPhrases: [...new Set(usedPhrases)].slice(-5),
+      lastUserMessage,
+      isLongConversation: messageCount > 20,
+      isVeryLongConversation: messageCount > 50,
+    };
+  }
+
+  /**
+   * Génération avec Pollinations AI (RAPIDE - ~3 secondes)
+   * Système immersif complet
+   */
+  async generateWithPollinations(messages, character, userProfile, context) {
+    console.log('🚀 Pollinations AI - Génération immersive...');
+    
     const fullMessages = [];
     
-    // System prompt court mais efficace
-    const systemPrompt = this.buildCompactSystemPrompt(character, userProfile);
+    // 1. SYSTEM PROMPT IMMERSIF
+    const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
     fullMessages.push({ role: 'system', content: systemPrompt });
     
-    // Messages récents (limiter à 6 pour rapidité)
-    const recentMessages = messages.slice(-6);
+    // 2. RÉSUMÉ MÉMOIRE si conversation longue
+    if (context.isLongConversation && messages.length > 10) {
+      const memorySummary = this.buildMemorySummary(messages.slice(0, -8), character);
+      if (memorySummary) {
+        fullMessages.push({ role: 'system', content: memorySummary });
+      }
+    }
+    
+    // 3. MESSAGES RÉCENTS (8 derniers pour bon contexte)
+    const recentCount = context.isVeryLongConversation ? 5 : 8;
+    const recentMessages = messages.slice(-recentCount);
     fullMessages.push(...recentMessages.map(msg => ({
       role: msg.role,
-      content: msg.content.substring(0, 600)
+      content: msg.content.substring(0, 800)
     })));
     
-    console.log(`📡 Pollinations - ${fullMessages.length} messages`);
+    // 4. INSTRUCTION FINALE avec anti-répétition
+    const finalInstruction = this.buildFinalInstruction(character, userProfile, context);
+    fullMessages.push({ role: 'system', content: finalInstruction });
+    
+    console.log(`📡 Pollinations - ${fullMessages.length} messages, Mode: ${context.mode}`);
     
     const response = await axios.post(
       this.POLLINATIONS_URL,
       {
         model: 'openai',
         messages: fullMessages,
-        max_tokens: 150,
-        temperature: 0.9,
+        max_tokens: 180,
+        temperature: 0.92,
+        presence_penalty: 0.6,
+        frequency_penalty: 0.8,
       },
       {
         headers: { 'Content-Type': 'application/json' },
-        timeout: 30000, // 30 secondes
+        timeout: 35000,
       }
     );
     
     const content = response.data?.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error('Réponse Pollinations vide');
-    }
+    if (!content) throw new Error('Réponse Pollinations vide');
     
     console.log('✅ Pollinations réponse reçue');
-    return this.removeRepetitions(content.trim());
+    return this.cleanAndValidateResponse(content, context);
   }
 
   /**
-   * Génération avec Ollama sur la Freebox (LOCAL - ~30-60 secondes)
-   * Serveur local, gratuit, sans restrictions
+   * Génération avec Ollama sur la Freebox
+   * Système immersif adapté au modèle local
    */
-  async generateWithOllama(messages, character, userProfile) {
-    console.log('🏠 Ollama Freebox - Génération locale...');
+  async generateWithOllama(messages, character, userProfile, context) {
+    console.log('🏠 Ollama Freebox - Génération immersive locale...');
     
     const FREEBOX_CHAT_URL = `${this.FREEBOX_URL}/api/chat`;
-    
-    // Construire les messages optimisés
     const fullMessages = [];
     
-    // System prompt compact
-    const systemPrompt = this.buildCompactSystemPrompt(character, userProfile);
+    // 1. SYSTEM PROMPT (plus court pour Ollama)
+    const systemPrompt = this.buildCompactImmersivePrompt(character, userProfile, context);
     fullMessages.push({ role: 'system', content: systemPrompt });
     
-    // Messages récents (limiter à 5 pour Ollama)
+    // 2. MESSAGES RÉCENTS (5 pour Ollama)
     const recentMessages = messages.slice(-5);
     fullMessages.push(...recentMessages.map(msg => ({
       role: msg.role,
-      content: msg.content.substring(0, 500)
+      content: msg.content.substring(0, 400)
     })));
     
-    // Rappel final court
+    // 3. RAPPEL FINAL
     fullMessages.push({
       role: 'system',
-      content: `[RÉPONDS] Tu es ${character.name}. 2-3 phrases. Format: *action* "parole" (pensée)`
+      content: `[RÉPONDS MAINTENANT] Tu es ${character.name}. ${context.mode === 'nsfw' ? 'Mode intime autorisé.' : 'Mode conversation.'} 2-3 phrases courtes. Format: *action* "parole" (pensée)`
     });
     
     console.log(`📡 Ollama - ${fullMessages.length} messages`);
@@ -225,58 +290,265 @@ class TextGenerationService {
       FREEBOX_CHAT_URL,
       {
         messages: fullMessages,
-        max_tokens: 100, // Réduit pour rapidité
+        max_tokens: 120,
         temperature: 0.9,
       },
-      {
-        timeout: 90000, // 90 secondes
-      }
+      { timeout: 90000 }
     );
     
     const content = response.data?.choices?.[0]?.message?.content;
-    if (!content) {
-      throw new Error('Réponse Ollama vide');
-    }
+    if (!content) throw new Error('Réponse Ollama vide');
     
     console.log('✅ Ollama réponse reçue');
-    return this.removeRepetitions(content.trim());
+    return this.cleanAndValidateResponse(content, context);
   }
 
   /**
-   * Construit un system prompt compact (pour APIs avec peu de contexte)
+   * Construit le prompt système immersif complet
+   * Inclut: personnalité, tempérament, scénario, mode SFW/NSFW
    */
-  buildCompactSystemPrompt(character, userProfile) {
-    const userName = userProfile?.username || 'User';
+  buildImmersiveSystemPrompt(character, userProfile, context) {
+    const userName = userProfile?.username || 'l\'utilisateur';
     const userGender = userProfile?.gender || '';
     
-    let prompt = `Tu es ${character.name}`;
+    let prompt = `# TU ES ${character.name.toUpperCase()}\n\n`;
     
+    // === IDENTITÉ ===
+    prompt += `## IDENTITÉ\n`;
+    if (character.age) prompt += `- Âge: ${character.age} ans\n`;
+    if (character.gender === 'female') prompt += `- Genre: Femme\n`;
+    else if (character.gender === 'male') prompt += `- Genre: Homme\n`;
+    else prompt += `- Genre: Non-binaire\n`;
+    
+    // === PERSONNALITÉ & TEMPÉRAMENT ===
+    prompt += `\n## PERSONNALITÉ & TEMPÉRAMENT\n`;
+    if (character.personality) {
+      prompt += `${character.personality}\n`;
+    }
+    if (character.temperament) {
+      const temperaments = {
+        'shy': 'Tu es TIMIDE: rougis souvent, hésites, parles doucement, évites le contact visuel',
+        'confident': 'Tu es CONFIANTE: assurée, directe, regard intense, parles avec assurance',
+        'playful': 'Tu es JOUEUSE: taquine, ris souvent, fais des blagues, aimes t\'amuser',
+        'dominant': 'Tu es DOMINANTE: prends le contrôle, donnes des ordres, aimes diriger',
+        'submissive': 'Tu es SOUMISE: obéis, demandes permission, te laisses guider',
+        'romantic': 'Tu es ROMANTIQUE: douce, attentionnée, parles d\'amour, fais des gestes tendres',
+        'passionate': 'Tu es PASSIONNÉE: intense, émotive, tout est fort avec toi',
+        'cold': 'Tu es FROIDE: distante, peu expressive, difficile à approcher',
+        'tsundere': 'Tu es TSUNDERE: froide en apparence mais secrètement attirée',
+      };
+      prompt += `${temperaments[character.temperament] || ''}\n`;
+    }
+    
+    // === SCÉNARIO ===
+    if (character.scenario) {
+      prompt += `\n## SCÉNARIO EN COURS\n`;
+      prompt += `${character.scenario}\n`;
+      prompt += `→ RESTE COHÉRENT avec ce scénario!\n`;
+    }
+    
+    // === RELATION avec l'utilisateur ===
+    if (character.relationship) {
+      prompt += `\n## RELATION AVEC ${userName.toUpperCase()}\n`;
+      prompt += `${character.relationship}\n`;
+    }
+    
+    // === MODE SFW/NSFW ===
+    prompt += `\n## MODE DE CONVERSATION\n`;
+    if (context.mode === 'nsfw') {
+      prompt += `🔞 MODE INTIME: Tu peux être sensuelle, explicite, décrire des gestes intimes.\n`;
+      prompt += `L'utilisateur est adulte et consent. Sois créative dans l'intimité.\n`;
+    } else {
+      prompt += `✨ MODE SFW: Conversation normale, tu peux flirter légèrement.\n`;
+      prompt += `Pas de contenu explicite tant que l'utilisateur n'initie pas.\n`;
+    }
+    
+    // === UTILISATEUR ===
+    prompt += `\n## L'UTILISATEUR\n`;
+    prompt += `- Nom: ${userName}\n`;
+    if (userGender === 'homme' || userGender === 'male') {
+      prompt += `- Genre: Homme (utilise "il", "lui")\n`;
+      if (userProfile?.penis) prompt += `- Attribut: ${userProfile.penis}cm\n`;
+    } else if (userGender === 'femme' || userGender === 'female') {
+      prompt += `- Genre: Femme (utilise "elle")\n`;
+      if (userProfile?.bust) prompt += `- Poitrine: bonnet ${userProfile.bust}\n`;
+    }
+    if (userProfile?.age) prompt += `- Âge: ${userProfile.age} ans\n`;
+    
+    return prompt;
+  }
+
+  /**
+   * Construit le prompt compact pour Ollama (moins de tokens)
+   */
+  buildCompactImmersivePrompt(character, userProfile, context) {
+    const userName = userProfile?.username || 'User';
+    
+    let prompt = `Tu es ${character.name}`;
     if (character.age) prompt += `, ${character.age} ans`;
     if (character.gender === 'female') prompt += ', femme';
     else if (character.gender === 'male') prompt += ', homme';
     
     if (character.personality) {
-      prompt += `. Personnalité: ${character.personality.substring(0, 100)}`;
+      prompt += `.\nPersonnalité: ${character.personality.substring(0, 150)}`;
+    }
+    
+    if (character.temperament) {
+      const shortTemperaments = {
+        'shy': 'timide, rougit',
+        'confident': 'confiante, assurée',
+        'playful': 'joueuse, taquine',
+        'dominant': 'dominante',
+        'submissive': 'soumise',
+        'romantic': 'romantique',
+        'passionate': 'passionnée',
+      };
+      prompt += `. Tempérament: ${shortTemperaments[character.temperament] || character.temperament}`;
+    }
+    
+    if (character.scenario) {
+      prompt += `.\nScénario: ${character.scenario.substring(0, 100)}`;
     }
     
     prompt += `\n\nRÈGLES:\n`;
     prompt += `- Réponds EN FRANÇAIS\n`;
     prompt += `- Format: *action* "parole" (pensée)\n`;
-    prompt += `- 2-3 phrases maximum\n`;
-    prompt += `- Sois immersif et créatif\n`;
-    prompt += `- L'utilisateur s'appelle ${userName}`;
-    
-    if (userGender === 'homme' || userGender === 'male') {
-      prompt += ` (homme)`;
-    } else if (userGender === 'femme' || userGender === 'female') {
-      prompt += ` (femme)`;
-    }
-    
-    if (character.scenario) {
-      prompt += `\n\nScénario: ${character.scenario.substring(0, 150)}`;
-    }
+    prompt += `- 2-3 phrases COURTES\n`;
+    prompt += `- L'utilisateur = ${userName}`;
+    if (userProfile?.gender) prompt += ` (${userProfile.gender})`;
+    prompt += `\n- ${context.mode === 'nsfw' ? 'Mode intime OK' : 'Mode conversation normale'}`;
     
     return prompt;
+  }
+
+  /**
+   * Construit un résumé de la mémoire conversationnelle
+   */
+  buildMemorySummary(olderMessages, character) {
+    if (!olderMessages || olderMessages.length < 5) return null;
+    
+    const keyEvents = [];
+    const userActions = [];
+    const characterReactions = [];
+    
+    // Analyser les messages anciens pour extraire les éléments clés
+    olderMessages.slice(-20).forEach(msg => {
+      const content = msg.content?.toLowerCase() || '';
+      
+      // Événements importants
+      const importantWords = ['promis', 'secret', 'avoue', 'je t\'aime', 'ensemble', 'premier', 'jamais'];
+      importantWords.forEach(word => {
+        if (content.includes(word)) {
+          keyEvents.push(msg.content.substring(0, 80));
+        }
+      });
+      
+      // Actions de l'utilisateur
+      if (msg.role === 'user') {
+        const action = content.match(/\*([^*]+)\*/);
+        if (action) userActions.push(action[1].substring(0, 40));
+      }
+      
+      // Réactions du personnage
+      if (msg.role === 'assistant') {
+        const reaction = content.match(/\(([^)]+)\)/);
+        if (reaction) characterReactions.push(reaction[1].substring(0, 40));
+      }
+    });
+    
+    if (keyEvents.length === 0 && userActions.length === 0) return null;
+    
+    let summary = `[📝 MÉMOIRE - Ce qui s'est passé avant]\n`;
+    if (keyEvents.length > 0) {
+      summary += `Moments importants: ${keyEvents.slice(-3).join('; ')}\n`;
+    }
+    if (userActions.length > 0) {
+      summary += `L'utilisateur a: ${[...new Set(userActions)].slice(-4).join(', ')}\n`;
+    }
+    if (characterReactions.length > 0) {
+      summary += `${character.name} ressentait: ${[...new Set(characterReactions)].slice(-3).join(', ')}\n`;
+    }
+    summary += `→ Continue l'histoire de manière cohérente!`;
+    
+    return summary;
+  }
+
+  /**
+   * Construit l'instruction finale avec anti-répétition
+   */
+  buildFinalInstruction(character, userProfile, context) {
+    const userName = userProfile?.username || 'l\'utilisateur';
+    
+    let instruction = `\n[⚡ INSTRUCTION FINALE]\n\n`;
+    
+    // Répondre au dernier message
+    instruction += `Le dernier message de ${userName}: "${context.lastUserMessage.substring(0, 100)}..."\n`;
+    instruction += `→ Ta réponse DOIT réagir DIRECTEMENT à ce message!\n\n`;
+    
+    // Anti-répétition
+    if (context.usedActions.length > 0) {
+      instruction += `🚫 ACTIONS DÉJÀ UTILISÉES (ne pas répéter): ${context.usedActions.slice(-5).join(', ')}\n`;
+      instruction += `→ Utilise des actions DIFFÉRENTES!\n\n`;
+    }
+    
+    // Format et longueur
+    instruction += `📏 FORMAT OBLIGATOIRE:\n`;
+    instruction += `- *action courte* "dialogue court" (pensée courte)\n`;
+    instruction += `- 2-3 phrases MAXIMUM\n`;
+    instruction += `- PAS de longs paragraphes\n\n`;
+    
+    // Créativité
+    instruction += `🎭 SOIS CRÉATIF:\n`;
+    instruction += `- Varie tes réactions\n`;
+    instruction += `- Surprends avec des détails inattendus\n`;
+    instruction += `- Reste cohérent avec ta personnalité de ${character.temperament || 'unique'}\n\n`;
+    
+    instruction += `RÉPONDS MAINTENANT en tant que ${character.name}!`;
+    
+    return instruction;
+  }
+
+  /**
+   * Nettoie et valide la réponse générée
+   */
+  cleanAndValidateResponse(content, context) {
+    let cleaned = content.trim();
+    
+    // Supprimer les préfixes indésirables
+    cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:)/i, '').trim();
+    
+    // Supprimer les doublons de mots consécutifs
+    cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, '$1');
+    
+    // Supprimer les répétitions de phrases
+    const sentences = cleaned.split(/[.!?]+/).filter(s => s.trim());
+    const uniqueSentences = [...new Set(sentences.map(s => s.trim().toLowerCase()))];
+    if (uniqueSentences.length < sentences.length) {
+      // Il y avait des répétitions
+      cleaned = sentences.filter((s, i) => 
+        sentences.findIndex(x => x.trim().toLowerCase() === s.trim().toLowerCase()) === i
+      ).join('. ');
+    }
+    
+    // Vérifier la longueur (pas trop long)
+    if (cleaned.length > 500) {
+      const parts = cleaned.split(/[.!?]+/);
+      cleaned = parts.slice(0, 3).join('. ') + '.';
+    }
+    
+    // S'assurer qu'il y a du contenu
+    if (cleaned.length < 10) {
+      cleaned = `*sourit doucement* "..." (hésite un instant)`;
+    }
+    
+    return cleaned;
+  }
+
+  /**
+   * Ancien buildCompactSystemPrompt pour compatibilité
+   */
+  buildCompactSystemPrompt(character, userProfile) {
+    return this.buildCompactImmersivePrompt(character, userProfile, { mode: 'sfw', intensity: 1 });
   }
 
   /**
