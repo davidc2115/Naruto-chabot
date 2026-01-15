@@ -781,81 +781,139 @@ class StableDiffusionLocalService {
   }
   
   /**
-   * Test simple du module natif - pour debug
+   * Test simple du module natif - pour debug AMÉLIORÉ
    */
   async testModule() {
-    console.log('🧪 Test du module natif StableDiffusion...');
-    console.log('🔍 Platform:', Platform.OS);
-    console.log('🔍 NativeModules:', Object.keys(NativeModules || {}).length, 'modules');
-    console.log('🔍 StableDiffusionLocal existe:', !!NativeModules?.StableDiffusionLocal);
+    console.log('╔════════════════════════════════════════╗');
+    console.log('║  🧪 TEST MODULE NATIF SD               ║');
+    console.log('╚════════════════════════════════════════╝');
+    console.log('🔍 Platform:', Platform.OS, Platform.Version);
+    console.log('🔍 NativeModules count:', Object.keys(NativeModules || {}).length);
     
-    // Lister tous les modules natifs pour debug
+    // Lister TOUS les modules natifs pour debug
     const allModules = Object.keys(NativeModules || {});
-    console.log('🔍 Modules disponibles:', allModules.slice(0, 10).join(', '), allModules.length > 10 ? '...' : '');
+    console.log('🔍 Tous les modules:', allModules.join(', '));
     
-    if (!this.nativeModule) {
-      console.error('❌ Module natif non trouvé!');
+    // Vérifier spécifiquement StableDiffusionLocal
+    const sdModule = NativeModules?.StableDiffusionLocal;
+    console.log('🔍 StableDiffusionLocal:', sdModule ? 'TROUVÉ' : 'NON TROUVÉ');
+    
+    if (sdModule) {
+      console.log('🔍 Type:', typeof sdModule);
+      console.log('🔍 Méthodes:', Object.keys(sdModule).join(', '));
+      console.log('🔍 Constantes:', JSON.stringify(sdModule.getConstants ? sdModule.getConstants() : 'N/A'));
+    }
+    
+    if (!sdModule && !this.nativeModule) {
+      console.error('❌ Module natif non trouvé dans NativeModules!');
       return {
         success: false,
-        error: 'Module natif StableDiffusionLocal non trouvé dans NativeModules',
+        error: 'Module natif StableDiffusionLocal non trouvé',
         moduleExists: false,
         platform: Platform.OS,
-        availableModules: allModules.slice(0, 20),
+        platformVersion: Platform.Version,
+        availableModules: allModules,
+        hint: 'Le module natif n\'est pas enregistré. Vérifiez MainApplication.kt et le build.',
       };
     }
     
-    console.log('🔍 Méthodes du module:', Object.keys(this.nativeModule || {}).join(', '));
+    // Utiliser le module trouvé
+    const moduleToUse = sdModule || this.nativeModule;
+    const methods = Object.keys(moduleToUse || {});
+    console.log('🔍 Module à utiliser, méthodes:', methods.join(', '));
     
-    // Essayer d'abord getSystemInfo qui est plus fiable
-    if (this.nativeModule.getSystemInfo) {
+    // ESSAI 1: testModule natif
+    if (typeof moduleToUse.testModule === 'function') {
       try {
-        console.log('🔍 Appel getSystemInfo...');
-        const sysInfo = await this.nativeModule.getSystemInfo();
-        console.log('✅ getSystemInfo réussi:', JSON.stringify(sysInfo));
+        console.log('🔍 Appel testModule()...');
+        const result = await moduleToUse.testModule();
+        console.log('✅ testModule réussi:', JSON.stringify(result, null, 2));
+        
+        return {
+          success: true,
+          source: 'testModule',
+          moduleVersion: result.moduleVersion || result.status || 'N/A',
+          totalRamGB: result.totalRamGB || 0,
+          availableRamGB: result.availableRamGB || 0,
+          totalRamMB: result.totalRamMB || 0,
+          availableRamMB: result.availableRamMB || 0,
+          totalRamDisplay: result.totalRamDisplay || `${(result.totalRamGB || 0).toFixed(2)} GB`,
+          availRamDisplay: result.availRamDisplay || `${(result.availableRamGB || 0).toFixed(2)} GB`,
+          onnxAvailable: result.onnxAvailable || false,
+          onnxStatus: result.onnxStatus || (result.onnxAvailable ? 'Disponible' : 'Non disponible'),
+          device: result.device || 'N/A',
+          manufacturer: result.manufacturer || 'N/A',
+          androidVersion: result.androidVersion || 'N/A',
+          rawData: result,
+        };
+      } catch (e) {
+        console.error('❌ Erreur testModule:', e.message, e);
+      }
+    } else {
+      console.log('⚠️ testModule n\'est pas une fonction');
+    }
+    
+    // ESSAI 2: getSystemInfo
+    if (typeof moduleToUse.getSystemInfo === 'function') {
+      try {
+        console.log('🔍 Appel getSystemInfo()...');
+        const sysInfo = await moduleToUse.getSystemInfo();
+        console.log('✅ getSystemInfo réussi:', JSON.stringify(sysInfo, null, 2));
+        
         return {
           success: true,
           source: 'getSystemInfo',
           moduleVersion: sysInfo.moduleVersion || 'N/A',
-          totalRamGB: (sysInfo.totalRamMB || 0) / 1024,
-          availableRamGB: (sysInfo.availableRamMB || 0) / 1024,
+          totalRamGB: sysInfo.totalRamGB || (sysInfo.totalRamMB || 0) / 1024,
+          availableRamGB: sysInfo.availableRamGB || (sysInfo.availableRamMB || 0) / 1024,
+          totalRamMB: sysInfo.totalRamMB || 0,
+          availableRamMB: sysInfo.availableRamMB || 0,
+          totalRamDisplay: sysInfo.debugTotalRam || `${((sysInfo.totalRamMB || 0) / 1024).toFixed(2)} GB`,
+          availRamDisplay: sysInfo.debugAvailRam || `${((sysInfo.availableRamMB || 0) / 1024).toFixed(2)} GB`,
           onnxAvailable: sysInfo.onnxAvailable || false,
+          onnxStatus: sysInfo.onnxAvailable ? 'Disponible' : 'Non disponible',
           device: sysInfo.deviceModel || 'N/A',
           manufacturer: sysInfo.manufacturer || 'N/A',
+          androidVersion: sysInfo.androidVersion || 'N/A',
           canRunSD: sysInfo.canRunSD || false,
           rawData: sysInfo,
         };
       } catch (e) {
-        console.error('❌ Erreur getSystemInfo:', e.message);
+        console.error('❌ Erreur getSystemInfo:', e.message, e);
       }
+    } else {
+      console.log('⚠️ getSystemInfo n\'est pas une fonction');
     }
     
-    // Sinon essayer testModule
-    if (this.nativeModule.testModule) {
-      try {
-        console.log('🔍 Appel testModule...');
-        const result = await this.nativeModule.testModule();
-        console.log('✅ testModule réussi:', JSON.stringify(result));
+    // ESSAI 3: Constantes du module
+    try {
+      const constants = moduleToUse.getConstants ? moduleToUse.getConstants() : moduleToUse;
+      console.log('🔍 Constantes:', JSON.stringify(constants));
+      
+      if (constants && (constants.VERSION || constants.MODULE_NAME)) {
         return {
           success: true,
-          source: 'testModule',
-          ...result,
-        };
-      } catch (error) {
-        console.error('❌ Erreur testModule:', error.message);
-        return {
-          success: false,
-          error: error.message,
-          moduleExists: true,
-          methodExists: true,
+          source: 'constants',
+          moduleVersion: constants.VERSION || 'N/A',
+          onnxAvailable: constants.ONNX_AVAILABLE || false,
+          onnxStatus: constants.ONNX_AVAILABLE ? 'Disponible (constante)' : 'Non disponible (constante)',
+          device: constants.DEVICE_MODEL || 'N/A',
+          totalRamGB: 0,
+          availableRamGB: 0,
+          hint: 'Données provenant des constantes uniquement',
+          rawData: constants,
         };
       }
+    } catch (e) {
+      console.error('❌ Erreur lecture constantes:', e.message);
     }
     
     return {
       success: false,
-      error: 'Aucune méthode de test disponible',
+      error: 'Impossible d\'obtenir les informations du module',
       moduleExists: true,
-      methodsAvailable: Object.keys(this.nativeModule || {}),
+      methodsAvailable: methods,
+      hint: 'Les méthodes existent mais ne répondent pas correctement',
     };
   }
 

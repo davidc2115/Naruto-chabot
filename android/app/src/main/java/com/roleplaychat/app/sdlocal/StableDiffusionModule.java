@@ -60,31 +60,52 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
     public StableDiffusionModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
-        Log.i(TAG, "╔════════════════════════════════════════╗");
-        Log.i(TAG, "║  StableDiffusionModule v" + VERSION + " LOADED   ║");
-        Log.i(TAG, "╚════════════════════════════════════════╝");
+        
+        Log.i(TAG, "╔════════════════════════════════════════════════════╗");
+        Log.i(TAG, "║  StableDiffusionModule v" + VERSION + " INITIALISATION     ║");
+        Log.i(TAG, "╚════════════════════════════════════════════════════╝");
+        Log.i(TAG, "📱 Appareil: " + Build.MODEL + " (" + Build.MANUFACTURER + ")");
+        Log.i(TAG, "📱 Android: " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + ")");
         
         // Initialiser ONNX Runtime avec gestion d'erreur améliorée
+        String onnxError = null;
         try {
+            Log.i(TAG, "🔄 Tentative d'initialisation ONNX Runtime...");
             ortEnv = OrtEnvironment.getEnvironment();
             if (ortEnv != null) {
-                Log.i(TAG, "✅ ONNX Runtime Environment créé avec succès");
-                Log.i(TAG, "✅ ONNX Version: " + OrtEnvironment.getApiBase());
+                Log.i(TAG, "✅ ONNX Runtime Environment créé avec succès!");
+                try {
+                    String apiBase = OrtEnvironment.getApiBase();
+                    Log.i(TAG, "✅ ONNX API Base: " + apiBase);
+                } catch (Exception e) {
+                    Log.w(TAG, "⚠️ Impossible de lire ONNX API Base: " + e.getMessage());
+                }
             } else {
-                Log.e(TAG, "❌ OrtEnvironment.getEnvironment() retourné null");
+                onnxError = "OrtEnvironment.getEnvironment() a retourné null";
+                Log.e(TAG, "❌ " + onnxError);
             }
         } catch (NoClassDefFoundError e) {
-            Log.e(TAG, "❌ ONNX Runtime classes non trouvées: " + e.getMessage());
+            onnxError = "Classes ONNX non trouvées: " + e.getMessage();
+            Log.e(TAG, "❌ " + onnxError);
             Log.e(TAG, "❌ Vérifiez que onnxruntime-android est dans build.gradle");
         } catch (UnsatisfiedLinkError e) {
-            Log.e(TAG, "❌ ONNX Runtime native library non trouvée: " + e.getMessage());
-        } catch (Exception e) {
-            Log.e(TAG, "❌ Erreur création ONNX Environment: " + e.getMessage());
+            onnxError = "Native library ONNX non trouvée: " + e.getMessage();
+            Log.e(TAG, "❌ " + onnxError);
+        } catch (Throwable e) {
+            onnxError = "Erreur inattendue: " + e.getClass().getName() + " - " + e.getMessage();
+            Log.e(TAG, "❌ " + onnxError);
             e.printStackTrace();
         }
         
         // Log du statut final
-        Log.i(TAG, "📊 ONNX disponible: " + (ortEnv != null));
+        Log.i(TAG, "════════════════════════════════════════════════════");
+        Log.i(TAG, "📊 STATUT FINAL:");
+        Log.i(TAG, "   - Module chargé: ✅ OUI");
+        Log.i(TAG, "   - ONNX disponible: " + (ortEnv != null ? "✅ OUI" : "❌ NON"));
+        if (onnxError != null) {
+            Log.i(TAG, "   - Erreur ONNX: " + onnxError);
+        }
+        Log.i(TAG, "════════════════════════════════════════════════════");
     }
 
     @Override

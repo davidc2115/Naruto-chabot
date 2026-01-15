@@ -235,28 +235,27 @@ export default function ConversationScreen({ route, navigation }) {
         loadBackground();
         
         // Scroll automatique en bas quand on revient sur la conversation
-        // Utiliser scrollToIndex pour un scroll fiable jusqu'au dernier message
+        // Utiliser scrollToOffset avec une grande valeur pour forcer le scroll en bas
         const scrollToBottom = () => {
           if (flatListRef.current && messages.length > 0) {
             try {
-              flatListRef.current.scrollToIndex({
-                index: messages.length - 1,
-                animated: false,
-                viewPosition: 1, // 1 = en bas de la vue
+              // Méthode 1: scrollToOffset avec une très grande valeur
+              flatListRef.current.scrollToOffset({ 
+                offset: 999999, // Grande valeur pour aller tout en bas
+                animated: false 
               });
-              console.log('📜 Scroll vers message #' + (messages.length - 1) + ' (focus)');
+              console.log('📜 Scroll offset max (focus) - ' + messages.length + ' messages');
             } catch (e) {
-              // Fallback si erreur
-              flatListRef.current.scrollToEnd({ animated: false });
-              console.log('📜 Scroll fallback (focus)');
+              console.log('📜 Erreur scroll:', e.message);
             }
           }
         };
-        // Essayer plusieurs fois avec des délais progressifs
-        setTimeout(scrollToBottom, 200);
-        setTimeout(scrollToBottom, 500);
-        setTimeout(scrollToBottom, 1000);
-        setTimeout(scrollToBottom, 1500);
+        // Essayer plusieurs fois avec des délais progressifs plus longs
+        setTimeout(scrollToBottom, 300);
+        setTimeout(scrollToBottom, 700);
+        setTimeout(scrollToBottom, 1200);
+        setTimeout(scrollToBottom, 2000);
+        setTimeout(scrollToBottom, 3000);
       }
     }, [character?.id, messages.length])
   );
@@ -274,30 +273,28 @@ export default function ConversationScreen({ route, navigation }) {
         setRelationship(saved.relationship);
         
         // SCROLL AUTOMATIQUE EN BAS après chargement
-        // Utiliser scrollToOffset pour un scroll plus fiable
+        // Utiliser scrollToOffset avec grande valeur pour forcer le scroll
         const scrollToBottom = () => {
           if (flatListRef.current && saved.messages.length > 0) {
-            // Utiliser scrollToIndex pour aller au dernier élément
             try {
-              flatListRef.current.scrollToIndex({
-                index: saved.messages.length - 1,
-                animated: false,
-                viewPosition: 1, // 1 = en bas de la vue
+              // scrollToOffset avec grande valeur = scroll tout en bas
+              flatListRef.current.scrollToOffset({ 
+                offset: 999999, 
+                animated: false 
               });
-              console.log('📜 Scroll vers message #' + (saved.messages.length - 1));
+              console.log('📜 Scroll offset max (load) - ' + saved.messages.length + ' messages');
             } catch (e) {
-              // Fallback sur scrollToEnd si erreur
-              flatListRef.current.scrollToEnd({ animated: false });
-              console.log('📜 Scroll fallback vers le bas');
+              console.log('📜 Erreur scroll:', e.message);
             }
           }
         };
-        // Essayer plusieurs fois avec délais plus longs
-        setTimeout(scrollToBottom, 200);
-        setTimeout(scrollToBottom, 500);
-        setTimeout(scrollToBottom, 1000);
-        setTimeout(scrollToBottom, 1500);
+        // Essayer plusieurs fois avec délais progressifs plus longs
+        setTimeout(scrollToBottom, 300);
+        setTimeout(scrollToBottom, 700);
+        setTimeout(scrollToBottom, 1200);
         setTimeout(scrollToBottom, 2000);
+        setTimeout(scrollToBottom, 3000);
+        setTimeout(scrollToBottom, 4000);
         
       } else {
         const initialMessage = {
@@ -1182,31 +1179,29 @@ export default function ConversationScreen({ route, navigation }) {
         renderItem={renderMessage}
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.messagesList}
-        // Désactivé: onContentSizeChange causait des scrolls intempestifs
-        // Le scroll vers le bas se fait uniquement après envoi d'un message
+        // Scroll automatique quand le contenu change de taille
+        onContentSizeChange={(contentWidth, contentHeight) => {
+          // Scroll en bas uniquement si pas en train de scroller manuellement
+          if (!userIsScrolling && flatListRef.current && messages.length > 0) {
+            flatListRef.current.scrollToOffset({ 
+              offset: contentHeight, 
+              animated: false 
+            });
+          }
+        }}
         onScrollBeginDrag={() => setUserIsScrolling(true)}
-        onMomentumScrollEnd={() => setUserIsScrolling(false)}
-        maintainVisibleContentPosition={{
-          minIndexForVisible: 0,
+        onMomentumScrollEnd={() => {
+          // Réinitialiser après un court délai
+          setTimeout(() => setUserIsScrolling(false), 500);
         }}
-        // Gestion des erreurs de scroll vers index
-        onScrollToIndexFailed={(info) => {
-          console.log('⚠️ Scroll vers index échoué:', info);
-          // Attendre et réessayer
-          setTimeout(() => {
-            if (flatListRef.current && messages.length > 0) {
-              flatListRef.current.scrollToOffset({ 
-                offset: info.averageItemLength * messages.length, 
-                animated: false 
-              });
-            }
-          }, 100);
-        }}
+        // NE PAS utiliser maintainVisibleContentPosition - empêche le scroll auto
         // Améliorer le rendu
         removeClippedSubviews={false}
-        initialNumToRender={20}
-        maxToRenderPerBatch={15}
+        initialNumToRender={50}
+        maxToRenderPerBatch={20}
         windowSize={21}
+        // Scroll inversé désactivé pour garder l'ordre normal
+        inverted={false}
       />
 
       {isLoading && (

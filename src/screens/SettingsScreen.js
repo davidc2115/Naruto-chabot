@@ -774,30 +774,51 @@ export default function SettingsScreen({ navigation, onLogout }) {
                   try {
                     Alert.alert('🧪 Test...', 'Test du module natif en cours...');
                     const result = await StableDiffusionLocalService.testModule();
-                    console.log('🧪 Résultat test module:', JSON.stringify(result));
+                    console.log('🧪 Résultat test module:', JSON.stringify(result, null, 2));
+                    
                     if (result.success) {
+                      // Calculer les valeurs à afficher
+                      const totalGB = result.totalRamGB || (result.totalRamMB ? result.totalRamMB / 1024 : 0);
+                      const availGB = result.availableRamGB || (result.availableRamMB ? result.availableRamMB / 1024 : 0);
+                      
                       Alert.alert(
                         '✅ Module OK',
+                        `Source: ${result.source || 'N/A'}\n` +
                         `Version: ${result.moduleVersion || 'N/A'}\n` +
                         `\n📊 RAM:\n` +
-                        `  • Totale: ${result.totalRamDisplay || (result.totalRamGB?.toFixed(2) + ' GB') || '?'}\n` +
-                        `  • Disponible: ${result.availRamDisplay || (result.availableRamGB?.toFixed(2) + ' GB') || '?'}\n` +
-                        `  • Bytes: ${result.totalRamBytes ? Math.round(result.totalRamBytes / 1024 / 1024) + ' MB' : '?'}\n` +
+                        `  • Totale: ${totalGB.toFixed(2)} GB\n` +
+                        `  • Disponible: ${availGB.toFixed(2)} GB\n` +
+                        (result.totalRamMB ? `  • (${Math.round(result.totalRamMB)} MB / ${Math.round(result.availableRamMB || 0)} MB)\n` : '') +
                         `\n⚡ ONNX: ${result.onnxAvailable ? '✅ Disponible' : '❌ Non disponible'}\n` +
                         `  Status: ${result.onnxStatus || 'N/A'}\n` +
                         `\n📱 Appareil: ${result.device || 'N/A'}\n` +
                         `  Fabricant: ${result.manufacturer || 'N/A'}\n` +
-                        `  Android: ${result.androidVersion || 'N/A'}`
+                        `  Android: ${result.androidVersion || 'N/A'}` +
+                        (result.hint ? `\n\n💡 ${result.hint}` : '')
                       );
                     } else {
-                      Alert.alert(
-                        '❌ Erreur',
-                        `Module: ${result.moduleExists ? '✅' : '❌'}\n` +
-                        `Méthode: ${result.methodExists !== false ? '✅' : '❌'}\n` +
-                        `ONNX: ${result.onnxAvailable ? '✅' : '❌'}\n` +
-                        `Erreur: ${result.error || 'Inconnue'}\n` +
-                        `\nMéthodes dispo: ${result.methodsAvailable?.join(', ') || 'N/A'}`
-                      );
+                      // Afficher les détails de l'erreur
+                      let errorDetails = `Module trouvé: ${result.moduleExists ? '✅' : '❌'}\n`;
+                      errorDetails += `Platform: ${result.platform || 'N/A'} ${result.platformVersion || ''}\n`;
+                      errorDetails += `\nErreur: ${result.error || 'Inconnue'}\n`;
+                      
+                      if (result.hint) {
+                        errorDetails += `\n💡 ${result.hint}\n`;
+                      }
+                      
+                      if (result.availableModules && result.availableModules.length > 0) {
+                        errorDetails += `\nModules natifs trouvés (${result.availableModules.length}):\n`;
+                        errorDetails += result.availableModules.slice(0, 10).join(', ');
+                        if (result.availableModules.length > 10) {
+                          errorDetails += '...';
+                        }
+                      }
+                      
+                      if (result.methodsAvailable && result.methodsAvailable.length > 0) {
+                        errorDetails += `\n\nMéthodes du module:\n${result.methodsAvailable.join(', ')}`;
+                      }
+                      
+                      Alert.alert('❌ Erreur Module', errorDetails);
                     }
                     checkSDAvailability();
                   } catch (e) {
