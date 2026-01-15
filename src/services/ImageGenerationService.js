@@ -675,6 +675,76 @@ class ImageGenerationService {
   }
 
   /**
+   * Calcule un hash simple et déterministe pour un personnage
+   * Utilisé pour garantir la cohérence des images non-binaires
+   */
+  getCharacterHash(character) {
+    const str = (character.id || character.name || 'default').toString();
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convertir en 32bit integer
+    }
+    return Math.abs(hash);
+  }
+  
+  /**
+   * Détermine l'apparence fixe d'un personnage non-binaire
+   * Basé sur les caractéristiques explicites OU un hash déterministe
+   */
+  getNonBinaryAppearanceType(character) {
+    const charAppearance = (character.appearance || '').toLowerCase();
+    const charPhysical = (character.physicalDescription || '').toLowerCase();
+    const charImagePrompt = (character.imagePrompt || '').toLowerCase();
+    const combined = charAppearance + ' ' + charPhysical + ' ' + charImagePrompt;
+    
+    // === PRIORITÉ 1: Détection explicite dans les données ===
+    // Mots-clés féminins explicites
+    const explicitFeminine = combined.includes('femme') || combined.includes('woman') ||
+                            combined.includes('poitrine') || combined.includes('seins') ||
+                            combined.includes('breast') || combined.includes('bust') ||
+                            combined.includes('féminine') || combined.includes('feminine') ||
+                            combined.includes('robe') || combined.includes('dress') ||
+                            combined.includes('jupe') || combined.includes('skirt') ||
+                            combined.includes('décolleté') || combined.includes('maquillage');
+    
+    // Mots-clés masculins explicites
+    const explicitMasculine = combined.includes('homme') || combined.includes('man ') ||
+                             combined.includes('barbe') || combined.includes('beard') ||
+                             combined.includes('musclé') || combined.includes('muscular') ||
+                             combined.includes('masculine') || combined.includes('masculin') ||
+                             combined.includes('torse') || combined.includes('chest hair') ||
+                             combined.includes('pénis') || combined.includes('penis');
+    
+    // Si explicitement défini, utiliser cette apparence
+    if (explicitFeminine && !explicitMasculine) {
+      console.log(`🎭 Non-binaire ${character.name}: FÉMININ (explicite)`);
+      return 'feminine';
+    }
+    if (explicitMasculine && !explicitFeminine) {
+      console.log(`🎭 Non-binaire ${character.name}: MASCULIN (explicite)`);
+      return 'masculine';
+    }
+    
+    // === PRIORITÉ 2: Hash déterministe pour cohérence ===
+    // Le même personnage aura TOUJOURS la même apparence
+    const hash = this.getCharacterHash(character);
+    const appearanceType = hash % 3; // 0, 1, ou 2
+    
+    if (appearanceType === 0) {
+      console.log(`🎭 Non-binaire ${character.name}: FÉMININ (hash: ${hash})`);
+      return 'feminine';
+    } else if (appearanceType === 1) {
+      console.log(`🎭 Non-binaire ${character.name}: MASCULIN (hash: ${hash})`);
+      return 'masculine';
+    } else {
+      console.log(`🎭 Non-binaire ${character.name}: ANDROGYNE (hash: ${hash})`);
+      return 'androgynous';
+    }
+  }
+
+  /**
    * Construit une description ultra-détaillée des caractéristiques physiques
    * Prend en compte TOUS les champs du personnage
    */
@@ -701,42 +771,36 @@ class ImageGenerationService {
         description += 'handsome anime man, male character, anime gentleman, masculine features';
       }
     } else {
-      // NON-BINAIRE: Utiliser une apparence ANDROGYNE COHÉRENTE
-      // Basé sur le nom ou l'apparence pour déterminer une tendance
-      const charAppearance = (character.appearance || '').toLowerCase();
-      const charName = (character.name || '').toLowerCase();
+      // NON-BINAIRE: Utiliser une apparence COHÉRENTE ET FIXE
+      // Basée sur les caractéristiques explicites OU un hash déterministe
+      const appearanceType = this.getNonBinaryAppearanceType(character);
       
-      // Déterminer si le personnage a une tendance plutôt féminine ou masculine
-      const feminineTendency = charAppearance.includes('féminin') || charAppearance.includes('feminine') ||
-                              charAppearance.includes('poitrine') || charAppearance.includes('seins') ||
-                              charAppearance.includes('courbes') || charAppearance.includes('curves');
-      const masculineTendency = charAppearance.includes('masculin') || charAppearance.includes('masculine') ||
-                               charAppearance.includes('barbe') || charAppearance.includes('beard') ||
-                               charAppearance.includes('musclé') || charAppearance.includes('muscular');
-      
-      if (feminineTendency) {
-        // Non-binaire avec apparence plutôt féminine
+      if (appearanceType === 'feminine') {
+        // Non-binaire avec apparence féminine COHÉRENTE
         if (isRealistic) {
-          description += 'beautiful androgynous person, feminine-presenting non-binary, soft feminine features, real person';
+          description += 'beautiful androgynous feminine-presenting person, soft feminine features, delicate face, smooth skin, real person, ALWAYS feminine appearance';
         } else {
-          description += 'beautiful androgynous anime character, feminine-presenting, soft delicate features';
+          description += 'beautiful androgynous feminine anime character, soft delicate features, graceful appearance, ALWAYS feminine';
         }
-      } else if (masculineTendency) {
-        // Non-binaire avec apparence plutôt masculine
+        description += ', feminine-presenting, soft curves, delicate frame';
+      } else if (appearanceType === 'masculine') {
+        // Non-binaire avec apparence masculine COHÉRENTE
         if (isRealistic) {
-          description += 'handsome androgynous person, masculine-presenting non-binary, angular features, real person';
+          description += 'handsome androgynous masculine-presenting person, defined angular features, strong jaw, real person, ALWAYS masculine appearance';
         } else {
-          description += 'handsome androgynous anime character, masculine-presenting, defined features';
+          description += 'handsome androgynous masculine anime character, defined features, sharp look, ALWAYS masculine';
         }
+        description += ', masculine-presenting, angular features, defined frame';
       } else {
-        // Non-binaire vraiment androgyne (par défaut: apparence douce et élégante)
+        // Non-binaire vraiment androgyne
         if (isRealistic) {
-          description += 'beautiful androgynous person, gender-neutral elegant appearance, soft symmetrical features, real person';
+          description += 'elegant androgynous person, perfectly balanced gender-neutral features, soft yet defined face, real person, ALWAYS androgynous';
         } else {
-          description += 'beautiful androgynous anime character, gender-neutral elegant appearance, soft symmetrical features';
+          description += 'elegant androgynous anime character, perfectly balanced features, graceful neutral appearance, ALWAYS androgynous';
         }
+        description += ', truly androgynous, balanced features, elegant frame';
       }
-      description += ', androgynous';
+      description += ', androgynous non-binary';
     }
     
     // === ÂGE PRÉCIS (gère les formats comme "300 ans (apparence 25)") ===
@@ -1186,6 +1250,7 @@ class ImageGenerationService {
   /**
    * Extrait les caractéristiques corporelles spécifiques (fesses, hanches, ventre, cuisses)
    * et les transforme en prompts explicites pour l'image
+   * VERSION AMÉLIORÉE - Détecte TOUS les termes de morphologie
    */
   extractBodyFeatures(character) {
     const features = [];
@@ -1196,79 +1261,123 @@ class ImageGenerationService {
       (character.bodyType || '') + ' ' + 
       (character.physicalDescription || '') + ' ' +
       (character.imagePrompt || '') + ' ' +
+      (character.personality || '') + ' ' +
       (Array.isArray(character.tags) ? character.tags.join(' ') : '')
     ).toLowerCase();
     
-    console.log('🔍 extractBodyFeatures - Texte analysé:', fullText.substring(0, 200));
+    console.log('🔍 extractBodyFeatures - Texte analysé:', fullText.substring(0, 300));
     
-    // === TYPE DE CORPS GÉNÉRAL ===
-    if (fullText.includes('voluptu') || fullText.includes('curvy') || fullText.includes('généreuse') || fullText.includes('formes généreuses') || fullText.includes('full-figured') || fullText.includes('full figured')) {
-      features.push('voluptuous curvy full-figured body with generous curves everywhere');
+    // === TYPE DE CORPS GÉNÉRAL - DÉTECTION ULTRA-COMPLÈTE ===
+    
+    // TRÈS RONDE / TRÈS GROSSE
+    if (fullText.includes('très ronde') || fullText.includes('very round') || fullText.includes('très grosse') || fullText.includes('very fat') || fullText.includes('obèse') || fullText.includes('obese')) {
+      features.push('very round very curvy very plump body, extremely soft full figure, very chubby thick');
     }
-    if (fullText.includes('ronde') || fullText.includes('plump') || fullText.includes('chubby') || fullText.includes('potelée') || fullText.includes('enrobé')) {
-      features.push('curvy plump soft rounded body, soft full figure, chubby');
-    }
-    if (fullText.includes('pulpeuse') || fullText.includes('thick')) {
-      features.push('thick curvy body with pronounced curves');
-    }
-    if (fullText.includes('bbw')) {
-      features.push('BBW curvy thick plump body, very generous proportions');
+    // RONDE / RONDELET / RONDEUR
+    else if (fullText.includes('ronde') || fullText.includes('rondelet') || fullText.includes('rondeur') || fullText.includes('round body') || fullText.includes('rounded')) {
+      features.push('curvy plump soft rounded body, soft full figure, chubby cute');
     }
     
-    // === FESSES SPÉCIFIQUES ===
-    if (fullText.includes('grosse fesse') || fullText.includes('grosses fesses') || fullText.includes('big butt') || fullText.includes('large butt') || fullText.includes('big round butt') || fullText.includes('gros fessier')) {
-      features.push('big round plump butt, large thick buttocks, generous thick ass, wide rear');
-    } else if (fullText.includes('fesses rebondies') || fullText.includes('bubble butt') || fullText.includes('fesses rondes') || fullText.includes('round butt')) {
-      features.push('round bubble butt, perky plump buttocks, juicy round ass');
-    } else if (fullText.includes('fesses généreuses') || fullText.includes('curvy butt')) {
-      features.push('generous curvy butt, full round buttocks');
+    // DODU / DODUE / POTELÉ
+    if (fullText.includes('dodu') || fullText.includes('potelé') || fullText.includes('plump') || fullText.includes('pudgy') || fullText.includes('chubby')) {
+      features.push('soft plump chubby body, cute pudgy figure, doughy soft curves');
     }
     
-    // === VENTRE SPÉCIFIQUE ===
-    if (fullText.includes('ventre rond') || fullText.includes('ventre arrondi') || fullText.includes('round belly') || fullText.includes('soft belly') || fullText.includes('ventre doux') || fullText.includes('gros ventre') || fullText.includes('big belly')) {
-      features.push('soft round belly, plump cute tummy, gentle belly curve, soft midsection');
-    } else if (fullText.includes('petit ventre') || fullText.includes('belly pooch')) {
-      features.push('small soft belly pooch, gentle tummy');
+    // GÉNÉREUSE / FORMES GÉNÉREUSES / COURBES GÉNÉREUSES
+    if (fullText.includes('généreuse') || fullText.includes('courbes généreuses') || fullText.includes('formes généreuses') || fullText.includes('generous curves') || fullText.includes('generous figure')) {
+      features.push('generous curvy body, ample soft curves everywhere, full figured');
+    }
+    
+    // VOLUPTUEUSE / PULPEUSE
+    if (fullText.includes('voluptu') || fullText.includes('pulpeuse') || fullText.includes('voluptuous') || fullText.includes('lush')) {
+      features.push('voluptuous lush curvy body with generous sensual curves');
+    }
+    
+    // CURVY / THICK
+    if (fullText.includes('curvy') || fullText.includes('thick body') || fullText.includes('thicc')) {
+      features.push('thick curvy body with pronounced sexy curves');
+    }
+    
+    // BBW / PLUS SIZE
+    if (fullText.includes('bbw') || fullText.includes('plus size') || fullText.includes('plus-size') || fullText.includes('grande taille')) {
+      features.push('BBW curvy thick plump body, very generous big beautiful proportions');
+    }
+    
+    // ENROBÉ / ENVELOPPÉ
+    if (fullText.includes('enrobé') || fullText.includes('enveloppé') || fullText.includes('well-padded') || fullText.includes('soft body')) {
+      features.push('soft padded body, pleasantly plump, well-rounded figure');
+    }
+    
+    // MATERNELLE / FEMME AU FOYER
+    if (fullText.includes('maternelle') || fullText.includes('maternal') || fullText.includes('femme au foyer') || fullText.includes('housewife') || fullText.includes('maman') || fullText.includes('mommy')) {
+      features.push('soft maternal curvy body, nurturing motherly figure, womanly curves');
+    }
+    
+    // === VENTRE SPÉCIFIQUE - ULTRA-DÉTAILLÉ ===
+    if (fullText.includes('énorme ventre') || fullText.includes('très gros ventre') || fullText.includes('huge belly') || fullText.includes('big fat belly')) {
+      features.push('huge round soft belly, very big plump tummy, large soft midsection, prominent belly');
+    } else if (fullText.includes('gros ventre') || fullText.includes('big belly') || fullText.includes('fat belly') || fullText.includes('ventre proéminent')) {
+      features.push('big round soft belly, large plump tummy, prominent soft midsection');
+    } else if (fullText.includes('ventre rond') || fullText.includes('ventre arrondi') || fullText.includes('round belly') || fullText.includes('soft belly') || fullText.includes('ventre doux')) {
+      features.push('soft round belly, plump cute tummy, gentle belly curve, soft padded midsection');
+    } else if (fullText.includes('petit ventre') || fullText.includes('belly pooch') || fullText.includes('little belly')) {
+      features.push('small soft belly pooch, gentle cute tummy, slight belly curve');
+    }
+    
+    // === FESSES SPÉCIFIQUES - ULTRA-DÉTAILLÉ ===
+    if (fullText.includes('énorme fesse') || fullText.includes('énormes fesses') || fullText.includes('huge butt') || fullText.includes('huge ass') || fullText.includes('massive butt')) {
+      features.push('huge massive round butt, enormous thick buttocks, very big jiggly ass, extremely wide rear');
+    } else if (fullText.includes('grosse fesse') || fullText.includes('grosses fesses') || fullText.includes('big butt') || fullText.includes('large butt') || fullText.includes('big round butt') || fullText.includes('gros fessier') || fullText.includes('big ass') || fullText.includes('fat ass')) {
+      features.push('big round plump butt, large thick buttocks, generous thick ass, wide jiggly rear');
+    } else if (fullText.includes('fesses rebondies') || fullText.includes('bubble butt') || fullText.includes('fesses rondes') || fullText.includes('round butt') || fullText.includes('perky butt')) {
+      features.push('round bubble butt, perky plump buttocks, juicy round ass, bouncy rear');
+    } else if (fullText.includes('fesses généreuses') || fullText.includes('curvy butt') || fullText.includes('nice butt') || fullText.includes('beau fessier')) {
+      features.push('generous curvy butt, full round buttocks, shapely rear');
     }
     
     // === HANCHES SPÉCIFIQUES ===
-    if (fullText.includes('hanches larges') || fullText.includes('wide hips') || fullText.includes('hanches généreuses') || fullText.includes('larges hanches') || fullText.includes('hanches très larges') || fullText.includes('very wide hips')) {
+    if (fullText.includes('très larges hanches') || fullText.includes('hanches très larges') || fullText.includes('very wide hips') || fullText.includes('huge hips')) {
+      features.push('very wide generous hips, extremely broad curvy hip bones, massive childbearing hips');
+    } else if (fullText.includes('hanches larges') || fullText.includes('wide hips') || fullText.includes('hanches généreuses') || fullText.includes('larges hanches') || fullText.includes('broad hips') || fullText.includes('hanches rondes')) {
       features.push('wide generous hips, broad curvy hip bones, childbearing hips');
     }
     
     // === CUISSES SPÉCIFIQUES ===
-    if (fullText.includes('cuisses épaisses') || fullText.includes('thick thighs') || fullText.includes('grosses cuisses') || fullText.includes('cuisses généreuses') || fullText.includes('cuisses pleines') || fullText.includes('full thighs')) {
-      features.push('thick meaty thighs, full plump legs, generous thighs');
+    if (fullText.includes('très grosses cuisses') || fullText.includes('huge thighs') || fullText.includes('massive thighs')) {
+      features.push('very thick massive thighs, huge plump legs, extremely generous meaty thighs');
+    } else if (fullText.includes('cuisses épaisses') || fullText.includes('thick thighs') || fullText.includes('grosses cuisses') || fullText.includes('cuisses généreuses') || fullText.includes('cuisses pleines') || fullText.includes('full thighs') || fullText.includes('fat thighs')) {
+      features.push('thick meaty thighs, full plump legs, generous thick thighs');
     }
     
     // === POITRINE TRÈS GÉNÉREUSE ===
-    if (fullText.includes('énorme poitrine') || fullText.includes('très grosse poitrine') || fullText.includes('huge breasts') || fullText.includes('enormous breasts') || fullText.includes('massive breasts') || fullText.includes('énormes seins')) {
+    if (fullText.includes('énorme poitrine') || fullText.includes('très grosse poitrine') || fullText.includes('huge breasts') || fullText.includes('enormous breasts') || fullText.includes('massive breasts') || fullText.includes('énormes seins') || fullText.includes('gigantic breasts')) {
       features.push('huge massive breasts, enormous bust, very large heavy chest');
-    } else if (fullText.includes('grosse poitrine') || fullText.includes('large breasts') || fullText.includes('big breasts') || fullText.includes('gros seins')) {
-      features.push('large full breasts, big generous bust, heavy chest');
+    } else if (fullText.includes('grosse poitrine') || fullText.includes('large breasts') || fullText.includes('big breasts') || fullText.includes('gros seins') || fullText.includes('poitrine généreuse') || fullText.includes('generous bust') || fullText.includes('full breasts')) {
+      features.push('large full breasts, big generous bust, heavy ample chest');
+    } else if (fullText.includes('poitrine pleine') || fullText.includes('full bust') || fullText.includes('ample bust')) {
+      features.push('full round breasts, ample bust, nicely filled chest');
     }
     
     // === SILHOUETTE GLOBALE ===
     if (fullText.includes('sablier') || fullText.includes('hourglass')) {
       features.push('perfect hourglass figure, narrow waist with wide hips and bust');
-    } else if (fullText.includes('poire') || fullText.includes('pear shape')) {
+    } else if (fullText.includes('poire') || fullText.includes('pear shape') || fullText.includes('pear-shaped')) {
       features.push('pear-shaped body, wider hips than bust, curvy lower body');
+    } else if (fullText.includes('pomme') || fullText.includes('apple shape') || fullText.includes('apple-shaped')) {
+      features.push('apple-shaped body, fuller midsection, round in the middle');
     }
     
-    // === TAGS SPÉCIAUX ===
-    if (fullText.includes('femme au foyer') || fullText.includes('housewife')) {
-      features.push('mature housewife body, soft feminine curves');
-    }
-    if (fullText.includes('maternelle') || fullText.includes('maternal')) {
-      features.push('maternal soft curvy body, nurturing figure');
+    // === PEAU DOUCE / MOELLEUSE ===
+    if (fullText.includes('peau douce') || fullText.includes('soft skin') || fullText.includes('moelleuse') || fullText.includes('cushiony')) {
+      features.push('soft smooth skin, cushiony touchable body');
     }
     
     // Log des features trouvées
     if (features.length > 0) {
       console.log(`✅ Features corporelles trouvées: ${features.length}`);
-      features.forEach((f, i) => console.log(`   ${i+1}. ${f.substring(0, 50)}...`));
+      features.forEach((f, i) => console.log(`   ${i+1}. ${f}`));
     } else {
-      console.log('⚠️ Aucune feature corporelle spécifique trouvée');
+      console.log('⚠️ Aucune feature corporelle spécifique trouvée dans:', fullText.substring(0, 100));
     }
     
     return features.length > 0 ? features.join(', ') : null;
