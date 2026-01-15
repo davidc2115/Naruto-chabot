@@ -1007,41 +1007,49 @@ RÈGLES CRITIQUES:
     const jailbreak = this.buildNSFWJailbreak(character, userProfile);
     fullMessages.push(...jailbreak);
 
-    // GESTION MÉMOIRE AMÉLIORÉE - ADAPTÉE À LA LONGUEUR DE CONVERSATION
+    // GESTION MÉMOIRE AMÉLIORÉE - GARDER PLUS DE CONTEXTE
     const conversationLength = messages.length;
-    const isLongConversation = conversationLength > 30;
-    const isVeryLongConversation = conversationLength > 50;
+    const isLongConversation = conversationLength > 40;
+    const isVeryLongConversation = conversationLength > 80;
     
-    // Pour les longues conversations, garder moins de messages pour éviter les répétitions
-    let maxRecentMessages = 15;
-    let maxCharsPerMessage = 1500;
+    // AUGMENTÉ: Garder plus de messages pour meilleure cohérence
+    let maxRecentMessages = 25; // Augmenté de 15 à 25
+    let maxCharsPerMessage = 2000;
     
     if (isVeryLongConversation) {
-      maxRecentMessages = 8; // Moins de contexte = moins de répétitions
-      maxCharsPerMessage = 800;
+      maxRecentMessages = 15; // Augmenté de 8 à 15
+      maxCharsPerMessage = 1200;
       console.log('📝 Conversation TRÈS longue (' + conversationLength + ') - Mode économie');
     } else if (isLongConversation) {
-      maxRecentMessages = 10;
-      maxCharsPerMessage = 1000;
+      maxRecentMessages = 20; // Augmenté de 10 à 20
+      maxCharsPerMessage = 1500;
       console.log('📝 Conversation longue (' + conversationLength + ') - Mode optimisé');
     }
     
     if (messages.length > maxRecentMessages) {
-      // Créer un résumé des messages plus anciens
+      // Créer un résumé DÉTAILLÉ des messages plus anciens
       const olderMessages = messages.slice(0, -maxRecentMessages);
-      const summary = this.summarizeOlderMessages(olderMessages, character.name);
+      const summary = this.summarizeOlderMessages(olderMessages, character.name, character);
       if (summary) {
         fullMessages.push({ role: 'system', content: summary });
       }
     }
     
-    // Messages récents
+    // Messages récents - GARDER PLUS DE CONTEXTE
     const recentMessages = messages.slice(-maxRecentMessages);
     const cleanedMessages = recentMessages.map(msg => ({
       role: msg.role,
       content: msg.content.substring(0, maxCharsPerMessage)
     }));
     fullMessages.push(...cleanedMessages);
+    
+    // RAPPEL DU SCÉNARIO si disponible
+    if (character.scenario) {
+      fullMessages.push({
+        role: 'system',
+        content: `[📖 RAPPEL SCÉNARIO]\n${character.scenario.substring(0, 500)}\n[Reste cohérent avec ce scénario!]`
+      });
+    }
     
     // INSTRUCTION SPÉCIALE POUR LONGUES CONVERSATIONS
     if (isLongConversation) {
@@ -1242,27 +1250,35 @@ COHÉRENCE: Continue dans le ton de la conversation précédente!`;
       }
     }
     
+    // Extraire le dernier message de l'utilisateur pour rappel
+    const lastUserMessage = cleanedMessages.filter(m => m.role === 'user').slice(-1)[0];
+    const lastUserContent = lastUserMessage?.content?.substring(0, 200) || '';
+    
     fullMessages.push({
       role: 'system',
       content: `[⚠️ RAPPEL FINAL - OBLIGATOIRE]
 
 ${userReminder ? userReminder + '\n→ ADAPTE tes réponses au GENRE et aux ATTRIBUTS de ' + userName + '!\n' : ''}
+
+🎯 RÉPONSE DIRECTE OBLIGATOIRE:
+L'utilisateur vient de dire/faire: "${lastUserContent.substring(0, 150)}..."
+→ Ta réponse DOIT réagir DIRECTEMENT à ce que ${userName} vient de dire/faire!
+→ NE CHANGE PAS de sujet sans raison!
+
 🎭 TRAJECTOIRE: ${randomTrajectory}
 ❌ PAS de "je t'aime" ou de déclaration d'amour!
-❌ PAS de happy ending systématique!
 
-📏 LONGUEUR: 1-3 phrases MAX
+📏 LONGUEUR: 2-4 phrases
 
 🔄 ANTI-RÉPÉTITION:
 - Utilise des MOTS DIFFÉRENTS de tes messages précédents
-- NE RÉPÈTE PAS ce que ${userName} a dit
 - VARIE tes actions et expressions
 
-💭 FORMAT: *action nouvelle* "parole créative" (pensée)
+💭 FORMAT: *action* "parole" (pensée)
 
 ✍️ ACCORDS: ${genderAccord}
 
-Réponds MAINTENANT - CRÉATIF et UNIQUE!`
+Réponds à ${userName} MAINTENANT!`
     });
     
     console.log(`📝 ${cleanedMessages.length} messages récents + contexte (${messages.length} total)`);
@@ -1271,10 +1287,10 @@ Réponds MAINTENANT - CRÉATIF et UNIQUE!`
     let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
     console.log(`🤖 Modèle sélectionné: ${model}`);
     
-    // Tokens max - ADAPTÉ à la longueur de conversation
-    const isLong = messages.length > 30;
-    const isVeryLong = messages.length > 50;
-    let maxTokens = isVeryLong ? 100 : (isLong ? 130 : 180);
+    // Tokens max - AUGMENTÉ pour permettre des réponses plus riches
+    const isLong = messages.length > 40;
+    const isVeryLong = messages.length > 80;
+    let maxTokens = isVeryLong ? 150 : (isLong ? 180 : 220);
     console.log(`📝 MaxTokens: ${maxTokens} (messages: ${messages.length}${isVeryLong ? ' TRÈS LONG' : isLong ? ' LONG' : ''})`);
     
     // Boucle de tentatives avec rotation des clés
@@ -1421,37 +1437,98 @@ Réponds MAINTENANT - CRÉATIF et UNIQUE!`
 
   /**
    * Résume les messages plus anciens pour garder le contexte sans dépasser les tokens
+   * VERSION AMÉLIORÉE: Capture plus d'informations importantes
    */
-  summarizeOlderMessages(olderMessages, characterName) {
+  summarizeOlderMessages(olderMessages, characterName, character = null) {
     if (!olderMessages || olderMessages.length === 0) return null;
     
     // Extraire les points clés des messages anciens
     const userActions = [];
+    const userDialogues = [];
     const characterActions = [];
+    const characterDialogues = [];
+    const importantEvents = [];
     
-    for (const msg of olderMessages.slice(-20)) { // Max 20 messages pour le résumé
-      const content = msg.content.substring(0, 300);
+    // Mots-clés pour événements importants
+    const importantKeywords = ['je t\'aime', 'ensemble', 'relation', 'secret', 'promesse', 'premier', 'jamais', 'toujours', 'confiance', 'vérité', 'mensonge', 'pardon', 'désolé', 'merci', 'important', 'avouer', 'sentiments'];
+    
+    for (const msg of olderMessages.slice(-30)) { // Augmenté à 30 messages
+      const content = msg.content.substring(0, 500);
+      const contentLower = content.toLowerCase();
+      
+      // Vérifier les événements importants
+      for (const keyword of importantKeywords) {
+        if (contentLower.includes(keyword)) {
+          const snippet = content.substring(0, 100);
+          if (!importantEvents.includes(snippet)) {
+            importantEvents.push(snippet);
+          }
+          break;
+        }
+      }
+      
       if (msg.role === 'user') {
         // Extraire l'action principale de l'utilisateur
         const actionMatch = content.match(/\*([^*]+)\*/);
-        if (actionMatch) userActions.push(actionMatch[1].substring(0, 50));
+        if (actionMatch) userActions.push(actionMatch[1].substring(0, 80));
+        
+        // Extraire le dialogue
+        const dialogueMatch = content.match(/"([^"]+)"/);
+        if (dialogueMatch) userDialogues.push(dialogueMatch[1].substring(0, 80));
       } else if (msg.role === 'assistant') {
         // Extraire l'action principale du personnage
         const actionMatch = content.match(/\*([^*]+)\*/);
-        if (actionMatch) characterActions.push(actionMatch[1].substring(0, 50));
+        if (actionMatch) characterActions.push(actionMatch[1].substring(0, 80));
+        
+        // Extraire le dialogue
+        const dialogueMatch = content.match(/"([^"]+)"/);
+        if (dialogueMatch) characterDialogues.push(dialogueMatch[1].substring(0, 80));
       }
     }
     
-    if (userActions.length === 0 && characterActions.length === 0) return null;
+    // Construire un résumé plus détaillé
+    let summary = `[📜 RÉSUMÉ DE LA CONVERSATION PASSÉE - ${olderMessages.length} messages]\n\n`;
     
-    let summary = `[CONTEXTE CONVERSATION PRÉCÉDENTE]\n`;
-    if (userActions.length > 0) {
-      summary += `L'utilisateur a: ${userActions.slice(-5).join(', ')}\n`;
+    // Événements importants en premier
+    if (importantEvents.length > 0) {
+      summary += `🔑 MOMENTS IMPORTANTS:\n`;
+      importantEvents.slice(-3).forEach(event => {
+        summary += `- "${event.substring(0, 80)}..."\n`;
+      });
+      summary += '\n';
     }
-    if (characterActions.length > 0) {
-      summary += `${characterName} a: ${characterActions.slice(-5).join(', ')}\n`;
+    
+    // Ce que l'utilisateur a fait/dit
+    if (userActions.length > 0 || userDialogues.length > 0) {
+      summary += `👤 L'UTILISATEUR a:\n`;
+      if (userActions.length > 0) {
+        summary += `  Actions: ${userActions.slice(-5).join(' → ')}\n`;
+      }
+      if (userDialogues.length > 0) {
+        summary += `  Dit: "${userDialogues.slice(-3).join('" / "')}"\n`;
+      }
     }
-    summary += `[FIN CONTEXTE - Continue naturellement]`;
+    
+    // Ce que le personnage a fait/dit
+    if (characterActions.length > 0 || characterDialogues.length > 0) {
+      summary += `🎭 ${characterName.toUpperCase()} a:\n`;
+      if (characterActions.length > 0) {
+        summary += `  Actions: ${characterActions.slice(-5).join(' → ')}\n`;
+      }
+      if (characterDialogues.length > 0) {
+        summary += `  Dit: "${characterDialogues.slice(-3).join('" / "')}"\n`;
+      }
+    }
+    
+    // Rappel de la relation/scénario si disponible
+    if (character?.scenario) {
+      summary += `\n📖 SCÉNARIO: ${character.scenario.substring(0, 200)}...\n`;
+    }
+    if (character?.personality) {
+      summary += `💫 PERSONNALITÉ: ${character.personality.substring(0, 150)}...\n`;
+    }
+    
+    summary += `\n[⚠️ COHÉRENCE OBLIGATOIRE: Tes réponses doivent être cohérentes avec ce contexte!]`;
     
     return summary;
   }
