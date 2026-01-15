@@ -303,35 +303,48 @@ export default function AdminPanelScreen() {
 
   // Afficher le profil complet d'un utilisateur
   const viewUserProfile = (user) => {
-    const profile = user.full_profile || {};
+    // Récupérer le profil de plusieurs sources possibles
+    const profile = user.full_profile || user.profile || {};
+    
+    // Récupérer les données avec fallback sur les champs directs
+    const username = profile.username || user.username || 'Non défini';
+    const age = profile.age || user.age || 'Non défini';
+    const gender = profile.gender || user.gender || '';
+    const nsfwMode = profile.nsfwMode || user.nsfw_enabled || false;
+    const bust = profile.bust || user.bust || '';
+    const penis = profile.penis || user.penis || '';
     
     const genderText = {
       'male': '👨 Homme',
       'female': '👩 Femme',
       'non-binary': '🧑 Non-binaire'
-    }[profile.gender] || profile.gender || 'Non défini';
+    }[gender] || gender || 'Non défini';
     
-    let profileDetails = `📧 Email: ${user.email}\n`;
-    profileDetails += `👤 Pseudo: ${profile.username || 'Non défini'}\n`;
-    profileDetails += `🎂 Âge: ${profile.age || 'Non défini'}\n`;
+    let profileDetails = `📧 Email: ${user.email || 'N/A'}\n`;
+    profileDetails += `👤 Pseudo: ${username}\n`;
+    profileDetails += `🎂 Âge: ${age}\n`;
     profileDetails += `⚧️ Genre: ${genderText}\n`;
     profileDetails += `\n📊 Statuts:\n`;
     profileDetails += `   👑 Admin: ${user.is_admin ? 'Oui' : 'Non'}\n`;
     profileDetails += `   ⭐ Premium: ${user.is_premium ? 'Oui' : 'Non'}\n`;
-    profileDetails += `   🔞 NSFW: ${profile.nsfwMode ? 'Activé' : 'Désactivé'}\n`;
+    profileDetails += `   🔞 NSFW: ${nsfwMode ? 'Activé' : 'Désactivé'}\n`;
     
-    if (profile.gender === 'female' && profile.bust) {
-      profileDetails += `\n👙 Bonnet: ${profile.bust}\n`;
+    if (gender === 'female' && bust) {
+      profileDetails += `\n👙 Bonnet: ${bust}\n`;
     }
-    if (profile.gender === 'male' && profile.penis) {
-      profileDetails += `\n📏 Taille: ${profile.penis} cm\n`;
+    if (gender === 'male' && penis) {
+      profileDetails += `\n📏 Taille: ${penis} cm\n`;
     }
     
-    profileDetails += `\n📅 Inscrit le: ${new Date(user.created_at).toLocaleDateString('fr-FR')}\n`;
-    profileDetails += `🆔 ID: ${user.id || 'N/A'}`;
+    const createdAt = user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : 'N/A';
+    profileDetails += `\n📅 Inscrit le: ${createdAt}\n`;
+    profileDetails += `🆔 ID: ${user.id || 'MANQUANT'}`;
+    
+    // Debug: afficher les données brutes
+    console.log('📋 Profil utilisateur:', JSON.stringify(user, null, 2));
 
     Alert.alert(
-      `👤 Profil de ${profile.username || user.email}`,
+      `👤 Profil de ${username}`,
       profileDetails,
       [{ text: 'Fermer', style: 'cancel' }]
     );

@@ -629,9 +629,19 @@ def is_request_admin(request):
     # Fallback: vérifier le header X-Admin-Email
     admin_email = request.headers.get('X-Admin-Email', '')
     if admin_email:
-        is_valid = admin_email.lower() == ADMIN_EMAIL.lower()
-        print(f"🔐 Admin header check: {admin_email} == {ADMIN_EMAIL} -> {is_valid}")
-        return is_valid
+        # Vérifier si c'est l'admin principal
+        if admin_email.lower() == ADMIN_EMAIL.lower():
+            print(f"✅ Admin principal vérifié: {admin_email}")
+            return True
+        
+        # Vérifier si c'est un admin dans la base de données
+        admin_user = get_user_by_email(admin_email)
+        if admin_user and admin_user.get('is_admin', False):
+            print(f"✅ Admin secondaire vérifié: {admin_email}")
+            return True
+        
+        print(f"❌ Email non admin: {admin_email}")
+        return False
     
     print(f"❌ Pas d'authentification admin trouvée")
     return False
@@ -639,46 +649,59 @@ def is_request_admin(request):
 @app.route('/admin/users', methods=['GET'])
 def admin_get_users():
     """Liste tous les utilisateurs (admin uniquement)"""
-    if not is_request_admin(request):
-        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+    admin_check = is_request_admin(request)
+    print(f"🔐 Admin check result: {admin_check}")
+    
+    if not admin_check:
+        return jsonify({'success': False, 'error': 'Accès refusé - Vous devez être admin'}), 403
     
     try:
         users = []
         for filename in os.listdir(USERS_DIR):
             if filename.endswith('.json') and not filename.endswith('_characters.json'):
-                user = load_json(os.path.join(USERS_DIR, filename))
+                filepath = os.path.join(USERS_DIR, filename)
+                user = load_json(filepath)
                 if user:
                     # S'assurer que l'ID existe (pour les anciens utilisateurs)
                     if not user.get('id'):
                         # Extraire l'ID du nom de fichier
                         user['id'] = filename.replace('.json', '')
                         # Sauvegarder pour corriger le fichier
-                        save_json(os.path.join(USERS_DIR, filename), user)
+                        save_json(filepath, user)
+                        print(f"🔧 ID corrigé pour {user.get('email')}: {user['id']}")
                     
                     # Exclure le mot de passe
                     user_safe = {k: v for k, v in user.items() if k != 'password_hash'}
                     
-                    # Ajouter des infos du profil
-                    profile = user.get('profile', {}) or {}
-                    user_safe['username'] = profile.get('username', '')
-                    user_safe['age'] = profile.get('age', 0)
-                    user_safe['gender'] = profile.get('gender', '')
-                    user_safe['nsfw_enabled'] = profile.get('nsfwMode', False)
-                    user_safe['is_premium'] = user.get('is_premium', False)
-                    user_safe['is_admin'] = user.get('is_admin', False)
+                    # Ajouter des infos du profil avec valeurs par défaut robustes
+                    profile = user.get('profile') or {}
+                    if not isinstance(profile, dict):
+                        profile = {}
+                    
+                    user_safe['username'] = profile.get('username') or user.get('email', '').split('@')[0]
+                    user_safe['age'] = profile.get('age') or 0
+                    user_safe['gender'] = profile.get('gender') or ''
+                    user_safe['bust'] = profile.get('bust') or ''
+                    user_safe['penis'] = profile.get('penis') or ''
+                    user_safe['nsfw_enabled'] = profile.get('nsfwMode', False) or False
+                    user_safe['is_premium'] = user.get('is_premium', False) or False
+                    user_safe['is_admin'] = user.get('is_admin', False) or False
                     
                     # Ajouter le profil complet pour l'admin
                     user_safe['full_profile'] = profile
+                    user_safe['profile'] = profile  # Double accès pour compatibilité
                     
                     users.append(user_safe)
         
         # Trier par date de création (plus récent en premier)
         users.sort(key=lambda x: x.get('created_at', 0), reverse=True)
         
-        print(f"👑 Admin: Liste de {len(users)} utilisateurs")
+        print(f"👑 Admin: Liste de {len(users)} utilisateurs retournée")
         return jsonify({'success': True, 'count': len(users), 'users': users})
     except Exception as e:
         print(f"❌ Admin: Erreur liste utilisateurs: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/users/<user_id>/profile', methods=['GET'])
@@ -700,40 +723,60 @@ def admin_get_user_profile(user_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+def find_user_file(user_id):
+    """Trouve le fichier utilisateur par ID ou email"""
+    # Essai 1: fichier direct avec l'ID
+    filepath = os.path.join(USERS_DIR, f"{user_id}.json")
+    if os.path.exists(filepath):
+        return filepath
+    
+    # Essai 2: parcourir tous les fichiers pour trouver par ID ou email
+    for filename in os.listdir(USERS_DIR):
+        if filename.endswith('.json') and not filename.endswith('_characters.json'):
+            fp = os.path.join(USERS_DIR, filename)
+            user = load_json(fp)
+            if user:
+                # Chercher par ID
+                if user.get('id') == user_id:
+                    return fp
+                # Chercher par email
+                if user.get('email', '').lower() == user_id.lower():
+                    return fp
+    
+    return None
+
 @app.route('/admin/users/<user_id>/role', methods=['PUT'])
 def admin_update_user_role(user_id):
     """Modifier le rôle admin d'un utilisateur"""
     print(f"📝 Demande modification rôle admin pour user_id={user_id}")
+    print(f"🔐 X-Admin-Email: {request.headers.get('X-Admin-Email', 'NON DÉFINI')}")
     
     if not is_request_admin(request):
         print(f"❌ Accès refusé pour modification rôle")
-        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+        return jsonify({'success': False, 'error': 'Accès refusé - Vous devez être admin'}), 403
     
     try:
-        filepath = os.path.join(USERS_DIR, f"{user_id}.json")
-        print(f"📁 Fichier: {filepath}")
+        filepath = find_user_file(user_id)
         
-        if not os.path.exists(filepath):
-            print(f"❌ Fichier non trouvé: {filepath}")
-            # Essayer de trouver par email si l'ID ressemble à un email
-            if '@' in user_id:
-                for filename in os.listdir(USERS_DIR):
-                    if filename.endswith('.json'):
-                        u = load_json(os.path.join(USERS_DIR, filename))
-                        if u and u.get('email', '').lower() == user_id.lower():
-                            filepath = os.path.join(USERS_DIR, filename)
-                            print(f"✅ Trouvé par email: {filepath}")
-                            break
-            if not os.path.exists(filepath):
-                return jsonify({'success': False, 'error': f'Utilisateur non trouvé: {user_id}'}), 404
+        if not filepath:
+            print(f"❌ Utilisateur non trouvé: {user_id}")
+            # Lister les fichiers disponibles pour debug
+            files = [f for f in os.listdir(USERS_DIR) if f.endswith('.json')]
+            print(f"📁 Fichiers disponibles: {files}")
+            return jsonify({'success': False, 'error': f'Utilisateur non trouvé: {user_id}'}), 404
+        
+        print(f"📁 Fichier trouvé: {filepath}")
         
         user = load_json(filepath)
         data = request.json
         print(f"📨 Données reçues: {data}")
         
+        if not data:
+            return jsonify({'success': False, 'error': 'Aucune donnée reçue'}), 400
+        
         # Ne pas permettre de retirer les droits admin à soi-même
         current_admin = request.headers.get('X-Admin-Email', '').lower()
-        if user.get('email', '').lower() == current_admin and not data.get('is_admin', True):
+        if user.get('email', '').lower() == current_admin and data.get('is_admin') == False:
             return jsonify({'success': False, 'error': 'Impossible de retirer vos propres droits admin'}), 400
         
         user['is_admin'] = data.get('is_admin', False)
@@ -745,38 +788,35 @@ def admin_update_user_role(user_id):
         return jsonify({'success': True, 'user': {k: v for k, v in user.items() if k != 'password_hash'}})
     except Exception as e:
         print(f"❌ Erreur: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/users/<user_id>/premium', methods=['PUT'])
 def admin_update_user_premium(user_id):
     """Modifier le statut premium d'un utilisateur"""
     print(f"⭐ Demande modification premium pour user_id={user_id}")
+    print(f"🔐 X-Admin-Email: {request.headers.get('X-Admin-Email', 'NON DÉFINI')}")
     
     if not is_request_admin(request):
         print(f"❌ Accès refusé pour modification premium")
-        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+        return jsonify({'success': False, 'error': 'Accès refusé - Vous devez être admin'}), 403
     
     try:
-        filepath = os.path.join(USERS_DIR, f"{user_id}.json")
-        print(f"📁 Fichier: {filepath}")
+        filepath = find_user_file(user_id)
         
-        if not os.path.exists(filepath):
-            print(f"❌ Fichier non trouvé: {filepath}")
-            # Essayer de trouver par email si l'ID ressemble à un email
-            if '@' in user_id:
-                for filename in os.listdir(USERS_DIR):
-                    if filename.endswith('.json'):
-                        u = load_json(os.path.join(USERS_DIR, filename))
-                        if u and u.get('email', '').lower() == user_id.lower():
-                            filepath = os.path.join(USERS_DIR, filename)
-                            print(f"✅ Trouvé par email: {filepath}")
-                            break
-            if not os.path.exists(filepath):
-                return jsonify({'success': False, 'error': f'Utilisateur non trouvé: {user_id}'}), 404
+        if not filepath:
+            print(f"❌ Utilisateur non trouvé: {user_id}")
+            return jsonify({'success': False, 'error': f'Utilisateur non trouvé: {user_id}'}), 404
+        
+        print(f"📁 Fichier trouvé: {filepath}")
         
         user = load_json(filepath)
         data = request.json
         print(f"📨 Données reçues: {data}")
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'Aucune donnée reçue'}), 400
         
         user['is_premium'] = data.get('is_premium', False)
         user['premium_since'] = int(time.time() * 1000) if user['is_premium'] else None
@@ -788,20 +828,26 @@ def admin_update_user_premium(user_id):
         return jsonify({'success': True, 'user': {k: v for k, v in user.items() if k != 'password_hash'}})
     except Exception as e:
         print(f"❌ Erreur: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/users/<user_id>', methods=['DELETE'])
 def admin_delete_user(user_id):
     """Supprimer un utilisateur"""
+    print(f"🗑️ Demande suppression pour user_id={user_id}")
+    
     if not is_request_admin(request):
         return jsonify({'success': False, 'error': 'Accès refusé'}), 403
     
     try:
-        filepath = os.path.join(USERS_DIR, f"{user_id}.json")
-        if not os.path.exists(filepath):
-            return jsonify({'success': False, 'error': 'Utilisateur non trouvé'}), 404
+        filepath = find_user_file(user_id)
+        
+        if not filepath:
+            return jsonify({'success': False, 'error': f'Utilisateur non trouvé: {user_id}'}), 404
         
         user = load_json(filepath)
+        actual_user_id = user.get('id', user_id)
         
         # Ne pas permettre de supprimer l'admin principal
         if user.get('email', '').lower() == ADMIN_EMAIL.lower():
@@ -814,18 +860,19 @@ def admin_delete_user(user_id):
         for session_file in os.listdir(SESSIONS_DIR):
             if session_file.endswith('.json'):
                 session = load_json(os.path.join(SESSIONS_DIR, session_file))
-                if session.get('user_id') == user_id:
+                if session.get('user_id') == actual_user_id:
                     os.remove(os.path.join(SESSIONS_DIR, session_file))
         
         # Supprimer le dossier de sync de l'utilisateur
-        user_sync_dir = os.path.join(SYNC_DIR, user_id)
+        user_sync_dir = os.path.join(SYNC_DIR, actual_user_id)
         if os.path.exists(user_sync_dir):
             import shutil
             shutil.rmtree(user_sync_dir)
         
-        print(f"👑 Admin: Utilisateur supprimé {user.get('email')}")
+        print(f"✅ Admin: Utilisateur supprimé {user.get('email')}")
         return jsonify({'success': True})
     except Exception as e:
+        print(f"❌ Erreur suppression: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ==================== CONFIGURATION PAYPAL (Admin uniquement) ====================
@@ -963,27 +1010,44 @@ def get_shared_keys():
 @app.route('/api/shared-keys', methods=['POST'])
 def set_shared_keys():
     """Définit les clés API partagées (admin uniquement)"""
-    if not is_request_admin(request):
+    print(f"🔑 Tentative de partage des clés...")
+    print(f"🔐 Headers: X-Admin-Email = {request.headers.get('X-Admin-Email', 'NON DÉFINI')}")
+    
+    admin_check = is_request_admin(request)
+    print(f"🔐 Admin check: {admin_check}")
+    
+    if not admin_check:
+        print(f"❌ Accès refusé pour partage des clés")
         return jsonify({'success': False, 'error': 'Accès refusé - Admin uniquement'}), 403
     
     try:
         data = request.json
+        print(f"📨 Données reçues: {data}")
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'Aucune donnée reçue'}), 400
+        
         shared = load_shared_keys()
         
         # Mettre à jour les clés Groq
         if 'groq' in data:
-            shared['groq'] = data['groq']
-            print(f"🔑 Admin: {len(data['groq'])} clé(s) Groq partagée(s)")
+            groq_keys = data['groq']
+            if isinstance(groq_keys, list):
+                shared['groq'] = groq_keys
+                print(f"✅ {len(groq_keys)} clé(s) Groq enregistrée(s)")
+            else:
+                print(f"⚠️ Format invalide pour groq: {type(groq_keys)}")
         
         # Mettre à jour le modèle Groq
         if 'groq_model' in data:
             shared['groq_model'] = data['groq_model']
-            print(f"🤖 Admin: Modèle Groq partagé: {data['groq_model']}")
+            print(f"✅ Modèle Groq: {data['groq_model']}")
         
         shared['updated_at'] = int(time.time() * 1000)
         shared['updated_by'] = request.headers.get('X-Admin-Email', 'admin')
         
         save_shared_keys(shared)
+        print(f"✅ Clés sauvegardées dans {SHARED_KEYS_FILE}")
         
         return jsonify({
             'success': True,
@@ -991,6 +1055,9 @@ def set_shared_keys():
             'keysCount': len(shared.get('groq', []))
         })
     except Exception as e:
+        print(f"❌ Erreur partage clés: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/shared-keys/status', methods=['GET'])
