@@ -701,8 +701,17 @@ export default function SettingsScreen({ navigation, onLogout }) {
                   )}
                   
                   <Text style={styles.sdInfoText}>
-                    🧠 RAM Totale: {sdAvailability.ramMB > 0 ? (sdAvailability.ramMB / 1024).toFixed(1) : '?'} GB
-                    {sdAvailability.freeRamMB > 0 ? ` (${(sdAvailability.freeRamMB / 1024).toFixed(1)} GB dispo)` : ''}
+                    🧠 RAM Totale: {
+                      sdAvailability.totalSystemRamMB > 0 
+                        ? (sdAvailability.totalSystemRamMB / 1024).toFixed(2)
+                        : sdAvailability.ramMB > 0 
+                          ? (sdAvailability.ramMB / 1024).toFixed(2) 
+                          : '?'
+                    } GB
+                    {(sdAvailability.availableSystemRamMB > 0 || sdAvailability.freeRamMB > 0) 
+                      ? ` (${((sdAvailability.availableSystemRamMB || sdAvailability.freeRamMB) / 1024).toFixed(2)} GB dispo)` 
+                      : ''
+                    }
                     {sdAvailability.hasEnoughRAM ? ' ✅' : ' ⚠️'}
                   </Text>
                   
@@ -765,21 +774,29 @@ export default function SettingsScreen({ navigation, onLogout }) {
                   try {
                     Alert.alert('🧪 Test...', 'Test du module natif en cours...');
                     const result = await StableDiffusionLocalService.testModule();
+                    console.log('🧪 Résultat test module:', JSON.stringify(result));
                     if (result.success) {
                       Alert.alert(
                         '✅ Module OK',
                         `Version: ${result.moduleVersion || 'N/A'}\n` +
-                        `RAM Totale: ${result.totalRamGB?.toFixed(2) || '?'} GB\n` +
-                        `RAM Disponible: ${result.availableRamGB?.toFixed(2) || '?'} GB\n` +
-                        `ONNX: ${result.onnxAvailable ? '✅ Disponible' : '❌ Non disponible'}\n` +
-                        `Appareil: ${result.device || 'N/A'} (${result.manufacturer || 'N/A'})`
+                        `\n📊 RAM:\n` +
+                        `  • Totale: ${result.totalRamDisplay || (result.totalRamGB?.toFixed(2) + ' GB') || '?'}\n` +
+                        `  • Disponible: ${result.availRamDisplay || (result.availableRamGB?.toFixed(2) + ' GB') || '?'}\n` +
+                        `  • Bytes: ${result.totalRamBytes ? Math.round(result.totalRamBytes / 1024 / 1024) + ' MB' : '?'}\n` +
+                        `\n⚡ ONNX: ${result.onnxAvailable ? '✅ Disponible' : '❌ Non disponible'}\n` +
+                        `  Status: ${result.onnxStatus || 'N/A'}\n` +
+                        `\n📱 Appareil: ${result.device || 'N/A'}\n` +
+                        `  Fabricant: ${result.manufacturer || 'N/A'}\n` +
+                        `  Android: ${result.androidVersion || 'N/A'}`
                       );
                     } else {
                       Alert.alert(
                         '❌ Erreur',
                         `Module: ${result.moduleExists ? '✅' : '❌'}\n` +
                         `Méthode: ${result.methodExists !== false ? '✅' : '❌'}\n` +
-                        `Erreur: ${result.error || 'Inconnue'}`
+                        `ONNX: ${result.onnxAvailable ? '✅' : '❌'}\n` +
+                        `Erreur: ${result.error || 'Inconnue'}\n` +
+                        `\nMéthodes dispo: ${result.methodsAvailable?.join(', ') || 'N/A'}`
                       );
                     }
                     checkSDAvailability();

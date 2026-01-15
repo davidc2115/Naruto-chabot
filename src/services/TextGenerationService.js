@@ -271,61 +271,96 @@ class TextGenerationService {
 
   /**
    * Construit la description de l'utilisateur pour le contexte NSFW
+   * TRÈS IMPORTANT: Ces informations doivent influencer les réponses
    */
   buildUserDescription(userProfile) {
     if (!userProfile) return '';
     
     const userName = userProfile.username || 'l\'utilisateur';
-    let desc = `\n=== PROFIL DE ${userName.toUpperCase()} (L'UTILISATEUR) ===\n`;
+    let desc = `\n=== PROFIL DE ${userName.toUpperCase()} (L'UTILISATEUR) - À RESPECTER OBLIGATOIREMENT ===\n`;
     
-    // Genre de l'utilisateur
+    // Genre de l'utilisateur - CRUCIAL
     if (userProfile.gender) {
       if (userProfile.gender === 'homme' || userProfile.gender === 'male') {
-        desc += `${userName} est un HOMME`;
+        desc += `🔵 ${userName} est un HOMME.\n`;
+        desc += `   → Utilise "il", "lui", "son" pour ${userName}\n`;
+        desc += `   → ${userName} a un corps masculin (torse, épaules, sexe masculin)\n`;
       } else if (userProfile.gender === 'femme' || userProfile.gender === 'female') {
-        desc += `${userName} est une FEMME`;
+        desc += `🔴 ${userName} est une FEMME.\n`;
+        desc += `   → Utilise "elle" pour ${userName}\n`;
+        desc += `   → ${userName} a un corps féminin (poitrine, hanches, sexe féminin)\n`;
       } else {
-        desc += `${userName} est une personne non-binaire`;
+        desc += `🟣 ${userName} est une personne NON-BINAIRE.\n`;
+        desc += `   → Utilise "iel" pour ${userName}\n`;
+      }
+    } else {
+      desc += `⚪ Genre de ${userName} non spécifié - adapte-toi au contexte\n`;
+    }
+    
+    // Âge de l'utilisateur - IMPORTANT
+    if (userProfile.age) {
+      const age = parseInt(userProfile.age);
+      desc += `📅 ${userName} a ${age} ans`;
+      if (age >= 18 && age <= 25) {
+        desc += ` (jeune adulte)\n`;
+      } else if (age > 25 && age <= 35) {
+        desc += ` (adulte)\n`;
+      } else if (age > 35 && age <= 50) {
+        desc += ` (adulte mature)\n`;
+      } else if (age > 50) {
+        desc += ` (adulte expérimenté)\n`;
+      } else {
+        desc += `\n`;
       }
     }
     
-    // Âge de l'utilisateur
-    if (userProfile.age) {
-      desc += ` de ${userProfile.age} ans`;
-    }
-    
-    desc += '.\n';
-    
-    // Attributs physiques pour NSFW
+    // Attributs physiques pour NSFW - DÉTAILLÉ
     if (userProfile.nsfwMode && userProfile.isAdult) {
+      desc += `\n=== ATTRIBUTS PHYSIQUES DE ${userName.toUpperCase()} (UTILISE-LES!) ===\n`;
+      
       // Poitrine pour femmes
       if ((userProfile.gender === 'femme' || userProfile.gender === 'female') && userProfile.bust) {
         const bustDescriptions = {
-          'A': 'une petite poitrine',
-          'B': 'une poitrine menue',
-          'C': 'une poitrine moyenne',
-          'D': 'une poitrine généreuse',
-          'DD': 'une très belle poitrine',
-          'E': 'une poitrine imposante',
-          'F': 'une poitrine volumineuse',
-          'G': 'une très grosse poitrine',
-          'H': 'une poitrine énorme'
+          'A': { desc: 'une petite poitrine (bonnet A)', adj: 'petits seins fermes' },
+          'B': { desc: 'une poitrine menue (bonnet B)', adj: 'jolis petits seins' },
+          'C': { desc: 'une poitrine moyenne (bonnet C)', adj: 'beaux seins ronds' },
+          'D': { desc: 'une poitrine généreuse (bonnet D)', adj: 'gros seins appétissants' },
+          'DD': { desc: 'une très belle poitrine (bonnet DD)', adj: 'magnifiques gros seins' },
+          'E': { desc: 'une poitrine imposante (bonnet E)', adj: 'énormes seins' },
+          'F': { desc: 'une poitrine volumineuse (bonnet F)', adj: 'seins massifs' },
+          'G': { desc: 'une très grosse poitrine (bonnet G)', adj: 'seins gigantesques' },
+          'H': { desc: 'une poitrine énorme (bonnet H)', adj: 'seins immenses' }
         };
-        desc += `${userName} a ${bustDescriptions[userProfile.bust] || 'une poitrine'}.\n`;
+        const bustInfo = bustDescriptions[userProfile.bust] || { desc: 'une poitrine', adj: 'seins' };
+        desc += `🍈 ${userName} a ${bustInfo.desc}\n`;
+        desc += `   → Dans les scènes intimes, réfère-toi à ses "${bustInfo.adj}"\n`;
+        desc += `   → Tu peux les toucher, caresser, embrasser, commenter leur beauté\n`;
       }
       
       // Taille du sexe pour hommes
       if ((userProfile.gender === 'homme' || userProfile.gender === 'male') && userProfile.penis) {
         const size = parseInt(userProfile.penis) || 15;
+        let sizeDesc, sizeAdj, reaction;
         if (size >= 22) {
-          desc += `${userName} a un très grand sexe (${size} cm).\n`;
+          sizeDesc = `un très grand sexe (${size} cm)`;
+          sizeAdj = 'énorme membre';
+          reaction = 'impressionnée/excitée par sa taille';
         } else if (size >= 18) {
-          desc += `${userName} a un grand sexe (${size} cm).\n`;
+          sizeDesc = `un grand sexe (${size} cm)`;
+          sizeAdj = 'beau grand sexe';
+          reaction = 'ravie de sa taille';
         } else if (size >= 14) {
-          desc += `${userName} a un sexe de taille moyenne (${size} cm).\n`;
+          sizeDesc = `un sexe de taille moyenne (${size} cm)`;
+          sizeAdj = 'beau sexe';
+          reaction = 'satisfaite';
         } else {
-          desc += `${userName} a un sexe de ${size} cm.\n`;
+          sizeDesc = `un sexe de ${size} cm`;
+          sizeAdj = 'sexe';
+          reaction = 'attentionnée';
         }
+        desc += `🍆 ${userName} a ${sizeDesc}\n`;
+        desc += `   → Dans les scènes intimes, réfère-toi à son "${sizeAdj}"\n`;
+        desc += `   → Tu peux le toucher, caresser, réagir (${reaction})\n`;
       }
     }
     
@@ -334,43 +369,85 @@ class TextGenerationService {
 
   /**
    * Construit les instructions pour les interactions NSFW basées sur le genre de l'utilisateur
+   * ULTRA-IMPORTANT: Ces guidelines doivent ABSOLUMENT être suivies
    */
   buildUserInteractionGuidelines(userProfile, character) {
-    if (!userProfile || !userProfile.nsfwMode) return '';
+    if (!userProfile) return '';
     
     const userName = userProfile.username || 'l\'utilisateur';
     const userGender = userProfile.gender;
     const charGender = character.gender;
+    const userAge = userProfile.age ? parseInt(userProfile.age) : null;
     
-    let guidelines = '\n=== INTERACTIONS AVEC L\'UTILISATEUR ===\n';
+    let guidelines = '\n=== 🔥 RÈGLES D\'INTERACTION AVEC L\'UTILISATEUR (OBLIGATOIRE) 🔥 ===\n';
     
-    // Adapter selon la combinaison de genres
+    // RÈGLE 1: Genre de l'utilisateur
+    guidelines += `\n📋 RÈGLE 1 - GENRE DE ${userName.toUpperCase()}:\n`;
     if (userGender === 'homme' || userGender === 'male') {
-      guidelines += `${userName} est un homme. `;
+      guidelines += `   ${userName} est UN HOMME → corps masculin\n`;
+      guidelines += `   ✅ Pronoms: il, lui, son, sa\n`;
+      guidelines += `   ✅ Corps: torse musclé/non, épaules, sexe masculin (pénis, érection)\n`;
+      guidelines += `   ✅ Actions possibles: le toucher, le caresser, le masturber, le sucer\n`;
       if (charGender === 'female') {
-        guidelines += `Dans les scènes intimes, tu réagis à ses attributs masculins.\n`;
+        guidelines += `   💕 Dynamique: Tu es une femme avec un homme → hétéro\n`;
       } else if (charGender === 'male') {
-        guidelines += `C'est une interaction homme/homme.\n`;
+        guidelines += `   💕 Dynamique: Tu es un homme avec un homme → gay/bi\n`;
       }
     } else if (userGender === 'femme' || userGender === 'female') {
-      guidelines += `${userName} est une femme. `;
+      guidelines += `   ${userName} est UNE FEMME → corps féminin\n`;
+      guidelines += `   ✅ Pronoms: elle, sa, ses\n`;
+      guidelines += `   ✅ Corps: seins/poitrine, hanches, sexe féminin (chatte, mouillée)\n`;
+      guidelines += `   ✅ Actions possibles: la toucher, la caresser, la doigter, la lécher\n`;
       if (charGender === 'male') {
-        guidelines += `Dans les scènes intimes, tu réagis à ses attributs féminins.\n`;
+        guidelines += `   💕 Dynamique: Tu es un homme avec une femme → hétéro\n`;
       } else if (charGender === 'female') {
-        guidelines += `C'est une interaction femme/femme.\n`;
+        guidelines += `   💕 Dynamique: Tu es une femme avec une femme → lesbien\n`;
       }
-    } else {
-      guidelines += `${userName} est non-binaire. Adapte tes interactions en conséquence.\n`;
+    } else if (userGender) {
+      guidelines += `   ${userName} est NON-BINAIRE\n`;
+      guidelines += `   ✅ Pronoms: iel, ellui\n`;
+      guidelines += `   ✅ Adapte le vocabulaire au contexte\n`;
     }
     
-    // Instructions sur les attributs physiques de l'utilisateur
+    // RÈGLE 2: Âge de l'utilisateur
+    if (userAge) {
+      guidelines += `\n📋 RÈGLE 2 - ÂGE DE ${userName.toUpperCase()}: ${userAge} ans\n`;
+      if (userAge >= 18 && userAge <= 22) {
+        guidelines += `   → Jeune adulte: tu peux faire allusion à sa jeunesse/fougue\n`;
+      } else if (userAge > 22 && userAge <= 35) {
+        guidelines += `   → Adulte dans la fleur de l'âge\n`;
+      } else if (userAge > 35 && userAge <= 50) {
+        guidelines += `   → Adulte mature: tu peux apprécier son expérience\n`;
+      } else if (userAge > 50) {
+        guidelines += `   → Adulte expérimenté: tu peux commenter sa maturité séduisante\n`;
+      }
+    }
+    
+    // RÈGLE 3: Attributs physiques dans les scènes intimes
     if (userProfile.isAdult && userProfile.nsfwMode) {
+      guidelines += `\n📋 RÈGLE 3 - ATTRIBUTS PHYSIQUES (utilise dans les scènes intimes):\n`;
+      
       if ((userGender === 'homme' || userGender === 'male') && userProfile.penis) {
         const size = parseInt(userProfile.penis) || 15;
-        guidelines += `- Quand pertinent dans les scènes intimes, tu peux réagir/commenter la taille de ${userName}\n`;
+        guidelines += `   🍆 ${userName} a un sexe de ${size} cm\n`;
+        if (size >= 20) {
+          guidelines += `   → Réactions: "c'est énorme", "impressionnant", "je ne sais pas si...", gémissements\n`;
+        } else if (size >= 16) {
+          guidelines += `   → Réactions: "mmh, juste comme j'aime", "parfait", appréciative\n`;
+        } else {
+          guidelines += `   → Réactions: attentionnée, sensuelle, focus sur le plaisir\n`;
+        }
+        guidelines += `   → Tu peux: le toucher, le prendre en main, le sucer, commenter sa dureté\n`;
       }
+      
       if ((userGender === 'femme' || userGender === 'female') && userProfile.bust) {
-        guidelines += `- Quand pertinent dans les scènes intimes, tu peux réagir/commenter la poitrine de ${userName}\n`;
+        guidelines += `   🍈 ${userName} a une poitrine bonnet ${userProfile.bust}\n`;
+        if (['D', 'DD', 'E', 'F', 'G', 'H'].includes(userProfile.bust)) {
+          guidelines += `   → Réactions: "magnifiques", "j'adore tes seins", caresses appuyées\n`;
+        } else {
+          guidelines += `   → Réactions: "jolis petits seins", caresses douces, tétées\n`;
+        }
+        guidelines += `   → Tu peux: les caresser, les embrasser, les sucer, commenter leur beauté\n`;
       }
     }
     
@@ -1096,10 +1173,29 @@ COHÉRENCE: Continue dans le ton de la conversation précédente!`;
     ];
     const randomTrajectory = trajectories[Math.floor(Math.random() * trajectories.length)];
     
+    // Construire le rappel sur le profil utilisateur
+    let userReminder = '';
+    if (userProfile) {
+      const ug = userProfile.gender;
+      if (ug === 'homme' || ug === 'male') {
+        userReminder = `👤 ${userName} = HOMME`;
+        if (userProfile.penis) userReminder += ` (sexe: ${userProfile.penis}cm)`;
+        if (userProfile.age) userReminder += ` (${userProfile.age} ans)`;
+      } else if (ug === 'femme' || ug === 'female') {
+        userReminder = `👤 ${userName} = FEMME`;
+        if (userProfile.bust) userReminder += ` (poitrine: ${userProfile.bust})`;
+        if (userProfile.age) userReminder += ` (${userProfile.age} ans)`;
+      } else if (ug) {
+        userReminder = `👤 ${userName} = NON-BINAIRE`;
+        if (userProfile.age) userReminder += ` (${userProfile.age} ans)`;
+      }
+    }
+    
     fullMessages.push({
       role: 'system',
       content: `[⚠️ RAPPEL FINAL - OBLIGATOIRE]
 
+${userReminder ? userReminder + '\n→ ADAPTE tes réponses au GENRE et aux ATTRIBUTS de ' + userName + '!\n' : ''}
 🎭 TRAJECTOIRE: ${randomTrajectory}
 ❌ PAS de "je t'aime" ou de déclaration d'amour!
 ❌ PAS de happy ending systématique!

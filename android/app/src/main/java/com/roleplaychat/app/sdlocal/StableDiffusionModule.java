@@ -178,61 +178,97 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getSystemInfo(Promise promise) {
         try {
+            Log.i(TAG, "╔════════════════════════════════════════╗");
+            Log.i(TAG, "║  getSystemInfo() APPELÉ                ║");
+            Log.i(TAG, "╚════════════════════════════════════════╝");
+            
             // Utiliser ActivityManager pour obtenir la VRAIE RAM du système
             ActivityManager activityManager = (ActivityManager) reactContext.getSystemService(Context.ACTIVITY_SERVICE);
             ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
             activityManager.getMemoryInfo(memInfo);
             
-            // RAM totale du système (pas juste l'allocation JVM)
-            long totalSystemRam = memInfo.totalMem;
-            long availableSystemRam = memInfo.availMem;
-            long threshold = memInfo.threshold;
+            // RAM totale du système - VALEURS EN BYTES (long)
+            long totalSystemRamBytes = memInfo.totalMem;
+            long availableSystemRamBytes = memInfo.availMem;
+            long thresholdBytes = memInfo.threshold;
             boolean lowMemory = memInfo.lowMemory;
             
-            // RAM JVM pour référence
+            // LOGS DÉTAILLÉS pour debug
+            Log.i(TAG, "📊 [RAW] totalMem (bytes): " + totalSystemRamBytes);
+            Log.i(TAG, "📊 [RAW] availMem (bytes): " + availableSystemRamBytes);
+            Log.i(TAG, "📊 [RAW] threshold (bytes): " + thresholdBytes);
+            Log.i(TAG, "📊 [RAW] lowMemory: " + lowMemory);
+            
+            // Calculs en MB et GB avec double précision
+            double totalRamMB = (double) totalSystemRamBytes / (1024.0 * 1024.0);
+            double availableRamMB = (double) availableSystemRamBytes / (1024.0 * 1024.0);
+            double totalRamGB = totalRamMB / 1024.0;
+            double availableRamGB = availableRamMB / 1024.0;
+            
+            Log.i(TAG, "📊 [CALC] RAM Totale: " + String.format("%.2f", totalRamGB) + " GB (" + String.format("%.0f", totalRamMB) + " MB)");
+            Log.i(TAG, "📊 [CALC] RAM Disponible: " + String.format("%.2f", availableRamGB) + " GB (" + String.format("%.0f", availableRamMB) + " MB)");
+            
+            // RAM JVM pour référence (pas utilisé pour SD mais info utile)
             Runtime runtime = Runtime.getRuntime();
             long jvmMaxMemory = runtime.maxMemory();
             long jvmTotalMemory = runtime.totalMemory();
             long jvmFreeMemory = runtime.freeMemory();
             
+            Log.i(TAG, "📊 [JVM] Max: " + (jvmMaxMemory / 1024 / 1024) + " MB");
+            Log.i(TAG, "📊 [JVM] Total: " + (jvmTotalMemory / 1024 / 1024) + " MB");
+            Log.i(TAG, "📊 [JVM] Free: " + (jvmFreeMemory / 1024 / 1024) + " MB");
+            
             // Stockage
             StatFs stat = new StatFs(Environment.getDataDirectory().getPath());
             long availableBytes = stat.getAvailableBytes();
             long totalBytes = stat.getTotalBytes();
+            double freeStorageMB = (double) availableBytes / (1024.0 * 1024.0);
+            double freeStorageGB = freeStorageMB / 1024.0;
             
-            // Calculs en MB
-            double totalRamMB = totalSystemRam / 1024.0 / 1024.0;
-            double availableRamMB = availableSystemRam / 1024.0 / 1024.0;
-            double freeStorageMB = availableBytes / 1024.0 / 1024.0;
+            Log.i(TAG, "📊 [STORAGE] Libre: " + String.format("%.2f", freeStorageGB) + " GB");
             
             // Vérifier si l'appareil peut exécuter SD
             // Besoin de 4GB+ RAM totale et 2GB+ disponible
-            boolean hasEnoughRAM = totalSystemRam > 4L * 1024 * 1024 * 1024 && availableSystemRam > 2L * 1024 * 1024 * 1024;
-            boolean hasEnoughStorage = availableBytes > 3L * 1024 * 1024 * 1024; // 3GB pour modèles
+            // Utiliser les valeurs en bytes pour éviter les erreurs de calcul
+            long fourGBinBytes = 4L * 1024L * 1024L * 1024L;
+            long twoGBinBytes = 2L * 1024L * 1024L * 1024L;
+            long threeGBinBytes = 3L * 1024L * 1024L * 1024L;
             
-            Log.i(TAG, "📊 RAM Totale: " + String.format("%.0f", totalRamMB) + " MB");
-            Log.i(TAG, "📊 RAM Disponible: " + String.format("%.0f", availableRamMB) + " MB");
-            Log.i(TAG, "📊 Stockage Libre: " + String.format("%.0f", freeStorageMB) + " MB");
-            Log.i(TAG, "📊 Peut exécuter SD: " + (hasEnoughRAM && hasEnoughStorage && ortEnv != null));
+            boolean hasEnoughRAM = totalSystemRamBytes >= fourGBinBytes && availableSystemRamBytes >= twoGBinBytes;
+            boolean hasEnoughStorage = availableBytes >= threeGBinBytes;
+            boolean canRunSD = hasEnoughRAM && hasEnoughStorage && ortEnv != null;
+            
+            Log.i(TAG, "📊 [CHECK] hasEnoughRAM: " + hasEnoughRAM + " (total >= 4GB: " + (totalSystemRamBytes >= fourGBinBytes) + ", avail >= 2GB: " + (availableSystemRamBytes >= twoGBinBytes) + ")");
+            Log.i(TAG, "📊 [CHECK] hasEnoughStorage: " + hasEnoughStorage);
+            Log.i(TAG, "📊 [CHECK] ONNX disponible: " + (ortEnv != null));
+            Log.i(TAG, "📊 [CHECK] Peut exécuter SD: " + canRunSD);
             
             WritableMap result = Arguments.createMap();
-            // RAM système réelle
+            
+            // RAM système réelle - VALEURS EN MB
             result.putDouble("totalRamMB", totalRamMB);
             result.putDouble("availableRamMB", availableRamMB);
-            result.putDouble("ramThresholdMB", threshold / 1024.0 / 1024.0);
+            result.putDouble("totalRamGB", totalRamGB);
+            result.putDouble("availableRamGB", availableRamGB);
+            result.putDouble("ramThresholdMB", (double) thresholdBytes / (1024.0 * 1024.0));
             result.putBoolean("systemLowMemory", lowMemory);
+            
             // RAM JVM (pour compatibilité)
-            result.putDouble("maxMemoryMB", jvmMaxMemory / 1024.0 / 1024.0);
-            result.putDouble("totalMemoryMB", jvmTotalMemory / 1024.0 / 1024.0);
-            result.putDouble("freeMemoryMB", jvmFreeMemory / 1024.0 / 1024.0);
+            result.putDouble("maxMemoryMB", (double) jvmMaxMemory / (1024.0 * 1024.0));
+            result.putDouble("totalMemoryMB", (double) jvmTotalMemory / (1024.0 * 1024.0));
+            result.putDouble("freeMemoryMB", (double) jvmFreeMemory / (1024.0 * 1024.0));
+            
             // Stockage
             result.putDouble("freeStorageMB", freeStorageMB);
-            result.putDouble("totalStorageMB", totalBytes / 1024.0 / 1024.0);
+            result.putDouble("freeStorageGB", freeStorageGB);
+            result.putDouble("totalStorageMB", (double) totalBytes / (1024.0 * 1024.0));
+            
             // Capacités
             result.putInt("availableProcessors", runtime.availableProcessors());
             result.putBoolean("hasEnoughRAM", hasEnoughRAM);
             result.putBoolean("hasEnoughStorage", hasEnoughStorage);
-            result.putBoolean("canRunSD", hasEnoughRAM && hasEnoughStorage && ortEnv != null);
+            result.putBoolean("canRunSD", canRunSD);
+            
             // Module info
             result.putBoolean("moduleLoaded", true);
             result.putBoolean("onnxAvailable", ortEnv != null);
@@ -243,9 +279,13 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
             result.putInt("sdkVersion", Build.VERSION.SDK_INT);
             result.putBoolean("pipelineReady", isInitialized);
             
+            // Debug info
+            result.putString("debugTotalRam", String.format("%.2f GB", totalRamGB));
+            result.putString("debugAvailRam", String.format("%.2f GB", availableRamGB));
+            
             promise.resolve(result);
         } catch (Exception e) {
-            Log.e(TAG, "Error in getSystemInfo", e);
+            Log.e(TAG, "❌ Error in getSystemInfo: " + e.getMessage(), e);
             WritableMap result = Arguments.createMap();
             result.putBoolean("moduleLoaded", true);
             result.putBoolean("canRunSD", false);
@@ -533,38 +573,88 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
     
     /**
      * Méthode de test simple pour vérifier que le module fonctionne
+     * Version améliorée avec logs détaillés
      */
     @ReactMethod
     public void testModule(Promise promise) {
         try {
-            Log.i(TAG, "🧪 TEST MODULE APPELÉ");
+            Log.i(TAG, "╔════════════════════════════════════════╗");
+            Log.i(TAG, "║  🧪 TEST MODULE APPELÉ                 ║");
+            Log.i(TAG, "╚════════════════════════════════════════╝");
             
             // Récupérer les infos RAM via ActivityManager
             ActivityManager activityManager = (ActivityManager) reactContext.getSystemService(Context.ACTIVITY_SERVICE);
+            if (activityManager == null) {
+                Log.e(TAG, "❌ ActivityManager est NULL!");
+                throw new Exception("ActivityManager non disponible");
+            }
+            
             ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
             activityManager.getMemoryInfo(memInfo);
             
-            double totalRamGB = memInfo.totalMem / 1024.0 / 1024.0 / 1024.0;
-            double availRamGB = memInfo.availMem / 1024.0 / 1024.0 / 1024.0;
+            // Logs RAW
+            Log.i(TAG, "📊 [RAW] totalMem: " + memInfo.totalMem + " bytes");
+            Log.i(TAG, "📊 [RAW] availMem: " + memInfo.availMem + " bytes");
             
-            Log.i(TAG, "📊 RAM Totale: " + String.format("%.2f", totalRamGB) + " GB");
-            Log.i(TAG, "📊 RAM Disponible: " + String.format("%.2f", availRamGB) + " GB");
-            Log.i(TAG, "📊 ONNX Runtime: " + (ortEnv != null ? "DISPONIBLE" : "NON DISPONIBLE"));
+            // Calcul précis en GB
+            double totalRamGB = (double) memInfo.totalMem / (1024.0 * 1024.0 * 1024.0);
+            double availRamGB = (double) memInfo.availMem / (1024.0 * 1024.0 * 1024.0);
+            double totalRamMB = (double) memInfo.totalMem / (1024.0 * 1024.0);
+            double availRamMB = (double) memInfo.availMem / (1024.0 * 1024.0);
+            
+            Log.i(TAG, "📊 RAM Totale: " + String.format("%.2f", totalRamGB) + " GB (" + String.format("%.0f", totalRamMB) + " MB)");
+            Log.i(TAG, "📊 RAM Disponible: " + String.format("%.2f", availRamGB) + " GB (" + String.format("%.0f", availRamMB) + " MB)");
+            Log.i(TAG, "📊 ONNX Runtime: " + (ortEnv != null ? "✅ DISPONIBLE" : "❌ NON DISPONIBLE"));
+            
+            // Test ONNX Environment
+            String onnxStatus = "Non initialisé";
+            if (ortEnv != null) {
+                try {
+                    onnxStatus = "Initialisé - API: " + OrtEnvironment.getApiBase();
+                } catch (Exception e) {
+                    onnxStatus = "Initialisé mais erreur API: " + e.getMessage();
+                }
+            }
+            Log.i(TAG, "📊 ONNX Status: " + onnxStatus);
             
             WritableMap result = Arguments.createMap();
             result.putString("status", "OK");
             result.putString("moduleVersion", VERSION);
+            
+            // RAM en GB et MB
             result.putDouble("totalRamGB", totalRamGB);
             result.putDouble("availableRamGB", availRamGB);
+            result.putDouble("totalRamMB", totalRamMB);
+            result.putDouble("availableRamMB", availRamMB);
+            
+            // Strings formatés pour affichage
+            result.putString("totalRamDisplay", String.format("%.2f GB", totalRamGB));
+            result.putString("availRamDisplay", String.format("%.2f GB", availRamGB));
+            
+            // Raw bytes pour debug
+            result.putDouble("totalRamBytes", (double) memInfo.totalMem);
+            result.putDouble("availRamBytes", (double) memInfo.availMem);
+            
+            // ONNX
             result.putBoolean("onnxAvailable", ortEnv != null);
+            result.putString("onnxStatus", onnxStatus);
+            
+            // Device
             result.putString("device", Build.MODEL);
             result.putString("manufacturer", Build.MANUFACTURER);
+            result.putString("androidVersion", Build.VERSION.RELEASE);
+            result.putInt("sdkVersion", Build.VERSION.SDK_INT);
             
             promise.resolve(result);
         } catch (Exception e) {
             Log.e(TAG, "❌ Erreur test module: " + e.getMessage());
             e.printStackTrace();
-            promise.reject("TEST_ERROR", e.getMessage());
+            
+            WritableMap errorResult = Arguments.createMap();
+            errorResult.putString("status", "ERROR");
+            errorResult.putString("error", e.getMessage());
+            errorResult.putBoolean("onnxAvailable", ortEnv != null);
+            promise.resolve(errorResult);
         }
     }
 }
