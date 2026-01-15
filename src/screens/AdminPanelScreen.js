@@ -309,32 +309,44 @@ export default function AdminPanelScreen() {
     // Récupérer les données avec fallback sur les champs directs
     const username = profile.username || user.username || 'Non défini';
     const age = profile.age || user.age || 'Non défini';
-    const gender = profile.gender || user.gender || '';
+    const genderRaw = (profile.gender || user.gender || '').toLowerCase();
     const nsfwMode = profile.nsfwMode || user.nsfw_enabled || false;
     const bust = profile.bust || user.bust || '';
     const penis = profile.penis || user.penis || '';
     
-    const genderText = {
-      'male': '👨 Homme',
-      'female': '👩 Femme',
-      'non-binary': '🧑 Non-binaire'
-    }[gender] || gender || 'Non défini';
+    // Normaliser le genre (français et anglais)
+    const isMale = genderRaw === 'male' || genderRaw === 'homme' || genderRaw === 'masculin';
+    const isFemale = genderRaw === 'female' || genderRaw === 'femme' || genderRaw === 'féminin';
+    const isNonBinary = genderRaw === 'non-binary' || genderRaw === 'non-binaire' || genderRaw === 'autre';
+    
+    let genderText = 'Non défini';
+    if (isMale) genderText = '👨 Homme';
+    else if (isFemale) genderText = '👩 Femme';
+    else if (isNonBinary) genderText = '🧑 Non-binaire';
+    else if (genderRaw) genderText = genderRaw;
     
     let profileDetails = `📧 Email: ${user.email || 'N/A'}\n`;
     profileDetails += `👤 Pseudo: ${username}\n`;
     profileDetails += `🎂 Âge: ${age}\n`;
     profileDetails += `⚧️ Genre: ${genderText}\n`;
+    
+    // Attributs physiques - afficher selon le genre
+    if (isFemale && bust) {
+      profileDetails += `👙 Bonnet: ${bust}\n`;
+    }
+    if (isMale && penis) {
+      profileDetails += `📏 Taille: ${penis} cm\n`;
+    }
+    // Si non-binaire ou genre non défini, afficher les deux s'ils existent
+    if (!isMale && !isFemale) {
+      if (bust) profileDetails += `👙 Bonnet: ${bust}\n`;
+      if (penis) profileDetails += `📏 Taille: ${penis} cm\n`;
+    }
+    
     profileDetails += `\n📊 Statuts:\n`;
     profileDetails += `   👑 Admin: ${user.is_admin ? 'Oui' : 'Non'}\n`;
     profileDetails += `   ⭐ Premium: ${user.is_premium ? 'Oui' : 'Non'}\n`;
     profileDetails += `   🔞 NSFW: ${nsfwMode ? 'Activé' : 'Désactivé'}\n`;
-    
-    if (gender === 'female' && bust) {
-      profileDetails += `\n👙 Bonnet: ${bust}\n`;
-    }
-    if (gender === 'male' && penis) {
-      profileDetails += `\n📏 Taille: ${penis} cm\n`;
-    }
     
     const createdAt = user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : 'N/A';
     profileDetails += `\n📅 Inscrit le: ${createdAt}\n`;
@@ -342,6 +354,8 @@ export default function AdminPanelScreen() {
     
     // Debug: afficher les données brutes
     console.log('📋 Profil utilisateur:', JSON.stringify(user, null, 2));
+    console.log('📋 Genre raw:', genderRaw, 'isMale:', isMale, 'isFemale:', isFemale);
+    console.log('📋 Attributs - bust:', bust, 'penis:', penis);
 
     Alert.alert(
       `👤 Profil de ${username}`,

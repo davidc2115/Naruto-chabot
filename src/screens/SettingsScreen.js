@@ -18,6 +18,9 @@ import SyncService from '../services/SyncService';
 import AuthService from '../services/AuthService';
 import * as FileSystem from 'expo-file-system';
 
+// URL du serveur Freebox pour les fonctions admin
+const FREEBOX_URL = 'http://88.174.155.230:33437';
+
 export default function SettingsScreen({ navigation, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
