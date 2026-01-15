@@ -50,7 +50,7 @@ class ImageGenerationService {
       'correct breast shape and size if female, natural nipple placement, ' +
       'symmetrical body, balanced pose, stable stance';
     
-    // NEGATIVE PROMPT ULTRA-COMPLET (pour SD local)
+    // NEGATIVE PROMPT ULTRA-COMPLET (pour SD local et Pollinations)
     this.negativePromptFull = 
       'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, anatomical errors, ' +
       'extra limbs, missing limbs, three arms, four arms, three legs, four legs, extra body parts, ' +
@@ -67,6 +67,33 @@ class ImageGenerationService {
       'bad proportions, giant head, tiny head, long arms, short arms, ' +
       'jpeg artifacts, compression artifacts, noise, grainy, ' +
       'ugly, grotesque, horror, creepy, nightmare, zombie';
+    
+    // PROMPT QUALITÉ PARFAITE - Pour images sans défauts
+    this.perfectQualityPrompt = 
+      'masterpiece, best quality, ultra detailed, extremely detailed, ' +
+      'perfect anatomy, anatomically correct, perfect proportions, ' +
+      'perfect hands, five fingers on each hand, correct finger count, ' +
+      'perfect face, beautiful face, symmetrical face, detailed eyes, ' +
+      'flawless skin, smooth skin, clear skin, no blemishes, ' +
+      'professional lighting, studio lighting, perfect lighting, ' +
+      'sharp focus, high resolution, 8K, ultra HD, ' +
+      'single person, one character, solo, one subject only';
+    
+    // PROMPT QUALITÉ ANIME PARFAIT
+    this.perfectAnimePrompt = 
+      'masterpiece anime art, best quality anime, perfect anime illustration, ' +
+      'clean lineart, perfect lines, no artifacts, vibrant colors, ' +
+      'professional anime artwork, studio quality, detailed anime face, ' +
+      'beautiful anime eyes, perfect anime proportions, ' +
+      'single character, solo character, one person';
+    
+    // PROMPT QUALITÉ RÉALISTE PARFAIT
+    this.perfectRealisticPrompt = 
+      'ultra realistic photo, photorealistic, hyperrealistic, ' +
+      'professional photography, DSLR quality, 8K resolution, ' +
+      'perfect skin texture, realistic skin, natural lighting, ' +
+      'professional portrait, magazine quality, flawless, ' +
+      'single person, solo portrait, one subject';
     
     // === GRANDE VARIÉTÉ DE POSITIONS ===
     this.positions = {
@@ -663,18 +690,53 @@ class ImageGenerationService {
     // === GENRE ET BASE ===
     if (character.gender === 'female') {
       if (isRealistic) {
-        description += 'beautiful real woman, female human, realistic lady, real person';
+        description += 'beautiful real woman, female human, realistic lady, real person, feminine features';
       } else {
-        description += 'beautiful anime woman, female character, anime lady';
+        description += 'beautiful anime woman, female character, anime lady, feminine features';
       }
     } else if (character.gender === 'male') {
       if (isRealistic) {
-        description += 'handsome real man, male human, realistic gentleman, real person';
+        description += 'handsome real man, male human, realistic gentleman, real person, masculine features';
       } else {
-        description += 'handsome anime man, male character, anime gentleman';
+        description += 'handsome anime man, male character, anime gentleman, masculine features';
       }
     } else {
-      description += 'beautiful person, androgynous, non-binary appearance';
+      // NON-BINAIRE: Utiliser une apparence ANDROGYNE COHÉRENTE
+      // Basé sur le nom ou l'apparence pour déterminer une tendance
+      const charAppearance = (character.appearance || '').toLowerCase();
+      const charName = (character.name || '').toLowerCase();
+      
+      // Déterminer si le personnage a une tendance plutôt féminine ou masculine
+      const feminineTendency = charAppearance.includes('féminin') || charAppearance.includes('feminine') ||
+                              charAppearance.includes('poitrine') || charAppearance.includes('seins') ||
+                              charAppearance.includes('courbes') || charAppearance.includes('curves');
+      const masculineTendency = charAppearance.includes('masculin') || charAppearance.includes('masculine') ||
+                               charAppearance.includes('barbe') || charAppearance.includes('beard') ||
+                               charAppearance.includes('musclé') || charAppearance.includes('muscular');
+      
+      if (feminineTendency) {
+        // Non-binaire avec apparence plutôt féminine
+        if (isRealistic) {
+          description += 'beautiful androgynous person, feminine-presenting non-binary, soft feminine features, real person';
+        } else {
+          description += 'beautiful androgynous anime character, feminine-presenting, soft delicate features';
+        }
+      } else if (masculineTendency) {
+        // Non-binaire avec apparence plutôt masculine
+        if (isRealistic) {
+          description += 'handsome androgynous person, masculine-presenting non-binary, angular features, real person';
+        } else {
+          description += 'handsome androgynous anime character, masculine-presenting, defined features';
+        }
+      } else {
+        // Non-binaire vraiment androgyne (par défaut: apparence douce et élégante)
+        if (isRealistic) {
+          description += 'beautiful androgynous person, gender-neutral elegant appearance, soft symmetrical features, real person';
+        } else {
+          description += 'beautiful androgynous anime character, gender-neutral elegant appearance, soft symmetrical features';
+        }
+      }
+      description += ', androgynous';
     }
     
     // === ÂGE PRÉCIS (gère les formats comme "300 ans (apparence 25)") ===
@@ -1875,7 +1937,8 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère une image avec l'API Freebox
+   * Génère une image avec l'API Freebox/Pollinations
+   * VERSION AMÉLIORÉE: Qualité parfaite sans défauts
    */
   async generateWithFreebox(prompt) {
     console.log('🖼️ Génération image via Pollinations.ai...');
@@ -1892,13 +1955,35 @@ class ImageGenerationService {
     const nsfwLevel = nsfwMatch ? parseInt(nsfwMatch[1]) : 0;
     const isNSFW = nsfwLevel >= 2;
     
+    // Détecter si c'est anime ou réaliste
+    const isAnime = prompt.toLowerCase().includes('anime') || 
+                    prompt.toLowerCase().includes('manga') ||
+                    !prompt.toLowerCase().includes('realistic');
+    
     // Retirer le marqueur du prompt
     let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/, '');
     
-    let finalPrompt = cleanPrompt;
+    // PROMPTS DE QUALITÉ PARFAITE - SANS DÉFAUTS
+    const qualityPromptBase = 'masterpiece, best quality, perfect anatomy, perfect hands, five fingers, ' +
+                              'perfect face, symmetrical, no deformities, no extra limbs, ' +
+                              'single person, solo, one subject only, ';
+    
+    const qualityPromptAnime = qualityPromptBase + 
+                               'perfect anime art, clean lineart, vibrant colors, detailed anime eyes, ';
+    
+    const qualityPromptRealistic = qualityPromptBase + 
+                                   'photorealistic, ultra realistic, professional photography, 8K, ' +
+                                   'perfect skin, natural lighting, DSLR quality, ';
+    
+    // Prompt négatif à ajouter
+    const negativeTerms = 'NOT deformed NOT mutated NOT bad anatomy NOT extra limbs NOT missing fingers ' +
+                          'NOT extra fingers NOT ugly NOT blurry NOT low quality';
+    
+    let finalPrompt = '';
+    const qualityPrefix = isAnime ? qualityPromptAnime : qualityPromptRealistic;
     
     if (isNSFW) {
-      console.log(`🔞 MODE NSFW FORCÉ - Niveau ${nsfwLevel}`);
+      console.log(`🔞 MODE NSFW FORCÉ - Niveau ${nsfwLevel} (${isAnime ? 'Anime' : 'Réaliste'})`);
       
       // Préfixe NSFW TRÈS EXPLICITE selon le niveau
       let nsfwPrefix = '';
@@ -1906,39 +1991,51 @@ class ImageGenerationService {
       
       if (nsfwLevel >= 5) {
         // Niveau 5+ : Très explicite
-        nsfwPrefix = 'NSFW explicit nude naked woman, full nudity, erotic, ';
+        nsfwPrefix = isAnime 
+          ? 'NSFW explicit nude anime girl, full nudity, erotic anime, '
+          : 'NSFW explicit nude naked woman, full nudity, erotic, real person, ';
         nsfwSuffix = ', completely naked, nude body fully exposed, nipples visible, intimate pose, explicit adult content, uncensored';
       } else if (nsfwLevel >= 4) {
         // Niveau 4 : Nu artistique
-        nsfwPrefix = 'NSFW nude woman, artistic nudity, ';
+        nsfwPrefix = isAnime
+          ? 'NSFW nude anime girl, artistic nudity, '
+          : 'NSFW nude woman, artistic nudity, real person, ';
         nsfwSuffix = ', naked body, bare breasts, topless, sensual nude pose, adult content';
       } else if (nsfwLevel >= 3) {
         // Niveau 3 : Lingerie
-        nsfwPrefix = 'NSFW sexy woman in lingerie, ';
+        nsfwPrefix = isAnime
+          ? 'NSFW sexy anime girl in lingerie, '
+          : 'NSFW sexy woman in lingerie, real person, ';
         nsfwSuffix = ', wearing sexy lingerie, bra and panties, lace underwear, seductive, adult content';
       } else {
         // Niveau 2 : Provocant
-        nsfwPrefix = 'NSFW sexy provocative woman, ';
+        nsfwPrefix = isAnime
+          ? 'NSFW sexy provocative anime girl, '
+          : 'NSFW sexy provocative woman, real person, ';
         nsfwSuffix = ', revealing outfit, cleavage visible, seductive pose, adult content';
       }
       
-      finalPrompt = nsfwPrefix + cleanPrompt + nsfwSuffix;
-      finalPrompt += ', high quality, detailed, professional erotic photography, beautiful';
+      finalPrompt = qualityPrefix + nsfwPrefix + cleanPrompt + nsfwSuffix;
+      finalPrompt += ', professional erotic photography, beautiful, flawless';
       
     } else {
-      console.log('✨ Mode SFW');
-      finalPrompt = cleanPrompt + ', high quality, detailed, professional photography, beautiful';
+      console.log(`✨ Mode SFW (${isAnime ? 'Anime' : 'Réaliste'})`);
+      finalPrompt = qualityPrefix + cleanPrompt + ', professional photography, beautiful, flawless';
     }
+    
+    // Ajouter les termes négatifs à la fin
+    finalPrompt += ', ' + negativeTerms;
     
     // Limiter et encoder
     const shortPrompt = finalPrompt.substring(0, 2000);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // Pollinations.ai URL - modèle flux pour meilleure qualité
-    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux`;
+    // Pollinations.ai URL - modèle flux-realism pour meilleure qualité réaliste
+    const modelType = isAnime ? 'flux' : 'flux-realism';
+    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=${modelType}`;
     
-    console.log(`🔗 URL Pollinations (seed: ${seed}, niveau: ${nsfwLevel})`);
-    console.log(`📝 Prompt NSFW: ${shortPrompt.substring(0, 150)}...`);
+    console.log(`🔗 URL Pollinations (seed: ${seed}, niveau: ${nsfwLevel}, modèle: ${modelType})`);
+    console.log(`📝 Prompt: ${shortPrompt.substring(0, 150)}...`);
     
     return imageUrl;
   }

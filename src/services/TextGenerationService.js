@@ -1408,51 +1408,74 @@ Réponds MAINTENANT - CRÉATIF et UNIQUE!`
   /**
    * Corrige automatiquement le formatage RP (actions, paroles, pensées)
    * Ajoute les symboles manquants pour le format correct
+   * VERSION CORRIGÉE: Utilise des marqueurs uniques impossibles à confondre
    */
   fixFormatting(content) {
     if (!content) return content;
     
     let fixed = content;
     
-    // Protéger les formats déjà corrects
+    // NETTOYAGE PRÉALABLE: Supprimer les placeholders incorrects qui auraient pu être générés
+    // Ces patterns ne devraient jamais apparaître dans le texte final
+    fixed = fixed.replace(/__ACTION_\d+__/g, '');
+    fixed = fixed.replace(/__DIALOGUE_\d+__/g, '');
+    fixed = fixed.replace(/__THOUGHT_\d+__/g, '');
+    fixed = fixed.replace(/ACTION_\d+/g, '');
+    fixed = fixed.replace(/DIALOGUE_\d+/g, '');
+    fixed = fixed.replace(/THOUGHT_\d+/g, '');
+    
+    // Protéger les formats déjà corrects avec des marqueurs TRÈS uniques
     const protectedActions = [];
     const protectedDialogues = [];
     const protectedThoughts = [];
     
+    // Utiliser des marqueurs avec UUID-like pour éviter toute collision
+    const actionMarker = '§§ACT§§';
+    const dialogueMarker = '§§DLG§§';
+    const thoughtMarker = '§§THT§§';
+    
     // Sauvegarder les formats corrects
     fixed = fixed.replace(/\*[^*]+\*/g, (match) => {
       protectedActions.push(match);
-      return `__ACTION_${protectedActions.length - 1}__`;
+      return `${actionMarker}${protectedActions.length - 1}${actionMarker}`;
     });
     
     fixed = fixed.replace(/"[^"]+"/g, (match) => {
       protectedDialogues.push(match);
-      return `__DIALOGUE_${protectedDialogues.length - 1}__`;
+      return `${dialogueMarker}${protectedDialogues.length - 1}${dialogueMarker}`;
     });
     
     fixed = fixed.replace(/\([^)]+\)/g, (match) => {
       protectedThoughts.push(match);
-      return `__THOUGHT_${protectedThoughts.length - 1}__`;
+      return `${thoughtMarker}${protectedThoughts.length - 1}${thoughtMarker}`;
     });
     
     // Détecter les actions sans astérisques (verbes en début de phrase)
     const actionVerbs = /\b(elle|il|je|tu|nous|vous|ils|elles)\s+(s'approche|se lève|prend|pose|glisse|caresse|embrasse|murmure|regarde|sourit|rougit|se mord|frissonne|gémit|soupire|se penche|enlève|retire|attrape|tire|pousse|serre|masse|lèche|mordille|touche)/gi;
     fixed = fixed.replace(actionVerbs, (match) => `*${match}*`);
     
-    // Restaurer les formats protégés
+    // Restaurer les formats protégés (utiliser regex pour être sûr)
     protectedActions.forEach((action, i) => {
-      fixed = fixed.replace(`__ACTION_${i}__`, action);
+      const regex = new RegExp(`${actionMarker}${i}${actionMarker}`, 'g');
+      fixed = fixed.replace(regex, action);
     });
     protectedDialogues.forEach((dialogue, i) => {
-      fixed = fixed.replace(`__DIALOGUE_${i}__`, dialogue);
+      const regex = new RegExp(`${dialogueMarker}${i}${dialogueMarker}`, 'g');
+      fixed = fixed.replace(regex, dialogue);
     });
     protectedThoughts.forEach((thought, i) => {
-      fixed = fixed.replace(`__THOUGHT_${i}__`, thought);
+      const regex = new RegExp(`${thoughtMarker}${i}${thoughtMarker}`, 'g');
+      fixed = fixed.replace(regex, thought);
     });
     
     // Nettoyer les doubles astérisques
     fixed = fixed.replace(/\*\*+/g, '*');
     fixed = fixed.replace(/\*\s*\*/g, '');
+    
+    // Nettoyage final: supprimer tout marqueur restant (ne devrait pas arriver)
+    fixed = fixed.replace(/§§ACT§§\d+§§ACT§§/g, '');
+    fixed = fixed.replace(/§§DLG§§\d+§§DLG§§/g, '');
+    fixed = fixed.replace(/§§THT§§\d+§§THT§§/g, '');
     
     return fixed;
   }
