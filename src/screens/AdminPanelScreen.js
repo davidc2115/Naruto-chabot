@@ -233,6 +233,42 @@ export default function AdminPanelScreen() {
     );
   };
 
+  // Afficher le profil complet d'un utilisateur
+  const viewUserProfile = (user) => {
+    const profile = user.full_profile || {};
+    
+    const genderText = {
+      'male': '👨 Homme',
+      'female': '👩 Femme',
+      'non-binary': '🧑 Non-binaire'
+    }[profile.gender] || profile.gender || 'Non défini';
+    
+    let profileDetails = `📧 Email: ${user.email}\n`;
+    profileDetails += `👤 Pseudo: ${profile.username || 'Non défini'}\n`;
+    profileDetails += `🎂 Âge: ${profile.age || 'Non défini'}\n`;
+    profileDetails += `⚧️ Genre: ${genderText}\n`;
+    profileDetails += `\n📊 Statuts:\n`;
+    profileDetails += `   👑 Admin: ${user.is_admin ? 'Oui' : 'Non'}\n`;
+    profileDetails += `   ⭐ Premium: ${user.is_premium ? 'Oui' : 'Non'}\n`;
+    profileDetails += `   🔞 NSFW: ${profile.nsfwMode ? 'Activé' : 'Désactivé'}\n`;
+    
+    if (profile.gender === 'female' && profile.bust) {
+      profileDetails += `\n👙 Bonnet: ${profile.bust}\n`;
+    }
+    if (profile.gender === 'male' && profile.penis) {
+      profileDetails += `\n📏 Taille: ${profile.penis} cm\n`;
+    }
+    
+    profileDetails += `\n📅 Inscrit le: ${new Date(user.created_at).toLocaleDateString('fr-FR')}\n`;
+    profileDetails += `🆔 ID: ${user.id || 'N/A'}`;
+
+    Alert.alert(
+      `👤 Profil de ${profile.username || user.email}`,
+      profileDetails,
+      [{ text: 'Fermer', style: 'cancel' }]
+    );
+  };
+
   const filteredUsers = users.filter(user => 
     user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.username?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -274,6 +310,14 @@ export default function AdminPanelScreen() {
             )}
           </View>
         </View>
+        
+        {/* Bouton voir profil - pour tous les utilisateurs */}
+        <TouchableOpacity 
+          style={styles.viewProfileButton}
+          onPress={() => viewUserProfile(item)}
+        >
+          <Text style={styles.viewProfileButtonText}>👁️ Voir le profil complet</Text>
+        </TouchableOpacity>
         
         {!isCurrentUser && (
           <View style={styles.actions}>
@@ -514,6 +558,19 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 12,
     color: '#9ca3af',
+  },
+  viewProfileButton: {
+    backgroundColor: '#e0e7ff',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  viewProfileButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4338ca',
   },
   actions: {
     flexDirection: 'row',

@@ -620,12 +620,21 @@ def get_paypal_payment_link():
 
 def is_request_admin(request):
     """Vérifie si la requête vient d'un admin"""
+    # Vérifier via l'utilisateur connecté
     user = get_current_user(request)
     if user and is_admin(user):
+        print(f"✅ Admin vérifié via session: {user.get('email')}")
         return True
+    
     # Fallback: vérifier le header X-Admin-Email
     admin_email = request.headers.get('X-Admin-Email', '')
-    return admin_email.lower() == ADMIN_EMAIL.lower()
+    if admin_email:
+        is_valid = admin_email.lower() == ADMIN_EMAIL.lower()
+        print(f"🔐 Admin header check: {admin_email} == {ADMIN_EMAIL} -> {is_valid}")
+        return is_valid
+    
+    print(f"❌ Pas d'authentification admin trouvée")
+    return False
 
 @app.route('/admin/users', methods=['GET'])
 def admin_get_users():
@@ -639,14 +648,28 @@ def admin_get_users():
             if filename.endswith('.json') and not filename.endswith('_characters.json'):
                 user = load_json(os.path.join(USERS_DIR, filename))
                 if user:
+                    # S'assurer que l'ID existe (pour les anciens utilisateurs)
+                    if not user.get('id'):
+                        # Extraire l'ID du nom de fichier
+                        user['id'] = filename.replace('.json', '')
+                        # Sauvegarder pour corriger le fichier
+                        save_json(os.path.join(USERS_DIR, filename), user)
+                    
                     # Exclure le mot de passe
                     user_safe = {k: v for k, v in user.items() if k != 'password_hash'}
+                    
                     # Ajouter des infos du profil
                     profile = user.get('profile', {}) or {}
                     user_safe['username'] = profile.get('username', '')
                     user_safe['age'] = profile.get('age', 0)
+                    user_safe['gender'] = profile.get('gender', '')
                     user_safe['nsfw_enabled'] = profile.get('nsfwMode', False)
                     user_safe['is_premium'] = user.get('is_premium', False)
+                    user_safe['is_admin'] = user.get('is_admin', False)
+                    
+                    # Ajouter le profil complet pour l'admin
+                    user_safe['full_profile'] = profile
+                    
                     users.append(user_safe)
         
         # Trier par date de création (plus récent en premier)
@@ -655,11 +678,12 @@ def admin_get_users():
         print(f"👑 Admin: Liste de {len(users)} utilisateurs")
         return jsonify({'success': True, 'count': len(users), 'users': users})
     except Exception as e:
+        print(f"❌ Admin: Erreur liste utilisateurs: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/admin/users/<user_id>/role', methods=['PUT'])
-def admin_update_user_role(user_id):
-    """Modifier le rôle admin d'un utilisateur"""
+@app.route('/admin/users/<user_id>/profile', methods=['GET'])
+def admin_get_user_profile(user_id):
+    """Récupère le profil complet d'un utilisateur (admin uniquement)"""
     if not is_request_admin(request):
         return jsonify({'success': False, 'error': 'Accès refusé'}), 403
     
@@ -669,7 +693,43 @@ def admin_update_user_role(user_id):
             return jsonify({'success': False, 'error': 'Utilisateur non trouvé'}), 404
         
         user = load_json(filepath)
+        user_safe = {k: v for k, v in user.items() if k != 'password_hash'}
+        
+        print(f"👑 Admin: Profil consulté pour {user.get('email')}")
+        return jsonify({'success': True, 'user': user_safe})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/users/<user_id>/role', methods=['PUT'])
+def admin_update_user_role(user_id):
+    """Modifier le rôle admin d'un utilisateur"""
+    print(f"📝 Demande modification rôle admin pour user_id={user_id}")
+    
+    if not is_request_admin(request):
+        print(f"❌ Accès refusé pour modification rôle")
+        return jsonify({'success': False, 'error': 'Accès refusé'}), 403
+    
+    try:
+        filepath = os.path.join(USERS_DIR, f"{user_id}.json")
+        print(f"📁 Fichier: {filepath}")
+        
+        if not os.path.exists(filepath):
+            print(f"❌ Fichier non trouvé: {filepath}")
+            # Essayer de trouver par email si l'ID ressemble à un email
+            if '@' in user_id:
+                for filename in os.listdir(USERS_DIR):
+                    if filename.endswith('.json'):
+                        u = load_json(os.path.join(USERS_DIR, filename))
+                        if u and u.get('email', '').lower() == user_id.lower():
+                            filepath = os.path.join(USERS_DIR, filename)
+                            print(f"✅ Trouvé par email: {filepath}")
+                            break
+            if not os.path.exists(filepath):
+                return jsonify({'success': False, 'error': f'Utilisateur non trouvé: {user_id}'}), 404
+        
+        user = load_json(filepath)
         data = request.json
+        print(f"📨 Données reçues: {data}")
         
         # Ne pas permettre de retirer les droits admin à soi-même
         current_admin = request.headers.get('X-Admin-Email', '').lower()
@@ -680,35 +740,54 @@ def admin_update_user_role(user_id):
         user['updated_at'] = int(time.time() * 1000)
         
         save_json(filepath, user)
-        print(f"👑 Admin: Rôle modifié pour {user.get('email')} -> admin={user['is_admin']}")
+        print(f"✅ Admin: Rôle modifié pour {user.get('email')} -> admin={user['is_admin']}")
         
         return jsonify({'success': True, 'user': {k: v for k, v in user.items() if k != 'password_hash'}})
     except Exception as e:
+        print(f"❌ Erreur: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/users/<user_id>/premium', methods=['PUT'])
 def admin_update_user_premium(user_id):
     """Modifier le statut premium d'un utilisateur"""
+    print(f"⭐ Demande modification premium pour user_id={user_id}")
+    
     if not is_request_admin(request):
+        print(f"❌ Accès refusé pour modification premium")
         return jsonify({'success': False, 'error': 'Accès refusé'}), 403
     
     try:
         filepath = os.path.join(USERS_DIR, f"{user_id}.json")
+        print(f"📁 Fichier: {filepath}")
+        
         if not os.path.exists(filepath):
-            return jsonify({'success': False, 'error': 'Utilisateur non trouvé'}), 404
+            print(f"❌ Fichier non trouvé: {filepath}")
+            # Essayer de trouver par email si l'ID ressemble à un email
+            if '@' in user_id:
+                for filename in os.listdir(USERS_DIR):
+                    if filename.endswith('.json'):
+                        u = load_json(os.path.join(USERS_DIR, filename))
+                        if u and u.get('email', '').lower() == user_id.lower():
+                            filepath = os.path.join(USERS_DIR, filename)
+                            print(f"✅ Trouvé par email: {filepath}")
+                            break
+            if not os.path.exists(filepath):
+                return jsonify({'success': False, 'error': f'Utilisateur non trouvé: {user_id}'}), 404
         
         user = load_json(filepath)
         data = request.json
+        print(f"📨 Données reçues: {data}")
         
         user['is_premium'] = data.get('is_premium', False)
         user['premium_since'] = int(time.time() * 1000) if user['is_premium'] else None
         user['updated_at'] = int(time.time() * 1000)
         
         save_json(filepath, user)
-        print(f"👑 Admin: Premium modifié pour {user.get('email')} -> premium={user['is_premium']}")
+        print(f"✅ Admin: Premium modifié pour {user.get('email')} -> premium={user['is_premium']}")
         
         return jsonify({'success': True, 'user': {k: v for k, v in user.items() if k != 'password_hash'}})
     except Exception as e:
+        print(f"❌ Erreur: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/admin/users/<user_id>', methods=['DELETE'])

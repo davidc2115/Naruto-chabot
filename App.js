@@ -122,8 +122,8 @@ function TabIcon({ name, color }) {
   return <Text style={{ fontSize: 24, color }}>{name}</Text>;
 }
 
-// Lien Discord - à personnaliser
-const DISCORD_INVITE_URL = 'https://discord.gg/boysandgirls';
+// Lien Discord officiel
+const DISCORD_INVITE_URL = 'https://discord.gg/W52qQtNqFt';
 
 // Écran Discord (ouvre le lien externe)
 function DiscordScreen() {
