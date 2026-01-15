@@ -1092,21 +1092,48 @@ RÈGLES CRITIQUES:
         const uniqueThoughts = [...new Set(usedThoughts)].slice(0, 5);
         const uniquePhrases = [...new Set(usedPhrases)];
         
+        // DÉTECTER SI LE CONTEXTE EST INTIME OU SFW
+        // Vérifier les derniers messages pour déterminer le contexte
+        const recentContent = lastAssistantMsgs.map(m => m.content.toLowerCase()).join(' ');
+        const isIntimateContext = recentContent.includes('gémis') || recentContent.includes('nu') ||
+                                  recentContent.includes('seins') || recentContent.includes('sexe') ||
+                                  recentContent.includes('caresse') && recentContent.includes('corps') ||
+                                  recentContent.includes('excit') || recentContent.includes('désir') ||
+                                  recentContent.includes('embrass') && recentContent.includes('passion');
+        
         let antiRepetitionPrompt = '[🚫 ANTI-RÉPÉTITION STRICTE]\n';
         
         if (uniqueActions.length > 0) {
           antiRepetitionPrompt += `Actions INTERDITES (déjà utilisées): ${uniqueActions.join(', ')}\n`;
-          antiRepetitionPrompt += `Utilise PLUTÔT: *se cambre*, *agrippe les draps*, *halète*, *ondule*, *griffe doucement*, *s'abandonne*, *tremble de plaisir*\n`;
+          
+          // ADAPTER LES SUGGESTIONS AU CONTEXTE
+          if (isIntimateContext) {
+            // Contexte intime: suggestions sensuelles
+            antiRepetitionPrompt += `Utilise PLUTÔT: *se cambre*, *ondule*, *frissonne*, *s'abandonne*, *respire plus fort*, *tremble*\n`;
+          } else {
+            // Contexte SFW: suggestions normales/flirt léger
+            antiRepetitionPrompt += `Utilise PLUTÔT: *sourit*, *rit doucement*, *penche la tête*, *joue avec ses cheveux*, *le/la regarde*, *fait un clin d'œil*\n`;
+          }
         }
         
         if (uniqueThoughts.length > 0) {
           antiRepetitionPrompt += `Pensées INTERDITES: ${uniqueThoughts.join(', ')}\n`;
-          antiRepetitionPrompt += `Utilise PLUTÔT: (c'est divin), (je perds la tête), (quel plaisir), (je fonds), (c'est trop bon)\n`;
+          
+          if (isIntimateContext) {
+            antiRepetitionPrompt += `Utilise PLUTÔT: (c'est si bon), (je fonds), (mon cœur s'emballe), (j'en veux plus), (c'est intense)\n`;
+          } else {
+            antiRepetitionPrompt += `Utilise PLUTÔT: (il/elle est sympa), (c'est amusant), (intéressant), (j'aime bien), (curieux/curieuse)\n`;
+          }
         }
         
         if (uniquePhrases.length > 0) {
           antiRepetitionPrompt += `Expressions BANNIES: ${uniquePhrases.join(', ')}\n`;
-          antiRepetitionPrompt += `Remplace par des expressions DIRECTES: "mmh oui", "continue", "c'est bon", "j'adore", "encore"`;
+          
+          if (isIntimateContext) {
+            antiRepetitionPrompt += `Remplace par: "mmh oui", "continue", "j'adore", "encore", "c'est bon"`;
+          } else {
+            antiRepetitionPrompt += `Remplace par: "vraiment ?", "c'est cool", "j'aime bien", "dis-m'en plus", "intéressant"`;
+          }
         }
         
         fullMessages.push({
@@ -1121,6 +1148,11 @@ RÈGLES CRITIQUES:
     const recentAssistantMsgs = cleanedMessages.filter(m => m.role === 'assistant').slice(-3);
     let contextHint = '';
     
+    // COMPTEUR DE MESSAGES pour détecter le début de conversation
+    const totalMessages = cleanedMessages.length;
+    const isEarlyConversation = totalMessages <= 6; // Moins de 6 messages = début
+    const isVeryEarlyConversation = totalMessages <= 2; // Tout début
+    
     if (lastUserMsg) {
       const msg = lastUserMsg.content.toLowerCase();
       
@@ -1133,26 +1165,45 @@ RÈGLES CRITIQUES:
       });
       
       // Mots-clés indiquant une conversation normale
-      const normalKeywords = ['comment ça va', 'quoi de neuf', 'tu fais quoi', 'journée', 'travail', 'hobby', 'film', 'musique', 'manger', 'café'];
-      // Mots-clés indiquant une intention intime (élargi)
-      const intimateKeywords = ['caresse', 'embrasse', 'touche', 'déshabille', 'sexe', 'corps', 'lit', 'envie', 'excit', 'chaud', 'nu', 'seins', 'fesses', 'bite', 'chatte', 'sucer', 'lécher', 'baiser', 'jouir', 'orgasme', 'baise', 'pénètre', 'doigt', 'langue', 'bouche', 'cul', 'téton', 'mouillé', 'dur', 'queue', 'suce', 'lèche', 'masturbe', 'branle', 'fourre', 'encule', 'continue', 'encore', 'plus', 'oui', 'mmh', 'ah', 'oh', 'prends', 'donne', 'viens', 'entre'];
+      const normalKeywords = ['comment ça va', 'quoi de neuf', 'tu fais quoi', 'journée', 'travail', 'hobby', 'film', 'musique', 'manger', 'café', 'salut', 'bonjour', 'hey', 'coucou', 'hello'];
+      // Mots-clés indiquant une intention intime (SEULEMENT des termes explicites)
+      const intimateKeywords = ['caresse', 'embrasse', 'touche', 'déshabille', 'sexe', 'corps', 'lit', 'envie de toi', 'excit', 'nu', 'seins', 'fesses', 'bite', 'chatte', 'sucer', 'lécher', 'baiser', 'jouir', 'orgasme', 'baise', 'pénètre', 'doigt', 'langue', 'cul', 'téton', 'mouillé', 'dur', 'queue', 'suce', 'lèche', 'masturbe', 'branle'];
       
       const isNormalConvo = normalKeywords.some(kw => msg.includes(kw));
       const isIntimate = intimateKeywords.some(kw => msg.includes(kw));
       
-      if (isNormalConvo && !isIntimate && !wasIntimate) {
-        contextHint = '[MODE CONVERSATION] L\'utilisateur veut DISCUTER normalement. Réponds avec des PAROLES développées.';
+      // RÈGLE STRICTE POUR DÉBUT DE CONVERSATION
+      if (isVeryEarlyConversation) {
+        contextHint = `[🚨 DÉBUT DE CONVERSATION - MODE SFW STRICT]
+C'est le TOUT DÉBUT de la conversation (${totalMessages} messages).
+INTERDICTIONS ABSOLUES:
+- PAS d'actions sensuelles (pas de "se cambre", "agrippe", "gémit", "halète")
+- PAS de descriptions physiques intimes
+- PAS de tension sexuelle explicite
+
+COMPORTEMENT ATTENDU:
+- Salutation normale et naturelle
+- Discussion amicale/curieuse
+- Actions simples: *sourit*, *rit*, *regarde*, *s'installe*, *penche la tête*
+- Dialogue de PRÉSENTATION ou DÉCOUVERTE`;
+      } else if (isEarlyConversation && !isIntimate) {
+        contextHint = `[📝 DÉBUT DE CONVERSATION - PRUDENT]
+Conversation encore jeune (${totalMessages} messages). Reste en mode conversation NORMALE.
+- Actions légères: *sourit*, *rit*, *joue avec ses cheveux*
+- Pas d'intimité sauf si l'utilisateur le demande explicitement
+- Tu peux flirter légèrement mais pas de gestes intimes`;
+      } else if (isNormalConvo && !isIntimate && !wasIntimate) {
+        contextHint = '[MODE CONVERSATION] L\'utilisateur veut DISCUTER. Réponds avec des PAROLES développées, pas de gestes intimes.';
       } else if (isIntimate || wasIntimate) {
-        contextHint = `[MODE INTIME EXPLICITE] L\'utilisateur cherche l'intimité ou la conversation était déjà intime. 
-SOIS EXPLICITE: décris les gestes, les sensations physiques, les parties du corps (seins, sexe, fesses...).
-Utilise un langage SENSUEL et CRUS: "je te sens en moi", "tu es si dur", "je mouille pour toi", etc.
+        contextHint = `[MODE INTIME] L'utilisateur cherche l'intimité ou la conversation était déjà intime. 
+Tu peux être sensuelle et explicite. Décris les gestes, sensations.
 COHÉRENCE: Continue dans le ton de la conversation précédente!`;
       } else {
-        // Si pas de mot-clé clair, vérifier le contexte précédent
+        // Si pas de mot-clé clair
         if (wasIntimate) {
-          contextHint = '[CONTINUITÉ INTIME] La conversation était intime. Continue dans ce registre explicite et sensuel.';
+          contextHint = '[CONTINUITÉ INTIME] La conversation était intime. Continue dans ce registre.';
         } else {
-          contextHint = '[ÉQUILIBRE] Adapte-toi au ton du message.';
+          contextHint = '[ÉQUILIBRE] Adapte-toi au ton du message. Si pas clair, reste en mode conversation normale.';
         }
       }
       

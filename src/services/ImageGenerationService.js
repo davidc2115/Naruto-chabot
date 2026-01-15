@@ -1938,7 +1938,7 @@ class ImageGenerationService {
 
   /**
    * Génère une image avec l'API Freebox/Pollinations
-   * VERSION AMÉLIORÉE: Qualité parfaite sans défauts
+   * VERSION ULTRA-AMÉLIORÉE: Images parfaites sans défauts anatomiques
    */
   async generateWithFreebox(prompt) {
     console.log('🖼️ Génération image via Pollinations.ai...');
@@ -1963,79 +1963,88 @@ class ImageGenerationService {
     // Retirer le marqueur du prompt
     let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/, '');
     
-    // PROMPTS DE QUALITÉ PARFAITE - SANS DÉFAUTS
-    const qualityPromptBase = 'masterpiece, best quality, perfect anatomy, perfect hands, five fingers, ' +
-                              'perfect face, symmetrical, no deformities, no extra limbs, ' +
-                              'single person, solo, one subject only, ';
+    // NETTOYER le prompt des termes problématiques qui causent des défauts
+    cleanPrompt = cleanPrompt
+      .replace(/multiple|several|many|various/gi, 'single')
+      .replace(/hands? holding/gi, 'elegant pose')
+      .replace(/arms? (raised|extended|reaching)/gi, 'natural pose')
+      .replace(/fingers? (spread|extended|pointing)/gi, 'relaxed hands');
     
-    const qualityPromptAnime = qualityPromptBase + 
-                               'perfect anime art, clean lineart, vibrant colors, detailed anime eyes, ';
+    // === PROMPT QUALITÉ ULTRA-STRICT POUR ÉVITER LES DÉFAUTS ===
+    // Utiliser des termes POSITIFS uniquement (pas de "NOT" qui ne fonctionne pas bien)
+    const anatomyPerfect = 'anatomically perfect human body, ' +
+                          'exactly two arms naturally positioned, exactly two legs, ' +
+                          'exactly two hands with five fingers each, ' +
+                          'one head, one face, two eyes, one nose, one mouth, ' +
+                          'normal human proportions, realistic body structure, ' +
+                          'clothes properly worn on body, fabric follows body shape naturally';
     
-    const qualityPromptRealistic = qualityPromptBase + 
-                                   'photorealistic, ultra realistic, professional photography, 8K, ' +
-                                   'perfect skin, natural lighting, DSLR quality, ';
+    const qualityCore = 'masterpiece, award winning, professional quality, ' +
+                        'highly detailed, sharp focus, 8K resolution, ' +
+                        'perfect lighting, studio quality, flawless';
     
-    // Prompt négatif à ajouter
-    const negativeTerms = 'NOT deformed NOT mutated NOT bad anatomy NOT extra limbs NOT missing fingers ' +
-                          'NOT extra fingers NOT ugly NOT blurry NOT low quality';
+    const qualityAnime = 'beautiful anime art style, clean precise lineart, ' +
+                         'vibrant saturated colors, detailed expressive eyes, ' +
+                         'professional anime illustration, pixiv quality';
     
+    const qualityRealistic = 'photorealistic, hyperrealistic photograph, ' +
+                             'professional DSLR camera, natural skin texture, ' +
+                             'professional portrait photography, magazine cover quality';
+    
+    // Construction du prompt final - STRUCTURE CLAIRE
     let finalPrompt = '';
-    const qualityPrefix = isAnime ? qualityPromptAnime : qualityPromptRealistic;
+    
+    // 1. Qualité de base
+    finalPrompt = qualityCore + ', ';
+    
+    // 2. Style (anime ou réaliste)
+    finalPrompt += (isAnime ? qualityAnime : qualityRealistic) + ', ';
+    
+    // 3. Anatomie parfaite TOUJOURS
+    finalPrompt += anatomyPerfect + ', ';
+    
+    // 4. Sujet unique
+    finalPrompt += 'single person, solo, one character only, ';
     
     if (isNSFW) {
-      console.log(`🔞 MODE NSFW FORCÉ - Niveau ${nsfwLevel} (${isAnime ? 'Anime' : 'Réaliste'})`);
+      console.log(`🔞 MODE NSFW - Niveau ${nsfwLevel} (${isAnime ? 'Anime' : 'Réaliste'})`);
       
-      // Préfixe NSFW TRÈS EXPLICITE selon le niveau
-      let nsfwPrefix = '';
-      let nsfwSuffix = '';
-      
+      // Ajouter le contenu NSFW selon le niveau
       if (nsfwLevel >= 5) {
-        // Niveau 5+ : Très explicite
-        nsfwPrefix = isAnime 
-          ? 'NSFW explicit nude anime girl, full nudity, erotic anime, '
-          : 'NSFW explicit nude naked woman, full nudity, erotic, real person, ';
-        nsfwSuffix = ', completely naked, nude body fully exposed, nipples visible, intimate pose, explicit adult content, uncensored';
+        finalPrompt += 'nude woman, full body visible, artistic nude photography, ';
+        finalPrompt += cleanPrompt + ', ';
+        finalPrompt += 'naked body, sensual pose, intimate, erotic art';
       } else if (nsfwLevel >= 4) {
-        // Niveau 4 : Nu artistique
-        nsfwPrefix = isAnime
-          ? 'NSFW nude anime girl, artistic nudity, '
-          : 'NSFW nude woman, artistic nudity, real person, ';
-        nsfwSuffix = ', naked body, bare breasts, topless, sensual nude pose, adult content';
+        finalPrompt += 'topless woman, artistic nude, ';
+        finalPrompt += cleanPrompt + ', ';
+        finalPrompt += 'bare chest, sensual, elegant nude';
       } else if (nsfwLevel >= 3) {
-        // Niveau 3 : Lingerie
-        nsfwPrefix = isAnime
-          ? 'NSFW sexy anime girl in lingerie, '
-          : 'NSFW sexy woman in lingerie, real person, ';
-        nsfwSuffix = ', wearing sexy lingerie, bra and panties, lace underwear, seductive, adult content';
+        finalPrompt += 'woman in lingerie, underwear model, ';
+        finalPrompt += cleanPrompt + ', ';
+        finalPrompt += 'sexy lingerie, bra and panties, seductive';
       } else {
-        // Niveau 2 : Provocant
-        nsfwPrefix = isAnime
-          ? 'NSFW sexy provocative anime girl, '
-          : 'NSFW sexy provocative woman, real person, ';
-        nsfwSuffix = ', revealing outfit, cleavage visible, seductive pose, adult content';
+        finalPrompt += 'sexy woman, revealing outfit, ';
+        finalPrompt += cleanPrompt + ', ';
+        finalPrompt += 'provocative pose, cleavage, attractive';
       }
-      
-      finalPrompt = qualityPrefix + nsfwPrefix + cleanPrompt + nsfwSuffix;
-      finalPrompt += ', professional erotic photography, beautiful, flawless';
       
     } else {
       console.log(`✨ Mode SFW (${isAnime ? 'Anime' : 'Réaliste'})`);
-      finalPrompt = qualityPrefix + cleanPrompt + ', professional photography, beautiful, flawless';
+      finalPrompt += 'beautiful woman, elegant, ';
+      finalPrompt += cleanPrompt + ', ';
+      finalPrompt += 'tasteful, stylish, attractive';
     }
     
-    // Ajouter les termes négatifs à la fin
-    finalPrompt += ', ' + negativeTerms;
-    
-    // Limiter et encoder
-    const shortPrompt = finalPrompt.substring(0, 2000);
+    // Limiter la longueur (trop long = confusion pour le modèle)
+    const shortPrompt = finalPrompt.substring(0, 1500);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // Pollinations.ai URL - modèle flux-realism pour meilleure qualité réaliste
-    const modelType = isAnime ? 'flux' : 'flux-realism';
-    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=${modelType}`;
+    // Utiliser flux-pro pour meilleure qualité (moins de défauts)
+    const modelType = 'flux';
+    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=${modelType}&enhance=true`;
     
-    console.log(`🔗 URL Pollinations (seed: ${seed}, niveau: ${nsfwLevel}, modèle: ${modelType})`);
-    console.log(`📝 Prompt: ${shortPrompt.substring(0, 150)}...`);
+    console.log(`🔗 URL Pollinations (seed: ${seed}, niveau: ${nsfwLevel})`);
+    console.log(`📝 Prompt (${shortPrompt.length} chars): ${shortPrompt.substring(0, 200)}...`);
     
     return imageUrl;
   }
