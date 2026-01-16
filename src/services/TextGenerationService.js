@@ -239,10 +239,10 @@ class TextGenerationService {
       {
         model: 'openai',
         messages: fullMessages,
-        max_tokens: 180,
-        temperature: 0.92,
-        presence_penalty: 0.6,
-        frequency_penalty: 0.8,
+        max_tokens: 120, // Réponses plus courtes
+        temperature: 0.65, // Moins créatif, plus cohérent
+        presence_penalty: 0.3,
+        frequency_penalty: 0.5,
       },
       {
         headers: { 'Content-Type': 'application/json' },
@@ -278,10 +278,10 @@ class TextGenerationService {
       content: msg.content.substring(0, 400)
     })));
     
-    // 3. RAPPEL FINAL
+    // 3. RAPPEL FINAL - Plus direct
     fullMessages.push({
       role: 'system',
-      content: `[RÉPONDS MAINTENANT] Tu es ${character.name}. ${context.mode === 'nsfw' ? 'Mode intime autorisé.' : 'Mode conversation.'} 2-3 phrases courtes. Format: *action* "parole" (pensée)`
+      content: `[RÉPONDS MAINTENANT] Tu es ${character.name}. Réponds DIRECTEMENT à ce que dit l'utilisateur. 1-2 phrases simples. Format: *action simple* "réponse directe" (pensée courte)`
     });
     
     console.log(`📡 Ollama - ${fullMessages.length} messages`);
@@ -290,8 +290,8 @@ class TextGenerationService {
       FREEBOX_CHAT_URL,
       {
         messages: fullMessages,
-        max_tokens: 120,
-        temperature: 0.9,
+        max_tokens: 100, // Plus court
+        temperature: 0.6, // Moins créatif
       },
       { timeout: 90000 }
     );
@@ -376,16 +376,19 @@ class TextGenerationService {
     if (userProfile?.age) prompt += `- Âge: ${userProfile.age} ans\n`;
     
     // === RÈGLES DE COMMUNICATION STRICTES ===
-    prompt += `\n## RÈGLES DE COMMUNICATION (TRÈS IMPORTANT!)\n`;
-    prompt += `1. RÉPONDS TOUJOURS DIRECTEMENT à ce que dit ${userName}\n`;
-    prompt += `2. Si ${userName} pose une QUESTION → RÉPONDS à la question!\n`;
-    prompt += `3. Si ${userName} fait une ACTION → RÉAGIS à l'action!\n`;
-    prompt += `4. JAMAIS de métaphores compliquées ou poétiques\n`;
-    prompt += `5. JAMAIS de réponses évasives ou philosophiques\n`;
-    prompt += `6. Parle comme une VRAIE personne, simple et naturel\n`;
-    prompt += `7. Réponses COURTES: 1-2 phrases maximum\n`;
-    prompt += `8. Format: *action* "parole" (pensée)\n`;
-    prompt += `9. UN SEUL astérisque * pour les actions, pas **\n`;
+    prompt += `\n## RÈGLES DE COMMUNICATION (OBLIGATOIRE!)\n`;
+    prompt += `1. RÉPONDS DIRECTEMENT à ce que dit ${userName} - pas de détours!\n`;
+    prompt += `2. Si ${userName} pose une QUESTION → Donne une RÉPONSE claire et simple!\n`;
+    prompt += `3. Si ${userName} fait une ACTION → RÉAGIS naturellement!\n`;
+    prompt += `4. INTERDIT: métaphores, poésie, langage fleuri, philosophie\n`;
+    prompt += `5. Parle comme dans une vraie conversation, simplement\n`;
+    prompt += `6. 1-2 phrases MAXIMUM - pas plus!\n`;
+    
+    prompt += `\n## FORMAT OBLIGATOIRE\n`;
+    prompt += `*action simple* "ce que tu dis" (pensée courte)\n`;
+    prompt += `Exemples de BONNES pensées: (Il est mignon) (Qu'est-ce qu'il veut?) (J'aime ça)\n`;
+    prompt += `Exemples de MAUVAISES pensées: (Les étoiles dansent dans mon cœur) (L'univers conspire)\n`;
+    prompt += `→ Les pensées doivent être SIMPLES et COURTES!\n`;
     
     return prompt;
   }
@@ -519,63 +522,51 @@ class TextGenerationService {
   }
 
   /**
-   * Construit l'instruction finale avec réponse DIRECTE obligatoire
+   * Construit l'instruction finale - Simple et directe
    */
   buildFinalInstruction(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
     const lastMsg = context.lastUserMessage || '';
     const msgType = this.analyzeUserMessageType(lastMsg);
     
-    let instruction = `\n[⚠️ INSTRUCTION CRITIQUE - RÉPONSE DIRECTE OBLIGATOIRE]\n\n`;
+    let instruction = `\n[INSTRUCTION FINALE]\n\n`;
     
-    // Message de l'utilisateur avec analyse
-    instruction += `📩 MESSAGE DE ${userName.toUpperCase()}:\n`;
-    instruction += `"${lastMsg.substring(0, 150)}"\n\n`;
+    instruction += `${userName} dit: "${lastMsg.substring(0, 100)}"\n\n`;
     
-    // Instructions selon le type de message
+    // Instructions simples selon le type
     if (msgType.needsDirectAnswer) {
-      instruction += `🎯 C'EST UNE QUESTION! Tu DOIS:\n`;
-      instruction += `- RÉPONDRE DIRECTEMENT à la question posée\n`;
-      instruction += `- Expliquer clairement ce que tu voulais dire\n`;
-      instruction += `- PAS de métaphores compliquées\n`;
-      instruction += `- PAS de réponses évasives\n`;
-      instruction += `- Réponse SIMPLE et CLAIRE\n\n`;
+      instruction += `→ C'est une QUESTION. Réponds-y clairement!\n`;
     } else if (msgType.needsReaction) {
-      instruction += `🎯 C'EST UNE ACTION! Tu DOIS:\n`;
-      instruction += `- RÉAGIR à ce que ${userName} fait\n`;
-      instruction += `- Décrire ta réaction physique et émotionnelle\n`;
-      instruction += `- Répondre de manière cohérente\n\n`;
+      instruction += `→ C'est une ACTION. Réagis naturellement!\n`;
     } else if (msgType.needsGreeting) {
-      instruction += `🎯 C'EST UNE SALUTATION! Tu DOIS:\n`;
-      instruction += `- Saluer ${userName} naturellement\n`;
-      instruction += `- Être accueillant(e)\n\n`;
+      instruction += `→ Salue ${userName}.\n`;
     } else {
-      instruction += `🎯 RÉPONDS DIRECTEMENT à ce que ${userName} dit!\n`;
-      instruction += `- Ta réponse doit être EN LIEN avec son message\n`;
-      instruction += `- PAS de changement de sujet\n\n`;
+      instruction += `→ Réponds à ce que ${userName} dit.\n`;
     }
     
-    // Règles STRICTES
-    instruction += `📏 RÈGLES STRICTES:\n`;
-    instruction += `- Format: *action simple* "parole directe" (pensée courte)\n`;
-    instruction += `- 1-2 phrases MAXIMUM\n`;
-    instruction += `- JAMAIS de métaphores compliquées\n`;
-    instruction += `- JAMAIS de réponses philosophiques\n`;
-    instruction += `- Parle comme une vraie personne, pas un poète\n`;
-    instruction += `- Utilise UN SEUL astérisque * pour les actions\n\n`;
+    // Format obligatoire
+    instruction += `\nFORMAT: *action* "parole" (pensée)\n`;
+    instruction += `LONGUEUR: 1-2 phrases, pas plus!\n\n`;
     
-    // Anti-répétition
-    if (context.usedActions.length > 0) {
-      instruction += `🚫 NE PAS RÉPÉTER: ${context.usedActions.slice(-3).join(', ')}\n\n`;
-    }
+    // Exemples concrets
+    instruction += `BON EXEMPLE:\n`;
+    instruction += `*sourit* "Oui, je comprends." (Il est sympa)\n\n`;
     
-    instruction += `RÉPONDS MAINTENANT de manière SIMPLE et DIRECTE!`;
+    instruction += `MAUVAIS EXEMPLE:\n`;
+    instruction += `*ses yeux scintillent comme des étoiles perdues* "L'univers murmure des secrets..." (Mon âme voyage)\n`;
+    instruction += `→ TROP COMPLIQUÉ! Sois simple!\n\n`;
+    
+    // Pensées simples
+    instruction += `PENSÉES = SIMPLES:\n`;
+    instruction += `✓ BON: (Cool) (J'aime bien) (Il est mignon) (Qu'est-ce qu'il veut?)\n`;
+    instruction += `✗ MAUVAIS: (L'écho de son âme résonne) (Le crépuscule de mes sentiments)\n`;
     
     return instruction;
   }
 
   /**
    * Nettoie et valide la réponse générée
+   * Simplifie les pensées et réponses trop créatives
    */
   cleanAndValidateResponse(content, context) {
     let cleaned = content.trim();
@@ -595,34 +586,48 @@ class TextGenerationService {
     // Supprimer les doublons de mots consécutifs
     cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, '$1');
     
-    // Supprimer les répétitions de phrases
-    const sentences = cleaned.split(/[.!?]+/).filter(s => s.trim());
-    const uniqueSentences = [...new Set(sentences.map(s => s.trim().toLowerCase()))];
-    if (uniqueSentences.length < sentences.length) {
-      cleaned = sentences.filter((s, i) => 
-        sentences.findIndex(x => x.trim().toLowerCase() === s.trim().toLowerCase()) === i
-      ).join('. ');
-    }
+    // SIMPLIFIER LES PENSÉES TROP COMPLEXES
+    // Détecter les pensées entre parenthèses
+    cleaned = cleaned.replace(/\(([^)]+)\)/g, (match, thought) => {
+      // Mots qui indiquent une pensée trop "poétique"
+      const poeticWords = ['âme', 'univers', 'étoiles', 'crépuscule', 'écho', 'infini', 
+                          'destin', 'cosmos', 'éternité', 'murmure', 'scintill', 'danse'];
+      const isPoetic = poeticWords.some(w => thought.toLowerCase().includes(w));
+      
+      // Si la pensée est trop longue (>30 chars) ou poétique, la simplifier
+      if (thought.length > 30 || isPoetic) {
+        // Remplacer par une pensée simple
+        const simpleThoughts = ['Hmm...', 'Intéressant', 'Je vois', 'Ah', 'Ok', 'Cool', 'Oh'];
+        return `(${simpleThoughts[Math.floor(Math.random() * simpleThoughts.length)]})`;
+      }
+      return match;
+    });
     
-    // Supprimer les métaphores trop longues et complexes
-    // Si la réponse contient des mots comme "métaphore", "crépuscule", "indéclaré", etc.
-    const pretentiousWords = ['métaphore', 'crépuscule', 'indéclaré', 'éphémère', 'abstrait', 'philosophie'];
+    // Supprimer les métaphores et langage fleuri
+    const pretentiousWords = ['métaphore', 'crépuscule', 'indéclaré', 'éphémère', 'abstrait', 
+                              'philosophie', 'cosmos', 'univers', 'destin', 'éternité',
+                              'scintill', 'brûl', 'consume', 'transcend'];
     const hasPretentious = pretentiousWords.some(w => cleaned.toLowerCase().includes(w));
-    if (hasPretentious && cleaned.length > 200) {
-      // Garder seulement la première partie
-      const parts = cleaned.split(/[.!?]+/);
-      cleaned = parts.slice(0, 2).join('. ') + '.';
+    if (hasPretentious) {
+      // Garder seulement la première phrase
+      const parts = cleaned.split(/[.!?]+/).filter(s => s.trim());
+      if (parts.length > 0) {
+        cleaned = parts[0].trim() + '.';
+      }
     }
     
-    // Vérifier la longueur (pas trop long)
-    if (cleaned.length > 400) {
-      const parts = cleaned.split(/[.!?]+/);
-      cleaned = parts.slice(0, 2).join('. ') + '.';
+    // Limiter la longueur - max 2 phrases
+    if (cleaned.length > 250) {
+      const parts = cleaned.split(/[.!?]+/).filter(s => s.trim());
+      cleaned = parts.slice(0, 2).join('. ').trim();
+      if (!cleaned.endsWith('.') && !cleaned.endsWith('!') && !cleaned.endsWith('?')) {
+        cleaned += '.';
+      }
     }
     
     // S'assurer qu'il y a du contenu
     if (cleaned.length < 10) {
-      cleaned = `*sourit* "Je..." (cherche ses mots)`;
+      cleaned = `*sourit* "Oui." (Ok)`;
     }
     
     return cleaned;
