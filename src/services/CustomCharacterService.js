@@ -174,14 +174,25 @@ class CustomCharacterService {
 
   /**
    * Récupère les personnages de l'utilisateur connecté uniquement
+   * Synchronise automatiquement depuis le serveur si possible
    */
   async getCustomCharacters() {
     try {
       const key = this.getUserStorageKey();
       const data = await AsyncStorage.getItem(key);
-      const localChars = data ? JSON.parse(data) : [];
+      let localChars = data ? JSON.parse(data) : [];
       
-      // Retourner uniquement les personnages de l'utilisateur
+      // Essayer de synchroniser depuis le serveur en arrière-plan
+      const user = AuthService.getCurrentUser();
+      if (user?.id) {
+        // Sync depuis le serveur (non bloquant)
+        this.syncFromServer().then(merged => {
+          if (merged && merged.length > 0) {
+            console.log('✅ Personnages synchronisés depuis le serveur');
+          }
+        }).catch(e => console.log('Sync serveur échoué:', e.message));
+      }
+      
       return localChars;
     } catch (error) {
       console.error('Error getting custom characters:', error);

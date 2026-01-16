@@ -305,90 +305,79 @@ class TextGenerationService {
 
   /**
    * Construit le prompt système immersif complet
-   * Inclut: personnalité, tempérament, scénario, mode SFW/NSFW
+   * IMPORTANT: Clarifier les rôles pour éviter la confusion personnage/utilisateur
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
     const userGender = userProfile?.gender || '';
+    const charName = character.name || 'le personnage';
     
-    let prompt = `# TU ES ${character.name.toUpperCase()}\n\n`;
+    let prompt = `# TU JOUES LE RÔLE DE ${charName.toUpperCase()}\n\n`;
     
-    // === IDENTITÉ ===
-    prompt += `## IDENTITÉ\n`;
+    // === CLARIFICATION DES RÔLES ===
+    prompt += `## QUI EST QUI (TRÈS IMPORTANT!)\n`;
+    prompt += `- TOI = ${charName} (le personnage que tu incarnes)\n`;
+    prompt += `- ${userName} = la personne qui te parle (l'utilisateur)\n`;
+    prompt += `- Tu parles EN TANT QUE ${charName}, PAS en tant que ${userName}!\n`;
+    prompt += `- ${userName} écrit ses propres messages, toi tu réponds en tant que ${charName}\n\n`;
+    
+    // === IDENTITÉ DU PERSONNAGE ===
+    prompt += `## TON IDENTITÉ (${charName})\n`;
     if (character.age) prompt += `- Âge: ${character.age} ans\n`;
     if (character.gender === 'female') prompt += `- Genre: Femme\n`;
     else if (character.gender === 'male') prompt += `- Genre: Homme\n`;
     else prompt += `- Genre: Non-binaire\n`;
+    if (character.personality) prompt += `- Personnalité: ${character.personality}\n`;
     
-    // === PERSONNALITÉ & TEMPÉRAMENT ===
-    prompt += `\n## PERSONNALITÉ & TEMPÉRAMENT\n`;
-    if (character.personality) {
-      prompt += `${character.personality}\n`;
-    }
-    if (character.temperament) {
-      const temperaments = {
-        'shy': 'Tu es TIMIDE: rougis souvent, hésites, parles doucement, évites le contact visuel',
-        'confident': 'Tu es CONFIANTE: assurée, directe, regard intense, parles avec assurance',
-        'playful': 'Tu es JOUEUSE: taquine, ris souvent, fais des blagues, aimes t\'amuser',
-        'dominant': 'Tu es DOMINANTE: prends le contrôle, donnes des ordres, aimes diriger',
-        'submissive': 'Tu es SOUMISE: obéis, demandes permission, te laisses guider',
-        'romantic': 'Tu es ROMANTIQUE: douce, attentionnée, parles d\'amour, fais des gestes tendres',
-        'passionate': 'Tu es PASSIONNÉE: intense, émotive, tout est fort avec toi',
-        'cold': 'Tu es FROIDE: distante, peu expressive, difficile à approcher',
-        'tsundere': 'Tu es TSUNDERE: froide en apparence mais secrètement attirée',
-      };
-      prompt += `${temperaments[character.temperament] || ''}\n`;
-    }
-    
-    // === SCÉNARIO ===
+    // === SCÉNARIO = CONTEXTE (pas ce que tu dois dire!) ===
     if (character.scenario) {
-      prompt += `\n## SCÉNARIO EN COURS\n`;
+      prompt += `\n## CONTEXTE/SITUATION\n`;
       prompt += `${character.scenario}\n`;
-      prompt += `→ RESTE COHÉRENT avec ce scénario!\n`;
+      prompt += `→ C'est le CONTEXTE de l'histoire, pas ce que tu dois répéter!\n`;
+      prompt += `→ Joue TON rôle dans ce contexte!\n`;
     }
     
-    // === RELATION avec l'utilisateur ===
+    // === RELATION ===
     if (character.relationship) {
-      prompt += `\n## RELATION AVEC ${userName.toUpperCase()}\n`;
+      prompt += `\n## TA RELATION AVEC ${userName.toUpperCase()}\n`;
       prompt += `${character.relationship}\n`;
     }
     
-    // === MODE SFW/NSFW ===
-    prompt += `\n## MODE DE CONVERSATION\n`;
-    if (context.mode === 'nsfw') {
-      prompt += `🔞 MODE INTIME: Tu peux être sensuelle, explicite, décrire des gestes intimes.\n`;
-      prompt += `L'utilisateur est adulte et consent. Sois créative dans l'intimité.\n`;
-    } else {
-      prompt += `✨ MODE SFW: Conversation normale, tu peux flirter légèrement.\n`;
-      prompt += `Pas de contenu explicite tant que l'utilisateur n'initie pas.\n`;
-    }
-    
-    // === UTILISATEUR ===
-    prompt += `\n## L'UTILISATEUR\n`;
-    prompt += `- Nom: ${userName}\n`;
+    // === L'UTILISATEUR ===
+    prompt += `\n## QUI EST ${userName.toUpperCase()}\n`;
+    prompt += `C'est la personne qui te parle. `;
     if (userGender === 'homme' || userGender === 'male') {
-      prompt += `- Genre: Homme (utilise "il", "lui")\n`;
-      if (userProfile?.penis) prompt += `- Attribut: ${userProfile.penis}cm\n`;
+      prompt += `C'est un homme.\n`;
     } else if (userGender === 'femme' || userGender === 'female') {
-      prompt += `- Genre: Femme (utilise "elle")\n`;
-      if (userProfile?.bust) prompt += `- Poitrine: bonnet ${userProfile.bust}\n`;
+      prompt += `C'est une femme.\n`;
+    } else {
+      prompt += `\n`;
     }
-    if (userProfile?.age) prompt += `- Âge: ${userProfile.age} ans\n`;
     
-    // === RÈGLES DE COMMUNICATION STRICTES ===
-    prompt += `\n## RÈGLES DE COMMUNICATION (OBLIGATOIRE!)\n`;
-    prompt += `1. RÉPONDS DIRECTEMENT à ce que dit ${userName} - pas de détours!\n`;
-    prompt += `2. Si ${userName} pose une QUESTION → Donne une RÉPONSE claire et simple!\n`;
-    prompt += `3. Si ${userName} fait une ACTION → RÉAGIS naturellement!\n`;
-    prompt += `4. INTERDIT: métaphores, poésie, langage fleuri, philosophie\n`;
-    prompt += `5. Parle comme dans une vraie conversation, simplement\n`;
-    prompt += `6. 1-2 phrases MAXIMUM - pas plus!\n`;
+    // === MODE ===
+    if (context.mode === 'nsfw') {
+      prompt += `\n## MODE INTIME\n`;
+      prompt += `Contenu adulte autorisé si la conversation va dans ce sens.\n`;
+    }
     
-    prompt += `\n## FORMAT OBLIGATOIRE\n`;
-    prompt += `*action simple* "ce que tu dis" (pensée courte)\n`;
-    prompt += `Exemples de BONNES pensées: (Il est mignon) (Qu'est-ce qu'il veut?) (J'aime ça)\n`;
-    prompt += `Exemples de MAUVAISES pensées: (Les étoiles dansent dans mon cœur) (L'univers conspire)\n`;
-    prompt += `→ Les pensées doivent être SIMPLES et COURTES!\n`;
+    // === FORMAT STRICT ===
+    prompt += `\n## FORMAT DE TES RÉPONSES (OBLIGATOIRE!)\n`;
+    prompt += `Tu dois UNIQUEMENT écrire:\n`;
+    prompt += `1. *tes actions* (ce que TU fais, pas ${userName})\n`;
+    prompt += `2. "tes paroles" (ce que TU dis)\n`;
+    prompt += `3. (tes pensées) (ce que TU penses)\n\n`;
+    
+    prompt += `EXEMPLE CORRECT:\n`;
+    prompt += `*te regarde* "Bonjour, comment vas-tu?" (Il a l'air sympa)\n\n`;
+    
+    prompt += `INTERDIT:\n`;
+    prompt += `- Décrire ce que ${userName} fait ou dit\n`;
+    prompt += `- Écrire des descriptions narratives\n`;
+    prompt += `- Expliquer la situation\n`;
+    prompt += `- Parler à la place de ${userName}\n`;
+    prompt += `- Dire "en quoi puis-je t'aider" si c'est TOI qui demandes de l'aide!\n\n`;
+    
+    prompt += `Tu réponds UNIQUEMENT avec TES actions, TES paroles, TES pensées!\n`;
     
     return prompt;
   }
@@ -529,50 +518,60 @@ class TextGenerationService {
     const lastMsg = context.lastUserMessage || '';
     const msgType = this.analyzeUserMessageType(lastMsg);
     
-    let instruction = `\n[INSTRUCTION FINALE]\n\n`;
+    const charName = character?.name || 'le personnage';
     
-    instruction += `${userName} dit: "${lastMsg.substring(0, 100)}"\n\n`;
+    let instruction = `\n[RAPPEL FINAL - TRÈS IMPORTANT]\n\n`;
     
-    // Instructions simples selon le type
+    instruction += `TU ES ${charName.toUpperCase()}. ${userName} vient de dire:\n`;
+    instruction += `"${lastMsg.substring(0, 100)}"\n\n`;
+    
+    // Instructions selon le type
     if (msgType.needsDirectAnswer) {
-      instruction += `→ C'est une QUESTION. Réponds-y clairement!\n`;
+      instruction += `→ Réponds à cette question EN TANT QUE ${charName}!\n`;
     } else if (msgType.needsReaction) {
-      instruction += `→ C'est une ACTION. Réagis naturellement!\n`;
+      instruction += `→ Réagis à cette action EN TANT QUE ${charName}!\n`;
     } else if (msgType.needsGreeting) {
-      instruction += `→ Salue ${userName}.\n`;
+      instruction += `→ Salue ${userName} EN TANT QUE ${charName}!\n`;
     } else {
-      instruction += `→ Réponds à ce que ${userName} dit.\n`;
+      instruction += `→ Réponds EN TANT QUE ${charName}!\n`;
     }
     
-    // Format obligatoire
-    instruction += `\nFORMAT: *action* "parole" (pensée)\n`;
-    instruction += `LONGUEUR: 1-2 phrases, pas plus!\n\n`;
+    instruction += `\n⚠️ RÈGLES ABSOLUES:\n`;
+    instruction += `1. Écris UNIQUEMENT ce que ${charName} fait/dit/pense\n`;
+    instruction += `2. Format: *action* "parole" (pensée)\n`;
+    instruction += `3. Tu dois TOUJOURS avoir une "parole" (quelque chose que tu DIS)\n`;
+    instruction += `4. JAMAIS de description narrative ou d'explication\n`;
+    instruction += `5. JAMAIS parler à la place de ${userName}\n`;
+    instruction += `6. Si ${charName} demande de l'aide → ${charName} DEMANDE, pas "en quoi puis-je t'aider"\n\n`;
     
-    // Exemples concrets
-    instruction += `BON EXEMPLE:\n`;
-    instruction += `*sourit* "Oui, je comprends." (Il est sympa)\n\n`;
-    
-    instruction += `MAUVAIS EXEMPLE:\n`;
-    instruction += `*ses yeux scintillent comme des étoiles perdues* "L'univers murmure des secrets..." (Mon âme voyage)\n`;
-    instruction += `→ TROP COMPLIQUÉ! Sois simple!\n\n`;
-    
-    // Pensées simples
-    instruction += `PENSÉES = SIMPLES:\n`;
-    instruction += `✓ BON: (Cool) (J'aime bien) (Il est mignon) (Qu'est-ce qu'il veut?)\n`;
-    instruction += `✗ MAUVAIS: (L'écho de son âme résonne) (Le crépuscule de mes sentiments)\n`;
+    instruction += `EXEMPLE:\n`;
+    instruction += `*s'approche* "Excuse-moi, tu pourrais m'aider?" (J'espère qu'il va accepter)\n`;
     
     return instruction;
   }
 
   /**
    * Nettoie et valide la réponse générée
-   * Simplifie les pensées et réponses trop créatives
+   * - Supprime les descriptions narratives
+   * - S'assure qu'il y a une parole
+   * - Simplifie les pensées
    */
   cleanAndValidateResponse(content, context) {
     let cleaned = content.trim();
     
     // Supprimer les préfixes indésirables
     cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:|Response:)/i, '').trim();
+    
+    // Supprimer les descriptions narratives (texte sans * ni " ni ()
+    // Garder seulement les lignes qui contiennent des actions/paroles/pensées
+    const lines = cleaned.split('\n').filter(line => {
+      const l = line.trim();
+      // Garder si contient * ou " ou ()
+      return l.includes('*') || l.includes('"') || (l.includes('(') && l.includes(')'));
+    });
+    if (lines.length > 0) {
+      cleaned = lines.join(' ').trim();
+    }
     
     // Corriger le formatage des actions (** -> *)
     cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '*$1*');
@@ -587,47 +586,46 @@ class TextGenerationService {
     cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, '$1');
     
     // SIMPLIFIER LES PENSÉES TROP COMPLEXES
-    // Détecter les pensées entre parenthèses
     cleaned = cleaned.replace(/\(([^)]+)\)/g, (match, thought) => {
-      // Mots qui indiquent une pensée trop "poétique"
       const poeticWords = ['âme', 'univers', 'étoiles', 'crépuscule', 'écho', 'infini', 
                           'destin', 'cosmos', 'éternité', 'murmure', 'scintill', 'danse'];
       const isPoetic = poeticWords.some(w => thought.toLowerCase().includes(w));
       
-      // Si la pensée est trop longue (>30 chars) ou poétique, la simplifier
-      if (thought.length > 30 || isPoetic) {
-        // Remplacer par une pensée simple
+      if (thought.length > 25 || isPoetic) {
         const simpleThoughts = ['Hmm...', 'Intéressant', 'Je vois', 'Ah', 'Ok', 'Cool', 'Oh'];
         return `(${simpleThoughts[Math.floor(Math.random() * simpleThoughts.length)]})`;
       }
       return match;
     });
     
-    // Supprimer les métaphores et langage fleuri
-    const pretentiousWords = ['métaphore', 'crépuscule', 'indéclaré', 'éphémère', 'abstrait', 
-                              'philosophie', 'cosmos', 'univers', 'destin', 'éternité',
-                              'scintill', 'brûl', 'consume', 'transcend'];
-    const hasPretentious = pretentiousWords.some(w => cleaned.toLowerCase().includes(w));
-    if (hasPretentious) {
-      // Garder seulement la première phrase
-      const parts = cleaned.split(/[.!?]+/).filter(s => s.trim());
-      if (parts.length > 0) {
-        cleaned = parts[0].trim() + '.';
+    // Vérifier qu'il y a une parole (entre guillemets)
+    const hasDialogue = cleaned.includes('"');
+    if (!hasDialogue) {
+      // Essayer de trouver du texte sans formatage et l'ajouter comme parole
+      const textWithoutFormat = cleaned.replace(/\*[^*]+\*/g, '').replace(/\([^)]+\)/g, '').trim();
+      if (textWithoutFormat.length > 5 && textWithoutFormat.length < 100) {
+        // Ajouter comme parole
+        const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
+        cleaned = `${action} "${textWithoutFormat}"`;
+      } else {
+        // Ajouter une parole par défaut
+        const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
+        cleaned = `${action} "..."`;
       }
     }
     
-    // Limiter la longueur - max 2 phrases
-    if (cleaned.length > 250) {
-      const parts = cleaned.split(/[.!?]+/).filter(s => s.trim());
-      cleaned = parts.slice(0, 2).join('. ').trim();
-      if (!cleaned.endsWith('.') && !cleaned.endsWith('!') && !cleaned.endsWith('?')) {
-        cleaned += '.';
-      }
+    // Limiter la longueur - max 200 caractères
+    if (cleaned.length > 200) {
+      // Garder action + parole + pensée si possible
+      const action = cleaned.match(/\*[^*]+\*/)?.[0] || '';
+      const dialogue = cleaned.match(/"[^"]+"/)?.[0] || '"..."';
+      const thought = cleaned.match(/\([^)]+\)/)?.[0] || '';
+      cleaned = `${action} ${dialogue} ${thought}`.trim();
     }
     
     // S'assurer qu'il y a du contenu
     if (cleaned.length < 10) {
-      cleaned = `*sourit* "Oui." (Ok)`;
+      cleaned = `*te regarde* "Oui?" (Hmm)`;
     }
     
     return cleaned;
