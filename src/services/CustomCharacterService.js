@@ -1,8 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SyncService from './SyncService';
 import AuthService from './AuthService';
+import axios from 'axios';
 
 class CustomCharacterService {
+  constructor() {
+    this.FREEBOX_URL = 'http://88.174.155.230:33437';
+  }
   
   /**
    * Récupère la clé de stockage unique pour l'utilisateur connecté
@@ -11,6 +15,103 @@ class CustomCharacterService {
     const user = AuthService.getCurrentUser();
     const userId = user?.id || 'anonymous';
     return `custom_characters_${userId}`;
+  }
+
+  /**
+   * Synchronise les personnages vers le serveur Freebox
+   */
+  async syncToServer() {
+    try {
+      const user = AuthService.getCurrentUser();
+      if (!user?.id) {
+        console.log('⚠️ Pas connecté, sync impossible');
+        return false;
+      }
+
+      const characters = await this.getCustomCharacters();
+      
+      const response = await axios.post(
+        `${this.FREEBOX_URL}/api/user-characters/sync`,
+        { 
+          userId: user.id, 
+          email: user.email,
+          characters: characters 
+        },
+        { 
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 15000 
+        }
+      );
+
+      if (response.data?.success) {
+        console.log(`✅ ${characters.length} personnages synchronisés`);
+        await AsyncStorage.setItem('last_characters_sync', Date.now().toString());
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('❌ Erreur sync personnages:', error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Récupère les personnages depuis le serveur Freebox
+   */
+  async syncFromServer() {
+    try {
+      const user = AuthService.getCurrentUser();
+      if (!user?.id) return false;
+
+      const response = await axios.get(
+        `${this.FREEBOX_URL}/api/user-characters/${user.id}`,
+        { timeout: 15000 }
+      );
+
+      if (response.data?.success && response.data.characters) {
+        const key = this.getUserStorageKey();
+        const localChars = await this.getCustomCharacters();
+        const serverChars = response.data.characters;
+
+        // Fusionner : garder le plus récent
+        const merged = this.mergeCharacters(localChars, serverChars);
+        await AsyncStorage.setItem(key, JSON.stringify(merged));
+        
+        console.log(`✅ ${merged.length} personnages récupérés du serveur`);
+        return merged;
+      }
+      return false;
+    } catch (error) {
+      console.error('❌ Erreur récupération personnages:', error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Fusionne les personnages locaux et serveur
+   */
+  mergeCharacters(local, server) {
+    const merged = new Map();
+    
+    // Ajouter tous les personnages locaux
+    local.forEach(char => merged.set(char.id, char));
+    
+    // Fusionner avec le serveur (garder le plus récent)
+    server.forEach(serverChar => {
+      const existing = merged.get(serverChar.id);
+      if (!existing) {
+        merged.set(serverChar.id, serverChar);
+      } else {
+        // Garder le plus récent
+        const localTime = existing.updatedAt || existing.createdAt || 0;
+        const serverTime = serverChar.updatedAt || serverChar.createdAt || 0;
+        if (serverTime > localTime) {
+          merged.set(serverChar.id, serverChar);
+        }
+      }
+    });
+    
+    return Array.from(merged.values());
   }
 
   /**
@@ -45,21 +146,22 @@ class CustomCharacterService {
       characters.push(newCharacter);
       await AsyncStorage.setItem(key, JSON.stringify(characters));
       
+      // SYNCHRONISATION AUTOMATIQUE vers le serveur
+      this.syncToServer().catch(e => console.log('Sync auto échoué:', e.message));
+      
       // Si public, publier sur le serveur
       if (isPublic) {
         try {
           await SyncService.init();
-          // S'assurer que le personnage est bien marqué comme public avant publication
           const charToPublish = { ...newCharacter, isPublic: true };
           const publishedChar = await SyncService.publishCharacter(charToPublish);
-          // Mettre à jour avec l'ID du serveur
           if (publishedChar && publishedChar.id) {
             newCharacter.serverId = publishedChar.id;
             await this.updateCustomCharacter(newCharacter.id, { serverId: publishedChar.id });
           }
           console.log('✅ Personnage publié sur le serveur:', newCharacter.name);
         } catch (error) {
-          console.error('⚠️ Erreur publication, personnage sauvé localement uniquement:', error.message);
+          console.error('⚠️ Erreur publication:', error.message);
         }
       }
       
@@ -135,6 +237,10 @@ class CustomCharacterService {
       
       const updated = characters.filter(char => char.id !== characterId);
       await AsyncStorage.setItem(this.getUserStorageKey(), JSON.stringify(updated));
+      
+      // SYNCHRONISATION AUTOMATIQUE après suppression
+      this.syncToServer().catch(e => console.log('Sync auto échoué:', e.message));
+      
       return updated;
     } catch (error) {
       console.error('Error deleting custom character:', error);
@@ -150,6 +256,10 @@ class CustomCharacterService {
       if (index !== -1) {
         characters[index] = { ...characters[index], ...updates, updatedAt: Date.now() };
         await AsyncStorage.setItem(this.getUserStorageKey(), JSON.stringify(characters));
+        
+        // SYNCHRONISATION AUTOMATIQUE après modification
+        this.syncToServer().catch(e => console.log('Sync auto échoué:', e.message));
+        
         return characters[index];
       }
       
