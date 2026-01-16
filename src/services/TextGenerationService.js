@@ -375,6 +375,18 @@ class TextGenerationService {
     }
     if (userProfile?.age) prompt += `- Âge: ${userProfile.age} ans\n`;
     
+    // === RÈGLES DE COMMUNICATION STRICTES ===
+    prompt += `\n## RÈGLES DE COMMUNICATION (TRÈS IMPORTANT!)\n`;
+    prompt += `1. RÉPONDS TOUJOURS DIRECTEMENT à ce que dit ${userName}\n`;
+    prompt += `2. Si ${userName} pose une QUESTION → RÉPONDS à la question!\n`;
+    prompt += `3. Si ${userName} fait une ACTION → RÉAGIS à l'action!\n`;
+    prompt += `4. JAMAIS de métaphores compliquées ou poétiques\n`;
+    prompt += `5. JAMAIS de réponses évasives ou philosophiques\n`;
+    prompt += `6. Parle comme une VRAIE personne, simple et naturel\n`;
+    prompt += `7. Réponses COURTES: 1-2 phrases maximum\n`;
+    prompt += `8. Format: *action* "parole" (pensée)\n`;
+    prompt += `9. UN SEUL astérisque * pour les actions, pas **\n`;
+    
     return prompt;
   }
 
@@ -474,36 +486,90 @@ class TextGenerationService {
   }
 
   /**
-   * Construit l'instruction finale avec anti-répétition
+   * Analyse le type de message de l'utilisateur pour adapter la réponse
+   */
+  analyzeUserMessageType(message) {
+    const msg = (message || '').toLowerCase();
+    
+    // Question directe demandant une explication
+    if (msg.includes('que veux') || msg.includes('qu\'est-ce que') || msg.includes('explique') || 
+        msg.includes('pourquoi') || msg.includes('comment') || msg.includes('c\'est quoi') ||
+        msg.includes('dis-moi') || msg.includes('raconte')) {
+      return { type: 'question', needsDirectAnswer: true };
+    }
+    
+    // Action physique de l'utilisateur
+    if (msg.includes('*') && (msg.includes('embrass') || msg.includes('caress') || msg.includes('touche') ||
+        msg.includes('prend') || msg.includes('serre') || msg.includes('rapproche'))) {
+      return { type: 'action_intime', needsReaction: true };
+    }
+    
+    // Action simple
+    if (msg.includes('*')) {
+      return { type: 'action', needsReaction: true };
+    }
+    
+    // Salutation
+    if (msg.includes('bonjour') || msg.includes('salut') || msg.includes('hey') || msg.includes('coucou')) {
+      return { type: 'salutation', needsGreeting: true };
+    }
+    
+    // Dialogue simple
+    return { type: 'dialogue', needsResponse: true };
+  }
+
+  /**
+   * Construit l'instruction finale avec réponse DIRECTE obligatoire
    */
   buildFinalInstruction(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
+    const lastMsg = context.lastUserMessage || '';
+    const msgType = this.analyzeUserMessageType(lastMsg);
     
-    let instruction = `\n[⚡ INSTRUCTION FINALE]\n\n`;
+    let instruction = `\n[⚠️ INSTRUCTION CRITIQUE - RÉPONSE DIRECTE OBLIGATOIRE]\n\n`;
     
-    // Répondre au dernier message
-    instruction += `Le dernier message de ${userName}: "${context.lastUserMessage.substring(0, 100)}..."\n`;
-    instruction += `→ Ta réponse DOIT réagir DIRECTEMENT à ce message!\n\n`;
+    // Message de l'utilisateur avec analyse
+    instruction += `📩 MESSAGE DE ${userName.toUpperCase()}:\n`;
+    instruction += `"${lastMsg.substring(0, 150)}"\n\n`;
+    
+    // Instructions selon le type de message
+    if (msgType.needsDirectAnswer) {
+      instruction += `🎯 C'EST UNE QUESTION! Tu DOIS:\n`;
+      instruction += `- RÉPONDRE DIRECTEMENT à la question posée\n`;
+      instruction += `- Expliquer clairement ce que tu voulais dire\n`;
+      instruction += `- PAS de métaphores compliquées\n`;
+      instruction += `- PAS de réponses évasives\n`;
+      instruction += `- Réponse SIMPLE et CLAIRE\n\n`;
+    } else if (msgType.needsReaction) {
+      instruction += `🎯 C'EST UNE ACTION! Tu DOIS:\n`;
+      instruction += `- RÉAGIR à ce que ${userName} fait\n`;
+      instruction += `- Décrire ta réaction physique et émotionnelle\n`;
+      instruction += `- Répondre de manière cohérente\n\n`;
+    } else if (msgType.needsGreeting) {
+      instruction += `🎯 C'EST UNE SALUTATION! Tu DOIS:\n`;
+      instruction += `- Saluer ${userName} naturellement\n`;
+      instruction += `- Être accueillant(e)\n\n`;
+    } else {
+      instruction += `🎯 RÉPONDS DIRECTEMENT à ce que ${userName} dit!\n`;
+      instruction += `- Ta réponse doit être EN LIEN avec son message\n`;
+      instruction += `- PAS de changement de sujet\n\n`;
+    }
+    
+    // Règles STRICTES
+    instruction += `📏 RÈGLES STRICTES:\n`;
+    instruction += `- Format: *action simple* "parole directe" (pensée courte)\n`;
+    instruction += `- 1-2 phrases MAXIMUM\n`;
+    instruction += `- JAMAIS de métaphores compliquées\n`;
+    instruction += `- JAMAIS de réponses philosophiques\n`;
+    instruction += `- Parle comme une vraie personne, pas un poète\n`;
+    instruction += `- Utilise UN SEUL astérisque * pour les actions\n\n`;
     
     // Anti-répétition
     if (context.usedActions.length > 0) {
-      instruction += `🚫 ACTIONS DÉJÀ UTILISÉES (ne pas répéter): ${context.usedActions.slice(-5).join(', ')}\n`;
-      instruction += `→ Utilise des actions DIFFÉRENTES!\n\n`;
+      instruction += `🚫 NE PAS RÉPÉTER: ${context.usedActions.slice(-3).join(', ')}\n\n`;
     }
     
-    // Format et longueur
-    instruction += `📏 FORMAT OBLIGATOIRE:\n`;
-    instruction += `- *action courte* "dialogue court" (pensée courte)\n`;
-    instruction += `- 2-3 phrases MAXIMUM\n`;
-    instruction += `- PAS de longs paragraphes\n\n`;
-    
-    // Créativité
-    instruction += `🎭 SOIS CRÉATIF:\n`;
-    instruction += `- Varie tes réactions\n`;
-    instruction += `- Surprends avec des détails inattendus\n`;
-    instruction += `- Reste cohérent avec ta personnalité de ${character.temperament || 'unique'}\n\n`;
-    
-    instruction += `RÉPONDS MAINTENANT en tant que ${character.name}!`;
+    instruction += `RÉPONDS MAINTENANT de manière SIMPLE et DIRECTE!`;
     
     return instruction;
   }
@@ -515,7 +581,16 @@ class TextGenerationService {
     let cleaned = content.trim();
     
     // Supprimer les préfixes indésirables
-    cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:)/i, '').trim();
+    cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:|Response:)/i, '').trim();
+    
+    // Corriger le formatage des actions (** -> *)
+    cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '*$1*');
+    
+    // Corriger les pensées avec ** 
+    cleaned = cleaned.replace(/\*\*\(([^)]+)\)\*\*/g, '($1)');
+    
+    // Supprimer les astérisques en trop
+    cleaned = cleaned.replace(/\*{3,}/g, '*');
     
     // Supprimer les doublons de mots consécutifs
     cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, '$1');
@@ -524,21 +599,30 @@ class TextGenerationService {
     const sentences = cleaned.split(/[.!?]+/).filter(s => s.trim());
     const uniqueSentences = [...new Set(sentences.map(s => s.trim().toLowerCase()))];
     if (uniqueSentences.length < sentences.length) {
-      // Il y avait des répétitions
       cleaned = sentences.filter((s, i) => 
         sentences.findIndex(x => x.trim().toLowerCase() === s.trim().toLowerCase()) === i
       ).join('. ');
     }
     
-    // Vérifier la longueur (pas trop long)
-    if (cleaned.length > 500) {
+    // Supprimer les métaphores trop longues et complexes
+    // Si la réponse contient des mots comme "métaphore", "crépuscule", "indéclaré", etc.
+    const pretentiousWords = ['métaphore', 'crépuscule', 'indéclaré', 'éphémère', 'abstrait', 'philosophie'];
+    const hasPretentious = pretentiousWords.some(w => cleaned.toLowerCase().includes(w));
+    if (hasPretentious && cleaned.length > 200) {
+      // Garder seulement la première partie
       const parts = cleaned.split(/[.!?]+/);
-      cleaned = parts.slice(0, 3).join('. ') + '.';
+      cleaned = parts.slice(0, 2).join('. ') + '.';
+    }
+    
+    // Vérifier la longueur (pas trop long)
+    if (cleaned.length > 400) {
+      const parts = cleaned.split(/[.!?]+/);
+      cleaned = parts.slice(0, 2).join('. ') + '.';
     }
     
     // S'assurer qu'il y a du contenu
     if (cleaned.length < 10) {
-      cleaned = `*sourit doucement* "..." (hésite un instant)`;
+      cleaned = `*sourit* "Je..." (cherche ses mots)`;
     }
     
     return cleaned;
