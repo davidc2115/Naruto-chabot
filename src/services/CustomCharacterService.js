@@ -46,17 +46,36 @@ class CustomCharacterService {
       );
 
       // 2. Publier TOUS les personnages comme publics pour les autres utilisateurs
+      // Forcer la mise à jour avec updatedAt
       for (const char of characters) {
         try {
-          await SyncService.init();
-          await SyncService.publishCharacter({ ...char, isPublic: true });
+          const charToPublish = { 
+            ...char, 
+            isPublic: true,
+            updatedAt: char.updatedAt || Date.now(),
+            syncedAt: Date.now()
+          };
+          
+          // Appel direct à l'API pour publier/mettre à jour
+          await axios.post(
+            `${this.FREEBOX_URL}/api/characters/public`,
+            { character: charToPublish },
+            { 
+              headers: { 
+                'Content-Type': 'application/json',
+                'X-User-ID': user.id
+              },
+              timeout: 10000 
+            }
+          );
+          console.log(`✅ Personnage publié: ${char.name}`);
         } catch (e) {
-          // Ignorer les erreurs de publication individuelle
+          console.log(`⚠️ Erreur publication ${char.name}:`, e.message);
         }
       }
 
       if (response.data?.success) {
-        console.log(`✅ ${characters.length} personnages synchronisés et publiés`);
+        console.log(`✅ ${characters.length} personnages synchronisés`);
         await AsyncStorage.setItem('last_characters_sync', Date.now().toString());
         return true;
       }
@@ -194,15 +213,18 @@ class CustomCharacterService {
       const data = await AsyncStorage.getItem(key);
       let localChars = data ? JSON.parse(data) : [];
       
-      // Essayer de synchroniser depuis le serveur en arrière-plan
+      // Essayer de synchroniser depuis le serveur
       const user = AuthService.getCurrentUser();
       if (user?.id) {
-        // Sync depuis le serveur (non bloquant)
-        this.syncFromServer().then(merged => {
+        try {
+          const merged = await this.syncFromServer();
           if (merged && merged.length > 0) {
             console.log('✅ Personnages synchronisés depuis le serveur');
+            localChars = merged;
           }
-        }).catch(e => console.log('Sync serveur échoué:', e.message));
+        } catch (e) {
+          console.log('Sync serveur échoué:', e.message);
+        }
       }
       
       return localChars;

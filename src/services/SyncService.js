@@ -437,10 +437,20 @@ class SyncService {
   }
 
   /**
-   * Récupère les personnages publics depuis le cache (rapide)
+   * Récupère les personnages publics depuis le cache ou le serveur
+   * Force un refresh si le cache a plus de 2 minutes
    */
   async getCachedPublicCharacters() {
     try {
+      const cachedTime = await AsyncStorage.getItem('cached_public_characters_time');
+      const cacheAge = cachedTime ? (Date.now() - parseInt(cachedTime)) : Infinity;
+      
+      // Si le cache a plus de 2 minutes, forcer le refresh
+      if (cacheAge > 2 * 60 * 1000) {
+        console.log('🔄 Cache personnages publics expiré, refresh...');
+        return await this.getPublicCharacters();
+      }
+      
       const cached = await AsyncStorage.getItem('cached_public_characters');
       if (cached) {
         return JSON.parse(cached);
