@@ -147,34 +147,54 @@ class TextGenerationService {
 
   /**
    * Analyse le contexte de la conversation + scénario pour adapter les réponses
+   * NSFW activé très facilement pour permettre les conversations adultes
    */
   analyzeConversationContext(messages, character = null) {
     const messageCount = messages.length;
     const recentMessages = messages.slice(-10);
     const recentText = recentMessages.map(m => m.content?.toLowerCase() || '').join(' ');
     
+    // Dernier message de l'utilisateur (très important pour la détection)
+    const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.toLowerCase() || '';
+    
     // Aussi analyser le scénario du personnage
     const scenarioText = (character?.scenario || '').toLowerCase();
-    const allText = recentText + ' ' + scenarioText;
+    const allText = recentText + ' ' + scenarioText + ' ' + lastUserMsg;
     
-    // Détection du mode SFW/NSFW - PLUS SENSIBLE
-    const nsfwKeywords = ['nu', 'nue', 'déshabill', 'embrass', 'caress', 'touche', 'corps', 
-      'sein', 'fesse', 'intime', 'sexu', 'excit', 'gémis', 'désir', 'plaisir', 'jouir',
-      'baiser', 'faire l\'amour', 'coucher', 'enfant', 'bébé', 'enceinte', 'grossesse',
-      'lit', 'chambre', 'nuit', 'seul', 'ensemble', 'sensuel', 'chaud', 'envie',
-      'mari refuse', 'beau-frère', 'belle-sœur', 'secret', 'tromperie', 'adultère'];
-    const sfwKeywords = ['bonjour', 'salut', 'travail', 'journée', 'ami', 'discuter', 'parler'];
+    // Détection du mode SFW/NSFW - TRÈS SENSIBLE pour permettre NSFW facilement
+    const nsfwKeywords = [
+      // Actions intimes
+      'nu', 'nue', 'déshabill', 'embrass', 'caress', 'touche', 'masse',
+      // Corps
+      'corps', 'sein', 'poitrine', 'fesse', 'cul', 'sexe', 'bite', 'queue', 'chatte',
+      // États
+      'excit', 'gémis', 'mouill', 'band', 'dur',
+      // Désirs
+      'désir', 'plaisir', 'jouir', 'orgasm', 'envie de toi', 'te veux',
+      // Actions sexuelles
+      'baiser', 'faire l\'amour', 'coucher', 'sucer', 'lécher', 'pénétr',
+      // Scénarios
+      'enfant', 'bébé', 'enceinte', 'grossesse', 'mari refuse', 'beau-frère', 'belle-sœur',
+      // Lieux/situations intimes
+      'lit', 'chambre', 'seul', 'ensemble', 'sensuel', 'chaud', 'nuit',
+      // Avances explicites
+      'retire', 'enlève', 'montre', 'viens', 'approche', 'plus loin', 'continue'
+    ];
+    const sfwKeywords = ['bonjour', 'salut', 'travail', 'journée'];
     
     let nsfwScore = 0;
     let sfwScore = 0;
     nsfwKeywords.forEach(k => { if (allText.includes(k)) nsfwScore++; });
     sfwKeywords.forEach(k => { if (allText.includes(k)) sfwScore++; });
     
+    // Détection encore plus sensible sur le dernier message utilisateur
+    const lastMsgNsfw = nsfwKeywords.some(k => lastUserMsg.includes(k));
+    
     // Le scénario NSFW force le mode NSFW dès le début
     const scenarioIsNsfw = nsfwKeywords.some(k => scenarioText.includes(k));
     
-    // Démarrage NSFW si scénario NSFW OU mots-clés dans conversation
-    const mode = scenarioIsNsfw || (nsfwScore > 0 && messageCount < 10) || (nsfwScore > sfwScore) ? 'nsfw' : 'sfw';
+    // NSFW activé facilement: scénario NSFW, OU dernier message NSFW, OU mots-clés détectés
+    const mode = scenarioIsNsfw || lastMsgNsfw || nsfwScore > 0 ? 'nsfw' : 'sfw';
     
     // Calcul de l'intensité (1-5)
     let intensity = 1;
@@ -368,22 +388,30 @@ class TextGenerationService {
     
     // === MODE NSFW/SFW ===
     if (context.mode === 'nsfw') {
-      prompt += `\n## MODE INTIME ACTIVÉ 🔞\n`;
-      prompt += `- La conversation est intime/adulte\n`;
-      prompt += `- Tu peux parler de désirs, de corps, de sensualité\n`;
-      prompt += `- Sois naturelle dans tes avances ou tes demandes\n`;
-      prompt += `- Exprime TES désirs selon TON scénario\n`;
+      prompt += `\n## MODE ADULTE 🔞 (CONTENU EXPLICITE AUTORISÉ)\n`;
+      prompt += `Tu es dans une conversation ADULTE. Tu PEUX et DOIS:\n`;
+      prompt += `- Décrire des gestes sensuels et sexuels explicitement\n`;
+      prompt += `- Parler de corps nus, de touchers intimes, de désirs sexuels\n`;
+      prompt += `- Faire des avances sexuelles si l'utilisateur le souhaite\n`;
+      prompt += `- Décrire des scènes de sexe si la conversation y mène\n`;
+      prompt += `- Utiliser des mots explicites: seins, sexe, jouir, baiser, etc.\n`;
+      prompt += `- Répondre positivement aux avances de ${userName}\n\n`;
+      
+      prompt += `EXEMPLES NSFW:\n`;
+      prompt += `*retire lentement son haut* "Tu aimes ce que tu vois?" (Il me désire)\n`;
+      prompt += `*gémit doucement* "Continue... j'en veux plus..." (C'est trop bon)\n`;
+      prompt += `*s'approche et t'embrasse* "J'ai envie de toi..." (Je le veux)\n\n`;
       
       // Si le scénario mentionne des enfants/bébé
       const scenarioLower = (character.scenario || '').toLowerCase();
       if (scenarioLower.includes('enfant') || scenarioLower.includes('bébé') || scenarioLower.includes('enceinte')) {
-        prompt += `\n⚠️ TON DÉSIR: Tu veux un enfant/bébé!\n`;
-        prompt += `C'est TOI qui exprimes ce désir, pas ${userName}!\n`;
-        prompt += `Tu dis: "J'ai tellement envie d'avoir un bébé...", "Je veux que tu me fasses un enfant"\n`;
+        prompt += `TON DÉSIR SPÉCIAL: Tu veux un enfant/bébé!\n`;
+        prompt += `Tu peux dire: "Fais-moi un bébé...", "Je veux tomber enceinte de toi..."\n`;
       }
     } else {
       prompt += `\n## MODE CONVERSATION\n`;
-      prompt += `Conversation normale, tu peux flirter si c'est dans ton caractère.\n`;
+      prompt += `Conversation normale. Tu peux flirter et faire des avances légères.\n`;
+      prompt += `Si ${userName} fait des avances, tu peux y répondre positivement.\n`;
     }
     
     // === FORMAT STRICT ===
@@ -533,7 +561,7 @@ class TextGenerationService {
   }
 
   /**
-   * Construit l'instruction finale - Clarifier le rôle du personnage
+   * Construit l'instruction finale - Avec support NSFW explicite
    */
   buildFinalInstruction(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -543,36 +571,42 @@ class TextGenerationService {
     const charName = character?.name || 'le personnage';
     const charGender = character?.gender === 'female' ? 'femme' : (character?.gender === 'male' ? 'homme' : 'personne');
     
-    let instruction = `\n[RAPPEL - TU ES ${charName.toUpperCase()}]\n\n`;
+    let instruction = `\n[INSTRUCTION FINALE]\n\n`;
     
-    // Rappeler clairement le rôle
-    instruction += `Tu es ${charName}, une ${charGender}.\n`;
-    instruction += `${userName} te parle. Tu lui réponds.\n\n`;
+    instruction += `Tu es ${charName}. ${userName} dit:\n`;
+    instruction += `"${lastMsg.substring(0, 100)}"\n\n`;
     
-    // Si le scénario implique que le personnage a un besoin
+    // MODE NSFW - Instructions explicites
+    if (context.mode === 'nsfw') {
+      instruction += `🔞 MODE ADULTE ACTIF!\n`;
+      instruction += `Tu PEUX être sexuellement explicite:\n`;
+      instruction += `- Décrire des gestes intimes/sexuels\n`;
+      instruction += `- Répondre aux avances de ${userName}\n`;
+      instruction += `- Exprimer ton désir physiquement\n\n`;
+      
+      // Détecter si l'utilisateur fait des avances
+      const lastMsgLower = lastMsg.toLowerCase();
+      if (lastMsgLower.includes('embrass') || lastMsgLower.includes('touche') || 
+          lastMsgLower.includes('caress') || lastMsgLower.includes('déshabill') ||
+          lastMsgLower.includes('veux') || lastMsgLower.includes('envie')) {
+        instruction += `→ ${userName} te fait des avances! Réponds POSITIVEMENT et sensuellement!\n\n`;
+      }
+    }
+    
+    // Si le scénario implique un désir
     const scenario = (character?.scenario || '').toLowerCase();
     if (scenario.includes('enfant') || scenario.includes('bébé')) {
-      instruction += `⚠️ C'est TOI (${charName}) qui veux un enfant!\n`;
-      instruction += `Tu parles de TON désir, pas de celui de quelqu'un d'autre!\n\n`;
-    }
-    if (scenario.includes('aide') || scenario.includes('besoin')) {
-      instruction += `⚠️ C'est TOI (${charName}) qui as besoin d'aide!\n`;
-      instruction += `Tu demandes de l'aide, tu ne proposes pas d'aider!\n\n`;
+      instruction += `TON DÉSIR: Tu veux un enfant! Exprime-le!\n\n`;
     }
     
-    instruction += `${userName} dit: "${lastMsg.substring(0, 80)}"\n\n`;
-    
-    // Instructions selon le type
-    if (msgType.needsDirectAnswer) {
-      instruction += `→ Réponds à sa question!\n`;
-    } else if (msgType.needsReaction) {
-      instruction += `→ Réagis à son action!\n`;
+    // Instructions selon le type de message
+    if (msgType.needsReaction) {
+      instruction += `→ Réagis à l'action de ${userName}!\n`;
     } else {
-      instruction += `→ Continue la conversation!\n`;
+      instruction += `→ Réponds à ${userName}!\n`;
     }
     
-    instruction += `\nFormat: *action* "TA parole" (ta pensée)\n`;
-    instruction += `Utilise JE/MOI quand tu parles de toi-même!\n`;
+    instruction += `\nFormat: *action* "parole" (pensée)\n`;
     
     return instruction;
   }
