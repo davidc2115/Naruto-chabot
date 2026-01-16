@@ -27,9 +27,29 @@ export default function ChatsScreen({ navigation }) {
   }, [navigation]);
 
   const loadData = async () => {
-    // Charger tous les personnages (de base + personnalisés)
+    // Charger tous les personnages (de base + personnalisés + publics)
     const customChars = await CustomCharacterService.getCustomCharacters();
-    setAllCharacters([...enhancedCharacters, ...customChars]);
+    
+    // Aussi charger les personnages publics des autres utilisateurs
+    let publicChars = [];
+    try {
+      publicChars = await CustomCharacterService.getPublicCharacters();
+    } catch (e) {
+      console.log('Erreur chargement personnages publics:', e.message);
+    }
+    
+    // Combiner tous les personnages (éviter les doublons par ID)
+    const allChars = [...enhancedCharacters];
+    const seenIds = new Set(allChars.map(c => c.id));
+    
+    for (const char of [...customChars, ...publicChars]) {
+      if (!seenIds.has(char.id)) {
+        allChars.push(char);
+        seenIds.add(char.id);
+      }
+    }
+    
+    setAllCharacters(allChars);
     
     // Charger les conversations
     const allConversations = await StorageService.getAllConversations();
@@ -57,7 +77,28 @@ export default function ChatsScreen({ navigation }) {
   };
 
   const getCharacter = (characterId) => {
-    return allCharacters.find(c => c.id === characterId || c.id === String(characterId));
+    // Chercher par ID exact
+    let char = allCharacters.find(c => c.id === characterId);
+    if (char) return char;
+    
+    // Chercher par ID converti en string
+    char = allCharacters.find(c => c.id === String(characterId));
+    if (char) return char;
+    
+    // Chercher par ID partiel (pour les custom_xxx)
+    char = allCharacters.find(c => 
+      c.id?.includes(characterId) || characterId?.includes(c.id)
+    );
+    if (char) return char;
+    
+    // Chercher par serverId
+    char = allCharacters.find(c => c.serverId === characterId);
+    if (char) return char;
+    
+    // Chercher par originalId
+    char = allCharacters.find(c => c.originalId === characterId);
+    
+    return char;
   };
 
   const renderConversation = ({ item }) => {

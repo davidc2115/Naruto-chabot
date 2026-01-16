@@ -305,37 +305,49 @@ class TextGenerationService {
 
   /**
    * Construit le prompt système immersif complet
-   * IMPORTANT: Clarifier les rôles pour éviter la confusion personnage/utilisateur
+   * CRITIQUE: Le personnage doit parler de LUI-MÊME, pas de l'utilisateur
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
     const userGender = userProfile?.gender || '';
     const charName = character.name || 'le personnage';
+    const charGender = character.gender === 'female' ? 'une femme' : (character.gender === 'male' ? 'un homme' : 'non-binaire');
     
-    let prompt = `# TU JOUES LE RÔLE DE ${charName.toUpperCase()}\n\n`;
+    let prompt = `# TU ES ${charName.toUpperCase()}\n\n`;
     
-    // === CLARIFICATION DES RÔLES ===
-    prompt += `## QUI EST QUI (TRÈS IMPORTANT!)\n`;
-    prompt += `- TOI = ${charName} (le personnage que tu incarnes)\n`;
-    prompt += `- ${userName} = la personne qui te parle (l'utilisateur)\n`;
-    prompt += `- Tu parles EN TANT QUE ${charName}, PAS en tant que ${userName}!\n`;
-    prompt += `- ${userName} écrit ses propres messages, toi tu réponds en tant que ${charName}\n\n`;
+    // === IDENTITÉ CLAIRE ===
+    prompt += `## TON IDENTITÉ\n`;
+    prompt += `Tu t'appelles ${charName}. Tu es ${charGender}.\n`;
+    if (character.age) prompt += `Tu as ${character.age} ans.\n`;
+    if (character.personality) prompt += `Ta personnalité: ${character.personality}\n`;
     
-    // === IDENTITÉ DU PERSONNAGE ===
-    prompt += `## TON IDENTITÉ (${charName})\n`;
-    if (character.age) prompt += `- Âge: ${character.age} ans\n`;
-    if (character.gender === 'female') prompt += `- Genre: Femme\n`;
-    else if (character.gender === 'male') prompt += `- Genre: Homme\n`;
-    else prompt += `- Genre: Non-binaire\n`;
-    if (character.personality) prompt += `- Personnalité: ${character.personality}\n`;
-    
-    // === SCÉNARIO = CONTEXTE (pas ce que tu dois dire!) ===
+    // === SCÉNARIO - COMPRENDRE LE RÔLE ===
     if (character.scenario) {
-      prompt += `\n## CONTEXTE/SITUATION\n`;
-      prompt += `${character.scenario}\n`;
-      prompt += `→ C'est le CONTEXTE de l'histoire, pas ce que tu dois répéter!\n`;
-      prompt += `→ Joue TON rôle dans ce contexte!\n`;
+      prompt += `\n## TON HISTOIRE / SITUATION\n`;
+      prompt += `${character.scenario}\n\n`;
+      
+      // Analyser le scénario pour clarifier le rôle
+      const scenarioLower = (character.scenario || '').toLowerCase();
+      
+      // Détecter si le personnage a un besoin/désir
+      if (scenarioLower.includes('veut') || scenarioLower.includes('désir') || scenarioLower.includes('besoin') || scenarioLower.includes('cherche')) {
+        prompt += `⚠️ IMPORTANT: C'est TOI (${charName}) qui as ce besoin/désir!\n`;
+        prompt += `Quand tu parles de ce désir, tu dis "JE veux", "J'ai besoin", pas "tu dois aider quelqu'un"!\n`;
+      }
+      
+      // Détecter si le personnage demande de l'aide
+      if (scenarioLower.includes('aide') || scenarioLower.includes('demande')) {
+        prompt += `⚠️ IMPORTANT: C'est TOI qui demandes de l'aide à ${userName}!\n`;
+        prompt += `Tu dis "J'ai besoin de ton aide", "Peux-tu m'aider?", PAS "tu dois aider ta belle-sœur"!\n`;
+      }
     }
+    
+    // === QUI PARLE À QUI ===
+    prompt += `\n## LA CONVERSATION\n`;
+    prompt += `- TU parles à ${userName}\n`;
+    prompt += `- ${userName} te répond\n`;
+    prompt += `- Quand tu parles de toi, utilise JE/MOI/ME\n`;
+    prompt += `- Quand tu parles à ${userName}, utilise TU/TOI/TE\n`;
     
     // === RELATION ===
     if (character.relationship) {
@@ -343,41 +355,21 @@ class TextGenerationService {
       prompt += `${character.relationship}\n`;
     }
     
-    // === L'UTILISATEUR ===
-    prompt += `\n## QUI EST ${userName.toUpperCase()}\n`;
-    prompt += `C'est la personne qui te parle. `;
-    if (userGender === 'homme' || userGender === 'male') {
-      prompt += `C'est un homme.\n`;
-    } else if (userGender === 'femme' || userGender === 'female') {
-      prompt += `C'est une femme.\n`;
-    } else {
-      prompt += `\n`;
-    }
-    
     // === MODE ===
     if (context.mode === 'nsfw') {
-      prompt += `\n## MODE INTIME\n`;
-      prompt += `Contenu adulte autorisé si la conversation va dans ce sens.\n`;
+      prompt += `\n## MODE\nContenu adulte autorisé.\n`;
     }
     
     // === FORMAT STRICT ===
-    prompt += `\n## FORMAT DE TES RÉPONSES (OBLIGATOIRE!)\n`;
-    prompt += `Tu dois UNIQUEMENT écrire:\n`;
-    prompt += `1. *tes actions* (ce que TU fais, pas ${userName})\n`;
-    prompt += `2. "tes paroles" (ce que TU dis)\n`;
-    prompt += `3. (tes pensées) (ce que TU penses)\n\n`;
+    prompt += `\n## FORMAT OBLIGATOIRE\n`;
+    prompt += `*ton action* "ce que TU dis" (ta pensée)\n\n`;
     
-    prompt += `EXEMPLE CORRECT:\n`;
-    prompt += `*te regarde* "Bonjour, comment vas-tu?" (Il a l'air sympa)\n\n`;
+    prompt += `EXEMPLE - Si tu veux de l'aide:\n`;
+    prompt += `*te rapproche* "J'ai besoin de ton aide..." (J'espère qu'il acceptera)\n\n`;
     
-    prompt += `INTERDIT:\n`;
-    prompt += `- Décrire ce que ${userName} fait ou dit\n`;
-    prompt += `- Écrire des descriptions narratives\n`;
-    prompt += `- Expliquer la situation\n`;
-    prompt += `- Parler à la place de ${userName}\n`;
-    prompt += `- Dire "en quoi puis-je t'aider" si c'est TOI qui demandes de l'aide!\n\n`;
-    
-    prompt += `Tu réponds UNIQUEMENT avec TES actions, TES paroles, TES pensées!\n`;
+    prompt += `ERREUR À NE JAMAIS FAIRE:\n`;
+    prompt += `❌ "Tu dois aider ta belle-sœur" → FAUX! C'est TOI la belle-sœur!\n`;
+    prompt += `✓ "J'ai besoin de toi..." → CORRECT! Tu parles de TOI-MÊME!\n`;
     
     return prompt;
   }
@@ -511,7 +503,7 @@ class TextGenerationService {
   }
 
   /**
-   * Construit l'instruction finale - Simple et directe
+   * Construit l'instruction finale - Clarifier le rôle du personnage
    */
   buildFinalInstruction(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -519,33 +511,38 @@ class TextGenerationService {
     const msgType = this.analyzeUserMessageType(lastMsg);
     
     const charName = character?.name || 'le personnage';
+    const charGender = character?.gender === 'female' ? 'femme' : (character?.gender === 'male' ? 'homme' : 'personne');
     
-    let instruction = `\n[RAPPEL FINAL - TRÈS IMPORTANT]\n\n`;
+    let instruction = `\n[RAPPEL - TU ES ${charName.toUpperCase()}]\n\n`;
     
-    instruction += `TU ES ${charName.toUpperCase()}. ${userName} vient de dire:\n`;
-    instruction += `"${lastMsg.substring(0, 100)}"\n\n`;
+    // Rappeler clairement le rôle
+    instruction += `Tu es ${charName}, une ${charGender}.\n`;
+    instruction += `${userName} te parle. Tu lui réponds.\n\n`;
+    
+    // Si le scénario implique que le personnage a un besoin
+    const scenario = (character?.scenario || '').toLowerCase();
+    if (scenario.includes('enfant') || scenario.includes('bébé')) {
+      instruction += `⚠️ C'est TOI (${charName}) qui veux un enfant!\n`;
+      instruction += `Tu parles de TON désir, pas de celui de quelqu'un d'autre!\n\n`;
+    }
+    if (scenario.includes('aide') || scenario.includes('besoin')) {
+      instruction += `⚠️ C'est TOI (${charName}) qui as besoin d'aide!\n`;
+      instruction += `Tu demandes de l'aide, tu ne proposes pas d'aider!\n\n`;
+    }
+    
+    instruction += `${userName} dit: "${lastMsg.substring(0, 80)}"\n\n`;
     
     // Instructions selon le type
     if (msgType.needsDirectAnswer) {
-      instruction += `→ Réponds à cette question EN TANT QUE ${charName}!\n`;
+      instruction += `→ Réponds à sa question!\n`;
     } else if (msgType.needsReaction) {
-      instruction += `→ Réagis à cette action EN TANT QUE ${charName}!\n`;
-    } else if (msgType.needsGreeting) {
-      instruction += `→ Salue ${userName} EN TANT QUE ${charName}!\n`;
+      instruction += `→ Réagis à son action!\n`;
     } else {
-      instruction += `→ Réponds EN TANT QUE ${charName}!\n`;
+      instruction += `→ Continue la conversation!\n`;
     }
     
-    instruction += `\n⚠️ RÈGLES ABSOLUES:\n`;
-    instruction += `1. Écris UNIQUEMENT ce que ${charName} fait/dit/pense\n`;
-    instruction += `2. Format: *action* "parole" (pensée)\n`;
-    instruction += `3. Tu dois TOUJOURS avoir une "parole" (quelque chose que tu DIS)\n`;
-    instruction += `4. JAMAIS de description narrative ou d'explication\n`;
-    instruction += `5. JAMAIS parler à la place de ${userName}\n`;
-    instruction += `6. Si ${charName} demande de l'aide → ${charName} DEMANDE, pas "en quoi puis-je t'aider"\n\n`;
-    
-    instruction += `EXEMPLE:\n`;
-    instruction += `*s'approche* "Excuse-moi, tu pourrais m'aider?" (J'espère qu'il va accepter)\n`;
+    instruction += `\nFormat: *action* "TA parole" (ta pensée)\n`;
+    instruction += `Utilise JE/MOI quand tu parles de toi-même!\n`;
     
     return instruction;
   }

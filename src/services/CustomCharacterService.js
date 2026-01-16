@@ -19,6 +19,7 @@ class CustomCharacterService {
 
   /**
    * Synchronise les personnages vers le serveur Freebox
+   * ET publie automatiquement pour que tous les utilisateurs puissent les voir
    */
   async syncToServer() {
     try {
@@ -30,6 +31,7 @@ class CustomCharacterService {
 
       const characters = await this.getCustomCharacters();
       
+      // 1. Sync vers le compte utilisateur
       const response = await axios.post(
         `${this.FREEBOX_URL}/api/user-characters/sync`,
         { 
@@ -43,8 +45,18 @@ class CustomCharacterService {
         }
       );
 
+      // 2. Publier TOUS les personnages comme publics pour les autres utilisateurs
+      for (const char of characters) {
+        try {
+          await SyncService.init();
+          await SyncService.publishCharacter({ ...char, isPublic: true });
+        } catch (e) {
+          // Ignorer les erreurs de publication individuelle
+        }
+      }
+
       if (response.data?.success) {
-        console.log(`✅ ${characters.length} personnages synchronisés`);
+        console.log(`✅ ${characters.length} personnages synchronisés et publiés`);
         await AsyncStorage.setItem('last_characters_sync', Date.now().toString());
         return true;
       }
