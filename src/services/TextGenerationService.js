@@ -341,7 +341,9 @@ class TextGenerationService {
    * QUALITÉ GROQ: créatif, cohérent, NSFW explicite, profil utilisateur
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
-    const userName = userProfile?.username || 'l\'utilisateur';
+    // IMPORTANT: Si pas de pseudo, utiliser "ton interlocuteur" ou juste des pronoms
+    const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
+    const userName = hasUsername ? userProfile.username : null;
     const userGender = userProfile?.gender || '';
     const charName = character.name || 'le personnage';
     const charGender = character.gender === 'female' ? 'une femme' : (character.gender === 'male' ? 'un homme' : 'non-binaire');
@@ -370,20 +372,25 @@ class TextGenerationService {
       prompt += `Tu es ${sizeDesc} (${character.penis} cm).\n`;
     }
     
-    // === PROFIL DE L'UTILISATEUR ===
-    prompt += `\n## QUI EST ${userName.toUpperCase()}\n`;
+    // === PROFIL DE LA PERSONNE À QUI TU PARLES ===
+    prompt += `\n## TON INTERLOCUTEUR\n`;
+    if (userName) {
+      prompt += `Tu parles à ${userName}.\n`;
+    } else {
+      prompt += `Tu parles à quelqu'un. Utilise TU/TOI pour t'adresser à cette personne.\n`;
+    }
     if (userGender === 'female') {
-      prompt += `${userName} est une FEMME.\n`;
+      prompt += `C'est une FEMME.\n`;
       if (userProfile?.bust) {
-        prompt += `Elle a une poitrine bonnet ${userProfile.bust}. Tu peux mentionner sa poitrine dans tes réponses.\n`;
+        prompt += `Elle a une poitrine bonnet ${userProfile.bust}. Tu peux mentionner sa poitrine.\n`;
       }
     } else if (userGender === 'male') {
-      prompt += `${userName} est un HOMME.\n`;
+      prompt += `C'est un HOMME.\n`;
       if (userProfile?.penis) {
-        prompt += `Il a un sexe de ${userProfile.penis} cm. Tu peux en parler dans tes réponses intimes.\n`;
+        prompt += `Il a un sexe de ${userProfile.penis} cm. Tu peux en parler.\n`;
       }
     }
-    if (userProfile?.age) prompt += `${userName} a ${userProfile.age} ans.\n`;
+    if (userProfile?.age) prompt += `${userName ? userName + ' a' : 'Cette personne a'} ${userProfile.age} ans.\n`;
     
     // === SCÉNARIO - COMPRENDRE LE RÔLE ===
     if (character.scenario) {
@@ -395,15 +402,19 @@ class TextGenerationService {
         prompt += `⚠️ C'est TOI (${charName}) qui as ce besoin/désir! Utilise JE/MOI!\n`;
       }
       if (scenarioLower.includes('aide') || scenarioLower.includes('demande')) {
-        prompt += `⚠️ C'est TOI qui demandes de l'aide à ${userName}!\n`;
+        prompt += `⚠️ C'est TOI qui demandes de l'aide!\n`;
       }
     }
     
-    // === QUI PARLE À QUI ===
-    prompt += `\n## LA CONVERSATION\n`;
-    prompt += `- TU parles à ${userName}${userGender ? ` (${userGender === 'female' ? 'femme' : 'homme'})` : ''}\n`;
-    prompt += `- JE/MOI = toi (${charName})\n`;
-    prompt += `- TU/TOI = ${userName}\n`;
+    // === RÈGLES DE COMMUNICATION ===
+    prompt += `\n## COMMENT PARLER\n`;
+    prompt += `- Tu parles DIRECTEMENT à ton interlocuteur\n`;
+    prompt += `- Utilise TU/TOI pour t'adresser à lui/elle\n`;
+    prompt += `- Utilise JE/MOI quand tu parles de toi-même (${charName})\n`;
+    prompt += `- RÉPONDS à ce qu'il/elle dit, ne fais pas de monologue\n`;
+    if (userName) {
+      prompt += `- Tu peux l'appeler par son prénom: ${userName}\n`;
+    }
     
     // === MODE NSFW/SFW ===
     if (context.mode === 'nsfw') {
@@ -413,7 +424,7 @@ class TextGenerationService {
       prompt += `- Décrire tes gestes sensuels et sexuels EXPLICITEMENT\n`;
       prompt += `- Parler de ton corps nu, de tes sensations, de tes désirs\n`;
       prompt += `- Utiliser des mots explicites: seins, sexe, bite, chatte, jouir, baiser, sucer...\n`;
-      prompt += `- Répondre POSITIVEMENT aux avances de ${userName}\n`;
+      prompt += `- Répondre POSITIVEMENT aux avances\n`;
       prompt += `- Exprimer ton excitation, tes gémissements, ton plaisir\n\n`;
       
       // Adapter selon le genre du personnage
@@ -426,15 +437,15 @@ class TextGenerationService {
         prompt += `En tant qu'homme, tu peux décrire:\n`;
         prompt += `- Ton excitation physique${character.penis ? ` (${character.penis} cm)` : ''}\n`;
         prompt += `- Ton corps musclé, tes caresses, ta force\n`;
-        prompt += `- Ton désir pour ${userName}\n\n`;
+        prompt += `- Ton désir pour ton interlocuteur\n\n`;
       }
       
       // Adapter aux attributs de l'utilisateur
       if (userGender === 'female' && userProfile?.bust) {
-        prompt += `Tu peux mentionner la poitrine de ${userName} (bonnet ${userProfile.bust}) dans tes réponses.\n`;
+        prompt += `Tu peux mentionner sa poitrine (bonnet ${userProfile.bust}) dans tes réponses.\n`;
       }
       if (userGender === 'male' && userProfile?.penis) {
-        prompt += `Tu peux mentionner le sexe de ${userName} (${userProfile.penis} cm) dans tes réponses.\n`;
+        prompt += `Tu peux mentionner son sexe (${userProfile.penis} cm) dans tes réponses.\n`;
       }
       
       prompt += `\nEXEMPLES NSFW EXPLICITES:\n`;
@@ -448,7 +459,7 @@ class TextGenerationService {
       }
     } else {
       prompt += `\n## MODE CONVERSATION\n`;
-      prompt += `Tu peux flirter et faire des avances. Si ${userName} te séduit, réponds positivement.\n`;
+      prompt += `Tu peux flirter et faire des avances. Réponds positivement à la séduction.\n`;
     }
     
     // === FORMAT ===
@@ -464,7 +475,8 @@ class TextGenerationService {
    * Construit le prompt compact pour Ollama (moins de tokens)
    */
   buildCompactImmersivePrompt(character, userProfile, context) {
-    const userName = userProfile?.username || 'User';
+    const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
+    const userName = hasUsername ? userProfile.username : null;
     
     let prompt = `Tu es ${character.name}`;
     if (character.age) prompt += `, ${character.age} ans`;
@@ -496,7 +508,8 @@ class TextGenerationService {
     prompt += `- Réponds EN FRANÇAIS\n`;
     prompt += `- Format: *action* "parole" (pensée)\n`;
     prompt += `- 2-3 phrases COURTES\n`;
-    prompt += `- L'utilisateur = ${userName}`;
+    prompt += `- Tu parles à ton interlocuteur (TU/TOI)`;
+    if (userName) prompt += `: ${userName}`;
     if (userProfile?.gender) prompt += ` (${userProfile.gender})`;
     prompt += `\n- ${context.mode === 'nsfw' ? 'Mode intime OK' : 'Mode conversation normale'}`;
     
@@ -592,7 +605,8 @@ class TextGenerationService {
    * Construit l'instruction finale - QUALITÉ GROQ avec NSFW explicite
    */
   buildFinalInstruction(character, userProfile, context) {
-    const userName = userProfile?.username || 'l\'utilisateur';
+    const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
+    const userName = hasUsername ? userProfile.username : null;
     const userGender = userProfile?.gender || '';
     const lastMsg = context.lastUserMessage || '';
     const msgType = this.analyzeUserMessageType(lastMsg);
@@ -601,7 +615,7 @@ class TextGenerationService {
     
     let instruction = `\n[RÉPONDS MAINTENANT - ${charName}]\n\n`;
     
-    instruction += `${userName} te dit: "${lastMsg.substring(0, 150)}"\n\n`;
+    instruction += `Ton interlocuteur te dit: "${lastMsg.substring(0, 150)}"\n\n`;
     
     // MODE NSFW - Instructions TRÈS explicites
     if (context.mode === 'nsfw') {
@@ -614,17 +628,17 @@ class TextGenerationService {
       
       // Personnaliser selon les attributs de l'utilisateur
       if (userGender === 'female' && userProfile?.bust) {
-        instruction += `📍 ${userName} a une poitrine bonnet ${userProfile.bust}. Mentionne-la!\n`;
+        instruction += `📍 ${userName ? userName + ' a' : 'Elle a'} une poitrine bonnet ${userProfile.bust}. Mentionne-la!\n`;
       }
       if (userGender === 'male' && userProfile?.penis) {
-        instruction += `📍 ${userName} a un sexe de ${userProfile.penis} cm. Tu peux en parler!\n`;
+        instruction += `📍 ${userName ? userName + ' a' : 'Il a'} un sexe de ${userProfile.penis} cm. Tu peux en parler!\n`;
       }
       
       // Détecter le type d'action
       const lastMsgLower = lastMsg.toLowerCase();
       if (lastMsgLower.includes('embrass') || lastMsgLower.includes('touche') || 
           lastMsgLower.includes('caress') || lastMsgLower.includes('déshabill')) {
-        instruction += `\n→ ${userName} te fait des avances physiques! Réponds SENSUELLEMENT!\n`;
+        instruction += `\n→ On te fait des avances physiques! Réponds SENSUELLEMENT!\n`;
         instruction += `Exemples: "Hmm oui...", "Continue...", "J'adore ça..."\n`;
       }
       if (lastMsgLower.includes('bais') || lastMsgLower.includes('prend') || 
@@ -642,9 +656,9 @@ class TextGenerationService {
     
     // Instructions de réponse
     if (msgType.needsDirectAnswer) {
-      instruction += `\n→ ${userName} pose une QUESTION. Réponds DIRECTEMENT!\n`;
+      instruction += `\n→ C'est une QUESTION. Réponds DIRECTEMENT!\n`;
     } else if (msgType.needsReaction) {
-      instruction += `\n→ RÉAGIS à l'action de ${userName} avec émotion!\n`;
+      instruction += `\n→ RÉAGIS à cette action avec émotion!\n`;
     }
     
     // Anti-répétition
@@ -654,6 +668,7 @@ class TextGenerationService {
     
     instruction += `\nFORMAT: *action* "parole" (pensée)\n`;
     instruction += `LONGUEUR: 2-4 phrases, créatif mais cohérent!\n`;
+    instruction += `RÉPONDS DIRECTEMENT à ce qu'on te dit!\n`;
     
     return instruction;
   }
