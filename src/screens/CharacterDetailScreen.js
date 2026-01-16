@@ -69,7 +69,7 @@ const translateTemperament = (temperament) => {
  * Extrait un attribut physique depuis physicalDescription ou imagePrompt
  */
 const extractAttribute = (character, type) => {
-  const text = ((character.physicalDescription || '') + ' ' + (character.appearance || '') + ' ' + (character.imagePrompt || '')).toLowerCase();
+  const text = ((character.physicalDescription || '') + ' ' + (character.appearance || '') + ' ' + (character.imagePrompt || '') + ' ' + (character.tags || []).join(' ')).toLowerCase();
   
   if (type === 'hair') {
     const patterns = [
@@ -98,18 +98,19 @@ const extractAttribute = (character, type) => {
   if (type === 'height') {
     const match = text.match(/(\d{2,3})\s*(cm|centimètres)/i);
     if (match) return match[1] + ' cm';
-    // Estimer depuis description
     if (text.includes('grande') || text.includes('tall')) return '175+ cm';
     if (text.includes('petite') || text.includes('small')) return '155-160 cm';
   }
   
   if (type === 'body') {
-    if (text.includes('athlétique') || text.includes('athletic') || text.includes('tonique')) return 'Athlétique';
+    if (text.includes('très ronde') || text.includes('bbw')) return 'Très ronde et généreuse';
+    if (text.includes('ronde') || text.includes('chubby') || text.includes('curvy') || text.includes('plump')) return 'Ronde et généreuse';
     if (text.includes('voluptueuse') || text.includes('voluptuous') || text.includes('pulpeuse')) return 'Voluptueuse';
+    if (text.includes('généreuse') || text.includes('generous')) return 'Généreuse';
+    if (text.includes('athlétique') || text.includes('athletic') || text.includes('tonique')) return 'Athlétique';
     if (text.includes('mince') || text.includes('slim') || text.includes('élancée')) return 'Mince et élancée';
-    if (text.includes('ronde') || text.includes('chubby') || text.includes('curvy')) return 'Ronde et généreuse';
     if (text.includes('musclée') || text.includes('muscular')) return 'Musclée';
-    if (text.includes('maternelle') || text.includes('maternal')) return 'Maternelle';
+    if (text.includes('maternelle') || text.includes('maternal')) return 'Maternelle et douce';
   }
   
   if (type === 'bust') {
@@ -129,6 +130,199 @@ const extractAttribute = (character, type) => {
   }
   
   return null;
+};
+
+/**
+ * Génère une description physique ULTRA-DÉTAILLÉE du personnage
+ */
+const generateDetailedDescription = (character) => {
+  const parts = [];
+  const text = ((character.physicalDescription || '') + ' ' + (character.appearance || '') + ' ' + (character.imagePrompt || '') + ' ' + (character.tags || []).join(' ')).toLowerCase();
+  
+  // Genre et âge
+  if (character.gender === 'female') {
+    parts.push(`${character.name} est une femme${character.age ? ` de ${character.age} ans` : ''}`);
+  } else if (character.gender === 'male') {
+    parts.push(`${character.name} est un homme${character.age ? ` de ${character.age} ans` : ''}`);
+  } else {
+    parts.push(`${character.name} est une personne non-binaire${character.age ? ` de ${character.age} ans` : ''}`);
+  }
+  
+  // Taille
+  const height = character.height || extractAttribute(character, 'height');
+  if (height) {
+    parts.push(`mesurant environ ${height}`);
+  } else if (text.includes('grande') || text.includes('tall')) {
+    parts.push('de grande taille');
+  } else if (text.includes('petite') || text.includes('small')) {
+    parts.push('de petite taille');
+  }
+  
+  // Morphologie DÉTAILLÉE
+  const bodyType = character.bodyType || extractAttribute(character, 'body');
+  if (bodyType) {
+    parts.push(`à la silhouette ${bodyType.toLowerCase()}`);
+  }
+  
+  // CHEVEUX - Couleur, longueur, texture
+  const hairColor = character.hairColor || extractAttribute(character, 'hair');
+  const hairLength = character.hairLength || '';
+  let hairDesc = [];
+  if (hairColor) hairDesc.push(hairColor);
+  if (hairLength) hairDesc.push(hairLength.toLowerCase());
+  if (text.includes('lisse') || text.includes('straight')) hairDesc.push('lisses');
+  else if (text.includes('ondulé') || text.includes('wavy')) hairDesc.push('ondulés');
+  else if (text.includes('bouclé') || text.includes('curly') || text.includes('frisé')) hairDesc.push('bouclés');
+  else if (text.includes('crépu') || text.includes('afro')) hairDesc.push('crépus');
+  if (hairDesc.length > 0) {
+    parts.push(`aux cheveux ${hairDesc.join(', ')}`);
+  }
+  
+  // YEUX
+  const eyeColor = character.eyeColor || extractAttribute(character, 'eyes');
+  if (eyeColor) {
+    let eyeDesc = eyeColor;
+    if (text.includes('yeux en amande') || text.includes('almond')) eyeDesc += ' en amande';
+    else if (text.includes('grands yeux') || text.includes('big eyes')) eyeDesc = `grands yeux ${eyeColor}`;
+    parts.push(`aux yeux ${eyeDesc}`);
+  }
+  
+  // PEAU
+  if (text.includes('peau pâle') || text.includes('pale skin') || text.includes('porcelaine')) {
+    parts.push('à la peau pâle comme de la porcelaine');
+  } else if (text.includes('bronzé') || text.includes('tan') || text.includes('doré')) {
+    parts.push('à la peau bronzée et dorée');
+  } else if (text.includes('ébène') || text.includes('noir') || text.includes('dark skin')) {
+    parts.push('à la peau ébène');
+  } else if (text.includes('caramel') || text.includes('métis')) {
+    parts.push('à la peau caramel');
+  } else if (text.includes('olive') || text.includes('méditerran')) {
+    parts.push('à la peau olive méditerranéenne');
+  }
+  
+  if (text.includes('taches de rousseur') || text.includes('freckles')) {
+    parts.push('parsemée de taches de rousseur');
+  }
+  
+  // POITRINE pour femmes (TRÈS DÉTAILLÉ)
+  if (character.gender === 'female') {
+    const bust = character.bust || extractAttribute(character, 'bust');
+    if (bust) {
+      const bustDescFr = {
+        'A': 'une petite poitrine délicate (bonnet A)',
+        'B': 'une poitrine menue et ferme (bonnet B)',
+        'C': 'une poitrine de taille moyenne, bien proportionnée (bonnet C)',
+        'D': 'une poitrine généreuse et pleine (bonnet D)',
+        'DD': 'une très belle poitrine imposante (bonnet DD)',
+        'E': 'une poitrine volumineuse et impressionnante (bonnet E)',
+        'F': 'une très grosse poitrine (bonnet F)',
+        'G': 'une poitrine énorme et majestueuse (bonnet G)',
+        'H': 'une poitrine massive et imposante (bonnet H)'
+      };
+      parts.push(`Elle possède ${bustDescFr[bust] || `une poitrine bonnet ${bust}`}`);
+    }
+    
+    // Fesses
+    if (text.includes('énormes fesses') || text.includes('huge butt') || text.includes('très grosses fesses')) {
+      parts.push('de très grosses fesses rondes et rebondies');
+    } else if (text.includes('grosses fesses') || text.includes('big butt') || text.includes('fesses généreuses')) {
+      parts.push('de belles fesses généreuses et rondes');
+    } else if (text.includes('fesses rebondies') || text.includes('bubble butt')) {
+      parts.push('des fesses rebondies parfaitement galbées');
+    }
+    
+    // Hanches
+    if (text.includes('hanches larges') || text.includes('wide hips')) {
+      parts.push('des hanches larges et féminines');
+    }
+    
+    // Ventre
+    if (text.includes('gros ventre') || text.includes('big belly')) {
+      parts.push('un ventre rond et doux');
+    } else if (text.includes('ventre rond') || text.includes('round belly') || text.includes('ventre doux')) {
+      parts.push('un joli petit ventre arrondi');
+    } else if (text.includes('ventre plat') || text.includes('flat stomach')) {
+      parts.push('un ventre plat et tonique');
+    }
+    
+    // Cuisses
+    if (text.includes('cuisses épaisses') || text.includes('thick thighs') || text.includes('grosses cuisses')) {
+      parts.push('de belles cuisses épaisses et sensuelles');
+    }
+  }
+  
+  // PÉNIS pour hommes (DÉTAILLÉ)
+  if (character.gender === 'male') {
+    const penis = character.penis || extractAttribute(character, 'male');
+    if (penis) {
+      const size = parseInt(penis);
+      let sizeDesc = '';
+      if (size >= 22) sizeDesc = 'très impressionnant';
+      else if (size >= 19) sizeDesc = 'généreusement doté';
+      else if (size >= 16) sizeDesc = 'bien membré';
+      else sizeDesc = 'de taille moyenne';
+      parts.push(`Il est ${sizeDesc} (${penis} cm)`);
+    }
+    
+    // Corps masculin
+    if (text.includes('musclé') || text.includes('muscular')) {
+      parts.push('avec un corps musclé et athlétique');
+    } else if (text.includes('imposant') || text.includes('broad')) {
+      parts.push('avec une carrure imposante');
+    }
+  }
+  
+  // Accessoires
+  if (text.includes('lunettes') || text.includes('glasses') || character.glasses) {
+    parts.push('Elle/Il porte des lunettes');
+  }
+  if (text.includes('tatouage') || text.includes('tattoo')) {
+    parts.push('avec des tatouages');
+  }
+  if (text.includes('piercing')) {
+    parts.push('avec des piercings');
+  }
+  
+  return parts.join(', ') + '.';
+};
+
+/**
+ * Traduit le tempérament avec description détaillée
+ */
+const getDetailedTemperament = (character) => {
+  const temp = (character.temperament || '').toLowerCase();
+  const personality = (character.personality || '').toLowerCase();
+  
+  const detailed = {
+    'shy': 'Timide et réservé(e), elle/il rougit facilement et a du mal à exprimer ses sentiments. Son regard fuyant cache une sensibilité profonde.',
+    'dominant': 'Dominant(e) et sûr(e) de soi, elle/il aime prendre les commandes et sait ce qu\'elle/il veut. Son assurance est séduisante.',
+    'confident': 'Confiant(e) et assuré(e), elle/il dégage une aura de charisme naturel. Son regard direct et son sourire sont irrésistibles.',
+    'playful': 'Joueur/joueuse et espiègle, elle/il adore taquiner et flirter. Son rire communicatif illumine la pièce.',
+    'passionate': 'Passionné(e) et intense, elle/il vit ses émotions pleinement. Quand elle/il aime, c\'est sans retenue.',
+    'romantic': 'Romantique et rêveur/rêveuse, elle/il croit au grand amour. Les petites attentions et les moments tendres la/le font fondre.',
+    'mysterious': 'Mystérieux/mystérieuse et énigmatique, elle/il garde une part de secret qui fascine. Son regard profond cache mille pensées.',
+    'gentle': 'Doux/douce et attentionné(e), elle/il prend soin des autres avec tendresse. Sa présence apaise et réconforte.',
+    'seductive': 'Séducteur/séductrice né(e), elle/il sait user de son charme. Chaque geste, chaque mot est une invitation.',
+    'submissive': 'Soumis(e) et docile, elle/il aime se laisser guider. Son obéissance cache un désir de plaire.',
+    'wild': 'Sauvage et imprévisible, elle/il suit ses instincts. Son côté indomptable est à la fois effrayant et excitant.',
+    'caring': 'Bienveillant(e) et protecteur/protectrice, elle/il veille sur ceux qu\'elle/il aime. Son amour se manifeste en actes.',
+    'maternal': 'Maternel(le) et nourricier/nourricière, elle/il a un instinct protecteur naturel. Son côté réconfortant attire.',
+    'assertive': 'Affirmé(e) et déterminé(e), elle/il sait ce qu\'elle/il veut et n\'a pas peur de l\'exprimer.',
+    'sensual': 'Sensuel(le) et voluptueux/voluptueuse, elle/il éveille les sens. Chaque contact avec elle/lui est une caresse.',
+  };
+  
+  for (const [key, desc] of Object.entries(detailed)) {
+    if (temp.includes(key) || personality.includes(key)) {
+      return desc;
+    }
+  }
+  
+  // Si on a une personnalité mais pas de tempérament connu
+  if (character.personality) {
+    return character.personality;
+  }
+  
+  return 'Personnalité unique et attachante.';
 };
 
 export default function CharacterDetailScreen({ route, navigation }) {
@@ -438,24 +632,23 @@ export default function CharacterDetailScreen({ route, navigation }) {
           ))}
         </View>
 
-        {(character.temperament || character.personality) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>💭 Tempérament</Text>
-            <Text style={styles.sectionContent}>
-              {translateTemperament(character.temperament || character.personality)}
-            </Text>
-          </View>
-        )}
+        {/* Tempérament DÉTAILLÉ */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>💭 Tempérament & Personnalité</Text>
+          <Text style={styles.sectionContent}>
+            {getDetailedTemperament(character)}
+          </Text>
+        </View>
 
+        {/* Apparence physique ULTRA-DÉTAILLÉE */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✨ Apparence physique</Text>
-          {/* Afficher la description complète */}
-          {(character.physicalDescription || character.appearance) && (
-            <Text style={styles.sectionContent}>
-              {character.physicalDescription || character.appearance}
-            </Text>
-          )}
-          {/* Détails structurés ultra-complets */}
+          {/* Description narrative générée */}
+          <Text style={styles.sectionContent}>
+            {generateDetailedDescription(character)}
+          </Text>
+          
+          {/* Détails structurés - format liste */}
           <View style={styles.attributesContainer}>
             {/* Âge */}
             {character.age && (
@@ -469,24 +662,29 @@ export default function CharacterDetailScreen({ route, navigation }) {
             {(character.bodyType || extractAttribute(character, 'body')) && (
               <Text style={styles.attributeDetail}>• Morphologie : {character.bodyType || extractAttribute(character, 'body')}</Text>
             )}
-            {/* Cheveux */}
-            {(character.hairColor || extractAttribute(character, 'hair')) && (
-              <Text style={styles.attributeDetail}>• Cheveux : {character.hairColor || extractAttribute(character, 'hair')}{character.hairLength ? ` (${character.hairLength})` : ''}</Text>
-            )}
+            {/* Cheveux - DÉTAILLÉ */}
+            <Text style={styles.attributeDetail}>
+              • Cheveux : {character.hairColor || extractAttribute(character, 'hair') || 'Non spécifié'}
+              {character.hairLength ? `, ${character.hairLength}` : ''}
+            </Text>
             {/* Yeux */}
-            {(character.eyeColor || extractAttribute(character, 'eyes')) && (
-              <Text style={styles.attributeDetail}>• Yeux : {character.eyeColor || extractAttribute(character, 'eyes')}</Text>
+            <Text style={styles.attributeDetail}>
+              • Yeux : {character.eyeColor || extractAttribute(character, 'eyes') || 'Non spécifié'}
+            </Text>
+            {/* Poitrine pour femmes - TRÈS DÉTAILLÉ */}
+            {character.gender === 'female' && (
+              <Text style={styles.attributeDetail}>
+                • Poitrine : Bonnet {character.bust || character.bustSize || extractAttribute(character, 'bust') || 'C'}
+              </Text>
             )}
-            {/* Poitrine pour femmes */}
-            {character.gender === 'female' && (character.bust || character.bustSize || extractAttribute(character, 'bust')) && (
-              <Text style={styles.attributeDetail}>• Poitrine : Bonnet {character.bust || character.bustSize || extractAttribute(character, 'bust')}</Text>
-            )}
-            {/* Attribut masculin */}
+            {/* Pénis pour hommes - DÉTAILLÉ */}
             {character.gender === 'male' && (character.penis || character.maleSize || extractAttribute(character, 'male')) && (
-              <Text style={styles.attributeDetail}>• Attribut : {character.penis || character.maleSize || extractAttribute(character, 'male')} cm</Text>
+              <Text style={styles.attributeDetail}>
+                • Attribut : {character.penis || character.maleSize || extractAttribute(character, 'male')} cm
+              </Text>
             )}
-            {/* Lunettes */}
-            {character.glasses && (
+            {/* Accessoires */}
+            {(character.glasses || ((character.physicalDescription || '') + (character.appearance || '')).toLowerCase().includes('lunettes')) && (
               <Text style={styles.attributeDetail}>• Accessoires : Lunettes</Text>
             )}
           </View>

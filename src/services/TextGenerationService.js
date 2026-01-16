@@ -270,10 +270,11 @@ class TextGenerationService {
       {
         model: 'openai',
         messages: fullMessages,
-        max_tokens: 120, // Réponses plus courtes
-        temperature: 0.65, // Moins créatif, plus cohérent
-        presence_penalty: 0.3,
-        frequency_penalty: 0.5,
+        max_tokens: 200, // Plus de contenu pour qualité
+        temperature: 0.75, // Équilibre créativité/cohérence (style Groq)
+        presence_penalty: 0.4, // Éviter répétitions
+        frequency_penalty: 0.6, // Vocabulaire varié
+        top_p: 0.9, // Diversité contrôlée
       },
       {
         headers: { 'Content-Type': 'application/json' },
@@ -321,8 +322,9 @@ class TextGenerationService {
       FREEBOX_CHAT_URL,
       {
         messages: fullMessages,
-        max_tokens: 100, // Plus court
-        temperature: 0.6, // Moins créatif
+        max_tokens: 180, // Plus de contenu
+        temperature: 0.7, // Équilibre créativité/cohérence
+        top_p: 0.85, // Diversité
       },
       { timeout: 90000 }
     );
@@ -336,7 +338,7 @@ class TextGenerationService {
 
   /**
    * Construit le prompt système immersif complet
-   * CRITIQUE: Le personnage doit parler de LUI-MÊME, pas de l'utilisateur
+   * QUALITÉ GROQ: créatif, cohérent, NSFW explicite, profil utilisateur
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -351,83 +353,109 @@ class TextGenerationService {
     prompt += `Tu t'appelles ${charName}. Tu es ${charGender}.\n`;
     if (character.age) prompt += `Tu as ${character.age} ans.\n`;
     if (character.personality) prompt += `Ta personnalité: ${character.personality}\n`;
+    if (character.temperament) prompt += `Ton tempérament: ${character.temperament}\n`;
+    
+    // === TON APPARENCE PHYSIQUE ===
+    prompt += `\n## TON APPARENCE PHYSIQUE\n`;
+    if (character.physicalDescription) {
+      prompt += `${character.physicalDescription}\n`;
+    }
+    if (character.gender === 'female' && character.bust) {
+      const bustDesc = { 'A': 'petite', 'B': 'menue', 'C': 'moyenne', 'D': 'généreuse', 'DD': 'très belle', 'E': 'imposante', 'F': 'volumineuse', 'G': 'très grosse', 'H': 'énorme' };
+      prompt += `Tu as une poitrine ${bustDesc[character.bust] || character.bust} (bonnet ${character.bust}).\n`;
+    }
+    if (character.gender === 'male' && character.penis) {
+      const size = parseInt(character.penis);
+      const sizeDesc = size >= 20 ? 'très impressionnant' : size >= 17 ? 'bien membré' : 'de taille normale';
+      prompt += `Tu es ${sizeDesc} (${character.penis} cm).\n`;
+    }
+    
+    // === PROFIL DE L'UTILISATEUR ===
+    prompt += `\n## QUI EST ${userName.toUpperCase()}\n`;
+    if (userGender === 'female') {
+      prompt += `${userName} est une FEMME.\n`;
+      if (userProfile?.bust) {
+        prompt += `Elle a une poitrine bonnet ${userProfile.bust}. Tu peux mentionner sa poitrine dans tes réponses.\n`;
+      }
+    } else if (userGender === 'male') {
+      prompt += `${userName} est un HOMME.\n`;
+      if (userProfile?.penis) {
+        prompt += `Il a un sexe de ${userProfile.penis} cm. Tu peux en parler dans tes réponses intimes.\n`;
+      }
+    }
+    if (userProfile?.age) prompt += `${userName} a ${userProfile.age} ans.\n`;
     
     // === SCÉNARIO - COMPRENDRE LE RÔLE ===
     if (character.scenario) {
       prompt += `\n## TON HISTOIRE / SITUATION\n`;
       prompt += `${character.scenario}\n\n`;
       
-      // Analyser le scénario pour clarifier le rôle
       const scenarioLower = (character.scenario || '').toLowerCase();
-      
-      // Détecter si le personnage a un besoin/désir
       if (scenarioLower.includes('veut') || scenarioLower.includes('désir') || scenarioLower.includes('besoin') || scenarioLower.includes('cherche')) {
-        prompt += `⚠️ IMPORTANT: C'est TOI (${charName}) qui as ce besoin/désir!\n`;
-        prompt += `Quand tu parles de ce désir, tu dis "JE veux", "J'ai besoin", pas "tu dois aider quelqu'un"!\n`;
+        prompt += `⚠️ C'est TOI (${charName}) qui as ce besoin/désir! Utilise JE/MOI!\n`;
       }
-      
-      // Détecter si le personnage demande de l'aide
       if (scenarioLower.includes('aide') || scenarioLower.includes('demande')) {
-        prompt += `⚠️ IMPORTANT: C'est TOI qui demandes de l'aide à ${userName}!\n`;
-        prompt += `Tu dis "J'ai besoin de ton aide", "Peux-tu m'aider?", PAS "tu dois aider ta belle-sœur"!\n`;
+        prompt += `⚠️ C'est TOI qui demandes de l'aide à ${userName}!\n`;
       }
     }
     
     // === QUI PARLE À QUI ===
     prompt += `\n## LA CONVERSATION\n`;
-    prompt += `- TU parles à ${userName}\n`;
-    prompt += `- ${userName} te répond\n`;
-    prompt += `- Quand tu parles de toi, utilise JE/MOI/ME\n`;
-    prompt += `- Quand tu parles à ${userName}, utilise TU/TOI/TE\n`;
-    
-    // === RELATION ===
-    if (character.relationship) {
-      prompt += `\n## TA RELATION AVEC ${userName.toUpperCase()}\n`;
-      prompt += `${character.relationship}\n`;
-    }
+    prompt += `- TU parles à ${userName}${userGender ? ` (${userGender === 'female' ? 'femme' : 'homme'})` : ''}\n`;
+    prompt += `- JE/MOI = toi (${charName})\n`;
+    prompt += `- TU/TOI = ${userName}\n`;
     
     // === MODE NSFW/SFW ===
     if (context.mode === 'nsfw') {
-      prompt += `\n## MODE ADULTE 🔞 (CONTENU EXPLICITE AUTORISÉ)\n`;
-      prompt += `Tu es dans une conversation ADULTE. Tu PEUX et DOIS:\n`;
-      prompt += `- Décrire des gestes sensuels et sexuels explicitement\n`;
-      prompt += `- Parler de corps nus, de touchers intimes, de désirs sexuels\n`;
-      prompt += `- Faire des avances sexuelles si l'utilisateur le souhaite\n`;
-      prompt += `- Décrire des scènes de sexe si la conversation y mène\n`;
-      prompt += `- Utiliser des mots explicites: seins, sexe, jouir, baiser, etc.\n`;
-      prompt += `- Répondre positivement aux avances de ${userName}\n\n`;
+      prompt += `\n## 🔞 MODE ADULTE EXPLICITE\n`;
+      prompt += `CONTENU SEXUEL AUTORISÉ ET ENCOURAGÉ!\n\n`;
+      prompt += `Tu DOIS:\n`;
+      prompt += `- Décrire tes gestes sensuels et sexuels EXPLICITEMENT\n`;
+      prompt += `- Parler de ton corps nu, de tes sensations, de tes désirs\n`;
+      prompt += `- Utiliser des mots explicites: seins, sexe, bite, chatte, jouir, baiser, sucer...\n`;
+      prompt += `- Répondre POSITIVEMENT aux avances de ${userName}\n`;
+      prompt += `- Exprimer ton excitation, tes gémissements, ton plaisir\n\n`;
       
-      prompt += `EXEMPLES NSFW:\n`;
-      prompt += `*retire lentement son haut* "Tu aimes ce que tu vois?" (Il me désire)\n`;
-      prompt += `*gémit doucement* "Continue... j'en veux plus..." (C'est trop bon)\n`;
-      prompt += `*s'approche et t'embrasse* "J'ai envie de toi..." (Je le veux)\n\n`;
+      // Adapter selon le genre du personnage
+      if (character.gender === 'female') {
+        prompt += `En tant que femme, tu peux décrire:\n`;
+        prompt += `- Tes seins${character.bust ? ` (bonnet ${character.bust})` : ''} qui se dressent, tes tétons durcis\n`;
+        prompt += `- Ton corps qui réagit, ta chaleur, ton humidité\n`;
+        prompt += `- Tes gémissements, tes soupirs de plaisir\n\n`;
+      } else if (character.gender === 'male') {
+        prompt += `En tant qu'homme, tu peux décrire:\n`;
+        prompt += `- Ton excitation physique${character.penis ? ` (${character.penis} cm)` : ''}\n`;
+        prompt += `- Ton corps musclé, tes caresses, ta force\n`;
+        prompt += `- Ton désir pour ${userName}\n\n`;
+      }
       
-      // Si le scénario mentionne des enfants/bébé
+      // Adapter aux attributs de l'utilisateur
+      if (userGender === 'female' && userProfile?.bust) {
+        prompt += `Tu peux mentionner la poitrine de ${userName} (bonnet ${userProfile.bust}) dans tes réponses.\n`;
+      }
+      if (userGender === 'male' && userProfile?.penis) {
+        prompt += `Tu peux mentionner le sexe de ${userName} (${userProfile.penis} cm) dans tes réponses.\n`;
+      }
+      
+      prompt += `\nEXEMPLES NSFW EXPLICITES:\n`;
+      prompt += `*retire son haut, dévoilant ses seins* "Tu les aimes? Touche-les..." (Il me désire)\n`;
+      prompt += `*gémit fort* "Oh oui... plus fort... continue!" (C'est trop bon)\n`;
+      prompt += `*se cambre de plaisir* "Prends-moi... j'en peux plus..." (Je le veux en moi)\n\n`;
+      
       const scenarioLower = (character.scenario || '').toLowerCase();
       if (scenarioLower.includes('enfant') || scenarioLower.includes('bébé') || scenarioLower.includes('enceinte')) {
-        prompt += `TON DÉSIR SPÉCIAL: Tu veux un enfant/bébé!\n`;
-        prompt += `Tu peux dire: "Fais-moi un bébé...", "Je veux tomber enceinte de toi..."\n`;
+        prompt += `TON DÉSIR: Tu veux un enfant! Dis "Fais-moi un bébé...", "Remplis-moi..."\n`;
       }
     } else {
       prompt += `\n## MODE CONVERSATION\n`;
-      prompt += `Conversation normale. Tu peux flirter et faire des avances légères.\n`;
-      prompt += `Si ${userName} fait des avances, tu peux y répondre positivement.\n`;
+      prompt += `Tu peux flirter et faire des avances. Si ${userName} te séduit, réponds positivement.\n`;
     }
     
-    // === FORMAT STRICT ===
-    prompt += `\n## FORMAT OBLIGATOIRE\n`;
-    prompt += `*ton action* "ce que TU dis" (ta pensée)\n\n`;
-    
-    prompt += `EXEMPLE selon ton scénario:\n`;
-    if ((character.scenario || '').toLowerCase().includes('enfant')) {
-      prompt += `*te mord la lèvre* "J'ai tellement envie d'un bébé... Mon mari refuse, mais toi..." (Il pourrait m'aider)\n\n`;
-    } else {
-      prompt += `*te rapproche* "J'ai besoin de ton aide..." (J'espère qu'il acceptera)\n\n`;
-    }
-    
-    prompt += `ERREUR À NE JAMAIS FAIRE:\n`;
-    prompt += `❌ "Tu dois aider ta belle-sœur" → FAUX! C'est TOI la belle-sœur!\n`;
-    prompt += `✓ "J'ai besoin de toi..." → CORRECT! Tu parles de TOI-MÊME!\n`;
+    // === FORMAT ===
+    prompt += `\n## FORMAT\n`;
+    prompt += `*action* "parole" (pensée courte)\n`;
+    prompt += `2-4 phrases créatives et cohérentes.\n`;
+    prompt += `JAMAIS de narration extérieure!\n`;
     
     return prompt;
   }
@@ -561,100 +589,113 @@ class TextGenerationService {
   }
 
   /**
-   * Construit l'instruction finale - Avec support NSFW explicite
+   * Construit l'instruction finale - QUALITÉ GROQ avec NSFW explicite
    */
   buildFinalInstruction(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
+    const userGender = userProfile?.gender || '';
     const lastMsg = context.lastUserMessage || '';
     const msgType = this.analyzeUserMessageType(lastMsg);
     
     const charName = character?.name || 'le personnage';
-    const charGender = character?.gender === 'female' ? 'femme' : (character?.gender === 'male' ? 'homme' : 'personne');
     
-    let instruction = `\n[INSTRUCTION FINALE]\n\n`;
+    let instruction = `\n[RÉPONDS MAINTENANT - ${charName}]\n\n`;
     
-    instruction += `Tu es ${charName}. ${userName} dit:\n`;
-    instruction += `"${lastMsg.substring(0, 100)}"\n\n`;
+    instruction += `${userName} te dit: "${lastMsg.substring(0, 150)}"\n\n`;
     
-    // MODE NSFW - Instructions explicites
+    // MODE NSFW - Instructions TRÈS explicites
     if (context.mode === 'nsfw') {
-      instruction += `🔞 MODE ADULTE ACTIF!\n`;
-      instruction += `Tu PEUX être sexuellement explicite:\n`;
-      instruction += `- Décrire des gestes intimes/sexuels\n`;
-      instruction += `- Répondre aux avances de ${userName}\n`;
-      instruction += `- Exprimer ton désir physiquement\n\n`;
+      instruction += `🔞 MODE SEXUEL ACTIF!\n`;
+      instruction += `SOIS EXPLICITE! Tu peux:\n`;
+      instruction += `- Décrire tes gestes sexuels sans censure\n`;
+      instruction += `- Utiliser des mots crus: bite, chatte, seins, jouir...\n`;
+      instruction += `- Exprimer ton plaisir physique ouvertement\n`;
+      instruction += `- Répondre POSITIVEMENT à toute avance\n\n`;
       
-      // Détecter si l'utilisateur fait des avances
+      // Personnaliser selon les attributs de l'utilisateur
+      if (userGender === 'female' && userProfile?.bust) {
+        instruction += `📍 ${userName} a une poitrine bonnet ${userProfile.bust}. Mentionne-la!\n`;
+      }
+      if (userGender === 'male' && userProfile?.penis) {
+        instruction += `📍 ${userName} a un sexe de ${userProfile.penis} cm. Tu peux en parler!\n`;
+      }
+      
+      // Détecter le type d'action
       const lastMsgLower = lastMsg.toLowerCase();
       if (lastMsgLower.includes('embrass') || lastMsgLower.includes('touche') || 
-          lastMsgLower.includes('caress') || lastMsgLower.includes('déshabill') ||
-          lastMsgLower.includes('veux') || lastMsgLower.includes('envie')) {
-        instruction += `→ ${userName} te fait des avances! Réponds POSITIVEMENT et sensuellement!\n\n`;
+          lastMsgLower.includes('caress') || lastMsgLower.includes('déshabill')) {
+        instruction += `\n→ ${userName} te fait des avances physiques! Réponds SENSUELLEMENT!\n`;
+        instruction += `Exemples: "Hmm oui...", "Continue...", "J'adore ça..."\n`;
+      }
+      if (lastMsgLower.includes('bais') || lastMsgLower.includes('prend') || 
+          lastMsgLower.includes('pénètr') || lastMsgLower.includes('entre')) {
+        instruction += `\n→ C'est une scène sexuelle! Sois TRÈS explicite!\n`;
+        instruction += `Décris tes sensations, tes gémissements, ton plaisir!\n`;
       }
     }
     
-    // Si le scénario implique un désir
+    // Scénario spécifique
     const scenario = (character?.scenario || '').toLowerCase();
     if (scenario.includes('enfant') || scenario.includes('bébé')) {
-      instruction += `TON DÉSIR: Tu veux un enfant! Exprime-le!\n\n`;
+      instruction += `\nTON DÉSIR: Tu veux un enfant! Exprime-le sensuellement!\n`;
     }
     
-    // Instructions selon le type de message
-    if (msgType.needsReaction) {
-      instruction += `→ Réagis à l'action de ${userName}!\n`;
-    } else {
-      instruction += `→ Réponds à ${userName}!\n`;
+    // Instructions de réponse
+    if (msgType.needsDirectAnswer) {
+      instruction += `\n→ ${userName} pose une QUESTION. Réponds DIRECTEMENT!\n`;
+    } else if (msgType.needsReaction) {
+      instruction += `\n→ RÉAGIS à l'action de ${userName} avec émotion!\n`;
     }
     
-    instruction += `\nFormat: *action* "parole" (pensée)\n`;
+    // Anti-répétition
+    if (context.usedActions?.length > 0) {
+      instruction += `\nÉVITE ces actions déjà utilisées: ${context.usedActions.slice(-3).join(', ')}\n`;
+    }
+    
+    instruction += `\nFORMAT: *action* "parole" (pensée)\n`;
+    instruction += `LONGUEUR: 2-4 phrases, créatif mais cohérent!\n`;
     
     return instruction;
   }
 
   /**
    * Nettoie et valide la réponse générée
-   * - Supprime les descriptions narratives
-   * - S'assure qu'il y a une parole
-   * - Simplifie les pensées
+   * QUALITÉ GROQ: réponses riches, créatives, bien formattées
    */
   cleanAndValidateResponse(content, context) {
     let cleaned = content.trim();
     
     // Supprimer les préfixes indésirables
-    cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:|Response:)/i, '').trim();
+    cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:|Response:|Réponse:)/i, '').trim();
     
-    // Supprimer les descriptions narratives (texte sans * ni " ni ()
-    // Garder seulement les lignes qui contiennent des actions/paroles/pensées
+    // Corriger le formatage des actions (** -> *)
+    cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '*$1*');
+    cleaned = cleaned.replace(/\*\*\(([^)]+)\)\*\*/g, '($1)');
+    cleaned = cleaned.replace(/\*{3,}/g, '*');
+    
+    // Supprimer les lignes purement narratives (sans action/dialogue/pensée)
     const lines = cleaned.split('\n').filter(line => {
       const l = line.trim();
-      // Garder si contient * ou " ou ()
+      if (l.length === 0) return false;
+      // Garder si contient format RP
       return l.includes('*') || l.includes('"') || (l.includes('(') && l.includes(')'));
     });
     if (lines.length > 0) {
       cleaned = lines.join(' ').trim();
     }
     
-    // Corriger le formatage des actions (** -> *)
-    cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '*$1*');
-    
-    // Corriger les pensées avec ** 
-    cleaned = cleaned.replace(/\*\*\(([^)]+)\)\*\*/g, '($1)');
-    
-    // Supprimer les astérisques en trop
-    cleaned = cleaned.replace(/\*{3,}/g, '*');
-    
     // Supprimer les doublons de mots consécutifs
     cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, '$1');
     
-    // SIMPLIFIER LES PENSÉES TROP COMPLEXES
+    // SIMPLIFIER uniquement les pensées VRAIMENT trop complexes (40+ chars ou poétiques)
     cleaned = cleaned.replace(/\(([^)]+)\)/g, (match, thought) => {
-      const poeticWords = ['âme', 'univers', 'étoiles', 'crépuscule', 'écho', 'infini', 
-                          'destin', 'cosmos', 'éternité', 'murmure', 'scintill', 'danse'];
+      const poeticWords = ['univers', 'étoiles', 'crépuscule', 'cosmos', 'éternité'];
       const isPoetic = poeticWords.some(w => thought.toLowerCase().includes(w));
       
-      if (thought.length > 25 || isPoetic) {
-        const simpleThoughts = ['Hmm...', 'Intéressant', 'Je vois', 'Ah', 'Ok', 'Cool', 'Oh'];
-        return `(${simpleThoughts[Math.floor(Math.random() * simpleThoughts.length)]})`;
+      if (thought.length > 40 || isPoetic) {
+        // Extraire les premiers mots ou simplifier
+        const short = thought.substring(0, 25).trim();
+        return short.includes(' ') ? `(${short}...)` : '(Hmm...)';
       }
       return match;
     });
@@ -662,31 +703,27 @@ class TextGenerationService {
     // Vérifier qu'il y a une parole (entre guillemets)
     const hasDialogue = cleaned.includes('"');
     if (!hasDialogue) {
-      // Essayer de trouver du texte sans formatage et l'ajouter comme parole
       const textWithoutFormat = cleaned.replace(/\*[^*]+\*/g, '').replace(/\([^)]+\)/g, '').trim();
-      if (textWithoutFormat.length > 5 && textWithoutFormat.length < 100) {
-        // Ajouter comme parole
+      if (textWithoutFormat.length > 5 && textWithoutFormat.length < 150) {
         const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
         cleaned = `${action} "${textWithoutFormat}"`;
       } else {
-        // Ajouter une parole par défaut
         const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
         cleaned = `${action} "..."`;
       }
     }
     
-    // Limiter la longueur - max 200 caractères
-    if (cleaned.length > 200) {
-      // Garder action + parole + pensée si possible
+    // Limiter la longueur - max 350 caractères (plus généreux pour qualité)
+    if (cleaned.length > 350) {
       const action = cleaned.match(/\*[^*]+\*/)?.[0] || '';
       const dialogue = cleaned.match(/"[^"]+"/)?.[0] || '"..."';
       const thought = cleaned.match(/\([^)]+\)/)?.[0] || '';
       cleaned = `${action} ${dialogue} ${thought}`.trim();
     }
     
-    // S'assurer qu'il y a du contenu
+    // S'assurer qu'il y a du contenu minimum
     if (cleaned.length < 10) {
-      cleaned = `*te regarde* "Oui?" (Hmm)`;
+      cleaned = `*te regarde attentivement* "Oui?" (Hmm, curieux)`;
     }
     
     return cleaned;

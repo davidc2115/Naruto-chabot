@@ -2272,38 +2272,38 @@ class ImageGenerationService {
     if (allData.includes('grain de beauté') || allData.includes('beauty mark')) parts.push('with beauty mark');
     if (allData.includes('douce') || allData.includes('soft skin')) parts.push('soft smooth skin');
     
-    // === 10. MORPHOLOGIE / BODY TYPE ===
-    // Ronde / Très ronde / BBW
+    // === 10. MORPHOLOGIE / BODY TYPE - TRÈS DÉTAILLÉ ET RENFORCÉ ===
+    // Ronde / Très ronde / BBW - PRIORITAIRE
     if (allData.includes('très ronde') || allData.includes('bbw') || allData.includes('très grosse') || allData.includes('obèse')) {
-      parts.push('BBW very curvy thick plump body, very full-figured, big beautiful proportions');
+      parts.push('BBW BODY TYPE, very curvy thick plump body, very full-figured, big beautiful woman, fat body, chubby figure, large body');
     } else if (allData.includes('ronde') || allData.includes('chubby') || allData.includes('potel') || allData.includes('plump')) {
-      parts.push('curvy plump soft rounded body, full-figured');
+      parts.push('CURVY PLUMP BODY, soft rounded figure, chubby body, full-figured woman, thick body');
     } else if (allData.includes('enrobé') || allData.includes('enveloppé') || allData.includes('soft body')) {
-      parts.push('soft padded pleasantly plump body');
+      parts.push('SOFT PLUMP BODY, pleasantly padded figure, soft curves, rounded body');
     }
     // Généreuse / Voluptueuse
     else if (allData.includes('généreuse') || allData.includes('voluptu') || allData.includes('curvy') || allData.includes('formes')) {
-      parts.push('voluptuous curvy full-figured body with generous curves');
+      parts.push('VOLUPTUOUS CURVY BODY, full-figured with generous curves, hourglass figure, sexy curves everywhere');
     }
     // Pulpeuse / Thick
     else if (allData.includes('pulpeuse') || allData.includes('thick')) {
-      parts.push('thick curvy body with pronounced sexy curves');
+      parts.push('THICK CURVY BODY, pronounced sexy curves, full-figured, thick thighs and hips');
     }
     // Maternelle
     else if (allData.includes('maternelle') || allData.includes('maternal') || allData.includes('femme au foyer')) {
-      parts.push('soft maternal curvy womanly body');
+      parts.push('SOFT MATERNAL BODY, curvy womanly figure, nurturing physique, soft curves');
     }
     // Athlétique / Musclée
     else if (allData.includes('musclé') || allData.includes('athletic') || allData.includes('fit') || allData.includes('tonique')) {
-      parts.push('athletic toned fit body with defined muscles');
+      parts.push('ATHLETIC TONED BODY, fit physique, defined muscles, sporty figure');
     }
     // Mince / Élancée
     else if (allData.includes('mince') || allData.includes('slim') || allData.includes('élanc') || allData.includes('slender')) {
-      parts.push('slim slender lean body');
+      parts.push('SLIM SLENDER BODY, lean figure, thin physique, slender frame');
     }
     // Petite
     else if (allData.includes('petite') && allData.includes('mince')) {
-      parts.push('petite slim delicate body');
+      parts.push('PETITE SLIM BODY, small delicate frame, tiny figure');
     }
     
     // === 11. TAILLE ===
@@ -2313,28 +2313,39 @@ class ImageGenerationService {
       parts.push('petite short stature');
     }
     
-    // === 12. POITRINE (FEMMES) ===
+    // === 12. POITRINE (FEMMES) - PRIORITÉ HAUTE ===
     if (character.gender === 'female') {
       const bust = (character.bust || '').toUpperCase();
+      // Descriptions TRÈS détaillées et renforcées pour chaque bonnet
       const bustDesc = {
-        'A': 'small petite A-cup breasts',
-        'B': 'modest natural B-cup breasts',
-        'C': 'medium round C-cup breasts',
-        'D': 'full generous D-cup breasts, nice cleavage',
-        'DD': 'large DD-cup breasts, impressive bust',
-        'E': 'very large E-cup breasts, heavy bust',
-        'F': 'huge F-cup breasts, massive bust',
-        'G': 'gigantic G-cup breasts, enormous bust',
-        'H': 'massive H-cup breasts, extremely large bust'
+        'A': 'SMALL A-CUP BREASTS, petite flat chest, tiny breasts, small bust',
+        'B': 'SMALL B-CUP BREASTS, modest small breasts, petite bust, small chest',
+        'C': 'MEDIUM C-CUP BREASTS, average breasts, normal sized bust, moderate chest',
+        'D': 'LARGE D-CUP BREASTS, big breasts, full generous bust, impressive cleavage, large chest',
+        'DD': 'VERY LARGE DD-CUP BREASTS, big heavy breasts, impressive large bust, deep cleavage',
+        'E': 'HUGE E-CUP BREASTS, very big breasts, enormous bust, massive chest, heavy breasts',
+        'F': 'HUGE F-CUP BREASTS, massive breasts, gigantic bust, extremely large chest, heavy hanging breasts',
+        'G': 'GIGANTIC G-CUP BREASTS, enormous massive breasts, huge heavy bust, extremely big chest',
+        'H': 'MASSIVE H-CUP BREASTS, enormous gigantic breasts, extremely heavy huge bust, colossal chest'
       };
+      
       if (bustDesc[bust]) {
+        // Ajouter la description de poitrine EN PRIORITÉ
         parts.push(bustDesc[bust]);
+        // Renforcer pour les grandes poitrines
+        if (['E', 'F', 'G', 'H'].includes(bust)) {
+          parts.push('prominent large breasts, very big bust visible');
+        } else if (['D', 'DD'].includes(bust)) {
+          parts.push('noticeable big breasts, generous bust');
+        } else if (['A', 'B'].includes(bust)) {
+          parts.push('small chest, flat-chested, petite breasts');
+        }
       } else if (allData.includes('énorme poitrine') || allData.includes('énormes seins') || allData.includes('huge breasts')) {
-        parts.push('huge massive breasts, enormous bust');
+        parts.push('HUGE MASSIVE BREASTS, enormous bust, very big heavy chest');
       } else if (allData.includes('grosse poitrine') || allData.includes('gros seins') || allData.includes('large breasts')) {
-        parts.push('large full breasts, generous bust');
+        parts.push('LARGE FULL BREASTS, big generous bust, impressive chest');
       } else if (allData.includes('petite poitrine') || allData.includes('small breasts')) {
-        parts.push('small petite breasts');
+        parts.push('SMALL PETITE BREASTS, flat chest, tiny bust');
       }
     }
     
