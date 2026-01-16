@@ -2145,58 +2145,274 @@ class ImageGenerationService {
   }
   
   /**
-   * Construit un prompt ultra-détaillé basé sur TOUS les attributs du personnage
+   * Construit un prompt ULTRA-DÉTAILLÉ basé sur TOUS les attributs du personnage
+   * Inclut: visage, cheveux, corps, morphologie, poitrine/pénis, fesses, hanches, peau, etc.
    */
   buildUltraDetailedPrompt(character, isRealistic = false) {
     const parts = [];
     
-    // === 1. imagePrompt en priorité si disponible ===
-    if (character.imagePrompt) {
-      parts.push(character.imagePrompt);
-    }
+    // Collecter TOUTES les données pour analyse
+    const allData = [
+      character.appearance || '',
+      character.physicalDescription || '',
+      character.bodyType || '',
+      character.imagePrompt || '',
+      (character.tags || []).join(' '),
+      character.hairColor || '',
+      character.hairLength || '',
+      character.eyeColor || '',
+      character.outfit || ''
+    ].join(' ').toLowerCase();
     
-    // === 2. physicalDescription si disponible ===
-    if (character.physicalDescription) {
-      parts.push(character.physicalDescription.replace(/\n/g, ', '));
-    }
-    
-    // === 3. Genre et base ===
+    // === 1. GENRE ===
     if (character.gender === 'female') {
-      parts.push(isRealistic ? 'beautiful real woman, female' : 'beautiful anime woman, female character');
+      parts.push(isRealistic ? 'beautiful real woman, female human' : 'beautiful anime woman, female character');
     } else if (character.gender === 'male') {
-      parts.push(isRealistic ? 'handsome real man, male' : 'handsome anime man, male character');
+      parts.push(isRealistic ? 'handsome real man, male human' : 'handsome anime man, male character');
     } else {
       parts.push('beautiful androgynous person');
     }
     
-    // === 4. Âge précis ===
+    // === 2. ÂGE ===
     const age = this.parseCharacterAge(character.age);
     parts.push(`${age} years old`);
-    if (age >= 40) parts.push('mature elegant');
-    else if (age >= 30) parts.push('adult confident');
-    else if (age >= 25) parts.push('young adult');
-    else parts.push('youthful adult');
+    if (age >= 45) parts.push('mature elegant sophisticated');
+    else if (age >= 35) parts.push('mature confident adult');
+    else if (age >= 28) parts.push('adult prime of life');
+    else parts.push('young adult');
     
-    // === 5. Cheveux (couleur + longueur + style) ===
-    if (character.hairColor) {
-      let hairDesc = `${character.hairColor} hair`;
-      if (character.hairLength) hairDesc += `, ${character.hairLength}`;
-      parts.push(hairDesc);
+    // === 3. FORME DU VISAGE ===
+    if (allData.includes('visage ovale') || allData.includes('oval face')) parts.push('oval face shape');
+    else if (allData.includes('visage rond') || allData.includes('round face')) parts.push('round soft face');
+    else if (allData.includes('visage carré') || allData.includes('square')) parts.push('square strong jawline');
+    else if (allData.includes('visage fin') || allData.includes('thin face') || allData.includes('fin visage')) parts.push('delicate fine facial features');
+    else if (allData.includes('visage doux') || allData.includes('soft face')) parts.push('soft gentle facial features');
+    else if (allData.includes('pommettes') || allData.includes('cheekbones')) parts.push('high prominent cheekbones');
+    else if (allData.includes('mâchoire') || allData.includes('jaw')) parts.push('defined jawline');
+    
+    // === 4. CHEVEUX - COULEUR ===
+    const hairColor = character.hairColor || '';
+    if (hairColor) {
+      // Traduire les couleurs françaises
+      let colorEn = hairColor.toLowerCase()
+        .replace('noir', 'black').replace('noire', 'black')
+        .replace('brun', 'brown').replace('brune', 'brown').replace('châtain', 'chestnut brown')
+        .replace('blond', 'blonde').replace('blonde', 'blonde')
+        .replace('roux', 'red ginger').replace('rousse', 'red ginger')
+        .replace('blanc', 'white').replace('blanche', 'white')
+        .replace('gris', 'grey').replace('grise', 'grey')
+        .replace('rose', 'pink').replace('bleu', 'blue').replace('vert', 'green')
+        .replace('violet', 'purple').replace('argent', 'silver');
+      parts.push(`beautiful ${colorEn} hair`);
     }
     
-    // === 6. Yeux ===
-    if (character.eyeColor) {
-      parts.push(`${character.eyeColor} eyes, expressive eyes`);
+    // === 5. CHEVEUX - LONGUEUR ===
+    if (allData.includes('très long') || allData.includes('very long') || allData.includes('hanches') || allData.includes('taille')) {
+      parts.push('extremely long hair reaching waist');
+    } else if (allData.includes('long') || allData.includes('longs cheveux')) {
+      parts.push('long flowing hair');
+    } else if (allData.includes('mi-long') || allData.includes('épaules') || allData.includes('shoulder')) {
+      parts.push('shoulder-length hair');
+    } else if (allData.includes('court') || allData.includes('short')) {
+      parts.push('short stylish hair');
+    } else if (allData.includes('carré') || allData.includes('bob')) {
+      parts.push('bob haircut');
     }
     
-    // === 7. Morphologie / Body type - TRÈS DÉTAILLÉ ===
-    const fullAppearance = ((character.appearance || '') + ' ' + (character.bodyType || '') + ' ' + (character.physicalDescription || '')).toLowerCase();
+    // === 6. CHEVEUX - TEXTURE ===
+    if (allData.includes('lisse') || allData.includes('straight') || allData.includes('raide')) {
+      parts.push('straight sleek hair');
+    } else if (allData.includes('ondulé') || allData.includes('wavy')) {
+      parts.push('wavy flowing hair');
+    } else if (allData.includes('bouclé') || allData.includes('curly') || allData.includes('boucl')) {
+      parts.push('curly bouncy hair');
+    } else if (allData.includes('frisé') || allData.includes('frizzy') || allData.includes('crépu') || allData.includes('afro')) {
+      parts.push('kinky coily afro-textured hair');
+    } else if (allData.includes('épais') || allData.includes('thick hair')) {
+      parts.push('thick voluminous hair');
+    } else if (allData.includes('fin') || allData.includes('fine hair')) {
+      parts.push('fine delicate hair');
+    } else if (allData.includes('soyeux') || allData.includes('silky')) {
+      parts.push('silky smooth hair');
+    }
     
-    // Type de corps général
-    if (character.bodyType) {
-      const bodyTypeLower = character.bodyType.toLowerCase();
-      if (bodyTypeLower.includes('voluptu') || bodyTypeLower.includes('curvy') || bodyTypeLower.includes('généreu')) {
-        parts.push('voluptuous curvy full-figured body, generous curves');
+    // === 7. YEUX ===
+    const eyeColor = character.eyeColor || '';
+    if (eyeColor) {
+      let eyeEn = eyeColor.toLowerCase()
+        .replace('bleu', 'blue').replace('vert', 'green').replace('marron', 'brown')
+        .replace('noisette', 'hazel').replace('noir', 'dark').replace('gris', 'grey');
+      parts.push(`beautiful ${eyeEn} eyes`);
+    } else if (allData.includes('yeux bleu')) parts.push('bright blue eyes');
+    else if (allData.includes('yeux vert')) parts.push('emerald green eyes');
+    else if (allData.includes('yeux marron') || allData.includes('yeux brun')) parts.push('warm brown eyes');
+    else if (allData.includes('yeux noir')) parts.push('deep dark eyes');
+    else if (allData.includes('yeux noisette')) parts.push('hazel eyes');
+    else parts.push('expressive beautiful eyes');
+    
+    // === 8. COULEUR DE PEAU ===
+    if (allData.includes('pâle') || allData.includes('porcelaine') || allData.includes('pale')) {
+      parts.push('pale porcelain fair skin');
+    } else if (allData.includes('bronzé') || allData.includes('doré') || allData.includes('tan')) {
+      parts.push('tanned golden sun-kissed skin');
+    } else if (allData.includes('ébène') || allData.includes('noir') || allData.includes('dark skin') || allData.includes('ebony')) {
+      parts.push('beautiful dark ebony skin');
+    } else if (allData.includes('caramel') || allData.includes('métis') || allData.includes('mixed')) {
+      parts.push('warm caramel mixed skin');
+    } else if (allData.includes('olive') || allData.includes('méditerran') || allData.includes('latin')) {
+      parts.push('olive mediterranean skin');
+    } else if (allData.includes('asiat') || allData.includes('asian')) {
+      parts.push('fair asian skin');
+    } else {
+      parts.push('natural healthy skin');
+    }
+    
+    // === 9. TYPE DE PEAU ===
+    if (allData.includes('taches de rousseur') || allData.includes('freckles')) parts.push('with cute freckles');
+    if (allData.includes('grain de beauté') || allData.includes('beauty mark')) parts.push('with beauty mark');
+    if (allData.includes('douce') || allData.includes('soft skin')) parts.push('soft smooth skin');
+    
+    // === 10. MORPHOLOGIE / BODY TYPE ===
+    // Ronde / Très ronde / BBW
+    if (allData.includes('très ronde') || allData.includes('bbw') || allData.includes('très grosse') || allData.includes('obèse')) {
+      parts.push('BBW very curvy thick plump body, very full-figured, big beautiful proportions');
+    } else if (allData.includes('ronde') || allData.includes('chubby') || allData.includes('potel') || allData.includes('plump')) {
+      parts.push('curvy plump soft rounded body, full-figured');
+    } else if (allData.includes('enrobé') || allData.includes('enveloppé') || allData.includes('soft body')) {
+      parts.push('soft padded pleasantly plump body');
+    }
+    // Généreuse / Voluptueuse
+    else if (allData.includes('généreuse') || allData.includes('voluptu') || allData.includes('curvy') || allData.includes('formes')) {
+      parts.push('voluptuous curvy full-figured body with generous curves');
+    }
+    // Pulpeuse / Thick
+    else if (allData.includes('pulpeuse') || allData.includes('thick')) {
+      parts.push('thick curvy body with pronounced sexy curves');
+    }
+    // Maternelle
+    else if (allData.includes('maternelle') || allData.includes('maternal') || allData.includes('femme au foyer')) {
+      parts.push('soft maternal curvy womanly body');
+    }
+    // Athlétique / Musclée
+    else if (allData.includes('musclé') || allData.includes('athletic') || allData.includes('fit') || allData.includes('tonique')) {
+      parts.push('athletic toned fit body with defined muscles');
+    }
+    // Mince / Élancée
+    else if (allData.includes('mince') || allData.includes('slim') || allData.includes('élanc') || allData.includes('slender')) {
+      parts.push('slim slender lean body');
+    }
+    // Petite
+    else if (allData.includes('petite') && allData.includes('mince')) {
+      parts.push('petite slim delicate body');
+    }
+    
+    // === 11. TAILLE ===
+    if (allData.includes('grande') || allData.includes('tall') || allData.includes('longues jambes')) {
+      parts.push('tall stature, long legs');
+    } else if (allData.includes('petite') || allData.includes('small')) {
+      parts.push('petite short stature');
+    }
+    
+    // === 12. POITRINE (FEMMES) ===
+    if (character.gender === 'female') {
+      const bust = (character.bust || '').toUpperCase();
+      const bustDesc = {
+        'A': 'small petite A-cup breasts',
+        'B': 'modest natural B-cup breasts',
+        'C': 'medium round C-cup breasts',
+        'D': 'full generous D-cup breasts, nice cleavage',
+        'DD': 'large DD-cup breasts, impressive bust',
+        'E': 'very large E-cup breasts, heavy bust',
+        'F': 'huge F-cup breasts, massive bust',
+        'G': 'gigantic G-cup breasts, enormous bust',
+        'H': 'massive H-cup breasts, extremely large bust'
+      };
+      if (bustDesc[bust]) {
+        parts.push(bustDesc[bust]);
+      } else if (allData.includes('énorme poitrine') || allData.includes('énormes seins') || allData.includes('huge breasts')) {
+        parts.push('huge massive breasts, enormous bust');
+      } else if (allData.includes('grosse poitrine') || allData.includes('gros seins') || allData.includes('large breasts')) {
+        parts.push('large full breasts, generous bust');
+      } else if (allData.includes('petite poitrine') || allData.includes('small breasts')) {
+        parts.push('small petite breasts');
+      }
+    }
+    
+    // === 13. PÉNIS (HOMMES) ===
+    if (character.gender === 'male' && character.penis) {
+      const size = parseInt(character.penis);
+      if (size >= 22) parts.push('very well endowed, large');
+      else if (size >= 18) parts.push('well endowed');
+      else if (size >= 15) parts.push('average build');
+    }
+    
+    // === 14. FESSES ===
+    if (allData.includes('énorme fesse') || allData.includes('huge butt') || allData.includes('très grosses fesses')) {
+      parts.push('huge massive round butt, very big thick ass');
+    } else if (allData.includes('grosse fesse') || allData.includes('big butt') || allData.includes('grosses fesses') || allData.includes('gros fessier')) {
+      parts.push('big round plump butt, large thick buttocks');
+    } else if (allData.includes('fesses rebondies') || allData.includes('bubble butt') || allData.includes('fesses rondes')) {
+      parts.push('round bubble butt, perky buttocks');
+    } else if (allData.includes('fesses plates') || allData.includes('flat butt')) {
+      parts.push('small flat butt');
+    } else if (allData.includes('fesses musclées') || allData.includes('toned butt')) {
+      parts.push('toned muscular firm butt');
+    }
+    
+    // === 15. HANCHES ===
+    if (allData.includes('très larges hanches') || allData.includes('very wide hips')) {
+      parts.push('very wide generous hips, extremely broad');
+    } else if (allData.includes('hanches larges') || allData.includes('wide hips') || allData.includes('larges hanches')) {
+      parts.push('wide generous hips');
+    } else if (allData.includes('hanches étroites') || allData.includes('narrow hips')) {
+      parts.push('narrow slim hips');
+    }
+    
+    // === 16. CUISSES ===
+    if (allData.includes('très grosses cuisses') || allData.includes('huge thighs')) {
+      parts.push('very thick massive thighs');
+    } else if (allData.includes('cuisses épaisses') || allData.includes('thick thighs') || allData.includes('grosses cuisses')) {
+      parts.push('thick meaty thighs');
+    } else if (allData.includes('cuisses fines') || allData.includes('slim thighs')) {
+      parts.push('slim slender thighs');
+    }
+    
+    // === 17. VENTRE ===
+    if (allData.includes('gros ventre') || allData.includes('big belly') || allData.includes('énorme ventre')) {
+      parts.push('big round soft belly, large plump tummy');
+    } else if (allData.includes('ventre rond') || allData.includes('round belly') || allData.includes('ventre doux')) {
+      parts.push('soft round belly, plump cute tummy');
+    } else if (allData.includes('ventre plat') || allData.includes('flat stomach')) {
+      parts.push('flat toned stomach');
+    }
+    
+    // === 18. SILHOUETTE ===
+    if (allData.includes('sablier') || allData.includes('hourglass')) {
+      parts.push('perfect hourglass figure');
+    } else if (allData.includes('poire') || allData.includes('pear')) {
+      parts.push('pear-shaped body, wider hips');
+    }
+    
+    // === 19. ACCESSOIRES ===
+    if (allData.includes('lunettes') || allData.includes('glasses')) parts.push('wearing glasses');
+    if (allData.includes('piercing')) parts.push('with piercings');
+    if (allData.includes('tatouage') || allData.includes('tattoo')) parts.push('with tattoos');
+    
+    // === 20. imagePrompt DU PERSONNAGE (toujours ajouter si existe) ===
+    if (character.imagePrompt) {
+      // Ajouter le imagePrompt personnalisé qui contient souvent des détails précis
+      parts.push(character.imagePrompt);
+    }
+    
+    // === 21. QUALITÉ ===
+    if (isRealistic) {
+      parts.push('photorealistic, ultra detailed, 8K, professional photography, perfect anatomy');
+    } else {
+      parts.push('high quality anime art, detailed illustration, perfect anatomy');
+    }
+    
+    console.log(`📋 Prompt ultra-détaillé généré: ${parts.length} éléments`);
+    return parts.filter(p => p && p.trim()).join(', ');
       } else if (bodyTypeLower.includes('ronde') || bodyTypeLower.includes('plump') || bodyTypeLower.includes('chubby')) {
         parts.push('curvy plump soft rounded body');
       } else if (bodyTypeLower.includes('thick') || bodyTypeLower.includes('pulpeuse')) {
