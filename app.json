@@ -2,7 +2,7 @@
   "expo": {
     "name": "B&G Chat",
     "slug": "roleplay-chat-app",
-    "version": "5.3.33",
+    "version": "5.3.34",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -27,11 +27,9 @@
         "backgroundColor": "#6366f1"
       },
       "package": "com.roleplaychat.app",
-      "versionCode": 87,
+      "versionCode": 88,
       "permissions": [
-        "android.permission.INTERNET",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_IMAGES"
+        "android.permission.INTERNET"
       ],
       "usesCleartextTraffic": true
     },

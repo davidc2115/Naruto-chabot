@@ -987,34 +987,54 @@ class TextGenerationService {
   }
   
   /**
-   * Appel API format Pollinations
+   * Appel API format Pollinations v5.3.34
+   * SIMPLIFIÉ pour meilleure cohérence
    */
   async callPollinationsApi(api, fullMessages, options = {}) {
     const { temperature = 0.85, maxTokens = 350 } = options;
     
+    // Extraire les éléments
     const systemMessages = fullMessages.filter(m => m.role === 'system');
     const conversationMessages = fullMessages.filter(m => m.role !== 'system');
-    const systemPrompt = systemMessages.map(m => m.content).join('\n\n');
     
-    const conversationHistory = conversationMessages.map(m => 
-      `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`
-    ).join('\n');
+    // Garder seulement le premier système (le plus important)
+    const mainSystem = systemMessages[0]?.content || '';
+    const lastInstruction = systemMessages[systemMessages.length - 1]?.content || '';
     
-    let combinedPrompt = systemPrompt;
-    if (conversationHistory) {
-      combinedPrompt += `\n\n=== CONVERSATION ===\n${conversationHistory}\n\n=== RÉPONDS ===\nAssistant:`;
+    // Construire l'historique de conversation de façon CLAIRE
+    let conversationHistory = '';
+    for (const msg of conversationMessages) {
+      const role = msg.role === 'user' ? 'Utilisateur' : 'Personnage';
+      conversationHistory += `${role}: ${msg.content}\n\n`;
     }
     
-    const shortPrompt = combinedPrompt.substring(0, 4000);
+    // Construire le prompt SIMPLIFIÉ et CLAIR
+    let prompt = mainSystem.substring(0, 1000);
+    
+    if (conversationHistory) {
+      prompt += `\n\n--- HISTORIQUE ---\n${conversationHistory}`;
+    }
+    
+    // Ajouter l'instruction finale (le plus important!)
+    if (lastInstruction && lastInstruction !== mainSystem) {
+      prompt += `\n--- INSTRUCTION ---\n${lastInstruction.substring(0, 500)}`;
+    }
+    
+    prompt += `\n\nPersonnage:`;
+    
+    // Limiter la taille mais garder assez de contexte
+    const finalPrompt = prompt.substring(0, 5000);
+    
+    console.log(`📡 Pollinations prompt: ${finalPrompt.length} chars, model: ${api.model}`);
     
     const response = await axios.get(
-      `${api.url}/${encodeURIComponent(shortPrompt)}`,
+      `${api.url}/${encodeURIComponent(finalPrompt)}`,
       {
         params: { 
           model: api.model,
           seed: Math.floor(Math.random() * 100000)
         },
-        timeout: 40000,
+        timeout: 45000,
       }
     );
     
@@ -1274,107 +1294,29 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale v5.3.32
-   * ANTI-RETOUR + NSFW EXPLICITE
-   * Suit le DERNIER message, ne revient JAMAIS en arrière
+   * Construit l'instruction finale v5.3.34
+   * SIMPLIFIÉ - Juste répondre au message
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'Personnage';
     const userName = userProfile?.username || 'l\'utilisateur';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
-    const userIsMale = userProfile?.gender === 'male';
-    const userIsFemale = userProfile?.gender === 'female';
-    const charIsFemale = character?.gender === 'female';
-    const charIsMale = character?.gender === 'male';
     
     // Récupérer le dernier message utilisateur
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     const lastUserContent = lastUserMsg?.content || '';
-    const userLower = lastUserContent.toLowerCase();
     
-    // === RÉCUPÉRER LA DERNIÈRE ACTION DU PERSONNAGE (important!) ===
-    const lastAssistantMsg = recentMessages.filter(m => m.role === 'assistant').slice(-1)[0];
-    const lastAssistantContent = lastAssistantMsg?.content || '';
-    const lastAssistantAction = lastAssistantContent.match(/\*([^*]+)\*/)?.[1] || null;
+    // Instruction SIMPLE et DIRECTE
+    let instruction = `RÉPONDS au dernier message de ${userName}: "${lastUserContent.substring(0, 150)}"`;
     
-    // Extraire l'action utilisateur entre *...*
-    const actionMatch = lastUserContent.match(/\*([^*]+)\*/);
-    const userAction = actionMatch ? actionMatch[1] : null;
-    
-    // Détecter les demandes de continuation
-    const wantsContinue = userLower.includes('continue') || userLower.includes('encore') || 
-        userLower.includes('plus') || userLower.includes('mmmm') || userLower.includes('oui') || 
-        userLower.includes('oh') || userLower.includes('hmm') || userLower.includes('ahh');
-    
-    // Détecter les actions spécifiques demandées
-    let userRequest = null;
-    if (wantsContinue && lastAssistantAction) {
-      userRequest = `CONTINUE cette action: "${lastAssistantAction.substring(0, 60)}"`;
-    } else if (userLower.includes('touche') || userLower.includes('caresse')) {
-      userRequest = 'Touche-le/la comme demandé';
-    } else if (userLower.includes('suce') || userLower.includes('lèche') || userLower.includes('prend')) {
-      userRequest = 'Action orale demandée - FAIS-LE';
-    } else if (userLower.includes('embrasse')) {
-      userRequest = 'Embrasse-le/la';
-    } else if (userLower.includes('déshabille')) {
-      userRequest = 'Déshabille-toi ou déshabille-le/la';
-    }
-    
-    let instruction = `\n========================================\n`;
-    instruction += `🎯 ${charName}, RÉPONDS À CE MESSAGE:\n`;
-    instruction += `"${lastUserContent.substring(0, 250)}"\n`;
-    instruction += `========================================\n\n`;
-    
-    if (userAction) {
-      instruction += `👆 ${userName} VIENT DE FAIRE: ${userAction}\n`;
-    }
-    if (userRequest) {
-      instruction += `💡 CE QU'IL/ELLE VEUT: ${userRequest}\n`;
-    }
-    
-    // === ANTI-RETOUR: Ce que tu NE DOIS PAS faire ===
-    instruction += `\n🚫 INTERDIT:\n`;
-    instruction += `- Revenir à une action passée (sécher cheveux, orage, première rencontre...)\n`;
-    instruction += `- Ignorer ce que ${userName} vient de dire/faire\n`;
-    instruction += `- Changer de sujet sans raison\n`;
-    instruction += `- Répondre à un ancien message\n\n`;
-    
-    // === CE QUE TU DOIS FAIRE ===
-    instruction += `✅ TU DOIS:\n`;
-    instruction += `1. RÉAGIR au message de ${userName} ci-dessus\n`;
-    if (wantsContinue && lastAssistantAction) {
-      instruction += `2. CONTINUER/INTENSIFIER: "${lastAssistantAction.substring(0, 50)}..."\n`;
-    } else {
-      instruction += `2. FAIRE ce que ${userName} demande ou suggère\n`;
-    }
-    instruction += `3. AVANCER la conversation\n`;
-    
-    // === NSFW EXPLICITE v5.3.32 ===
     if (isNSFW) {
-      instruction += `\n🔞 NSFW - SOIS TRÈS EXPLICITE:\n`;
-      instruction += `- Mots crus: bite, chatte, seins, cul, jouir, mouillée, bander, sucer...\n`;
-      instruction += `- Décris sensations, actions, sons (gémissements...)\n`;
-      instruction += `- Pas de timidité!\n`;
-      
-      // Anatomie claire
-      if (userIsMale) {
-        instruction += `\n⚡ ${userName} = HOMME → bite, couilles (PAS de seins!)\n`;
-      } else if (userIsFemale) {
-        instruction += `\n⚡ ${userName} = FEMME → seins, chatte, clitoris\n`;
-      }
-      
-      if (charIsFemale) {
-        instruction += `⚡ TOI ${charName} = FEMME → tes seins, ta chatte\n`;
-      } else if (charIsMale) {
-        instruction += `⚡ TOI ${charName} = HOMME → ta bite\n`;
-      }
+      instruction += `\n🔞 Mode adulte: sois explicite si approprié.`;
     }
     
-    instruction += `\nFormat: *actions* "paroles"\n`;
-    instruction += `========================================`;
-    
+    // C'est tout! Pas besoin de plus
     return instruction;
   }
+
 
   /**
    * Génération avec Ollama sur la Freebox
@@ -1463,9 +1405,8 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.32
-   * ANTI-RETOUR: Ne jamais revenir au scénario initial
-   * Focus sur la PROGRESSION de la conversation
+   * Construit le prompt système - VERSION v5.3.34
+   * SIMPLIFIÉ pour meilleure cohérence
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -1474,52 +1415,25 @@ class TextGenerationService {
     
     const charIsFemale = character.gender === 'female';
     const charIsMale = character.gender === 'male';
-    const userIsFemale = userProfile?.gender === 'female';
-    const userIsMale = userProfile?.gender === 'male';
     
+    // Prompt SIMPLE et CLAIR
     let prompt = `Tu es ${charName}`;
-    if (character.age) prompt += ` (${character.age} ans)`;
-    prompt += charIsFemale ? ', une femme' : charIsMale ? ', un homme' : '';
-    prompt += `. Tu parles avec ${userName}`;
-    prompt += userIsMale ? ' (homme)' : userIsFemale ? ' (femme)' : '';
-    prompt += `.\n\n`;
+    if (character.age) prompt += `, ${character.age} ans`;
+    if (charIsFemale) prompt += `, femme`;
+    else if (charIsMale) prompt += `, homme`;
+    prompt += `. Tu discutes avec ${userName}.\n\n`;
     
     if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n\n`;
+      prompt += `Personnalité: ${character.personality.substring(0, 80)}.\n\n`;
     }
     
-    // === RÈGLES ANTI-RETOUR v5.3.32 ===
-    prompt += `🚨 RÈGLES CRITIQUES:\n`;
-    prompt += `1. LIS LE DERNIER MESSAGE et RÉPONDS-Y DIRECTEMENT\n`;
-    prompt += `2. ⚠️ JAMAIS revenir à une action passée (sécher cheveux, orage, etc.)\n`;
-    prompt += `3. La conversation AVANCE, elle ne revient JAMAIS en arrière\n`;
-    prompt += `4. "oui/continue/mmmm" = CONTINUE l'action EN COURS\n`;
-    prompt += `5. Le scénario initial est PASSÉ, tu es MAINTENANT avec ${userName}\n\n`;
+    // Règle principale
+    prompt += `RÈGLE: Réponds TOUJOURS au dernier message de ${userName}. `;
+    prompt += `Utilise le format *actions* "dialogue".\n`;
     
-    // === NSFW EXPLICITE v5.3.32 ===
     if (isNSFW) {
-      prompt += `🔞 MODE ADULTE - SOIS TRÈS EXPLICITE:\n`;
-      prompt += `- Utilise des mots CRUS: bite, chatte, seins, cul, jouir, mouillée, bander, sucer, baiser...\n`;
-      prompt += `- Décris les SENSATIONS: chaleur, humidité, pulsations, frissons...\n`;
-      prompt += `- Décris les ACTIONS explicitement: pénétrer, caresser, lécher...\n`;
-      prompt += `- Décris les SONS: gémissements, soupirs...\n`;
-      prompt += `- Pas de censure, pas de timidité!\n\n`;
-      
-      // Anatomie claire
-      prompt += `ANATOMIE:\n`;
-      if (userIsMale) {
-        prompt += `${userName} = HOMME: bite, couilles (PAS de seins!)\n`;
-      } else if (userIsFemale) {
-        prompt += `${userName} = FEMME: seins, chatte, clitoris\n`;
-      }
-      if (charIsFemale) {
-        prompt += `TOI (${charName}) = FEMME: tes seins, ta chatte\n`;
-      } else if (charIsMale) {
-        prompt += `TOI (${charName}) = HOMME: ta bite\n`;
-      }
+      prompt += `\n🔞 Mode adulte autorisé. Sois explicite si la conversation le permet.`;
     }
-    
-    prompt += `\nFormat: *actions* "paroles"`;
     
     return prompt;
   }
