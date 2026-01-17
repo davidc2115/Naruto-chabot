@@ -1,15 +1,19 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SyncService from './SyncService';
 import AuthService from './AuthService';
 import axios from 'axios';
 
+/**
+ * Service simplifié pour la gestion des personnages personnalisés
+ * PRIORITÉ: Stockage LOCAL fiable
+ * Publication serveur optionnelle et non-bloquante
+ */
 class CustomCharacterService {
   constructor() {
     this.FREEBOX_URL = 'http://88.174.155.230:33437';
   }
   
   /**
-   * Récupère la clé de stockage unique pour l'utilisateur connecté
+   * Clé de stockage unique pour l'utilisateur
    */
   getUserStorageKey() {
     const user = AuthService.getCurrentUser();
@@ -18,137 +22,7 @@ class CustomCharacterService {
   }
 
   /**
-   * Synchronise les personnages vers le serveur Freebox
-   * ET publie automatiquement pour que tous les utilisateurs puissent les voir
-   */
-  async syncToServer() {
-    try {
-      const user = AuthService.getCurrentUser();
-      if (!user?.id) {
-        console.log('⚠️ Pas connecté, sync impossible');
-        return false;
-      }
-
-      const characters = await this.getCustomCharacters();
-      
-      // 1. Sync vers le compte utilisateur
-      const response = await axios.post(
-        `${this.FREEBOX_URL}/api/user-characters/sync`,
-        { 
-          userId: user.id, 
-          email: user.email,
-          characters: characters 
-        },
-        { 
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 15000 
-        }
-      );
-
-      // 2. Publier TOUS les personnages comme publics pour les autres utilisateurs
-      // Forcer la mise à jour avec updatedAt
-      for (const char of characters) {
-        try {
-          const charToPublish = { 
-            ...char, 
-            isPublic: true,
-            updatedAt: char.updatedAt || Date.now(),
-            syncedAt: Date.now()
-          };
-          
-          // Appel direct à l'API pour publier/mettre à jour
-          await axios.post(
-            `${this.FREEBOX_URL}/api/characters/public`,
-            { character: charToPublish },
-            { 
-              headers: { 
-                'Content-Type': 'application/json',
-                'X-User-ID': user.id
-              },
-              timeout: 10000 
-            }
-          );
-          console.log(`✅ Personnage publié: ${char.name}`);
-        } catch (e) {
-          console.log(`⚠️ Erreur publication ${char.name}:`, e.message);
-        }
-      }
-
-      if (response.data?.success) {
-        console.log(`✅ ${characters.length} personnages synchronisés`);
-        await AsyncStorage.setItem('last_characters_sync', Date.now().toString());
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('❌ Erreur sync personnages:', error.message);
-      return false;
-    }
-  }
-
-  /**
-   * Récupère les personnages depuis le serveur Freebox
-   */
-  async syncFromServer() {
-    try {
-      const user = AuthService.getCurrentUser();
-      if (!user?.id) return false;
-
-      const response = await axios.get(
-        `${this.FREEBOX_URL}/api/user-characters/${user.id}`,
-        { timeout: 15000 }
-      );
-
-      if (response.data?.success && response.data.characters) {
-        const key = this.getUserStorageKey();
-        const localChars = await this.getCustomCharacters();
-        const serverChars = response.data.characters;
-
-        // Fusionner : garder le plus récent
-        const merged = this.mergeCharacters(localChars, serverChars);
-        await AsyncStorage.setItem(key, JSON.stringify(merged));
-        
-        console.log(`✅ ${merged.length} personnages récupérés du serveur`);
-        return merged;
-      }
-      return false;
-    } catch (error) {
-      console.error('❌ Erreur récupération personnages:', error.message);
-      return false;
-    }
-  }
-
-  /**
-   * Fusionne les personnages locaux et serveur
-   */
-  mergeCharacters(local, server) {
-    const merged = new Map();
-    
-    // Ajouter tous les personnages locaux
-    local.forEach(char => merged.set(char.id, char));
-    
-    // Fusionner avec le serveur (garder le plus récent)
-    server.forEach(serverChar => {
-      const existing = merged.get(serverChar.id);
-      if (!existing) {
-        merged.set(serverChar.id, serverChar);
-      } else {
-        // Garder le plus récent
-        const localTime = existing.updatedAt || existing.createdAt || 0;
-        const serverTime = serverChar.updatedAt || serverChar.createdAt || 0;
-        if (serverTime > localTime) {
-          merged.set(serverChar.id, serverChar);
-        }
-      }
-    });
-    
-    return Array.from(merged.values());
-  }
-
-  /**
-   * Sauvegarde un personnage personnalisé
-   * @param {object} character - Le personnage à sauvegarder
-   * @param {boolean} isPublic - Si true, le personnage sera publié sur le serveur
+   * Crée un nouveau personnage (LOCAL uniquement)
    */
   async saveCustomCharacter(character, isPublic = false) {
     try {
@@ -167,283 +41,55 @@ class CustomCharacterService {
         createdBy: user?.id || 'anonymous',
         createdByEmail: user?.email || null,
         createdAt: Date.now(),
-        // Assurer des valeurs par défaut pour description et tags
+        updatedAt: Date.now(),
         scenario: character.scenario || character.description || '',
         description: character.description || character.scenario || '',
         personality: character.personality || '',
-        tags: character.tags || [],
+        tags: character.tags || ['personnalisé'],
       };
       
       characters.push(newCharacter);
       await AsyncStorage.setItem(key, JSON.stringify(characters));
       
-      // SYNCHRONISATION AUTOMATIQUE vers le serveur
-      this.syncToServer().catch(e => console.log('Sync auto échoué:', e.message));
+      console.log(`✅ Personnage créé localement: ${newCharacter.name} (${newCharacter.id})`);
       
-      // Si public, publier sur le serveur
+      // Publication serveur en arrière-plan (non-bloquante)
       if (isPublic) {
-        try {
-          await SyncService.init();
-          const charToPublish = { ...newCharacter, isPublic: true };
-          const publishedChar = await SyncService.publishCharacter(charToPublish);
-          if (publishedChar && publishedChar.id) {
-            newCharacter.serverId = publishedChar.id;
-            await this.updateCustomCharacter(newCharacter.id, { serverId: publishedChar.id });
-          }
-          console.log('✅ Personnage publié sur le serveur:', newCharacter.name);
-        } catch (error) {
-          console.error('⚠️ Erreur publication:', error.message);
-        }
+        this.publishToServerAsync(newCharacter);
       }
       
       return newCharacter;
     } catch (error) {
-      console.error('Error saving custom character:', error);
+      console.error('❌ Erreur création personnage:', error);
       throw error;
     }
   }
 
   /**
-   * Récupère les personnages de l'utilisateur connecté uniquement
-   * Synchronise automatiquement depuis le serveur si possible
+   * Récupère les personnages de l'utilisateur (LOCAL uniquement)
    */
   async getCustomCharacters() {
     try {
       const key = this.getUserStorageKey();
       const data = await AsyncStorage.getItem(key);
-      let localChars = data ? JSON.parse(data) : [];
-      
-      // Essayer de synchroniser depuis le serveur
-      const user = AuthService.getCurrentUser();
-      if (user?.id) {
-        try {
-          const merged = await this.syncFromServer();
-          if (merged && merged.length > 0) {
-            console.log('✅ Personnages synchronisés depuis le serveur');
-            localChars = merged;
-          }
-        } catch (e) {
-          console.log('Sync serveur échoué:', e.message);
-        }
-      }
-      
-      return localChars;
+      const characters = data ? JSON.parse(data) : [];
+      console.log(`📖 ${characters.length} personnages custom chargés`);
+      return characters;
     } catch (error) {
-      console.error('Error getting custom characters:', error);
+      console.error('❌ Erreur chargement personnages:', error);
       return [];
     }
   }
 
   /**
-   * Récupère les personnages de l'utilisateur + personnages publics des autres
+   * Met à jour un personnage (LOCAL)
    */
-  async getAllVisibleCharacters() {
-    try {
-      // Personnages de l'utilisateur
-      const myCharacters = await this.getCustomCharacters();
-      
-      // Personnages publics du serveur (des autres utilisateurs)
-      let publicCharacters = [];
-      try {
-        await SyncService.init();
-        const serverPublic = await SyncService.getCachedPublicCharacters();
-        const user = AuthService.getCurrentUser();
-        const myUserId = user?.id;
-        
-        // Filtrer pour ne pas inclure mes propres personnages (déjà dans myCharacters)
-        publicCharacters = serverPublic.filter(char => {
-          return char.createdBy !== myUserId;
-        });
-      } catch (e) {
-        console.log('⚠️ Impossible de charger les personnages publics:', e.message);
-      }
-      
-      return [...myCharacters, ...publicCharacters];
-    } catch (error) {
-      console.error('Error getting all visible characters:', error);
-      return [];
-    }
-  }
-
-  async deleteCustomCharacter(characterId) {
-    try {
-      const characters = await this.getCustomCharacters();
-      const charToDelete = characters.find(char => char.id === characterId);
-      const user = AuthService.getCurrentUser();
-      
-      console.log(`🗑️ Suppression personnage: ${characterId}`, charToDelete?.name);
-      
-      // === SUPPRESSION SERVER-SIDE COMPLÈTE ===
-      // Collecter TOUS les IDs possibles pour ce personnage
-      const idsToTry = [
-        charToDelete?.serverId,
-        characterId,
-        charToDelete?.id,
-        charToDelete?.originalId,
-        charToDelete?.publicId,
-        // Essayer aussi avec le nom comme fallback
-        charToDelete?.name?.toLowerCase()?.replace(/\s+/g, '_'),
-      ].filter(Boolean);
-      
-      // Ajouter des variantes d'IDs
-      const allIdsToTry = new Set(idsToTry);
-      for (const id of idsToTry) {
-        // Ajouter avec et sans préfixe custom_
-        if (id.startsWith('custom_')) {
-          allIdsToTry.add(id.substring(7));
-        } else {
-          allIdsToTry.add(`custom_${id}`);
-        }
-      }
-      
-      console.log(`🔍 IDs à supprimer du serveur:`, [...allIdsToTry]);
-      
-      // 1. Méthode principale: DELETE sur /api/characters/public/:id
-      // Le serveur vérifie que createdBy == X-User-ID
-      for (const idToDelete of allIdsToTry) {
-        try {
-          // Envoyer avec l'ID utilisateur du créateur (si disponible)
-          const creatorId = charToDelete?.createdBy || user?.id || 'anonymous';
-          const response = await axios.delete(
-            `${this.FREEBOX_URL}/api/characters/public/${idToDelete}`,
-            { 
-              headers: { 
-                'Content-Type': 'application/json',
-                'X-User-ID': creatorId
-              },
-              timeout: 10000 
-            }
-          );
-          if (response.data?.success) {
-            console.log(`✅ Supprimé du serveur (DELETE): ${idToDelete}`);
-          }
-        } catch (e) {
-          console.log(`⚠️ DELETE échoué pour ${idToDelete}:`, e.message);
-        }
-      }
-      
-      // 2. Méthode POST pour marquer comme supprimé
-      try {
-        await axios.post(
-          `${this.FREEBOX_URL}/api/characters/delete`,
-          { 
-            characterId: characterId,
-            allIds: [...allIdsToTry],
-            userId: user?.id || 'anonymous',
-            characterName: charToDelete?.name,
-            forceDelete: true
-          },
-          { 
-            headers: { 
-              'Content-Type': 'application/json',
-              'X-User-ID': user?.id || 'anonymous'
-            },
-            timeout: 10000 
-          }
-        );
-        console.log(`✅ Marqué supprimé sur serveur (POST): ${characterId}`);
-      } catch (e) {
-        console.log(`⚠️ POST delete échoué:`, e.message);
-      }
-      
-      // 3. Méthode de broadcast: demander au serveur de supprimer de tous les caches
-      try {
-        await axios.post(
-          `${this.FREEBOX_URL}/api/characters/purge`,
-          { 
-            characterIds: [...allIdsToTry],
-            userId: user?.id || 'anonymous',
-            reason: 'user_deleted'
-          },
-          { 
-            headers: { 'Content-Type': 'application/json' },
-            timeout: 10000 
-          }
-        );
-        console.log(`✅ Purge demandée au serveur`);
-      } catch (e) {
-        // Route peut ne pas exister
-      }
-      
-      // 4. Forcer une resync des personnages publics pour invalider le cache
-      try {
-        await axios.post(
-          `${this.FREEBOX_URL}/api/characters/invalidate-cache`,
-          { timestamp: Date.now() },
-          { 
-            headers: { 'Content-Type': 'application/json' },
-            timeout: 5000 
-          }
-        );
-      } catch (e) {
-        // Route peut ne pas exister
-      }
-      
-      // === AJOUTER À LA LISTE DES IDS SUPPRIMÉS (pour filtrage local) ===
-      // Ceci assure que même si le serveur n'a pas encore synchronisé,
-      // le personnage n'apparaîtra plus dans la liste locale
-      for (const idToDelete of allIdsToTry) {
-        await SyncService.addToDeletedList(idToDelete);
-      }
-      
-      // === INVALIDER LE CACHE LOCAL ===
-      await SyncService.invalidatePublicCache();
-      
-      // === SUPPRESSION LOCALE COMPLÈTE ===
-      // Supprimer de la liste actuelle
-      const updated = characters.filter(char => char.id !== characterId);
-      await AsyncStorage.setItem(this.getUserStorageKey(), JSON.stringify(updated));
-      
-      // Supprimer de TOUTES les clés possibles
-      const allKeys = await AsyncStorage.getAllKeys();
-      const keysToClean = allKeys.filter(key => 
-        key.includes('custom_characters') || 
-        key.includes('my_characters') ||
-        key.includes('created_characters') ||
-        key.includes('public_characters') ||
-        key.includes('cached_public')
-      );
-      
-      for (const key of keysToClean) {
-        try {
-          const data = await AsyncStorage.getItem(key);
-          if (data) {
-            const chars = JSON.parse(data);
-            if (Array.isArray(chars)) {
-              const filtered = chars.filter(c => {
-                // Supprimer par tous les IDs possibles
-                return !allIdsToTry.has(c.id) && 
-                       !allIdsToTry.has(c.serverId) &&
-                       !allIdsToTry.has(c.originalId) &&
-                       c.id !== characterId;
-              });
-              if (filtered.length !== chars.length) {
-                await AsyncStorage.setItem(key, JSON.stringify(filtered));
-                console.log(`✅ Supprimé de ${key} (${chars.length} -> ${filtered.length})`);
-              }
-            }
-          }
-        } catch (e) {}
-      }
-      
-      // Vider les caches de personnages publics pour forcer un refresh
-      try {
-        await AsyncStorage.removeItem('cached_public_characters');
-        await AsyncStorage.removeItem('cached_public_characters_time');
-        console.log(`✅ Cache personnages publics vidé`);
-      } catch (e) {}
-      
-      console.log(`✅ Personnage ${characterId} supprimé complètement (local + serveur)`);
-      return updated;
-    } catch (error) {
-      console.error('❌ Error deleting custom character:', error);
-      throw error;
-    }
-  }
-
   async updateCustomCharacter(characterId, updates) {
     try {
-      const characters = await this.getCustomCharacters();
+      const key = this.getUserStorageKey();
+      const data = await AsyncStorage.getItem(key);
+      const characters = data ? JSON.parse(data) : [];
+      
       const index = characters.findIndex(char => char.id === characterId);
       
       if (index !== -1) {
@@ -451,217 +97,266 @@ class CustomCharacterService {
           ...characters[index], 
           ...updates, 
           updatedAt: Date.now(),
-          modifiedAt: new Date().toISOString()
         };
         characters[index] = updatedCharacter;
-        await AsyncStorage.setItem(this.getUserStorageKey(), JSON.stringify(characters));
+        await AsyncStorage.setItem(key, JSON.stringify(characters));
         
-        // Invalider le cache local pour forcer refresh
-        await SyncService.invalidatePublicCache();
+        console.log(`✅ Personnage mis à jour: ${updatedCharacter.name}`);
         
-        // SYNCHRONISATION AUTOMATIQUE après modification (mise à jour serveur)
-        // Utiliser un timeout pour éviter de bloquer l'UI
-        setTimeout(async () => {
-          try {
-            await this.syncToServer();
-            // Si le personnage est public, republier les modifications
-            if (updatedCharacter.isPublic) {
-              await SyncService.init();
-              await SyncService.publishCharacter(updatedCharacter);
-              console.log(`✅ Modifications publiées pour: ${updatedCharacter.name}`);
-            }
-          } catch (e) {
-            console.log('⚠️ Sync auto échoué:', e.message);
-          }
-        }, 100);
+        // Si public, mettre à jour sur serveur en arrière-plan
+        if (updatedCharacter.isPublic) {
+          this.publishToServerAsync(updatedCharacter);
+        }
         
         return updatedCharacter;
       }
       
-      throw new Error('Character not found');
+      throw new Error('Personnage non trouvé');
     } catch (error) {
-      console.error('Error updating custom character:', error);
+      console.error('❌ Erreur mise à jour personnage:', error);
       throw error;
     }
   }
 
   /**
-   * Publie un personnage existant sur le serveur
+   * Supprime un personnage (LOCAL + tentative serveur)
    */
-  async publishCharacter(characterId) {
+  async deleteCustomCharacter(characterId) {
     try {
-      const characters = await this.getCustomCharacters();
-      const character = characters.find(char => char.id === characterId);
+      const key = this.getUserStorageKey();
+      const data = await AsyncStorage.getItem(key);
+      const characters = data ? JSON.parse(data) : [];
       
-      if (!character) {
-        throw new Error('Personnage non trouvé');
+      const charToDelete = characters.find(c => c.id === characterId);
+      console.log(`🗑️ Suppression personnage: ${characterId}`, charToDelete?.name);
+      
+      // 1. Suppression locale
+      const updated = characters.filter(char => char.id !== characterId);
+      await AsyncStorage.setItem(key, JSON.stringify(updated));
+      
+      // 2. Ajouter à la liste des suppressions locales
+      await this.addToDeletedList(characterId);
+      if (charToDelete?.serverId) {
+        await this.addToDeletedList(charToDelete.serverId);
       }
-
-      await SyncService.init();
       
-      // S'assurer que le personnage est bien marqué comme public et a toutes les infos
-      const charToPublish = { 
-        ...character, 
-        isPublic: true,
-        scenario: character.scenario || character.description || 'Personnage mystérieux',
-        description: character.description || character.scenario || '',
-        tags: character.tags || [],
-      };
+      // 3. Tentative suppression serveur (non-bloquante)
+      this.deleteFromServerAsync(characterId, charToDelete);
       
-      const publishedChar = await SyncService.publishCharacter(charToPublish);
-      
-      // Mettre à jour le statut local
-      await this.updateCustomCharacter(characterId, {
-        isPublic: true,
-        serverId: publishedChar.id
-      });
-
-      console.log('✅ Personnage publié:', character.name);
-      return publishedChar;
+      console.log(`✅ Personnage supprimé localement: ${characterId}`);
+      return updated;
     } catch (error) {
-      console.error('Error publishing character:', error);
+      console.error('❌ Erreur suppression personnage:', error);
       throw error;
     }
   }
 
   /**
-   * Retire un personnage du serveur public
+   * Ajoute un ID à la liste des personnages supprimés
    */
-  async unpublishCharacter(characterId) {
+  async addToDeletedList(characterId) {
     try {
-      const characters = await this.getCustomCharacters();
-      const character = characters.find(char => char.id === characterId);
-      
-      if (!character) {
-        throw new Error('Personnage non trouvé');
+      const user = AuthService.getCurrentUser();
+      const key = `deleted_characters_${user?.id || 'anonymous'}`;
+      let deleted = [];
+      const data = await AsyncStorage.getItem(key);
+      if (data) deleted = JSON.parse(data);
+      if (!deleted.includes(String(characterId))) {
+        deleted.push(String(characterId));
+        await AsyncStorage.setItem(key, JSON.stringify(deleted));
       }
+    } catch (e) {}
+  }
 
-      const serverIdToRemove = character.serverId || characterId;
-      
-      await SyncService.init();
-      await SyncService.unpublishCharacter(serverIdToRemove);
-      
-      // Mettre à jour le statut local
-      await this.updateCustomCharacter(characterId, {
-        isPublic: false,
-        serverId: null
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Error unpublishing character:', error);
-      throw error;
+  /**
+   * Vérifie si un personnage est supprimé
+   */
+  async isDeleted(characterId) {
+    try {
+      const user = AuthService.getCurrentUser();
+      const key = `deleted_characters_${user?.id || 'anonymous'}`;
+      const data = await AsyncStorage.getItem(key);
+      if (data) {
+        const deleted = JSON.parse(data);
+        return deleted.includes(String(characterId));
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
   }
 
   /**
-   * Récupère tous les personnages publics du serveur
+   * Récupère les personnages publics (depuis serveur avec cache)
    */
   async getPublicCharacters() {
     try {
-      await SyncService.init();
-      return await SyncService.getPublicCharacters();
+      // Vérifier le cache local d'abord
+      const cacheKey = 'cached_public_characters';
+      const cacheTimeKey = 'cached_public_characters_time';
+      
+      const cachedTime = await AsyncStorage.getItem(cacheTimeKey);
+      const now = Date.now();
+      
+      // Cache valide 5 minutes
+      if (cachedTime && (now - parseInt(cachedTime)) < 300000) {
+        const cached = await AsyncStorage.getItem(cacheKey);
+        if (cached) {
+          const characters = JSON.parse(cached);
+          return await this.filterDeletedCharacters(characters);
+        }
+      }
+      
+      // Sinon, charger depuis serveur avec timeout court
+      const response = await axios.get(
+        `${this.FREEBOX_URL}/api/characters/public`,
+        { timeout: 5000 }
+      );
+      
+      if (response.data?.characters) {
+        const characters = response.data.characters;
+        
+        // Mettre en cache
+        await AsyncStorage.setItem(cacheKey, JSON.stringify(characters));
+        await AsyncStorage.setItem(cacheTimeKey, now.toString());
+        
+        return await this.filterDeletedCharacters(characters);
+      }
+      
+      return [];
     } catch (error) {
-      console.error('Error getting public characters:', error);
+      console.log('⚠️ Erreur chargement personnages publics:', error.message);
+      
+      // Fallback: utiliser le cache même périmé
+      try {
+        const cached = await AsyncStorage.getItem('cached_public_characters');
+        if (cached) {
+          const characters = JSON.parse(cached);
+          return await this.filterDeletedCharacters(characters);
+        }
+      } catch (e) {}
+      
       return [];
     }
   }
 
   /**
-   * Télécharge un personnage public et l'ajoute aux personnages locaux
+   * Filtre les personnages supprimés de la liste
    */
-  async downloadPublicCharacter(characterId) {
+  async filterDeletedCharacters(characters) {
+    const user = AuthService.getCurrentUser();
+    const key = `deleted_characters_${user?.id || 'anonymous'}`;
+    let deleted = [];
     try {
-      await SyncService.init();
-      const character = await SyncService.downloadPublicCharacter(characterId);
-      
-      if (character) {
-        const user = AuthService.getCurrentUser();
-        
-        // Sauvegarder localement avec un nouvel ID
-        const localCharacter = {
-          ...character,
-          id: `downloaded_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          originalId: character.id,
-          isCustom: true,
-          isPublic: false, // Le personnage téléchargé est privé par défaut
-          isDownloaded: true,
-          downloadedBy: user?.id || 'anonymous',
-          downloadedAt: Date.now()
-        };
-
-        const key = this.getUserStorageKey();
-        const existing = await AsyncStorage.getItem(key);
-        const characters = existing ? JSON.parse(existing) : [];
-        characters.push(localCharacter);
-        await AsyncStorage.setItem(key, JSON.stringify(characters));
-
-        return localCharacter;
-      }
-      return null;
-    } catch (error) {
-      console.error('Error downloading public character:', error);
-      throw error;
-    }
+      const data = await AsyncStorage.getItem(key);
+      if (data) deleted = JSON.parse(data);
+    } catch (e) {}
+    
+    return characters.filter(c => {
+      return !deleted.includes(String(c.id)) && 
+             !deleted.includes(String(c.serverId));
+    });
   }
 
   /**
-   * Like un personnage public
+   * Publication serveur en arrière-plan (async, non-bloquante)
    */
-  async likePublicCharacter(characterId) {
-    try {
-      await SyncService.init();
-      return await SyncService.likeCharacter(characterId);
-    } catch (error) {
-      console.error('Error liking character:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Migrer les anciens personnages vers le nouveau système par utilisateur
-   */
-  async migrateOldCharacters() {
-    try {
-      const oldKey = 'custom_characters';
-      const oldData = await AsyncStorage.getItem(oldKey);
-      
-      if (oldData) {
-        const oldCharacters = JSON.parse(oldData);
-        const user = AuthService.getCurrentUser();
-        
-        if (user && oldCharacters.length > 0) {
-          // Vérifier si les personnages appartiennent à cet utilisateur
-          const myOldChars = oldCharacters.filter(char => {
-            // Si pas de createdBy, on considère que c'est l'utilisateur courant
-            return !char.createdBy || char.createdBy === user.id;
-          });
-          
-          if (myOldChars.length > 0) {
-            const newKey = this.getUserStorageKey();
-            const existingNew = await AsyncStorage.getItem(newKey);
-            const existingChars = existingNew ? JSON.parse(existingNew) : [];
-            
-            // Ajouter les anciens personnages s'ils n'existent pas déjà
-            for (const oldChar of myOldChars) {
-              const exists = existingChars.some(c => c.id === oldChar.id);
-              if (!exists) {
-                existingChars.push({
-                  ...oldChar,
-                  createdBy: user.id,
-                  createdByEmail: user.email
-                });
-              }
-            }
-            
-            await AsyncStorage.setItem(newKey, JSON.stringify(existingChars));
-            console.log(`✅ Migré ${myOldChars.length} personnages vers le nouveau système`);
+  publishToServerAsync(character) {
+    const user = AuthService.getCurrentUser();
+    if (!user?.id) return;
+    
+    // Exécuter en arrière-plan sans attendre
+    setTimeout(async () => {
+      try {
+        await axios.post(
+          `${this.FREEBOX_URL}/api/characters/public`,
+          { character: { ...character, isPublic: true } },
+          { 
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-User-ID': user.id
+            },
+            timeout: 10000 
           }
-        }
+        );
+        console.log(`✅ Personnage publié sur serveur: ${character.name}`);
+      } catch (e) {
+        console.log(`⚠️ Publication serveur échouée: ${e.message}`);
       }
-    } catch (error) {
-      console.error('Erreur migration:', error);
+    }, 100);
+  }
+
+  /**
+   * Suppression serveur en arrière-plan (async, non-bloquante)
+   */
+  deleteFromServerAsync(characterId, character) {
+    const user = AuthService.getCurrentUser();
+    
+    setTimeout(async () => {
+      try {
+        // Essayer plusieurs IDs
+        const idsToTry = [
+          characterId,
+          character?.serverId,
+          character?.id,
+        ].filter(Boolean);
+        
+        for (const id of idsToTry) {
+          try {
+            await axios.delete(
+              `${this.FREEBOX_URL}/api/characters/public/${id}`,
+              { 
+                headers: { 'X-User-ID': user?.id || 'anonymous' },
+                timeout: 5000 
+              }
+            );
+            console.log(`✅ Supprimé du serveur: ${id}`);
+            break;
+          } catch (e) {}
+        }
+      } catch (e) {
+        console.log(`⚠️ Suppression serveur échouée`);
+      }
+    }, 100);
+  }
+
+  /**
+   * Publie un personnage existant
+   */
+  async publishCharacter(characterId) {
+    const characters = await this.getCustomCharacters();
+    const character = characters.find(c => c.id === characterId);
+    
+    if (!character) {
+      throw new Error('Personnage non trouvé');
     }
+    
+    // Mettre à jour localement
+    await this.updateCustomCharacter(characterId, { isPublic: true });
+    
+    // Publier sur serveur
+    this.publishToServerAsync({ ...character, isPublic: true });
+    
+    return character;
+  }
+
+  /**
+   * Dépublie un personnage
+   */
+  async unpublishCharacter(characterId) {
+    await this.updateCustomCharacter(characterId, { isPublic: false });
+    return true;
+  }
+
+  /**
+   * Vide le cache des personnages publics
+   */
+  async clearPublicCache() {
+    try {
+      await AsyncStorage.removeItem('cached_public_characters');
+      await AsyncStorage.removeItem('cached_public_characters_time');
+      console.log('✅ Cache personnages publics vidé');
+    } catch (e) {}
   }
 }
 

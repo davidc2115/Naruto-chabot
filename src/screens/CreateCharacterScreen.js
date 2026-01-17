@@ -15,7 +15,6 @@ import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
 import UserProfileService from '../services/UserProfileService';
-import SyncService from '../services/SyncService';
 import AuthService from '../services/AuthService';
 
 export default function CreateCharacterScreen({ navigation, route }) {
@@ -72,6 +71,9 @@ export default function CreateCharacterScreen({ navigation, route }) {
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
   const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
+
+  // Supprimé: vérification serveur non nécessaire
+  // Le service gère la publication en arrière-plan
 
   const generateCharacterImage = async () => {
     // Vérifier le statut premium
@@ -134,18 +136,6 @@ export default function CreateCharacterScreen({ navigation, route }) {
     }
   };
 
-  const checkServerStatus = async () => {
-    const online = await SyncService.checkServerHealth();
-    setServerOnline(online);
-  };
-
-  // Vérifier le serveur au montage si on veut publier
-  React.useEffect(() => {
-    if (isPublic) {
-      checkServerStatus();
-    }
-  }, [isPublic]);
-
   const handleSave = async () => {
     if (!name || !age || !appearance || !personality || !scenario || !startMessage) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
@@ -172,49 +162,31 @@ export default function CreateCharacterScreen({ navigation, route }) {
 
       let savedCharacter;
       if (isEditing) {
+        // Mise à jour du personnage existant
         savedCharacter = await CustomCharacterService.updateCustomCharacter(characterToEdit.id, character);
-        
-        // Gérer le changement de statut public/privé
-        if (isPublic && !characterToEdit.isPublic) {
-          try {
-            await CustomCharacterService.publishCharacter(characterToEdit.id);
-          } catch (e) {
-            console.warn('Erreur publication:', e);
-          }
-        } else if (!isPublic && characterToEdit.isPublic) {
-          try {
-            await CustomCharacterService.unpublishCharacter(characterToEdit.id);
-          } catch (e) {
-            console.warn('Erreur dépublication:', e);
-          }
-        }
         
         if (imageUrl && imageUrl !== characterToEdit.imageUrl) {
           await GalleryService.saveImageToGallery(characterToEdit.id, imageUrl);
         }
         
-        const message = isPublic 
-          ? 'Personnage modifié et visible publiquement !' 
-          : 'Personnage modifié !';
-        Alert.alert('Succès', message, [
+        Alert.alert('✅ Succès', 'Personnage modifié !', [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       } else {
+        // Création d'un nouveau personnage
         savedCharacter = await CustomCharacterService.saveCustomCharacter(character, isPublic);
         
         if (imageUrl && savedCharacter.id) {
           await GalleryService.saveImageToGallery(savedCharacter.id, imageUrl);
         }
         
-        const message = isPublic 
-          ? 'Personnage créé et partagé avec la communauté !' 
-          : 'Personnage créé ! L\'image a été ajoutée à la galerie.';
-        Alert.alert('Succès', message, [
+        Alert.alert('✅ Succès', 'Personnage créé !', [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de sauvegarder le personnage');
+      console.error('Erreur sauvegarde:', error);
+      Alert.alert('❌ Erreur', 'Impossible de sauvegarder le personnage');
     }
   };
 

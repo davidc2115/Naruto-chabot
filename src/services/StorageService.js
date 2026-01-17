@@ -124,19 +124,21 @@ class StorageService {
       
       console.log(`🔍 Recherche conversations pour userId: ${userId}`);
       
-      // === TOUJOURS chercher par clés pour être exhaustif ===
-      const keys = await AsyncStorage.getAllKeys();
+      // Charger la liste des conversations supprimées
+      let deletedIds = [];
+      try {
+        const deletedKey = `deleted_conversations_${userId}`;
+        const deletedData = await AsyncStorage.getItem(deletedKey);
+        if (deletedData) deletedIds = JSON.parse(deletedData);
+      } catch (e) {}
       
-      // Trouver toutes les clés de conversation
+      console.log(`🚫 Conversations supprimées à ignorer: ${deletedIds.length}`);
+      
+      // Chercher les clés de conversation pour cet utilisateur UNIQUEMENT
+      const keys = await AsyncStorage.getAllKeys();
       const convKeys = keys.filter(key => {
         // Format principal: conv_userId_characterId
-        if (key.startsWith(`conv_${userId}_`) && !key.includes('index')) return true;
-        // Conversations anonymes
-        if (key.startsWith('conv_anonymous_') && !key.includes('index')) return true;
-        // Format conv_ générique
-        if (key.startsWith('conv_') && !key.includes('index') && key.split('_').length >= 3) return true;
-        // Ancien format conversation_
-        if (key.startsWith('conversation_')) return true;
+        if (key.startsWith(`conv_${userId}_`) && !key.includes('index') && !key.includes('deleted')) return true;
         return false;
       });
       
@@ -162,15 +164,22 @@ class StorageService {
             const parts = key.split('_');
             if (key.startsWith('conv_') && parts.length >= 3) {
               characterId = parts.slice(2).join('_');
-            } else if (key.startsWith('conversation_')) {
-              characterId = parts.slice(1).join('_');
             }
           }
           
           if (!characterId) continue;
           
-          // Éviter les doublons
           const charIdStr = String(characterId);
+          
+          // VÉRIFIER si cette conversation a été supprimée
+          if (deletedIds.includes(charIdStr)) {
+            console.log(`🚫 Conversation ignorée (supprimée): ${charIdStr}`);
+            // Supprimer aussi la clé résiduelle
+            await AsyncStorage.removeItem(key);
+            continue;
+          }
+          
+          // Éviter les doublons
           if (seenCharacterIds.has(charIdStr)) continue;
           seenCharacterIds.add(charIdStr);
           
@@ -231,41 +240,82 @@ class StorageService {
   async deleteConversation(characterId) {
     try {
       const userId = await this.getCurrentUserId();
-      const key = `conv_${userId}_${characterId}`;
+      const charIdStr = String(characterId);
       
-      // Supprimer la conversation
-      await AsyncStorage.removeItem(key);
-      console.log(`🗑️ Conversation supprimée: ${key}`);
+      console.log(`🗑️ Suppression TOTALE conversation: ${characterId}`);
       
-      // AUSSI supprimer du l'index
+      // 1. Récupérer TOUTES les clés
+      const allKeys = await AsyncStorage.getAllKeys();
+      
+      // 2. Trouver toutes les clés liées à ce characterId
+      const keysToDelete = allKeys.filter(key => {
+        // Clés de conversation
+        if (key.includes(charIdStr)) return true;
+        if (key.includes(`_${characterId}`)) return true;
+        // Format conv_userId_characterId
+        if (key.startsWith('conv_') && key.endsWith(`_${characterId}`)) return true;
+        if (key.startsWith('conv_') && key.endsWith(`_${charIdStr}`)) return true;
+        return false;
+      });
+      
+      console.log(`🔍 Clés à supprimer: ${keysToDelete.length}`, keysToDelete);
+      
+      // 3. Supprimer TOUTES ces clés
+      for (const key of keysToDelete) {
+        try {
+          await AsyncStorage.removeItem(key);
+          console.log(`✅ Supprimé: ${key}`);
+        } catch (e) {
+          console.log(`⚠️ Erreur suppression ${key}:`, e.message);
+        }
+      }
+      
+      // 4. Mettre à jour l'index
       const indexKey = `conv_index_${userId}`;
       try {
         const indexData = await AsyncStorage.getItem(indexKey);
         if (indexData) {
           let index = JSON.parse(indexData);
-          // Retirer le characterId de l'index
-          index = index.filter(id => id !== String(characterId) && id !== characterId);
+          index = index.filter(id => id !== charIdStr && id !== characterId);
           await AsyncStorage.setItem(indexKey, JSON.stringify(index));
-          console.log(`📋 Index mis à jour après suppression: ${index.length} conversations`);
+          console.log(`📋 Index mis à jour: ${index.length} conversations`);
         }
-      } catch (e) {
-        console.log('⚠️ Erreur mise à jour index:', e.message);
-      }
+      } catch (e) {}
       
-      // Essayer aussi de supprimer les anciennes clés
-      const alternativeKeys = [
-        `conv_anonymous_${characterId}`,
-        `conversation_${characterId}`,
-      ];
-      for (const altKey of alternativeKeys) {
-        try {
-          await AsyncStorage.removeItem(altKey);
-        } catch (e) {}
-      }
+      // 5. Ajouter à une liste de suppressions pour éviter recréation
+      try {
+        const deletedKey = `deleted_conversations_${userId}`;
+        let deleted = [];
+        const deletedData = await AsyncStorage.getItem(deletedKey);
+        if (deletedData) deleted = JSON.parse(deletedData);
+        if (!deleted.includes(charIdStr)) {
+          deleted.push(charIdStr);
+          await AsyncStorage.setItem(deletedKey, JSON.stringify(deleted));
+        }
+      } catch (e) {}
       
+      console.log(`✅ Conversation ${characterId} supprimée COMPLÈTEMENT`);
       return true;
     } catch (error) {
-      console.error('Error deleting conversation:', error);
+      console.error('❌ Error deleting conversation:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Vérifie si une conversation a été supprimée
+   */
+  async isConversationDeleted(characterId) {
+    try {
+      const userId = await this.getCurrentUserId();
+      const deletedKey = `deleted_conversations_${userId}`;
+      const deletedData = await AsyncStorage.getItem(deletedKey);
+      if (deletedData) {
+        const deleted = JSON.parse(deletedData);
+        return deleted.includes(String(characterId));
+      }
+      return false;
+    } catch (e) {
       return false;
     }
   }
