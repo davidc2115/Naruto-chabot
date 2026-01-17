@@ -167,50 +167,66 @@ class GalleryService {
       });
       
       if (!exists) {
-        // NOUVEAU: Télécharger et sauvegarder l'image localement
-        let localPath = null;
-        const downloadResult = await this.downloadAndSaveImage(imageUrl, characterId, seed);
-        
-        if (downloadResult.success) {
-          localPath = downloadResult.localPath;
-          console.log(`✅ Image stockée localement: ${downloadResult.fileName}`);
-        } else {
-          console.log(`⚠️ Impossible de télécharger, utilisation URL distante`);
-        }
-        
-        // Stocker les données complètes de l'image
+        // v5.3.15: SAUVEGARDER D'ABORD avec l'URL, puis télécharger en arrière-plan
         const imageData = {
-          url: imageUrl,                    // URL originale (backup)
-          localPath: localPath,             // Chemin local (priorité)
+          url: imageUrl,                    // URL originale (TOUJOURS gardée)
+          localPath: null,                  // Sera rempli après téléchargement
           seed: seed,
           prompt: prompt ? prompt.substring(0, 500) : null,
           savedAt: Date.now(),
           characterId: characterId,
-          isLocal: !!localPath,             // Flag pour indiquer si stocké localement
+          isLocal: false,
         };
         
         gallery.unshift(imageData);
         
-        // Limiter à 100 images par personnage (augmenté car stockage local)
+        // Limiter à 100 images par personnage
         if (gallery.length > 100) {
-          // Supprimer le fichier local de l'image retirée
           const removed = gallery.pop();
           if (removed?.localPath) {
             try {
               await FileSystem.deleteAsync(removed.localPath, { idempotent: true });
-              console.log(`🗑️ Ancien fichier supprimé: ${removed.localPath}`);
             } catch (e) {}
           }
         }
         
+        // Sauvegarder IMMÉDIATEMENT avec l'URL
         await AsyncStorage.setItem(key, JSON.stringify(gallery));
-        console.log(`🖼️ Image ajoutée à la galerie: seed=${seed}, local=${!!localPath}`);
+        console.log(`🖼️ Image ajoutée à la galerie: seed=${seed}`);
+        
+        // Télécharger en ARRIÈRE-PLAN (ne bloque pas)
+        this.downloadInBackground(characterId, imageUrl, seed, key, gallery);
       }
       
       return imageUrl;
     } catch (error) {
       console.error('Error saving image to gallery:', error);
       throw error;
+    }
+  }
+  
+  /**
+   * Télécharge une image en arrière-plan et met à jour la galerie
+   * v5.3.15: Ne bloque pas la sauvegarde initiale
+   */
+  async downloadInBackground(characterId, imageUrl, seed, key, gallery) {
+    try {
+      const downloadResult = await this.downloadAndSaveImage(imageUrl, characterId, seed);
+      
+      if (downloadResult.success) {
+        // Mettre à jour l'entrée dans la galerie avec le chemin local
+        const itemIndex = gallery.findIndex(item => item.seed === seed);
+        if (itemIndex !== -1) {
+          gallery[itemIndex].localPath = downloadResult.localPath;
+          gallery[itemIndex].isLocal = true;
+          await AsyncStorage.setItem(key, JSON.stringify(gallery));
+          console.log(`✅ Image téléchargée en arrière-plan: ${seed}`);
+        }
+      } else {
+        console.log(`⚠️ Téléchargement arrière-plan échoué pour seed=${seed}`);
+      }
+    } catch (error) {
+      console.log(`⚠️ Erreur téléchargement arrière-plan: ${error.message}`);
     }
   }
 
@@ -223,71 +239,27 @@ class GalleryService {
       if (data) {
         const gallery = JSON.parse(data);
         const result = [];
-        let needsUpdate = false;
         
+        // v5.3.15: NE PAS télécharger ici - ça cause des rate limits
+        // Utiliser les fichiers locaux s'ils existent, sinon l'URL originale
         for (const item of gallery) {
           if (typeof item === 'string') {
-            // Ancien format string - migrer vers local
-            const seed = this.extractSeedFromUrl(item);
-            const prompt = this.extractPromptFromUrl(item);
-            const url = this.regeneratePollinationsUrl(item);
-            
-            // Essayer de télécharger pour migration
-            const downloadResult = await this.downloadAndSaveImage(url, characterId, seed);
-            if (downloadResult.success) {
-              result.push(downloadResult.localPath);
-              // Marquer pour mise à jour
-              needsUpdate = true;
-            } else {
-              result.push(url);
-            }
+            // Ancien format string - utiliser l'URL directement
+            result.push(item);
           } else if (item.localPath) {
-            // Nouveau format avec chemin local - vérifier si le fichier existe
+            // Vérifier si le fichier local existe
             const exists = await this.checkLocalFile(item.localPath);
             if (exists) {
+              // Fichier local existe - l'utiliser
               result.push(item.localPath);
-            } else {
-              // Fichier local supprimé - régénérer l'URL
-              if (item.seed && item.prompt) {
-                const encodedPrompt = encodeURIComponent(item.prompt);
-                const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=768&height=1024&seed=${item.seed}&nologo=true&model=flux&enhance=true`;
-                
-                // Re-télécharger
-                const downloadResult = await this.downloadAndSaveImage(url, characterId, item.seed);
-                if (downloadResult.success) {
-                  item.localPath = downloadResult.localPath;
-                  needsUpdate = true;
-                  result.push(downloadResult.localPath);
-                } else {
-                  result.push(url);
-                }
-              } else if (item.url) {
-                result.push(item.url);
-              }
-            }
-          } else if (item.seed && item.prompt) {
-            // Format avec seed/prompt mais sans local - télécharger
-            const encodedPrompt = encodeURIComponent(item.prompt);
-            const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=768&height=1024&seed=${item.seed}&nologo=true&model=flux&enhance=true`;
-            
-            const downloadResult = await this.downloadAndSaveImage(url, characterId, item.seed);
-            if (downloadResult.success) {
-              item.localPath = downloadResult.localPath;
-              item.isLocal = true;
-              needsUpdate = true;
-              result.push(downloadResult.localPath);
-            } else {
-              result.push(url);
+            } else if (item.url) {
+              // Fichier local n'existe plus - utiliser l'URL originale
+              result.push(item.url);
             }
           } else if (item.url) {
+            // Pas de fichier local - utiliser l'URL
             result.push(item.url);
           }
-        }
-        
-        // Mettre à jour le stockage si des migrations ont eu lieu
-        if (needsUpdate) {
-          await AsyncStorage.setItem(key, JSON.stringify(gallery));
-          console.log(`🔄 Galerie mise à jour avec chemins locaux: ${key}`);
         }
         
         return result;
@@ -299,7 +271,6 @@ class GalleryService {
       if (oldData) {
         console.log(`🔄 Migration galerie: ${oldKey} -> ${key}`);
         await AsyncStorage.setItem(key, oldData);
-        // Relancer pour traiter la migration
         return this.getGallery(characterId);
       }
       
