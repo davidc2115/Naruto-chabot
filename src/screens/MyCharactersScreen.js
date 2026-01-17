@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,11 @@ import {
 import CustomCharacterService from '../services/CustomCharacterService';
 import AuthService from '../services/AuthService';
 
+// Cache pour éviter les rechargements inutiles
+let cachedCharacters = null;
+let lastLoadTime = 0;
+const CACHE_DURATION = 15000; // 15 secondes
+
 export default function MyCharactersScreen({ navigation }) {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,39 +25,55 @@ export default function MyCharactersScreen({ navigation }) {
   const [filter, setFilter] = useState('all'); // 'all', 'public', 'private'
 
   useEffect(() => {
-    loadCharacters();
+    loadCharacters(false);
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      loadCharacters();
+      // Ne recharger que si nécessaire
+      const now = Date.now();
+      if (now - lastLoadTime > CACHE_DURATION || !cachedCharacters) {
+        loadCharacters(false);
+      } else if (cachedCharacters) {
+        setCharacters(cachedCharacters);
+      }
     });
     return unsubscribe;
   }, [navigation]);
 
-  const loadCharacters = async () => {
+  const loadCharacters = async (forceRefresh = false) => {
     try {
+      // Utiliser le cache si disponible et non expiré
+      const now = Date.now();
+      if (!forceRefresh && cachedCharacters && (now - lastLoadTime < CACHE_DURATION)) {
+        setCharacters(cachedCharacters);
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
       
       // Charger les personnages locaux
       const localChars = await CustomCharacterService.getCustomCharacters();
       
       // Si connecté, synchroniser avec le serveur
+      let finalChars = localChars;
       if (AuthService.isLoggedIn()) {
         try {
           const serverChars = await AuthService.getMyCharacters();
-          // Fusionner les listes (priorité au local)
-          const merged = mergeCharacters(localChars, serverChars);
-          setCharacters(merged);
+          finalChars = mergeCharacters(localChars, serverChars);
         } catch (e) {
-          setCharacters(localChars);
+          console.log('Serveur non disponible, utilisation données locales');
         }
-      } else {
-        setCharacters(localChars);
       }
+      
+      // Mettre en cache
+      cachedCharacters = finalChars;
+      lastLoadTime = now;
+      setCharacters(finalChars);
     } catch (error) {
       console.error('Erreur chargement personnages:', error);
-      setCharacters([]);
+      setCharacters(cachedCharacters || []);
     } finally {
       setLoading(false);
     }
@@ -74,9 +95,19 @@ export default function MyCharactersScreen({ navigation }) {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadCharacters();
+    await loadCharacters(true); // Forcer le rafraîchissement
     setRefreshing(false);
   }, []);
+  
+  // Filtrer les personnages avec useMemo
+  const getFilteredCharacters = useMemo(() => {
+    if (filter === 'public') {
+      return characters.filter(c => c.isPublic);
+    } else if (filter === 'private') {
+      return characters.filter(c => !c.isPublic);
+    }
+    return characters;
+  }, [characters, filter]);
 
   const handleDelete = (character) => {
     Alert.alert(
@@ -137,16 +168,7 @@ export default function MyCharactersScreen({ navigation }) {
     }
   };
 
-  const getFilteredCharacters = () => {
-    if (filter === 'public') {
-      return characters.filter(c => c.isPublic);
-    } else if (filter === 'private') {
-      return characters.filter(c => !c.isPublic);
-    }
-    return characters;
-  };
-
-  const renderCharacter = ({ item }) => (
+  const renderCharacter = useCallback(({ item }) => (
     <View style={styles.characterCard}>
       <View style={styles.characterHeader}>
         {item.imageUrl ? (
@@ -208,7 +230,7 @@ export default function MyCharactersScreen({ navigation }) {
         Créé le {new Date(item.createdAt).toLocaleDateString('fr-FR')}
       </Text>
     </View>
-  );
+  ), [handleDelete, handleEdit, handleTogglePublic]);
 
   if (loading) {
     return (
@@ -251,7 +273,7 @@ export default function MyCharactersScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {getFilteredCharacters().length === 0 ? (
+      {getFilteredCharacters.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>📝</Text>
           <Text style={styles.emptyTitle}>Aucun personnage créé</Text>
@@ -267,10 +289,14 @@ export default function MyCharactersScreen({ navigation }) {
         </View>
       ) : (
         <FlatList
-          data={getFilteredCharacters()}
+          data={getFilteredCharacters}
           renderItem={renderCharacter}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          removeClippedSubviews={true}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6366f1']} />
           }

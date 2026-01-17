@@ -632,21 +632,72 @@ export default function CharacterDetailScreen({ route, navigation }) {
           ))}
         </View>
 
-        {/* Tempérament DÉTAILLÉ */}
+        {/* Tempérament DÉTAILLÉ - Nouveau format Bagbot */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>💭 Tempérament & Personnalité</Text>
-          <Text style={styles.sectionContent}>
-            {getDetailedTemperament(character)}
-          </Text>
+          {/* Afficher temperamentDetails si disponible (nouveau format Bagbot) */}
+          {character.temperamentDetails ? (
+            <View style={styles.temperamentContainer}>
+              {character.temperamentDetails.emotionnel && (
+                <View style={styles.temperamentItem}>
+                  <Text style={styles.temperamentLabel}>💗 Émotionnel</Text>
+                  <Text style={styles.temperamentText}>{character.temperamentDetails.emotionnel}</Text>
+                </View>
+              )}
+              {character.temperamentDetails.seduction && (
+                <View style={styles.temperamentItem}>
+                  <Text style={styles.temperamentLabel}>💋 Séduction</Text>
+                  <Text style={styles.temperamentText}>{character.temperamentDetails.seduction}</Text>
+                </View>
+              )}
+              {character.temperamentDetails.intimite && (
+                <View style={styles.temperamentItem}>
+                  <Text style={styles.temperamentLabel}>🔥 Intimité</Text>
+                  <Text style={styles.temperamentText}>{character.temperamentDetails.intimite}</Text>
+                </View>
+              )}
+              {character.temperamentDetails.communication && (
+                <View style={styles.temperamentItem}>
+                  <Text style={styles.temperamentLabel}>💬 Communication</Text>
+                  <Text style={styles.temperamentText}>{character.temperamentDetails.communication}</Text>
+                </View>
+              )}
+              {character.temperamentDetails.reactions && (
+                <View style={styles.temperamentItem}>
+                  <Text style={styles.temperamentLabel}>⚡ Réactions</Text>
+                  <Text style={styles.temperamentText}>{character.temperamentDetails.reactions}</Text>
+                </View>
+              )}
+            </View>
+          ) : (
+            <Text style={styles.sectionContent}>
+              {getDetailedTemperament(character)}
+            </Text>
+          )}
         </View>
 
         {/* Apparence physique ULTRA-DÉTAILLÉE */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✨ Apparence physique</Text>
-          {/* Description narrative générée */}
-          <Text style={styles.sectionContent}>
-            {generateDetailedDescription(character)}
-          </Text>
+          {/* Utiliser physicalDescription de Bagbot si disponible */}
+          {character.physicalDescription ? (
+            <Text style={styles.sectionContent}>
+              {character.physicalDescription}
+            </Text>
+          ) : (
+            <Text style={styles.sectionContent}>
+              {generateDetailedDescription(character)}
+            </Text>
+          )}
+          {/* Apparence détaillée originale si disponible */}
+          {character.appearance && character.appearance.length > 100 && (
+            <TouchableOpacity 
+              style={styles.expandButton}
+              onPress={() => Alert.alert('Description complète', character.appearance)}
+            >
+              <Text style={styles.expandButtonText}>📖 Voir description complète</Text>
+            </TouchableOpacity>
+          )}
           
           {/* Détails structurés - format liste */}
           <View style={styles.attributesContainer}>
@@ -1117,5 +1168,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     textAlign: 'center',
+  },
+  // Styles pour le nouveau format Bagbot
+  temperamentContainer: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 12,
+  },
+  temperamentItem: {
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  temperamentLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#6366f1',
+    marginBottom: 4,
+  },
+  temperamentText: {
+    fontSize: 14,
+    color: '#4b5563',
+    lineHeight: 20,
+  },
+  expandButton: {
+    marginTop: 10,
+    backgroundColor: '#e0e7ff',
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+  },
+  expandButtonText: {
+    fontSize: 14,
+    color: '#4f46e5',
+    fontWeight: '600',
   },
 });

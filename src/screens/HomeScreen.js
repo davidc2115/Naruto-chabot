@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -11,64 +11,41 @@ import {
 } from 'react-native';
 import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
-import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
+
+// Mémoriser les personnages de base pour éviter de les recharger
+let cachedEnhancedCharacters = null;
+let cachedCustomCharacters = null;
+let lastCustomLoadTime = 0;
+const CACHE_DURATION = 30000; // 30 secondes
 
 export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('tous');
-  const [filteredCharacters, setFilteredCharacters] = useState([]);
   const [allCharacters, setAllCharacters] = useState([]);
   const [characterImages, setCharacterImages] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
 
+  // Charger les personnages au montage
   useEffect(() => {
     loadAllCharacters();
   }, []);
 
+  // Recharger uniquement les personnages custom quand on revient
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      loadAllCharacters();
+      // Ne recharger que si plus de 30s depuis le dernier chargement
+      const now = Date.now();
+      if (now - lastCustomLoadTime > CACHE_DURATION) {
+        loadCustomCharactersOnly();
+      }
     });
     return unsubscribe;
   }, [navigation]);
 
-  useEffect(() => {
-    filterCharacters();
-  }, [searchQuery, selectedFilter, allCharacters]);
-
-  const loadAllCharacters = async () => {
-    // Migrer les anciens personnages si nécessaire
-    await CustomCharacterService.migrateOldCharacters();
-    
-    // Récupérer uniquement les personnages de l'utilisateur + publics des autres
-    const customChars = await CustomCharacterService.getAllVisibleCharacters();
-    
-    // Combiner les personnages de base (avec NSFW) avec les personnages personnalisés
-    const combined = [...enhancedCharacters, ...customChars];
-    setAllCharacters(combined);
-    
-    // Charger les images de galerie pour tous les personnages
-    await loadGalleryImages(combined);
-  };
-
-  const loadGalleryImages = async (chars) => {
-    const images = {};
-    for (const char of chars) {
-      // Si le personnage custom a déjà une imageUrl, on l'utilise
-      if (char.imageUrl) {
-        images[char.id] = char.imageUrl;
-      } else {
-        // Sinon, on charge la première image de la galerie
-        const gallery = await GalleryService.getGallery(char.id);
-        if (gallery && gallery.length > 0) {
-          images[char.id] = gallery[0]; // Première image de la galerie
-        }
-      }
-    }
-    setCharacterImages(images);
-  };
-
-  const filterCharacters = () => {
+  // Filtrer les personnages avec useMemo pour performance
+  const filteredCharacters = useMemo(() => {
     let filtered = allCharacters;
 
     // Filter by gender
@@ -76,7 +53,7 @@ export default function HomeScreen({ navigation }) {
       filtered = filtered.filter(char => char.gender === selectedFilter);
     }
 
-    // Filter by search query (recherche dans nom, tags, personnalité, id)
+    // Filter by search query
     if (searchQuery) {
       const queries = searchQuery.toLowerCase().split(/[\s|]+/).filter(q => q.length > 0);
       filtered = filtered.filter(char => {
@@ -86,7 +63,6 @@ export default function HomeScreen({ navigation }) {
         const charId = String(char.id || '').toLowerCase();
         const scenario = (char.scenario || '').toLowerCase();
         
-        // Vérifie si au moins une query matche
         return queries.some(query => 
           name.includes(query) ||
           charId.includes(query) ||
@@ -97,10 +73,86 @@ export default function HomeScreen({ navigation }) {
       });
     }
 
-    setFilteredCharacters(filtered);
+    return filtered;
+  }, [searchQuery, selectedFilter, allCharacters]);
+
+  const loadAllCharacters = async () => {
+    setIsLoading(true);
+    try {
+      // Utiliser le cache pour les personnages de base
+      if (!cachedEnhancedCharacters) {
+        cachedEnhancedCharacters = enhancedCharacters;
+      }
+      
+      // Migrer et charger les personnages custom
+      await CustomCharacterService.migrateOldCharacters();
+      const customChars = await CustomCharacterService.getAllVisibleCharacters();
+      cachedCustomCharacters = customChars;
+      lastCustomLoadTime = Date.now();
+      
+      // Combiner les personnages
+      const combined = [...cachedEnhancedCharacters, ...customChars];
+      setAllCharacters(combined);
+      
+      // Charger les images en arrière-plan (ne pas bloquer l'affichage)
+      loadGalleryImagesAsync(combined);
+    } catch (error) {
+      console.error('Erreur chargement personnages:', error);
+      // Fallback sur les personnages de base
+      setAllCharacters(cachedEnhancedCharacters || enhancedCharacters);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const renderCharacter = ({ item }) => {
+  const loadCustomCharactersOnly = async () => {
+    try {
+      const customChars = await CustomCharacterService.getAllVisibleCharacters();
+      if (JSON.stringify(customChars) !== JSON.stringify(cachedCustomCharacters)) {
+        cachedCustomCharacters = customChars;
+        lastCustomLoadTime = Date.now();
+        const combined = [...(cachedEnhancedCharacters || enhancedCharacters), ...customChars];
+        setAllCharacters(combined);
+      }
+    } catch (error) {
+      console.error('Erreur rechargement personnages custom:', error);
+    }
+  };
+
+  // Charger les images de façon asynchrone par batch
+  const loadGalleryImagesAsync = useCallback(async (chars) => {
+    setIsLoadingImages(true);
+    const images = { ...characterImages };
+    const BATCH_SIZE = 20;
+    
+    for (let i = 0; i < chars.length; i += BATCH_SIZE) {
+      const batch = chars.slice(i, i + BATCH_SIZE);
+      
+      await Promise.all(batch.map(async (char) => {
+        if (images[char.id]) return; // Déjà en cache
+        
+        if (char.imageUrl) {
+          images[char.id] = char.imageUrl;
+        } else {
+          try {
+            const gallery = await GalleryService.getGallery(char.id);
+            if (gallery && gallery.length > 0) {
+              images[char.id] = gallery[0];
+            }
+          } catch (e) {
+            // Ignorer les erreurs de galerie
+          }
+        }
+      }));
+      
+      // Mettre à jour le state après chaque batch
+      setCharacterImages({ ...images });
+    }
+    
+    setIsLoadingImages(false);
+  }, [characterImages]);
+
+  const renderCharacter = useCallback(({ item }) => {
     const imageUrl = item.imageUrl || characterImages[item.id];
     
     return (
@@ -148,7 +200,7 @@ export default function HomeScreen({ navigation }) {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [characterImages, navigation]);
 
   // Tags populaires pour le filtre rapide
   const popularTags = [
@@ -178,12 +230,28 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  // Optimiser keyExtractor
+  const keyExtractor = useCallback((item) => String(item.id), []);
+
+  // Afficher un loader pendant le chargement initial
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#d4af37" />
+        <Text style={styles.loadingText}>Chargement des personnages...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* En-tête avec titre en or */}
       <View style={styles.header}>
         <Text style={styles.appTitle}>Boys & Girls</Text>
-        <Text style={styles.subtitle}>{filteredCharacters.length} personnages</Text>
+        <Text style={styles.subtitle}>
+          {filteredCharacters.length} personnages
+          {isLoadingImages && ' • Chargement images...'}
+        </Text>
       </View>
 
       {/* Bouton Carrousel */}
@@ -249,9 +317,18 @@ export default function HomeScreen({ navigation }) {
       <FlatList
         data={filteredCharacters}
         renderItem={renderCharacter}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={keyExtractor}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
+        getItemLayout={(data, index) => ({
+          length: 150,
+          offset: 150 * index,
+          index,
+        })}
       />
     </View>
   );
@@ -261,6 +338,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0f0f1a',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#d4af37',
   },
   header: {
     padding: 20,

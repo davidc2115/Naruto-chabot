@@ -2151,12 +2151,18 @@ class ImageGenerationService {
   buildUltraDetailedPrompt(character, isRealistic = false) {
     const parts = [];
     
-    // Collecter TOUTES les données pour analyse
+    // PRIORITÉ 1: Si le personnage a un imagePrompt personnalisé (format Bagbot), l'utiliser en premier
+    if (character.imagePrompt && character.imagePrompt.length > 50) {
+      // Utiliser directement le prompt optimisé du personnage
+      console.log('🎨 Utilisation imagePrompt Bagbot:', character.imagePrompt.substring(0, 100) + '...');
+      return character.imagePrompt;
+    }
+    
+    // Collecter TOUTES les données pour analyse - PRIORITÉ physicalDescription
     const allData = [
+      character.physicalDescription || '', // Priorité haute (nouveau format Bagbot)
       character.appearance || '',
-      character.physicalDescription || '',
       character.bodyType || '',
-      character.imagePrompt || '',
       (character.tags || []).join(' '),
       character.hairColor || '',
       character.hairLength || '',
@@ -2273,37 +2279,60 @@ class ImageGenerationService {
     if (allData.includes('douce') || allData.includes('soft skin')) parts.push('soft smooth skin');
     
     // === 10. MORPHOLOGIE / BODY TYPE - TRÈS DÉTAILLÉ ET RENFORCÉ ===
-    // Ronde / Très ronde / BBW - PRIORITAIRE
-    if (allData.includes('très ronde') || allData.includes('bbw') || allData.includes('très grosse') || allData.includes('obèse')) {
-      parts.push('BBW BODY TYPE, very curvy thick plump body, very full-figured, big beautiful woman, fat body, chubby figure, large body');
-    } else if (allData.includes('ronde') || allData.includes('chubby') || allData.includes('potel') || allData.includes('plump')) {
-      parts.push('CURVY PLUMP BODY, soft rounded figure, chubby body, full-figured woman, thick body');
-    } else if (allData.includes('enrobé') || allData.includes('enveloppé') || allData.includes('soft body')) {
-      parts.push('SOFT PLUMP BODY, pleasantly padded figure, soft curves, rounded body');
+    // NOUVELLES DÉTECTIONS pour format Bagbot v4.3.30
+    
+    // Très ronde / BBW - PRIORITAIRE
+    if (allData.includes('très ronde') || allData.includes('bbw') || allData.includes('très grosse') || 
+        allData.includes('obèse') || allData.includes('très voluptu') || allData.includes('very large body')) {
+      parts.push('BBW BODY TYPE, very curvy thick plump body, very full-figured, big beautiful woman, fat body, chubby figure, large body, wide hips, big belly');
+    } 
+    // Ronde / Chubby / Dodue
+    else if (allData.includes('ronde') || allData.includes('chubby') || allData.includes('potel') || 
+             allData.includes('plump') || allData.includes('dodue') || allData.includes('rondelette')) {
+      parts.push('CURVY PLUMP BODY, soft rounded figure, chubby body, full-figured woman, thick body, soft belly, wide hips');
+    } 
+    // Enrobée / Soft body
+    else if (allData.includes('enrobé') || allData.includes('enveloppé') || allData.includes('soft body') || 
+             allData.includes('épanouie') || allData.includes('corps doux')) {
+      parts.push('SOFT PLUMP BODY, pleasantly padded figure, soft curves, rounded body, comfortable figure');
     }
-    // Généreuse / Voluptueuse
-    else if (allData.includes('généreuse') || allData.includes('voluptu') || allData.includes('curvy') || allData.includes('formes')) {
-      parts.push('VOLUPTUOUS CURVY BODY, full-figured with generous curves, hourglass figure, sexy curves everywhere');
+    // Généreuse / Voluptueuse - RENFORCÉ
+    else if (allData.includes('généreuse') || allData.includes('généreux') || allData.includes('voluptu') || 
+             allData.includes('curvy') || allData.includes('formes') || allData.includes('courbes') ||
+             allData.includes('hourglass') || allData.includes('sablier')) {
+      parts.push('VOLUPTUOUS CURVY BODY, full-figured with generous curves, hourglass figure, sexy curves everywhere, wide hips, generous bust, thick thighs');
     }
-    // Pulpeuse / Thick
-    else if (allData.includes('pulpeuse') || allData.includes('thick')) {
-      parts.push('THICK CURVY BODY, pronounced sexy curves, full-figured, thick thighs and hips');
+    // Pulpeuse / Thick - RENFORCÉ
+    else if (allData.includes('pulpeuse') || allData.includes('thick') || allData.includes('épaisse') ||
+             allData.includes('cuisses épaisses') || allData.includes('hanches larges')) {
+      parts.push('THICK CURVY BODY, pronounced sexy curves, full-figured, thick thighs and hips, curvy figure, wide hips');
     }
-    // Maternelle
-    else if (allData.includes('maternelle') || allData.includes('maternal') || allData.includes('femme au foyer')) {
-      parts.push('SOFT MATERNAL BODY, curvy womanly figure, nurturing physique, soft curves');
+    // Maternelle / MILF body
+    else if (allData.includes('maternelle') || allData.includes('maternal') || allData.includes('femme au foyer') ||
+             allData.includes('maman') || allData.includes('milf') || allData.includes('mature body')) {
+      parts.push('SOFT MATERNAL BODY, curvy womanly figure, nurturing physique, soft curves, mature feminine body, motherly figure');
+    }
+    // Sculpturale / Statue
+    else if (allData.includes('sculpturale') || allData.includes('sculptural') || allData.includes('statuesque')) {
+      parts.push('STATUESQUE SCULPTED BODY, perfectly proportioned, goddess-like figure, sculpted curves');
     }
     // Athlétique / Musclée
-    else if (allData.includes('musclé') || allData.includes('athletic') || allData.includes('fit') || allData.includes('tonique')) {
-      parts.push('ATHLETIC TONED BODY, fit physique, defined muscles, sporty figure');
+    else if (allData.includes('musclé') || allData.includes('athletic') || allData.includes('fit') || 
+             allData.includes('tonique') || allData.includes('sportif') || allData.includes('sportive')) {
+      parts.push('ATHLETIC TONED BODY, fit physique, defined muscles, sporty figure, toned arms and legs');
     }
     // Mince / Élancée
-    else if (allData.includes('mince') || allData.includes('slim') || allData.includes('élanc') || allData.includes('slender')) {
+    else if (allData.includes('mince') || allData.includes('slim') || allData.includes('élanc') || allData.includes('slender') ||
+             allData.includes('svelte') || allData.includes('fine')) {
       parts.push('SLIM SLENDER BODY, lean figure, thin physique, slender frame');
     }
-    // Petite
+    // Petite et mince
     else if (allData.includes('petite') && allData.includes('mince')) {
       parts.push('PETITE SLIM BODY, small delicate frame, tiny figure');
+    }
+    // Délicate
+    else if (allData.includes('délicate') || allData.includes('delicate') || allData.includes('fragile')) {
+      parts.push('DELICATE SLENDER BODY, graceful petite figure, delicate frame');
     }
     
     // === 11. TAILLE ===

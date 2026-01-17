@@ -97,6 +97,56 @@ class GroqService {
     return this.apiKeys[this.currentKeyIndex];
   }
 
+  /**
+   * Détecte si le contenu des messages récents est NSFW
+   * Permet une conversation SFW ou NSFW dynamique selon les messages
+   */
+  detectNSFWContent(messages) {
+    // Mots-clés NSFW (français et anglais)
+    const nsfwKeywords = [
+      // Actions physiques explicites
+      'embrasser', 'caresser', 'déshabiller', 'nu', 'nue', 'sexe', 'baiser',
+      'sucer', 'lécher', 'pénétrer', 'jouir', 'orgasme', 'gémis', 'excite',
+      'toucher', 'corps', 'seins', 'poitrine', 'fesses', 'cul', 'bite', 'queue',
+      'chatte', 'pussy', 'cock', 'dick', 'tits', 'ass', 'fuck', 'suck', 'lick',
+      'naked', 'nude', 'sex', 'cum', 'moan', 'aroused', 'horny', 'wet',
+      // Termes romantiques intenses
+      'désir', 'envie de toi', 'j\'ai envie', 'faire l\'amour', 'coucher',
+      'lit', 'chambre', 'intime', 'sensuel', 'érotique', 'hot', 'sexy',
+      'coquin', 'coquine', 'vilain', 'vilaine', 'méchant', 'méchante',
+      // Actions suggestives
+      'déshabille', 'enlève', 'retire', 'montre-moi', 'laisse-moi voir',
+      'touche-moi', 'embrasse-moi', 'prends-moi', 'viens', 'plus près',
+      'allonge', 'couche', 'genoux', 'langue', 'lèvres', 'bouche',
+    ];
+    
+    // Analyser les 5 derniers messages utilisateur
+    const recentUserMessages = messages
+      .filter(m => m.role === 'user')
+      .slice(-5)
+      .map(m => m.content.toLowerCase())
+      .join(' ');
+    
+    // Vérifier si des mots-clés NSFW sont présents
+    const hasNSFW = nsfwKeywords.some(keyword => recentUserMessages.includes(keyword));
+    
+    // Vérifier aussi le contexte implicite (phrases suggestives)
+    const suggestivePatterns = [
+      /je.*veux.*toi/i,
+      /tu.*me.*rend.*fou/i,
+      /approche.*toi/i,
+      /viens.*plus.*près/i,
+      /j'ai.*chaud/i,
+      /tu.*sens.*bon/i,
+      /ton.*corps/i,
+      /tes.*yeux.*me/i,
+    ];
+    
+    const hasSuggestive = suggestivePatterns.some(pattern => pattern.test(recentUserMessages));
+    
+    return hasNSFW || hasSuggestive;
+  }
+
   async generateResponse(messages, character, userProfile = null, retries = 3) {
     // CHARGER LES CLÉS AUTOMATIQUEMENT si pas encore chargées
     if (this.apiKeys.length === 0) {
@@ -111,9 +161,18 @@ class GroqService {
       try {
         const apiKey = this.getCurrentKey();
         
-        // IMPORTANT: Déterminer le mode NSFW EN PREMIER
-        const isNSFW = userProfile?.nsfwMode && userProfile?.isAdult;
-        console.log('🔞 Mode NSFW:', isNSFW, 'nsfwMode:', userProfile?.nsfwMode, 'isAdult:', userProfile?.isAdult);
+        // DÉTECTION DYNAMIQUE DU MODE NSFW
+        // 1. D'abord vérifier si l'utilisateur a activé le mode NSFW dans les paramètres
+        const userWantsNSFW = userProfile?.nsfwMode && userProfile?.isAdult;
+        
+        // 2. Détecter si le contenu des messages est NSFW
+        const contentIsNSFW = this.detectNSFWContent(messages);
+        
+        // 3. Le mode NSFW est activé si l'utilisateur le veut ET le contenu est approprié
+        // OU si le contenu est explicitement NSFW et l'utilisateur est adulte
+        const isNSFW = (userWantsNSFW && contentIsNSFW) || (contentIsNSFW && userProfile?.isAdult);
+        
+        console.log('🔞 Mode NSFW:', isNSFW, '| userWantsNSFW:', userWantsNSFW, '| contentIsNSFW:', contentIsNSFW);
         
         // IMPORTANT: Nettoyer les messages pour enlever les champs non supportés par Groq
         const cleanMessages = messages.map(msg => ({
@@ -337,19 +396,42 @@ class GroqService {
     if (isNSFW) {
       // MODE NSFW: System prompt ULTRA-MINIMAL (ne pas déclencher filtres)
       // Le jailbreak est fait dans l'historique de conversation, pas ici
-      prompt += `Tu es ${character.name}. Reste dans le personnage. Réponds naturellement.}
+      prompt += `Tu es ${character.name}. Reste dans le personnage. Réponds naturellement.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 `;
     }
     
+    // Utiliser physicalDescription si disponible (nouveau format Bagbot), sinon appearance
+    const physicalDesc = character.physicalDescription || character.appearance || '';
+    
     prompt += `Tu incarnes ${character.name}, un personnage avec les caractéristiques suivantes:
 
-Description physique: ${character.appearance}
+Description physique: ${physicalDesc}
 Personnalité: ${character.personality}
 Tempérament: ${character.temperament}
 Âge: ${character.age} ans`;
+
+    // Ajouter les détails de tempérament du nouveau format Bagbot
+    if (character.temperamentDetails) {
+      prompt += `\n\n📋 COMPORTEMENTS DÉTAILLÉS:`;
+      if (character.temperamentDetails.emotionnel) {
+        prompt += `\n• Émotionnel: ${character.temperamentDetails.emotionnel}`;
+      }
+      if (character.temperamentDetails.seduction) {
+        prompt += `\n• Séduction: ${character.temperamentDetails.seduction}`;
+      }
+      if (character.temperamentDetails.communication) {
+        prompt += `\n• Communication: ${character.temperamentDetails.communication}`;
+      }
+      if (character.temperamentDetails.reactions) {
+        prompt += `\n• Réactions: ${character.temperamentDetails.reactions}`;
+      }
+      if (isNSFW && character.temperamentDetails.intimite) {
+        prompt += `\n• Intimité: ${character.temperamentDetails.intimite}`;
+      }
+    }
 
     // Ajouter le SCÉNARIO (contexte de la rencontre)
     if (character.scenario) {
