@@ -51,12 +51,15 @@ class ImageGenerationService {
       'symmetrical body, balanced pose, stable stance';
     
     // NEGATIVE PROMPT ULTRA-COMPLET (pour SD local et Pollinations)
-    this.negativePromptFull = 
+    // Base - sera augmenté dynamiquement selon le body type
+    this.negativePromptBase = 
       'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, anatomical errors, ' +
       'extra limbs, missing limbs, three arms, four arms, three legs, four legs, extra body parts, ' +
       'floating limbs, disconnected limbs, merged limbs, fused body parts, ' +
       'malformed hands, twisted hands, backwards hands, extra fingers, missing fingers, ' +
-      'fused fingers, six fingers, seven fingers, too many fingers, mutated hands, bad hands, ' +
+      'fused fingers, six fingers, seven fingers, too many fingers, mutated hands, bad hands, ';
+      
+    this.negativePromptFull = this.negativePromptBase +
       'clawed hands, webbed fingers, malformed feet, extra toes, ' +
       'extra arms, extra legs, duplicate body parts, clone, conjoined, ' +
       'two heads, two faces, multiple people, crowd, group, ' +
@@ -613,6 +616,66 @@ class ImageGenerationService {
     const effectiveLevel = lvl > 10 ? 10 : lvl;
     const levelPoses = poses[effectiveLevel] || poses[1];
     return levelPoses[Math.floor(Math.random() * levelPoses.length)];
+  }
+
+  /**
+   * Génère un negative prompt dynamique selon le body type du personnage
+   * Exclut les morphologies opposées pour éviter la confusion
+   */
+  getDynamicNegativePrompt(character) {
+    const physicalDetails = this.parsePhysicalDescription(character);
+    let negative = this.negativePromptFull;
+    
+    const bodyType = (physicalDetails.body.type || '').toLowerCase();
+    
+    // Si le personnage est rond/curvy/voluptueux, exclure les corps minces
+    if (bodyType.includes('bbw') || bodyType.includes('chubby') || bodyType.includes('plump') ||
+        bodyType.includes('generous') || bodyType.includes('voluptuous') || bodyType.includes('curvy') ||
+        bodyType.includes('thick') || bodyType.includes('maternal') || bodyType.includes('round')) {
+      negative += ', thin body, slim body, skinny, anorexic, very thin, bony, underweight, flat stomach, ' +
+                  'athletic build, toned abs, slim waist, narrow hips, small hips, flat butt';
+      console.log('🚫 Negative prompt: exclusion morphologie mince');
+    }
+    
+    // Si le personnage est mince/athlétique, exclure les corps ronds
+    if (bodyType.includes('slim') || bodyType.includes('thin') || bodyType.includes('petite') ||
+        bodyType.includes('athletic') || bodyType.includes('toned')) {
+      negative += ', fat, obese, overweight, chubby, plump, BBW, thick belly, big belly, round belly';
+      console.log('🚫 Negative prompt: exclusion morphologie ronde');
+    }
+    
+    // Poitrine
+    if (character.gender === 'female' && physicalDetails.bust.size) {
+      const bustSize = physicalDetails.bust.size.toLowerCase();
+      if (bustSize.includes('a-cup') || bustSize === 'small') {
+        negative += ', big breasts, large breasts, huge breasts, busty, big chest, large bust';
+      } else if (bustSize.includes('d') || bustSize.includes('e') || bustSize.includes('f') || 
+                 bustSize.includes('g') || bustSize.includes('h') || bustSize === 'large' || bustSize === 'huge') {
+        negative += ', flat chest, small breasts, tiny breasts, flat breasted, no breasts';
+      }
+    }
+    
+    return negative;
+  }
+
+  /**
+   * Extrait une version courte du body type pour le renforcement
+   */
+  getShortBodyType(bodyType) {
+    if (!bodyType) return '';
+    const lower = bodyType.toLowerCase();
+    if (lower.includes('bbw') || lower.includes('very fat')) return 'BBW curvy';
+    if (lower.includes('chubby') || lower.includes('plump')) return 'chubby plump';
+    if (lower.includes('generous') || lower.includes('généreus')) return 'generous curves';
+    if (lower.includes('voluptuous') || lower.includes('bombshell')) return 'voluptuous';
+    if (lower.includes('curvy') || lower.includes('hourglass')) return 'curvy';
+    if (lower.includes('thick')) return 'thick curvy';
+    if (lower.includes('maternal') || lower.includes('milf')) return 'mature curvy';
+    if (lower.includes('athletic') || lower.includes('toned')) return 'athletic';
+    if (lower.includes('slim') || lower.includes('slender')) return 'slim';
+    if (lower.includes('petite')) return 'petite';
+    if (lower.includes('massive') || lower.includes('muscular')) return 'muscular';
+    return '';
   }
 
   /**
@@ -2118,6 +2181,7 @@ class ImageGenerationService {
   /**
    * Génère l'image du personnage (profil) - MODE SFW
    * Les images de profil sont TOUJOURS SFW (élégantes mais pas explicites)
+   * v5.3.3 - Morphologie renforcée avec exclusions
    */
   async generateCharacterImage(character, userProfile = null) {
     // Parser l'âge correctement (gère "300 ans (apparence 25)")
@@ -2131,7 +2195,22 @@ class ImageGenerationService {
     // Choisir le style (anime ou réaliste)
     const { style, isRealistic } = this.getRandomStyle();
     
+    // Parser les détails physiques pour l'emphase sur la morphologie
+    const physicalDetails = this.parsePhysicalDescription(character);
+    
     let prompt = style;
+    
+    // === MORPHOLOGIE EN PREMIER POUR EMPHASE MAXIMALE ===
+    if (physicalDetails.body.type) {
+      prompt += ', ' + physicalDetails.body.type;
+      console.log(`🏋️ MORPHOLOGIE PROFIL: ${physicalDetails.body.type.substring(0, 60)}...`);
+    }
+    
+    // === POITRINE EN PRIORITÉ (femmes) ===
+    if (character.gender === 'female' && physicalDetails.bust.description) {
+      prompt += ', ' + physicalDetails.bust.description;
+      console.log(`👙 POITRINE PROFIL: ${physicalDetails.bust.description.substring(0, 60)}...`);
+    }
     
     // === CONSTRUIRE UN PROMPT DÉTAILLÉ ===
     prompt += ', ' + this.buildUltraDetailedPrompt(character, isRealistic);
@@ -2165,6 +2244,17 @@ class ImageGenerationService {
     // ANATOMIE STRICTE (pour éviter les défauts)
     prompt += ', ' + this.anatomyStrictPrompt;
     
+    // === EXCLUSIONS MORPHOLOGIQUES ===
+    // Ajouter des exclusions pour les morphologies incorrectes
+    const bodyType = (physicalDetails.body.type || '').toLowerCase();
+    if (bodyType.includes('bbw') || bodyType.includes('chubby') || bodyType.includes('plump') ||
+        bodyType.includes('generous') || bodyType.includes('voluptuous') || bodyType.includes('curvy') ||
+        bodyType.includes('thick') || bodyType.includes('round')) {
+      // Exclure explicitement les corps minces dans le prompt
+      prompt += ', NOT thin, NOT skinny, NOT slim body, full figured';
+      console.log('🚫 Exclusion morphologie mince dans prompt');
+    }
+    
     // QUALITÉ SPÉCIFIQUE AU STYLE
     if (isRealistic) {
       prompt += ', ' + this.buildRealisticQualityPrompts();
@@ -2176,8 +2266,18 @@ class ImageGenerationService {
       prompt += ', clean lines, vibrant colors, professional anime artwork';
       prompt += ', single character, solo, one person, detailed face';
     }
+    
+    // === RENFORCEMENT FINAL DE LA MORPHOLOGIE ===
+    // Répéter le body type à la fin pour emphase maximale
+    if (physicalDetails.body.type) {
+      const shortBody = this.getShortBodyType(physicalDetails.body.type);
+      if (shortBody) {
+        prompt += `, ${shortBody} body, ${shortBody}`;
+      }
+    }
 
     console.log(`🖼️ Génération image profil SFW (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
+    console.log(`📝 Prompt morphologie: ${prompt.substring(0, 200)}...`);
     return await this.generateImage(prompt);
   }
   
@@ -2611,6 +2711,7 @@ class ImageGenerationService {
   /**
    * Construit un prompt ULTRA-DÉTAILLÉ basé sur TOUS les attributs du personnage
    * Inclut: visage, cheveux, corps, morphologie, poitrine/pénis, fesses, hanches, peau, etc.
+   * v5.3.3 - MORPHOLOGIE EN PRIORITÉ MAXIMALE
    */
   buildUltraDetailedPrompt(character, isRealistic = false) {
     const parts = [];
@@ -2639,11 +2740,31 @@ class ImageGenerationService {
     
     // === UTILISER LES DÉTAILS PARSÉS ===
     
+    // === 0. MORPHOLOGIE EN PREMIER (PRIORITÉ MAXIMALE) ===
+    // Placer le body type AU DÉBUT du prompt pour une influence maximale
+    if (physicalDetails.body.type) {
+      // Ajouter 2 fois pour emphase
+      parts.push(physicalDetails.body.type);
+      console.log(`🏋️ MORPHOLOGIE PRIORITAIRE: ${physicalDetails.body.type}`);
+    }
+    
+    // === 0.5. POITRINE/PÉNIS EN PRIORITÉ (après body type) ===
+    if (character.gender === 'female' && physicalDetails.bust.description) {
+      parts.push(physicalDetails.bust.description);
+      console.log(`👙 POITRINE PRIORITAIRE: ${physicalDetails.bust.description}`);
+    }
+    if (character.gender === 'male' && physicalDetails.penis.description) {
+      parts.push(physicalDetails.penis.description);
+    }
+    
     // === 1. GENRE ===
     if (character.gender === 'female') {
-      parts.push(isRealistic ? 'beautiful real woman, female human' : 'beautiful anime woman, female character');
+      // Ajouter le body type au genre pour renforcement
+      const bodyMod = physicalDetails.body.type ? `, ${this.getShortBodyType(physicalDetails.body.type)}` : '';
+      parts.push(isRealistic ? `beautiful real woman${bodyMod}, female human` : `beautiful anime woman${bodyMod}, female character`);
     } else if (character.gender === 'male') {
-      parts.push(isRealistic ? 'handsome real man, male human' : 'handsome anime man, male character');
+      const bodyMod = physicalDetails.body.type ? `, ${this.getShortBodyType(physicalDetails.body.type)}` : '';
+      parts.push(isRealistic ? `handsome real man${bodyMod}, male human` : `handsome anime man${bodyMod}, male character`);
     } else {
       parts.push('beautiful androgynous person');
     }
@@ -2754,11 +2875,42 @@ class ImageGenerationService {
       parts.push('high quality anime art, detailed illustration, perfect anatomy');
     }
     
+    // === 17. RENFORCEMENT FINAL DE LA MORPHOLOGIE ===
+    // Répéter les éléments clés à la fin pour emphase maximale
+    if (physicalDetails.body.type) {
+      const shortBody = this.getShortBodyType(physicalDetails.body.type);
+      if (shortBody) {
+        parts.push(shortBody + ' body');
+        parts.push(shortBody); // Une fois de plus pour l'emphase
+      }
+    }
+    if (character.gender === 'female' && physicalDetails.bust.size) {
+      const bustEmphasis = {
+        'A-cup': 'small flat chest',
+        'B-cup': 'small breasts',
+        'C-cup': 'medium breasts',
+        'D-cup': 'big breasts large bust',
+        'DD-cup': 'very big breasts large chest',
+        'E-cup': 'huge breasts',
+        'F-cup': 'huge massive breasts',
+        'G-cup': 'gigantic breasts',
+        'H-cup': 'enormous massive breasts',
+        'large': 'big breasts',
+        'huge': 'huge massive breasts',
+        'medium': 'medium breasts',
+        'small': 'small petite breasts'
+      };
+      const emphasis = bustEmphasis[physicalDetails.bust.size] || '';
+      if (emphasis) {
+        parts.push(emphasis);
+      }
+    }
+    
     console.log(`📋 Prompt ultra-détaillé généré avec parsePhysicalDescription: ${parts.length} éléments`);
     console.log(`📋 Détails parsés:`, JSON.stringify({
       hair: physicalDetails.hair,
       eyes: physicalDetails.eyes,
-      body: physicalDetails.body.type ? 'set' : 'none',
+      body: physicalDetails.body.type ? physicalDetails.body.type.substring(0, 50) : 'none',
       bust: physicalDetails.bust.size || 'none',
       penis: physicalDetails.penis.size || 'none'
     }));
@@ -3067,13 +3219,41 @@ class ImageGenerationService {
       prompt += ', single character, solo';
     }
 
+    // === RENFORCEMENT FINAL DE LA MORPHOLOGIE POUR SCÈNE ===
+    const physicalDetails = this.parsePhysicalDescription(character);
+    if (physicalDetails.body.type) {
+      const shortBody = this.getShortBodyType(physicalDetails.body.type);
+      if (shortBody) {
+        prompt += `, ${shortBody} body, ${shortBody}`;
+      }
+      
+      // Exclusions morphologiques pour les personnages ronds
+      const bodyType = (physicalDetails.body.type || '').toLowerCase();
+      if (bodyType.includes('bbw') || bodyType.includes('chubby') || bodyType.includes('plump') ||
+          bodyType.includes('generous') || bodyType.includes('voluptuous') || bodyType.includes('curvy') ||
+          bodyType.includes('thick') || bodyType.includes('round')) {
+        prompt += ', NOT thin, NOT skinny, NOT slim body, full figured';
+      }
+    }
+    
+    // Renforcement poitrine
+    if (character.gender === 'female' && physicalDetails.bust.size) {
+      const bustSize = physicalDetails.bust.size.toLowerCase();
+      if (bustSize.includes('d') || bustSize.includes('e') || bustSize.includes('f') || 
+          bustSize.includes('g') || bustSize.includes('h') || bustSize === 'large' || bustSize === 'huge') {
+        prompt += ', big breasts, large bust';
+      } else if (bustSize.includes('a') || bustSize === 'small') {
+        prompt += ', small breasts, flat chest';
+      }
+    }
+
     // Ajouter un marqueur de niveau pour forcer le mode NSFW
     if (isNSFW) {
       prompt = `[NSFW_LEVEL_${level}] ` + prompt;
     }
     
     console.log(`🖼️ Génération ${isNSFW ? 'NSFW' : 'SFW'} niveau ${level} (${isRealistic ? 'RÉALISTE' : 'ANIME'})`);
-    console.log(`📝 Prompt FINAL (100 chars): ${prompt.substring(0, 100)}...`);
+    console.log(`📝 Prompt FINAL (150 chars): ${prompt.substring(0, 150)}...`);
     return await this.generateImage(prompt);
   }
 
