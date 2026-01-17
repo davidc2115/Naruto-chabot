@@ -31,8 +31,9 @@ export default function ChatsScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
-  const loadData = async () => {
+  const loadData = async (forceRefresh = false) => {
     try {
+      setLoading(true);
       console.log('📱 ChatsScreen: Chargement des données...');
       
       // Charger tous les personnages (de base + personnalisés + publics)
@@ -65,15 +66,27 @@ export default function ChatsScreen({ navigation }) {
       setAllCharacters(allChars);
       console.log(`✅ ${allChars.length} personnages chargés`);
       
-      // Charger les conversations
-      const allConversations = await StorageService.getAllConversations();
+      // Charger les conversations (forceRefresh pour reconstruire l'index)
+      const allConversations = forceRefresh 
+        ? await StorageService.refreshConversations()
+        : await StorageService.getAllConversations();
       console.log(`✅ ${allConversations.length} conversations chargées`);
       setConversations(allConversations);
     } catch (error) {
       console.error('❌ Erreur loadData ChatsScreen:', error);
+      // En cas d'erreur, réessayer avec refresh
+      if (!forceRefresh) {
+        console.log('🔄 Réessai avec forceRefresh...');
+        await loadData(true);
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    await loadData(true);
   };
 
   const deleteConversation = async (characterId) => {
@@ -87,9 +100,14 @@ export default function ChatsScreen({ navigation }) {
           text: 'Supprimer définitivement',
           style: 'destructive',
           onPress: async () => {
-            await StorageService.deleteConversation(characterId);
-            loadData();
-            Alert.alert('✅ Supprimée', 'La conversation a été supprimée définitivement.');
+            const success = await StorageService.deleteConversation(characterId);
+            if (success) {
+              // Recharger immédiatement avec forceRefresh
+              await loadData(true);
+              Alert.alert('✅ Supprimée', 'La conversation a été supprimée définitivement.');
+            } else {
+              Alert.alert('❌ Erreur', 'Impossible de supprimer la conversation.');
+            }
           },
         },
       ]
@@ -225,8 +243,15 @@ export default function ChatsScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.headerBar}>
-          <Text style={styles.title}>Conversations</Text>
-          <Text style={styles.subtitle}>{conversations.length} conversation(s)</Text>
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={styles.title}>Conversations</Text>
+              <Text style={styles.subtitle}>{conversations.length} conversation(s)</Text>
+            </View>
+            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+              <Text style={styles.refreshButtonText}>🔄</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <FlatList
           data={conversations}
@@ -265,6 +290,22 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 15,
     backgroundColor: '#6366f1',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  refreshButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  refreshButtonText: {
+    fontSize: 22,
   },
   title: {
     fontSize: 32,

@@ -667,7 +667,7 @@ class TextGenerationService {
           if (totalMessages > 15) {
             // Créer un résumé des anciens messages (au-delà des 12 derniers)
             const olderMessages = messages.slice(0, -12);
-            const memorySummary = this.buildDetailedMemorySummary(olderMessages, character, userProfile);
+            const memorySummary = this.buildDetailedMemorySummary(olderMessages, character, userProfile, context);
             if (memorySummary) {
               fullMessages.push({ role: 'system', content: memorySummary });
             }
@@ -685,25 +685,31 @@ class TextGenerationService {
         }
         
         // === MESSAGES RÉCENTS - AUGMENTÉS POUR MEILLEURE MÉMOIRE ===
-        // Première tentative: 12 messages, puis 8, puis 4
+        // En NSFW, garder PLUS de messages pour la cohérence
+        const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+        
         let recentCount;
         if (attempt <= 1) {
-          recentCount = Math.min(12, totalMessages); // Maximum 12 messages récents
+          recentCount = Math.min(isNSFW ? 15 : 12, totalMessages); // Plus de messages en NSFW
         } else if (attempt <= 2) {
-          recentCount = Math.min(8, totalMessages);
+          recentCount = Math.min(isNSFW ? 10 : 8, totalMessages);
         } else if (attempt <= 4) {
-          recentCount = Math.min(6, totalMessages);
+          recentCount = Math.min(isNSFW ? 8 : 6, totalMessages);
         } else {
-          recentCount = Math.min(4, totalMessages);
+          recentCount = Math.min(isNSFW ? 6 : 4, totalMessages);
         }
         
         const recentMessages = messages.slice(-recentCount);
         
-        // Ajouter les messages avec un contexte plus riche
+        // Ajouter les messages SANS TRUNCATION en mode NSFW
+        // Pour éviter de perdre le contexte intime
         fullMessages.push(...recentMessages.map((msg, idx) => ({
           role: msg.role,
-          // Garder plus de contenu pour les messages récents
-          content: msg.content.substring(0, idx >= recentCount - 3 ? 800 : 400)
+          // En NSFW: garder le contenu complet (jusqu'à 1000 chars)
+          // Sinon: comportement normal
+          content: isNSFW 
+            ? msg.content.substring(0, 1000) 
+            : msg.content.substring(0, idx >= recentCount - 3 ? 800 : 400)
         })));
         
         // Instruction finale avec rappel de cohérence
@@ -777,17 +783,18 @@ class TextGenerationService {
    * Construit un résumé détaillé de la conversation passée
    * Pour maintenir la cohérence sur les longues conversations
    */
-  buildDetailedMemorySummary(messages, character, userProfile) {
+  buildDetailedMemorySummary(messages, character, userProfile, context = {}) {
     if (!messages || messages.length < 5) return null;
     
     const charName = character?.name || 'le personnage';
     const userName = userProfile?.username || "cette personne";
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     
     // Extraire les éléments importants des messages passés
-    const keyMoments = [];
     const topicsDiscussed = new Set();
     const emotionalMoments = [];
     const actionsPerformed = [];
+    const intimateMoments = []; // Pour NSFW
     
     for (const msg of messages) {
       const content = (msg.content || '').toLowerCase();
@@ -815,6 +822,25 @@ class TextGenerationService {
         emotionalMoments.push('moment de joie');
       }
       
+      // Détecter les moments intimes (NSFW)
+      if (isNSFW) {
+        if (content.includes('gémis') || content.includes('plaisir')) {
+          intimateMoments.push('expressions de plaisir');
+        }
+        if (content.includes('déshabill') || content.includes('nu')) {
+          intimateMoments.push('déshabillage');
+        }
+        if (content.includes('touch') || content.includes('caress')) {
+          intimateMoments.push('caresses');
+        }
+        if (content.includes('sein') || content.includes('poitrine')) {
+          intimateMoments.push('attention à la poitrine');
+        }
+        if (content.includes('sexe') || content.includes('intime')) {
+          intimateMoments.push('actes intimes');
+        }
+      }
+      
       // Extraire les actions décrites (entre *)
       const actions = content.match(/\*([^*]+)\*/g);
       if (actions) {
@@ -838,6 +864,13 @@ class TextGenerationService {
       summary += `**Moments clés:** ${uniqueMoments.join(', ')}\n`;
     }
     
+    // En NSFW, ajouter le contexte intime
+    if (isNSFW && intimateMoments.length > 0) {
+      const uniqueIntimate = [...new Set(intimateMoments)].slice(0, 4);
+      summary += `**🔞 Progression intime:** ${uniqueIntimate.join(', ')}\n`;
+      summary += `**IMPORTANT:** La conversation est devenue intime. CONTINUE dans cette direction.\n`;
+    }
+    
     if (actionsPerformed.length > 0) {
       const recentActions = actionsPerformed.slice(-3);
       summary += `**Actions récentes:** ${recentActions.join('; ')}\n`;
@@ -846,7 +879,11 @@ class TextGenerationService {
     summary += `\n**IMPORTANT:** Référence-toi à ces éléments passés pour maintenir la cohérence. `;
     summary += `Ne répète pas les mêmes actions ou phrases. Fais évoluer la conversation naturellement.\n`;
     
-    console.log(`📚 Résumé mémoire: ${topicsDiscussed.size} sujets, ${emotionalMoments.length} moments émotionnels`);
+    if (isNSFW) {
+      summary += `🔞 MODE ADULTE: Continue à être explicite et sensuel.\n`;
+    }
+    
+    console.log(`📚 Résumé mémoire: ${topicsDiscussed.size} sujets, ${emotionalMoments.length} moments émotionnels, ${intimateMoments.length} moments intimes`);
     return summary;
   }
   

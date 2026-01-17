@@ -211,9 +211,16 @@ export default function CharacterDetailScreen({ route, navigation }) {
           text: 'Nouvelle conversation',
           style: 'destructive',
           onPress: async () => {
+            // Supprimer la conversation existante
             await StorageService.deleteConversation(character.id);
             setHasConversation(false);
-            startConversation();
+            
+            // Naviguer avec un paramètre pour forcer une nouvelle conversation
+            navigation.navigate('Conversation', { 
+              character, 
+              forceNew: true,
+              timestamp: Date.now() // Force le rechargement
+            });
           }
         }
       ]

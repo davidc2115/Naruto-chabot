@@ -120,131 +120,95 @@ class StorageService {
     try {
       const userId = await this.getCurrentUserId();
       const result = [];
+      const seenCharacterIds = new Set();
       
       console.log(`🔍 Recherche conversations pour userId: ${userId}`);
       
-      // === MÉTHODE 1: Utiliser l'index de conversations ===
+      // === TOUJOURS chercher par clés pour être exhaustif ===
+      const keys = await AsyncStorage.getAllKeys();
+      
+      // Trouver toutes les clés de conversation
+      const convKeys = keys.filter(key => {
+        // Format principal: conv_userId_characterId
+        if (key.startsWith(`conv_${userId}_`) && !key.includes('index')) return true;
+        // Conversations anonymes
+        if (key.startsWith('conv_anonymous_') && !key.includes('index')) return true;
+        // Format conv_ générique
+        if (key.startsWith('conv_') && !key.includes('index') && key.split('_').length >= 3) return true;
+        // Ancien format conversation_
+        if (key.startsWith('conversation_')) return true;
+        return false;
+      });
+      
+      console.log(`📚 ${convKeys.length} clés de conversations trouvées`);
+      
+      // Reconstruire l'index
       const indexKey = `conv_index_${userId}`;
-      let indexData = null;
+      const newIndex = [];
+      
+      for (const key of convKeys) {
+        try {
+          const value = await AsyncStorage.getItem(key);
+          if (!value) continue;
+          
+          const parsed = JSON.parse(value);
+          let messages = parsed.messages || parsed.history;
+          
+          if (!Array.isArray(messages) || messages.length === 0) continue;
+          
+          // Extraire characterId
+          let characterId = parsed.characterId;
+          if (!characterId && key.includes('_')) {
+            const parts = key.split('_');
+            if (key.startsWith('conv_') && parts.length >= 3) {
+              characterId = parts.slice(2).join('_');
+            } else if (key.startsWith('conversation_')) {
+              characterId = parts.slice(1).join('_');
+            }
+          }
+          
+          if (!characterId) continue;
+          
+          // Éviter les doublons
+          const charIdStr = String(characterId);
+          if (seenCharacterIds.has(charIdStr)) continue;
+          seenCharacterIds.add(charIdStr);
+          
+          // Normaliser les messages
+          const normalizedMessages = messages
+            .filter(m => m && m.content)
+            .map(m => ({
+              role: m.role || 'assistant',
+              content: String(m.content || '').trim(),
+            }))
+            .filter(m => m.content !== '');
+          
+          if (normalizedMessages.length > 0) {
+            result.push({
+              characterId: charIdStr,
+              messages: normalizedMessages,
+              relationship: parsed.relationship || { level: 1, affection: 50 },
+              lastUpdated: parsed.lastUpdated || new Date().toISOString(),
+              savedAt: parsed.savedAt || Date.now(),
+            });
+            
+            // Ajouter à l'index
+            if (!newIndex.includes(charIdStr)) {
+              newIndex.push(charIdStr);
+            }
+            
+            console.log(`✅ Conversation: ${charIdStr} (${normalizedMessages.length} msgs)`);
+          }
+        } catch (e) {
+          console.log(`⚠️ Erreur traitement ${key}:`, e.message);
+        }
+      }
+      
+      // Mettre à jour l'index
       try {
-        indexData = await AsyncStorage.getItem(indexKey);
+        await AsyncStorage.setItem(indexKey, JSON.stringify(newIndex));
+        console.log(`📋 Index reconstruit: ${newIndex.length} conversations`);
       } catch (e) {}
-      
-      if (indexData) {
-        const characterIds = JSON.parse(indexData);
-        console.log(`📋 Index trouvé: ${characterIds.length} conversations`);
-        
-        for (const characterId of characterIds) {
-          const convKey = `conv_${userId}_${characterId}`;
-          try {
-            const convData = await AsyncStorage.getItem(convKey);
-            if (convData) {
-              const parsed = JSON.parse(convData);
-              if (parsed.messages && parsed.messages.length > 0) {
-                result.push({
-                  characterId: String(characterId),
-                  messages: parsed.messages,
-                  relationship: parsed.relationship || { level: 1, affection: 50 },
-                  lastUpdated: parsed.lastUpdated || new Date().toISOString(),
-                  savedAt: parsed.savedAt || Date.now(),
-                });
-                console.log(`✅ Conversation (index): ${characterId} (${parsed.messages.length} msgs)`);
-              }
-            }
-          } catch (e) {
-            console.log(`⚠️ Erreur lecture ${characterId}:`, e.message);
-          }
-        }
-      }
-      
-      // === MÉTHODE 2: Recherche par clés (fallback) ===
-      // Si l'index n'a rien trouvé, chercher toutes les clés
-      if (result.length === 0) {
-        console.log(`📋 Index vide, recherche par clés...`);
-        const keys = await AsyncStorage.getAllKeys();
-        
-        // Trouver toutes les clés de conversation
-        const convKeys = keys.filter(key => {
-          // Format principal: conv_userId_characterId
-          if (key.startsWith(`conv_${userId}_`) && !key.includes('index')) return true;
-          // Conversations anonymes
-          if (key.startsWith('conv_anonymous_') && !key.includes('index')) return true;
-          // Format conv_ générique (si userId est différent ou anonyme)
-          if (key.startsWith('conv_') && !key.includes('index') && key.split('_').length >= 3) return true;
-          // Ancien format conversation_
-          if (key.startsWith('conversation_')) return true;
-          return false;
-        });
-        
-        console.log(`📚 ${convKeys.length} clés de conversations trouvées`);
-        
-        if (convKeys.length === 0) {
-          // Debug: afficher les clés existantes
-          const debugKeys = keys.filter(k => k.includes('conv') || k.includes('message'));
-          console.log(`📋 Debug - Clés contenant 'conv' ou 'message':`, debugKeys.slice(0, 20));
-        }
-        
-        const seenCharacterIds = new Set();
-        
-        for (const key of convKeys) {
-          try {
-            const value = await AsyncStorage.getItem(key);
-            if (!value) continue;
-            
-            const parsed = JSON.parse(value);
-            let messages = parsed.messages || parsed.history;
-            
-            if (!Array.isArray(messages) || messages.length === 0) continue;
-            
-            // Extraire characterId
-            let characterId = parsed.characterId;
-            if (!characterId && key.includes('_')) {
-              const parts = key.split('_');
-              if (key.startsWith('conv_') && parts.length >= 3) {
-                characterId = parts.slice(2).join('_');
-              } else if (key.startsWith('conversation_')) {
-                characterId = parts.slice(1).join('_');
-              }
-            }
-            
-            if (!characterId || seenCharacterIds.has(characterId)) continue;
-            seenCharacterIds.add(characterId);
-            
-            // Normaliser les messages
-            const normalizedMessages = messages
-              .filter(m => m && m.content)
-              .map(m => ({
-                role: m.role || 'assistant',
-                content: String(m.content || '').trim(),
-              }))
-              .filter(m => m.content !== '');
-            
-            if (normalizedMessages.length > 0) {
-              result.push({
-                characterId: String(characterId),
-                messages: normalizedMessages,
-                relationship: parsed.relationship || { level: 1, affection: 50 },
-                lastUpdated: parsed.lastUpdated || new Date().toISOString(),
-                savedAt: parsed.savedAt || Date.now(),
-              });
-              console.log(`✅ Conversation (clé): ${characterId} (${normalizedMessages.length} msgs)`);
-              
-              // Ajouter à l'index pour les prochaines fois
-              try {
-                let index = [];
-                const indexData = await AsyncStorage.getItem(indexKey);
-                if (indexData) index = JSON.parse(indexData);
-                if (!index.includes(characterId)) {
-                  index.push(characterId);
-                  await AsyncStorage.setItem(indexKey, JSON.stringify(index));
-                }
-              } catch (e) {}
-            }
-          } catch (e) {
-            console.log(`⚠️ Erreur traitement ${key}:`, e.message);
-          }
-        }
-      }
       
       // Trier par date (plus récentes en premier)
       result.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
@@ -256,15 +220,53 @@ class StorageService {
       return [];
     }
   }
+  
+  /**
+   * Force le rechargement de toutes les conversations (ignore le cache/index)
+   */
+  async refreshConversations() {
+    return await this.getAllConversations();
+  }
 
   async deleteConversation(characterId) {
     try {
       const userId = await this.getCurrentUserId();
       const key = `conv_${userId}_${characterId}`;
+      
+      // Supprimer la conversation
       await AsyncStorage.removeItem(key);
       console.log(`🗑️ Conversation supprimée: ${key}`);
+      
+      // AUSSI supprimer du l'index
+      const indexKey = `conv_index_${userId}`;
+      try {
+        const indexData = await AsyncStorage.getItem(indexKey);
+        if (indexData) {
+          let index = JSON.parse(indexData);
+          // Retirer le characterId de l'index
+          index = index.filter(id => id !== String(characterId) && id !== characterId);
+          await AsyncStorage.setItem(indexKey, JSON.stringify(index));
+          console.log(`📋 Index mis à jour après suppression: ${index.length} conversations`);
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur mise à jour index:', e.message);
+      }
+      
+      // Essayer aussi de supprimer les anciennes clés
+      const alternativeKeys = [
+        `conv_anonymous_${characterId}`,
+        `conversation_${characterId}`,
+      ];
+      for (const altKey of alternativeKeys) {
+        try {
+          await AsyncStorage.removeItem(altKey);
+        } catch (e) {}
+      }
+      
+      return true;
     } catch (error) {
       console.error('Error deleting conversation:', error);
+      return false;
     }
   }
 

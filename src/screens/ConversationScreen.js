@@ -27,7 +27,7 @@ import AuthService from '../services/AuthService';
 import ColorPicker from '../components/ColorPicker';
 
 export default function ConversationScreen({ route, navigation }) {
-  const { character } = route.params || {};
+  const { character, forceNew, timestamp } = route.params || {};
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -264,6 +264,21 @@ export default function ConversationScreen({ route, navigation }) {
     try {
       if (!character || !character.id) {
         throw new Error('Character ID manquant');
+      }
+      
+      // Si forceNew est true, démarrer une nouvelle conversation
+      if (forceNew) {
+        console.log('🔄 Nouvelle conversation forcée (forceNew=true)');
+        const initialMessage = {
+          role: 'assistant',
+          content: character.startMessage || character.greeting || `Bonjour, je suis ${character.name}.`,
+        };
+        setMessages([initialMessage]);
+        const defaultRel = StorageService.getDefaultRelationship();
+        setRelationship(defaultRel);
+        // Sauvegarder la nouvelle conversation
+        await StorageService.saveConversation(character.id, [initialMessage], defaultRel);
+        return;
       }
       
       const saved = await StorageService.loadConversation(character.id);
