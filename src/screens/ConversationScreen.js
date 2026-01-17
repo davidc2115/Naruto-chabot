@@ -27,7 +27,7 @@ import AuthService from '../services/AuthService';
 import ColorPicker from '../components/ColorPicker';
 
 export default function ConversationScreen({ route, navigation }) {
-  const { character } = route.params || {};
+  const { character, forceNew, timestamp } = route.params || {};
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -266,6 +266,21 @@ export default function ConversationScreen({ route, navigation }) {
         throw new Error('Character ID manquant');
       }
       
+      // Si forceNew est true, démarrer une nouvelle conversation
+      if (forceNew) {
+        console.log('🔄 Nouvelle conversation forcée (forceNew=true)');
+        const initialMessage = {
+          role: 'assistant',
+          content: character.startMessage || character.greeting || `Bonjour, je suis ${character.name}.`,
+        };
+        setMessages([initialMessage]);
+        const defaultRel = StorageService.getDefaultRelationship();
+        setRelationship(defaultRel);
+        // Sauvegarder la nouvelle conversation
+        await StorageService.saveConversation(character.id, [initialMessage], defaultRel);
+        return;
+      }
+      
       const saved = await StorageService.loadConversation(character.id);
       if (saved && saved.messages && saved.messages.length > 0) {
         console.log(`✅ Conversation chargée: ${saved.messages.length} messages`);
@@ -336,27 +351,59 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   const sendMessage = async () => {
-    if (!inputText.trim() || isLoading) return;
+    // Validation stricte
+    if (!inputText?.trim() || isLoading) return;
+    if (!character?.id) {
+      console.error('❌ Character invalide dans sendMessage');
+      return;
+    }
 
+    const userMessageContent = inputText.trim();
     const userMessage = {
       role: 'user',
-      content: inputText.trim(),
+      content: userMessageContent,
     };
 
+    // Copier les messages avant modification
+    const previousMessages = [...messages];
     const updatedMessages = [...messages, userMessage];
+    
     setMessages(updatedMessages);
     setInputText('');
     setIsLoading(true);
 
     try {
-      const newRelationship = updateRelationship(userMessage.content);
-      setRelationship(newRelationship);
+      // Mise à jour de la relation (avec protection)
+      let newRelationship = relationship;
+      try {
+        newRelationship = updateRelationship(userMessageContent);
+        setRelationship(newRelationship);
+      } catch (relError) {
+        console.log('⚠️ Erreur updateRelationship:', relError.message);
+      }
 
-      const response = await TextGenerationService.generateResponse(
-        updatedMessages,
-        character,
-        userProfile
-      );
+      // Génération de la réponse avec timeout
+      let response;
+      try {
+        response = await Promise.race([
+          TextGenerationService.generateResponse(
+            updatedMessages,
+            character,
+            userProfile
+          ),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 60000)
+          )
+        ]);
+      } catch (genError) {
+        console.error('❌ Erreur génération:', genError.message);
+        response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
+      }
+
+      // Vérification de la réponse
+      if (!response || typeof response !== 'string') {
+        response = `*sourit* "..." (Réponse vide, réessaie)`;
+      }
 
       const assistantMessage = {
         role: 'assistant',
@@ -366,55 +413,63 @@ export default function ConversationScreen({ route, navigation }) {
       const finalMessages = [...updatedMessages, assistantMessage];
       setMessages(finalMessages);
       
-      await saveConversation(finalMessages, newRelationship);
+      // Sauvegarde avec protection
+      try {
+        await saveConversation(finalMessages, newRelationship);
+      } catch (saveError) {
+        console.error('⚠️ Erreur sauvegarde:', saveError.message);
+      }
 
-      // Gagner de l'XP pour le message envoyé (par personnage)
+      // XP avec protection complète
       try {
         const isNSFW = userProfile?.nsfwMode || false;
-        const xpGained = LevelService.calculateMessageXP(userMessage.content.length, isNSFW);
+        const xpGained = LevelService.calculateMessageXP(userMessageContent.length, isNSFW);
         
-        // Utiliser le système de niveau par personnage
         const xpResult = await LevelService.addXPForCharacter(character.id, xpGained, 'message');
-        
-        // Enregistrer l'interaction avec ce personnage (pour les stats globales)
         await LevelService.recordCharacterInteraction(character.id);
         
-        // Mettre à jour l'état du niveau
-        setUserLevel({
-          ...userLevel,
-          level: xpResult.level,
-          title: xpResult.title,
-          totalXP: xpResult.totalXP,
-          progress: xpResult.progress,
-        });
+        if (xpResult && userLevel) {
+          setUserLevel({
+            ...userLevel,
+            level: xpResult.level || userLevel.level,
+            title: xpResult.title || userLevel.title,
+            totalXP: xpResult.totalXP || userLevel.totalXP,
+            progress: xpResult.progress || userLevel.progress,
+          });
+        }
         
-        // Si level up, afficher l'animation et générer l'image récompense
-        if (xpResult.leveledUp) {
+        if (xpResult?.leveledUp) {
           setLevelUpInfo(xpResult);
           setShowLevelUp(true);
           
-          // Générer l'image de récompense si disponible
-          if (xpResult.reward && xpResult.reward.type === 'image') {
-            generateLevelUpRewardImage(xpResult.reward, xpResult.newLevel);
+          if (xpResult.reward?.type === 'image') {
+            generateLevelUpRewardImage(xpResult.reward, xpResult.newLevel).catch(e => 
+              console.log('⚠️ Erreur image récompense:', e.message)
+            );
           }
           
           setTimeout(() => setShowLevelUp(false), 5000);
         }
         
-        console.log(`✅ +${xpGained} XP avec ${character.name} → Niveau ${xpResult.level} "${xpResult.title}" (${xpResult.progress}%)`);
+        console.log(`✅ +${xpGained} XP avec ${character.name}`);
       } catch (xpError) {
-        console.error('❌ Erreur XP:', xpError);
+        console.log('⚠️ Erreur XP (non-critique):', xpError.message);
       }
 
-      // Scroll vers le bas seulement si l'utilisateur ne scroll pas manuellement
-      if (!userIsScrolling) {
+      // Scroll sécurisé
+      if (!userIsScrolling && flatListRef.current) {
         setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
+          try {
+            flatListRef.current?.scrollToEnd({ animated: true });
+          } catch (e) {}
         }, 100);
       }
     } catch (error) {
-      Alert.alert('Erreur', error.message);
-      setMessages(messages);
+      console.error('❌ Erreur sendMessage:', error);
+      // Restaurer les messages en cas d'erreur critique
+      setMessages(previousMessages);
+      // Ne pas afficher d'alerte pour éviter les crashs
+      console.log('Message restauré après erreur');
     } finally {
       setIsLoading(false);
     }
@@ -520,36 +575,41 @@ export default function ConversationScreen({ route, navigation }) {
 
     setGeneratingImage(true);
     try {
+      // Validation
+      if (!character?.id) {
+        throw new Error('Personnage invalide');
+      }
+      
       // Niveau de relation pour adapter la tenue/pose
       const currentLevel = userLevel?.level || 1;
-      
-      // LOG IMPORTANT pour debug
-      console.log('🖼️ ===== GÉNÉRATION IMAGE =====');
-      console.log('🖼️ userLevel:', JSON.stringify(userLevel));
-      console.log('🖼️ currentLevel utilisé:', currentLevel);
-      console.log('🖼️ Personnage:', character?.name);
-      
-      // S'assurer que le niveau est au moins 2 pour avoir des images NSFW si progression
-      // (si l'utilisateur a un niveau mais qu'il est à 0, on utilise au moins 1)
       const effectiveLevel = Math.max(1, currentLevel);
-      console.log('🖼️ effectiveLevel final:', effectiveLevel);
       
-      // Afficher le niveau utilisé pour debug
-      const nsfwType = effectiveLevel >= 5 ? '🔥 NUE EXPLICITE' :
-                       effectiveLevel >= 4 ? '👙 TOPLESS' :
-                       effectiveLevel >= 3 ? '💋 LINGERIE' :
-                       effectiveLevel >= 2 ? '😈 PROVOCANTE' : '✨ SFW';
-      console.log(`🎨 Génération image: Niveau ${effectiveLevel} = ${nsfwType}`);
+      console.log(`🎨 Génération image: Niveau ${effectiveLevel}`);
       
-      const imageUrl = await ImageGenerationService.generateSceneImage(
-        character,
-        userProfile,
-        messages,
-        effectiveLevel  // Passe le niveau pour tenue appropriée
-      );
+      // Génération avec timeout
+      const imageUrl = await Promise.race([
+        ImageGenerationService.generateSceneImage(
+          character,
+          userProfile,
+          messages || [],
+          effectiveLevel
+        ),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout génération')), 90000)
+        )
+      ]);
       
-      await GalleryService.saveImageToGallery(character.id, imageUrl);
-      await loadGallery();
+      if (!imageUrl) {
+        throw new Error('Image non générée');
+      }
+      
+      // Sauvegarde avec protection
+      try {
+        await GalleryService.saveImageToGallery(character.id, imageUrl);
+        await loadGallery();
+      } catch (saveError) {
+        console.log('⚠️ Erreur sauvegarde galerie:', saveError.message);
+      }
       
       const imageMessage = {
         role: 'system',
@@ -559,29 +619,41 @@ export default function ConversationScreen({ route, navigation }) {
 
       const updatedMessages = [...messages, imageMessage];
       setMessages(updatedMessages);
-      await saveConversation(updatedMessages, relationship);
+      
+      try {
+        await saveConversation(updatedMessages, relationship);
+      } catch (e) {
+        console.log('⚠️ Erreur sauvegarde conversation');
+      }
 
       Alert.alert('Succès', 'Image générée et ajoutée à la galerie !');
 
-      // Scroll vers le bas seulement si l'utilisateur ne scroll pas manuellement
-      if (!userIsScrolling) {
+      // Scroll sécurisé
+      if (!userIsScrolling && flatListRef.current) {
         setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
+          try {
+            flatListRef.current?.scrollToEnd({ animated: true });
+          } catch (e) {}
         }, 100);
       }
     } catch (error) {
-      // Vérifier si c'est une erreur de premium
+      console.error('❌ Erreur génération image:', error);
+      
       if (error.message?.includes('Premium') || error.message?.includes('403')) {
         Alert.alert(
           '💎 Premium Requis',
           'Vous devez être membre Premium pour générer des images.',
           [
             { text: 'OK', style: 'cancel' },
-            { text: 'Devenir Premium', onPress: () => navigation.navigate('Premium') }
+            { text: 'Devenir Premium', onPress: () => {
+              try { navigation.navigate('Premium'); } catch (e) {}
+            }}
           ]
         );
+      } else if (error.message?.includes('Timeout')) {
+        Alert.alert('Timeout', 'La génération a pris trop de temps. Réessayez.');
       } else {
-        Alert.alert('Erreur', error.message || 'Impossible de générer l\'image');
+        Alert.alert('Erreur', 'Impossible de générer l\'image. Réessayez.');
       }
     } finally {
       setGeneratingImage(false);

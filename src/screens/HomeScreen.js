@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,66 +9,195 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import enhancedCharacters from '../data/allCharacters';
-import CustomCharacterService from '../services/CustomCharacterService';
-import ImageGenerationService from '../services/ImageGenerationService';
-import GalleryService from '../services/GalleryService';
+
+// Import optionnel des services (avec fallback)
+let CustomCharacterService = null;
+let GalleryService = null;
+
+try {
+  CustomCharacterService = require('../services/CustomCharacterService').default;
+} catch (e) {
+  console.log('CustomCharacterService non disponible');
+}
+
+try {
+  GalleryService = require('../services/GalleryService').default;
+} catch (e) {
+  console.log('GalleryService non disponible');
+}
 
 export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('tous');
-  const [filteredCharacters, setFilteredCharacters] = useState([]);
-  const [allCharacters, setAllCharacters] = useState([]);
+  // IMPORTANT: Initialiser IMMÉDIATEMENT avec les personnages de base
+  const [allCharacters, setAllCharacters] = useState(enhancedCharacters || []);
   const [characterImages, setCharacterImages] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [customLoaded, setCustomLoaded] = useState(false);
+  const loadingRef = useRef(false);
 
+  // Chargement initial IMMÉDIAT des personnages de base
   useEffect(() => {
-    loadAllCharacters();
+    console.log('🚀 HomeScreen: Affichage immédiat de', enhancedCharacters?.length || 0, 'personnages');
+    
+    // S'assurer que les personnages de base sont affichés
+    if (enhancedCharacters && enhancedCharacters.length > 0) {
+      setAllCharacters([...enhancedCharacters]);
+    }
+    
+    // Charger les personnages custom en arrière-plan avec timeout
+    const timer = setTimeout(() => {
+      loadCustomCharactersBackground();
+    }, 100); // Petit délai pour laisser le rendu initial se faire
+    
+    return () => clearTimeout(timer);
   }, []);
 
+  // Recharger quand on revient sur l'écran (seulement si pas déjà en cours)
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      loadAllCharacters();
+      if (!loadingRef.current && customLoaded) {
+        loadCustomCharactersBackground();
+      }
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, customLoaded]);
 
-  useEffect(() => {
-    filterCharacters();
-  }, [searchQuery, selectedFilter, allCharacters]);
-
-  const loadAllCharacters = async () => {
-    // Migrer les anciens personnages si nécessaire
-    await CustomCharacterService.migrateOldCharacters();
+  // Charger les personnages custom en arrière-plan avec TIMEOUT
+  const loadCustomCharactersBackground = async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     
-    // Récupérer uniquement les personnages de l'utilisateur + publics des autres
-    const customChars = await CustomCharacterService.getAllVisibleCharacters();
-    
-    // Combiner les personnages de base (avec NSFW) avec les personnages personnalisés
-    const combined = [...enhancedCharacters, ...customChars];
-    setAllCharacters(combined);
-    
-    // Charger les images de galerie pour tous les personnages
-    await loadGalleryImages(combined);
+    try {
+      if (!CustomCharacterService) {
+        console.log('⚠️ CustomCharacterService non disponible');
+        loadingRef.current = false;
+        setCustomLoaded(true);
+        return;
+      }
+      
+      // Utiliser un timeout pour éviter de bloquer
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+      
+      // Migration rapide (local seulement)
+      try {
+        await Promise.race([
+          CustomCharacterService.migrateOldCharacters(),
+          timeoutPromise
+        ]);
+      } catch (e) {
+        console.log('⚠️ Migration timeout ou erreur');
+      }
+      
+      // Charger uniquement les personnages locaux d'abord (rapide)
+      let customChars = [];
+      try {
+        const localData = await AsyncStorage.getItem('custom_characters_anonymous');
+        if (localData) {
+          customChars = JSON.parse(localData);
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur chargement local');
+      }
+      
+      // Mettre à jour avec les personnages locaux
+      if (customChars && customChars.length > 0) {
+        setAllCharacters(prev => {
+          const baseChars = enhancedCharacters || [];
+          const existingIds = new Set(baseChars.map(c => c.id));
+          const newCustom = customChars.filter(c => !existingIds.has(c.id));
+          return [...baseChars, ...newCustom];
+        });
+      }
+      
+      setCustomLoaded(true);
+      
+      // Charger les personnages du serveur en arrière-plan (sans bloquer)
+      loadServerCharactersAsync();
+      
+    } catch (error) {
+      console.log('⚠️ Erreur chargement personnages custom:', error.message);
+    } finally {
+      loadingRef.current = false;
+    }
+  };
+  
+  // Charger les personnages du serveur en arrière-plan (asynchrone, non-bloquant)
+  const loadServerCharactersAsync = async () => {
+    try {
+      if (!CustomCharacterService) return;
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout serveur')), 8000)
+      );
+      
+      const customChars = await Promise.race([
+        CustomCharacterService.getAllVisibleCharacters(),
+        timeoutPromise
+      ]);
+      
+      if (customChars && customChars.length > 0) {
+        setAllCharacters(prev => {
+          const baseChars = enhancedCharacters || [];
+          const existingIds = new Set(baseChars.map(c => c.id));
+          const newCustom = customChars.filter(c => !existingIds.has(c.id));
+          console.log('✅ Personnages serveur chargés:', newCustom.length);
+          return [...baseChars, ...newCustom];
+        });
+      }
+    } catch (error) {
+      console.log('⚠️ Chargement serveur en arrière-plan échoué (normal si hors-ligne)');
+    }
   };
 
-  const loadGalleryImages = async (chars) => {
+  // Charger les images de galerie en arrière-plan par lots
+  const loadGalleryImagesBackground = useCallback(async (characters) => {
+    if (!GalleryService) return;
+    
+    const charsWithPotentialImages = characters.filter(c => c.imageUrl || c.isCustom);
+    if (charsWithPotentialImages.length === 0) return;
+    
     const images = {};
-    for (const char of chars) {
-      // Si le personnage custom a déjà une imageUrl, on l'utilise
-      if (char.imageUrl) {
-        images[char.id] = char.imageUrl;
-      } else {
-        // Sinon, on charge la première image de la galerie
-        const gallery = await GalleryService.getGallery(char.id);
-        if (gallery && gallery.length > 0) {
-          images[char.id] = gallery[0]; // Première image de la galerie
+    const BATCH_SIZE = 10;
+    
+    for (let i = 0; i < charsWithPotentialImages.length; i += BATCH_SIZE) {
+      const batch = charsWithPotentialImages.slice(i, i + BATCH_SIZE);
+      
+      await Promise.all(batch.map(async (char) => {
+        try {
+          if (char.imageUrl) {
+            images[char.id] = char.imageUrl;
+          } else if (char.isCustom) {
+            const gallery = await GalleryService.getGallery(char.id);
+            if (gallery && gallery.length > 0) {
+              images[char.id] = gallery[0];
+            }
+          }
+        } catch (e) {
+          // Ignorer les erreurs individuelles
         }
+      }));
+      
+      // Mettre à jour progressivement
+      if (Object.keys(images).length > 0) {
+        setCharacterImages(prev => ({ ...prev, ...images }));
       }
     }
-    setCharacterImages(images);
-  };
+  }, []);
+  
+  // Charger les images quand les personnages changent
+  useEffect(() => {
+    if (allCharacters.length > 0 && customLoaded) {
+      loadGalleryImagesBackground(allCharacters);
+    }
+  }, [allCharacters, customLoaded, loadGalleryImagesBackground]);
 
-  const filterCharacters = () => {
+  // Filtrage optimisé avec useMemo
+  const filteredCharacters = useMemo(() => {
     let filtered = allCharacters;
 
     // Filter by gender
@@ -76,7 +205,7 @@ export default function HomeScreen({ navigation }) {
       filtered = filtered.filter(char => char.gender === selectedFilter);
     }
 
-    // Filter by search query (recherche dans nom, tags, personnalité, id)
+    // Filter by search query
     if (searchQuery) {
       const queries = searchQuery.toLowerCase().split(/[\s|]+/).filter(q => q.length > 0);
       filtered = filtered.filter(char => {
@@ -86,7 +215,6 @@ export default function HomeScreen({ navigation }) {
         const charId = String(char.id || '').toLowerCase();
         const scenario = (char.scenario || '').toLowerCase();
         
-        // Vérifie si au moins une query matche
         return queries.some(query => 
           name.includes(query) ||
           charId.includes(query) ||
@@ -97,10 +225,11 @@ export default function HomeScreen({ navigation }) {
       });
     }
 
-    setFilteredCharacters(filtered);
-  };
+    return filtered;
+  }, [searchQuery, selectedFilter, allCharacters]);
 
-  const renderCharacter = ({ item }) => {
+  // Rendu optimisé des personnages
+  const renderCharacter = useCallback(({ item }) => {
     const imageUrl = item.imageUrl || characterImages[item.id];
     
     return (
@@ -113,9 +242,6 @@ export default function HomeScreen({ navigation }) {
             <Image
               source={{ uri: imageUrl }}
               style={styles.characterImage}
-              onError={() => {
-                // Si l'image échoue, on garde le placeholder
-              }}
             />
           ) : (
             <View style={styles.avatarPlaceholder}>
@@ -138,7 +264,7 @@ export default function HomeScreen({ navigation }) {
               {item.scenario}
             </Text>
             <View style={styles.tagsContainer}>
-              {(item.tags || []).slice(0, 5).map((tag, index) => (
+              {(item.tags || []).slice(0, 4).map((tag, index) => (
                 <View key={index} style={styles.tag}>
                   <Text style={styles.tagText}>{tag}</Text>
                 </View>
@@ -148,7 +274,7 @@ export default function HomeScreen({ navigation }) {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [characterImages, navigation]);
 
   // Tags populaires pour le filtre rapide
   const popularTags = [
@@ -168,7 +294,7 @@ export default function HomeScreen({ navigation }) {
     { label: '👫 Amis', filter: 'friend', type: 'id' },
   ];
 
-  const handleTagFilter = (tag) => {
+  const handleTagFilter = useCallback((tag) => {
     if (tag.type === 'gender') {
       setSelectedFilter(tag.filter);
       setSearchQuery('');
@@ -176,7 +302,9 @@ export default function HomeScreen({ navigation }) {
       setSelectedFilter('tous');
       setSearchQuery(tag.filter.replace('|', ' '));
     }
-  };
+  }, []);
+
+  const keyExtractor = useCallback((item) => String(item.id), []);
 
   return (
     <View style={styles.container}>
@@ -218,7 +346,7 @@ export default function HomeScreen({ navigation }) {
         />
       </View>
 
-      {/* Filtres par tags - Style pro */}
+      {/* Filtres par tags */}
       <View style={styles.tagsFilterContainer}>
         <FlatList
           horizontal
@@ -249,9 +377,18 @@ export default function HomeScreen({ navigation }) {
       <FlatList
         data={filteredCharacters}
         renderItem={renderCharacter}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={keyExtractor}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        initialNumToRender={8}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
+        getItemLayout={(data, index) => ({
+          length: 150,
+          offset: 150 * index,
+          index,
+        })}
       />
     </View>
   );
@@ -393,6 +530,12 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: 'row',
     padding: 15,
+  },
+  characterImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 15,
   },
   avatarPlaceholder: {
     width: 80,

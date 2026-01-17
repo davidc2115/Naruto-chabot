@@ -15,6 +15,8 @@ on:
       - 'v1.7.*'
       - 'v2.*'
       - 'v3.*'
+      - 'v4.*'
+      - 'v5.*'
       - '7.*'
       - 'native-build-*'
 
@@ -158,36 +160,47 @@ jobs:
         with:
           files: roleplay-chat-v${{ steps.version.outputs.version }}-native.apk
           body: |
-            # 🚀 Roleplay Chat v${{ steps.version.outputs.version }} (Native Build)
+            # 🚀 B&G Chat v${{ steps.version.outputs.version }} (Native Build)
             
             **Build Method**: Native Android (Gradle)  
             **No Expo Account Required**: ✅  
             **Completely Free**: ✅
             
-            ## ✨ Corrections v${{ steps.version.outputs.version }}
+            ## ✨ Nouveautés v${{ steps.version.outputs.version }}
+            
+            ### 🎭 Personnages Bagbot v4.3.30 ENHANCED
+            - **470+ personnages** avec descriptions ultra-détaillées
+            - Nouveau format enrichi avec `temperamentDetails`
+            - Descriptions physiques complètes (`physicalDescription`)
+            - Prompts d'image optimisés (`imagePrompt`) pour Pollinations AI
+            - Détails de tempérament: emotionnel, seduction, intimite, communication, reactions
+            
+            ### 📁 Catégories de personnages
+            - 30 personnages MILF
+            - 30 personnages frères/sœurs  
+            - 30 personnages mamans/papas
+            - 30 personnages collègues
+            - 30 personnages amis
+            - 30 personnages colocataires
+            - 30 personnages médicaux
+            - 50 personnages situations
+            - 20 personnages DILF
+            - 16 personnages fantasy
+            - 20+ belles filles variées
             
             ### 🔥 Mode NSFW Ultra-Optimisé
-            - Prompt système ultra-explicite (100+ lignes)
+            - Prompt système ultra-explicite
             - Directives détaillées anti-censure
             - Température augmentée (1.0)
             - Tokens max augmentés (1200)
-            - Pénalités anti-répétition
             
-            ### 📸 Gestion Rate Limit Images
-            - Délai minimum 3s entre requêtes
-            - Retry automatique (3 tentatives)
-            - Backoff exponentiel
-            - Vérification du contenu image
-            - Plus de "rate limit" affiché
-            
-            ### ✅ Fonctionnalités Complètes (v1.6.0)
+            ### ✅ Fonctionnalités Complètes
             - Galerie de personnages avec carrousel
             - Filtres par tags multiples
             - Système de galerie d'images
             - Conversations immersives roleplay
             - Mode NSFW optimisé
             - Profil utilisateur
-            - 200+ personnages
             
             ## 📥 Installation
             

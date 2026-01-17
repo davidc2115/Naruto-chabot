@@ -1,7 +1,34 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 import AuthService from './AuthService';
 
+/**
+ * Service de gestion de galerie d'images
+ * v5.3.12 - Stockage LOCAL sur le téléphone pour persistance permanente
+ * Les images sont téléchargées et sauvegardées localement
+ */
 class GalleryService {
+  constructor() {
+    // Répertoire de base pour stocker les images
+    this.imageDirectory = `${FileSystem.documentDirectory}gallery/`;
+    this.initDirectory();
+  }
+
+  /**
+   * Initialise le répertoire de stockage des images
+   */
+  async initDirectory() {
+    try {
+      const dirInfo = await FileSystem.getInfoAsync(this.imageDirectory);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(this.imageDirectory, { intermediates: true });
+        console.log('📁 Répertoire galerie créé:', this.imageDirectory);
+      }
+    } catch (error) {
+      console.error('❌ Erreur création répertoire galerie:', error);
+    }
+  }
+
   /**
    * Récupère l'ID de l'utilisateur courant
    */
@@ -22,6 +49,104 @@ class GalleryService {
     }
   }
 
+  /**
+   * Génère un nom de fichier unique pour une image
+   */
+  generateFileName(characterId, seed) {
+    const timestamp = Date.now();
+    const seedPart = seed || Math.random().toString(36).substring(7);
+    return `${characterId}_${seedPart}_${timestamp}.jpg`;
+  }
+
+  /**
+   * Télécharge une image et la sauvegarde localement
+   */
+  async downloadAndSaveImage(imageUrl, characterId, seed) {
+    try {
+      await this.initDirectory();
+      
+      const fileName = this.generateFileName(characterId, seed);
+      const localPath = `${this.imageDirectory}${fileName}`;
+      
+      console.log(`📥 Téléchargement image: ${imageUrl.substring(0, 50)}...`);
+      
+      // Télécharger l'image
+      const downloadResult = await FileSystem.downloadAsync(imageUrl, localPath);
+      
+      if (downloadResult.status === 200) {
+        console.log(`✅ Image sauvegardée localement: ${fileName}`);
+        return {
+          localPath: localPath,
+          fileName: fileName,
+          success: true,
+        };
+      } else {
+        console.log(`⚠️ Échec téléchargement: status ${downloadResult.status}`);
+        return { success: false, error: `Status ${downloadResult.status}` };
+      }
+    } catch (error) {
+      console.error('❌ Erreur téléchargement image:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Vérifie si un fichier local existe
+   */
+  async checkLocalFile(localPath) {
+    try {
+      if (!localPath) return false;
+      const fileInfo = await FileSystem.getInfoAsync(localPath);
+      return fileInfo.exists;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Extrait le seed d'une URL Pollinations pour régénérer l'URL si nécessaire
+   */
+  extractSeedFromUrl(url) {
+    if (!url) return null;
+    const seedMatch = url.match(/[&?]seed=(\d+)/);
+    return seedMatch ? seedMatch[1] : null;
+  }
+
+  /**
+   * Extrait le prompt d'une URL Pollinations
+   */
+  extractPromptFromUrl(url) {
+    if (!url) return null;
+    try {
+      // Format: https://image.pollinations.ai/prompt/ENCODED_PROMPT?params
+      const match = url.match(/pollinations\.ai\/prompt\/([^?]+)/);
+      if (match) {
+        return decodeURIComponent(match[1]);
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  /**
+   * Régénère une URL Pollinations avec le même seed pour persistance
+   */
+  regeneratePollinationsUrl(originalUrl) {
+    if (!originalUrl || !originalUrl.includes('pollinations.ai')) {
+      return originalUrl;
+    }
+    
+    const seed = this.extractSeedFromUrl(originalUrl);
+    const prompt = this.extractPromptFromUrl(originalUrl);
+    
+    if (seed && prompt) {
+      // Reconstruire l'URL avec les mêmes paramètres
+      const encodedPrompt = encodeURIComponent(prompt);
+      return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
+    }
+    
+    return originalUrl;
+  }
+
   async saveImageToGallery(characterId, imageUrl) {
     try {
       const userId = await this.getCurrentUserId();
@@ -29,29 +154,79 @@ class GalleryService {
       const existing = await AsyncStorage.getItem(key);
       const gallery = existing ? JSON.parse(existing) : [];
       
-      // Vérifier si l'URL existe déjà
-      const urlExists = gallery.some(item => {
-        const url = typeof item === 'string' ? item : item.url;
-        return url === imageUrl;
+      // Extraire les infos importantes de l'URL
+      const seed = this.extractSeedFromUrl(imageUrl);
+      const prompt = this.extractPromptFromUrl(imageUrl);
+      
+      // Vérifier si l'image existe déjà (par seed)
+      const exists = gallery.some(item => {
+        if (typeof item === 'string') {
+          return this.extractSeedFromUrl(item) === seed;
+        }
+        return item.seed === seed;
       });
       
-      if (!urlExists) {
-        // Ajouter simplement l'URL comme string (plus simple)
-        gallery.unshift(imageUrl);
+      if (!exists) {
+        // v5.3.15: SAUVEGARDER D'ABORD avec l'URL, puis télécharger en arrière-plan
+        const imageData = {
+          url: imageUrl,                    // URL originale (TOUJOURS gardée)
+          localPath: null,                  // Sera rempli après téléchargement
+          seed: seed,
+          prompt: prompt ? prompt.substring(0, 500) : null,
+          savedAt: Date.now(),
+          characterId: characterId,
+          isLocal: false,
+        };
         
-        // Limiter à 50 images par personnage
-        if (gallery.length > 50) {
-          gallery.pop();
+        gallery.unshift(imageData);
+        
+        // Limiter à 100 images par personnage
+        if (gallery.length > 100) {
+          const removed = gallery.pop();
+          if (removed?.localPath) {
+            try {
+              await FileSystem.deleteAsync(removed.localPath, { idempotent: true });
+            } catch (e) {}
+          }
         }
         
+        // Sauvegarder IMMÉDIATEMENT avec l'URL
         await AsyncStorage.setItem(key, JSON.stringify(gallery));
-        console.log(`🖼️ Image sauvegardée: ${key}`);
+        console.log(`🖼️ Image ajoutée à la galerie: seed=${seed}`);
+        
+        // Télécharger en ARRIÈRE-PLAN (ne bloque pas)
+        this.downloadInBackground(characterId, imageUrl, seed, key, gallery);
       }
       
       return imageUrl;
     } catch (error) {
       console.error('Error saving image to gallery:', error);
       throw error;
+    }
+  }
+  
+  /**
+   * Télécharge une image en arrière-plan et met à jour la galerie
+   * v5.3.15: Ne bloque pas la sauvegarde initiale
+   */
+  async downloadInBackground(characterId, imageUrl, seed, key, gallery) {
+    try {
+      const downloadResult = await this.downloadAndSaveImage(imageUrl, characterId, seed);
+      
+      if (downloadResult.success) {
+        // Mettre à jour l'entrée dans la galerie avec le chemin local
+        const itemIndex = gallery.findIndex(item => item.seed === seed);
+        if (itemIndex !== -1) {
+          gallery[itemIndex].localPath = downloadResult.localPath;
+          gallery[itemIndex].isLocal = true;
+          await AsyncStorage.setItem(key, JSON.stringify(gallery));
+          console.log(`✅ Image téléchargée en arrière-plan: ${seed}`);
+        }
+      } else {
+        console.log(`⚠️ Téléchargement arrière-plan échoué pour seed=${seed}`);
+      }
+    } catch (error) {
+      console.log(`⚠️ Erreur téléchargement arrière-plan: ${error.message}`);
     }
   }
 
@@ -63,7 +238,31 @@ class GalleryService {
       
       if (data) {
         const gallery = JSON.parse(data);
-        return gallery.map(item => typeof item === 'string' ? item : item.url);
+        const result = [];
+        
+        // v5.3.15: NE PAS télécharger ici - ça cause des rate limits
+        // Utiliser les fichiers locaux s'ils existent, sinon l'URL originale
+        for (const item of gallery) {
+          if (typeof item === 'string') {
+            // Ancien format string - utiliser l'URL directement
+            result.push(item);
+          } else if (item.localPath) {
+            // Vérifier si le fichier local existe
+            const exists = await this.checkLocalFile(item.localPath);
+            if (exists) {
+              // Fichier local existe - l'utiliser
+              result.push(item.localPath);
+            } else if (item.url) {
+              // Fichier local n'existe plus - utiliser l'URL originale
+              result.push(item.url);
+            }
+          } else if (item.url) {
+            // Pas de fichier local - utiliser l'URL
+            result.push(item.url);
+          }
+        }
+        
+        return result;
       }
       
       // Migration: essayer l'ancienne clé
@@ -72,12 +271,31 @@ class GalleryService {
       if (oldData) {
         console.log(`🔄 Migration galerie: ${oldKey} -> ${key}`);
         await AsyncStorage.setItem(key, oldData);
-        return JSON.parse(oldData).map(item => typeof item === 'string' ? item : item.url);
+        return this.getGallery(characterId);
       }
       
       return [];
     } catch (error) {
       console.error('Error getting gallery:', error);
+      return [];
+    }
+  }
+  
+  /**
+   * Retourne la galerie avec les données complètes (pour debug/export)
+   */
+  async getGalleryFull(characterId) {
+    try {
+      const userId = await this.getCurrentUserId();
+      const key = `gal_${userId}_${characterId}`;
+      const data = await AsyncStorage.getItem(key);
+      
+      if (data) {
+        return JSON.parse(data);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error getting full gallery:', error);
       return [];
     }
   }
@@ -90,13 +308,81 @@ class GalleryService {
       if (!data) return [];
       
       const gallery = JSON.parse(data);
-      // Filtrer par URL (compatible avec ancien et nouveau format)
+      
+      // Extraire le seed de l'URL/chemin à supprimer pour comparaison
+      const seedToDelete = this.extractSeedFromUrl(imageUrl);
+      // Si c'est un chemin local, extraire le seed du nom de fichier
+      const localSeedMatch = imageUrl?.match(/_(\d+)_\d+\.jpg$/);
+      const localSeed = localSeedMatch ? localSeedMatch[1] : null;
+      
+      console.log(`🗑️ Suppression image - Path: ${imageUrl?.substring(0, 60)}..., Seed: ${seedToDelete || localSeed}`);
+      
+      const filesToDelete = [];
+      
+      // Filtrer et collecter les fichiers à supprimer
       const updated = gallery.filter(item => {
-        const url = typeof item === 'string' ? item : item.url;
-        return url !== imageUrl;
+        // Ancien format (string)
+        if (typeof item === 'string') {
+          const itemSeed = this.extractSeedFromUrl(item);
+          if (item === imageUrl) return false;
+          if (seedToDelete && itemSeed === seedToDelete) return false;
+          if (localSeed && itemSeed === localSeed) return false;
+          return true;
+        }
+        
+        // Nouveau format (objet avec url, seed, prompt, localPath)
+        let shouldDelete = false;
+        
+        // Comparaison par chemin local
+        if (item.localPath === imageUrl) shouldDelete = true;
+        // Comparaison par URL
+        if (item.url === imageUrl) shouldDelete = true;
+        // Comparaison par seed
+        if (seedToDelete && item.seed === seedToDelete) shouldDelete = true;
+        if (localSeed && item.seed === localSeed) shouldDelete = true;
+        
+        // Comparer avec URL régénérée
+        if (!shouldDelete && item.seed && item.prompt) {
+          const regeneratedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(item.prompt)}?width=768&height=1024&seed=${item.seed}&nologo=true&model=flux&enhance=true`;
+          if (regeneratedUrl === imageUrl) shouldDelete = true;
+        }
+        
+        if (shouldDelete && item.localPath) {
+          filesToDelete.push(item.localPath);
+        }
+        
+        return !shouldDelete;
       });
+      
+      // Supprimer les fichiers locaux
+      for (const filePath of filesToDelete) {
+        try {
+          await FileSystem.deleteAsync(filePath, { idempotent: true });
+          console.log(`🗑️ Fichier local supprimé: ${filePath}`);
+        } catch (e) {
+          console.log(`⚠️ Impossible de supprimer le fichier: ${filePath}`);
+        }
+      }
+      
+      console.log(`🗑️ Galerie: ${gallery.length} -> ${updated.length} images`);
+      
       await AsyncStorage.setItem(key, JSON.stringify(updated));
-      return updated.map(item => typeof item === 'string' ? item : item.url);
+      
+      // Retourner les chemins locaux ou URLs
+      return updated.map(item => {
+        if (typeof item === 'string') {
+          return this.regeneratePollinationsUrl(item);
+        }
+        // Priorité au chemin local
+        if (item.localPath) {
+          return item.localPath;
+        }
+        if (item.seed && item.prompt) {
+          const encodedPrompt = encodeURIComponent(item.prompt);
+          return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=768&height=1024&seed=${item.seed}&nologo=true&model=flux&enhance=true`;
+        }
+        return item.url;
+      });
     } catch (error) {
       console.error('Error deleting image:', error);
       throw error;
@@ -133,6 +419,79 @@ class GalleryService {
     } catch (error) {
       console.error('Error getting background:', error);
       return null;
+    }
+  }
+
+  /**
+   * Obtient les statistiques de stockage des images
+   */
+  async getStorageStats() {
+    try {
+      await this.initDirectory();
+      
+      const dirInfo = await FileSystem.getInfoAsync(this.imageDirectory);
+      if (!dirInfo.exists) {
+        return { totalImages: 0, totalSize: 0, totalSizeMB: '0.00' };
+      }
+      
+      const files = await FileSystem.readDirectoryAsync(this.imageDirectory);
+      let totalSize = 0;
+      
+      for (const file of files) {
+        try {
+          const fileInfo = await FileSystem.getInfoAsync(`${this.imageDirectory}${file}`);
+          if (fileInfo.exists && fileInfo.size) {
+            totalSize += fileInfo.size;
+          }
+        } catch (e) {}
+      }
+      
+      return {
+        totalImages: files.length,
+        totalSize: totalSize,
+        totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
+        directory: this.imageDirectory,
+      };
+    } catch (error) {
+      console.error('Error getting storage stats:', error);
+      return { totalImages: 0, totalSize: 0, totalSizeMB: '0.00' };
+    }
+  }
+
+  /**
+   * Supprime toutes les images locales (libère l'espace)
+   * ATTENTION: Les images seront re-téléchargées au prochain accès
+   */
+  async clearLocalCache() {
+    try {
+      const dirInfo = await FileSystem.getInfoAsync(this.imageDirectory);
+      if (dirInfo.exists) {
+        await FileSystem.deleteAsync(this.imageDirectory, { idempotent: true });
+        console.log('🗑️ Cache images local supprimé');
+      }
+      // Recréer le répertoire vide
+      await this.initDirectory();
+      return true;
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Pré-télécharge les images d'une galerie en arrière-plan
+   * Utile pour s'assurer que toutes les images sont disponibles hors-ligne
+   */
+  async prefetchGallery(characterId) {
+    try {
+      console.log(`📥 Pré-téléchargement galerie: ${characterId}`);
+      // getGallery effectue automatiquement le téléchargement des images manquantes
+      await this.getGallery(characterId);
+      console.log(`✅ Pré-téléchargement terminé: ${characterId}`);
+      return true;
+    } catch (error) {
+      console.error('Error prefetching gallery:', error);
+      return false;
     }
   }
 }

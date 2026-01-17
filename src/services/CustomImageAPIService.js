@@ -1,9 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import AuthService from './AuthService';
 
 /**
  * Service de configuration d'API d'image
  * Freebox utilise Pollinations avec rotation de modèles en cas de rate limit
+ * v5.3.8 - Configuration PAR UTILISATEUR
  */
 class CustomImageAPIService {
   constructor() {
@@ -11,14 +13,54 @@ class CustomImageAPIService {
     this.customApiUrl = 'http://88.174.155.230:33437/generate';
     this.apiType = 'freebox'; // 'freebox' ou 'local'
     this.strategy = 'freebox'; // 'freebox' ou 'local'
+    this.currentUserId = null;
   }
 
   /**
-   * Charger la configuration de l'API personnalisée
+   * Récupère l'ID de l'utilisateur courant
+   */
+  async getCurrentUserId() {
+    try {
+      const user = AuthService.getCurrentUser();
+      if (user?.id) {
+        return user.id;
+      }
+      const storedUser = await AsyncStorage.getItem('current_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        return parsed.id || 'anonymous';
+      }
+      return 'anonymous';
+    } catch (error) {
+      return 'anonymous';
+    }
+  }
+
+  /**
+   * Clé de stockage spécifique à l'utilisateur
+   */
+  async getUserConfigKey() {
+    const userId = await this.getCurrentUserId();
+    return `custom_image_api_${userId}`;
+  }
+
+  /**
+   * Charger la configuration de l'API personnalisée (PAR UTILISATEUR)
    */
   async loadConfig() {
     try {
-      const config = await AsyncStorage.getItem('custom_image_api');
+      const userId = await this.getCurrentUserId();
+      this.currentUserId = userId;
+      
+      // Essayer d'abord la config spécifique à l'utilisateur
+      const userKey = `custom_image_api_${userId}`;
+      let config = await AsyncStorage.getItem(userKey);
+      
+      // Fallback sur la config globale si pas de config utilisateur
+      if (!config) {
+        config = await AsyncStorage.getItem('custom_image_api');
+      }
+      
       if (config) {
         const parsed = JSON.parse(config);
         this.customApiUrl = parsed.url || 'http://88.174.155.230:33437/generate';
@@ -26,13 +68,13 @@ class CustomImageAPIService {
         // Forcer freebox ou local, jamais pollinations
         this.strategy = (parsed.strategy === 'local') ? 'local' : 'freebox';
         
-        console.log('📸 Config images chargée:', {
+        console.log(`📸 Config images chargée (user: ${userId}):`, {
           url: this.customApiUrl ? this.customApiUrl.substring(0, 50) + '...' : 'freebox default',
           type: this.apiType,
           strategy: this.strategy
         });
       } else {
-        console.log('📸 Aucune config images, utilisation par défaut: Freebox');
+        console.log(`📸 Aucune config images (user: ${userId}), utilisation par défaut: Freebox`);
         this.customApiUrl = 'http://88.174.155.230:33437/generate';
         this.apiType = 'freebox';
         this.strategy = 'freebox';
@@ -47,10 +89,12 @@ class CustomImageAPIService {
   }
 
   /**
-   * Sauvegarder la configuration de l'API personnalisée
+   * Sauvegarder la configuration de l'API personnalisée (PAR UTILISATEUR)
    */
   async saveConfig(url, type = 'freebox', strategy = 'freebox') {
     try {
+      const userId = await this.getCurrentUserId();
+      
       // Forcer freebox ou local uniquement
       const validStrategy = (strategy === 'local') ? 'local' : 'freebox';
       const validType = (type === 'local') ? 'local' : 'freebox';
@@ -58,15 +102,20 @@ class CustomImageAPIService {
       const config = { 
         url: url || 'http://88.174.155.230:33437/generate', 
         type: validType, 
-        strategy: validStrategy 
+        strategy: validStrategy,
+        userId: userId,
+        updatedAt: Date.now()
       };
       
       this.customApiUrl = config.url;
       this.apiType = config.type;
       this.strategy = config.strategy;
       
-      await AsyncStorage.setItem('custom_image_api', JSON.stringify(config));
-      console.log('✅ Config images sauvegardée:', config);
+      // Sauvegarder avec la clé spécifique à l'utilisateur
+      const userKey = `custom_image_api_${userId}`;
+      await AsyncStorage.setItem(userKey, JSON.stringify(config));
+      
+      console.log(`✅ Config images sauvegardée (user: ${userId}):`, config);
       return true;
     } catch (error) {
       console.error('Error saving custom API config:', error);
