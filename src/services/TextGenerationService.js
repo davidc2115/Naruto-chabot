@@ -847,30 +847,65 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale ULTRA-SIMPLE v5.3.13
-   * OBJECTIF: Forcer l'IA à répondre au message de l'utilisateur
+   * Construit l'instruction finale PARFAITE v5.3.14
+   * OBJECTIF: Cohérence totale + créativité + suivi conversation
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'Personnage';
-    const userName = userProfile?.username || '';
+    const userName = userProfile?.username || 'cette personne';
     
-    // Récupérer le dernier message de l'utilisateur
+    // Récupérer les derniers messages
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     const lastUserContent = lastUserMsg?.content || '';
+    const lastAssistantMsg = recentMessages.filter(m => m.role === 'assistant').slice(-1)[0];
     
-    // INSTRUCTION ULTRA-SIMPLE ET DIRECTE
-    let instruction = `\n=== RÉPONDS MAINTENANT ===\n`;
-    instruction += `Tu es ${charName}.\n\n`;
+    let instruction = `\n========================================\n`;
+    instruction += `RÉPONDS MAINTENANT en tant que ${charName}\n`;
+    instruction += `========================================\n\n`;
     
-    // Le message auquel répondre - C'EST LE PLUS IMPORTANT
+    // Ce que l'utilisateur vient de dire/faire - TRÈS IMPORTANT
     if (lastUserContent) {
-      instruction += `${userName || 'La personne'} dit: "${lastUserContent.substring(0, 150)}"\n\n`;
-      instruction += `→ RÉPONDS À CE MESSAGE!\n`;
+      instruction += `📩 ${userName} vient de dire/faire:\n`;
+      instruction += `"${lastUserContent.substring(0, 180)}"\n\n`;
+      
+      // Analyser le type de message pour guider la réponse
+      const isQuestion = lastUserContent.includes('?');
+      const isAction = lastUserContent.includes('*');
+      const isCompliment = /beau|belle|mignon|jolie|magnifique|adorable/i.test(lastUserContent);
+      const isPhysical = /touche|caresse|embrasse|serre|prend/i.test(lastUserContent);
+      
+      instruction += `🎯 CE QUE TU DOIS FAIRE:\n`;
+      if (isQuestion) {
+        instruction += `→ C'est une QUESTION - RÉPONDS à cette question!\n`;
+      } else if (isAction) {
+        instruction += `→ C'est une ACTION - RÉAGIS à ce que ${userName} fait!\n`;
+      } else if (isCompliment) {
+        instruction += `→ C'est un COMPLIMENT - Remercie ou réponds avec émotion!\n`;
+      } else if (isPhysical) {
+        instruction += `→ C'est un GESTE - Décris ta réaction physique!\n`;
+      } else {
+        instruction += `→ Continue la conversation de manière COHÉRENTE!\n`;
+      }
     }
     
-    instruction += `\nFormat: *action* "dialogue"\n`;
-    instruction += `Utilise TU/TOI. JAMAIS "l'utilisateur".\n`;
-    instruction += `2-3 phrases max.\n`;
+    // Rappeler ce qu'on ne doit pas répéter
+    if (lastAssistantMsg) {
+      const lastAction = lastAssistantMsg.content?.match(/\*([^*]+)\*/)?.[1];
+      const lastDialogue = lastAssistantMsg.content?.match(/"([^"]+)"/)?.[1];
+      if (lastAction || lastDialogue) {
+        instruction += `\n⛔ NE PAS RÉPÉTER:\n`;
+        if (lastAction) instruction += `- Action: "${lastAction.substring(0, 40)}"\n`;
+        if (lastDialogue) instruction += `- Phrase: "${lastDialogue.substring(0, 30)}..."\n`;
+        instruction += `→ Fais/dis quelque chose de DIFFÉRENT!\n`;
+      }
+    }
+    
+    // Format de réponse
+    instruction += `\n📝 FORMAT:\n`;
+    instruction += `*action nouvelle* "dialogue en rapport" (pensée)\n`;
+    instruction += `Utilise TU/TOI pour parler à ${userName}.\n`;
+    instruction += `JAMAIS dire "l'utilisateur".\n`;
+    instruction += `2-4 phrases créatives.\n`;
     
     return instruction;
   }
@@ -898,12 +933,19 @@ class TextGenerationService {
         content: msg.content.substring(0, 400)
       })));
       
-      // 3. RAPPEL FINAL - Plus direct et cohérent
+      // 3. RAPPEL FINAL - Forcer cohérence
       const lastUserContent = recentMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
-      const userNameForOllama = userProfile?.username || 'cette personne';
+      const userNameForOllama = userProfile?.username || 'la personne';
+      
+      let finalInstruction = `[RÉPONDS]\n`;
+      finalInstruction += `${userNameForOllama} dit: "${lastUserContent.substring(0, 120)}"\n\n`;
+      finalInstruction += `→ RÉPONDS à ce message!\n`;
+      finalInstruction += `→ Utilise TU/TOI\n`;
+      finalInstruction += `→ Format: *action* "dialogue"\n`;
+      
       fullMessages.push({
         role: 'system',
-        content: `[RÉPONDS MAINTENANT]\nTu es ${character.name}. ${userNameForOllama !== 'cette personne' ? `Tu parles à ${userNameForOllama}.` : ''}\n\nLa personne vient de dire: "${lastUserContent.substring(0, 100)}"\n\n→ Réponds à CECI en utilisant TU/TOI!\n→ JAMAIS dire "l'utilisateur"!\n→ Format: *action* "dialogue" (pensée)\n→ 1-2 phrases courtes`
+        content: finalInstruction
       });
       
       console.log(`📡 Ollama - ${fullMessages.length} messages`);
@@ -949,50 +991,70 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION SIMPLIFIÉE v5.3.13
-   * OBJECTIF: Réponses COHÉRENTES qui répondent au message de l'utilisateur
+   * Construit le prompt système - VERSION PARFAITE v5.3.14
+   * OBJECTIFS: Cohérent, Créatif, Suit la conversation, Mémoire
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
-    const userName = hasUsername ? userProfile.username : null;
+    const userName = hasUsername ? userProfile.username : 'toi';
     const charName = character.name || 'Personnage';
+    const messageCount = context.messageCount || 0;
     
-    // PROMPT ULTRA-SIMPLE pour éviter que l'IA se perde
-    let prompt = `Tu es ${charName}`;
+    let prompt = '';
+    
+    // === 1. IDENTITÉ DU PERSONNAGE ===
+    prompt += `Tu joues le rôle de ${charName}`;
     if (character.age) prompt += `, ${character.age} ans`;
     if (character.gender === 'female') prompt += ', femme';
     else if (character.gender === 'male') prompt += ', homme';
-    prompt += '.\n\n';
+    prompt += '.\n';
     
-    // Personnalité courte
     if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 100)}\n`;
+      prompt += `Personnalité: ${character.personality.substring(0, 120)}\n`;
     }
     
-    // Scénario court
-    if (character.scenario) {
-      prompt += `Situation: ${character.scenario.substring(0, 150)}\n`;
+    // === 2. SCÉNARIO DE BASE (important au début) ===
+    if (character.scenario && messageCount < 10) {
+      prompt += `\nSCÉNARIO DE DÉPART:\n${character.scenario.substring(0, 200)}\n`;
+      prompt += `→ Suis ce scénario au début, puis laisse la conversation évoluer naturellement.\n`;
     }
     
-    // Qui est l'interlocuteur
-    prompt += `\nTu parles à ${userName || 'quelqu\'un'}`;
-    if (userProfile?.gender === 'female') prompt += ' (une femme)';
-    else if (userProfile?.gender === 'male') prompt += ' (un homme)';
-    prompt += '.\n\n';
+    // === 3. INTERLOCUTEUR ===
+    prompt += `\nTu parles à ${userName}`;
+    if (userProfile?.gender === 'female') prompt += ' (femme)';
+    else if (userProfile?.gender === 'male') prompt += ' (homme)';
+    if (userProfile?.age) prompt += `, ${userProfile.age} ans`;
+    prompt += '.\n';
     
-    // RÈGLES SIMPLES ET CLAIRES
-    prompt += `=== RÈGLES ABSOLUES ===\n`;
-    prompt += `1. Tu DOIS répondre à ce que ${userName || 'la personne'} dit ou fait\n`;
-    prompt += `2. Utilise TU/TOI pour parler à ${userName || 'la personne'}\n`;
-    prompt += `3. JAMAIS dire "l'utilisateur" ou "la personne"\n`;
-    prompt += `4. Format: *action* "dialogue"\n`;
-    prompt += `5. Maximum 2-3 phrases\n\n`;
+    // === 4. MÉMOIRE - Ce qui a été dit/fait ===
+    if (context.usedActions?.length > 0 || context.usedPhrases?.length > 0) {
+      prompt += `\nMÉMOIRE (ne pas répéter):\n`;
+      if (context.usedActions?.length > 0) {
+        prompt += `- Actions faites: ${context.usedActions.slice(-4).join(', ')}\n`;
+      }
+      if (context.usedPhrases?.length > 0) {
+        prompt += `- Phrases dites: ${context.usedPhrases.slice(-3).join(', ')}\n`;
+      }
+      prompt += `→ Invente de NOUVELLES actions et phrases!\n`;
+    }
     
-    // Mode simple selon contexte
+    // === 5. RÈGLES DE RÉPONSE ===
+    prompt += `\n=== COMMENT RÉPONDRE ===\n`;
+    prompt += `1. LIS ce que ${userName} dit et RÉPONDS à ça précisément\n`;
+    prompt += `2. Si ${userName} pose une question → réponds à la question\n`;
+    prompt += `3. Si ${userName} fait une action → réagis à cette action\n`;
+    prompt += `4. Sois créatif mais COHÉRENT avec la conversation\n`;
+    prompt += `5. Utilise TU/TOI, JAMAIS "l'utilisateur"\n`;
+    prompt += `6. Format: *action* "dialogue" (pensée optionnelle)\n`;
+    prompt += `7. 2-4 phrases variées et intéressantes\n`;
+    
+    // === 6. MODE CONVERSATION ===
     if (context.mode === 'nsfw' || context.mode === 'nsfw_light') {
-      prompt += `Mode: Sensuel/Adulte autorisé. Sois expressif.\n`;
+      prompt += `\nMode: Adulte/Sensuel autorisé. Sois expressif et passionné.\n`;
+    } else if (context.mode === 'romantic' || context.mode === 'flirty') {
+      prompt += `\nMode: Romantique/Flirt. Sois charmeur et tendre.\n`;
     } else {
-      prompt += `Mode: Conversation normale. Sois naturel.\n`;
+      prompt += `\nMode: Normal. Sois naturel, amical, engageant.\n`;
     }
     
     return prompt;
@@ -1002,45 +1064,35 @@ class TextGenerationService {
    * Construit le prompt compact pour Ollama (moins de tokens)
    */
   buildCompactImmersivePrompt(character, userProfile, context) {
-    const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
-    const userName = hasUsername ? userProfile.username : null;
+    const userName = userProfile?.username || 'toi';
+    const charName = character.name || 'Personnage';
     
-    let prompt = `Tu es ${character.name}`;
+    let prompt = `Tu es ${charName}`;
     if (character.age) prompt += `, ${character.age} ans`;
     if (character.gender === 'female') prompt += ', femme';
     else if (character.gender === 'male') prompt += ', homme';
+    prompt += '.\n';
     
     if (character.personality) {
-      prompt += `.\nPersonnalité: ${character.personality.substring(0, 150)}`;
+      prompt += `Personnalité: ${character.personality.substring(0, 100)}\n`;
     }
     
-    if (character.temperament) {
-      const shortTemperaments = {
-        'shy': 'timide, rougit',
-        'confident': 'confiante, assurée',
-        'playful': 'joueuse, taquine',
-        'dominant': 'dominante',
-        'submissive': 'soumise',
-        'romantic': 'romantique',
-        'passionate': 'passionnée',
-      };
-      prompt += `. Tempérament: ${shortTemperaments[character.temperament] || character.temperament}`;
+    if (character.scenario && (context.messageCount || 0) < 10) {
+      prompt += `Scénario: ${character.scenario.substring(0, 80)}\n`;
     }
     
-    if (character.scenario) {
-      prompt += `.\nScénario: ${character.scenario.substring(0, 100)}`;
-    }
+    prompt += `\nTu parles à ${userName}.\n`;
     
-    prompt += `\n\nRÈGLES STRICTES:\n`;
-    prompt += `- Réponds EN FRANÇAIS\n`;
-    prompt += `- Format: *action* "parole" (pensée)\n`;
-    prompt += `- 2-3 phrases COURTES\n`;
-    prompt += `- Tu parles directement avec TU/TOI`;
-    if (userName) prompt += ` à ${userName}`;
-    if (userProfile?.gender) prompt += ` (${userProfile.gender})`;
-    prompt += `\n- JAMAIS dire "l'utilisateur" ou "la personne" - utilise TU!`;
-    prompt += `\n- Réponds à ce que la personne vient de dire!`;
-    prompt += `\n- ${context.mode === 'nsfw' || context.mode === 'nsfw_light' ? 'Mode intime OK' : 'Mode conversation normale'}`;
+    prompt += `\nRÈGLES:\n`;
+    prompt += `1. RÉPONDS à ce que ${userName} dit/fait\n`;
+    prompt += `2. Utilise TU/TOI\n`;
+    prompt += `3. JAMAIS "l'utilisateur"\n`;
+    prompt += `4. Format: *action* "dialogue"\n`;
+    prompt += `5. 2-3 phrases\n`;
+    
+    if (context.mode === 'nsfw' || context.mode === 'nsfw_light') {
+      prompt += `Mode: Adulte OK\n`;
+    }
     
     return prompt;
   }
