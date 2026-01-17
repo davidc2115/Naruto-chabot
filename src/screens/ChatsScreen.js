@@ -47,8 +47,16 @@ export default function ChatsScreen({ navigation }) {
       
       // D'abord charger les conversations LOCALES (rapide)
       const allConversations = await StorageService.getAllConversations();
-      console.log(`✅ ${allConversations.length} conversations chargées (local)`);
-      setConversations(allConversations);
+      
+      // === TRIER PAR DATE: plus récentes en haut ===
+      const sortedConversations = allConversations.sort((a, b) => {
+        const dateA = a.lastUpdated || a.createdAt || 0;
+        const dateB = b.lastUpdated || b.createdAt || 0;
+        return dateB - dateA; // Ordre décroissant (plus récent en premier)
+      });
+      
+      console.log(`✅ ${sortedConversations.length} conversations chargées et triées par date`);
+      setConversations(sortedConversations);
       
       // Charger les personnages de base immédiatement
       const allChars = [...enhancedCharacters];

@@ -69,6 +69,28 @@ export default function CreateCharacterScreen({ navigation, route }) {
     }
   };
 
+  // Vérifier le statut du serveur pour la publication
+  const checkServerStatus = async () => {
+    try {
+      setServerOnline(null); // En cours de vérification
+      
+      // Timeout de 5 secondes
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch('http://88.174.155.230:33437/api/ping', {
+        method: 'GET',
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      setServerOnline(response.ok);
+    } catch (error) {
+      console.log('⚠️ Serveur hors ligne:', error.message);
+      setServerOnline(false);
+    }
+  };
+
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
   const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
 
