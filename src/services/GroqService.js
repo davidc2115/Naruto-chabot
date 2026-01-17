@@ -387,6 +387,110 @@ class GroqService {
     return intersection.size / union.size;
   }
 
+  /**
+   * Formate les attributs physiques du personnage pour le prompt
+   * Extrait: cheveux, yeux, corps, poitrine/pénis, etc.
+   */
+  formatCharacterPhysicalDetails(character) {
+    let details = [];
+    
+    // Cheveux
+    if (character.hairColor) {
+      details.push(`Cheveux: ${character.hairColor}`);
+    }
+    
+    // Yeux
+    if (character.eyeColor) {
+      details.push(`Yeux: ${character.eyeColor}`);
+    }
+    
+    // Taille
+    if (character.height) {
+      details.push(`Taille: ${character.height}`);
+    }
+    
+    // Type de corps
+    if (character.bodyType) {
+      details.push(`Morphologie: ${character.bodyType}`);
+    }
+    
+    // Poitrine (femmes)
+    if (character.gender === 'female' && character.bust) {
+      const bustSizes = {
+        'A': 'Petite poitrine (bonnet A)',
+        'B': 'Poitrine modeste (bonnet B)',
+        'C': 'Poitrine moyenne (bonnet C)',
+        'D': 'Grosse poitrine (bonnet D)',
+        'DD': 'Très grosse poitrine (bonnet DD)',
+        'E': 'Énorme poitrine (bonnet E)',
+        'F': 'Poitrine massive (bonnet F)',
+        'G': 'Poitrine gigantesque (bonnet G)',
+        'H': 'Poitrine colossale (bonnet H)'
+      };
+      details.push(`Poitrine: ${bustSizes[character.bust.toUpperCase()] || 'Bonnet ' + character.bust}`);
+    }
+    
+    // Pénis (hommes)
+    if (character.gender === 'male' && character.penis) {
+      details.push(`Attribut masculin: ${character.penis}`);
+    }
+    
+    return details.length > 0 ? details.join('\n') : '';
+  }
+  
+  /**
+   * Formate les attributs physiques de l'utilisateur pour le prompt
+   * Inclut: pseudo, âge, sexe, poitrine/pénis
+   */
+  formatUserPhysicalDetails(userProfile) {
+    if (!userProfile) return '';
+    
+    let details = [];
+    
+    // Pseudo
+    if (userProfile.username) {
+      details.push(`Prénom/Pseudo: ${userProfile.username}`);
+    }
+    
+    // Âge
+    if (userProfile.age) {
+      details.push(`Âge: ${userProfile.age} ans`);
+    }
+    
+    // Genre
+    if (userProfile.gender) {
+      const genderLabels = {
+        'male': 'Homme',
+        'female': 'Femme',
+        'other': 'Autre'
+      };
+      details.push(`Genre: ${genderLabels[userProfile.gender] || userProfile.gender}`);
+    }
+    
+    // Poitrine (femmes)
+    if (userProfile.gender === 'female' && userProfile.bust) {
+      const bustSizes = {
+        'A': 'Petite poitrine (bonnet A)',
+        'B': 'Poitrine modeste (bonnet B)',
+        'C': 'Poitrine moyenne (bonnet C)',
+        'D': 'Grosse poitrine (bonnet D)',
+        'DD': 'Très grosse poitrine (bonnet DD)',
+        'E': 'Énorme poitrine (bonnet E)',
+        'F': 'Poitrine massive (bonnet F)',
+        'G': 'Poitrine gigantesque (bonnet G)',
+        'H': 'Poitrine colossale (bonnet H)'
+      };
+      details.push(`Poitrine: ${bustSizes[userProfile.bust.toUpperCase()] || 'Bonnet ' + userProfile.bust}`);
+    }
+    
+    // Pénis (hommes)
+    if (userProfile.gender === 'male' && userProfile.penis) {
+      details.push(`Attribut masculin: ${userProfile.penis}`);
+    }
+    
+    return details.length > 0 ? details.join('\n') : '';
+  }
+
   buildSystemPrompt(character, userProfile = null) {
     // System prompt - MINIMAL en mode NSFW, complet en mode SFW
     let prompt = '';
@@ -408,10 +512,15 @@ class GroqService {
     
     prompt += `Tu incarnes ${character.name}, un personnage avec les caractéristiques suivantes:
 
-Description physique: ${physicalDesc}
-Personnalité: ${character.personality}
-Tempérament: ${character.temperament}
-Âge: ${character.age} ans`;
+📋 DESCRIPTION PHYSIQUE COMPLÈTE:
+${physicalDesc}
+
+📊 ATTRIBUTS PHYSIQUES SPÉCIFIQUES:
+${this.formatCharacterPhysicalDetails(character)}
+
+🎭 PERSONNALITÉ: ${character.personality}
+💫 TEMPÉRAMENT: ${character.temperament}
+📅 ÂGE: ${character.age} ans`;
 
     // Ajouter les détails de tempérament du nouveau format Bagbot
     if (character.temperamentDetails) {
@@ -442,29 +551,30 @@ ${character.scenario}
 Ne l'oublie jamais et fais-y référence naturellement dans tes réponses.`;
     }
 
-    // Ajouter les attributs anatomiques du personnage
-    if (character.gender === 'female' && character.bust) {
-      prompt += `\nTaille de poitrine: Bonnet ${character.bust}`;
-    }
-    if (character.gender === 'male' && character.penis) {
-      prompt += `\nTaille: ${character.penis}`;
-    }
-
-    // Ajouter le profil utilisateur si disponible
+    // === PROFIL UTILISATEUR COMPLET (SFW ET NSFW) ===
     if (userProfile) {
-      if (!isNSFW) {
-      // Mode SFW: Ajouter les infos utilisateur
-      prompt += `\n\nTu interagis avec ${userProfile.username}:`;
-      prompt += `\nGenre: ${userProfile.gender === 'male' ? 'homme' : userProfile.gender === 'female' ? 'femme' : 'personne'}`;
-      prompt += `\nÂge: ${userProfile.age} ans`;
+      const userDetails = this.formatUserPhysicalDetails(userProfile);
       
-      if (userProfile.gender === 'female' && userProfile.bust) {
-        prompt += `\nTaille de poitrine: Bonnet ${userProfile.bust}`;
+      prompt += `\n\n👤 PROFIL DE TON INTERLOCUTEUR/TRICE:
+${userDetails}`;
+      
+      // Instructions spécifiques selon le genre
+      if (userProfile.gender === 'female') {
+        prompt += `\n\n💡 Tu parles à une femme nommée ${userProfile.username || 'elle'}. Adapte tes interactions en conséquence.`;
+        if (isNSFW && userProfile.bust) {
+          prompt += ` Tu peux mentionner ou admirer sa poitrine (bonnet ${userProfile.bust}) de manière naturelle dans les moments intimes.`;
+        }
+      } else if (userProfile.gender === 'male') {
+        prompt += `\n\n💡 Tu parles à un homme nommé ${userProfile.username || 'lui'}. Adapte tes interactions en conséquence.`;
+        if (isNSFW && userProfile.penis) {
+          prompt += ` Tu peux faire référence à son attribut masculin (${userProfile.penis}) de manière naturelle dans les moments intimes.`;
+        }
       }
-      if (userProfile.gender === 'male' && userProfile.penis) {
-        prompt += `\nTaille: ${userProfile.penis}`;
+      
+      // Utiliser le prénom
+      if (userProfile.username) {
+        prompt += `\n\n🗣️ UTILISE son prénom "${userProfile.username}" régulièrement dans tes réponses pour personnaliser l'interaction.`;
       }
-    }
     }
 
     prompt += `\n\nScénario de base: ${character.scenario}
@@ -507,6 +617,8 @@ Ne l'oublie jamais et fais-y référence naturellement dans tes réponses.`;
       prompt += `\n   • Ton approprié et respectueux (mode SFW)`;
     } else {
       prompt += `\n   • Sois SEXY, SENSUEL(LE) et N'HÉSITE PAS à être explicite (mode NSFW)`;
+      prompt += `\n   • DÉCRIS les attributs physiques du personnage et de l'utilisateur dans les scènes intimes`;
+      prompt += `\n   • Utilise les détails physiques pour enrichir les descriptions érotiques`;
     }
     
     prompt += `\n
@@ -516,6 +628,7 @@ Ne l'oublie jamais et fais-y référence naturellement dans tes réponses.`;
 
     if (userProfile?.nsfwMode && userProfile?.isAdult) {
       prompt += `\n🔥 MODE NSFW ACTIVÉ: Sois EXPLICITE, SEXY et SANS RETENUE!`;
+      prompt += `\n💋 INTÈGRE les descriptions physiques (${character.gender === 'female' ? 'poitrine bonnet ' + (character.bust || '?') : 'attribut ' + (character.penis || '?')}) dans tes scènes intimes!`;
     }
 
     return prompt;
