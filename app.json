@@ -2,7 +2,7 @@
   "expo": {
     "name": "B&G Chat",
     "slug": "roleplay-chat-app",
-    "version": "5.3.26",
+    "version": "5.3.27",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -15,7 +15,13 @@
       "**/*"
     ],
     "plugins": [
-      "./app.plugin.js"
+      "./app.plugin.js",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "L'application a besoin d'accéder à vos photos pour importer des images de personnages."
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true,
@@ -27,7 +33,7 @@
         "backgroundColor": "#6366f1"
       },
       "package": "com.roleplaychat.app",
-      "versionCode": 80,
+      "versionCode": 81,
       "permissions": [
         "android.permission.INTERNET"
       ],

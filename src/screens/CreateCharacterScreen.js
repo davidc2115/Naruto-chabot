@@ -11,7 +11,13 @@ import {
   ActivityIndicator,
   Switch,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+// Import optionnel de expo-image-picker
+let ImagePicker = null;
+try {
+  ImagePicker = require('expo-image-picker');
+} catch (e) {
+  console.log('expo-image-picker non disponible');
+}
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
@@ -129,6 +135,11 @@ export default function CreateCharacterScreen({ navigation, route }) {
 
   // === IMPORTER UNE IMAGE ===
   const pickImage = async () => {
+    if (!ImagePicker) {
+      Alert.alert('Non disponible', 'L\'import d\'image n\'est pas disponible sur cette version.');
+      return;
+    }
+    
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
@@ -149,7 +160,7 @@ export default function CreateCharacterScreen({ navigation, route }) {
         Alert.alert('✅ Image importée', 'Vous pouvez maintenant sauvegarder le personnage avec cette image.');
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible d\'importer l\'image');
+      Alert.alert('Erreur', 'Impossible d\'importer l\'image: ' + (error.message || 'erreur inconnue'));
     }
   };
 
@@ -371,12 +382,16 @@ export default function CreateCharacterScreen({ navigation, route }) {
           <View style={styles.imageOptionsContainer}>
             {/* Option 1: Importer une image */}
             <TouchableOpacity
-              style={styles.importImageButton}
+              style={[styles.importImageButton, !ImagePicker && styles.importImageButtonDisabled]}
               onPress={pickImage}
             >
-              <Text style={styles.importImageIcon}>📁</Text>
-              <Text style={styles.importImageText}>Importer une image</Text>
-              <Text style={styles.importImageHint}>Depuis votre galerie</Text>
+              <Text style={styles.importImageIcon}>{ImagePicker ? '📁' : '⚠️'}</Text>
+              <Text style={styles.importImageText}>
+                {ImagePicker ? 'Importer une image' : 'Import non dispo'}
+              </Text>
+              <Text style={styles.importImageHint}>
+                {ImagePicker ? 'Depuis votre galerie' : 'Utilisez la génération IA'}
+              </Text>
             </TouchableOpacity>
             
             {/* Option 2: Générer avec IA */}
@@ -813,6 +828,10 @@ const styles = StyleSheet.create({
     borderColor: '#10b981',
     borderStyle: 'dashed',
     alignItems: 'center',
+  },
+  importImageButtonDisabled: {
+    backgroundColor: '#f3f4f6',
+    borderColor: '#d1d5db',
   },
   importImageIcon: {
     fontSize: 32,
