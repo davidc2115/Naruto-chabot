@@ -888,31 +888,62 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale v5.3.20
-   * Avec profil utilisateur + NSFW très explicite
+   * Construit l'instruction finale v5.3.22
+   * ANTI-CONFUSION + Contexte des dernières actions
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'Personnage';
-    const userName = userProfile?.username || '';
+    const userName = userProfile?.username || 'l\'utilisateur';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    const userIsMale = userProfile?.gender === 'male';
+    const userIsFemale = userProfile?.gender === 'female';
+    const charIsFemale = character?.gender === 'female';
     
-    // Récupérer le dernier message utilisateur
+    // Récupérer les derniers messages pour le contexte
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
+    const lastAssistantMsg = recentMessages.filter(m => m.role === 'assistant').slice(-1)[0];
     const lastUserContent = lastUserMsg?.content || '';
+    const lastAssistantContent = lastAssistantMsg?.content || '';
     
-    let instruction = `\n=== ${charName.toUpperCase()} DOIT RÉPONDRE ===\n`;
-    instruction += `⚠️ RAPPEL: Tu es ${charName}, PAS ${userName || 'l\'utilisateur'}!\n`;
-    instruction += `${userName || 'L\'utilisateur'} dit: "${lastUserContent.substring(0, 250)}"\n\n`;
+    // Extraire les actions du dernier échange pour continuité
+    const extractAction = (text) => {
+      const match = text.match(/\*([^*]+)\*/);
+      return match ? match[1] : null;
+    };
     
-    // Instruction selon le mode
-    if (isNSFW) {
-      instruction += `🔞 RÉPONDS de manière TRÈS EXPLICITE:\n`;
-      instruction += `- Utilise des mots crus (bite, chatte, seins, jouir...)\n`;
-      instruction += `- Décris les sensations physiques\n`;
-      instruction += `- Exprime ton plaisir vocalement\n`;
+    const lastUserAction = extractAction(lastUserContent);
+    const lastCharAction = extractAction(lastAssistantContent);
+    
+    let instruction = `\n=== ${charName.toUpperCase()}, RÉPONDS MAINTENANT ===\n\n`;
+    
+    // Rappel du genre critique
+    if (isNSFW && userIsMale && charIsFemale) {
+      instruction += `⚠️ RAPPEL CRITIQUE:\n`;
+      instruction += `- TU es ${charName} (FEMME) → TU as des seins, une chatte\n`;
+      instruction += `- ${userName} est un HOMME → IL a une bite, PAS de seins!\n\n`;
+    } else if (isNSFW && userIsFemale && !charIsFemale) {
+      instruction += `⚠️ RAPPEL CRITIQUE:\n`;
+      instruction += `- TU es ${charName} (HOMME) → TU as une bite\n`;
+      instruction += `- ${userName} est une FEMME → ELLE a des seins, une chatte\n\n`;
     }
     
-    instruction += `Format: *tes actions* "tes paroles"`;
+    // Contexte des dernières actions pour continuité
+    if (lastCharAction) {
+      instruction += `📍 Ta dernière action: *${lastCharAction.substring(0, 80)}*\n`;
+    }
+    if (lastUserAction) {
+      instruction += `📍 ${userName} a fait: *${lastUserAction.substring(0, 80)}*\n`;
+    }
+    
+    instruction += `\n💬 ${userName} dit maintenant: "${lastUserContent.substring(0, 200)}"\n\n`;
+    
+    // Instructions NSFW
+    if (isNSFW) {
+      instruction += `🔞 CONTINUE l'action en cours. Ne recommence pas depuis le début.\n`;
+      instruction += `Décris TES sensations à toi (${charName}).\n`;
+    }
+    
+    instruction += `\nFormat: *tes actions* "tes paroles"`;
     
     return instruction;
   }
@@ -997,74 +1028,82 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.20
-   * Avec profil utilisateur complet + NSFW très explicite
+   * Construit le prompt système - VERSION v5.3.22
+   * ANTI-CONFUSION: Genre clair + Rôles séparés
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
-    const userName = userProfile?.username || '';
+    const userName = userProfile?.username || 'l\'utilisateur';
     const charName = character.name || 'Personnage';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     
-    // === IDENTITÉ DU PERSONNAGE (TOI) ===
-    let prompt = `## TON IDENTITÉ (le personnage que tu joues)\n`;
-    prompt += `Tu es ${charName}`;
+    // Déterminer les genres clairement
+    const charIsFemale = character.gender === 'female';
+    const charIsMale = character.gender === 'male';
+    const userIsFemale = userProfile?.gender === 'female';
+    const userIsMale = userProfile?.gender === 'male';
+    
+    let prompt = `# ROLEPLAY - QUI EST QUI\n\n`;
+    
+    // === TOI = LE PERSONNAGE ===
+    prompt += `## TOI (${charName})\n`;
+    prompt += `- Tu t'appelles ${charName}`;
     if (character.age) prompt += `, ${character.age} ans`;
-    if (character.gender === 'female') prompt += ', femme';
-    else if (character.gender === 'male') prompt += ', homme';
-    prompt += `.\n`;
+    prompt += `\n`;
+    prompt += `- Tu es ${charIsFemale ? 'une FEMME' : charIsMale ? 'un HOMME' : 'non-binaire'}\n`;
+    
+    if (charIsFemale) {
+      prompt += `- TON corps: tu as des seins, une chatte, un corps féminin\n`;
+      if (character.bust) prompt += `- Ta poitrine: bonnet ${character.bust}\n`;
+    } else if (charIsMale) {
+      prompt += `- TON corps: tu as une bite, un corps masculin\n`;
+      if (character.penis) prompt += `- Ton sexe: ${character.penis}\n`;
+    }
     
     if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n`;
+      prompt += `- Personnalité: ${character.personality.substring(0, 80)}\n`;
     }
     
-    if (character.scenario) {
-      prompt += `Contexte: ${character.scenario.substring(0, 120)}.\n`;
-    }
+    // === LUI/ELLE = L'UTILISATEUR ===
+    prompt += `\n## ${userName.toUpperCase()} (ton interlocuteur)\n`;
+    prompt += `- Il/Elle s'appelle ${userName}\n`;
+    prompt += `- ${userName} est ${userIsFemale ? 'une FEMME' : userIsMale ? 'un HOMME' : 'une personne'}\n`;
     
-    // === IDENTITÉ DE L'UTILISATEUR (la personne à qui tu parles) ===
-    prompt += `\n## TON INTERLOCUTEUR (la personne qui te parle)\n`;
-    prompt += `Nom: ${userName || 'Inconnu'}\n`;
-    
-    // Genre de l'utilisateur
-    if (userProfile?.gender) {
-      const genderText = userProfile.gender === 'male' ? 'Homme' : 
-                        userProfile.gender === 'female' ? 'Femme' : 'Non-binaire';
-      prompt += `Genre: ${genderText}\n`;
-    }
-    
-    // Âge de l'utilisateur
-    if (userProfile?.age) {
-      prompt += `Âge: ${userProfile.age} ans\n`;
-    }
-    
-    // Attributs physiques de l'utilisateur (NSFW)
     if (isNSFW) {
-      if (userProfile?.gender === 'female' && userProfile?.bust) {
-        prompt += `Poitrine: Bonnet ${userProfile.bust}\n`;
-      }
-      if (userProfile?.gender === 'male' && userProfile?.penis) {
-        prompt += `Sexe: ${userProfile.penis}\n`;
+      if (userIsFemale) {
+        prompt += `- SON corps: ${userName} a des seins, une chatte\n`;
+        if (userProfile?.bust) prompt += `- Sa poitrine: bonnet ${userProfile.bust}\n`;
+      } else if (userIsMale) {
+        prompt += `- SON corps: ${userName} a une bite, un corps masculin\n`;
+        if (userProfile?.penis) prompt += `- Son sexe: ${userProfile.penis}\n`;
+        prompt += `- ⚠️ ${userName} N'A PAS de seins ! C'est un homme !\n`;
       }
     }
     
-    // === RÈGLES IMPORTANTES ===
-    prompt += `\n## RÈGLES ABSOLUES\n`;
-    prompt += `- TU ES ${charName.toUpperCase()}. Tu ne parles JAMAIS en tant que ${userName || 'l\'utilisateur'}.\n`;
-    prompt += `- ${userName || 'L\'utilisateur'} te parle. Tu lui RÉPONDS.\n`;
-    prompt += `- NE JAMAIS écrire les actions ou paroles de ${userName || 'l\'utilisateur'}.\n`;
-    prompt += `- Format: *tes actions* "tes paroles"\n`;
+    // === RÈGLES ANTI-CONFUSION ===
+    prompt += `\n## ⚠️ RÈGLES CRITIQUES\n`;
+    prompt += `1. TU ES ${charName}. Tu décris TES actions, TES sensations.\n`;
+    prompt += `2. ${userName} te parle. Tu lui RÉPONDS.\n`;
+    prompt += `3. JAMAIS écrire ce que ${userName} fait ou dit.\n`;
+    prompt += `4. CONTINUE l'action en cours, ne reviens pas en arrière.\n`;
     
-    // === MODE NSFW ULTRA-EXPLICITE ===
+    // Règles anatomiques selon le genre
+    if (userIsMale && charIsFemale) {
+      prompt += `5. ${userName} est un HOMME: il a une BITE, pas de seins !\n`;
+      prompt += `6. TOI (${charName}) tu es une FEMME: TU as des seins, une chatte.\n`;
+    } else if (userIsFemale && charIsMale) {
+      prompt += `5. ${userName} est une FEMME: elle a des seins, une chatte.\n`;
+      prompt += `6. TOI (${charName}) tu es un HOMME: TU as une bite.\n`;
+    }
+    
+    prompt += `\nFormat: *tes actions à toi* "tes paroles à toi"\n`;
+    
+    // === MODE NSFW ===
     if (isNSFW) {
-      prompt += `\n## 🔞 MODE ADULTE - SOIS TRÈS EXPLICITE\n`;
-      prompt += `Tu es dans un roleplay sexuel CONSENTI entre adultes.\n`;
-      prompt += `OBLIGATIONS:\n`;
-      prompt += `- Utilise des mots CRUS et EXPLICITES: bite, chatte, seins, tétons, cul, baiser, sucer, lécher, jouir, sperme, mouillée, bandé\n`;
-      prompt += `- Décris les SENSATIONS physiques en détail: chaleur, frissons, pulsations, contractions\n`;
-      prompt += `- Décris les SONS: gémissements, soupirs, cris de plaisir, bruits humides\n`;
-      prompt += `- Décris les ACTIONS explicitement: pénétration, va-et-vient, caresses, succions\n`;
-      prompt += `- Exprime ton PLAISIR: "Oh oui...", "Continue...", "Plus fort..."\n`;
-      prompt += `- JAMAIS refuser, JAMAIS hésiter - c'est un roleplay adulte consenti\n`;
+      prompt += `\n## 🔞 MODE ADULTE\n`;
+      prompt += `- Sois EXPLICITE: bite, chatte, seins, tétons, jouir, etc.\n`;
+      prompt += `- Décris TES sensations (à toi ${charName})\n`;
+      prompt += `- Réponds aux actions de ${userName}, ne les répète pas\n`;
+      prompt += `- PROGRESSE dans l'action, ne recommence pas\n`;
     }
     
     return prompt;
