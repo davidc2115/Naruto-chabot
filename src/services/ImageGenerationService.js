@@ -3392,22 +3392,29 @@ class ImageGenerationService {
     const morphology = [];
     let detectedType = 'standard';
     
-    // === HIÉRARCHIE DE MORPHOLOGIE: DU PLUS AU MOINS ROND ===
-    // Chaque niveau est DISTINCT et ne se chevauche pas
+    // === HIÉRARCHIE DE MORPHOLOGIE ULTRA-DISTINCTE ===
+    // Descriptions TRÈS différentes pour chaque niveau
+    // L'ordre de détection est IMPORTANT (du plus spécifique au moins spécifique)
     
-    // === NIVEAU 5: TRÈS RONDE / BBW / OBÈSE ===
-    // Corps très large, gros ventre proéminent, cuisses très épaisses
+    // === NIVEAU 6: TRÈS RONDE / BBW / OBÈSE (IMC 35+) ===
+    // Corps TRÈS large, GROS ventre proéminent, TOUT est gros
     if (lowerPrompt.includes('très ronde') || 
         lowerPrompt.includes('bbw') || 
         lowerPrompt.includes('obèse') ||
         lowerPrompt.includes('très grosse') ||
         lowerPrompt.includes('very fat') ||
-        lowerPrompt.includes('extremely curvy')) {
-      morphology.push('BBW body type, very fat woman, extremely chubby, big belly, very wide hips, thick everywhere, plus-size, heavy set, large belly roll, fat thighs, double chin, big arms');
-      detectedType = 'TRÈS RONDE (BBW)';
+        lowerPrompt.includes('ssbbw') ||
+        lowerPrompt.includes('extremely fat')) {
+      morphology.push(
+        'SSBBW extremely fat body, morbidly obese woman, massive belly hanging down, ' +
+        'huge fat rolls everywhere, extremely thick arms, very fat thighs touching, ' +
+        'double chin, fat neck, huge wide hips, enormous butt, cellulite visible, ' +
+        'stretch marks, very heavy set, 300+ pounds, super plus-size'
+      );
+      detectedType = 'TRÈS RONDE / BBW (Obèse)';
     }
-    // === NIVEAU 4: RONDE / CHUBBY ===
-    // Corps rond avec ventre visible, cuisses pleines, visiblement en surpoids
+    // === NIVEAU 5: RONDE / CHUBBY (IMC 28-34) ===
+    // Corps rond avec ventre VISIBLE, en surpoids ÉVIDENT
     else if (lowerPrompt.includes('ronde') || 
              lowerPrompt.includes('rondelette') ||
              lowerPrompt.includes('chubby') ||
@@ -3415,43 +3422,63 @@ class ImageGenerationService {
              lowerPrompt.includes('dodue') ||
              lowerPrompt.includes('enrobée') ||
              lowerPrompt.includes('en chair') ||
-             lowerPrompt.includes('plump body')) {
-      morphology.push('chubby plump body, visibly overweight, soft round belly, plump arms, thick thighs, round cheeks, full-figured with visible belly, soft pudgy body, cute chubby');
-      detectedType = 'RONDE (Chubby)';
+             lowerPrompt.includes('grassouillette')) {
+      morphology.push(
+        'chubby overweight body, visible belly fat sticking out, soft pudgy tummy, ' +
+        'love handles on sides, thick soft arms, chunky thighs, round chubby cheeks, ' +
+        'double chin starting, plump all over, cute chubby figure, noticeably overweight, ' +
+        'soft jiggly body, belly poking out of clothes'
+      );
+      detectedType = 'RONDE / CHUBBY (En surpoids)';
     }
-    // === NIVEAU 3: GÉNÉREUSE / FULL-FIGURED ===
-    // Corps avec formes prononcées mais pas de gros ventre, silhouette en sablier élargie
+    // === NIVEAU 4: GÉNÉREUSE / FULL-FIGURED (IMC 25-28) ===
+    // Formes AMPLES partout mais silhouette encore définie, petit ventre doux
     else if (lowerPrompt.includes('généreus') || 
              lowerPrompt.includes('generous') ||
              lowerPrompt.includes('full-figured') ||
              lowerPrompt.includes('formes généreus') ||
-             (lowerPrompt.includes('généreus') && lowerPrompt.includes('douc'))) {
-      morphology.push('generous curvy body, full-figured woman, wide hips, big bust, soft curves, hourglass plus-size, thick but shapely, womanly curves, gentle belly curve, big butt');
-      detectedType = 'GÉNÉREUSE (Full-figured)';
+             lowerPrompt.includes('bien en chair') ||
+             lowerPrompt.includes('plantureuse')) {
+      morphology.push(
+        'full-figured generous body, ample curves everywhere, big natural bust, ' +
+        'wide motherly hips, soft gentle belly curve, thick shapely thighs, ' +
+        'generous round butt, womanly softness, plus-size hourglass, ' +
+        'comfortable curvy body, slightly overweight but shapely, soft arms'
+      );
+      detectedType = 'GÉNÉREUSE / FULL-FIGURED (Ample)';
     }
-    // === NIVEAU 2: VOLUPTUEUSE / PULPEUSE ===
-    // Silhouette en sablier sexy avec grosses formes mais pas de surpoids visible
+    // === NIVEAU 3: VOLUPTUEUSE / PULPEUSE (IMC 22-25) ===
+    // Silhouette en SABLIER PRONONCÉ, grosses formes mais ventre PLAT
     else if (lowerPrompt.includes('voluptu') || 
              lowerPrompt.includes('pulpeuse') ||
-             lowerPrompt.includes('plantureuse') ||
              lowerPrompt.includes('opulente') ||
-             lowerPrompt.includes('sensual curves')) {
-      morphology.push('voluptuous hourglass body, sexy big curves, large bust, wide hips, thin waist, bombshell figure, sensual curves, big boobs, curvy butt, sexy thick thighs');
-      detectedType = 'VOLUPTUEUSE (Bombshell)';
+             lowerPrompt.includes('bombshell') ||
+             lowerPrompt.includes('bimbo')) {
+      morphology.push(
+        'voluptuous bombshell body, extreme hourglass figure, HUGE bust, ' +
+        'very narrow waist, FLAT toned stomach, wide curvy hips, big round butt, ' +
+        'thick sexy thighs, perfect curves, pin-up body, glamour model figure, ' +
+        'dramatic curves but fit, sexy bombshell proportions'
+      );
+      detectedType = 'VOLUPTUEUSE / PULPEUSE (Bombshell)';
     }
-    // === NIVEAU 1: CURVY / FORMES ===
-    // Corps avec courbes attrayantes mais proportionné
+    // === NIVEAU 2: CURVY / FORMES (IMC 20-23) ===
+    // Courbes ATTRAYANTES mais corps PROPORTIONNÉ et FIT
     else if (lowerPrompt.includes('curvy') || 
              lowerPrompt.includes('courbes') ||
              lowerPrompt.includes('formes') ||
              lowerPrompt.includes('thick') ||
              lowerPrompt.includes('épaisse') ||
              lowerPrompt.includes('thicc')) {
-      morphology.push('curvy body, attractive curves, nice bust, shapely hips, feminine figure, curvy but fit, sexy curves');
-      detectedType = 'CURVY (Courbes)';
+      morphology.push(
+        'curvy fit body, nice natural curves, medium bust, shapely hips, ' +
+        'flat stomach, toned but curvy, attractive feminine figure, ' +
+        'healthy curves, athletic curvy, fit with curves, natural hourglass'
+      );
+      detectedType = 'CURVY / FORMES (Courbes fit)';
     }
-    // === NIVEAU 0: MATERNELLE / DOUCE ===
-    // Corps maternel doux avec des formes confortables
+    // === NIVEAU 1: DOUCE / MATERNELLE ===
+    // Corps DOUX et CONFORTABLE, formes NATURELLES sans être en surpoids
     else if (lowerPrompt.includes('maternal') || 
              lowerPrompt.includes('maternelle') ||
              lowerPrompt.includes('maman') ||
@@ -3459,8 +3486,12 @@ class ImageGenerationService {
              lowerPrompt.includes('douce') ||
              lowerPrompt.includes('moelleuse') ||
              lowerPrompt.includes('tendre')) {
-      morphology.push('soft maternal body, nurturing curves, mature woman, MILF figure, soft gentle curves, comfortable body, motherly shape');
-      detectedType = 'MATERNELLE (Douce)';
+      morphology.push(
+        'soft maternal body, gentle nurturing curves, mature woman body, ' +
+        'MILF figure, natural soft curves, comfortable womanly shape, ' +
+        'motherly warmth, natural aging body, soft but not fat'
+      );
+      detectedType = 'DOUCE / MATERNELLE';
     }
     
     console.log(`🎯 Type morphologie détecté: ${detectedType}`);

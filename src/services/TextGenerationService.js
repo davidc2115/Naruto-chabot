@@ -1,16 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import AuthService from './AuthService';
 
 /**
  * Service de génération de texte - MULTI-API GRATUIT
  * APIs supportées: Pollinations AI, HuggingFace, OpenRouter Free
  * 
- * v5.3.4 - Multi-API avec fallback automatique, sans restriction
+ * v5.3.8 - Multi-API avec fallback automatique + config PAR UTILISATEUR
  */
 class TextGenerationService {
   constructor() {
     // URLs des serveurs
     this.FREEBOX_URL = 'http://88.174.155.230:33437';
+    this.currentUserId = null;
     
     // === APIS GRATUITES DISPONIBLES ===
     this.freeApis = [
@@ -59,28 +61,63 @@ class TextGenerationService {
     this.currentKeyIndex = { groq: 0 };
   }
 
+  /**
+   * Récupère l'ID de l'utilisateur courant
+   */
+  async getCurrentUserId() {
+    try {
+      const user = AuthService.getCurrentUser();
+      if (user?.id) {
+        return user.id;
+      }
+      const storedUser = await AsyncStorage.getItem('current_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        return parsed.id || 'anonymous';
+      }
+      return 'anonymous';
+    } catch (error) {
+      return 'anonymous';
+    }
+  }
+
   async loadConfig() {
     try {
-      // Charger le provider sélectionné
-      const provider = await AsyncStorage.getItem('text_generation_provider');
+      const userId = await this.getCurrentUserId();
+      this.currentUserId = userId;
+      
+      // Essayer d'abord la config spécifique à l'utilisateur
+      const userKey = `text_generation_provider_${userId}`;
+      let provider = await AsyncStorage.getItem(userKey);
+      
+      // Fallback sur la config globale si pas de config utilisateur
+      if (!provider) {
+        provider = await AsyncStorage.getItem('text_generation_provider');
+      }
+      
       if (provider && this.providers[provider]) {
         this.currentProvider = provider;
       }
       
-      console.log(`🤖 Provider texte: ${this.providers[this.currentProvider]?.name || this.currentProvider}`);
+      console.log(`🤖 Provider texte (user: ${userId}): ${this.providers[this.currentProvider]?.name || this.currentProvider}`);
     } catch (error) {
       console.error('Erreur chargement config:', error);
     }
   }
 
   /**
-   * Sauvegarde le provider sélectionné
+   * Sauvegarde le provider sélectionné (PAR UTILISATEUR)
    */
   async setProvider(provider) {
     if (this.providers[provider]) {
+      const userId = await this.getCurrentUserId();
       this.currentProvider = provider;
-      await AsyncStorage.setItem('text_generation_provider', provider);
-      console.log(`✅ Provider changé: ${this.providers[provider].name}`);
+      
+      // Sauvegarder avec la clé spécifique à l'utilisateur
+      const userKey = `text_generation_provider_${userId}`;
+      await AsyncStorage.setItem(userKey, provider);
+      
+      console.log(`✅ Provider changé (user: ${userId}): ${this.providers[provider].name}`);
       return true;
     }
     return false;

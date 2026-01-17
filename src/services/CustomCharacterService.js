@@ -376,6 +376,16 @@ class CustomCharacterService {
         // Route peut ne pas exister
       }
       
+      // === AJOUTER À LA LISTE DES IDS SUPPRIMÉS (pour filtrage local) ===
+      // Ceci assure que même si le serveur n'a pas encore synchronisé,
+      // le personnage n'apparaîtra plus dans la liste locale
+      for (const idToDelete of allIdsToTry) {
+        await SyncService.addToDeletedList(idToDelete);
+      }
+      
+      // === INVALIDER LE CACHE LOCAL ===
+      await SyncService.invalidatePublicCache();
+      
       // === SUPPRESSION LOCALE COMPLÈTE ===
       // Supprimer de la liste actuelle
       const updated = characters.filter(char => char.id !== characterId);
@@ -434,13 +444,35 @@ class CustomCharacterService {
       const index = characters.findIndex(char => char.id === characterId);
       
       if (index !== -1) {
-        characters[index] = { ...characters[index], ...updates, updatedAt: Date.now() };
+        const updatedCharacter = { 
+          ...characters[index], 
+          ...updates, 
+          updatedAt: Date.now(),
+          modifiedAt: new Date().toISOString()
+        };
+        characters[index] = updatedCharacter;
         await AsyncStorage.setItem(this.getUserStorageKey(), JSON.stringify(characters));
         
-        // SYNCHRONISATION AUTOMATIQUE après modification
-        this.syncToServer().catch(e => console.log('Sync auto échoué:', e.message));
+        // Invalider le cache local pour forcer refresh
+        await SyncService.invalidatePublicCache();
         
-        return characters[index];
+        // SYNCHRONISATION AUTOMATIQUE après modification (mise à jour serveur)
+        // Utiliser un timeout pour éviter de bloquer l'UI
+        setTimeout(async () => {
+          try {
+            await this.syncToServer();
+            // Si le personnage est public, republier les modifications
+            if (updatedCharacter.isPublic) {
+              await SyncService.init();
+              await SyncService.publishCharacter(updatedCharacter);
+              console.log(`✅ Modifications publiées pour: ${updatedCharacter.name}`);
+            }
+          } catch (e) {
+            console.log('⚠️ Sync auto échoué:', e.message);
+          }
+        }, 100);
+        
+        return updatedCharacter;
       }
       
       throw new Error('Character not found');
