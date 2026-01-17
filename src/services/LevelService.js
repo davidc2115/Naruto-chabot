@@ -558,6 +558,26 @@ class LevelService {
   }
 
   /**
+   * Réinitialise les données d'un personnage spécifique
+   */
+  async resetCharacterStats(characterId) {
+    try {
+      const allData = await AsyncStorage.getItem('character_levels_data');
+      const parsed = allData ? JSON.parse(allData) : {};
+      
+      // Réinitialiser les données de ce personnage
+      parsed[characterId] = this.getDefaultCharacterData(characterId);
+      
+      await AsyncStorage.setItem('character_levels_data', JSON.stringify(parsed));
+      console.log(`✅ Stats réinitialisées pour ${characterId}`);
+      return true;
+    } catch (error) {
+      console.error('Erreur reset stats personnage:', error);
+      return false;
+    }
+  }
+
+  /**
    * Réinitialise les données (pour debug)
    */
   async resetData() {

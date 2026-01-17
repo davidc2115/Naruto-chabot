@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
   Platform,
   StatusBar,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import StorageService from '../services/StorageService';
 import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
@@ -19,70 +21,86 @@ export default function ChatsScreen({ navigation }) {
   const [allCharacters, setAllCharacters] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const isInitialized = useRef(false);
 
+  // Charger au premier rendu
   useEffect(() => {
-    loadData();
-    
-    // Refresh when screen is focused
-    const unsubscribe = navigation.addListener('focus', () => {
-      loadData();
-    });
+    if (!isInitialized.current) {
+      isInitialized.current = true;
+      loadData(true); // Force refresh au premier chargement
+    }
+  }, []);
 
-    return unsubscribe;
-  }, [navigation]);
+  // Recharger quand l'écran reprend le focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('📱 ChatsScreen: Focus - Rechargement...');
+      loadData(false);
+    }, [])
+  );
 
   const loadData = async (forceRefresh = false) => {
     try {
-      setLoading(true);
+      if (!refreshing) setLoading(true);
       console.log('📱 ChatsScreen: Chargement des données...');
       
-      // Charger tous les personnages (de base + personnalisés + publics)
-      let customChars = [];
-      try {
-        customChars = await CustomCharacterService.getCustomCharacters();
-      } catch (e) {
-        console.log('⚠️ Erreur chargement personnages custom:', e.message);
-      }
+      // D'abord charger les conversations LOCALES (rapide)
+      const allConversations = await StorageService.getAllConversations();
+      console.log(`✅ ${allConversations.length} conversations chargées (local)`);
+      setConversations(allConversations);
       
-      // Aussi charger les personnages publics des autres utilisateurs
-      let publicChars = [];
-      try {
-        publicChars = await CustomCharacterService.getPublicCharacters();
-      } catch (e) {
-        console.log('⚠️ Erreur chargement personnages publics:', e.message);
-      }
-      
-      // Combiner tous les personnages (éviter les doublons par ID)
+      // Charger les personnages de base immédiatement
       const allChars = [...enhancedCharacters];
       const seenIds = new Set(allChars.map(c => c.id));
-      
-      for (const char of [...customChars, ...publicChars]) {
-        if (char && char.id && !seenIds.has(char.id)) {
-          allChars.push(char);
-          seenIds.add(char.id);
-        }
-      }
-      
       setAllCharacters(allChars);
-      console.log(`✅ ${allChars.length} personnages chargés`);
       
-      // Charger les conversations (forceRefresh pour reconstruire l'index)
-      const allConversations = forceRefresh 
-        ? await StorageService.refreshConversations()
-        : await StorageService.getAllConversations();
-      console.log(`✅ ${allConversations.length} conversations chargées`);
-      setConversations(allConversations);
+      // Puis charger les personnages custom/publics en arrière-plan (avec timeout)
+      const loadExtras = async () => {
+        try {
+          // Timeout de 5 secondes max pour les personnages custom/publics
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          );
+          
+          const [customChars, publicChars] = await Promise.race([
+            Promise.all([
+              CustomCharacterService.getCustomCharacters().catch(() => []),
+              CustomCharacterService.getPublicCharacters().catch(() => [])
+            ]),
+            timeoutPromise
+          ]);
+          
+          // Ajouter les personnages custom/publics
+          for (const char of [...(customChars || []), ...(publicChars || [])]) {
+            if (char && char.id && !seenIds.has(char.id)) {
+              allChars.push(char);
+              seenIds.add(char.id);
+            }
+          }
+          
+          setAllCharacters([...allChars]);
+          console.log(`✅ ${allChars.length} personnages chargés (avec custom)`);
+        } catch (e) {
+          console.log('⚠️ Personnages custom non chargés (timeout ou erreur):', e.message);
+        }
+      };
+      
+      // Lancer le chargement des extras sans bloquer
+      loadExtras();
+      
     } catch (error) {
       console.error('❌ Erreur loadData ChatsScreen:', error);
-      // En cas d'erreur, réessayer avec refresh
-      if (!forceRefresh) {
-        console.log('🔄 Réessai avec forceRefresh...');
-        await loadData(true);
-      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+  
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadData(true);
+  }, []);
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -259,6 +277,14 @@ export default function ChatsScreen({ navigation }) {
           keyExtractor={item => item.characterId?.toString() || Math.random().toString()}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#6366f1']}
+              tintColor="#6366f1"
+            />
+          }
         />
       </View>
     </SafeAreaView>

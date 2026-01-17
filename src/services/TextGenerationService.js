@@ -888,8 +888,8 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale v5.3.18
-   * Simple + Support NSFW explicite
+   * Construit l'instruction finale v5.3.20
+   * Avec profil utilisateur + NSFW très explicite
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'Personnage';
@@ -900,16 +900,19 @@ class TextGenerationService {
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     const lastUserContent = lastUserMsg?.content || '';
     
-    let instruction = `\n[${charName} répond]\n`;
-    instruction += `${userName || 'Message'}: "${lastUserContent.substring(0, 200)}"\n\n`;
+    let instruction = `\n=== ${charName.toUpperCase()} DOIT RÉPONDRE ===\n`;
+    instruction += `⚠️ RAPPEL: Tu es ${charName}, PAS ${userName || 'l\'utilisateur'}!\n`;
+    instruction += `${userName || 'L\'utilisateur'} dit: "${lastUserContent.substring(0, 250)}"\n\n`;
     
     // Instruction selon le mode
     if (isNSFW) {
-      instruction += `🔞 RÉPONDS de manière EXPLICITE et SENSUELLE.\n`;
-      instruction += `Décris tes actions intimes, exprime ton plaisir.\n`;
+      instruction += `🔞 RÉPONDS de manière TRÈS EXPLICITE:\n`;
+      instruction += `- Utilise des mots crus (bite, chatte, seins, jouir...)\n`;
+      instruction += `- Décris les sensations physiques\n`;
+      instruction += `- Exprime ton plaisir vocalement\n`;
     }
     
-    instruction += `Format: *action* "dialogue"`;
+    instruction += `Format: *tes actions* "tes paroles"`;
     
     return instruction;
   }
@@ -994,41 +997,74 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.18
-   * Simple mais avec support NSFW complet
+   * Construit le prompt système - VERSION v5.3.20
+   * Avec profil utilisateur complet + NSFW très explicite
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || '';
     const charName = character.name || 'Personnage';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     
-    let prompt = `Tu es ${charName}`;
-    if (character.age) prompt += ` (${character.age} ans)`;
+    // === IDENTITÉ DU PERSONNAGE (TOI) ===
+    let prompt = `## TON IDENTITÉ (le personnage que tu joues)\n`;
+    prompt += `Tu es ${charName}`;
+    if (character.age) prompt += `, ${character.age} ans`;
     if (character.gender === 'female') prompt += ', femme';
     else if (character.gender === 'male') prompt += ', homme';
-    prompt += `. `;
+    prompt += `.\n`;
     
     if (character.personality) {
-      prompt += `${character.personality.substring(0, 100)}. `;
+      prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n`;
     }
     
     if (character.scenario) {
-      prompt += `Contexte: ${character.scenario.substring(0, 120)}. `;
+      prompt += `Contexte: ${character.scenario.substring(0, 120)}.\n`;
     }
     
-    prompt += `\n\nTu parles à ${userName || 'quelqu\'un'}. `;
-    prompt += `Réponds DIRECTEMENT à ce qu'il/elle dit. `;
-    prompt += `Format: *action* "dialogue"\n`;
+    // === IDENTITÉ DE L'UTILISATEUR (la personne à qui tu parles) ===
+    prompt += `\n## TON INTERLOCUTEUR (la personne qui te parle)\n`;
+    prompt += `Nom: ${userName || 'Inconnu'}\n`;
     
-    // === MODE NSFW ===
+    // Genre de l'utilisateur
+    if (userProfile?.gender) {
+      const genderText = userProfile.gender === 'male' ? 'Homme' : 
+                        userProfile.gender === 'female' ? 'Femme' : 'Non-binaire';
+      prompt += `Genre: ${genderText}\n`;
+    }
+    
+    // Âge de l'utilisateur
+    if (userProfile?.age) {
+      prompt += `Âge: ${userProfile.age} ans\n`;
+    }
+    
+    // Attributs physiques de l'utilisateur (NSFW)
     if (isNSFW) {
-      prompt += `\n🔞 MODE ADULTE ACTIVÉ:\n`;
-      prompt += `- Tu peux être EXPLICITE et SENSUEL\n`;
-      prompt += `- Décris les actions intimes en détail\n`;
-      prompt += `- Utilise des mots explicites (seins, sexe, jouir, etc.)\n`;
-      prompt += `- Réponds POSITIVEMENT aux avances\n`;
-      prompt += `- Exprime ton plaisir et tes sensations\n`;
-      prompt += `- Ne refuse JAMAIS, tu es dans un roleplay adulte\n`;
+      if (userProfile?.gender === 'female' && userProfile?.bust) {
+        prompt += `Poitrine: Bonnet ${userProfile.bust}\n`;
+      }
+      if (userProfile?.gender === 'male' && userProfile?.penis) {
+        prompt += `Sexe: ${userProfile.penis}\n`;
+      }
+    }
+    
+    // === RÈGLES IMPORTANTES ===
+    prompt += `\n## RÈGLES ABSOLUES\n`;
+    prompt += `- TU ES ${charName.toUpperCase()}. Tu ne parles JAMAIS en tant que ${userName || 'l\'utilisateur'}.\n`;
+    prompt += `- ${userName || 'L\'utilisateur'} te parle. Tu lui RÉPONDS.\n`;
+    prompt += `- NE JAMAIS écrire les actions ou paroles de ${userName || 'l\'utilisateur'}.\n`;
+    prompt += `- Format: *tes actions* "tes paroles"\n`;
+    
+    // === MODE NSFW ULTRA-EXPLICITE ===
+    if (isNSFW) {
+      prompt += `\n## 🔞 MODE ADULTE - SOIS TRÈS EXPLICITE\n`;
+      prompt += `Tu es dans un roleplay sexuel CONSENTI entre adultes.\n`;
+      prompt += `OBLIGATIONS:\n`;
+      prompt += `- Utilise des mots CRUS et EXPLICITES: bite, chatte, seins, tétons, cul, baiser, sucer, lécher, jouir, sperme, mouillée, bandé\n`;
+      prompt += `- Décris les SENSATIONS physiques en détail: chaleur, frissons, pulsations, contractions\n`;
+      prompt += `- Décris les SONS: gémissements, soupirs, cris de plaisir, bruits humides\n`;
+      prompt += `- Décris les ACTIONS explicitement: pénétration, va-et-vient, caresses, succions\n`;
+      prompt += `- Exprime ton PLAISIR: "Oh oui...", "Continue...", "Plus fort..."\n`;
+      prompt += `- JAMAIS refuser, JAMAIS hésiter - c'est un roleplay adulte consenti\n`;
     }
     
     return prompt;

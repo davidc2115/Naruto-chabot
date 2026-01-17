@@ -269,6 +269,38 @@ export default function CharacterDetailScreen({ route, navigation }) {
     );
   };
 
+  const handleResetXP = () => {
+    Alert.alert(
+      '🔄 Réinitialiser la progression',
+      `Voulez-vous vraiment remettre à zéro votre niveau et XP avec ${character.name} ?\n\nCette action est irréversible.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Réinitialiser',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Réinitialiser via LevelService
+              await LevelService.resetCharacterStats(character.id);
+              
+              // Réinitialiser la relation dans StorageService
+              const defaultRelationship = StorageService.getDefaultRelationship();
+              await StorageService.saveRelationship(character.id, defaultRelationship);
+              
+              // Mettre à jour l'état local
+              setRelationship(defaultRelationship);
+              
+              Alert.alert('✅ Réinitialisé', `Votre progression avec ${character.name} a été remise à zéro.`);
+            } catch (error) {
+              console.error('Erreur reset XP:', error);
+              Alert.alert('❌ Erreur', 'Impossible de réinitialiser la progression.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const getRelationshipLevel = () => {
     if (!relationship) return 'Inconnu';
     const level = relationship.level;
@@ -474,7 +506,12 @@ export default function CharacterDetailScreen({ route, navigation }) {
         {/* RELATION */}
         {relationship && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>💖 Relation</Text>
+            <View style={styles.relationSectionHeader}>
+              <Text style={styles.sectionTitle}>💖 Relation</Text>
+              <TouchableOpacity style={styles.resetXPButton} onPress={handleResetXP}>
+                <Text style={styles.resetXPButtonText}>🔄 Reset</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.relationshipContainer}>
               <View style={styles.statRow}>
                 <Text style={styles.statLabel}>Niveau:</Text>
@@ -826,6 +863,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6366f1',
     fontWeight: '600',
+  },
+  // Relation section
+  relationSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  resetXPButton: {
+    backgroundColor: '#f59e0b',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  resetXPButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
   },
   galleryPreview: {
     flexDirection: 'row',
