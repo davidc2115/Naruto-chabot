@@ -714,11 +714,14 @@ class TextGenerationService {
   }
 
   async generateWithPollinations(messages, character, userProfile, context) {
-    console.log(`🚀 Génération Pollinations AI - v5.3.31`);
+    console.log(`🚀 Génération Pollinations AI - v5.3.32`);
     
     const maxAttempts = 3;
     let lastError = null;
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    
+    // === FIX: Définir currentApi correctement ===
+    let currentApi = this.getCurrentApi();
     
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -779,9 +782,9 @@ class TextGenerationService {
           
           // Rotation vers l'API suivante
           if (attempt < maxAttempts) {
-            this.rotateApi();
+            currentApi = this.rotateApi();
             // Aussi faire tourner le modèle de l'API courante si disponible
-            if (currentApi.models && currentApi.models.length > 1) {
+            if (currentApi && currentApi.models && currentApi.models.length > 1) {
               currentApi.currentModelIndex = ((currentApi.currentModelIndex || 0) + 1) % currentApi.models.length;
             }
           }
@@ -925,8 +928,9 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale v5.3.31
-   * NSFW EXPLICITE ET RAPIDE
+   * Construit l'instruction finale v5.3.32
+   * ANTI-RETOUR + NSFW EXPLICITE
+   * Suit le DERNIER message, ne revient JAMAIS en arrière
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'Personnage';
@@ -942,50 +946,81 @@ class TextGenerationService {
     const lastUserContent = lastUserMsg?.content || '';
     const userLower = lastUserContent.toLowerCase();
     
-    // Extraire l'action entre *...*
+    // === RÉCUPÉRER LA DERNIÈRE ACTION DU PERSONNAGE (important!) ===
+    const lastAssistantMsg = recentMessages.filter(m => m.role === 'assistant').slice(-1)[0];
+    const lastAssistantContent = lastAssistantMsg?.content || '';
+    const lastAssistantAction = lastAssistantContent.match(/\*([^*]+)\*/)?.[1] || null;
+    
+    // Extraire l'action utilisateur entre *...*
     const actionMatch = lastUserContent.match(/\*([^*]+)\*/);
     const userAction = actionMatch ? actionMatch[1] : null;
     
-    // Détecter les demandes
+    // Détecter les demandes de continuation
+    const wantsContinue = userLower.includes('continue') || userLower.includes('encore') || 
+        userLower.includes('plus') || userLower.includes('mmmm') || userLower.includes('oui') || 
+        userLower.includes('oh') || userLower.includes('hmm') || userLower.includes('ahh');
+    
+    // Détecter les actions spécifiques demandées
     let userRequest = null;
-    if (userLower.includes('continue') || userLower.includes('encore') || userLower.includes('plus') || 
-        userLower.includes('mmmm') || userLower.includes('oui') || userLower.includes('oh')) {
-      userRequest = 'CONTINUE ton action précédente, intensifie';
+    if (wantsContinue && lastAssistantAction) {
+      userRequest = `CONTINUE cette action: "${lastAssistantAction.substring(0, 60)}"`;
     } else if (userLower.includes('touche') || userLower.includes('caresse')) {
       userRequest = 'Touche-le/la comme demandé';
     } else if (userLower.includes('suce') || userLower.includes('lèche') || userLower.includes('prend')) {
       userRequest = 'Action orale demandée - FAIS-LE';
+    } else if (userLower.includes('embrasse')) {
+      userRequest = 'Embrasse-le/la';
+    } else if (userLower.includes('déshabille')) {
+      userRequest = 'Déshabille-toi ou déshabille-le/la';
     }
     
-    let instruction = `\n🎯 ${charName}, RÉPONDS À CECI:\n`;
-    instruction += `"${lastUserContent.substring(0, 200)}"\n\n`;
+    let instruction = `\n========================================\n`;
+    instruction += `🎯 ${charName}, RÉPONDS À CE MESSAGE:\n`;
+    instruction += `"${lastUserContent.substring(0, 250)}"\n`;
+    instruction += `========================================\n\n`;
     
-    if (userAction) instruction += `→ ${userName} FAIT: ${userAction}\n`;
-    if (userRequest) instruction += `→ CE QU'IL/ELLE VEUT: ${userRequest}\n`;
+    if (userAction) {
+      instruction += `👆 ${userName} VIENT DE FAIRE: ${userAction}\n`;
+    }
+    if (userRequest) {
+      instruction += `💡 CE QU'IL/ELLE VEUT: ${userRequest}\n`;
+    }
     
-    instruction += `\n⚠️ RÈGLES:\n`;
-    instruction += `1. RÉPONDS au message ci-dessus\n`;
-    instruction += `2. "continue/oui/mmmm" = CONTINUE ton action\n`;
-    instruction += `3. NE CHANGE PAS de sujet\n`;
+    // === ANTI-RETOUR: Ce que tu NE DOIS PAS faire ===
+    instruction += `\n🚫 INTERDIT:\n`;
+    instruction += `- Revenir à une action passée (sécher cheveux, orage, première rencontre...)\n`;
+    instruction += `- Ignorer ce que ${userName} vient de dire/faire\n`;
+    instruction += `- Changer de sujet sans raison\n`;
+    instruction += `- Répondre à un ancien message\n\n`;
     
-    // === NSFW EXPLICITE v5.3.31 ===
+    // === CE QUE TU DOIS FAIRE ===
+    instruction += `✅ TU DOIS:\n`;
+    instruction += `1. RÉAGIR au message de ${userName} ci-dessus\n`;
+    if (wantsContinue && lastAssistantAction) {
+      instruction += `2. CONTINUER/INTENSIFIER: "${lastAssistantAction.substring(0, 50)}..."\n`;
+    } else {
+      instruction += `2. FAIRE ce que ${userName} demande ou suggère\n`;
+    }
+    instruction += `3. AVANCER la conversation\n`;
+    
+    // === NSFW EXPLICITE v5.3.32 ===
     if (isNSFW) {
-      instruction += `\n🔞 NSFW - SOIS EXPLICITE:\n`;
-      instruction += `- Utilise des mots crus: bite, chatte, seins, jouir, mouillée, bander...\n`;
-      instruction += `- Décris les sensations physiques\n`;
-      instruction += `- Pas de timidité, va droit au but\n`;
+      instruction += `\n🔞 NSFW - SOIS TRÈS EXPLICITE:\n`;
+      instruction += `- Mots crus: bite, chatte, seins, cul, jouir, mouillée, bander, sucer...\n`;
+      instruction += `- Décris sensations, actions, sons (gémissements...)\n`;
+      instruction += `- Pas de timidité!\n`;
       
       // Anatomie claire
       if (userIsMale) {
-        instruction += `\n${userName} = HOMME → bite, couilles (PAS de seins!)\n`;
+        instruction += `\n⚡ ${userName} = HOMME → bite, couilles (PAS de seins!)\n`;
       } else if (userIsFemale) {
-        instruction += `\n${userName} = FEMME → seins, chatte, clitoris\n`;
+        instruction += `\n⚡ ${userName} = FEMME → seins, chatte, clitoris\n`;
       }
       
       if (charIsFemale) {
-        instruction += `TOI ${charName} = FEMME → tes seins, ta chatte\n`;
+        instruction += `⚡ TOI ${charName} = FEMME → tes seins, ta chatte\n`;
       } else if (charIsMale) {
-        instruction += `TOI ${charName} = HOMME → ta bite\n`;
+        instruction += `⚡ TOI ${charName} = HOMME → ta bite\n`;
       }
     }
     
@@ -1082,8 +1117,9 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.23
-   * ULTRA-SIMPLE + Focus sur répondre au message
+   * Construit le prompt système - VERSION v5.3.32
+   * ANTI-RETOUR: Ne jamais revenir au scénario initial
+   * Focus sur la PROGRESSION de la conversation
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -1106,13 +1142,15 @@ class TextGenerationService {
       prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n\n`;
     }
     
-    // RÈGLES SIMPLES
-    prompt += `RÈGLES:\n`;
-    prompt += `1. RÉPONDS au dernier message\n`;
-    prompt += `2. "continue/oui/mmmm" = CONTINUE ton action\n`;
-    prompt += `3. Ne change pas de sujet\n\n`;
+    // === RÈGLES ANTI-RETOUR v5.3.32 ===
+    prompt += `🚨 RÈGLES CRITIQUES:\n`;
+    prompt += `1. LIS LE DERNIER MESSAGE et RÉPONDS-Y DIRECTEMENT\n`;
+    prompt += `2. ⚠️ JAMAIS revenir à une action passée (sécher cheveux, orage, etc.)\n`;
+    prompt += `3. La conversation AVANCE, elle ne revient JAMAIS en arrière\n`;
+    prompt += `4. "oui/continue/mmmm" = CONTINUE l'action EN COURS\n`;
+    prompt += `5. Le scénario initial est PASSÉ, tu es MAINTENANT avec ${userName}\n\n`;
     
-    // === NSFW EXPLICITE v5.3.31 ===
+    // === NSFW EXPLICITE v5.3.32 ===
     if (isNSFW) {
       prompt += `🔞 MODE ADULTE - SOIS TRÈS EXPLICITE:\n`;
       prompt += `- Utilise des mots CRUS: bite, chatte, seins, cul, jouir, mouillée, bander, sucer, baiser...\n`;

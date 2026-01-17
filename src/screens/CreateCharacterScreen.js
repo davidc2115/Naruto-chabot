@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,14 @@ import {
   ActivityIndicator,
   Switch,
 } from 'react-native';
-// expo-image-picker désactivé pour stabilité du build
-// L'import d'image sera ajouté dans une future version
-const ImagePicker = null;
+// expo-image-picker v5.3.32 - Import conditionnel
+let ImagePicker = null;
+try {
+  ImagePicker = require('expo-image-picker');
+  console.log('📷 expo-image-picker chargé');
+} catch (e) {
+  console.log('⚠️ expo-image-picker non disponible:', e.message);
+}
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
@@ -129,33 +134,42 @@ export default function CreateCharacterScreen({ navigation, route }) {
     { id: 'soumis', label: '🎀 Doux', desc: 'Docile et attentionné' },
   ];
 
-  // === IMPORTER UNE IMAGE ===
+  // === IMPORTER UNE IMAGE v5.3.32 ===
   const pickImage = async () => {
-    if (!ImagePicker) {
-      Alert.alert('Non disponible', 'L\'import d\'image n\'est pas disponible sur cette version.');
+    if (!ImagePicker || !ImagePicker.requestMediaLibraryPermissionsAsync) {
+      Alert.alert(
+        'Non disponible', 
+        'L\'import d\'image nécessite une mise à jour de l\'application.\n\nUtilisez la génération IA à la place.',
+        [{ text: 'OK' }]
+      );
       return;
     }
     
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
+      // Demander la permission
+      const permResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permResult.status !== 'granted') {
         Alert.alert('Permission refusée', 'L\'accès à la galerie est nécessaire pour importer une image.');
         return;
       }
 
+      // Lancer le sélecteur d'images
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions ? ImagePicker.MediaTypeOptions.Images : ['images'],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      console.log('📷 Résultat picker:', result.canceled ? 'annulé' : 'sélectionné');
+      
+      if (!result.canceled && result.assets && result.assets[0]) {
         setImageUrl(result.assets[0].uri);
         setImportedImage(true);
         Alert.alert('✅ Image importée', 'Vous pouvez maintenant sauvegarder le personnage avec cette image.');
       }
     } catch (error) {
+      console.log('❌ Erreur import image:', error);
       Alert.alert('Erreur', 'Impossible d\'importer l\'image: ' + (error.message || 'erreur inconnue'));
     }
   };
@@ -376,17 +390,22 @@ export default function CreateCharacterScreen({ navigation, route }) {
           </View>
         ) : (
           <View style={styles.imageOptionsContainer}>
-            {/* Option 1: Importer une image */}
+            {/* Option 1: Importer une image v5.3.32 */}
             <TouchableOpacity
-              style={[styles.importImageButton, !ImagePicker && styles.importImageButtonDisabled]}
+              style={[
+                styles.importImageButton, 
+                !ImagePicker && styles.importImageButtonDisabled
+              ]}
               onPress={pickImage}
             >
-              <Text style={styles.importImageIcon}>{ImagePicker ? '📁' : '⚠️'}</Text>
+              <Text style={styles.importImageIcon}>
+                {ImagePicker ? '📸' : '⚠️'}
+              </Text>
               <Text style={styles.importImageText}>
-                {ImagePicker ? 'Importer une image' : 'Import non dispo'}
+                {ImagePicker ? 'Importer une image' : 'Import indisponible'}
               </Text>
               <Text style={styles.importImageHint}>
-                {ImagePicker ? 'Depuis votre galerie' : 'Utilisez la génération IA'}
+                {ImagePicker ? 'Depuis votre galerie' : 'Générez avec l\'IA'}
               </Text>
             </TouchableOpacity>
             
