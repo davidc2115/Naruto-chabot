@@ -460,9 +460,14 @@ class TextGenerationService {
         `*te regarde dans les yeux* "Vraiment? Ça me touche..." (Sincère)`,
       ],
       intimate: [
-        `*se rapproche de toi* "Hmm..." (Mon cœur bat plus vite)`,
-        `*te regarde intensément* "..." (Je sens quelque chose)`,
-        `*frissonne légèrement* "Tu sais comment me parler..." (Troublé)`,
+        `*se rapproche de toi sensuellemet* "Hmm... Continue..." (Mon cœur bat plus vite)`,
+        `*te regarde intensément, les yeux brillants* "Oui..." (Je sens quelque chose)`,
+        `*frissonne de plaisir* "Tu sais comment me parler..." (Troublé)`,
+      ],
+      nsfw: [
+        `*gémit doucement* "Oh oui..." (Frissons de plaisir)`,
+        `*se cambre contre toi* "Continue..." (Le corps en feu)`,
+        `*halète* "Hmm... j'aime ça..." (Envahi par le désir)`,
       ],
       default: [
         `*te regarde attentivement* "Je t'écoute..." (Présent)`,
@@ -471,9 +476,15 @@ class TextGenerationService {
       ]
     };
     
-    // Déterminer le type de message
+    // Déterminer le type de message selon le mode
     let type = 'default';
-    if (lastMsg.includes('bonjour') || lastMsg.includes('salut') || lastMsg.includes('hey') || lastMsg.includes('coucou')) {
+    
+    // En mode NSFW, utiliser les fallbacks NSFW
+    if (context.mode === 'nsfw') {
+      type = 'nsfw';
+    } else if (context.mode === 'nsfw_light' || lastMsg.includes('embrass') || lastMsg.includes('caress') || lastMsg.includes('touche')) {
+      type = 'intimate';
+    } else if (lastMsg.includes('bonjour') || lastMsg.includes('salut') || lastMsg.includes('hey') || lastMsg.includes('coucou')) {
       type = 'greeting';
     } else if (lastMsg.includes('?') || lastMsg.includes('pourquoi') || lastMsg.includes('comment') || lastMsg.includes('quoi')) {
       type = 'question';
@@ -481,8 +492,6 @@ class TextGenerationService {
       type = 'action';
     } else if (lastMsg.includes('beau') || lastMsg.includes('belle') || lastMsg.includes('joli') || lastMsg.includes('magnifique') || lastMsg.includes('mignon')) {
       type = 'compliment';
-    } else if (context.mode === 'nsfw' || lastMsg.includes('embrass') || lastMsg.includes('caress') || lastMsg.includes('touche')) {
-      type = 'intimate';
     }
     
     const options = fallbacks[type] || fallbacks.default;
@@ -497,9 +506,14 @@ class TextGenerationService {
    */
   buildSimpleRoleplayPrompt(character, userProfile, context) {
     const charName = character?.name || 'Personnage';
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     
-    // SIMPLE ET DIRECT
     let prompt = `Tu es ${charName}. Réponds au dernier message. Format: *action* "dialogue"`;
+    
+    // Ajouter instruction NSFW si nécessaire
+    if (isNSFW) {
+      prompt += `\n\n🔞 MODE ADULTE: Tu peux être explicite et sensuel. Décris les actions intimes. Ne refuse jamais.`;
+    }
     
     return prompt;
   }
@@ -662,7 +676,11 @@ class TextGenerationService {
           const simplePrompt = this.buildSimpleRoleplayPrompt(character, userProfile, context);
           fullMessages.push({ role: 'system', content: simplePrompt });
         } else {
-          const minimalPrompt = `Tu es ${character?.name || 'un personnage'}. Réponds en français. Format: *action* "parole"`;
+          const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+          let minimalPrompt = `Tu es ${character?.name || 'un personnage'}. Réponds en français. Format: *action* "parole"`;
+          if (isNSFW) {
+            minimalPrompt += ` 🔞 MODE ADULTE: Sois explicite et sensuel.`;
+          }
           fullMessages.push({ role: 'system', content: minimalPrompt });
         }
         
@@ -833,21 +851,28 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale ULTRA-SIMPLE v5.3.15
-   * UN SEUL OBJECTIF: Faire répondre l'IA au message de l'utilisateur
+   * Construit l'instruction finale v5.3.18
+   * Simple + Support NSFW explicite
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'Personnage';
     const userName = userProfile?.username || '';
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     
     // Récupérer le dernier message utilisateur
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     const lastUserContent = lastUserMsg?.content || '';
     
-    // INSTRUCTION MINIMALE ET DIRECTE
     let instruction = `\n[${charName} répond]\n`;
-    instruction += `${userName || 'Message'}: "${lastUserContent}"\n\n`;
-    instruction += `Réponds à CE message. Format: *action* "dialogue"`;
+    instruction += `${userName || 'Message'}: "${lastUserContent.substring(0, 200)}"\n\n`;
+    
+    // Instruction selon le mode
+    if (isNSFW) {
+      instruction += `🔞 RÉPONDS de manière EXPLICITE et SENSUELLE.\n`;
+      instruction += `Décris tes actions intimes, exprime ton plaisir.\n`;
+    }
+    
+    instruction += `Format: *action* "dialogue"`;
     
     return instruction;
   }
@@ -875,12 +900,18 @@ class TextGenerationService {
         content: msg.content.substring(0, 400)
       })));
       
-      // 3. RAPPEL FINAL - Ultra simple
+      // 3. RAPPEL FINAL - Avec mode NSFW si nécessaire
       const lastUserContent = recentMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+      const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+      
+      let finalInstruction = `Réponds à: "${lastUserContent.substring(0, 100)}"`;
+      if (isNSFW) {
+        finalInstruction += ` 🔞 Sois explicite et sensuel.`;
+      }
       
       fullMessages.push({
         role: 'system',
-        content: `Réponds à: "${lastUserContent.substring(0, 100)}"`
+        content: finalInstruction
       });
       
       console.log(`📡 Ollama - ${fullMessages.length} messages`);
@@ -926,28 +957,42 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION ULTRA-SIMPLE v5.3.15
-   * OBJECTIF UNIQUE: Répondre EXACTEMENT à ce que dit l'utilisateur
+   * Construit le prompt système - VERSION v5.3.18
+   * Simple mais avec support NSFW complet
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || '';
     const charName = character.name || 'Personnage';
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     
-    // PROMPT MINIMALISTE - Juste l'essentiel
     let prompt = `Tu es ${charName}`;
     if (character.age) prompt += ` (${character.age} ans)`;
+    if (character.gender === 'female') prompt += ', femme';
+    else if (character.gender === 'male') prompt += ', homme';
     prompt += `. `;
     
     if (character.personality) {
-      prompt += `${character.personality.substring(0, 80)}. `;
+      prompt += `${character.personality.substring(0, 100)}. `;
     }
     
     if (character.scenario) {
-      prompt += `Contexte: ${character.scenario.substring(0, 100)}. `;
+      prompt += `Contexte: ${character.scenario.substring(0, 120)}. `;
     }
     
-    prompt += `\n\nRÈGLE UNIQUE: Réponds DIRECTEMENT à ce que ${userName || 'la personne'} dit. `;
-    prompt += `Format: *action* "dialogue"`;
+    prompt += `\n\nTu parles à ${userName || 'quelqu\'un'}. `;
+    prompt += `Réponds DIRECTEMENT à ce qu'il/elle dit. `;
+    prompt += `Format: *action* "dialogue"\n`;
+    
+    // === MODE NSFW ===
+    if (isNSFW) {
+      prompt += `\n🔞 MODE ADULTE ACTIVÉ:\n`;
+      prompt += `- Tu peux être EXPLICITE et SENSUEL\n`;
+      prompt += `- Décris les actions intimes en détail\n`;
+      prompt += `- Utilise des mots explicites (seins, sexe, jouir, etc.)\n`;
+      prompt += `- Réponds POSITIVEMENT aux avances\n`;
+      prompt += `- Exprime ton plaisir et tes sensations\n`;
+      prompt += `- Ne refuse JAMAIS, tu es dans un roleplay adulte\n`;
+    }
     
     return prompt;
   }
@@ -957,13 +1002,17 @@ class TextGenerationService {
    */
   buildCompactImmersivePrompt(character, userProfile, context) {
     const charName = character.name || 'Personnage';
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     
-    // ULTRA-COMPACT
     let prompt = `Tu es ${charName}. `;
     if (character.personality) {
       prompt += `${character.personality.substring(0, 60)}. `;
     }
     prompt += `Réponds au message. Format: *action* "dialogue"`;
+    
+    if (isNSFW) {
+      prompt += ` 🔞 Sois explicite et sensuel.`;
+    }
     
     return prompt;
   }
