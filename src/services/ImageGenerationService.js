@@ -3573,6 +3573,7 @@ class ImageGenerationService {
     
     const seed = Date.now() + Math.floor(Math.random() * 100000);
     const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
+    const lowerPrompt = prompt.toLowerCase();
     
     // Détecter le niveau NSFW via le marqueur [NSFW_LEVEL_X]
     const nsfwMatch = prompt.match(/\[NSFW_LEVEL_(\d+)\]/);
@@ -3580,9 +3581,43 @@ class ImageGenerationService {
     const isNSFW = nsfwLevel >= 2;
     
     // Détecter si c'est anime ou réaliste
-    const isAnime = prompt.toLowerCase().includes('anime') || 
-                    prompt.toLowerCase().includes('manga') ||
-                    !prompt.toLowerCase().includes('realistic');
+    const isAnime = lowerPrompt.includes('anime') || 
+                    lowerPrompt.includes('manga') ||
+                    !lowerPrompt.includes('realistic');
+    
+    // === DÉTECTION DU GENRE - CRUCIAL ===
+    // Indicateurs masculins forts
+    const maleIndicators = [
+      'male', 'man ', 'man,', 'homme', 'masculin', 'masculine', 
+      'handsome', 'gentleman', 'guy', 'boy', 'garçon',
+      'barbe', 'beard', 'muscular man', 'male body', 'male character',
+      'pénis', 'penis', 'torse', 'chest hair', 'male human'
+    ];
+    // Indicateurs féminins forts
+    const femaleIndicators = [
+      'female', 'woman', 'femme', 'féminin', 'feminine',
+      'beautiful woman', 'lady', 'girl', 'fille',
+      'breast', 'bust', 'poitrine', 'seins', 'cleavage',
+      'female body', 'female character', 'female human'
+    ];
+    
+    const hasMaleIndicator = maleIndicators.some(ind => lowerPrompt.includes(ind));
+    const hasFemaleIndicator = femaleIndicators.some(ind => lowerPrompt.includes(ind));
+    
+    // Déterminer le genre
+    let detectedGender = 'unknown';
+    if (hasMaleIndicator && !hasFemaleIndicator) {
+      detectedGender = 'male';
+    } else if (hasFemaleIndicator && !hasMaleIndicator) {
+      detectedGender = 'female';
+    } else if (hasMaleIndicator && hasFemaleIndicator) {
+      // Les deux présents - compter les occurrences
+      const maleCount = maleIndicators.filter(ind => lowerPrompt.includes(ind)).length;
+      const femaleCount = femaleIndicators.filter(ind => lowerPrompt.includes(ind)).length;
+      detectedGender = maleCount > femaleCount ? 'male' : 'female';
+    }
+    
+    console.log(`👤 Genre détecté: ${detectedGender} (male: ${hasMaleIndicator}, female: ${hasFemaleIndicator})`);
     
     // Retirer le marqueur et les termes négatifs (qui ne fonctionnent pas)
     let cleanPrompt = prompt
@@ -3599,36 +3634,59 @@ class ImageGenerationService {
     // === CONSTRUIRE LE PROMPT FINAL ===
     let finalPrompt = '';
     
-    // 1. MORPHOLOGIE EN PREMIER (si détectée) - C'EST LA CLÉ !
+    // 1. GENRE EN PREMIER - C'EST CRUCIAL !
+    if (detectedGender === 'male') {
+      if (isAnime) {
+        finalPrompt = 'handsome anime man, male character, masculine, ';
+      } else {
+        finalPrompt = 'handsome real man, male human, masculine features, real male person, ';
+      }
+      console.log(`👨 Prompt MASCULIN appliqué`);
+    } else if (detectedGender === 'female') {
+      if (isAnime) {
+        finalPrompt = 'beautiful anime woman, female character, feminine, ';
+      } else {
+        finalPrompt = 'beautiful real woman, female human, feminine features, real female person, ';
+      }
+      console.log(`👩 Prompt FÉMININ appliqué`);
+    }
+    
+    // 2. MORPHOLOGIE (si détectée)
     if (hasCurvyBody) {
-      // Mettre la morphologie AU TOUT DÉBUT pour maximum d'impact
-      finalPrompt = morphologyKeywords.join(', ') + ', ';
+      finalPrompt += morphologyKeywords.join(', ') + ', ';
       console.log(`📍 Morphologie prioritaire: ${morphologyKeywords[0]}`);
     }
     
-    // 2. Qualité
+    // 3. Qualité
     const qualityCore = 'masterpiece, best quality, highly detailed, 8K';
     finalPrompt += qualityCore + ', ';
     
-    // 3. Style
+    // 4. Style
     if (isAnime) {
       finalPrompt += 'anime art style, anime illustration, ';
     } else {
       finalPrompt += 'photorealistic, professional photography, ';
     }
     
-    // 4. Anatomie (version courte)
+    // 5. Anatomie (version courte)
     finalPrompt += 'perfect anatomy, single person, solo, ';
     
-    // 5. Contenu principal (le prompt original nettoyé)
+    // 6. Contenu principal (le prompt original nettoyé)
     finalPrompt += cleanPrompt + ', ';
     
-    // 6. RÉPÉTER LA MORPHOLOGIE À LA FIN pour renforcement
+    // 7. RÉPÉTER LE GENRE À LA FIN pour renforcement
+    if (detectedGender === 'male') {
+      finalPrompt += 'male, man, masculine, ';
+    } else if (detectedGender === 'female') {
+      finalPrompt += 'female, woman, feminine, ';
+    }
+    
+    // 8. RÉPÉTER LA MORPHOLOGIE À LA FIN pour renforcement
     if (hasCurvyBody) {
       finalPrompt += morphologyKeywords[0] + ', ';
     }
     
-    // 7. Mode SFW/NSFW
+    // 9. Mode SFW/NSFW
     if (isNSFW) {
       console.log(`🔞 MODE NSFW - Niveau ${nsfwLevel}`);
       if (nsfwLevel >= 4) {
@@ -3649,8 +3707,8 @@ class ImageGenerationService {
     // Utiliser flux pour meilleure qualité
     const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
     
-    console.log(`🔗 URL Pollinations (seed: ${seed}, NSFW: ${nsfwLevel})`);
-    console.log(`📝 Prompt FINAL (${shortPrompt.length} chars): ${shortPrompt.substring(0, 250)}...`);
+    console.log(`🔗 URL Pollinations (seed: ${seed}, NSFW: ${nsfwLevel}, Genre: ${detectedGender})`);
+    console.log(`📝 Prompt FINAL (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
     
     return imageUrl;
   }

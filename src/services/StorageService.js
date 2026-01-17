@@ -30,14 +30,21 @@ class StorageService {
       const userId = await this.getCurrentUserId();
       const key = `conv_${userId}_${characterId}`;
       const data = {
-        characterId,
+        characterId: String(characterId), // S'assurer que c'est une string
         userId,
-        messages,
-        relationship,
+        messages: messages || [],
+        relationship: relationship || { level: 1, affection: 50, trust: 50 },
         lastUpdated: new Date().toISOString(),
+        savedAt: Date.now(), // Timestamp numérique pour tri facile
       };
       await AsyncStorage.setItem(key, JSON.stringify(data));
-      console.log(`💾 Conversation sauvegardée: ${key} (${messages.length} messages)`);
+      console.log(`💾 Conversation sauvegardée: ${key} (${messages?.length || 0} messages)`);
+      
+      // Aussi sauvegarder une copie de secours avec le format simple
+      // Ceci garantit que les conversations seront toujours retrouvées
+      const backupKey = `conversation_${characterId}`;
+      await AsyncStorage.setItem(backupKey, JSON.stringify(data));
+      console.log(`💾 Backup conversation: ${backupKey}`);
     } catch (error) {
       console.error('Error saving conversation:', error);
     }
@@ -81,7 +88,13 @@ class StorageService {
       const keys = await AsyncStorage.getAllKeys();
       
       console.log(`🔍 Recherche conversations pour userId: ${userId}`);
-      console.log(`📋 Toutes les clés AsyncStorage (${keys.length})`);
+      console.log(`📋 Total clés AsyncStorage: ${keys.length}`);
+      
+      // Afficher toutes les clés pour debug
+      const allConvRelatedKeys = keys.filter(k => 
+        k.includes('conv') || k.includes('message') || k.includes('chat')
+      );
+      console.log(`📋 Clés liées aux conversations:`, allConvRelatedKeys);
       
       // === RECHERCHE EXHAUSTIVE DE TOUTES LES CLÉS DE CONVERSATIONS ===
       const conversationKeys = keys.filter(key => {
@@ -102,15 +115,15 @@ class StorageService {
         if (key.startsWith('history_')) return true;
         // Format thread_characterId
         if (key.startsWith('thread_')) return true;
-        // Contient 'conv' dans le nom
-        if (lowerKey.includes('conv') && !lowerKey.includes('conversion')) return true;
         return false;
       });
       
-      console.log(`📚 ${conversationKeys.length} clés de conversations trouvées:`, conversationKeys.slice(0, 10));
+      console.log(`📚 ${conversationKeys.length} clés de conversations trouvées:`, conversationKeys);
       
       if (conversationKeys.length === 0) {
         console.log('⚠️ Aucune conversation trouvée dans AsyncStorage');
+        // Debug: afficher quelques clés pour voir ce qui existe
+        console.log('📋 Premières 20 clés:', keys.slice(0, 20));
         return [];
       }
       
@@ -126,40 +139,51 @@ class StorageService {
             continue;
           }
           
-          const parsed = JSON.parse(value);
+          let parsed;
+          try {
+            parsed = JSON.parse(value);
+          } catch (parseError) {
+            console.log(`⚠️ JSON invalide pour ${key}`);
+            continue;
+          }
           
           // === EXTRACTION DES MESSAGES AVEC MULTIPLES FORMATS ===
           let messages = null;
           
           // Format 1: { messages: [...] }
-          if (Array.isArray(parsed.messages) && parsed.messages.length > 0) {
+          if (parsed.messages && Array.isArray(parsed.messages)) {
             messages = parsed.messages;
+            console.log(`📝 Format 1 (messages): ${messages.length} msgs pour ${key}`);
           }
           // Format 2: { history: [...] }
-          else if (Array.isArray(parsed.history) && parsed.history.length > 0) {
+          else if (parsed.history && Array.isArray(parsed.history)) {
             messages = parsed.history;
+            console.log(`📝 Format 2 (history): ${messages.length} msgs pour ${key}`);
           }
           // Format 3: { data: { messages: [...] } }
           else if (parsed.data && Array.isArray(parsed.data.messages)) {
             messages = parsed.data.messages;
+            console.log(`📝 Format 3 (data.messages): ${messages.length} msgs pour ${key}`);
           }
           // Format 4: Tableau direct
-          else if (Array.isArray(parsed) && parsed.length > 0) {
+          else if (Array.isArray(parsed)) {
             // Vérifier que c'est un tableau de messages
-            if (parsed[0] && (parsed[0].content || parsed[0].text || parsed[0].message)) {
+            if (parsed.length > 0 && parsed[0] && (parsed[0].content || parsed[0].text || parsed[0].message || parsed[0].role)) {
               messages = parsed.map(m => ({
                 role: m.role || (m.isUser ? 'user' : 'assistant'),
                 content: m.content || m.text || m.message || ''
               }));
+              console.log(`📝 Format 4 (tableau): ${messages.length} msgs pour ${key}`);
             }
           }
           // Format 5: Message unique { content, role }
           else if (parsed.content && parsed.role) {
             messages = [parsed];
+            console.log(`📝 Format 5 (unique): 1 msg pour ${key}`);
           }
           
           if (!messages || messages.length === 0) {
-            console.log(`⚠️ Pas de messages valides dans ${key}`);
+            console.log(`⚠️ Pas de messages valides dans ${key}, structure:`, Object.keys(parsed));
             continue;
           }
           
@@ -174,55 +198,80 @@ class StorageService {
           // Extraire depuis la clé elle-même
           if (!characterId && key.includes('_')) {
             const parts = key.split('_');
-            // conv_userId_characterId -> characterId
-            // conversation_characterId -> characterId
+            // conv_userId_characterId -> characterId (peut contenir des _)
             if (key.startsWith('conv_') && parts.length >= 3) {
-              characterId = parts.slice(2).join('_'); // Au cas où l'ID contient des _
-            } else if (parts.length >= 2) {
+              characterId = parts.slice(2).join('_');
+            }
+            // conversation_characterId -> characterId
+            else if (key.startsWith('conversation_') && parts.length >= 2) {
+              characterId = parts.slice(1).join('_');
+            }
+            // Autres formats: prendre le dernier segment
+            else if (parts.length >= 2) {
               characterId = parts[parts.length - 1];
             }
           }
           
           if (!characterId) {
-            console.log(`⚠️ Pas de characterId trouvé pour ${key}`);
+            console.log(`⚠️ Pas de characterId pour ${key}`);
             continue;
           }
           
-          // Éviter les doublons (garder la conversation la plus récente)
-          if (seenCharacterIds.has(characterId)) {
-            console.log(`⚠️ Doublon ignoré: ${characterId}`);
-            continue;
+          // Convertir en string pour cohérence
+          characterId = String(characterId);
+          
+          // Éviter les doublons - garder la plus récente (basé sur lastUpdated ou savedAt)
+          const existingIndex = result.findIndex(r => r.characterId === characterId);
+          const currentTimestamp = parsed.savedAt || new Date(parsed.lastUpdated || 0).getTime();
+          
+          if (existingIndex >= 0) {
+            const existingTimestamp = result[existingIndex].savedAt || 
+                                      new Date(result[existingIndex].lastUpdated || 0).getTime();
+            if (currentTimestamp > existingTimestamp) {
+              // Remplacer par la plus récente
+              console.log(`🔄 Remplacement doublon ${characterId}: plus récent`);
+              result.splice(existingIndex, 1);
+            } else {
+              console.log(`⚠️ Doublon ignoré: ${characterId} (plus ancien)`);
+              continue;
+            }
           }
-          seenCharacterIds.add(characterId);
           
           // Normaliser les messages
-          const normalizedMessages = messages.map(m => ({
-            role: m.role || (m.isUser === true ? 'user' : 'assistant'),
-            content: m.content || m.text || m.message || '',
-          })).filter(m => m.content && m.content.trim() !== '');
+          const normalizedMessages = messages
+            .filter(m => m && (m.content || m.text || m.message))
+            .map(m => ({
+              role: m.role || (m.isUser === true ? 'user' : 'assistant'),
+              content: String(m.content || m.text || m.message || '').trim(),
+            }))
+            .filter(m => m.content !== '');
           
           if (normalizedMessages.length > 0) {
             result.push({
               characterId: characterId,
               messages: normalizedMessages,
               relationship: parsed.relationship || parsed.data?.relationship || { level: 1, affection: 50 },
-              lastUpdated: parsed.lastUpdated || parsed.updatedAt || parsed.timestamp || Date.now(),
+              lastUpdated: parsed.lastUpdated || parsed.updatedAt || new Date().toISOString(),
+              savedAt: currentTimestamp,
             });
-            console.log(`✅ Conversation chargée: ${characterId} (${normalizedMessages.length} messages)`);
+            console.log(`✅ Conversation ajoutée: ${characterId} (${normalizedMessages.length} messages)`);
           }
         } catch (e) {
-          console.log(`⚠️ Erreur parsing clé ${key}:`, e.message);
+          console.log(`⚠️ Erreur traitement ${key}:`, e.message);
         }
       }
       
       // Trier par date (plus récentes en premier)
       result.sort((a, b) => {
-        const dateA = new Date(a.lastUpdated).getTime() || 0;
-        const dateB = new Date(b.lastUpdated).getTime() || 0;
+        const dateA = a.savedAt || new Date(a.lastUpdated).getTime() || 0;
+        const dateB = b.savedAt || new Date(b.lastUpdated).getTime() || 0;
         return dateB - dateA;
       });
       
-      console.log(`✅ ${result.length} conversations uniques chargées`);
+      console.log(`✅ TOTAL: ${result.length} conversations uniques chargées`);
+      if (result.length > 0) {
+        console.log(`📋 IDs des personnages:`, result.map(r => r.characterId));
+      }
       return result;
     } catch (error) {
       console.error('❌ Error loading all conversations:', error);
