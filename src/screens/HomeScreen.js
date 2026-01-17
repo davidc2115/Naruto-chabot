@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,38 +13,80 @@ import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
 import GalleryService from '../services/GalleryService';
 
-// Mémoriser les personnages de base pour éviter de les recharger
-let cachedEnhancedCharacters = null;
-let cachedCustomCharacters = null;
-let lastCustomLoadTime = 0;
-const CACHE_DURATION = 30000; // 30 secondes
-
 export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('tous');
   const [allCharacters, setAllCharacters] = useState([]);
   const [characterImages, setCharacterImages] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Charger les personnages au montage
+  // Chargement initial IMMÉDIAT des personnages de base
   useEffect(() => {
-    loadAllCharacters();
+    // Afficher IMMÉDIATEMENT les personnages de base
+    setAllCharacters([...enhancedCharacters]);
+    
+    // Puis charger les personnages custom en arrière-plan
+    loadCustomCharactersBackground();
   }, []);
 
-  // Recharger uniquement les personnages custom quand on revient
+  // Recharger quand on revient sur l'écran
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      // Ne recharger que si plus de 30s depuis le dernier chargement
-      const now = Date.now();
-      if (now - lastCustomLoadTime > CACHE_DURATION) {
-        loadCustomCharactersOnly();
-      }
+      loadCustomCharactersBackground();
     });
     return unsubscribe;
   }, [navigation]);
 
-  // Filtrer les personnages avec useMemo pour performance
+  // Charger les personnages custom en arrière-plan
+  const loadCustomCharactersBackground = async () => {
+    try {
+      await CustomCharacterService.migrateOldCharacters();
+      const customChars = await CustomCharacterService.getAllVisibleCharacters();
+      
+      if (customChars && customChars.length > 0) {
+        setAllCharacters([...enhancedCharacters, ...customChars]);
+      }
+    } catch (error) {
+      console.log('⚠️ Erreur chargement personnages custom:', error.message);
+    }
+    
+    // Charger les images en arrière-plan
+    loadGalleryImagesBackground();
+  };
+
+  // Charger les images de galerie en arrière-plan par lots
+  const loadGalleryImagesBackground = async () => {
+    const charsWithPotentialImages = allCharacters.filter(c => c.imageUrl || c.isCustom);
+    
+    if (charsWithPotentialImages.length === 0) return;
+    
+    const images = { ...characterImages };
+    const BATCH_SIZE = 15;
+    
+    for (let i = 0; i < charsWithPotentialImages.length; i += BATCH_SIZE) {
+      const batch = charsWithPotentialImages.slice(i, i + BATCH_SIZE);
+      
+      await Promise.all(batch.map(async (char) => {
+        try {
+          if (char.imageUrl) {
+            images[char.id] = char.imageUrl;
+          } else if (char.isCustom) {
+            const gallery = await GalleryService.getGallery(char.id);
+            if (gallery && gallery.length > 0) {
+              images[char.id] = gallery[0];
+            }
+          }
+        } catch (e) {
+          // Ignorer les erreurs individuelles
+        }
+      }));
+      
+      // Mettre à jour progressivement
+      setCharacterImages(prev => ({ ...prev, ...images }));
+    }
+  };
+
+  // Filtrage optimisé avec useMemo
   const filteredCharacters = useMemo(() => {
     let filtered = allCharacters;
 
@@ -76,82 +118,7 @@ export default function HomeScreen({ navigation }) {
     return filtered;
   }, [searchQuery, selectedFilter, allCharacters]);
 
-  const loadAllCharacters = async () => {
-    setIsLoading(true);
-    try {
-      // Utiliser le cache pour les personnages de base
-      if (!cachedEnhancedCharacters) {
-        cachedEnhancedCharacters = enhancedCharacters;
-      }
-      
-      // Migrer et charger les personnages custom
-      await CustomCharacterService.migrateOldCharacters();
-      const customChars = await CustomCharacterService.getAllVisibleCharacters();
-      cachedCustomCharacters = customChars;
-      lastCustomLoadTime = Date.now();
-      
-      // Combiner les personnages
-      const combined = [...cachedEnhancedCharacters, ...customChars];
-      setAllCharacters(combined);
-      
-      // Charger les images en arrière-plan (ne pas bloquer l'affichage)
-      loadGalleryImagesAsync(combined);
-    } catch (error) {
-      console.error('Erreur chargement personnages:', error);
-      // Fallback sur les personnages de base
-      setAllCharacters(cachedEnhancedCharacters || enhancedCharacters);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadCustomCharactersOnly = async () => {
-    try {
-      const customChars = await CustomCharacterService.getAllVisibleCharacters();
-      if (JSON.stringify(customChars) !== JSON.stringify(cachedCustomCharacters)) {
-        cachedCustomCharacters = customChars;
-        lastCustomLoadTime = Date.now();
-        const combined = [...(cachedEnhancedCharacters || enhancedCharacters), ...customChars];
-        setAllCharacters(combined);
-      }
-    } catch (error) {
-      console.error('Erreur rechargement personnages custom:', error);
-    }
-  };
-
-  // Charger les images de façon asynchrone par batch
-  const loadGalleryImagesAsync = useCallback(async (chars) => {
-    setIsLoadingImages(true);
-    const images = { ...characterImages };
-    const BATCH_SIZE = 20;
-    
-    for (let i = 0; i < chars.length; i += BATCH_SIZE) {
-      const batch = chars.slice(i, i + BATCH_SIZE);
-      
-      await Promise.all(batch.map(async (char) => {
-        if (images[char.id]) return; // Déjà en cache
-        
-        if (char.imageUrl) {
-          images[char.id] = char.imageUrl;
-        } else {
-          try {
-            const gallery = await GalleryService.getGallery(char.id);
-            if (gallery && gallery.length > 0) {
-              images[char.id] = gallery[0];
-            }
-          } catch (e) {
-            // Ignorer les erreurs de galerie
-          }
-        }
-      }));
-      
-      // Mettre à jour le state après chaque batch
-      setCharacterImages({ ...images });
-    }
-    
-    setIsLoadingImages(false);
-  }, [characterImages]);
-
+  // Rendu optimisé des personnages
   const renderCharacter = useCallback(({ item }) => {
     const imageUrl = item.imageUrl || characterImages[item.id];
     
@@ -165,9 +132,6 @@ export default function HomeScreen({ navigation }) {
             <Image
               source={{ uri: imageUrl }}
               style={styles.characterImage}
-              onError={() => {
-                // Si l'image échoue, on garde le placeholder
-              }}
             />
           ) : (
             <View style={styles.avatarPlaceholder}>
@@ -190,7 +154,7 @@ export default function HomeScreen({ navigation }) {
               {item.scenario}
             </Text>
             <View style={styles.tagsContainer}>
-              {(item.tags || []).slice(0, 5).map((tag, index) => (
+              {(item.tags || []).slice(0, 4).map((tag, index) => (
                 <View key={index} style={styles.tag}>
                   <Text style={styles.tagText}>{tag}</Text>
                 </View>
@@ -220,7 +184,7 @@ export default function HomeScreen({ navigation }) {
     { label: '👫 Amis', filter: 'friend', type: 'id' },
   ];
 
-  const handleTagFilter = (tag) => {
+  const handleTagFilter = useCallback((tag) => {
     if (tag.type === 'gender') {
       setSelectedFilter(tag.filter);
       setSearchQuery('');
@@ -228,30 +192,16 @@ export default function HomeScreen({ navigation }) {
       setSelectedFilter('tous');
       setSearchQuery(tag.filter.replace('|', ' '));
     }
-  };
+  }, []);
 
-  // Optimiser keyExtractor
   const keyExtractor = useCallback((item) => String(item.id), []);
-
-  // Afficher un loader pendant le chargement initial
-  if (isLoading) {
-    return (
-      <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color="#d4af37" />
-        <Text style={styles.loadingText}>Chargement des personnages...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
       {/* En-tête avec titre en or */}
       <View style={styles.header}>
         <Text style={styles.appTitle}>Boys & Girls</Text>
-        <Text style={styles.subtitle}>
-          {filteredCharacters.length} personnages
-          {isLoadingImages && ' • Chargement images...'}
-        </Text>
+        <Text style={styles.subtitle}>{filteredCharacters.length} personnages</Text>
       </View>
 
       {/* Bouton Carrousel */}
@@ -286,7 +236,7 @@ export default function HomeScreen({ navigation }) {
         />
       </View>
 
-      {/* Filtres par tags - Style pro */}
+      {/* Filtres par tags */}
       <View style={styles.tagsFilterContainer}>
         <FlatList
           horizontal
@@ -320,7 +270,7 @@ export default function HomeScreen({ navigation }) {
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
-        initialNumToRender={10}
+        initialNumToRender={8}
         maxToRenderPerBatch={10}
         windowSize={5}
         removeClippedSubviews={true}
@@ -338,15 +288,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0f0f1a',
-  },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 15,
-    fontSize: 16,
-    color: '#d4af37',
   },
   header: {
     padding: 20,
@@ -479,6 +420,12 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: 'row',
     padding: 15,
+  },
+  characterImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 15,
   },
   avatarPlaceholder: {
     width: 80,

@@ -24,7 +24,6 @@ const translateTemperament = (temperament) => {
   if (!temperament) return 'Non défini';
   
   const translations = {
-    // Tempéraments anglais -> français
     'dominant': 'Dominant(e) et confiant(e)',
     'gentle': 'Doux/Douce et attentionné(e)',
     'shy': 'Timide et réservé(e)',
@@ -45,284 +44,19 @@ const translateTemperament = (temperament) => {
     'tender': 'Tendre et affectueux/affectueuse',
     'assertive': 'Affirmé(e) et déterminé(e)',
     'sensual': 'Sensuel(le) et voluptueux/voluptueuse',
+    'audacieux': 'Audacieux/Audacieuse',
+    'chaleureux': 'Chaleureux/Chaleureuse',
+    'passionné': 'Passionné(e)',
   };
   
   const temp = temperament.toLowerCase().trim();
+  if (translations[temp]) return translations[temp];
   
-  // Vérifier si c'est un tempérament connu
-  if (translations[temp]) {
-    return translations[temp];
-  }
-  
-  // Vérifier si le tempérament contient un mot-clé connu
   for (const [key, value] of Object.entries(translations)) {
-    if (temp.includes(key)) {
-      return value;
-    }
+    if (temp.includes(key)) return value;
   }
   
-  // Si c'est déjà en français ou inconnu, mettre la première lettre en majuscule
   return temperament.charAt(0).toUpperCase() + temperament.slice(1);
-};
-
-/**
- * Extrait un attribut physique depuis physicalDescription ou imagePrompt
- */
-const extractAttribute = (character, type) => {
-  const text = ((character.physicalDescription || '') + ' ' + (character.appearance || '') + ' ' + (character.imagePrompt || '') + ' ' + (character.tags || []).join(' ')).toLowerCase();
-  
-  if (type === 'hair') {
-    const patterns = [
-      { regex: /cheveux?\s+([\wéèêëàâäôöùûü\s-]+)/i, group: 1 },
-      { regex: /(blond[es]?|brun[es]?|roux?|rousse|noir[es]?|châtain|gris[es]?|argenté[es]?|blanc[hes]?|rose|violet[tes]?|bleu[es]?)\s*(cheveux|hair)?/i, group: 1 },
-      { regex: /(blonde|brunette|red|black|brown|gray|silver|white|pink|purple|blue)\s*hair/i, group: 1 },
-    ];
-    for (const p of patterns) {
-      const match = text.match(p.regex);
-      if (match) return match[p.group].trim();
-    }
-  }
-  
-  if (type === 'eyes') {
-    const patterns = [
-      { regex: /yeux\s+([\wéèêëàâäôöùûü\s-]+)/i, group: 1 },
-      { regex: /(bleu[s]?|vert[s]?|marron|noisette|gris|noir[s]?|ambre|doré[s]?|violet[s]?|rouge[s]?)\s*(yeux|eyes)?/i, group: 1 },
-      { regex: /(blue|green|brown|hazel|gray|black|amber|golden|purple|red)\s*eyes/i, group: 1 },
-    ];
-    for (const p of patterns) {
-      const match = text.match(p.regex);
-      if (match) return match[p.group].trim();
-    }
-  }
-  
-  if (type === 'height') {
-    const match = text.match(/(\d{2,3})\s*(cm|centimètres)/i);
-    if (match) return match[1] + ' cm';
-    if (text.includes('grande') || text.includes('tall')) return '175+ cm';
-    if (text.includes('petite') || text.includes('small')) return '155-160 cm';
-  }
-  
-  if (type === 'body') {
-    if (text.includes('très ronde') || text.includes('bbw')) return 'Très ronde et généreuse';
-    if (text.includes('ronde') || text.includes('chubby') || text.includes('curvy') || text.includes('plump')) return 'Ronde et généreuse';
-    if (text.includes('voluptueuse') || text.includes('voluptuous') || text.includes('pulpeuse')) return 'Voluptueuse';
-    if (text.includes('généreuse') || text.includes('generous')) return 'Généreuse';
-    if (text.includes('athlétique') || text.includes('athletic') || text.includes('tonique')) return 'Athlétique';
-    if (text.includes('mince') || text.includes('slim') || text.includes('élancée')) return 'Mince et élancée';
-    if (text.includes('musclée') || text.includes('muscular')) return 'Musclée';
-    if (text.includes('maternelle') || text.includes('maternal')) return 'Maternelle et douce';
-  }
-  
-  if (type === 'bust') {
-    const bustMatch = text.match(/bonnet\s*([A-H]{1,2})/i) || text.match(/([A-H])\s*cup/i);
-    if (bustMatch) return bustMatch[1].toUpperCase();
-    if (text.includes('énorme') || text.includes('massive') || text.includes('huge')) return 'H';
-    if (text.includes('très grosse') || text.includes('very large')) return 'G';
-    if (text.includes('grosse') || text.includes('large')) return 'F';
-    if (text.includes('généreuse') || text.includes('generous')) return 'E';
-    if (text.includes('moyenne') || text.includes('medium')) return 'C';
-    if (text.includes('petite poitrine') || text.includes('small breast')) return 'B';
-  }
-  
-  if (type === 'male') {
-    const match = text.match(/(\d{2})\s*(cm)?/);
-    if (match) return match[1];
-  }
-  
-  return null;
-};
-
-/**
- * Génère une description physique ULTRA-DÉTAILLÉE du personnage
- */
-const generateDetailedDescription = (character) => {
-  const parts = [];
-  const text = ((character.physicalDescription || '') + ' ' + (character.appearance || '') + ' ' + (character.imagePrompt || '') + ' ' + (character.tags || []).join(' ')).toLowerCase();
-  
-  // Genre et âge
-  if (character.gender === 'female') {
-    parts.push(`${character.name} est une femme${character.age ? ` de ${character.age} ans` : ''}`);
-  } else if (character.gender === 'male') {
-    parts.push(`${character.name} est un homme${character.age ? ` de ${character.age} ans` : ''}`);
-  } else {
-    parts.push(`${character.name} est une personne non-binaire${character.age ? ` de ${character.age} ans` : ''}`);
-  }
-  
-  // Taille
-  const height = character.height || extractAttribute(character, 'height');
-  if (height) {
-    parts.push(`mesurant environ ${height}`);
-  } else if (text.includes('grande') || text.includes('tall')) {
-    parts.push('de grande taille');
-  } else if (text.includes('petite') || text.includes('small')) {
-    parts.push('de petite taille');
-  }
-  
-  // Morphologie DÉTAILLÉE
-  const bodyType = character.bodyType || extractAttribute(character, 'body');
-  if (bodyType) {
-    parts.push(`à la silhouette ${bodyType.toLowerCase()}`);
-  }
-  
-  // CHEVEUX - Couleur, longueur, texture
-  const hairColor = character.hairColor || extractAttribute(character, 'hair');
-  const hairLength = character.hairLength || '';
-  let hairDesc = [];
-  if (hairColor) hairDesc.push(hairColor);
-  if (hairLength) hairDesc.push(hairLength.toLowerCase());
-  if (text.includes('lisse') || text.includes('straight')) hairDesc.push('lisses');
-  else if (text.includes('ondulé') || text.includes('wavy')) hairDesc.push('ondulés');
-  else if (text.includes('bouclé') || text.includes('curly') || text.includes('frisé')) hairDesc.push('bouclés');
-  else if (text.includes('crépu') || text.includes('afro')) hairDesc.push('crépus');
-  if (hairDesc.length > 0) {
-    parts.push(`aux cheveux ${hairDesc.join(', ')}`);
-  }
-  
-  // YEUX
-  const eyeColor = character.eyeColor || extractAttribute(character, 'eyes');
-  if (eyeColor) {
-    let eyeDesc = eyeColor;
-    if (text.includes('yeux en amande') || text.includes('almond')) eyeDesc += ' en amande';
-    else if (text.includes('grands yeux') || text.includes('big eyes')) eyeDesc = `grands yeux ${eyeColor}`;
-    parts.push(`aux yeux ${eyeDesc}`);
-  }
-  
-  // PEAU
-  if (text.includes('peau pâle') || text.includes('pale skin') || text.includes('porcelaine')) {
-    parts.push('à la peau pâle comme de la porcelaine');
-  } else if (text.includes('bronzé') || text.includes('tan') || text.includes('doré')) {
-    parts.push('à la peau bronzée et dorée');
-  } else if (text.includes('ébène') || text.includes('noir') || text.includes('dark skin')) {
-    parts.push('à la peau ébène');
-  } else if (text.includes('caramel') || text.includes('métis')) {
-    parts.push('à la peau caramel');
-  } else if (text.includes('olive') || text.includes('méditerran')) {
-    parts.push('à la peau olive méditerranéenne');
-  }
-  
-  if (text.includes('taches de rousseur') || text.includes('freckles')) {
-    parts.push('parsemée de taches de rousseur');
-  }
-  
-  // POITRINE pour femmes (TRÈS DÉTAILLÉ)
-  if (character.gender === 'female') {
-    const bust = character.bust || extractAttribute(character, 'bust');
-    if (bust) {
-      const bustDescFr = {
-        'A': 'une petite poitrine délicate (bonnet A)',
-        'B': 'une poitrine menue et ferme (bonnet B)',
-        'C': 'une poitrine de taille moyenne, bien proportionnée (bonnet C)',
-        'D': 'une poitrine généreuse et pleine (bonnet D)',
-        'DD': 'une très belle poitrine imposante (bonnet DD)',
-        'E': 'une poitrine volumineuse et impressionnante (bonnet E)',
-        'F': 'une très grosse poitrine (bonnet F)',
-        'G': 'une poitrine énorme et majestueuse (bonnet G)',
-        'H': 'une poitrine massive et imposante (bonnet H)'
-      };
-      parts.push(`Elle possède ${bustDescFr[bust] || `une poitrine bonnet ${bust}`}`);
-    }
-    
-    // Fesses
-    if (text.includes('énormes fesses') || text.includes('huge butt') || text.includes('très grosses fesses')) {
-      parts.push('de très grosses fesses rondes et rebondies');
-    } else if (text.includes('grosses fesses') || text.includes('big butt') || text.includes('fesses généreuses')) {
-      parts.push('de belles fesses généreuses et rondes');
-    } else if (text.includes('fesses rebondies') || text.includes('bubble butt')) {
-      parts.push('des fesses rebondies parfaitement galbées');
-    }
-    
-    // Hanches
-    if (text.includes('hanches larges') || text.includes('wide hips')) {
-      parts.push('des hanches larges et féminines');
-    }
-    
-    // Ventre
-    if (text.includes('gros ventre') || text.includes('big belly')) {
-      parts.push('un ventre rond et doux');
-    } else if (text.includes('ventre rond') || text.includes('round belly') || text.includes('ventre doux')) {
-      parts.push('un joli petit ventre arrondi');
-    } else if (text.includes('ventre plat') || text.includes('flat stomach')) {
-      parts.push('un ventre plat et tonique');
-    }
-    
-    // Cuisses
-    if (text.includes('cuisses épaisses') || text.includes('thick thighs') || text.includes('grosses cuisses')) {
-      parts.push('de belles cuisses épaisses et sensuelles');
-    }
-  }
-  
-  // PÉNIS pour hommes (DÉTAILLÉ)
-  if (character.gender === 'male') {
-    const penis = character.penis || extractAttribute(character, 'male');
-    if (penis) {
-      const size = parseInt(penis);
-      let sizeDesc = '';
-      if (size >= 22) sizeDesc = 'très impressionnant';
-      else if (size >= 19) sizeDesc = 'généreusement doté';
-      else if (size >= 16) sizeDesc = 'bien membré';
-      else sizeDesc = 'de taille moyenne';
-      parts.push(`Il est ${sizeDesc} (${penis} cm)`);
-    }
-    
-    // Corps masculin
-    if (text.includes('musclé') || text.includes('muscular')) {
-      parts.push('avec un corps musclé et athlétique');
-    } else if (text.includes('imposant') || text.includes('broad')) {
-      parts.push('avec une carrure imposante');
-    }
-  }
-  
-  // Accessoires
-  if (text.includes('lunettes') || text.includes('glasses') || character.glasses) {
-    parts.push('Elle/Il porte des lunettes');
-  }
-  if (text.includes('tatouage') || text.includes('tattoo')) {
-    parts.push('avec des tatouages');
-  }
-  if (text.includes('piercing')) {
-    parts.push('avec des piercings');
-  }
-  
-  return parts.join(', ') + '.';
-};
-
-/**
- * Traduit le tempérament avec description détaillée
- */
-const getDetailedTemperament = (character) => {
-  const temp = (character.temperament || '').toLowerCase();
-  const personality = (character.personality || '').toLowerCase();
-  
-  const detailed = {
-    'shy': 'Timide et réservé(e), elle/il rougit facilement et a du mal à exprimer ses sentiments. Son regard fuyant cache une sensibilité profonde.',
-    'dominant': 'Dominant(e) et sûr(e) de soi, elle/il aime prendre les commandes et sait ce qu\'elle/il veut. Son assurance est séduisante.',
-    'confident': 'Confiant(e) et assuré(e), elle/il dégage une aura de charisme naturel. Son regard direct et son sourire sont irrésistibles.',
-    'playful': 'Joueur/joueuse et espiègle, elle/il adore taquiner et flirter. Son rire communicatif illumine la pièce.',
-    'passionate': 'Passionné(e) et intense, elle/il vit ses émotions pleinement. Quand elle/il aime, c\'est sans retenue.',
-    'romantic': 'Romantique et rêveur/rêveuse, elle/il croit au grand amour. Les petites attentions et les moments tendres la/le font fondre.',
-    'mysterious': 'Mystérieux/mystérieuse et énigmatique, elle/il garde une part de secret qui fascine. Son regard profond cache mille pensées.',
-    'gentle': 'Doux/douce et attentionné(e), elle/il prend soin des autres avec tendresse. Sa présence apaise et réconforte.',
-    'seductive': 'Séducteur/séductrice né(e), elle/il sait user de son charme. Chaque geste, chaque mot est une invitation.',
-    'submissive': 'Soumis(e) et docile, elle/il aime se laisser guider. Son obéissance cache un désir de plaire.',
-    'wild': 'Sauvage et imprévisible, elle/il suit ses instincts. Son côté indomptable est à la fois effrayant et excitant.',
-    'caring': 'Bienveillant(e) et protecteur/protectrice, elle/il veille sur ceux qu\'elle/il aime. Son amour se manifeste en actes.',
-    'maternal': 'Maternel(le) et nourricier/nourricière, elle/il a un instinct protecteur naturel. Son côté réconfortant attire.',
-    'assertive': 'Affirmé(e) et déterminé(e), elle/il sait ce qu\'elle/il veut et n\'a pas peur de l\'exprimer.',
-    'sensual': 'Sensuel(le) et voluptueux/voluptueuse, elle/il éveille les sens. Chaque contact avec elle/lui est une caresse.',
-  };
-  
-  for (const [key, desc] of Object.entries(detailed)) {
-    if (temp.includes(key) || personality.includes(key)) {
-      return desc;
-    }
-  }
-  
-  // Si on a une personnalité mais pas de tempérament connu
-  if (character.personality) {
-    return character.personality;
-  }
-  
-  return 'Personnalité unique et attachante.';
 };
 
 export default function CharacterDetailScreen({ route, navigation }) {
@@ -334,14 +68,14 @@ export default function CharacterDetailScreen({ route, navigation }) {
   const [gallery, setGallery] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
+  const [showFullAppearance, setShowFullAppearance] = useState(false);
 
   useEffect(() => {
     initializeScreen();
     navigation.setOptions({ title: character.name });
     
-    // Recharger la galerie quand on revient sur cet écran
     const unsubscribe = navigation.addListener('focus', () => {
-      loadCharacterData(); // Recharger les données de niveau
+      loadCharacterData();
       loadGallery();
       loadUserProfile();
       checkPremiumStatus();
@@ -355,16 +89,12 @@ export default function CharacterDetailScreen({ route, navigation }) {
     loadGallery();
     loadUserProfile();
     
-    // Vérifier le statut premium avant de générer l'image
     const premiumStatus = await checkPremiumStatus();
-    console.log('🎫 Premium status:', premiumStatus);
     
     if (premiumStatus) {
-      // Passer le statut premium directement pour éviter les problèmes de timing
       generateCharacterImage(true);
     } else {
       setLoadingImage(false);
-      // Charger une image existante de la galerie si disponible
       const existingGallery = await GalleryService.getGallery(character.id);
       if (existingGallery && existingGallery.length > 0) {
         setCharacterImage(existingGallery[0]);
@@ -374,12 +104,10 @@ export default function CharacterDetailScreen({ route, navigation }) {
 
   const checkPremiumStatus = async () => {
     try {
-      // Vérifier d'abord localement (admin = premium automatiquement)
       const user = AuthService.getCurrentUser();
       const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
       
       if (isAdmin) {
-        console.log('👑 Admin détecté - Premium automatique');
         setIsPremium(true);
         return true;
       }
@@ -387,14 +115,10 @@ export default function CharacterDetailScreen({ route, navigation }) {
       const localPremium = AuthService.isPremium();
       setIsPremium(localPremium);
       
-      // Puis vérifier côté serveur
       const serverPremium = await AuthService.checkPremiumStatus();
       setIsPremium(serverPremium);
-      console.log('💎 Premium server check:', serverPremium);
       return serverPremium;
     } catch (error) {
-      console.error('Erreur vérification premium:', error);
-      // En cas d'erreur, vérifier si admin
       const user = AuthService.getCurrentUser();
       const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
       const fallback = isAdmin || AuthService.isPremium();
@@ -414,10 +138,8 @@ export default function CharacterDetailScreen({ route, navigation }) {
   };
 
   const loadCharacterData = async () => {
-    // Charger les données de niveau depuis LevelService (système principal)
     try {
       const levelData = await LevelService.getCharacterStats(character.id);
-      // Convertir en format relationship pour l'affichage
       setRelationship({
         level: levelData.level || 1,
         affection: Math.min((levelData.level || 1) * 10, 100),
@@ -426,8 +148,6 @@ export default function CharacterDetailScreen({ route, navigation }) {
         experience: levelData.xp || 0,
       });
     } catch (error) {
-      console.log('Fallback sur StorageService:', error);
-      // Fallback sur l'ancien système
       const rel = await StorageService.loadRelationship(character.id);
       setRelationship(rel);
     }
@@ -437,19 +157,15 @@ export default function CharacterDetailScreen({ route, navigation }) {
   };
 
   const generateCharacterImage = async (forceAllowed = false) => {
-    // Vérifier le statut premium (utiliser le paramètre ou l'état)
     const canGenerate = forceAllowed || isPremium;
     
     if (!canGenerate) {
       Alert.alert(
         '💎 Fonctionnalité Premium',
-        'La génération d\'images est réservée aux membres Premium.\n\nDevenez Premium pour voir vos personnages prendre vie !',
+        'La génération d\'images est réservée aux membres Premium.',
         [
           { text: 'Plus tard', style: 'cancel' },
-          { 
-            text: 'Devenir Premium', 
-            onPress: () => navigation.navigate('Premium')
-          }
+          { text: 'Devenir Premium', onPress: () => navigation.navigate('Premium') }
         ]
       );
       return;
@@ -457,34 +173,20 @@ export default function CharacterDetailScreen({ route, navigation }) {
 
     try {
       setLoadingImage(true);
-      console.log('🎨 Génération image pour:', character.name);
-      
-      // Charger le profil utilisateur pour le mode NSFW
       const profile = userProfile || await UserProfileService.getProfile();
       const imageUrl = await ImageGenerationService.generateCharacterImage(character, profile);
       
-      console.log('✅ Image générée:', imageUrl ? 'OK' : 'Échec');
       setCharacterImage(imageUrl);
       
-      // SAUVEGARDER l'image dans la galerie du personnage
       if (imageUrl) {
         await GalleryService.saveImageToGallery(character.id, imageUrl);
-        // Recharger la galerie pour afficher la nouvelle image
         await loadGallery();
       }
     } catch (error) {
       console.error('❌ Error generating image:', error);
-      if (error.message?.includes('Premium') || error.message?.includes('403')) {
-        Alert.alert(
-          '💎 Premium Requis',
-          'Vous devez être membre Premium pour générer des images.'
-        );
-      } else {
-        // Essayer de charger une image existante
-        const existingGallery = await GalleryService.getGallery(character.id);
-        if (existingGallery && existingGallery.length > 0) {
-          setCharacterImage(existingGallery[0]);
-        }
+      const existingGallery = await GalleryService.getGallery(character.id);
+      if (existingGallery && existingGallery.length > 0) {
+        setCharacterImage(existingGallery[0]);
       }
     } finally {
       setLoadingImage(false);
@@ -492,31 +194,25 @@ export default function CharacterDetailScreen({ route, navigation }) {
   };
 
   const startConversation = () => {
-    // Vérification avant navigation
     if (!character || !character.id) {
-      Alert.alert('Erreur', 'Impossible de démarrer la conversation. Personnage invalide.');
-      console.error('❌ Tentative de démarrer conversation avec character invalide:', character);
+      Alert.alert('Erreur', 'Impossible de démarrer la conversation.');
       return;
     }
-    
-    console.log('✅ Démarrage conversation:', character.name, 'ID:', character.id);
     navigation.navigate('Conversation', { character });
   };
 
   const startNewConversation = () => {
     Alert.alert(
       'Nouvelle conversation',
-      'Voulez-vous vraiment démarrer une nouvelle conversation ? L\'ancienne conversation sera perdue.',
+      'L\'ancienne conversation sera perdue.',
       [
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'Nouvelle conversation',
           style: 'destructive',
           onPress: async () => {
-            // Supprimer l'ancienne conversation
             await StorageService.deleteConversation(character.id);
             setHasConversation(false);
-            // Démarrer une nouvelle conversation
             startConversation();
           }
         }
@@ -525,12 +221,7 @@ export default function CharacterDetailScreen({ route, navigation }) {
   };
 
   const resumeConversation = () => {
-    if (!character || !character.id) {
-      Alert.alert('Erreur', 'Impossible de reprendre la conversation. Personnage invalide.');
-      return;
-    }
-    
-    console.log('✅ Reprise conversation:', character.name, 'ID:', character.id);
+    if (!character || !character.id) return;
     navigation.navigate('Conversation', { character });
   };
 
@@ -581,6 +272,47 @@ export default function CharacterDetailScreen({ route, navigation }) {
     return 'Âme sœur';
   };
 
+  // Rendu des détails de tempérament (format Bagbot v6)
+  const renderTemperamentDetails = () => {
+    const td = character.temperamentDetails;
+    if (!td) return null;
+    
+    return (
+      <View style={styles.temperamentDetailsContainer}>
+        {td.emotionnel && (
+          <View style={styles.temperamentItem}>
+            <Text style={styles.temperamentLabel}>💗 Émotionnel</Text>
+            <Text style={styles.temperamentText}>{td.emotionnel}</Text>
+          </View>
+        )}
+        {td.seduction && (
+          <View style={styles.temperamentItem}>
+            <Text style={styles.temperamentLabel}>💋 Séduction</Text>
+            <Text style={styles.temperamentText}>{td.seduction}</Text>
+          </View>
+        )}
+        {td.intimite && (
+          <View style={styles.temperamentItem}>
+            <Text style={styles.temperamentLabel}>🔥 Intimité</Text>
+            <Text style={styles.temperamentText}>{td.intimite}</Text>
+          </View>
+        )}
+        {td.communication && (
+          <View style={styles.temperamentItem}>
+            <Text style={styles.temperamentLabel}>💬 Communication</Text>
+            <Text style={styles.temperamentText}>{td.communication}</Text>
+          </View>
+        )}
+        {td.reactions && (
+          <View style={styles.temperamentItem}>
+            <Text style={styles.temperamentLabel}>⚡ Réactions</Text>
+            <Text style={styles.temperamentText}>{td.reactions}</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.imageContainer}>
@@ -605,19 +337,17 @@ export default function CharacterDetailScreen({ route, navigation }) {
           <View style={styles.headerInfo}>
             <Text style={styles.name}>{character.name}</Text>
             <Text style={styles.info}>
-              {String(character.age || '').includes('ans') ? character.age : `${character.age || '?'} ans`} • {
+              {character.age} ans • {
                 character.gender === 'male' ? 'Homme' :
-                character.gender === 'female' ? 'Femme' :
-                'Non-binaire'
+                character.gender === 'female' ? 'Femme' : 'Non-binaire'
               }
               {character.gender === 'female' && character.bust && ` • Bonnet ${character.bust}`}
-              {character.gender === 'male' && character.penis && ` • ${character.penis}`}
             </Text>
           </View>
           {isPremium && (
             <TouchableOpacity
               style={styles.refreshImageButton}
-              onPress={generateCharacterImage}
+              onPress={() => generateCharacterImage()}
             >
               <Text style={styles.refreshImageText}>🔄</Text>
             </TouchableOpacity>
@@ -632,130 +362,89 @@ export default function CharacterDetailScreen({ route, navigation }) {
           ))}
         </View>
 
-        {/* Tempérament DÉTAILLÉ - Nouveau format Bagbot */}
+        {/* TEMPÉRAMENT & PERSONNALITÉ - Format Bagbot v6 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>💭 Tempérament & Personnalité</Text>
-          {/* Afficher temperamentDetails si disponible (nouveau format Bagbot) */}
-          {character.temperamentDetails ? (
-            <View style={styles.temperamentContainer}>
-              {character.temperamentDetails.emotionnel && (
-                <View style={styles.temperamentItem}>
-                  <Text style={styles.temperamentLabel}>💗 Émotionnel</Text>
-                  <Text style={styles.temperamentText}>{character.temperamentDetails.emotionnel}</Text>
-                </View>
-              )}
-              {character.temperamentDetails.seduction && (
-                <View style={styles.temperamentItem}>
-                  <Text style={styles.temperamentLabel}>💋 Séduction</Text>
-                  <Text style={styles.temperamentText}>{character.temperamentDetails.seduction}</Text>
-                </View>
-              )}
-              {character.temperamentDetails.intimite && (
-                <View style={styles.temperamentItem}>
-                  <Text style={styles.temperamentLabel}>🔥 Intimité</Text>
-                  <Text style={styles.temperamentText}>{character.temperamentDetails.intimite}</Text>
-                </View>
-              )}
-              {character.temperamentDetails.communication && (
-                <View style={styles.temperamentItem}>
-                  <Text style={styles.temperamentLabel}>💬 Communication</Text>
-                  <Text style={styles.temperamentText}>{character.temperamentDetails.communication}</Text>
-                </View>
-              )}
-              {character.temperamentDetails.reactions && (
-                <View style={styles.temperamentItem}>
-                  <Text style={styles.temperamentLabel}>⚡ Réactions</Text>
-                  <Text style={styles.temperamentText}>{character.temperamentDetails.reactions}</Text>
-                </View>
-              )}
-            </View>
-          ) : (
-            <Text style={styles.sectionContent}>
-              {getDetailedTemperament(character)}
+          
+          {/* Tempérament principal traduit */}
+          <View style={styles.temperamentMainBox}>
+            <Text style={styles.temperamentMainText}>
+              {translateTemperament(character.temperament)}
             </Text>
-          )}
-        </View>
-
-        {/* Apparence physique ULTRA-DÉTAILLÉE */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>✨ Apparence physique</Text>
-          {/* Utiliser physicalDescription de Bagbot si disponible */}
-          {character.physicalDescription ? (
-            <Text style={styles.sectionContent}>
-              {character.physicalDescription}
-            </Text>
-          ) : (
-            <Text style={styles.sectionContent}>
-              {generateDetailedDescription(character)}
-            </Text>
-          )}
-          {/* Apparence détaillée originale si disponible */}
-          {character.appearance && character.appearance.length > 100 && (
-            <TouchableOpacity 
-              style={styles.expandButton}
-              onPress={() => Alert.alert('Description complète', character.appearance)}
-            >
-              <Text style={styles.expandButtonText}>📖 Voir description complète</Text>
-            </TouchableOpacity>
+          </View>
+          
+          {/* Personnalité */}
+          {character.personality && (
+            <Text style={styles.sectionContent}>{character.personality}</Text>
           )}
           
-          {/* Détails structurés - format liste */}
+          {/* Détails du tempérament (emotionnel, seduction, intimite, etc.) */}
+          {character.temperamentDetails && renderTemperamentDetails()}
+        </View>
+
+        {/* DESCRIPTION PHYSIQUE - Format Bagbot v6 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>✨ Description Physique</Text>
+          
+          {/* physicalDescription résumée */}
+          {character.physicalDescription && (
+            <View style={styles.physicalDescBox}>
+              <Text style={styles.physicalDescText}>{character.physicalDescription}</Text>
+            </View>
+          )}
+          
+          {/* Apparence détaillée (toggle) */}
+          {character.appearance && character.appearance.length > 100 && (
+            <>
+              <TouchableOpacity
+                style={styles.toggleButton}
+                onPress={() => setShowFullAppearance(!showFullAppearance)}
+              >
+                <Text style={styles.toggleButtonText}>
+                  {showFullAppearance ? '📖 Masquer l\'apparence détaillée' : '📖 Voir l\'apparence détaillée'}
+                </Text>
+              </TouchableOpacity>
+              
+              {showFullAppearance && (
+                <View style={styles.fullAppearanceBox}>
+                  <Text style={styles.fullAppearanceText}>{character.appearance}</Text>
+                </View>
+              )}
+            </>
+          )}
+          
+          {/* Attributs en liste */}
           <View style={styles.attributesContainer}>
-            {/* Âge */}
-            {character.age && (
-              <Text style={styles.attributeDetail}>• Âge : {character.age} ans</Text>
+            {character.height && (
+              <Text style={styles.attributeDetail}>• Taille : {character.height}</Text>
             )}
-            {/* Taille */}
-            {(character.height || extractAttribute(character, 'height')) && (
-              <Text style={styles.attributeDetail}>• Taille : {character.height || extractAttribute(character, 'height')}</Text>
+            {character.bodyType && (
+              <Text style={styles.attributeDetail}>• Morphologie : {character.bodyType}</Text>
             )}
-            {/* Morphologie */}
-            {(character.bodyType || extractAttribute(character, 'body')) && (
-              <Text style={styles.attributeDetail}>• Morphologie : {character.bodyType || extractAttribute(character, 'body')}</Text>
+            {character.hairColor && (
+              <Text style={styles.attributeDetail}>• Cheveux : {character.hairColor}</Text>
             )}
-            {/* Cheveux - DÉTAILLÉ */}
-            <Text style={styles.attributeDetail}>
-              • Cheveux : {character.hairColor || extractAttribute(character, 'hair') || 'Non spécifié'}
-              {character.hairLength ? `, ${character.hairLength}` : ''}
-            </Text>
-            {/* Yeux */}
-            <Text style={styles.attributeDetail}>
-              • Yeux : {character.eyeColor || extractAttribute(character, 'eyes') || 'Non spécifié'}
-            </Text>
-            {/* Poitrine pour femmes - TRÈS DÉTAILLÉ */}
-            {character.gender === 'female' && (
-              <Text style={styles.attributeDetail}>
-                • Poitrine : Bonnet {character.bust || character.bustSize || extractAttribute(character, 'bust') || 'C'}
-              </Text>
+            {character.eyeColor && (
+              <Text style={styles.attributeDetail}>• Yeux : {character.eyeColor}</Text>
             )}
-            {/* Pénis pour hommes - DÉTAILLÉ */}
-            {character.gender === 'male' && (character.penis || character.maleSize || extractAttribute(character, 'male')) && (
-              <Text style={styles.attributeDetail}>
-                • Attribut : {character.penis || character.maleSize || extractAttribute(character, 'male')} cm
-              </Text>
+            {character.gender === 'female' && character.bust && (
+              <Text style={styles.attributeDetail}>• Poitrine : Bonnet {character.bust}</Text>
             )}
-            {/* Accessoires */}
-            {(character.glasses || ((character.physicalDescription || '') + (character.appearance || '')).toLowerCase().includes('lunettes')) && (
-              <Text style={styles.attributeDetail}>• Accessoires : Lunettes</Text>
+            {character.gender === 'male' && character.penis && (
+              <Text style={styles.attributeDetail}>• Attribut : {character.penis}</Text>
             )}
           </View>
         </View>
 
-        {/* Tenue - Section séparée et détaillée */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>👘 Tenue</Text>
-          <Text style={styles.sectionContent}>
-            {character.outfit || 'Tenue non spécifiée'}
-          </Text>
-        </View>
-
-        {character.personality && (
+        {/* TENUE */}
+        {character.outfit && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🎭 Personnalité</Text>
-            <Text style={styles.sectionContent}>{character.personality}</Text>
+            <Text style={styles.sectionTitle}>👘 Tenue</Text>
+            <Text style={styles.sectionContent}>{character.outfit}</Text>
           </View>
         )}
 
+        {/* SCÉNARIO */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📖 Scénario</Text>
           <Text style={styles.sectionContent}>
@@ -763,16 +452,19 @@ export default function CharacterDetailScreen({ route, navigation }) {
           </Text>
         </View>
 
-        {/* Message d'accroche */}
+        {/* MESSAGE D'ACCROCHE */}
         {(character.startMessage || character.greeting) && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>💬 Premier message</Text>
-            <Text style={styles.sectionContent}>
-              {character.startMessage || character.greeting}
-            </Text>
+            <View style={styles.messageBox}>
+              <Text style={styles.messageText}>
+                {character.startMessage || character.greeting}
+              </Text>
+            </View>
           </View>
         )}
 
+        {/* RELATION */}
         {relationship && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>💖 Relation</Text>
@@ -798,9 +490,7 @@ export default function CharacterDetailScreen({ route, navigation }) {
                 </View>
                 <Text style={styles.statValue}>{relationship.trust}%</Text>
               </View>
-              <Text style={styles.relationshipLevel}>
-                {getRelationshipLevel()}
-              </Text>
+              <Text style={styles.relationshipLevel}>{getRelationshipLevel()}</Text>
               <Text style={styles.relationshipStats}>
                 {relationship.interactions} interaction(s) • {relationship.experience} XP
               </Text>
@@ -808,13 +498,11 @@ export default function CharacterDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Galerie d'images - TOUJOURS VISIBLE */}
+        {/* GALERIE */}
         <View style={styles.section}>
           <View style={styles.gallerySectionHeader}>
             <Text style={styles.sectionTitle}>🖼️ Galerie</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Gallery', { character })}
-            >
+            <TouchableOpacity onPress={() => navigation.navigate('Gallery', { character })}>
               <Text style={styles.seeAllText}>Voir tout ({gallery.length}) →</Text>
             </TouchableOpacity>
           </View>
@@ -822,13 +510,13 @@ export default function CharacterDetailScreen({ route, navigation }) {
             <View style={styles.emptyGalleryContainer}>
               <Text style={styles.emptyGalleryIcon}>📸</Text>
               <Text style={styles.emptyGalleryText}>
-                Aucune image pour le moment. Générez des images dans les conversations !
+                Aucune image. Générez des images dans les conversations !
               </Text>
             </View>
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.galleryPreview}>
-                {gallery.map((imageUrl, index) => (
+                {gallery.slice(0, 5).map((imageUrl, index) => (
                   <TouchableOpacity
                     key={index}
                     onPress={() => navigation.navigate('Gallery', { character })}
@@ -841,49 +529,29 @@ export default function CharacterDetailScreen({ route, navigation }) {
           )}
         </View>
 
+        {/* BOUTONS */}
         <View style={styles.buttonContainer}>
           {hasConversation ? (
             <>
-              <TouchableOpacity
-                style={styles.resumeButton}
-                onPress={resumeConversation}
-              >
-                <Text style={styles.resumeButtonText}>
-                  💬 Reprendre la conversation
-                </Text>
+              <TouchableOpacity style={styles.resumeButton} onPress={resumeConversation}>
+                <Text style={styles.resumeButtonText}>💬 Reprendre la conversation</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.newConversationButton}
-                onPress={startNewConversation}
-              >
-                <Text style={styles.newConversationButtonText}>
-                  ✨ Nouvelle conversation
-                </Text>
+              <TouchableOpacity style={styles.newConversationButton} onPress={startNewConversation}>
+                <Text style={styles.newConversationButtonText}>✨ Nouvelle conversation</Text>
               </TouchableOpacity>
             </>
           ) : (
-            <TouchableOpacity
-              style={styles.startButton}
-              onPress={startConversation}
-            >
-              <Text style={styles.startButtonText}>
-                ✨ Commencer la conversation
-              </Text>
+            <TouchableOpacity style={styles.startButton} onPress={startConversation}>
+              <Text style={styles.startButtonText}>✨ Commencer la conversation</Text>
             </TouchableOpacity>
           )}
 
           {character.isCustom && (
             <View style={styles.customButtonsRow}>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={handleEditCharacter}
-              >
+              <TouchableOpacity style={styles.editButton} onPress={handleEditCharacter}>
                 <Text style={styles.editButtonText}>✏️ Modifier</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={handleDeleteCharacter}
-              >
+              <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteCharacter}>
                 <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
               </TouchableOpacity>
             </View>
@@ -984,13 +652,114 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#111827',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   sectionContent: {
     fontSize: 15,
     color: '#4b5563',
     lineHeight: 22,
   },
+  // Tempérament styles
+  temperamentMainBox: {
+    backgroundColor: '#4f46e5',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+  },
+  temperamentMainText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  temperamentDetailsContainer: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 15,
+    marginTop: 10,
+  },
+  temperamentItem: {
+    marginBottom: 15,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  temperamentLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#6366f1',
+    marginBottom: 5,
+  },
+  temperamentText: {
+    fontSize: 14,
+    color: '#4b5563',
+    lineHeight: 20,
+  },
+  // Physical description styles
+  physicalDescBox: {
+    backgroundColor: '#fef3c7',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#f59e0b',
+  },
+  physicalDescText: {
+    fontSize: 14,
+    color: '#92400e',
+    lineHeight: 20,
+  },
+  toggleButton: {
+    backgroundColor: '#e0e7ff',
+    borderRadius: 8,
+    padding: 10,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    color: '#4f46e5',
+    fontWeight: '600',
+  },
+  fullAppearanceBox: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+  },
+  fullAppearanceText: {
+    fontSize: 13,
+    color: '#374151',
+    lineHeight: 20,
+  },
+  attributesContainer: {
+    backgroundColor: '#f0f4ff',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 5,
+  },
+  attributeDetail: {
+    fontSize: 14,
+    color: '#4f46e5',
+    fontWeight: '600',
+    marginBottom: 6,
+    paddingLeft: 4,
+  },
+  // Message box
+  messageBox: {
+    backgroundColor: '#dcfce7',
+    borderRadius: 10,
+    padding: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#10b981',
+  },
+  messageText: {
+    fontSize: 14,
+    color: '#166534',
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  // Relationship
   relationshipContainer: {
     backgroundColor: '#f3f4f6',
     padding: 15,
@@ -1039,6 +808,43 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 5,
   },
+  // Gallery
+  gallerySectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: '#6366f1',
+    fontWeight: '600',
+  },
+  galleryPreview: {
+    flexDirection: 'row',
+  },
+  galleryThumbnail: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  emptyGalleryContainer: {
+    padding: 20,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  emptyGalleryIcon: {
+    fontSize: 48,
+    marginBottom: 10,
+  },
+  emptyGalleryText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  // Buttons
   buttonContainer: {
     marginTop: 10,
     marginBottom: 20,
@@ -1092,19 +898,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
-  attributesContainer: {
-    marginTop: 12,
-    backgroundColor: '#f0f4ff',
-    borderRadius: 12,
-    padding: 12,
-  },
-  attributeDetail: {
-    fontSize: 14,
-    color: '#4f46e5',
-    fontWeight: '600',
-    marginBottom: 6,
-    paddingLeft: 4,
-  },
   customButtonsRow: {
     flexDirection: 'row',
     marginTop: 10,
@@ -1133,75 +926,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
-  },
-  gallerySectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  seeAllText: {
-    fontSize: 14,
-    color: '#6366f1',
-    fontWeight: '600',
-  },
-  galleryPreview: {
-    flexDirection: 'row',
-  },
-  galleryThumbnail: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginRight: 10,
-  },
-  emptyGalleryContainer: {
-    padding: 20,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  emptyGalleryIcon: {
-    fontSize: 48,
-    marginBottom: 10,
-  },
-  emptyGalleryText: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-  },
-  // Styles pour le nouveau format Bagbot
-  temperamentContainer: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 12,
-  },
-  temperamentItem: {
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  temperamentLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#6366f1',
-    marginBottom: 4,
-  },
-  temperamentText: {
-    fontSize: 14,
-    color: '#4b5563',
-    lineHeight: 20,
-  },
-  expandButton: {
-    marginTop: 10,
-    backgroundColor: '#e0e7ff',
-    borderRadius: 8,
-    padding: 10,
-    alignItems: 'center',
-  },
-  expandButtonText: {
-    fontSize: 14,
-    color: '#4f46e5',
-    fontWeight: '600',
   },
 });
