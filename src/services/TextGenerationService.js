@@ -1294,8 +1294,8 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale v5.3.35
-   * AMÉLIORÉ: Plus de dialogue, profil utilisateur complet
+   * Construit l'instruction finale v5.3.36
+   * AMÉLIORÉ: Plus de dialogue, profil utilisateur complet + âge
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'Personnage';
@@ -1303,6 +1303,10 @@ class TextGenerationService {
     const userName = hasUsername ? userProfile.username : 'toi';
     const userGender = userProfile?.gender || '';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    
+    // Âges
+    const charAge = character.age ? parseInt(character.age) : null;
+    const userAge = userProfile?.age ? parseInt(userProfile.age) : null;
     
     // Récupérer le dernier message utilisateur
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
@@ -1312,14 +1316,30 @@ class TextGenerationService {
     let instruction = `⚡ RÉPONDS MAINTENANT à ${userName}: "${lastUserContent.substring(0, 150)}"\n\n`;
     
     // Rappel du profil utilisateur
+    let userDesc = [];
     if (userGender === 'female') {
-      instruction += `📍 ${userName} est une FEMME`;
-      if (userProfile?.bust) instruction += ` (poitrine bonnet ${userProfile.bust})`;
-      instruction += `.\n`;
+      userDesc.push('FEMME');
+      if (userProfile?.bust) userDesc.push(`seins ${userProfile.bust}`);
     } else if (userGender === 'male') {
-      instruction += `📍 ${userName} est un HOMME`;
-      if (userProfile?.penis) instruction += ` (sexe de ${userProfile.penis} cm)`;
-      instruction += `.\n`;
+      userDesc.push('HOMME');
+      if (userProfile?.penis) userDesc.push(`${userProfile.penis}cm`);
+    }
+    if (userAge) userDesc.push(`${userAge} ans`);
+    
+    if (userDesc.length > 0) {
+      instruction += `📍 ${userName}: ${userDesc.join(', ')}.\n`;
+    }
+    
+    // Différence d'âge
+    if (charAge && userAge) {
+      const ageDiff = userAge - charAge;
+      if (Math.abs(ageDiff) >= 10) {
+        if (ageDiff > 0) {
+          instruction += `📍 ${userName} est plus VIEUX/VIEILLE que toi (+${ageDiff} ans).\n`;
+        } else {
+          instruction += `📍 ${userName} est plus JEUNE que toi (${Math.abs(ageDiff)} ans de moins).\n`;
+        }
+      }
     }
     
     // RÈGLE PRIORITAIRE: DIALOGUE > ACTIONS
@@ -1475,6 +1495,8 @@ class TextGenerationService {
     
     // === PROFIL DE L'UTILISATEUR - TRÈS IMPORTANT ===
     prompt += `\n# TON INTERLOCUTEUR: ${userName.toUpperCase()}\n`;
+    
+    // Sexe de l'utilisateur
     if (userIsFemale) {
       prompt += `${userName} est une FEMME.\n`;
       if (userProfile?.bust) {
@@ -1495,8 +1517,45 @@ class TextGenerationService {
         }
       }
     }
-    if (userProfile?.age) {
-      prompt += `${userName} a ${userProfile.age} ans.\n`;
+    
+    // === ÂGE ET DIFFÉRENCE D'ÂGE ===
+    const userAge = userProfile?.age ? parseInt(userProfile.age) : null;
+    const charAge = character.age ? parseInt(character.age) : null;
+    
+    if (userAge) {
+      prompt += `${userName} a ${userAge} ans.\n`;
+      
+      // Calculer la différence d'âge si les deux âges sont connus
+      if (charAge) {
+        const ageDiff = userAge - charAge;
+        
+        if (ageDiff >= 15) {
+          // Utilisateur beaucoup plus vieux
+          prompt += `\n📍 DIFFÉRENCE D'ÂGE: ${userName} est BEAUCOUP PLUS VIEUX/VIEILLE que toi (${Math.abs(ageDiff)} ans de plus).\n`;
+          prompt += `Adapte ton comportement: tu peux être impressionné(e), respectueux/se, ou attiré(e) par son expérience et sa maturité.\n`;
+          if (isNSFW) {
+            prompt += `Tu peux jouer sur cette différence d'âge: "${userName}, tu es tellement mature...", "J'aime ton expérience..."\n`;
+          }
+        } else if (ageDiff >= 5) {
+          // Utilisateur plus vieux
+          prompt += `\n📍 DIFFÉRENCE D'ÂGE: ${userName} est plus âgé(e) que toi (${Math.abs(ageDiff)} ans de plus).\n`;
+          prompt += `Tu peux montrer du respect pour son âge ou être attiré(e) par sa maturité.\n`;
+        } else if (ageDiff <= -15) {
+          // Utilisateur beaucoup plus jeune
+          prompt += `\n📍 DIFFÉRENCE D'ÂGE: ${userName} est BEAUCOUP PLUS JEUNE que toi (${Math.abs(ageDiff)} ans de moins).\n`;
+          prompt += `Adapte ton comportement: tu peux être protecteur/trice, maternel(le)/paternel(le), ou attiré(e) par sa jeunesse et sa fraîcheur.\n`;
+          if (isNSFW) {
+            prompt += `Tu peux jouer sur cette différence: "Tu es si jeune et plein(e) d'énergie...", "Laisse-moi te montrer..."\n`;
+          }
+        } else if (ageDiff <= -5) {
+          // Utilisateur plus jeune
+          prompt += `\n📍 DIFFÉRENCE D'ÂGE: ${userName} est plus jeune que toi (${Math.abs(ageDiff)} ans de moins).\n`;
+          prompt += `Tu peux être légèrement protecteur/trice ou apprécier sa jeunesse.\n`;
+        } else {
+          // Âges similaires
+          prompt += `\n📍 Vous avez à peu près le même âge (${charAge} ans vs ${userAge} ans).\n`;
+        }
+      }
     }
     
     // === SCÉNARIO ===
@@ -1540,7 +1599,7 @@ class TextGenerationService {
 
   /**
    * Construit le prompt compact pour Ollama (moins de tokens)
-   * v5.3.35 - Plus de dialogue, profil utilisateur
+   * v5.3.36 - Plus de dialogue, profil utilisateur + âge
    */
   buildCompactImmersivePrompt(character, userProfile, context) {
     const charName = character.name || 'Personnage';
@@ -1550,23 +1609,38 @@ class TextGenerationService {
     const userIsMale = userProfile?.gender === 'male';
     const userIsFemale = userProfile?.gender === 'female';
     
+    // Âges
+    const charAge = character.age ? parseInt(character.age) : null;
+    const userAge = userProfile?.age ? parseInt(userProfile.age) : null;
+    
     let prompt = `Tu es ${charName}`;
-    if (character.age) prompt += ` (${character.age} ans)`;
+    if (charAge) prompt += ` (${charAge} ans)`;
     if (character.gender === 'female') prompt += ', femme';
     else if (character.gender === 'male') prompt += ', homme';
     prompt += `. Tu parles à ${userName}`;
     
-    // Info utilisateur
-    if (userIsMale) {
-      prompt += ` (HOMME`;
-      if (userProfile?.penis) prompt += `, ${userProfile.penis}cm`;
-      prompt += `)`;
-    } else if (userIsFemale) {
-      prompt += ` (FEMME`;
-      if (userProfile?.bust) prompt += `, bonnet ${userProfile.bust}`;
-      prompt += `)`;
+    // Info utilisateur avec âge
+    let userInfo = [];
+    if (userIsMale) userInfo.push('HOMME');
+    else if (userIsFemale) userInfo.push('FEMME');
+    if (userAge) userInfo.push(`${userAge} ans`);
+    if (userIsMale && userProfile?.penis) userInfo.push(`${userProfile.penis}cm`);
+    if (userIsFemale && userProfile?.bust) userInfo.push(`bonnet ${userProfile.bust}`);
+    
+    if (userInfo.length > 0) {
+      prompt += ` (${userInfo.join(', ')})`;
     }
     prompt += `.\n`;
+    
+    // Différence d'âge si significative
+    if (charAge && userAge) {
+      const ageDiff = userAge - charAge;
+      if (ageDiff >= 10) {
+        prompt += `${userName} est plus vieux/vieille (+${ageDiff} ans). `;
+      } else if (ageDiff <= -10) {
+        prompt += `${userName} est plus jeune (${Math.abs(ageDiff)} ans de moins). `;
+      }
+    }
     
     // Personnalité courte
     if (character.personality) {
@@ -1676,8 +1750,8 @@ class TextGenerationService {
   }
 
   /**
-   * Construit l'instruction finale - v5.3.35
-   * AMÉLIORÉ: Plus de dialogue, moins d'actions + profil utilisateur
+   * Construit l'instruction finale - v5.3.36
+   * AMÉLIORÉ: Plus de dialogue, moins d'actions + profil utilisateur + âge
    */
   buildFinalInstruction(character, userProfile, context) {
     const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
@@ -1687,6 +1761,10 @@ class TextGenerationService {
     const msgType = this.analyzeUserMessageType(lastMsg);
     
     const charName = character?.name || 'le personnage';
+    
+    // Âges
+    const charAge = character.age ? parseInt(character.age) : null;
+    const userAge = userProfile?.age ? parseInt(userProfile.age) : null;
     
     let instruction = `\n[⚡ RÉPONDS MAINTENANT - ${charName}]\n\n`;
     
@@ -1699,18 +1777,32 @@ class TextGenerationService {
     instruction += `- PARLE à ${userName}, ne fais pas que des gestes!\n\n`;
     
     // === RAPPEL PROFIL UTILISATEUR ===
+    let userDesc = [];
     if (userGender === 'female') {
-      instruction += `📍 RAPPEL: ${userName} est une FEMME`;
-      if (userProfile?.bust) {
-        instruction += ` avec une poitrine bonnet ${userProfile.bust}`;
-      }
-      instruction += `.\n`;
+      userDesc.push('FEMME');
+      if (userProfile?.bust) userDesc.push(`seins bonnet ${userProfile.bust}`);
     } else if (userGender === 'male') {
-      instruction += `📍 RAPPEL: ${userName} est un HOMME`;
-      if (userProfile?.penis) {
-        instruction += ` avec un sexe de ${userProfile.penis} cm`;
+      userDesc.push('HOMME');
+      if (userProfile?.penis) userDesc.push(`sexe ${userProfile.penis} cm`);
+    }
+    if (userAge) userDesc.push(`${userAge} ans`);
+    
+    if (userDesc.length > 0) {
+      instruction += `📍 RAPPEL: ${userName} est ${userDesc.join(', ')}.\n`;
+    }
+    
+    // === DIFFÉRENCE D'ÂGE ===
+    if (charAge && userAge) {
+      const ageDiff = userAge - charAge;
+      if (ageDiff >= 15) {
+        instruction += `📍 ${userName} est BEAUCOUP PLUS VIEUX/VIEILLE que toi (+${ageDiff} ans). Montre ton attirance pour sa maturité!\n`;
+      } else if (ageDiff >= 5) {
+        instruction += `📍 ${userName} est plus âgé(e) que toi (+${ageDiff} ans).\n`;
+      } else if (ageDiff <= -15) {
+        instruction += `📍 ${userName} est BEAUCOUP PLUS JEUNE que toi (${Math.abs(ageDiff)} ans de moins). Tu peux être protecteur/trice ou apprécier sa jeunesse!\n`;
+      } else if (ageDiff <= -5) {
+        instruction += `📍 ${userName} est plus jeune que toi (${Math.abs(ageDiff)} ans de moins).\n`;
       }
-      instruction += `.\n`;
     }
     
     // MODE NSFW - Instructions explicites

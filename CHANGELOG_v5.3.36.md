@@ -1,4 +1,4 @@
-# Changelog v5.3.35
+# Changelog v5.3.36
 
 ## 🎯 Résumé des changements
 
@@ -13,12 +13,20 @@ Cette version restaure la fonctionnalité de la v5.3.34 et améliore significati
   - Le dialogue doit être plus long que l'action
   - Instructions explicites pour parler plus qu'agir
 
-### 2. Profil utilisateur intégré dans les prompts
+### 2. Profil utilisateur complet intégré dans les prompts
 - **Sexe de l'utilisateur**: Le personnage sait si l'utilisateur est homme ou femme
 - **Attributs physiques**:
   - Pour les femmes: taille de poitrine (bonnet A à H) mentionnée dans les réponses NSFW
   - Pour les hommes: taille du sexe (en cm) mentionnée dans les réponses NSFW
 - **Pseudo**: Le personnage utilise le pseudo de l'utilisateur pour s'adresser à lui
+- **Âge et différence d'âge**: 
+  - L'âge de l'utilisateur est communiqué au personnage
+  - La différence d'âge influence le comportement du personnage:
+    - Si l'utilisateur est beaucoup plus vieux (+15 ans): le personnage peut montrer de l'attirance pour sa maturité
+    - Si l'utilisateur est plus vieux (+5 ans): respect pour son âge
+    - Si l'utilisateur est beaucoup plus jeune (-15 ans): le personnage peut être protecteur ou apprécier sa jeunesse
+    - Si l'utilisateur est plus jeune (-5 ans): légèrement protecteur
+    - Âges similaires: comportement normal
 - Les prompts rappellent ces informations au modèle pour des réponses personnalisées
 
 ### 3. Stockage des conversations et images corrigé
