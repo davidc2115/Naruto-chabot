@@ -14,10 +14,25 @@ import {
   StatusBar,
   PanResponder,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import enhancedCharacters from '../data/allCharacters';
-import CustomCharacterService from '../services/CustomCharacterService';
-import GalleryService from '../services/GalleryService';
+
+// Import optionnel des services
+let CustomCharacterService = null;
+let GalleryService = null;
+
+try {
+  CustomCharacterService = require('../services/CustomCharacterService').default;
+} catch (e) {
+  console.log('CustomCharacterService non disponible pour carrousel');
+}
+
+try {
+  GalleryService = require('../services/GalleryService').default;
+} catch (e) {
+  console.log('GalleryService non disponible pour carrousel');
+}
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 80;
@@ -137,40 +152,107 @@ export default function CharacterCarouselScreen({ navigation }) {
 
   const loadAllCharacters = async () => {
     try {
-      // Rafraîchir les personnages publics depuis le serveur
-      const SyncService = require('../services/SyncService').default;
-      await SyncService.init();
-      await SyncService.getPublicCharacters(); // Force le refresh du cache
+      console.log('🎠 Carrousel: Chargement des personnages...');
       
-      // Utiliser getAllVisibleCharacters pour inclure les personnages publics des autres utilisateurs
-      const customChars = await CustomCharacterService.getAllVisibleCharacters();
+      // ÉTAPE 1: Afficher IMMÉDIATEMENT les personnages de base
+      if (enhancedCharacters && enhancedCharacters.length > 0) {
+        const shuffled = shuffleArray([...enhancedCharacters]);
+        setAllCharacters(shuffled);
+        console.log('✅ Carrousel:', enhancedCharacters.length, 'personnages de base affichés');
+      }
       
-      // Combiner les personnages de la base + customs/publics et mélanger aléatoirement
-      const combined = [...enhancedCharacters, ...customChars];
-      const shuffled = shuffleArray(combined);
-      setAllCharacters(shuffled);
-      await loadGalleryImages(shuffled);
+      // ÉTAPE 2: Charger les personnages custom en arrière-plan (avec timeout)
+      if (CustomCharacterService) {
+        try {
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          );
+          
+          const customChars = await Promise.race([
+            CustomCharacterService.getAllVisibleCharacters(),
+            timeoutPromise
+          ]);
+          
+          if (customChars && customChars.length > 0) {
+            const combined = [...enhancedCharacters, ...customChars];
+            const shuffled = shuffleArray(combined);
+            setAllCharacters(shuffled);
+            console.log('✅ Carrousel: + ', customChars.length, 'personnages custom');
+            
+            // Charger les images en arrière-plan
+            loadGalleryImages(shuffled);
+          }
+        } catch (e) {
+          console.log('⚠️ Carrousel: Personnages custom non chargés (timeout ou erreur)');
+        }
+      }
+      
+      // ÉTAPE 3: Charger les personnages publics du serveur en arrière-plan (optionnel)
+      loadServerCharactersAsync();
+      
     } catch (error) {
       console.error('Erreur chargement personnages:', error);
-      // Fallback: charger seulement les personnages de base
-      const shuffled = shuffleArray([...enhancedCharacters]);
-      setAllCharacters(shuffled);
+      // Fallback: s'assurer qu'on a au moins les personnages de base
+      if (!allCharacters || allCharacters.length === 0) {
+        const shuffled = shuffleArray([...enhancedCharacters]);
+        setAllCharacters(shuffled);
+      }
+    }
+  };
+  
+  // Charger les personnages du serveur en arrière-plan (non-bloquant)
+  const loadServerCharactersAsync = async () => {
+    try {
+      const SyncService = require('../services/SyncService').default;
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout serveur')), 8000)
+      );
+      
+      await Promise.race([SyncService.init(), timeoutPromise]);
+      
+      const publicChars = await Promise.race([
+        SyncService.getPublicCharacters(),
+        timeoutPromise
+      ]);
+      
+      if (publicChars && publicChars.length > 0) {
+        setAllCharacters(prev => {
+          const existingIds = new Set(prev.map(c => c.id));
+          const newChars = publicChars.filter(c => !existingIds.has(c.id));
+          if (newChars.length > 0) {
+            console.log('✅ Carrousel: +', newChars.length, 'personnages publics du serveur');
+            return shuffleArray([...prev, ...newChars]);
+          }
+          return prev;
+        });
+      }
+    } catch (e) {
+      console.log('⚠️ Carrousel: Personnages serveur non chargés (normal si hors-ligne)');
     }
   };
 
   const loadGalleryImages = async (chars) => {
     const images = {};
+    
     for (const char of chars) {
-      if (char.imageUrl) {
-        images[char.id] = char.imageUrl;
-      } else {
-        const gallery = await GalleryService.getGallery(char.id);
-        if (gallery && gallery.length > 0) {
-          images[char.id] = gallery[0];
+      try {
+        if (char.imageUrl) {
+          images[char.id] = char.imageUrl;
+        } else if (GalleryService) {
+          const gallery = await GalleryService.getGallery(char.id);
+          if (gallery && gallery.length > 0) {
+            images[char.id] = gallery[0];
+          }
         }
+      } catch (e) {
+        // Ignorer les erreurs individuelles
       }
     }
-    setCharacterImages(images);
+    
+    if (Object.keys(images).length > 0) {
+      setCharacterImages(prev => ({ ...prev, ...images }));
+    }
   };
 
   // Filtrer par recherche texte (nom OU tags) ET par tags sélectionnés

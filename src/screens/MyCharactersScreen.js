@@ -11,17 +11,10 @@ import {
   RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomCharacterService from '../services/CustomCharacterService';
 
-// Import optionnel des services
-let CustomCharacterService = null;
+// Import optionnel AuthService
 let AuthService = null;
-
-try {
-  CustomCharacterService = require('../services/CustomCharacterService').default;
-} catch (e) {
-  console.log('CustomCharacterService non disponible');
-}
-
 try {
   AuthService = require('../services/AuthService').default;
 } catch (e) {
@@ -210,25 +203,74 @@ export default function MyCharactersScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await CustomCharacterService.deleteCustomCharacter(character.id);
+              console.log('🗑️ Suppression du personnage:', character.id);
+              
+              // Méthode 1: Utiliser CustomCharacterService si disponible
+              if (CustomCharacterService) {
+                try {
+                  await CustomCharacterService.deleteCustomCharacter(character.id);
+                  console.log('✅ Supprimé via CustomCharacterService');
+                } catch (e) {
+                  console.log('⚠️ Erreur CustomCharacterService:', e.message);
+                }
+              }
+              
+              // Méthode 2: Suppression directe dans AsyncStorage (fallback)
+              try {
+                // Essayer plusieurs clés de stockage
+                const keys = [
+                  'custom_characters_anonymous',
+                  'custom_characters',
+                ];
+                
+                // Ajouter la clé utilisateur si connecté
+                if (AuthService && AuthService.getCurrentUser) {
+                  const user = AuthService.getCurrentUser();
+                  if (user?.id) {
+                    keys.push(`custom_characters_${user.id}`);
+                  }
+                }
+                
+                for (const key of keys) {
+                  try {
+                    const data = await AsyncStorage.getItem(key);
+                    if (data) {
+                      const chars = JSON.parse(data);
+                      const filtered = chars.filter(c => c.id !== character.id);
+                      if (filtered.length !== chars.length) {
+                        await AsyncStorage.setItem(key, JSON.stringify(filtered));
+                        console.log('✅ Supprimé de', key);
+                      }
+                    }
+                  } catch (e) {
+                    // Continuer avec la clé suivante
+                  }
+                }
+              } catch (e) {
+                console.log('⚠️ Erreur suppression AsyncStorage:', e.message);
+              }
               
               // Si public, retirer aussi du serveur
-              if (character.isPublic && character.serverId) {
+              if (character.isPublic && character.serverId && CustomCharacterService) {
                 try {
                   await CustomCharacterService.unpublishCharacter(character.id);
                 } catch (e) {}
               }
               
               // Si connecté, supprimer du serveur auth
-              if (AuthService.isLoggedIn()) {
+              if (AuthService && AuthService.isLoggedIn && AuthService.isLoggedIn()) {
                 try {
                   await AuthService.deleteCharacter(character.id);
                 } catch (e) {}
               }
               
-              loadCharacters();
+              // Mettre à jour le cache et l'état
+              cachedCharacters = cachedCharacters ? cachedCharacters.filter(c => c.id !== character.id) : null;
+              setCharacters(prev => prev.filter(c => c.id !== character.id));
+              
               Alert.alert('Succès', 'Personnage supprimé');
             } catch (error) {
+              console.error('❌ Erreur suppression:', error);
               Alert.alert('Erreur', 'Impossible de supprimer le personnage');
             }
           }

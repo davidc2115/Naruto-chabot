@@ -1629,6 +1629,43 @@ class ImageGenerationService {
     
     console.log('🔍 extractBodyFeatures - Texte analysé:', fullText.substring(0, 300));
     
+    // === PRIORITÉ 1: POITRINE EXPLICITE (character.bust) ===
+    if (character.gender === 'female' && character.bust) {
+      const bustSize = character.bust.toUpperCase().trim();
+      const bustDescriptions = {
+        'A': 'SMALL A-CUP BREASTS, petite flat chest, tiny breasts',
+        'B': 'SMALL B-CUP BREASTS, modest small bust, petite chest',
+        'C': 'MEDIUM C-CUP BREASTS, average bust, normal sized breasts',
+        'D': 'LARGE D-CUP BREASTS, big full breasts, generous bust, impressive cleavage',
+        'DD': 'VERY LARGE DD-CUP BREASTS, big heavy breasts, impressive large bust, deep cleavage',
+        'E': 'HUGE E-CUP BREASTS, very big heavy breasts, enormous bust, massive chest',
+        'F': 'HUGE F-CUP BREASTS, massive heavy breasts, gigantic bust, extremely large chest',
+        'G': 'GIGANTIC G-CUP BREASTS, enormous massive breasts, huge heavy bust',
+        'H': 'MASSIVE H-CUP BREASTS, extremely huge breasts, colossal bust, giant chest'
+      };
+      if (bustDescriptions[bustSize]) {
+        features.push(bustDescriptions[bustSize]);
+        console.log('👙 POITRINE DIRECTE:', bustSize, '→', bustDescriptions[bustSize].substring(0, 50));
+      }
+    }
+    
+    // === PRIORITÉ 2: PÉNIS EXPLICITE (character.penis) ===
+    if (character.gender === 'male' && character.penis) {
+      const penisText = character.penis.toLowerCase();
+      const sizeMatch = penisText.match(/(\d+)\s*cm/);
+      if (sizeMatch) {
+        const size = parseInt(sizeMatch[1]);
+        if (size >= 22) {
+          features.push('very well endowed, large thick');
+        } else if (size >= 18) {
+          features.push('well endowed');
+        } else if (size >= 15) {
+          features.push('average build');
+        }
+      }
+      console.log('🍆 PÉNIS DIRECT:', character.penis);
+    }
+    
     // === TYPE DE CORPS GÉNÉRAL - DÉTECTION ULTRA-COMPLÈTE ===
     
     // TRÈS RONDE / TRÈS GROSSE

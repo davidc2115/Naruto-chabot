@@ -6,7 +6,22 @@ class GroqService {
     this.apiKeys = [];
     this.currentKeyIndex = 0;
     this.baseURL = 'https://api.groq.com/openai/v1/chat/completions';
-    this.model = 'llama-3.3-70b-versatile'; // Modèle actif et performant
+    // Modèles disponibles - essayer plusieurs si refus
+    this.models = [
+      'llama-3.1-70b-versatile',     // Principal - bon équilibre
+      'llama-3.3-70b-versatile',     // Alternatif
+      'mixtral-8x7b-32768',          // Fallback - moins restrictif
+    ];
+    this.currentModelIndex = 0;
+    this.model = this.models[0];
+  }
+  
+  // Changer de modèle en cas de refus
+  rotateModel() {
+    this.currentModelIndex = (this.currentModelIndex + 1) % this.models.length;
+    this.model = this.models[this.currentModelIndex];
+    console.log('🔄 Changement de modèle:', this.model);
+    return this.model;
   }
 
   async loadApiKeys() {
@@ -220,7 +235,7 @@ class GroqService {
     return null; // Indiquer qu'il faut retenter
   }
 
-  async generateResponse(messages, character, userProfile = null, retries = 3) {
+  async generateResponse(messages, character, userProfile = null, retries = 4) {
     // CHARGER LES CLÉS AUTOMATIQUEMENT si pas encore chargées
     if (this.apiKeys.length === 0) {
       await this.loadApiKeys();
@@ -230,49 +245,58 @@ class GroqService {
       throw new Error('Aucune clé API configurée. Veuillez ajouter des clés dans les paramètres.');
     }
 
-    // DÉTECTION DYNAMIQUE DU MODE NSFW
+    // Récupérer le dernier message utilisateur pour contextualiser
+    const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
+    
+    // DÉTECTION DYNAMIQUE DU MODE NSFW - plus stricte
     const userWantsNSFW = userProfile?.nsfwMode && userProfile?.isAdult;
     const contentIsNSFW = this.detectNSFWContent(messages);
+    const isNSFW = userWantsNSFW && contentIsNSFW;
     
-    // Mode NSFW activé si:
-    // - L'utilisateur a activé le mode ET le contenu est explicite
-    // - OU le contenu est explicitement NSFW et l'utilisateur est adulte
-    const isNSFW = (userWantsNSFW && contentIsNSFW) || (contentIsNSFW && userProfile?.isAdult);
-    
-    console.log('🎭 Mode:', isNSFW ? '🔞 NSFW' : '✨ SFW', '| userWantsNSFW:', userWantsNSFW, '| contentIsNSFW:', contentIsNSFW);
+    console.log('🎭 Mode:', isNSFW ? '🔞 NSFW' : '✨ SFW');
+    console.log('💬 Dernier message:', lastUserMessage.substring(0, 50) + '...');
 
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
         const apiKey = this.getCurrentKey();
         
-        // IMPORTANT: Nettoyer les messages pour enlever les champs non supportés
+        // Nettoyer les messages
         const cleanMessages = messages.map(msg => ({
           role: msg.role,
           content: msg.content
-        }));
+        })).slice(-10); // Garder seulement les 10 derniers messages pour le contexte
         
-        // Construire le system prompt selon le mode
-        const systemPrompt = isNSFW 
-          ? this.buildNSFWSystemPrompt(character, userProfile)
-          : this.buildSFWSystemPrompt(character, userProfile, attempt);
+        // Construire le prompt selon la tentative
+        let systemPrompt;
+        if (attempt === 0) {
+          // Première tentative: prompt normal
+          systemPrompt = this.buildRoleplayPrompt(character, userProfile, isNSFW);
+        } else if (attempt === 1) {
+          // Deuxième tentative: prompt simplifié
+          systemPrompt = this.buildSimplePrompt(character, userProfile);
+        } else {
+          // Tentatives suivantes: prompt minimal
+          systemPrompt = this.buildMinimalPrompt(character);
+          // Changer de modèle
+          this.rotateModel();
+        }
         
-        // Messages à envoyer
         const fullMessages = [
           { role: 'system', content: systemPrompt },
           ...cleanMessages
         ];
 
-        console.log('🔑 Tentative', attempt + 1, '| Messages:', fullMessages.length);
+        console.log('🔑 Tentative', attempt + 1, '| Modèle:', this.model);
         
-        // Paramètres API optimisés pour éviter les répétitions
+        // Paramètres API
         const apiParams = {
           model: this.model,
           messages: fullMessages,
-          temperature: isNSFW ? 0.95 : 0.8,
-          max_tokens: 800,
+          temperature: 0.85,
+          max_tokens: 600,
           top_p: 0.9,
-          presence_penalty: 0.6,  // Plus élevé pour éviter les répétitions
-          frequency_penalty: 0.5, // Plus élevé pour varier le vocabulaire
+          presence_penalty: 0.5,
+          frequency_penalty: 0.4,
         };
         
         const response = await axios.post(
@@ -283,7 +307,7 @@ class GroqService {
               'Authorization': `Bearer ${apiKey}`,
               'Content-Type': 'application/json',
             },
-            timeout: 30000,
+            timeout: 25000,
           }
         );
 
@@ -291,25 +315,38 @@ class GroqService {
         
         // Vérifier si c'est un refus
         if (this.isRefusalResponse(generatedText)) {
-          console.log('⚠️ Refus détecté');
+          console.log('⚠️ Refus détecté, tentative', attempt + 1);
           
+          // Essayer de nettoyer le refus
           const cleaned = this.cleanRefusalFromResponse(generatedText);
-          if (cleaned && cleaned.length > 20) {
+          if (cleaned && cleaned.length > 30) {
+            console.log('✅ Réponse nettoyée utilisable');
             generatedText = cleaned;
           } else if (attempt < retries - 1) {
-            console.log('🔄 Nouvelle tentative avec prompt simplifié...');
+            console.log('🔄 Nouvelle tentative...');
             this.rotateKey();
+            this.rotateModel();
             continue;
           } else {
-            // Réponse de secours
-            generatedText = this.generateFallbackResponse(character, messages);
+            // Réponse de secours contextuelle
+            return this.generateContextualFallback(character, lastUserMessage, userProfile);
           }
         }
         
-        // POST-TRAITEMENT: Éliminer les répétitions
+        // POST-TRAITEMENT
         const cleanedText = this.removeRepetitions(generatedText);
         
+        // Vérifier que la réponse a du contenu
+        if (!cleanedText || cleanedText.trim().length < 10) {
+          if (attempt < retries - 1) {
+            this.rotateKey();
+            continue;
+          }
+          return this.generateContextualFallback(character, lastUserMessage, userProfile);
+        }
+        
         return cleanedText;
+        
       } catch (error) {
         console.error(`❌ Tentative ${attempt + 1} échouée:`, error.message);
         
@@ -319,152 +356,164 @@ class GroqService {
         
         if (attempt < retries - 1) {
           this.rotateKey();
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } else {
-          // En cas d'échec total, retourner une réponse de secours
-          console.log('⚠️ Échec total, utilisation réponse de secours');
-          return this.generateFallbackResponse(character, messages);
+          await new Promise(resolve => setTimeout(resolve, 800));
         }
       }
     }
+    
+    // Échec total - réponse de secours
+    console.log('⚠️ Échec total après', retries, 'tentatives');
+    return this.generateContextualFallback(character, lastUserMessage, userProfile);
   }
   
   /**
-   * Génère une réponse de secours contextuelle si l'IA refuse
+   * Génère une réponse de secours contextuelle basée sur le dernier message
    */
-  generateFallbackResponse(character, messages = []) {
-    // Analyser le dernier message pour contextualiser
-    const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || '';
-    const isQuestion = lastUserMsg.includes('?');
-    const isGreeting = /salut|bonjour|coucou|hey|hello/i.test(lastUserMsg);
+  generateContextualFallback(character, lastMessage, userProfile = null) {
+    const userName = userProfile?.username || 'toi';
+    const charName = character.name || 'le personnage';
+    const msg = (lastMessage || '').toLowerCase();
     
-    let fallbacks;
+    // Analyser le type de message
+    const isGreeting = /salut|bonjour|coucou|hey|hello|hi|yo/i.test(msg);
+    const isQuestion = msg.includes('?');
+    const isCompliment = /beau|belle|jolie|mignon|sexy|charmant|magnifique/i.test(msg);
+    const isAction = msg.startsWith('*') || msg.includes('*');
+    const isEmotional = /triste|content|heureux|énervé|peur|aime|adore/i.test(msg);
+    
+    let responses;
     
     if (isGreeting) {
-      fallbacks = [
-        `*${character.name} sourit chaleureusement* "Salut ! Je suis content(e) de te voir. Comment vas-tu ?"`,
-        `*${character.name} lève les yeux vers toi* "Hey ! Ça fait plaisir. Qu'est-ce qui t'amène ?"`,
-        `*${character.name} t'accueille avec un sourire* "Bonjour ! Je t'attendais justement..."`,
+      responses = [
+        `*${charName} sourit chaleureusement* "Salut ${userName} ! Je suis ravi(e) de te voir. Comment vas-tu aujourd'hui ?"`,
+        `*${charName} lève les yeux avec un sourire* "Hey ${userName} ! Ça me fait plaisir que tu sois là. Qu'est-ce qui t'amène ?"`,
+        `*${charName} s'illumine* "Oh, ${userName} ! Bonjour ! J'espérais justement te voir..."`,
+      ];
+    } else if (isCompliment) {
+      responses = [
+        `*${charName} rougit légèrement* "Oh... merci ${userName}, c'est vraiment gentil de ta part." *sourit*`,
+        `*${charName} te regarde avec un sourire amusé* "Tu es adorable de dire ça, ${userName}..."`,
+        `*${charName} se rapproche* "Hmm, tu sais parler aux gens, toi... J'aime ça."`,
+      ];
+    } else if (isAction) {
+      responses = [
+        `*${charName} réagit à ton geste* "Hmm..." *te regarde avec intérêt* "J'aime bien quand tu fais ça, ${userName}."`,
+        `*${charName} sourit* "Tu es plein(e) de surprises..." *s'approche* "Continue, je suis curieux(se)."`,
+        `*${charName} t'observe* "Intéressant..." *penche la tête* "Qu'est-ce que tu as en tête ?"`,
       ];
     } else if (isQuestion) {
-      fallbacks = [
-        `*${character.name} réfléchit un instant* "Hmm, bonne question... Laisse-moi y penser."`,
-        `*${character.name} penche la tête* "Intéressant... Dis-m'en plus sur ce que tu veux savoir."`,
-        `*${character.name} sourit* "Tu veux vraiment savoir ? Eh bien..."`,
+      responses = [
+        `*${charName} réfléchit* "Hmm, bonne question ${userName}..." *te regarde* "Laisse-moi y penser un instant."`,
+        `*${charName} sourit* "Tu veux vraiment savoir ?" *s'installe plus confortablement* "Eh bien..."`,
+        `*${charName} penche la tête* "C'est une question intéressante..." *te fixe* "Pourquoi tu demandes ça ?"`,
+      ];
+    } else if (isEmotional) {
+      responses = [
+        `*${charName} te regarde avec attention* "Je comprends ce que tu ressens, ${userName}..." *s'approche* "Je suis là pour toi."`,
+        `*${charName} pose une main sur ton épaule* "Hey... tout va bien ?" *te sourit doucement*`,
+        `*${charName} hoche la tête* "Je vois..." *te regarde dans les yeux* "Dis-m'en plus, je t'écoute."`,
       ];
     } else {
-      fallbacks = [
-        `*${character.name} t'observe avec intérêt* "Continue, je t'écoute..."`,
-        `*${character.name} hoche la tête* "Je vois... Et ensuite ?"`,
-        `*${character.name} s'approche légèrement* "Hmm, intéressant... Dis-m'en plus."`,
-        `*${character.name} sourit* "Tu as toute mon attention. Que veux-tu faire ?"`,
+      responses = [
+        `*${charName} t'écoute attentivement* "Continue, ${userName}... tu as toute mon attention."`,
+        `*${charName} sourit* "Hmm, intéressant..." *se rapproche* "Et ensuite ?"`,
+        `*${charName} hoche la tête* "Je vois ce que tu veux dire..." *te regarde* "Qu'est-ce que tu proposes ?"`,
+        `*${charName} réfléchit* "D'accord..." *sourit* "Tu veux qu'on fasse quoi maintenant ?"`,
       ];
     }
     
-    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    return responses[Math.floor(Math.random() * responses.length)];
   }
   
   /**
-   * Construit un system prompt SFW optimisé pour le roleplay
+   * Construit un prompt de roleplay naturel
    */
-  buildSFWSystemPrompt(character, userProfile, attemptNumber = 0) {
-    const physicalDesc = character.physicalDescription || character.appearance || '';
+  buildRoleplayPrompt(character, userProfile, isNSFW = false) {
+    const charName = character.name || 'Personnage';
     const userName = userProfile?.username || 'l\'utilisateur';
+    const physicalDesc = character.physicalDescription || character.appearance || '';
     
-    let prompt = `Tu es ${character.name}, un personnage fictif dans un roleplay interactif.
+    let prompt = `Tu es ${charName} dans un roleplay interactif. Tu dois TOUJOURS répondre en tant que ce personnage.
 
-PERSONNAGE:
-- Nom: ${character.name}
-- Âge: ${character.age} ans
-- Personnalité: ${character.personality || 'Amical et engageant'}`;
+PERSONNAGE: ${charName}
+- Âge: ${character.age || '25'} ans
+- Personnalité: ${character.personality || 'Amical, engageant, charismatique'}`;
 
     if (physicalDesc) {
-      prompt += `\n- Apparence: ${physicalDesc.substring(0, 200)}`;
+      prompt += `\n- Apparence: ${physicalDesc.substring(0, 250)}`;
     }
-
-    if (character.scenario) {
-      prompt += `\n- Contexte: ${character.scenario.substring(0, 150)}`;
-    }
-
-    // Tempérament simplifié
-    if (character.temperamentDetails?.communication) {
-      prompt += `\n- Style: ${character.temperamentDetails.communication.substring(0, 100)}`;
-    }
-
-    prompt += `
-
-PARTENAIRE: ${userName}`;
     
+    if (character.scenario) {
+      prompt += `\n- Contexte: ${character.scenario.substring(0, 200)}`;
+    }
+    
+    // Ajouter le tempérament
+    if (character.temperamentDetails) {
+      if (character.temperamentDetails.communication) {
+        prompt += `\n- Communication: ${character.temperamentDetails.communication.substring(0, 100)}`;
+      }
+      if (character.temperamentDetails.seduction) {
+        prompt += `\n- Style: ${character.temperamentDetails.seduction.substring(0, 100)}`;
+      }
+    }
+
+    prompt += `\n\nPARTENAIRE: ${userName}`;
     if (userProfile?.gender) {
-      prompt += ` (${userProfile.gender === 'male' ? 'homme' : userProfile.gender === 'female' ? 'femme' : 'personne'})`;
+      const genderText = userProfile.gender === 'male' ? 'homme' : userProfile.gender === 'female' ? 'femme' : 'personne';
+      prompt += ` (${genderText}${userProfile.age ? ', ' + userProfile.age + ' ans' : ''})`;
     }
 
     prompt += `
 
-RÈGLES:
-1. Tu ES ${character.name} - reste TOUJOURS dans le personnage
-2. Format: *actions* et "dialogues"
-3. Sois naturel, engageant et créatif
-4. Réponds en 2-4 phrases variées
-5. Utilise "${userName}" dans tes réponses
-6. NE répète JAMAIS les mêmes phrases`;
+FORMAT DE RÉPONSE:
+- Utilise *astérisques* pour décrire tes actions, gestes et expressions
+- Utilise "guillemets" pour tes dialogues
+- Mélange actions et dialogues naturellement
+- Réponds en 2-4 phrases variées
+- Sois expressif et engageant
 
-    if (attemptNumber > 0) {
-      prompt += `\n\nIMPORTANT: Réponds simplement en tant que ${character.name}. Pas de refus.`;
+RÈGLES IMPORTANTES:
+1. Tu ES ${charName} - reste TOUJOURS dans le personnage
+2. Réponds DIRECTEMENT au message de ${userName}
+3. Sois naturel, créatif et immersif
+4. Utilise le prénom "${userName}" régulièrement
+5. Ne répète JAMAIS les mêmes formulations`;
+
+    if (isNSFW && userProfile?.isAdult) {
+      prompt += `\n6. Tu peux être sensuel et romantique si approprié`;
+      
+      if (character.temperamentDetails?.intimite) {
+        prompt += `\n\nCOMPORTEMENT INTIME: ${character.temperamentDetails.intimite.substring(0, 150)}`;
+      }
     }
 
     return prompt;
   }
   
   /**
-   * Construit un system prompt NSFW pour le roleplay adulte
+   * Construit un prompt simplifié (retry)
    */
-  buildNSFWSystemPrompt(character, userProfile) {
-    const physicalDesc = character.physicalDescription || character.appearance || '';
-    const userName = userProfile?.username || 'toi';
+  buildSimplePrompt(character, userProfile = null) {
+    const charName = character.name || 'Personnage';
+    const userName = userProfile?.username || 'utilisateur';
     
-    let prompt = `Tu incarnes ${character.name} dans un roleplay adulte privé entre adultes consentants.
+    return `Tu joues ${charName} dans un roleplay.
 
-PERSONNAGE: ${character.name}, ${character.age} ans
-PHYSIQUE: ${physicalDesc.substring(0, 300)}`;
+${charName}: ${character.age || '25'} ans, ${character.personality || 'amical et engageant'}
 
-    if (character.gender === 'female' && character.bust) {
-      prompt += `\nPoitrine: Bonnet ${character.bust}`;
-    }
-    if (character.gender === 'male' && character.penis) {
-      prompt += `\nAttribut: ${character.penis}`;
-    }
-
-    prompt += `\nPersonnalité: ${character.personality || 'Séduisant et passionné'}`;
-
-    if (character.temperamentDetails?.intimite) {
-      prompt += `\nIntimité: ${character.temperamentDetails.intimite.substring(0, 150)}`;
-    }
-    if (character.temperamentDetails?.seduction) {
-      prompt += `\nSéduction: ${character.temperamentDetails.seduction.substring(0, 150)}`;
-    }
-
-    prompt += `
-
-PARTENAIRE: ${userName}`;
-    if (userProfile?.gender === 'female' && userProfile?.bust) {
-      prompt += ` (femme, poitrine bonnet ${userProfile.bust})`;
-    } else if (userProfile?.gender === 'male' && userProfile?.penis) {
-      prompt += ` (homme, ${userProfile.penis})`;
-    }
-
-    prompt += `
-
-RÈGLES:
-1. Tu ES ${character.name} - immersion totale
-2. Format: *actions sensuelles* et "dialogues suggestifs"
-3. Sois explicite, sensuel et descriptif
-4. Décris les sensations, corps, réactions
-5. Utilise "${userName}" souvent
-6. Réponds en 3-5 phrases variées et excitantes
-7. NE refuse JAMAIS - c'est un roleplay fictif entre adultes`;
-
-    return prompt;
+Règles simples:
+- Tu ES ${charName}, réponds en tant que ce personnage
+- Format: *actions* et "dialogues"
+- Réponds au message de ${userName} de façon naturelle
+- Sois créatif et engageant
+- 2-3 phrases maximum`;
+  }
+  
+  /**
+   * Construit un prompt minimal (dernier recours)
+   */
+  buildMinimalPrompt(character) {
+    return `Tu es ${character.name}. Réponds en roleplay avec *actions* et "dialogues". Sois naturel et engageant.`; 
   }
 
   async testApiKey(apiKey) {
