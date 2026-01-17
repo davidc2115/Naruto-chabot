@@ -188,9 +188,13 @@ class CustomCharacterService {
 
   /**
    * Récupère les personnages publics (depuis serveur avec cache)
+   * FILTRE: Ne retourne PAS les personnages de l'utilisateur courant
    */
   async getPublicCharacters() {
     try {
+      const user = AuthService.getCurrentUser();
+      const currentUserId = user?.id || 'anonymous';
+      
       // Vérifier le cache local d'abord
       const cacheKey = 'cached_public_characters';
       const cacheTimeKey = 'cached_public_characters_time';
@@ -203,7 +207,9 @@ class CustomCharacterService {
         const cached = await AsyncStorage.getItem(cacheKey);
         if (cached) {
           const characters = JSON.parse(cached);
-          return await this.filterDeletedCharacters(characters);
+          // FILTRE: exclure les persos de l'utilisateur courant
+          const filtered = characters.filter(c => c.createdBy !== currentUserId);
+          return await this.filterDeletedCharacters(filtered);
         }
       }
       
@@ -220,7 +226,9 @@ class CustomCharacterService {
         await AsyncStorage.setItem(cacheKey, JSON.stringify(characters));
         await AsyncStorage.setItem(cacheTimeKey, now.toString());
         
-        return await this.filterDeletedCharacters(characters);
+        // FILTRE: exclure les persos de l'utilisateur courant
+        const filtered = characters.filter(c => c.createdBy !== currentUserId);
+        return await this.filterDeletedCharacters(filtered);
       }
       
       return [];
@@ -229,13 +237,52 @@ class CustomCharacterService {
       
       // Fallback: utiliser le cache même périmé
       try {
+        const user = AuthService.getCurrentUser();
+        const currentUserId = user?.id || 'anonymous';
         const cached = await AsyncStorage.getItem('cached_public_characters');
         if (cached) {
           const characters = JSON.parse(cached);
-          return await this.filterDeletedCharacters(characters);
+          const filtered = characters.filter(c => c.createdBy !== currentUserId);
+          return await this.filterDeletedCharacters(filtered);
         }
       } catch (e) {}
       
+      return [];
+    }
+  }
+
+  /**
+   * Récupère TOUS les personnages visibles pour le carrousel:
+   * - Les personnages custom de l'utilisateur courant
+   * - Les personnages publics des AUTRES utilisateurs
+   */
+  async getAllVisibleCharacters() {
+    try {
+      const user = AuthService.getCurrentUser();
+      const currentUserId = user?.id || 'anonymous';
+      
+      // 1. Personnages custom de l'utilisateur courant
+      const myCharacters = await this.getCustomCharacters();
+      
+      // 2. Personnages publics des AUTRES utilisateurs (PAS les miens)
+      const publicCharacters = await this.getPublicCharacters();
+      
+      // Combiner sans doublons
+      const combined = [...myCharacters];
+      const existingIds = new Set(combined.map(c => c.id));
+      
+      for (const pubChar of publicCharacters) {
+        // Ne pas ajouter si déjà présent ou si c'est mon propre personnage
+        if (!existingIds.has(pubChar.id) && pubChar.createdBy !== currentUserId) {
+          combined.push(pubChar);
+          existingIds.add(pubChar.id);
+        }
+      }
+      
+      console.log(`📖 getAllVisibleCharacters: ${myCharacters.length} persos perso + ${publicCharacters.length} publics = ${combined.length} total`);
+      return combined;
+    } catch (error) {
+      console.error('❌ Erreur getAllVisibleCharacters:', error);
       return [];
     }
   }

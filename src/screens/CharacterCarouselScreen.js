@@ -159,6 +159,17 @@ export default function CharacterCarouselScreen({ navigation }) {
         const shuffled = shuffleArray([...enhancedCharacters]);
         setAllCharacters(shuffled);
         console.log('✅ Carrousel:', enhancedCharacters.length, 'personnages de base affichés');
+        
+        // Pré-charger les images des personnages de base qui ont imageUrl
+        const baseImages = {};
+        enhancedCharacters.forEach(char => {
+          if (char.imageUrl) {
+            baseImages[char.id] = char.imageUrl;
+          }
+        });
+        if (Object.keys(baseImages).length > 0) {
+          setCharacterImages(prev => ({ ...prev, ...baseImages }));
+        }
       }
       
       // ÉTAPE 2: Charger les personnages custom en arrière-plan (avec timeout)
@@ -179,7 +190,18 @@ export default function CharacterCarouselScreen({ navigation }) {
             setAllCharacters(shuffled);
             console.log('✅ Carrousel: + ', customChars.length, 'personnages custom');
             
-            // Charger les images en arrière-plan
+            // Pré-charger les images des personnages custom qui ont imageUrl
+            const customImages = {};
+            customChars.forEach(char => {
+              if (char.imageUrl) {
+                customImages[char.id] = char.imageUrl;
+              }
+            });
+            if (Object.keys(customImages).length > 0) {
+              setCharacterImages(prev => ({ ...prev, ...customImages }));
+            }
+            
+            // Charger les images de galerie en arrière-plan
             loadGalleryImages(shuffled);
           }
         } catch (e) {
@@ -237,9 +259,14 @@ export default function CharacterCarouselScreen({ navigation }) {
     
     for (const char of chars) {
       try {
+        // 1. Utiliser imageUrl si présent
         if (char.imageUrl) {
           images[char.id] = char.imageUrl;
-        } else if (GalleryService) {
+          continue;
+        }
+        
+        // 2. Sinon essayer la galerie
+        if (GalleryService) {
           const gallery = await GalleryService.getGallery(char.id);
           if (gallery && gallery.length > 0) {
             images[char.id] = gallery[0];
@@ -253,6 +280,23 @@ export default function CharacterCarouselScreen({ navigation }) {
     if (Object.keys(images).length > 0) {
       setCharacterImages(prev => ({ ...prev, ...images }));
     }
+  };
+  
+  // Obtenir l'URL d'image pour un personnage (avec fallback)
+  const getCharacterImageUrl = (character) => {
+    if (!character) return null;
+    
+    // 1. Image du cache characterImages
+    if (characterImages[character.id]) {
+      return characterImages[character.id];
+    }
+    
+    // 2. imageUrl directe du personnage
+    if (character.imageUrl) {
+      return character.imageUrl;
+    }
+    
+    return null;
   };
 
   // Filtrer par recherche texte (nom OU tags) ET par tags sélectionnés
@@ -381,7 +425,8 @@ export default function CharacterCarouselScreen({ navigation }) {
     );
   }
 
-  const imageUrl = characterImages[currentCharacter.id];
+  // Utiliser la nouvelle fonction pour obtenir l'image
+  const imageUrl = getCharacterImageUrl(currentCharacter);
 
   return (
     <SafeAreaView style={styles.container}>
