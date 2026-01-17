@@ -11,13 +11,9 @@ import {
   ActivityIndicator,
   Switch,
 } from 'react-native';
-// Import optionnel de expo-image-picker
-let ImagePicker = null;
-try {
-  ImagePicker = require('expo-image-picker');
-} catch (e) {
-  console.log('expo-image-picker non disponible');
-}
+// expo-image-picker désactivé pour stabilité du build
+// L'import d'image sera ajouté dans une future version
+const ImagePicker = null;
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
