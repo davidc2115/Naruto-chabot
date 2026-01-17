@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,82 +10,172 @@ import {
   Image,
   RefreshControl,
 } from 'react-native';
-import CustomCharacterService from '../services/CustomCharacterService';
-import AuthService from '../services/AuthService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Import optionnel des services
+let CustomCharacterService = null;
+let AuthService = null;
+
+try {
+  CustomCharacterService = require('../services/CustomCharacterService').default;
+} catch (e) {
+  console.log('CustomCharacterService non disponible');
+}
+
+try {
+  AuthService = require('../services/AuthService').default;
+} catch (e) {
+  console.log('AuthService non disponible');
+}
 
 // Cache pour éviter les rechargements inutiles
 let cachedCharacters = null;
 let lastLoadTime = 0;
-const CACHE_DURATION = 15000; // 15 secondes
+const CACHE_DURATION = 10000; // 10 secondes
 
 export default function MyCharactersScreen({ navigation }) {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'public', 'private'
+  const loadingRef = useRef(false);
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
+    // Charger immédiatement depuis le cache si disponible
+    if (cachedCharacters && cachedCharacters.length > 0) {
+      setCharacters(cachedCharacters);
+      setLoading(false);
+    }
+    
+    // Puis charger les données fraîches
     loadCharacters(false);
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
+      // Afficher le cache immédiatement
+      if (cachedCharacters) {
+        setCharacters(cachedCharacters);
+      }
+      
       // Ne recharger que si nécessaire
       const now = Date.now();
-      if (now - lastLoadTime > CACHE_DURATION || !cachedCharacters) {
+      if (now - lastLoadTime > CACHE_DURATION) {
         loadCharacters(false);
-      } else if (cachedCharacters) {
-        setCharacters(cachedCharacters);
       }
     });
     return unsubscribe;
   }, [navigation]);
 
   const loadCharacters = async (forceRefresh = false) => {
+    // Éviter les chargements multiples
+    if (loadingRef.current && !forceRefresh) return;
+    loadingRef.current = true;
+    
     try {
       // Utiliser le cache si disponible et non expiré
       const now = Date.now();
       if (!forceRefresh && cachedCharacters && (now - lastLoadTime < CACHE_DURATION)) {
         setCharacters(cachedCharacters);
         setLoading(false);
+        loadingRef.current = false;
         return;
       }
       
-      setLoading(true);
-      
-      // Charger les personnages locaux
-      const localChars = await CustomCharacterService.getCustomCharacters();
-      
-      // Si connecté, synchroniser avec le serveur
-      let finalChars = localChars;
-      if (AuthService.isLoggedIn()) {
-        try {
-          const serverChars = await AuthService.getMyCharacters();
-          finalChars = mergeCharacters(localChars, serverChars);
-        } catch (e) {
-          console.log('Serveur non disponible, utilisation données locales');
-        }
+      // Ne montrer le loading que si pas de données en cache
+      if (!cachedCharacters || cachedCharacters.length === 0) {
+        setLoading(true);
       }
       
-      // Mettre en cache
-      cachedCharacters = finalChars;
-      lastLoadTime = now;
-      setCharacters(finalChars);
+      // ÉTAPE 1: Charger les personnages locaux IMMÉDIATEMENT (rapide)
+      let localChars = [];
+      try {
+        // Essayer d'abord le stockage local direct (plus rapide)
+        const localData = await AsyncStorage.getItem('custom_characters_anonymous');
+        if (localData) {
+          localChars = JSON.parse(localData);
+        }
+        
+        // Essayer aussi la clé avec l'utilisateur si connecté
+        if (AuthService) {
+          const user = AuthService.getCurrentUser();
+          if (user?.id) {
+            const userData = await AsyncStorage.getItem(`custom_characters_${user.id}`);
+            if (userData) {
+              const userChars = JSON.parse(userData);
+              // Fusionner sans doublons
+              const existingIds = new Set(localChars.map(c => c.id));
+              userChars.forEach(c => {
+                if (!existingIds.has(c.id)) {
+                  localChars.push(c);
+                }
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur lecture locale:', e.message);
+      }
+      
+      // Mettre à jour immédiatement avec les données locales
+      if (localChars.length > 0) {
+        cachedCharacters = localChars;
+        lastLoadTime = now;
+        setCharacters(localChars);
+        setLoading(false);
+        initialLoadDone.current = true;
+      }
+      
+      // ÉTAPE 2: Synchroniser avec le serveur en arrière-plan (avec timeout)
+      loadServerDataAsync(localChars);
+      
     } catch (error) {
       console.error('Erreur chargement personnages:', error);
-      setCharacters(cachedCharacters || []);
+      if (cachedCharacters) {
+        setCharacters(cachedCharacters);
+      }
     } finally {
       setLoading(false);
+      loadingRef.current = false;
+    }
+  };
+  
+  // Charger les données du serveur en arrière-plan
+  const loadServerDataAsync = async (localChars) => {
+    try {
+      if (!CustomCharacterService || !AuthService) return;
+      if (!AuthService.isLoggedIn()) return;
+      
+      // Timeout pour éviter de bloquer
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+      
+      const serverChars = await Promise.race([
+        AuthService.getMyCharacters(),
+        timeoutPromise
+      ]);
+      
+      if (serverChars && serverChars.length > 0) {
+        const finalChars = mergeCharacters(localChars, serverChars);
+        cachedCharacters = finalChars;
+        lastLoadTime = Date.now();
+        setCharacters(finalChars);
+      }
+    } catch (e) {
+      console.log('⚠️ Sync serveur en arrière-plan échoué (normal si hors-ligne)');
     }
   };
 
   const mergeCharacters = (local, server) => {
     // Utiliser les personnages locaux comme base
     const merged = [...local];
+    const existingIds = new Set(merged.map(c => c.id));
     
     // Ajouter les personnages du serveur qui ne sont pas en local
     server.forEach(serverChar => {
-      if (!merged.find(c => c.id === serverChar.id || c.serverId === serverChar.id)) {
+      if (!existingIds.has(serverChar.id) && !merged.find(c => c.serverId === serverChar.id)) {
         merged.push({ ...serverChar, isFromServer: true });
       }
     });

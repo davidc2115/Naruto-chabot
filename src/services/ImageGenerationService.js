@@ -2345,73 +2345,128 @@ class ImageGenerationService {
       details.skin.color = 'fair caucasian skin';
     }
     
-    // === MORPHOLOGIE / CORPS ===
-    // BBW / Très ronde
-    if (allText.includes('très ronde') || allText.includes('bbw') || allText.includes('très grosse')) {
-      details.body.type = 'BBW very curvy thick plump body, very full-figured big beautiful woman, fat body, chubby figure';
+    // === MORPHOLOGIE / CORPS - AMÉLIORE AVEC MOTS-CLÉS MULTIPLES ===
+    // Collecter les indicateurs de morphologie
+    const bodyIndicators = {
+      bbw: allText.includes('bbw') || allText.includes('très ronde') || allText.includes('très grosse') || allText.includes('obèse'),
+      round: allText.includes('ronde') || allText.includes('rondelette') || allText.includes('potelée') || allText.includes('dodue'),
+      chubby: allText.includes('chubby') || allText.includes('enrobée') || allText.includes('en chair'),
+      generous: allText.includes('généreuse') || allText.includes('généreux') || allText.includes('formes généreuses'),
+      voluptuous: allText.includes('voluptu') || allText.includes('pulpeuse') || allText.includes('plantureuse'),
+      curvy: allText.includes('courbes') || allText.includes('formes') || allText.includes('curvy') || allText.includes('curves'),
+      thick: allText.includes('thick') || allText.includes('épaisse') || allText.includes('cuisses épaisses'),
+      maternal: allText.includes('maternelle') || allText.includes('maman') || allText.includes('milf') || allText.includes('mature'),
+      athletic: allText.includes('musclé') || allText.includes('athlétique') || allText.includes('tonique') || allText.includes('sportif'),
+      slim: allText.includes('mince') || allText.includes('svelte') || allText.includes('élancée') || allText.includes('fine'),
+      petite: allText.includes('petite') && !allText.includes('poitrine'),
+      massive: allText.includes('massif') || allText.includes('trapu') || allText.includes('costaud'),
+      hourglass: allText.includes('sablier') || allText.includes('hourglass'),
+    };
+    
+    console.log('🔍 Indicateurs morphologie:', Object.entries(bodyIndicators).filter(([k,v]) => v).map(([k]) => k).join(', '));
+    
+    // BBW / Très ronde - PRIORITÉ MAXIMALE
+    if (bodyIndicators.bbw) {
+      details.body.type = 'BBW body type, very fat curvy woman, extremely thick plump body, very large full-figured, big beautiful woman, chubby fat body, wide hips, big belly, thick everywhere';
     }
-    // Ronde / Chubby
-    else if (allText.includes('ronde') || allText.includes('chubby') || allText.includes('dodue') || allText.includes('rondelette')) {
-      details.body.type = 'curvy plump body, soft rounded figure, chubby body, full-figured, thick body';
+    // Ronde / Chubby / Dodue
+    else if (bodyIndicators.round || bodyIndicators.chubby) {
+      details.body.type = 'CHUBBY ROUND BODY, plump soft curves, full-figured curvy woman, thick body with soft belly, wide hips, rounded figure, pleasantly plump';
     }
-    // Généreuse / Voluptueuse
-    else if (allText.includes('généreuse') || allText.includes('généreux') || allText.includes('voluptu') || 
-             allText.includes('formes') || allText.includes('courbes') || allText.includes('plantureuse')) {
-      details.body.type = 'voluptuous curvy body, full-figured generous curves, hourglass figure, sexy curves, wide hips';
+    // Généreuse - MOTS FRANÇAIS SPÉCIFIQUES
+    else if (bodyIndicators.generous) {
+      details.body.type = 'GENEROUS CURVY BODY, full-figured woman with generous curves everywhere, voluptuous figure, wide hips, large bust, thick thighs, womanly curves, sexy full body';
     }
-    // Pulpeuse / Thick
-    else if (allText.includes('pulpeuse') || allText.includes('thick') || allText.includes('épaisse')) {
-      details.body.type = 'thick curvy body, pronounced sexy curves, full-figured, thick thighs and hips';
+    // Voluptueuse / Pulpeuse - MOTS FRANÇAIS SPÉCIFIQUES
+    else if (bodyIndicators.voluptuous) {
+      details.body.type = 'VOLUPTUOUS BODY, extremely curvy figure, sexy hourglass shape, large bust, wide hips, thick thighs, sensual full curves, bombshell figure';
+    }
+    // Curvy / Formes
+    else if (bodyIndicators.curvy || bodyIndicators.hourglass) {
+      details.body.type = 'CURVY HOURGLASS BODY, sexy curves, pronounced bust and hips, slim waist, feminine figure, attractive curves';
+    }
+    // Thick / Épaisse
+    else if (bodyIndicators.thick) {
+      details.body.type = 'THICK CURVY BODY, pronounced sexy curves, thick thighs, wide hips, full-figured, thicc body';
     }
     // Maternelle / MILF
-    else if (allText.includes('maternelle') || allText.includes('milf') || allText.includes('mature') && allText.includes('corps')) {
-      details.body.type = 'soft maternal curvy body, womanly figure, nurturing physique, mature feminine body';
-    }
-    // Sculpturale
-    else if (allText.includes('sculpturale') || allText.includes('statuesque')) {
-      details.body.type = 'statuesque sculpted body, goddess-like figure';
+    else if (bodyIndicators.maternal) {
+      details.body.type = 'MATURE MATERNAL BODY, soft womanly curves, nurturing figure, full bust, wide hips, mature feminine body, MILF figure';
     }
     // Musclée / Athlétique
-    else if (allText.includes('musclé') || allText.includes('athlétique') || allText.includes('tonique') || allText.includes('sportif') || allText.includes('sportive')) {
-      details.body.type = 'athletic toned body, fit physique, defined muscles, sporty figure';
+    else if (bodyIndicators.athletic) {
+      details.body.type = 'ATHLETIC TONED BODY, fit physique, defined muscles, sporty figure, toned arms and legs';
     }
     // Mince / Élancée
-    else if (allText.includes('mince') || allText.includes('élanc') || allText.includes('svelte') || allText.includes('fine')) {
-      details.body.type = 'slim slender body, lean figure, thin physique';
+    else if (bodyIndicators.slim) {
+      details.body.type = 'SLIM SLENDER BODY, lean figure, thin physique, slender frame';
     }
     // Petite
-    else if (allText.includes('petite') && !allText.includes('poitrine')) {
-      details.body.type = 'petite small body, delicate frame';
+    else if (bodyIndicators.petite) {
+      details.body.type = 'PETITE SMALL BODY, delicate frame, small stature';
     }
     // Massif / Trapu (hommes)
-    else if (allText.includes('massif') || allText.includes('trapu') || allText.includes('costaud')) {
-      details.body.type = 'massive muscular stocky body, broad powerful build';
+    else if (bodyIndicators.massive) {
+      details.body.type = 'MASSIVE MUSCULAR STOCKY BODY, broad powerful build, big strong frame';
     }
     
-    // === POITRINE (FEMMES) - BONNET ===
+    // === POITRINE (FEMMES) - BONNET - DESCRIPTIONS RENFORCÉES ===
     if (character.gender === 'female') {
-      const bust = (character.bust || '').toUpperCase();
+      const bust = (character.bust || '').toUpperCase().trim();
+      
+      // Descriptions TRÈS détaillées pour chaque bonnet
       const bustDescriptions = {
-        'A': { size: 'A-cup', description: 'small petite A-cup breasts, flat chest, tiny breasts' },
-        'B': { size: 'B-cup', description: 'small B-cup breasts, modest bust, petite chest' },
-        'C': { size: 'C-cup', description: 'medium C-cup breasts, average breasts, moderate bust' },
-        'D': { size: 'D-cup', description: 'large D-cup breasts, big full breasts, generous bust, impressive cleavage' },
-        'DD': { size: 'DD-cup', description: 'very large DD-cup breasts, big heavy breasts, impressive large bust' },
-        'E': { size: 'E-cup', description: 'huge E-cup breasts, very big breasts, enormous bust, massive chest' },
-        'F': { size: 'F-cup', description: 'huge F-cup breasts, massive breasts, gigantic bust, heavy breasts' },
-        'G': { size: 'G-cup', description: 'gigantic G-cup breasts, enormous massive breasts, huge heavy bust' },
-        'H': { size: 'H-cup', description: 'massive H-cup breasts, extremely huge breasts, colossal bust' }
+        'A': { 
+          size: 'A-cup', 
+          description: 'SMALL A-CUP BREASTS, petite flat chest, tiny small breasts, minimal bust, flat-chested'
+        },
+        'B': { 
+          size: 'B-cup', 
+          description: 'SMALL B-CUP BREASTS, modest small bust, petite breasts, small chest'
+        },
+        'C': { 
+          size: 'C-cup', 
+          description: 'MEDIUM C-CUP BREASTS, average sized bust, normal breasts, moderate chest'
+        },
+        'D': { 
+          size: 'D-cup', 
+          description: 'LARGE D-CUP BREASTS, big full breasts, generous bust, impressive cleavage, large chest'
+        },
+        'DD': { 
+          size: 'DD-cup', 
+          description: 'VERY LARGE DD-CUP BREASTS, big heavy breasts, impressive large bust, deep cleavage, very big chest'
+        },
+        'E': { 
+          size: 'E-cup', 
+          description: 'HUGE E-CUP BREASTS, very big heavy breasts, enormous bust, massive chest, huge cleavage'
+        },
+        'F': { 
+          size: 'F-cup', 
+          description: 'HUGE F-CUP BREASTS, massive heavy breasts, gigantic bust, extremely large chest, huge hanging breasts'
+        },
+        'G': { 
+          size: 'G-cup', 
+          description: 'GIGANTIC G-CUP BREASTS, enormous massive breasts, huge heavy bust, extremely big chest, giant breasts'
+        },
+        'H': { 
+          size: 'H-cup', 
+          description: 'MASSIVE H-CUP BREASTS, extremely huge enormous breasts, colossal bust, giant heavy chest, biggest breasts'
+        }
       };
+      
       if (bustDescriptions[bust]) {
         details.bust = bustDescriptions[bust];
+        console.log('👙 Poitrine détectée:', bust, '->', bustDescriptions[bust].description.substring(0, 50));
       } else {
-        // Chercher dans le texte
-        if (allText.includes('énorme poitrine') || allText.includes('énormes seins')) {
-          details.bust = { size: 'huge', description: 'huge massive breasts, enormous bust' };
-        } else if (allText.includes('grosse poitrine') || allText.includes('gros seins') || allText.includes('forte poitrine')) {
-          details.bust = { size: 'large', description: 'large full breasts, big generous bust' };
-        } else if (allText.includes('petite poitrine') || allText.includes('petits seins') || allText.includes('menue')) {
-          details.bust = { size: 'small', description: 'small petite breasts, flat chest' };
+        // Chercher dans le texte si pas de bonnet direct
+        if (allText.includes('énorme poitrine') || allText.includes('énormes seins') || allText.includes('gigantesque')) {
+          details.bust = { size: 'huge', description: 'HUGE MASSIVE BREASTS, enormous gigantic bust, very big heavy chest' };
+        } else if (allText.includes('grosse poitrine') || allText.includes('gros seins') || allText.includes('forte poitrine') || allText.includes('opulente')) {
+          details.bust = { size: 'large', description: 'LARGE FULL BREASTS, big generous bust, impressive cleavage, big chest' };
+        } else if (allText.includes('poitrine moyenne') || allText.includes('seins moyens')) {
+          details.bust = { size: 'medium', description: 'MEDIUM BREASTS, average bust, normal sized chest' };
+        } else if (allText.includes('petite poitrine') || allText.includes('petits seins') || allText.includes('menue') || allText.includes('plate')) {
+          details.bust = { size: 'small', description: 'SMALL PETITE BREASTS, flat chest, tiny bust, small-chested' };
         }
       }
     }

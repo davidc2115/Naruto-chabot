@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,59 +9,160 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import enhancedCharacters from '../data/allCharacters';
-import CustomCharacterService from '../services/CustomCharacterService';
-import GalleryService from '../services/GalleryService';
+
+// Import optionnel des services (avec fallback)
+let CustomCharacterService = null;
+let GalleryService = null;
+
+try {
+  CustomCharacterService = require('../services/CustomCharacterService').default;
+} catch (e) {
+  console.log('CustomCharacterService non disponible');
+}
+
+try {
+  GalleryService = require('../services/GalleryService').default;
+} catch (e) {
+  console.log('GalleryService non disponible');
+}
 
 export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('tous');
-  const [allCharacters, setAllCharacters] = useState([]);
+  // IMPORTANT: Initialiser IMMÉDIATEMENT avec les personnages de base
+  const [allCharacters, setAllCharacters] = useState(enhancedCharacters || []);
   const [characterImages, setCharacterImages] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [customLoaded, setCustomLoaded] = useState(false);
+  const loadingRef = useRef(false);
 
   // Chargement initial IMMÉDIAT des personnages de base
   useEffect(() => {
-    // Afficher IMMÉDIATEMENT les personnages de base
-    setAllCharacters([...enhancedCharacters]);
+    console.log('🚀 HomeScreen: Affichage immédiat de', enhancedCharacters?.length || 0, 'personnages');
     
-    // Puis charger les personnages custom en arrière-plan
-    loadCustomCharactersBackground();
-  }, []);
-
-  // Recharger quand on revient sur l'écran
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      loadCustomCharactersBackground();
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  // Charger les personnages custom en arrière-plan
-  const loadCustomCharactersBackground = async () => {
-    try {
-      await CustomCharacterService.migrateOldCharacters();
-      const customChars = await CustomCharacterService.getAllVisibleCharacters();
-      
-      if (customChars && customChars.length > 0) {
-        setAllCharacters([...enhancedCharacters, ...customChars]);
-      }
-    } catch (error) {
-      console.log('⚠️ Erreur chargement personnages custom:', error.message);
+    // S'assurer que les personnages de base sont affichés
+    if (enhancedCharacters && enhancedCharacters.length > 0) {
+      setAllCharacters([...enhancedCharacters]);
     }
     
-    // Charger les images en arrière-plan
-    loadGalleryImagesBackground();
+    // Charger les personnages custom en arrière-plan avec timeout
+    const timer = setTimeout(() => {
+      loadCustomCharactersBackground();
+    }, 100); // Petit délai pour laisser le rendu initial se faire
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Recharger quand on revient sur l'écran (seulement si pas déjà en cours)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      if (!loadingRef.current && customLoaded) {
+        loadCustomCharactersBackground();
+      }
+    });
+    return unsubscribe;
+  }, [navigation, customLoaded]);
+
+  // Charger les personnages custom en arrière-plan avec TIMEOUT
+  const loadCustomCharactersBackground = async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    
+    try {
+      if (!CustomCharacterService) {
+        console.log('⚠️ CustomCharacterService non disponible');
+        loadingRef.current = false;
+        setCustomLoaded(true);
+        return;
+      }
+      
+      // Utiliser un timeout pour éviter de bloquer
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+      
+      // Migration rapide (local seulement)
+      try {
+        await Promise.race([
+          CustomCharacterService.migrateOldCharacters(),
+          timeoutPromise
+        ]);
+      } catch (e) {
+        console.log('⚠️ Migration timeout ou erreur');
+      }
+      
+      // Charger uniquement les personnages locaux d'abord (rapide)
+      let customChars = [];
+      try {
+        const localData = await AsyncStorage.getItem('custom_characters_anonymous');
+        if (localData) {
+          customChars = JSON.parse(localData);
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur chargement local');
+      }
+      
+      // Mettre à jour avec les personnages locaux
+      if (customChars && customChars.length > 0) {
+        setAllCharacters(prev => {
+          const baseChars = enhancedCharacters || [];
+          const existingIds = new Set(baseChars.map(c => c.id));
+          const newCustom = customChars.filter(c => !existingIds.has(c.id));
+          return [...baseChars, ...newCustom];
+        });
+      }
+      
+      setCustomLoaded(true);
+      
+      // Charger les personnages du serveur en arrière-plan (sans bloquer)
+      loadServerCharactersAsync();
+      
+    } catch (error) {
+      console.log('⚠️ Erreur chargement personnages custom:', error.message);
+    } finally {
+      loadingRef.current = false;
+    }
+  };
+  
+  // Charger les personnages du serveur en arrière-plan (asynchrone, non-bloquant)
+  const loadServerCharactersAsync = async () => {
+    try {
+      if (!CustomCharacterService) return;
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout serveur')), 8000)
+      );
+      
+      const customChars = await Promise.race([
+        CustomCharacterService.getAllVisibleCharacters(),
+        timeoutPromise
+      ]);
+      
+      if (customChars && customChars.length > 0) {
+        setAllCharacters(prev => {
+          const baseChars = enhancedCharacters || [];
+          const existingIds = new Set(baseChars.map(c => c.id));
+          const newCustom = customChars.filter(c => !existingIds.has(c.id));
+          console.log('✅ Personnages serveur chargés:', newCustom.length);
+          return [...baseChars, ...newCustom];
+        });
+      }
+    } catch (error) {
+      console.log('⚠️ Chargement serveur en arrière-plan échoué (normal si hors-ligne)');
+    }
   };
 
   // Charger les images de galerie en arrière-plan par lots
-  const loadGalleryImagesBackground = async () => {
-    const charsWithPotentialImages = allCharacters.filter(c => c.imageUrl || c.isCustom);
+  const loadGalleryImagesBackground = useCallback(async (characters) => {
+    if (!GalleryService) return;
     
+    const charsWithPotentialImages = characters.filter(c => c.imageUrl || c.isCustom);
     if (charsWithPotentialImages.length === 0) return;
     
-    const images = { ...characterImages };
-    const BATCH_SIZE = 15;
+    const images = {};
+    const BATCH_SIZE = 10;
     
     for (let i = 0; i < charsWithPotentialImages.length; i += BATCH_SIZE) {
       const batch = charsWithPotentialImages.slice(i, i + BATCH_SIZE);
@@ -82,9 +183,18 @@ export default function HomeScreen({ navigation }) {
       }));
       
       // Mettre à jour progressivement
-      setCharacterImages(prev => ({ ...prev, ...images }));
+      if (Object.keys(images).length > 0) {
+        setCharacterImages(prev => ({ ...prev, ...images }));
+      }
     }
-  };
+  }, []);
+  
+  // Charger les images quand les personnages changent
+  useEffect(() => {
+    if (allCharacters.length > 0 && customLoaded) {
+      loadGalleryImagesBackground(allCharacters);
+    }
+  }, [allCharacters, customLoaded, loadGalleryImagesBackground]);
 
   // Filtrage optimisé avec useMemo
   const filteredCharacters = useMemo(() => {
