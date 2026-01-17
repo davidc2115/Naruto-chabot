@@ -299,14 +299,17 @@ class CustomCharacterService {
       console.log(`🔍 IDs à supprimer du serveur:`, [...allIdsToTry]);
       
       // 1. Méthode principale: DELETE sur /api/characters/public/:id
+      // Le serveur vérifie que createdBy == X-User-ID
       for (const idToDelete of allIdsToTry) {
         try {
+          // Envoyer avec l'ID utilisateur du créateur (si disponible)
+          const creatorId = charToDelete?.createdBy || user?.id || 'anonymous';
           const response = await axios.delete(
             `${this.FREEBOX_URL}/api/characters/public/${idToDelete}`,
             { 
               headers: { 
                 'Content-Type': 'application/json',
-                'X-User-ID': user?.id || 'anonymous'
+                'X-User-ID': creatorId
               },
               timeout: 10000 
             }
@@ -315,7 +318,7 @@ class CustomCharacterService {
             console.log(`✅ Supprimé du serveur (DELETE): ${idToDelete}`);
           }
         } catch (e) {
-          // Silencieux - essayer les autres méthodes
+          console.log(`⚠️ DELETE échoué pour ${idToDelete}:`, e.message);
         }
       }
       
