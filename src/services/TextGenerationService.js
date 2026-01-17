@@ -6,7 +6,7 @@ import AuthService from './AuthService';
  * Service de génération de texte - MULTI-API GRATUIT
  * APIs supportées: Pollinations AI, HuggingFace, OpenRouter Free
  * 
- * v5.3.24 - API FIXE OPTIONNELLE (sans rotation automatique)
+ * v5.3.29 - Pollinations par défaut (plus stable que rotation auto)
  */
 class TextGenerationService {
   constructor() {
@@ -43,7 +43,9 @@ class TextGenerationService {
     this.currentApiIndex = 0;
     
     // === MODE API: 'auto' = rotation, ou ID d'une API spécifique ===
-    this.selectedApiMode = 'auto'; // 'auto', 'pollinations', 'huggingface', 'openrouter'
+    // DEFAULT: 'pollinations' car plus stable que la rotation auto
+    this.selectedApiMode = 'pollinations'; // 'auto', 'pollinations', 'huggingface', 'openrouter'
+    this.configLoaded = false;
     
     // Providers disponibles
     this.providers = {
@@ -112,19 +114,26 @@ class TextGenerationService {
         apiMode = await AsyncStorage.getItem('text_api_mode');
       }
       
+      // Si pas de mode sauvegardé, utiliser 'pollinations' par défaut (plus stable)
       if (apiMode) {
         this.selectedApiMode = apiMode;
-        // Si une API spécifique est sélectionnée, positionner currentApiIndex dessus
-        if (apiMode !== 'auto') {
-          const apiIndex = this.freeApis.findIndex(api => api.id === apiMode);
-          if (apiIndex !== -1) {
-            this.currentApiIndex = apiIndex;
-          }
+      } else {
+        // Première utilisation: sauvegarder le défaut 'pollinations'
+        this.selectedApiMode = 'pollinations';
+        await AsyncStorage.setItem(apiModeKey, 'pollinations');
+      }
+      
+      // Positionner sur la bonne API
+      if (this.selectedApiMode !== 'auto') {
+        const apiIndex = this.freeApis.findIndex(api => api.id === this.selectedApiMode);
+        if (apiIndex !== -1) {
+          this.currentApiIndex = apiIndex;
         }
       }
       
+      this.configLoaded = true;
       console.log(`🤖 Provider texte (user: ${userId}): ${this.providers[this.currentProvider]?.name || this.currentProvider}`);
-      console.log(`🔧 Mode API: ${this.selectedApiMode} (${this.selectedApiMode === 'auto' ? 'rotation auto' : 'fixe'})`);
+      console.log(`🔧 Mode API: ${this.selectedApiMode} (${this.selectedApiMode === 'auto' ? 'rotation auto' : 'API fixe: ' + this.getCurrentApi().name})`);
     } catch (error) {
       console.error('Erreur chargement config:', error);
     }
@@ -721,11 +730,17 @@ class TextGenerationService {
   }
 
   async generateWithPollinations(messages, character, userProfile, context) {
+    // === TOUJOURS charger la config au début ===
+    if (!this.configLoaded) {
+      await this.loadConfig();
+      this.configLoaded = true;
+    }
+    
     const currentApi = this.getCurrentApi();
     const modeStr = this.selectedApiMode === 'auto' 
       ? '🔄 Mode rotation auto' 
       : `🔒 API fixe: ${currentApi.name}`;
-    console.log(`🚀 Génération - ${modeStr}`);
+    console.log(`🚀 Génération - ${modeStr} (mode: ${this.selectedApiMode})`);
     
     // En mode API fixe, moins de tentatives car on reste sur la même API
     const maxAttempts = this.selectedApiMode === 'auto' ? 5 : 3;
