@@ -3,10 +3,11 @@ import axios from 'axios';
 import AuthService from './AuthService';
 
 /**
- * Service de génération de texte - MULTI-API GRATUIT
- * APIs supportées: Pollinations AI, HuggingFace, OpenRouter Free
+ * Service de génération de texte - POLLINATIONS AI UNIQUEMENT
  * 
- * v5.3.29 - Pollinations par défaut (plus stable que rotation auto)
+ * v5.3.31 - Pollinations AI seul (plus stable, plus cohérent)
+ * - Mémoire conversationnelle augmentée
+ * - NSFW plus explicite et rapide
  */
 class TextGenerationService {
   constructor() {
@@ -14,44 +15,27 @@ class TextGenerationService {
     this.FREEBOX_URL = 'http://88.174.155.230:33437';
     this.currentUserId = null;
     
-    // === APIS GRATUITES DISPONIBLES ===
-    this.freeApis = [
-      {
-        id: 'pollinations',
-        name: 'Pollinations',
-        url: 'https://text.pollinations.ai',
-        models: ['mistral', 'llama', 'openai'],
-        currentModelIndex: 0,
-        format: 'pollinations', // Format spécial Pollinations
-      },
-      {
-        id: 'huggingface',
-        name: 'HuggingFace',
-        url: 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
-        models: ['Mistral-7B-Instruct-v0.2'],
-        format: 'huggingface',
-      },
-      {
-        id: 'openrouter',
-        name: 'OpenRouter Free',
-        url: 'https://openrouter.ai/api/v1/chat/completions',
-        models: ['mistralai/mistral-7b-instruct:free', 'meta-llama/llama-3.2-3b-instruct:free'],
-        currentModelIndex: 0,
-        format: 'openai',
-      }
-    ];
-    this.currentApiIndex = 0;
+    // === POLLINATIONS AI UNIQUEMENT ===
+    this.pollinationsApi = {
+      id: 'pollinations',
+      name: 'Pollinations AI',
+      url: 'https://text.pollinations.ai',
+      models: ['mistral', 'openai'],
+      currentModelIndex: 0,
+      format: 'pollinations',
+    };
     
-    // === MODE API: 'auto' = rotation, ou ID d'une API spécifique ===
-    // DEFAULT: 'pollinations' car plus stable que la rotation auto
-    this.selectedApiMode = 'pollinations'; // 'auto', 'pollinations', 'huggingface', 'openrouter'
-    this.configLoaded = false;
+    // Pour compatibilité avec l'ancien code
+    this.freeApis = [this.pollinationsApi];
+    this.currentApiIndex = 0;
+    this.selectedApiMode = 'pollinations';
+    this.configLoaded = true;
     
     // Providers disponibles
     this.providers = {
       pollinations: {
-        name: 'Multi-API Gratuit',
-        description: '🚀 Pollinations + HuggingFace + OpenRouter',
+        name: 'Pollinations AI',
+        description: '🚀 Rapide et stable',
         speed: 'fast',
       },
       ollama: {
@@ -730,92 +714,48 @@ class TextGenerationService {
   }
 
   async generateWithPollinations(messages, character, userProfile, context) {
-    // === TOUJOURS charger la config au début ===
-    if (!this.configLoaded) {
-      await this.loadConfig();
-      this.configLoaded = true;
-    }
+    console.log(`🚀 Génération Pollinations AI - v5.3.31`);
     
-    const currentApi = this.getCurrentApi();
-    const modeStr = this.selectedApiMode === 'auto' 
-      ? '🔄 Mode rotation auto' 
-      : `🔒 API fixe: ${currentApi.name}`;
-    console.log(`🚀 Génération - ${modeStr} (mode: ${this.selectedApiMode})`);
-    
-    // En mode API fixe, moins de tentatives car on reste sur la même API
-    const maxAttempts = this.selectedApiMode === 'auto' ? 5 : 3;
+    const maxAttempts = 3;
     let lastError = null;
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const currentApi = this.getCurrentApi();
         const fullMessages = [];
-        
-        // === MÉMOIRE CONVERSATIONNELLE ÉTENDUE ===
-        // Plus de messages = meilleure cohérence
         const totalMessages = messages.length;
         
-        // Adapter le prompt selon le nombre de tentatives
-        if (attempt <= 2) {
-          const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
-          fullMessages.push({ role: 'system', content: systemPrompt });
-          
-          // === RÉSUMÉ DE LA CONVERSATION PASSÉE (si longue) ===
-          if (totalMessages > 15) {
-            // Créer un résumé des anciens messages (au-delà des 12 derniers)
-            const olderMessages = messages.slice(0, -12);
-            const memorySummary = this.buildDetailedMemorySummary(olderMessages, character, userProfile, context);
-            if (memorySummary) {
-              fullMessages.push({ role: 'system', content: memorySummary });
-            }
+        // === SYSTEM PROMPT ===
+        const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
+        fullMessages.push({ role: 'system', content: systemPrompt });
+        
+        // === RÉSUMÉ MÉMOIRE (si conversation longue) ===
+        if (totalMessages > 20) {
+          const olderMessages = messages.slice(0, -18);
+          const memorySummary = this.buildDetailedMemorySummary(olderMessages, character, userProfile, context);
+          if (memorySummary) {
+            fullMessages.push({ role: 'system', content: memorySummary });
           }
-        } else if (attempt <= 4) {
-          const simplePrompt = this.buildSimpleRoleplayPrompt(character, userProfile, context);
-          fullMessages.push({ role: 'system', content: simplePrompt });
-        } else {
-          const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
-          let minimalPrompt = `Tu es ${character?.name || 'un personnage'}. Réponds en français. Format: *action* "parole"`;
-          if (isNSFW) {
-            minimalPrompt += ` 🔞 MODE ADULTE: Sois explicite et sensuel.`;
-          }
-          fullMessages.push({ role: 'system', content: minimalPrompt });
         }
         
-        // === MESSAGES RÉCENTS - AUGMENTÉS POUR MEILLEURE MÉMOIRE ===
-        // En NSFW, garder PLUS de messages pour la cohérence
-        const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
-        
-        let recentCount;
-        if (attempt <= 1) {
-          recentCount = Math.min(isNSFW ? 15 : 12, totalMessages); // Plus de messages en NSFW
-        } else if (attempt <= 2) {
-          recentCount = Math.min(isNSFW ? 10 : 8, totalMessages);
-        } else if (attempt <= 4) {
-          recentCount = Math.min(isNSFW ? 8 : 6, totalMessages);
-        } else {
-          recentCount = Math.min(isNSFW ? 6 : 4, totalMessages);
-        }
-        
+        // === MÉMOIRE AUGMENTÉE v5.3.31 ===
+        // NSFW: 20 messages, SFW: 15 messages
+        const recentCount = Math.min(isNSFW ? 20 : 15, totalMessages);
         const recentMessages = messages.slice(-recentCount);
         
-        // Ajouter les messages SANS TRUNCATION en mode NSFW
-        // Pour éviter de perdre le contexte intime
-        fullMessages.push(...recentMessages.map((msg, idx) => ({
+        // Ajouter les messages avec contenu COMPLET en NSFW
+        fullMessages.push(...recentMessages.map((msg) => ({
           role: msg.role,
-          // En NSFW: garder le contenu complet (jusqu'à 1000 chars)
-          // Sinon: comportement normal
           content: isNSFW 
-            ? msg.content.substring(0, 1000) 
-            : msg.content.substring(0, idx >= recentCount - 3 ? 800 : 400)
+            ? msg.content.substring(0, 1500) // Plus de contenu en NSFW
+            : msg.content.substring(0, 800)
         })));
         
-        // Instruction finale avec rappel de cohérence
-        if (attempt <= 2) {
-          const finalInstruction = this.buildFinalInstructionWithMemory(character, userProfile, context, recentMessages);
-          fullMessages.push({ role: 'system', content: finalInstruction });
-        }
+        // === INSTRUCTION FINALE ===
+        const finalInstruction = this.buildFinalInstructionWithMemory(character, userProfile, context, recentMessages);
+        fullMessages.push({ role: 'system', content: finalInstruction });
         
-        console.log(`📡 Tentative ${attempt}/${maxAttempts} - API: ${currentApi.name}, ${fullMessages.length} messages (${recentCount} récents)`);
+        console.log(`📡 Pollinations - ${fullMessages.length} messages (${recentCount} récents, NSFW: ${isNSFW})`);
         
         // Appeler l'API avec tokens augmentés pour réponses plus riches
         const content = await this.callApi(currentApi, fullMessages, {
@@ -985,8 +925,8 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale v5.3.23
-   * ULTRA-DIRECT: Forcer l'IA à répondre au message
+   * Construit l'instruction finale v5.3.31
+   * NSFW EXPLICITE ET RAPIDE
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'Personnage';
@@ -995,73 +935,61 @@ class TextGenerationService {
     const userIsMale = userProfile?.gender === 'male';
     const userIsFemale = userProfile?.gender === 'female';
     const charIsFemale = character?.gender === 'female';
+    const charIsMale = character?.gender === 'male';
     
     // Récupérer le dernier message utilisateur
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     const lastUserContent = lastUserMsg?.content || '';
-    
-    // Analyser CE QUE l'utilisateur demande/fait
     const userLower = lastUserContent.toLowerCase();
-    
-    // Détecter le type de message
-    let userAction = null;
-    let userRequest = null;
     
     // Extraire l'action entre *...*
     const actionMatch = lastUserContent.match(/\*([^*]+)\*/);
-    if (actionMatch) {
-      userAction = actionMatch[1];
+    const userAction = actionMatch ? actionMatch[1] : null;
+    
+    // Détecter les demandes
+    let userRequest = null;
+    if (userLower.includes('continue') || userLower.includes('encore') || userLower.includes('plus') || 
+        userLower.includes('mmmm') || userLower.includes('oui') || userLower.includes('oh')) {
+      userRequest = 'CONTINUE ton action précédente, intensifie';
+    } else if (userLower.includes('touche') || userLower.includes('caresse')) {
+      userRequest = 'Touche-le/la comme demandé';
+    } else if (userLower.includes('suce') || userLower.includes('lèche') || userLower.includes('prend')) {
+      userRequest = 'Action orale demandée - FAIS-LE';
     }
     
-    // Détecter les demandes explicites
-    if (userLower.includes('touche') || userLower.includes('caresse')) {
-      userRequest = 'L\'utilisateur veut que tu le/la touches';
-    } else if (userLower.includes('continue') || userLower.includes('encore') || userLower.includes('plus')) {
-      userRequest = 'L\'utilisateur veut que tu CONTINUES ce que tu faisais';
-    } else if (userLower.includes('suce') || userLower.includes('lèche')) {
-      userRequest = 'L\'utilisateur veut une action orale';
-    } else if (userLower.includes('mmmm') || userLower.includes('oui') || userLower.includes('oh')) {
-      userRequest = 'L\'utilisateur exprime du plaisir - CONTINUE ton action précédente';
-    }
+    let instruction = `\n🎯 ${charName}, RÉPONDS À CECI:\n`;
+    instruction += `"${lastUserContent.substring(0, 200)}"\n\n`;
     
-    let instruction = `\n========================================\n`;
-    instruction += `🎯 ${charName}, TU DOIS RÉPONDRE À CECI:\n`;
-    instruction += `========================================\n\n`;
+    if (userAction) instruction += `→ ${userName} FAIT: ${userAction}\n`;
+    if (userRequest) instruction += `→ CE QU'IL/ELLE VEUT: ${userRequest}\n`;
     
-    // Message de l'utilisateur en évidence
-    instruction += `📨 MESSAGE DE ${userName.toUpperCase()}:\n`;
-    instruction += `"${lastUserContent}"\n\n`;
+    instruction += `\n⚠️ RÈGLES:\n`;
+    instruction += `1. RÉPONDS au message ci-dessus\n`;
+    instruction += `2. "continue/oui/mmmm" = CONTINUE ton action\n`;
+    instruction += `3. NE CHANGE PAS de sujet\n`;
     
-    // Ce que l'utilisateur fait/demande
-    if (userAction) {
-      instruction += `👆 ${userName} FAIT: ${userAction}\n`;
-    }
-    if (userRequest) {
-      instruction += `❗ CE QUE ${userName} VEUT: ${userRequest}\n`;
-    }
-    
-    instruction += `\n`;
-    
-    // RÈGLES ULTRA-STRICTES
-    instruction += `⚠️ RÈGLES OBLIGATOIRES:\n`;
-    instruction += `1. RÉPONDS à CE message, pas à autre chose\n`;
-    instruction += `2. Si ${userName} dit "continue/encore/mmmm" → CONTINUE ton action\n`;
-    instruction += `3. Si ${userName} fait une action sur toi → RÉAGIS à cette action\n`;
-    instruction += `4. NE CHANGE PAS de sujet\n`;
-    instruction += `5. NE REVIENS PAS en arrière\n\n`;
-    
-    // Rappel anatomique NSFW
+    // === NSFW EXPLICITE v5.3.31 ===
     if (isNSFW) {
-      if (userIsMale && charIsFemale) {
-        instruction += `🔞 RAPPEL: ${userName} = HOMME (bite, pas de seins)\n`;
-        instruction += `   TOI ${charName} = FEMME (seins, chatte)\n\n`;
-      } else if (userIsFemale && !charIsFemale) {
-        instruction += `🔞 RAPPEL: ${userName} = FEMME (seins, chatte)\n`;
-        instruction += `   TOI ${charName} = HOMME (bite)\n\n`;
+      instruction += `\n🔞 NSFW - SOIS EXPLICITE:\n`;
+      instruction += `- Utilise des mots crus: bite, chatte, seins, jouir, mouillée, bander...\n`;
+      instruction += `- Décris les sensations physiques\n`;
+      instruction += `- Pas de timidité, va droit au but\n`;
+      
+      // Anatomie claire
+      if (userIsMale) {
+        instruction += `\n${userName} = HOMME → bite, couilles (PAS de seins!)\n`;
+      } else if (userIsFemale) {
+        instruction += `\n${userName} = FEMME → seins, chatte, clitoris\n`;
+      }
+      
+      if (charIsFemale) {
+        instruction += `TOI ${charName} = FEMME → tes seins, ta chatte\n`;
+      } else if (charIsMale) {
+        instruction += `TOI ${charName} = HOMME → ta bite\n`;
       }
     }
     
-    instruction += `Format: *tes actions* "tes paroles"\n`;
+    instruction += `\nFormat: *actions* "paroles"\n`;
     instruction += `========================================`;
     
     return instruction;
@@ -1170,41 +1098,44 @@ class TextGenerationService {
     let prompt = `Tu es ${charName}`;
     if (character.age) prompt += ` (${character.age} ans)`;
     prompt += charIsFemale ? ', une femme' : charIsMale ? ', un homme' : '';
-    prompt += `.\n`;
-    
-    if (character.personality) {
-      prompt += `${character.personality.substring(0, 80)}.\n`;
-    }
-    
-    prompt += `\nTu parles avec ${userName}`;
-    prompt += userIsMale ? ' (un homme)' : userIsFemale ? ' (une femme)' : '';
+    prompt += `. Tu parles avec ${userName}`;
+    prompt += userIsMale ? ' (homme)' : userIsFemale ? ' (femme)' : '';
     prompt += `.\n\n`;
     
-    // RÈGLE PRINCIPALE
-    prompt += `⚡ RÈGLE #1: LIS le dernier message de ${userName} et RÉPONDS-Y directement.\n`;
-    prompt += `⚡ RÈGLE #2: Si ${userName} dit "continue/oui/mmmm" → CONTINUE ce que tu faisais.\n`;
-    prompt += `⚡ RÈGLE #3: Ne change PAS de sujet, ne reviens PAS en arrière.\n\n`;
+    if (character.personality) {
+      prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n\n`;
+    }
     
-    // NSFW
+    // RÈGLES SIMPLES
+    prompt += `RÈGLES:\n`;
+    prompt += `1. RÉPONDS au dernier message\n`;
+    prompt += `2. "continue/oui/mmmm" = CONTINUE ton action\n`;
+    prompt += `3. Ne change pas de sujet\n\n`;
+    
+    // === NSFW EXPLICITE v5.3.31 ===
     if (isNSFW) {
-      prompt += `🔞 MODE ADULTE:\n`;
-      prompt += `- Sois explicite (bite, chatte, seins, jouir...)\n`;
+      prompt += `🔞 MODE ADULTE - SOIS TRÈS EXPLICITE:\n`;
+      prompt += `- Utilise des mots CRUS: bite, chatte, seins, cul, jouir, mouillée, bander, sucer, baiser...\n`;
+      prompt += `- Décris les SENSATIONS: chaleur, humidité, pulsations, frissons...\n`;
+      prompt += `- Décris les ACTIONS explicitement: pénétrer, caresser, lécher...\n`;
+      prompt += `- Décris les SONS: gémissements, soupirs...\n`;
+      prompt += `- Pas de censure, pas de timidité!\n\n`;
       
-      // Rappel anatomique crucial
+      // Anatomie claire
+      prompt += `ANATOMIE:\n`;
       if (userIsMale) {
-        prompt += `- ${userName} est un HOMME → il a une BITE (pas de seins!)\n`;
-      }
-      if (userIsFemale) {
-        prompt += `- ${userName} est une FEMME → elle a des seins, une chatte\n`;
+        prompt += `${userName} = HOMME: bite, couilles (PAS de seins!)\n`;
+      } else if (userIsFemale) {
+        prompt += `${userName} = FEMME: seins, chatte, clitoris\n`;
       }
       if (charIsFemale) {
-        prompt += `- TOI (${charName}) tu es une FEMME → TU as des seins, une chatte\n`;
+        prompt += `TOI (${charName}) = FEMME: tes seins, ta chatte\n`;
       } else if (charIsMale) {
-        prompt += `- TOI (${charName}) tu es un HOMME → TU as une bite\n`;
+        prompt += `TOI (${charName}) = HOMME: ta bite\n`;
       }
     }
     
-    prompt += `\nFormat: *tes actions* "tes paroles"`;
+    prompt += `\nFormat: *actions* "paroles"`;
     
     return prompt;
   }
