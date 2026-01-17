@@ -3383,14 +3383,89 @@ class ImageGenerationService {
    * Génère une image avec l'API Freebox/Pollinations
    * VERSION ULTRA-AMÉLIORÉE: Images parfaites sans défauts anatomiques
    */
+  /**
+   * Extrait les mots-clés de morphologie du prompt
+   */
+  extractMorphologyKeywords(prompt) {
+    const lowerPrompt = prompt.toLowerCase();
+    const morphology = [];
+    
+    // Détecter les types de corps - MOTS FRANÇAIS ET ANGLAIS
+    const bodyKeywords = {
+      // Ronde / Chubby
+      'chubby': 'chubby plump body, soft round curves, full-figured',
+      'plump': 'plump soft body, chubby curves',
+      'ronde': 'chubby round body, plump soft curves, full-figured woman',
+      'rondelette': 'chubby plump body, soft round curves',
+      'potelée': 'chubby plump body, soft curves',
+      'dodue': 'chubby soft body, plump figure',
+      
+      // Généreuse / Voluptueuse
+      'generous': 'generous curvy body, full-figured, wide hips, big curves',
+      'généreus': 'generous curvy body, full-figured woman, wide hips, voluptuous',
+      'voluptu': 'voluptuous body, sexy curves, hourglass figure, big bust, wide hips',
+      'pulpeuse': 'voluptuous curvy body, sexy full figure, big curves',
+      'plantureuse': 'voluptuous full-figured body, big bust, curvy',
+      
+      // Curvy / Formes
+      'curvy': 'curvy body, hourglass figure, pronounced curves',
+      'courbes': 'curvy body with curves, hourglass figure',
+      'formes': 'curvy body with sexy curves',
+      
+      // Thick / Épaisse  
+      'thick': 'thick curvy body, thicc figure, wide hips, thick thighs',
+      'épaisse': 'thick curvy body, wide hips, thick thighs',
+      'thicc': 'thicc body, thick curves, wide hips',
+      
+      // BBW
+      'bbw': 'BBW body, big beautiful woman, very curvy, fat body, chubby',
+      'très ronde': 'BBW very curvy body, big beautiful woman, fat',
+      'obèse': 'BBW body, very fat, very curvy, big woman',
+      
+      // Maternelle
+      'maternal': 'mature maternal body, soft curvy figure, MILF body',
+      'maternelle': 'mature maternal body, soft curves, MILF',
+      'milf': 'MILF body, mature curvy woman',
+    };
+    
+    for (const [keyword, description] of Object.entries(bodyKeywords)) {
+      if (lowerPrompt.includes(keyword)) {
+        morphology.push(description);
+      }
+    }
+    
+    // Détecter la poitrine
+    const bustKeywords = {
+      'huge breast': 'huge massive breasts, very big bust',
+      'big breast': 'big breasts, large bust',
+      'large bust': 'large bust, big breasts',
+      'd-cup': 'large D-cup breasts, big bust',
+      'dd-cup': 'very large DD-cup breasts, huge bust',
+      'e-cup': 'huge E-cup breasts, massive bust',
+      'f-cup': 'huge F-cup breasts, massive bust',
+      'g-cup': 'gigantic G-cup breasts, enormous bust',
+      'grosse poitrine': 'big breasts, large bust',
+      'énorme poitrine': 'huge massive breasts, enormous bust',
+      'small breast': 'small breasts, flat chest',
+      'petite poitrine': 'small breasts, flat chest',
+      'a-cup': 'small A-cup breasts, flat chest',
+    };
+    
+    for (const [keyword, description] of Object.entries(bustKeywords)) {
+      if (lowerPrompt.includes(keyword)) {
+        morphology.push(description);
+      }
+    }
+    
+    return morphology;
+  }
+
   async generateWithFreebox(prompt) {
     console.log('🖼️ Génération image via Pollinations.ai...');
     
     await this.waitForRateLimit();
     
     const seed = Date.now() + Math.floor(Math.random() * 100000);
-    
-    // Utiliser Pollinations.ai
     const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
     
     // Détecter le niveau NSFW via le marqueur [NSFW_LEVEL_X]
@@ -3403,91 +3478,73 @@ class ImageGenerationService {
                     prompt.toLowerCase().includes('manga') ||
                     !prompt.toLowerCase().includes('realistic');
     
-    // Retirer le marqueur du prompt
-    let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/, '');
+    // Retirer le marqueur et les termes négatifs (qui ne fonctionnent pas)
+    let cleanPrompt = prompt
+      .replace(/\[NSFW_LEVEL_\d+\]\s*/, '')
+      .replace(/NOT\s+\w+,?\s*/gi, '')  // Enlever "NOT thin" etc.
+      .replace(/multiple|several|many|various/gi, 'single');
     
-    // NETTOYER le prompt des termes problématiques qui causent des défauts
-    cleanPrompt = cleanPrompt
-      .replace(/multiple|several|many|various/gi, 'single')
-      .replace(/hands? holding/gi, 'elegant pose')
-      .replace(/arms? (raised|extended|reaching)/gi, 'natural pose')
-      .replace(/fingers? (spread|extended|pointing)/gi, 'relaxed hands');
+    // === EXTRAIRE LA MORPHOLOGIE DU PROMPT ===
+    const morphologyKeywords = this.extractMorphologyKeywords(prompt);
+    const hasCurvyBody = morphologyKeywords.length > 0;
     
-    // === PROMPT QUALITÉ ULTRA-STRICT POUR ÉVITER LES DÉFAUTS ===
-    // Utiliser des termes POSITIFS uniquement (pas de "NOT" qui ne fonctionne pas bien)
-    const anatomyPerfect = 'anatomically perfect human body, ' +
-                          'exactly two arms naturally positioned, exactly two legs, ' +
-                          'exactly two hands with five fingers each, ' +
-                          'one head, one face, two eyes, one nose, one mouth, ' +
-                          'normal human proportions, realistic body structure, ' +
-                          'clothes properly worn on body, fabric follows body shape naturally';
+    console.log(`🏋️ Morphologie détectée: ${morphologyKeywords.length > 0 ? morphologyKeywords[0] : 'standard'}`);
     
-    const qualityCore = 'masterpiece, award winning, professional quality, ' +
-                        'highly detailed, sharp focus, 8K resolution, ' +
-                        'perfect lighting, studio quality, flawless';
-    
-    const qualityAnime = 'beautiful anime art style, clean precise lineart, ' +
-                         'vibrant saturated colors, detailed expressive eyes, ' +
-                         'professional anime illustration, pixiv quality';
-    
-    const qualityRealistic = 'photorealistic, hyperrealistic photograph, ' +
-                             'professional DSLR camera, natural skin texture, ' +
-                             'professional portrait photography, magazine cover quality';
-    
-    // Construction du prompt final - STRUCTURE CLAIRE
+    // === CONSTRUIRE LE PROMPT FINAL ===
     let finalPrompt = '';
     
-    // 1. Qualité de base
-    finalPrompt = qualityCore + ', ';
-    
-    // 2. Style (anime ou réaliste)
-    finalPrompt += (isAnime ? qualityAnime : qualityRealistic) + ', ';
-    
-    // 3. Anatomie parfaite TOUJOURS
-    finalPrompt += anatomyPerfect + ', ';
-    
-    // 4. Sujet unique
-    finalPrompt += 'single person, solo, one character only, ';
-    
-    if (isNSFW) {
-      console.log(`🔞 MODE NSFW - Niveau ${nsfwLevel} (${isAnime ? 'Anime' : 'Réaliste'})`);
-      
-      // Ajouter le contenu NSFW selon le niveau
-      if (nsfwLevel >= 5) {
-        finalPrompt += 'nude woman, full body visible, artistic nude photography, ';
-        finalPrompt += cleanPrompt + ', ';
-        finalPrompt += 'naked body, sensual pose, intimate, erotic art';
-      } else if (nsfwLevel >= 4) {
-        finalPrompt += 'topless woman, artistic nude, ';
-        finalPrompt += cleanPrompt + ', ';
-        finalPrompt += 'bare chest, sensual, elegant nude';
-      } else if (nsfwLevel >= 3) {
-        finalPrompt += 'woman in lingerie, underwear model, ';
-        finalPrompt += cleanPrompt + ', ';
-        finalPrompt += 'sexy lingerie, bra and panties, seductive';
-      } else {
-        finalPrompt += 'sexy woman, revealing outfit, ';
-        finalPrompt += cleanPrompt + ', ';
-        finalPrompt += 'provocative pose, cleavage, attractive';
-      }
-      
-    } else {
-      console.log(`✨ Mode SFW (${isAnime ? 'Anime' : 'Réaliste'})`);
-      finalPrompt += 'beautiful woman, elegant, ';
-      finalPrompt += cleanPrompt + ', ';
-      finalPrompt += 'tasteful, stylish, attractive';
+    // 1. MORPHOLOGIE EN PREMIER (si détectée) - C'EST LA CLÉ !
+    if (hasCurvyBody) {
+      // Mettre la morphologie AU TOUT DÉBUT pour maximum d'impact
+      finalPrompt = morphologyKeywords.join(', ') + ', ';
+      console.log(`📍 Morphologie prioritaire: ${morphologyKeywords[0]}`);
     }
     
-    // Limiter la longueur (trop long = confusion pour le modèle)
-    const shortPrompt = finalPrompt.substring(0, 1500);
+    // 2. Qualité
+    const qualityCore = 'masterpiece, best quality, highly detailed, 8K';
+    finalPrompt += qualityCore + ', ';
+    
+    // 3. Style
+    if (isAnime) {
+      finalPrompt += 'anime art style, anime illustration, ';
+    } else {
+      finalPrompt += 'photorealistic, professional photography, ';
+    }
+    
+    // 4. Anatomie (version courte)
+    finalPrompt += 'perfect anatomy, single person, solo, ';
+    
+    // 5. Contenu principal (le prompt original nettoyé)
+    finalPrompt += cleanPrompt + ', ';
+    
+    // 6. RÉPÉTER LA MORPHOLOGIE À LA FIN pour renforcement
+    if (hasCurvyBody) {
+      finalPrompt += morphologyKeywords[0] + ', ';
+    }
+    
+    // 7. Mode SFW/NSFW
+    if (isNSFW) {
+      console.log(`🔞 MODE NSFW - Niveau ${nsfwLevel}`);
+      if (nsfwLevel >= 4) {
+        finalPrompt += 'nude, naked body, sensual';
+      } else if (nsfwLevel >= 3) {
+        finalPrompt += 'lingerie, underwear, sexy';
+      } else {
+        finalPrompt += 'revealing outfit, attractive';
+      }
+    } else {
+      finalPrompt += 'elegant, stylish, attractive';
+    }
+    
+    // Limiter la longueur
+    const shortPrompt = finalPrompt.substring(0, 1200);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // Utiliser flux-pro pour meilleure qualité (moins de défauts)
-    const modelType = 'flux';
-    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=${modelType}&enhance=true`;
+    // Utiliser flux pour meilleure qualité
+    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
     
-    console.log(`🔗 URL Pollinations (seed: ${seed}, niveau: ${nsfwLevel})`);
-    console.log(`📝 Prompt (${shortPrompt.length} chars): ${shortPrompt.substring(0, 200)}...`);
+    console.log(`🔗 URL Pollinations (seed: ${seed}, NSFW: ${nsfwLevel})`);
+    console.log(`📝 Prompt FINAL (${shortPrompt.length} chars): ${shortPrompt.substring(0, 250)}...`);
     
     return imageUrl;
   }

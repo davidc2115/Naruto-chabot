@@ -6,6 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  SafeAreaView,
+  Platform,
+  StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import StorageService from '../services/StorageService';
 import enhancedCharacters from '../data/allCharacters';
@@ -14,6 +18,7 @@ import CustomCharacterService from '../services/CustomCharacterService';
 export default function ChatsScreen({ navigation }) {
   const [allCharacters, setAllCharacters] = useState([]);
   const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -27,33 +32,48 @@ export default function ChatsScreen({ navigation }) {
   }, [navigation]);
 
   const loadData = async () => {
-    // Charger tous les personnages (de base + personnalisés + publics)
-    const customChars = await CustomCharacterService.getCustomCharacters();
-    
-    // Aussi charger les personnages publics des autres utilisateurs
-    let publicChars = [];
     try {
-      publicChars = await CustomCharacterService.getPublicCharacters();
-    } catch (e) {
-      console.log('Erreur chargement personnages publics:', e.message);
-    }
-    
-    // Combiner tous les personnages (éviter les doublons par ID)
-    const allChars = [...enhancedCharacters];
-    const seenIds = new Set(allChars.map(c => c.id));
-    
-    for (const char of [...customChars, ...publicChars]) {
-      if (!seenIds.has(char.id)) {
-        allChars.push(char);
-        seenIds.add(char.id);
+      console.log('📱 ChatsScreen: Chargement des données...');
+      
+      // Charger tous les personnages (de base + personnalisés + publics)
+      let customChars = [];
+      try {
+        customChars = await CustomCharacterService.getCustomCharacters();
+      } catch (e) {
+        console.log('⚠️ Erreur chargement personnages custom:', e.message);
       }
+      
+      // Aussi charger les personnages publics des autres utilisateurs
+      let publicChars = [];
+      try {
+        publicChars = await CustomCharacterService.getPublicCharacters();
+      } catch (e) {
+        console.log('⚠️ Erreur chargement personnages publics:', e.message);
+      }
+      
+      // Combiner tous les personnages (éviter les doublons par ID)
+      const allChars = [...enhancedCharacters];
+      const seenIds = new Set(allChars.map(c => c.id));
+      
+      for (const char of [...customChars, ...publicChars]) {
+        if (char && char.id && !seenIds.has(char.id)) {
+          allChars.push(char);
+          seenIds.add(char.id);
+        }
+      }
+      
+      setAllCharacters(allChars);
+      console.log(`✅ ${allChars.length} personnages chargés`);
+      
+      // Charger les conversations
+      const allConversations = await StorageService.getAllConversations();
+      console.log(`✅ ${allConversations.length} conversations chargées`);
+      setConversations(allConversations);
+    } catch (error) {
+      console.error('❌ Erreur loadData ChatsScreen:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    setAllCharacters(allChars);
-    
-    // Charger les conversations
-    const allConversations = await StorageService.getAllConversations();
-    setConversations(allConversations);
   };
 
   const deleteConversation = async (characterId) => {
@@ -154,43 +174,78 @@ export default function ChatsScreen({ navigation }) {
     );
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={styles.loadingText}>Chargement des conversations...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (conversations.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyEmoji}>💬</Text>
-        <Text style={styles.emptyTitle}>Aucune conversation</Text>
-        <Text style={styles.emptyText}>
-          Commencez une conversation avec un personnage depuis l'onglet Personnages
-        </Text>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerBar}>
+          <Text style={styles.title}>Conversations</Text>
+          <Text style={styles.subtitle}>0 conversation</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyEmoji}>💬</Text>
+          <Text style={styles.emptyTitle}>Aucune conversation</Text>
+          <Text style={styles.emptyText}>
+            Commencez une conversation avec un personnage depuis l'onglet Personnages
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerBar}>
-        <Text style={styles.title}>Conversations</Text>
-        <Text style={styles.subtitle}>{conversations.length} conversation(s)</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.headerBar}>
+          <Text style={styles.title}>Conversations</Text>
+          <Text style={styles.subtitle}>{conversations.length} conversation(s)</Text>
+        </View>
+        <FlatList
+          data={conversations}
+          renderItem={renderConversation}
+          keyExtractor={item => item.characterId?.toString() || Math.random().toString()}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+        />
       </View>
-      <FlatList
-        data={conversations}
-        renderItem={renderConversation}
-        keyExtractor={item => item.characterId.toString()}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#6366f1',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#6b7280',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
   headerBar: {
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 15,
     backgroundColor: '#6366f1',
   },
   title: {

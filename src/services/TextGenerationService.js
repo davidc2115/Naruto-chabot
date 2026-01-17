@@ -2,32 +2,46 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 /**
- * Service de génération de texte - SANS GROQ
- * Utilise Pollinations AI (rapide) ou Ollama Freebox (local)
+ * Service de génération de texte - MULTI-API GRATUIT
+ * APIs supportées: Pollinations AI, HuggingFace, OpenRouter Free
  * 
- * v5.3.3 - Modèle Mistral pour roleplay sans restriction
+ * v5.3.4 - Multi-API avec fallback automatique, sans restriction
  */
 class TextGenerationService {
   constructor() {
     // URLs des serveurs
     this.FREEBOX_URL = 'http://88.174.155.230:33437';
-    this.POLLINATIONS_URL = 'https://text.pollinations.ai';
     
-    // Modèles Pollinations disponibles (du plus permissif au moins permissif)
-    // Mistral est plus permissif pour le roleplay adulte
-    this.pollinationsModels = [
-      'mistral',           // Modèle Mistral - très permissif pour roleplay
-      'mistral-large',     // Mistral Large - qualité supérieure
-      'llama',             // LLaMA - permissif
-      'openai',            // OpenAI - restrictif (fallback)
+    // === APIS GRATUITES DISPONIBLES ===
+    this.freeApis = [
+      {
+        name: 'Pollinations',
+        url: 'https://text.pollinations.ai',
+        models: ['mistral', 'llama', 'openai'],
+        currentModelIndex: 0,
+        format: 'pollinations', // Format spécial Pollinations
+      },
+      {
+        name: 'HuggingFace',
+        url: 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
+        models: ['Mistral-7B-Instruct-v0.2'],
+        format: 'huggingface',
+      },
+      {
+        name: 'OpenRouter Free',
+        url: 'https://openrouter.ai/api/v1/chat/completions',
+        models: ['mistralai/mistral-7b-instruct:free', 'meta-llama/llama-3.2-3b-instruct:free'],
+        currentModelIndex: 0,
+        format: 'openai',
+      }
     ];
-    this.currentModelIndex = 0;
+    this.currentApiIndex = 0;
     
-    // Providers disponibles (SANS GROQ)
+    // Providers disponibles
     this.providers = {
       pollinations: {
-        name: 'Pollinations AI (Mistral)',
-        description: '🚀 Rapide, gratuit et sans restriction',
+        name: 'Multi-API Gratuit',
+        description: '🚀 Pollinations + HuggingFace + OpenRouter',
         speed: 'fast',
       },
       ollama: {
@@ -37,7 +51,7 @@ class TextGenerationService {
       },
     };
 
-    // Provider par défaut: Pollinations (plus rapide)
+    // Provider par défaut
     this.currentProvider = 'pollinations';
     
     // Pour compatibilité avec l'ancien code
@@ -382,150 +396,196 @@ class TextGenerationService {
   }
 
   /**
-   * Fait tourner vers le modèle Pollinations suivant
+   * Fait tourner vers l'API suivante
    */
-  rotatePollinationsModel() {
-    this.currentModelIndex = (this.currentModelIndex + 1) % this.pollinationsModels.length;
-    const newModel = this.pollinationsModels[this.currentModelIndex];
-    console.log(`🔄 Rotation modèle Pollinations: ${newModel}`);
-    return newModel;
+  rotateApi() {
+    this.currentApiIndex = (this.currentApiIndex + 1) % this.freeApis.length;
+    const newApi = this.freeApis[this.currentApiIndex];
+    console.log(`🔄 Rotation API: ${newApi.name}`);
+    return newApi;
   }
 
   /**
-   * Retourne le modèle actuel
+   * Retourne l'API actuelle
    */
-  getCurrentPollinationsModel() {
-    return this.pollinationsModels[this.currentModelIndex];
+  getCurrentApi() {
+    return this.freeApis[this.currentApiIndex];
+  }
+
+  /**
+   * Appelle une API spécifique selon son format
+   */
+  async callApi(api, fullMessages, options = {}) {
+    const { temperature = 0.85, maxTokens = 250 } = options;
+    
+    if (api.format === 'pollinations') {
+      // Format Pollinations: GET request avec prompt encodé
+      const model = api.models[api.currentModelIndex || 0];
+      const systemPrompt = fullMessages.find(m => m.role === 'system')?.content || '';
+      const userMsg = fullMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+      const combinedPrompt = `${systemPrompt}\n\nUser: ${userMsg}\n\nAssistant:`;
+      
+      const response = await axios.get(
+        `${api.url}/${encodeURIComponent(combinedPrompt)}`,
+        {
+          params: { model, seed: Math.floor(Math.random() * 100000) },
+          timeout: 35000,
+        }
+      );
+      return typeof response.data === 'string' ? response.data : response.data?.text;
+      
+    } else if (api.format === 'huggingface') {
+      // Format HuggingFace Inference API
+      const systemPrompt = fullMessages.find(m => m.role === 'system')?.content || '';
+      const userMsg = fullMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+      const prompt = `<s>[INST] ${systemPrompt}\n\n${userMsg} [/INST]`;
+      
+      const response = await axios.post(
+        api.url,
+        {
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: maxTokens,
+            temperature: temperature,
+            do_sample: true,
+            return_full_text: false,
+          }
+        },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 40000,
+        }
+      );
+      return response.data?.[0]?.generated_text || response.data?.generated_text;
+      
+    } else if (api.format === 'openai') {
+      // Format OpenAI (OpenRouter, etc.)
+      const model = api.models[api.currentModelIndex || 0];
+      
+      const response = await axios.post(
+        api.url,
+        {
+          model: model,
+          messages: fullMessages,
+          max_tokens: maxTokens,
+          temperature: temperature,
+        },
+        {
+          headers: { 
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://roleplay-chat.app',
+          },
+          timeout: 40000,
+        }
+      );
+      return response.data?.choices?.[0]?.message?.content;
+    }
+    
+    throw new Error('Format API non supporté');
   }
 
   async generateWithPollinations(messages, character, userProfile, context) {
-    console.log('🚀 Pollinations AI - Génération immersive...');
+    console.log('🚀 Multi-API - Génération immersive...');
     
-    const maxAttempts = 4; // 4 tentatives avec différents modèles
+    const maxAttempts = 5; // 5 tentatives avec différentes APIs
     let lastError = null;
     
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
+        const currentApi = this.getCurrentApi();
         const fullMessages = [];
-        const currentModel = this.getCurrentPollinationsModel();
         
         // Adapter le prompt selon le nombre de tentatives
         if (attempt <= 2) {
-          // 1ère et 2ème tentative: prompt complet immersif
           const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
           fullMessages.push({ role: 'system', content: systemPrompt });
           
-          // Résumé mémoire si conversation longue (1ère tentative seulement)
           if (attempt === 1 && context.isLongConversation && messages.length > 10) {
             const memorySummary = this.buildMemorySummary(messages.slice(0, -8), character);
             if (memorySummary) {
               fullMessages.push({ role: 'system', content: memorySummary });
             }
           }
-        } else if (attempt === 3) {
-          // 3ème tentative: prompt simplifié
-          console.log('🔄 Tentative 3: prompt simplifié...');
+        } else if (attempt <= 4) {
           const simplePrompt = this.buildSimpleRoleplayPrompt(character, userProfile, context);
           fullMessages.push({ role: 'system', content: simplePrompt });
         } else {
-          // 4ème tentative: prompt minimal
-          console.log('🔄 Tentative 4: prompt minimal...');
-          const minimalPrompt = `Tu es ${character?.name || 'un personnage'}. Réponds naturellement en français en restant dans ton personnage. Format: *action* "parole" (pensée)`;
+          const minimalPrompt = `Tu es ${character?.name || 'un personnage'}. Réponds en français. Format: *action* "parole"`;
           fullMessages.push({ role: 'system', content: minimalPrompt });
         }
         
-        // Messages récents (moins si tentatives avancées)
-        const recentCount = attempt <= 2 ? (context.isVeryLongConversation ? 5 : 8) : 3;
+        // Messages récents
+        const recentCount = attempt <= 2 ? 6 : 3;
         const recentMessages = messages.slice(-recentCount);
         fullMessages.push(...recentMessages.map(msg => ({
           role: msg.role,
-          content: msg.content.substring(0, attempt <= 2 ? 800 : 400)
+          content: msg.content.substring(0, 500)
         })));
         
-        // Instruction finale (seulement premières tentatives)
+        // Instruction finale
         if (attempt <= 2) {
           const finalInstruction = this.buildFinalInstruction(character, userProfile, context);
           fullMessages.push({ role: 'system', content: finalInstruction });
         }
         
-        console.log(`📡 Pollinations - Tentative ${attempt}/${maxAttempts}, Modèle: ${currentModel}, ${fullMessages.length} messages`);
+        console.log(`📡 Tentative ${attempt}/${maxAttempts} - API: ${currentApi.name}, ${fullMessages.length} messages`);
         
-        // API Pollinations avec le bon format
-        const response = await axios.post(
-          `${this.POLLINATIONS_URL}/${currentModel}`,
-          {
-            messages: fullMessages,
-            max_tokens: 250,
-            temperature: attempt <= 2 ? 0.8 : 0.9, // Plus créatif si retry
-            presence_penalty: 0.3,
-            frequency_penalty: 0.5,
-            top_p: 0.95,
-            // Paramètres spécifiques pour désactiver la modération
-            seed: Math.floor(Math.random() * 1000000),
-            jsonMode: false,
-            private: true, // Pas de modération
-          },
-          {
-            headers: { 'Content-Type': 'application/json' },
-            timeout: 40000,
-          }
-        );
+        // Appeler l'API
+        const content = await this.callApi(currentApi, fullMessages, {
+          temperature: attempt <= 2 ? 0.85 : 0.95,
+          maxTokens: 250,
+        });
         
-        // Pollinations peut retourner directement du texte ou un objet
-        let content = typeof response.data === 'string' 
-          ? response.data 
-          : response.data?.choices?.[0]?.message?.content || response.data?.text || response.data?.response;
-          
-        if (!content) throw new Error('Réponse Pollinations vide');
+        if (!content) throw new Error('Réponse vide');
         
-        console.log(`📝 Réponse (${currentModel}): ${content.substring(0, 100)}...`);
+        console.log(`📝 Réponse (${currentApi.name}): ${content.substring(0, 100)}...`);
         
         // Vérifier si c'est un refus
         if (this.isRefusalResponse(content)) {
-          console.log(`⚠️ Refus détecté avec modèle ${currentModel} (tentative ${attempt})`);
+          console.log(`⚠️ Refus détecté avec ${currentApi.name}`);
           
-          // Essayer de récupérer du contenu avant le refus
           const cleanedContent = this.cleanRefusalFromResponse(content);
           if (cleanedContent && cleanedContent.length > 20) {
             console.log('✅ Contenu récupéré avant refus');
             return this.cleanAndValidateResponse(cleanedContent, context);
           }
           
-          // Rotation vers le modèle suivant
+          // Rotation vers l'API suivante
           if (attempt < maxAttempts) {
-            this.rotatePollinationsModel();
+            this.rotateApi();
+            // Aussi faire tourner le modèle de l'API courante si disponible
+            if (currentApi.models && currentApi.models.length > 1) {
+              currentApi.currentModelIndex = ((currentApi.currentModelIndex || 0) + 1) % currentApi.models.length;
+            }
           }
           
-          // Si dernière tentative, utiliser fallback
           if (attempt === maxAttempts) {
-            console.log('🔄 Toutes tentatives échouées, utilisation du fallback contextuel');
+            console.log('🔄 Toutes APIs échouées, utilisation du fallback');
             return this.generateContextualFallback(character, userProfile, context);
           }
           
-          lastError = new Error('Refus IA détecté');
+          lastError = new Error('Refus IA');
           continue;
         }
         
-        console.log(`✅ Pollinations réponse valide (${currentModel})`);
+        console.log(`✅ Réponse valide (${currentApi.name})`);
         return this.cleanAndValidateResponse(content, context);
         
       } catch (error) {
-        console.log(`❌ Erreur tentative ${attempt} (${this.getCurrentPollinationsModel()}): ${error.message}`);
+        console.log(`❌ Erreur tentative ${attempt}: ${error.message}`);
         lastError = error;
         
-        // Rotation vers le modèle suivant en cas d'erreur
         if (attempt < maxAttempts) {
-          this.rotatePollinationsModel();
+          this.rotateApi();
         }
         
         if (attempt === maxAttempts) {
-          console.log('🔄 Erreur persistante, utilisation du fallback contextuel');
+          console.log('🔄 Erreur persistante, utilisation du fallback');
           return this.generateContextualFallback(character, userProfile, context);
         }
       }
     }
     
-    // Si on arrive ici, utiliser le fallback
     return this.generateContextualFallback(character, userProfile, context);
   }
 

@@ -80,24 +80,46 @@ class StorageService {
       const userId = await this.getCurrentUserId();
       const keys = await AsyncStorage.getAllKeys();
       
-      // Filtrer les conversations de l'utilisateur courant
-      const userConvPrefix = `conv_${userId}_`;
-      const conversationKeys = keys.filter(key => key.startsWith(userConvPrefix));
+      // Chercher TOUTES les conversations (nouveau format et ancien format)
+      const conversationKeys = keys.filter(key => 
+        key.startsWith(`conv_${userId}_`) ||  // Format actuel: conv_userId_charId
+        key.startsWith('conv_anonymous_') ||   // Conversations anonymes
+        key.startsWith('conv_') ||             // Toutes les conv_
+        key.startsWith('conversation_')        // Ancien format
+      );
       
-      console.log(`📚 Chargement de ${conversationKeys.length} conversations pour ${userId}`);
+      console.log(`📚 Chargement de ${conversationKeys.length} conversations (userId: ${userId})`);
+      console.log(`📋 Clés trouvées:`, conversationKeys.slice(0, 5));
       
       const conversations = await AsyncStorage.multiGet(conversationKeys);
       
-      return conversations
+      const result = conversations
         .map(([key, value]) => {
           try {
-            return JSON.parse(value);
+            const parsed = JSON.parse(value);
+            // S'assurer que l'objet a les bonnes propriétés
+            if (parsed && (parsed.messages || parsed.characterId)) {
+              // Ajouter characterId depuis la clé si manquant
+              if (!parsed.characterId && key.includes('_')) {
+                const parts = key.split('_');
+                parsed.characterId = parts[parts.length - 1];
+              }
+              return parsed;
+            }
+            return null;
           } catch {
             return null;
           }
         })
-        .filter(conv => conv !== null)
-        .sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+        .filter(conv => conv !== null && conv.messages && conv.messages.length > 0)
+        .sort((a, b) => {
+          const dateA = new Date(b.lastUpdated || 0);
+          const dateB = new Date(a.lastUpdated || 0);
+          return dateA - dateB;
+        });
+      
+      console.log(`✅ ${result.length} conversations chargées`);
+      return result;
     } catch (error) {
       console.error('Error loading all conversations:', error);
       return [];

@@ -9,6 +9,9 @@ import {
   ActivityIndicator,
   Image,
   RefreshControl,
+  SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomCharacterService from '../services/CustomCharacterService';
@@ -192,7 +195,7 @@ export default function MyCharactersScreen({ navigation }) {
     return characters;
   }, [characters, filter]);
 
-  const handleDelete = (character) => {
+  const handleDelete = useCallback((character) => {
     Alert.alert(
       'Supprimer le personnage',
       `Êtes-vous sûr de vouloir supprimer "${character.name}" ?`,
@@ -205,8 +208,48 @@ export default function MyCharactersScreen({ navigation }) {
             try {
               console.log('🗑️ Suppression du personnage:', character.id);
               
-              // Méthode 1: Utiliser CustomCharacterService si disponible
-              if (CustomCharacterService) {
+              // ÉTAPE 1: Suppression immédiate de l'état local
+              setCharacters(prev => prev.filter(c => c.id !== character.id));
+              cachedCharacters = cachedCharacters ? cachedCharacters.filter(c => c.id !== character.id) : null;
+              
+              // ÉTAPE 2: Suppression directe dans TOUTES les clés AsyncStorage possibles
+              const keysToCheck = [
+                'custom_characters_anonymous',
+                'custom_characters',
+                'my_characters',
+                'created_characters',
+              ];
+              
+              // Ajouter les clés utilisateur
+              if (AuthService && AuthService.getCurrentUser) {
+                const user = AuthService.getCurrentUser();
+                if (user?.id) {
+                  keysToCheck.push(`custom_characters_${user.id}`);
+                  keysToCheck.push(`my_characters_${user.id}`);
+                }
+              }
+              
+              // Supprimer de chaque clé
+              for (const key of keysToCheck) {
+                try {
+                  const data = await AsyncStorage.getItem(key);
+                  if (data) {
+                    const chars = JSON.parse(data);
+                    if (Array.isArray(chars)) {
+                      const filtered = chars.filter(c => c.id !== character.id && c.id !== String(character.id));
+                      if (filtered.length !== chars.length) {
+                        await AsyncStorage.setItem(key, JSON.stringify(filtered));
+                        console.log('✅ Supprimé de', key);
+                      }
+                    }
+                  }
+                } catch (e) {
+                  console.log('⚠️ Clé', key, ':', e.message);
+                }
+              }
+              
+              // ÉTAPE 3: CustomCharacterService si disponible
+              if (CustomCharacterService && CustomCharacterService.deleteCustomCharacter) {
                 try {
                   await CustomCharacterService.deleteCustomCharacter(character.id);
                   console.log('✅ Supprimé via CustomCharacterService');
@@ -215,42 +258,7 @@ export default function MyCharactersScreen({ navigation }) {
                 }
               }
               
-              // Méthode 2: Suppression directe dans AsyncStorage (fallback)
-              try {
-                // Essayer plusieurs clés de stockage
-                const keys = [
-                  'custom_characters_anonymous',
-                  'custom_characters',
-                ];
-                
-                // Ajouter la clé utilisateur si connecté
-                if (AuthService && AuthService.getCurrentUser) {
-                  const user = AuthService.getCurrentUser();
-                  if (user?.id) {
-                    keys.push(`custom_characters_${user.id}`);
-                  }
-                }
-                
-                for (const key of keys) {
-                  try {
-                    const data = await AsyncStorage.getItem(key);
-                    if (data) {
-                      const chars = JSON.parse(data);
-                      const filtered = chars.filter(c => c.id !== character.id);
-                      if (filtered.length !== chars.length) {
-                        await AsyncStorage.setItem(key, JSON.stringify(filtered));
-                        console.log('✅ Supprimé de', key);
-                      }
-                    }
-                  } catch (e) {
-                    // Continuer avec la clé suivante
-                  }
-                }
-              } catch (e) {
-                console.log('⚠️ Erreur suppression AsyncStorage:', e.message);
-              }
-              
-              // Si public, retirer aussi du serveur
+              // ÉTAPE 4: Si public, retirer du serveur
               if (character.isPublic && character.serverId && CustomCharacterService) {
                 try {
                   await CustomCharacterService.unpublishCharacter(character.id);
@@ -264,20 +272,18 @@ export default function MyCharactersScreen({ navigation }) {
                 } catch (e) {}
               }
               
-              // Mettre à jour le cache et l'état
-              cachedCharacters = cachedCharacters ? cachedCharacters.filter(c => c.id !== character.id) : null;
-              setCharacters(prev => prev.filter(c => c.id !== character.id));
-              
-              Alert.alert('Succès', 'Personnage supprimé');
+              Alert.alert('Succès', 'Personnage supprimé avec succès');
             } catch (error) {
               console.error('❌ Erreur suppression:', error);
-              Alert.alert('Erreur', 'Impossible de supprimer le personnage');
+              // Même en cas d'erreur, recharger pour être sûr
+              loadCharacters(true);
+              Alert.alert('Erreur', 'Problème lors de la suppression');
             }
           }
         }
       ]
     );
-  };
+  }, []);
 
   const handleEdit = (character) => {
     navigation.navigate('CreateCharacter', { characterToEdit: character });
@@ -374,9 +380,15 @@ export default function MyCharactersScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Filtres */}
-      <View style={styles.filterContainer}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Titre */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Mes personnages</Text>
+        </View>
+        
+        {/* Filtres */}
+        <View style={styles.filterContainer}>
         <TouchableOpacity
           style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
           onPress={() => setFilter('all')}
@@ -435,21 +447,37 @@ export default function MyCharactersScreen({ navigation }) {
         />
       )}
 
-      {/* Bouton flottant */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('CreateCharacter')}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Bouton flottant */}
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('CreateCharacter')}
+        >
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#6366f1',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  header: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   loadingContainer: {
     flex: 1,
