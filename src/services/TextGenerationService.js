@@ -414,19 +414,40 @@ class TextGenerationService {
 
   /**
    * Appelle une API spécifique selon son format
+   * v5.3.5 - Inclut la mémoire conversationnelle complète
    */
   async callApi(api, fullMessages, options = {}) {
     const { temperature = 0.85, maxTokens = 250 } = options;
     
+    // Extraire les messages système et les messages de conversation
+    const systemMessages = fullMessages.filter(m => m.role === 'system');
+    const conversationMessages = fullMessages.filter(m => m.role !== 'system');
+    const systemPrompt = systemMessages.map(m => m.content).join('\n\n');
+    
+    // Construire l'historique de conversation (pour la mémoire)
+    const conversationHistory = conversationMessages.map(m => 
+      `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`
+    ).join('\n');
+    
+    console.log(`📝 API ${api.name}: ${systemMessages.length} system, ${conversationMessages.length} conversation msgs`);
+    
     if (api.format === 'pollinations') {
-      // Format Pollinations: GET request avec prompt encodé
+      // Format Pollinations: GET request avec prompt complet incluant l'historique
       const model = api.models[api.currentModelIndex || 0];
-      const systemPrompt = fullMessages.find(m => m.role === 'system')?.content || '';
-      const userMsg = fullMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
-      const combinedPrompt = `${systemPrompt}\n\nUser: ${userMsg}\n\nAssistant:`;
+      
+      // Inclure l'historique de conversation dans le prompt
+      let combinedPrompt = systemPrompt;
+      if (conversationHistory) {
+        combinedPrompt += `\n\n=== CONVERSATION PRÉCÉDENTE ===\n${conversationHistory}\n\n=== RÉPONDS MAINTENANT ===\nAssistant:`;
+      } else {
+        combinedPrompt += '\n\nAssistant:';
+      }
+      
+      // Limiter la longueur pour éviter les erreurs
+      const shortPrompt = combinedPrompt.substring(0, 3000);
       
       const response = await axios.get(
-        `${api.url}/${encodeURIComponent(combinedPrompt)}`,
+        `${api.url}/${encodeURIComponent(shortPrompt)}`,
         {
           params: { model, seed: Math.floor(Math.random() * 100000) },
           timeout: 35000,
@@ -435,15 +456,30 @@ class TextGenerationService {
       return typeof response.data === 'string' ? response.data : response.data?.text;
       
     } else if (api.format === 'huggingface') {
-      // Format HuggingFace Inference API
-      const systemPrompt = fullMessages.find(m => m.role === 'system')?.content || '';
-      const userMsg = fullMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
-      const prompt = `<s>[INST] ${systemPrompt}\n\n${userMsg} [/INST]`;
+      // Format HuggingFace Inference API - Inclure l'historique
+      let prompt = `<s>[INST] ${systemPrompt}`;
+      
+      // Ajouter l'historique de conversation
+      if (conversationMessages.length > 0) {
+        prompt += '\n\n=== HISTORIQUE ===\n';
+        for (const msg of conversationMessages) {
+          if (msg.role === 'user') {
+            prompt += `\nUser: ${msg.content}`;
+          } else {
+            prompt += `\nAssistant: ${msg.content}`;
+          }
+        }
+      }
+      
+      prompt += ' [/INST]';
+      
+      // Limiter la longueur
+      const shortPrompt = prompt.substring(0, 4000);
       
       const response = await axios.post(
         api.url,
         {
-          inputs: prompt,
+          inputs: shortPrompt,
           parameters: {
             max_new_tokens: maxTokens,
             temperature: temperature,
@@ -459,7 +495,7 @@ class TextGenerationService {
       return response.data?.[0]?.generated_text || response.data?.generated_text;
       
     } else if (api.format === 'openai') {
-      // Format OpenAI (OpenRouter, etc.)
+      // Format OpenAI (OpenRouter, etc.) - Supporte nativement les messages
       const model = api.models[api.currentModelIndex || 0];
       
       const response = await axios.post(

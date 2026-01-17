@@ -122,24 +122,38 @@ export default function ChatsScreen({ navigation }) {
   };
 
   const renderConversation = ({ item }) => {
-    const character = getCharacter(item.characterId);
-    if (!character) return null;
+    try {
+      const character = getCharacter(item?.characterId);
+      if (!character || !character.name) {
+        console.log('⚠️ Personnage non trouvé pour conversation:', item?.characterId);
+        return null;
+      }
 
-    const lastMessage = item.messages[item.messages.length - 1];
-    const messagePreview = lastMessage?.content?.substring(0, 80) + '...' || 'Aucun message';
+      const lastMessage = item?.messages?.[item.messages.length - 1];
+      const messagePreview = lastMessage?.content?.substring(0, 80) + '...' || 'Aucun message';
+      
+      // Extraire les initiales de manière sécurisée
+      const getInitials = (name) => {
+        try {
+          if (!name || typeof name !== 'string') return '?';
+          return name.split(' ').filter(n => n).map(n => n[0] || '').join('').substring(0, 2) || '?';
+        } catch {
+          return '?';
+        }
+      };
 
-    return (
-      <View style={styles.card}>
-        <TouchableOpacity
-          style={styles.cardTouchable}
-          onPress={() => navigation.navigate('Conversation', { character })}
-        >
-          <View style={styles.cardContent}>
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {character.name.split(' ').map(n => n[0]).join('')}
-              </Text>
-            </View>
+      return (
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.cardTouchable}
+            onPress={() => navigation.navigate('Conversation', { character })}
+          >
+            <View style={styles.cardContent}>
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                  {getInitials(character.name)}
+                </Text>
+              </View>
             <View style={styles.info}>
               <View style={styles.header}>
                 <Text style={styles.name}>{character.name}</Text>
@@ -164,14 +178,18 @@ export default function ChatsScreen({ navigation }) {
             </View>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => deleteConversation(item.characterId)}
-        >
-          <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
-        </TouchableOpacity>
-      </View>
-    );
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => deleteConversation(item?.characterId)}
+          >
+            <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    } catch (error) {
+      console.error('❌ Erreur renderConversation:', error);
+      return null;
+    }
   };
 
   if (loading) {

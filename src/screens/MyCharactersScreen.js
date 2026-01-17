@@ -306,69 +306,89 @@ export default function MyCharactersScreen({ navigation }) {
     }
   };
 
-  const renderCharacter = useCallback(({ item }) => (
-    <View style={styles.characterCard}>
-      <View style={styles.characterHeader}>
-        {item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} style={styles.characterImage} />
-        ) : (
-          <View style={styles.characterImagePlaceholder}>
-            <Text style={styles.placeholderText}>{item.name?.charAt(0) || '?'}</Text>
-          </View>
-        )}
-        
-        <View style={styles.characterInfo}>
-          <Text style={styles.characterName}>{item.name}</Text>
-          <Text style={styles.characterAge}>{item.age} ans • {item.gender === 'female' ? 'Femme' : 'Homme'}</Text>
-          <View style={styles.tagRow}>
-            <View style={[styles.tag, item.isPublic ? styles.tagPublic : styles.tagPrivate]}>
-              <Text style={styles.tagText}>{item.isPublic ? '🌐 Public' : '🔒 Privé'}</Text>
+  const renderCharacter = useCallback(({ item }) => {
+    // Protection contre les items null/undefined
+    if (!item || !item.id) {
+      console.log('⚠️ renderCharacter: item invalide');
+      return null;
+    }
+    
+    // Formater la date de manière sécurisée
+    const formatDate = (dateValue) => {
+      try {
+        if (!dateValue) return 'Date inconnue';
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return 'Date inconnue';
+        return date.toLocaleDateString('fr-FR');
+      } catch {
+        return 'Date inconnue';
+      }
+    };
+    
+    return (
+      <View style={styles.characterCard}>
+        <View style={styles.characterHeader}>
+          {item.imageUrl ? (
+            <Image source={{ uri: item.imageUrl }} style={styles.characterImage} />
+          ) : (
+            <View style={styles.characterImagePlaceholder}>
+              <Text style={styles.placeholderText}>{item.name?.charAt(0) || '?'}</Text>
             </View>
-            {item.temperament && (
-              <View style={styles.tag}>
-                <Text style={styles.tagText}>{item.temperament}</Text>
+          )}
+          
+          <View style={styles.characterInfo}>
+            <Text style={styles.characterName}>{item.name || 'Sans nom'}</Text>
+            <Text style={styles.characterAge}>{item.age || '?'} ans • {item.gender === 'female' ? 'Femme' : 'Homme'}</Text>
+            <View style={styles.tagRow}>
+              <View style={[styles.tag, item.isPublic ? styles.tagPublic : styles.tagPrivate]}>
+                <Text style={styles.tagText}>{item.isPublic ? '🌐 Public' : '🔒 Privé'}</Text>
               </View>
-            )}
+              {item.temperament && (
+                <View style={styles.tag}>
+                  <Text style={styles.tagText}>{item.temperament}</Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
-      </View>
-      
-      {item.personality && (
-        <Text style={styles.characterPersonality} numberOfLines={2}>
-          {item.personality}
-        </Text>
-      )}
-      
-      <View style={styles.characterActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.editButton]}
-          onPress={() => handleEdit(item)}
-        >
-          <Text style={styles.actionButtonText}>✏️ Modifier</Text>
-        </TouchableOpacity>
         
-        <TouchableOpacity
-          style={[styles.actionButton, item.isPublic ? styles.privateButton : styles.publicButton]}
-          onPress={() => handleTogglePublic(item)}
-        >
-          <Text style={styles.actionButtonText}>
-            {item.isPublic ? '🔒 Rendre privé' : '🌐 Publier'}
+        {item.personality && (
+          <Text style={styles.characterPersonality} numberOfLines={2}>
+            {item.personality}
           </Text>
-        </TouchableOpacity>
+        )}
         
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => handleDelete(item)}
-        >
-          <Text style={styles.actionButtonText}>🗑️</Text>
-        </TouchableOpacity>
+        <View style={styles.characterActions}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.editButton]}
+            onPress={() => handleEdit(item)}
+          >
+            <Text style={styles.actionButtonText}>✏️ Modifier</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.actionButton, item.isPublic ? styles.privateButton : styles.publicButton]}
+            onPress={() => handleTogglePublic(item)}
+          >
+            <Text style={styles.actionButtonText}>
+              {item.isPublic ? '🔒 Rendre privé' : '🌐 Publier'}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDelete(item)}
+          >
+            <Text style={styles.actionButtonText}>🗑️</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <Text style={styles.characterDate}>
+          Créé le {formatDate(item.createdAt)}
+        </Text>
       </View>
-      
-      <Text style={styles.characterDate}>
-        Créé le {new Date(item.createdAt).toLocaleDateString('fr-FR')}
-      </Text>
-    </View>
-  ), [handleDelete, handleEdit, handleTogglePublic]);
+    );
+  }, [handleDelete, handleEdit, handleTogglePublic]);
 
   if (loading) {
     return (

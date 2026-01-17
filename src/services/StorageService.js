@@ -80,48 +80,82 @@ class StorageService {
       const userId = await this.getCurrentUserId();
       const keys = await AsyncStorage.getAllKeys();
       
-      // Chercher TOUTES les conversations (nouveau format et ancien format)
-      const conversationKeys = keys.filter(key => 
-        key.startsWith(`conv_${userId}_`) ||  // Format actuel: conv_userId_charId
-        key.startsWith('conv_anonymous_') ||   // Conversations anonymes
-        key.startsWith('conv_') ||             // Toutes les conv_
-        key.startsWith('conversation_')        // Ancien format
-      );
+      console.log(`🔍 Recherche conversations pour userId: ${userId}`);
+      console.log(`📋 Toutes les clés AsyncStorage (${keys.length}):`, keys.filter(k => k.includes('conv')));
       
-      console.log(`📚 Chargement de ${conversationKeys.length} conversations (userId: ${userId})`);
-      console.log(`📋 Clés trouvées:`, conversationKeys.slice(0, 5));
+      // Chercher TOUTES les conversations possibles
+      const conversationKeys = keys.filter(key => {
+        // Format actuel
+        if (key.startsWith(`conv_${userId}_`)) return true;
+        // Conversations anonymes
+        if (key.startsWith('conv_anonymous_')) return true;
+        // Toutes les conversations (au cas où)
+        if (key.startsWith('conv_') && key.split('_').length >= 3) return true;
+        // Ancien format
+        if (key.startsWith('conversation_')) return true;
+        // Format messages_
+        if (key.startsWith('messages_')) return true;
+        // Format chat_
+        if (key.startsWith('chat_')) return true;
+        return false;
+      });
+      
+      console.log(`📚 ${conversationKeys.length} clés de conversations trouvées`);
+      
+      if (conversationKeys.length === 0) {
+        console.log('⚠️ Aucune conversation trouvée');
+        return [];
+      }
       
       const conversations = await AsyncStorage.multiGet(conversationKeys);
       
-      const result = conversations
-        .map(([key, value]) => {
-          try {
-            const parsed = JSON.parse(value);
-            // S'assurer que l'objet a les bonnes propriétés
-            if (parsed && (parsed.messages || parsed.characterId)) {
-              // Ajouter characterId depuis la clé si manquant
-              if (!parsed.characterId && key.includes('_')) {
-                const parts = key.split('_');
-                parsed.characterId = parts[parts.length - 1];
-              }
-              return parsed;
-            }
-            return null;
-          } catch {
-            return null;
+      const result = [];
+      for (const [key, value] of conversations) {
+        try {
+          if (!value) continue;
+          const parsed = JSON.parse(value);
+          
+          // Vérifier différentes structures possibles
+          let messages = parsed.messages || parsed.history || parsed;
+          let characterId = parsed.characterId || parsed.charId;
+          
+          // Extraire characterId depuis la clé si manquant
+          if (!characterId && key.includes('_')) {
+            const parts = key.split('_');
+            characterId = parts[parts.length - 1];
           }
-        })
-        .filter(conv => conv !== null && conv.messages && conv.messages.length > 0)
-        .sort((a, b) => {
-          const dateA = new Date(b.lastUpdated || 0);
-          const dateB = new Date(a.lastUpdated || 0);
-          return dateA - dateB;
-        });
+          
+          // S'assurer que messages est un tableau
+          if (!Array.isArray(messages)) {
+            if (parsed.content && parsed.role) {
+              // C'est peut-être un seul message
+              messages = [parsed];
+            } else {
+              continue;
+            }
+          }
+          
+          if (messages.length > 0 && characterId) {
+            result.push({
+              characterId: characterId,
+              messages: messages,
+              relationship: parsed.relationship || { level: 1, affection: 50 },
+              lastUpdated: parsed.lastUpdated || parsed.updatedAt || Date.now(),
+            });
+            console.log(`✅ Conversation trouvée: ${characterId} (${messages.length} messages)`);
+          }
+        } catch (e) {
+          console.log(`⚠️ Erreur parsing clé ${key}:`, e.message);
+        }
+      }
       
-      console.log(`✅ ${result.length} conversations chargées`);
+      // Trier par date
+      result.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+      
+      console.log(`✅ ${result.length} conversations chargées au total`);
       return result;
     } catch (error) {
-      console.error('Error loading all conversations:', error);
+      console.error('❌ Error loading all conversations:', error);
       return [];
     }
   }

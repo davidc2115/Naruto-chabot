@@ -270,25 +270,84 @@ class CustomCharacterService {
       const characters = await this.getCustomCharacters();
       const charToDelete = characters.find(char => char.id === characterId);
       
-      // Si le personnage était public, le retirer du serveur
-      if (charToDelete?.isPublic && charToDelete?.serverId) {
+      console.log(`🗑️ Suppression personnage: ${characterId}`, charToDelete?.name);
+      
+      // Retirer du serveur public - TOUJOURS essayer avec plusieurs IDs
+      const idsToTry = [
+        charToDelete?.serverId,
+        characterId,
+        charToDelete?.id,
+        charToDelete?.originalId,
+      ].filter(Boolean);
+      
+      for (const idToDelete of idsToTry) {
         try {
+          // Méthode 1: SyncService
           await SyncService.init();
-          await SyncService.unpublishCharacter(charToDelete.serverId);
+          await SyncService.unpublishCharacter(idToDelete);
+          console.log(`✅ Supprimé du serveur (SyncService): ${idToDelete}`);
         } catch (e) {
-          console.log('⚠️ Erreur retrait du serveur:', e.message);
+          console.log(`⚠️ SyncService échoué pour ${idToDelete}:`, e.message);
+        }
+        
+        try {
+          // Méthode 2: Appel direct à l'API
+          await axios.delete(
+            `${this.FREEBOX_URL}/api/characters/public/${idToDelete}`,
+            { 
+              headers: { 'Content-Type': 'application/json' },
+              timeout: 10000 
+            }
+          );
+          console.log(`✅ Supprimé du serveur (API directe): ${idToDelete}`);
+        } catch (e) {
+          console.log(`⚠️ API directe échouée pour ${idToDelete}:`, e.message);
+        }
+        
+        try {
+          // Méthode 3: Marquer comme supprimé via POST
+          await axios.post(
+            `${this.FREEBOX_URL}/api/characters/delete`,
+            { characterId: idToDelete },
+            { 
+              headers: { 'Content-Type': 'application/json' },
+              timeout: 10000 
+            }
+          );
+          console.log(`✅ Marqué supprimé (POST): ${idToDelete}`);
+        } catch (e) {
+          // Silencieux si cette route n'existe pas
         }
       }
       
+      // Supprimer localement
       const updated = characters.filter(char => char.id !== characterId);
       await AsyncStorage.setItem(this.getUserStorageKey(), JSON.stringify(updated));
       
-      // SYNCHRONISATION AUTOMATIQUE après suppression
-      this.syncToServer().catch(e => console.log('Sync auto échoué:', e.message));
+      // Aussi supprimer de toutes les autres clés possibles
+      const allKeys = await AsyncStorage.getAllKeys();
+      for (const key of allKeys) {
+        if (key.includes('custom_characters') || key.includes('my_characters')) {
+          try {
+            const data = await AsyncStorage.getItem(key);
+            if (data) {
+              const chars = JSON.parse(data);
+              if (Array.isArray(chars)) {
+                const filtered = chars.filter(c => c.id !== characterId);
+                if (filtered.length !== chars.length) {
+                  await AsyncStorage.setItem(key, JSON.stringify(filtered));
+                  console.log(`✅ Supprimé de ${key}`);
+                }
+              }
+            }
+          } catch (e) {}
+        }
+      }
       
+      console.log(`✅ Personnage ${characterId} supprimé complètement`);
       return updated;
     } catch (error) {
-      console.error('Error deleting custom character:', error);
+      console.error('❌ Error deleting custom character:', error);
       throw error;
     }
   }
