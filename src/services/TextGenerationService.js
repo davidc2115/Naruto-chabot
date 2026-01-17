@@ -3,11 +3,17 @@ import axios from 'axios';
 import AuthService from './AuthService';
 
 /**
- * Service de génération de texte - POLLINATIONS AI UNIQUEMENT
+ * Service de génération de texte - MULTI-API v5.3.33
  * 
- * v5.3.31 - Pollinations AI seul (plus stable, plus cohérent)
- * - Mémoire conversationnelle augmentée
- * - NSFW plus explicite et rapide
+ * APIs disponibles (sans rotation automatique):
+ * - Pollinations AI (Mistral) - par défaut
+ * - Pollinations AI (OpenAI)
+ * - Pollinations AI (Llama)
+ * - Pollinations AI (Deepseek)
+ * - Pollinations AI (Qwen)
+ * - Venice AI (uncensored) - nécessite clé API
+ * - DeepInfra - nécessite clé API
+ * - Ollama Freebox (local)
  */
 class TextGenerationService {
   constructor() {
@@ -15,42 +21,142 @@ class TextGenerationService {
     this.FREEBOX_URL = 'http://88.174.155.230:33437';
     this.currentUserId = null;
     
-    // === POLLINATIONS AI UNIQUEMENT ===
-    this.pollinationsApi = {
-      id: 'pollinations',
-      name: 'Pollinations AI',
-      url: 'https://text.pollinations.ai',
-      models: ['mistral', 'openai'],
-      currentModelIndex: 0,
-      format: 'pollinations',
+    // === APIS DISPONIBLES v5.3.33 ===
+    // Sans rotation automatique - l'utilisateur choisit
+    this.availableApis = {
+      // === POLLINATIONS AI (gratuit, sans clé) ===
+      'pollinations-mistral': {
+        id: 'pollinations-mistral',
+        name: '🚀 Pollinations (Mistral)',
+        description: 'Rapide, bon roleplay',
+        url: 'https://text.pollinations.ai',
+        model: 'mistral',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: true,
+      },
+      'pollinations-openai': {
+        id: 'pollinations-openai',
+        name: '🤖 Pollinations (OpenAI)',
+        description: 'Cohérent, créatif',
+        url: 'https://text.pollinations.ai',
+        model: 'openai',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: false,
+      },
+      'pollinations-llama': {
+        id: 'pollinations-llama',
+        name: '🦙 Pollinations (Llama)',
+        description: 'Open source, polyvalent',
+        url: 'https://text.pollinations.ai',
+        model: 'llama',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: true,
+      },
+      'pollinations-deepseek': {
+        id: 'pollinations-deepseek',
+        name: '🔍 Pollinations (DeepSeek)',
+        description: 'Raisonnement avancé',
+        url: 'https://text.pollinations.ai',
+        model: 'deepseek',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: true,
+      },
+      'pollinations-qwen': {
+        id: 'pollinations-qwen',
+        name: '🌐 Pollinations (Qwen)',
+        description: 'Multilingue, intelligent',
+        url: 'https://text.pollinations.ai',
+        model: 'qwen',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: true,
+      },
+      
+      // === VENICE AI (nécessite clé API gratuite) ===
+      'venice-uncensored': {
+        id: 'venice-uncensored',
+        name: '🔓 Venice AI (Uncensored)',
+        description: 'Aucune censure, créatif max',
+        url: 'https://api.venice.ai/api/v1/chat/completions',
+        model: 'venice-uncensored',
+        format: 'openai',
+        requiresKey: true,
+        keyName: 'venice_api_key',
+        uncensored: true,
+      },
+      'venice-llama': {
+        id: 'venice-llama',
+        name: '🦙 Venice AI (Llama 3.3)',
+        description: 'Llama 70B via Venice',
+        url: 'https://api.venice.ai/api/v1/chat/completions',
+        model: 'llama-3.3-70b',
+        format: 'openai',
+        requiresKey: true,
+        keyName: 'venice_api_key',
+        uncensored: true,
+      },
+      
+      // === DEEPINFRA (nécessite clé API gratuite) ===
+      'deepinfra-hermes': {
+        id: 'deepinfra-hermes',
+        name: '⚡ DeepInfra (Hermes 3)',
+        description: 'Roleplay optimisé',
+        url: 'https://api.deepinfra.com/v1/openai/chat/completions',
+        model: 'NousResearch/Hermes-3-Llama-3.1-70B',
+        format: 'openai',
+        requiresKey: true,
+        keyName: 'deepinfra_api_key',
+        uncensored: true,
+      },
+      'deepinfra-llama': {
+        id: 'deepinfra-llama',
+        name: '🦙 DeepInfra (Llama 3.3)',
+        description: 'Meta Llama dernière version',
+        url: 'https://api.deepinfra.com/v1/openai/chat/completions',
+        model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+        format: 'openai',
+        requiresKey: true,
+        keyName: 'deepinfra_api_key',
+        uncensored: false,
+      },
+      
+      // === OLLAMA LOCAL ===
+      'ollama': {
+        id: 'ollama',
+        name: '🏠 Ollama (Freebox)',
+        description: 'Local, sans limite',
+        url: 'http://88.174.155.230:33437/api/chat',
+        model: 'mistral',
+        format: 'ollama',
+        requiresKey: false,
+        uncensored: true,
+      },
     };
     
+    // API sélectionnée par défaut
+    this.selectedApiId = 'pollinations-mistral';
+    this.configLoaded = false;
+    
+    // Clés API stockées
+    this.apiKeys = {};
+    
     // Pour compatibilité avec l'ancien code
-    this.freeApis = [this.pollinationsApi];
+    this.freeApis = Object.values(this.availableApis);
     this.currentApiIndex = 0;
-    this.selectedApiMode = 'pollinations';
-    this.configLoaded = true;
+    this.selectedApiMode = 'pollinations-mistral';
     
-    // Providers disponibles
-    this.providers = {
-      pollinations: {
-        name: 'Pollinations AI',
-        description: '🚀 Rapide et stable',
-        speed: 'fast',
-      },
-      ollama: {
-        name: 'Ollama Freebox',
-        description: '🏠 Local, sans limite, plus lent',
-        speed: 'slow',
-      },
-    };
-
-    // Provider par défaut
+    // Provider principal (pour compatibilité)
     this.currentProvider = 'pollinations';
-    
-    // Pour compatibilité avec l'ancien code
-    this.apiKeys = { groq: [] };
-    this.currentKeyIndex = { groq: 0 };
+    this.providers = {
+      pollinations: { name: 'Pollinations AI', description: '🚀 Rapide et stable', speed: 'fast' },
+      venice: { name: 'Venice AI', description: '🔓 Uncensored', speed: 'medium' },
+      deepinfra: { name: 'DeepInfra', description: '⚡ Rapide', speed: 'fast' },
+      ollama: { name: 'Ollama Freebox', description: '🏠 Local', speed: 'slow' },
+    };
   }
 
   /**
@@ -78,74 +184,142 @@ class TextGenerationService {
       const userId = await this.getCurrentUserId();
       this.currentUserId = userId;
       
-      // Essayer d'abord la config spécifique à l'utilisateur
-      const userKey = `text_generation_provider_${userId}`;
-      let provider = await AsyncStorage.getItem(userKey);
+      // === CHARGER L'API SÉLECTIONNÉE ===
+      const apiKey = `text_api_selected_${userId}`;
+      let selectedApi = await AsyncStorage.getItem(apiKey);
       
-      // Fallback sur la config globale si pas de config utilisateur
-      if (!provider) {
-        provider = await AsyncStorage.getItem('text_generation_provider');
+      // Fallback sur la config globale
+      if (!selectedApi) {
+        selectedApi = await AsyncStorage.getItem('text_api_selected');
       }
       
-      if (provider && this.providers[provider]) {
-        this.currentProvider = provider;
-      }
-      
-      // === CHARGER LE MODE API (auto ou fixe) ===
-      const apiModeKey = `text_api_mode_${userId}`;
-      let apiMode = await AsyncStorage.getItem(apiModeKey);
-      if (!apiMode) {
-        apiMode = await AsyncStorage.getItem('text_api_mode');
-      }
-      
-      // Si pas de mode sauvegardé, utiliser 'pollinations' par défaut (plus stable)
-      if (apiMode) {
-        this.selectedApiMode = apiMode;
+      // Vérifier que l'API existe, sinon défaut
+      if (selectedApi && this.availableApis[selectedApi]) {
+        this.selectedApiId = selectedApi;
       } else {
-        // Première utilisation: sauvegarder le défaut 'pollinations'
-        this.selectedApiMode = 'pollinations';
-        await AsyncStorage.setItem(apiModeKey, 'pollinations');
+        this.selectedApiId = 'pollinations-mistral';
+        await AsyncStorage.setItem(apiKey, 'pollinations-mistral');
       }
       
-      // Positionner sur la bonne API
-      if (this.selectedApiMode !== 'auto') {
-        const apiIndex = this.freeApis.findIndex(api => api.id === this.selectedApiMode);
-        if (apiIndex !== -1) {
-          this.currentApiIndex = apiIndex;
-        }
-      }
+      // === CHARGER LES CLÉS API ===
+      const veniceKey = await AsyncStorage.getItem(`venice_api_key_${userId}`) || 
+                        await AsyncStorage.getItem('venice_api_key');
+      const deepinfraKey = await AsyncStorage.getItem(`deepinfra_api_key_${userId}`) || 
+                           await AsyncStorage.getItem('deepinfra_api_key');
+      
+      this.apiKeys = {
+        venice_api_key: veniceKey || '',
+        deepinfra_api_key: deepinfraKey || '',
+      };
+      
+      // Pour compatibilité
+      this.selectedApiMode = this.selectedApiId;
+      this.currentProvider = this.selectedApiId.split('-')[0];
       
       this.configLoaded = true;
-      console.log(`🤖 Provider texte (user: ${userId}): ${this.providers[this.currentProvider]?.name || this.currentProvider}`);
-      console.log(`🔧 Mode API: ${this.selectedApiMode} (${this.selectedApiMode === 'auto' ? 'rotation auto' : 'API fixe: ' + this.getCurrentApi().name})`);
+      const api = this.availableApis[this.selectedApiId];
+      console.log(`🤖 API texte sélectionnée: ${api?.name || this.selectedApiId}`);
+      console.log(`🔒 Clés API: Venice=${this.apiKeys.venice_api_key ? '✓' : '✗'}, DeepInfra=${this.apiKeys.deepinfra_api_key ? '✓' : '✗'}`);
     } catch (error) {
       console.error('Erreur chargement config:', error);
+      this.selectedApiId = 'pollinations-mistral';
+      this.configLoaded = true;
     }
   }
 
   /**
-   * Définit le mode API: 'auto' pour rotation, ou ID d'une API spécifique
+   * Sélectionne une API spécifique (sans rotation)
    */
-  async setApiMode(mode) {
-    const userId = await this.getCurrentUserId();
-    this.selectedApiMode = mode;
-    
-    // Sauvegarder avec clé utilisateur
-    const apiModeKey = `text_api_mode_${userId}`;
-    await AsyncStorage.setItem(apiModeKey, mode);
-    
-    // Si une API spécifique, positionner dessus
-    if (mode !== 'auto') {
-      const apiIndex = this.freeApis.findIndex(api => api.id === mode);
-      if (apiIndex !== -1) {
-        this.currentApiIndex = apiIndex;
-        console.log(`🔒 API fixée: ${this.freeApis[apiIndex].name}`);
-      }
-    } else {
-      console.log('🔄 Mode rotation auto activé');
+  async setSelectedApi(apiId) {
+    if (!this.availableApis[apiId]) {
+      console.log(`❌ API inconnue: ${apiId}`);
+      return false;
     }
     
+    const userId = await this.getCurrentUserId();
+    this.selectedApiId = apiId;
+    this.selectedApiMode = apiId; // Compatibilité
+    
+    // Sauvegarder
+    const apiKey = `text_api_selected_${userId}`;
+    await AsyncStorage.setItem(apiKey, apiId);
+    
+    const api = this.availableApis[apiId];
+    console.log(`✅ API sélectionnée: ${api.name}`);
     return true;
+  }
+  
+  /**
+   * Alias pour compatibilité
+   */
+  async setApiMode(mode) {
+    return this.setSelectedApi(mode);
+  }
+  
+  /**
+   * Sauvegarde une clé API
+   */
+  async setApiKey(keyName, keyValue) {
+    const userId = await this.getCurrentUserId();
+    this.apiKeys[keyName] = keyValue;
+    
+    // Sauvegarder
+    await AsyncStorage.setItem(`${keyName}_${userId}`, keyValue);
+    console.log(`🔑 Clé API sauvegardée: ${keyName}`);
+    return true;
+  }
+  
+  /**
+   * Récupère une clé API
+   */
+  getApiKey(keyName) {
+    return this.apiKeys[keyName] || '';
+  }
+  
+  /**
+   * Retourne la liste des APIs disponibles pour l'interface
+   */
+  getAvailableApisForUI() {
+    const apis = [];
+    
+    for (const [id, api] of Object.entries(this.availableApis)) {
+      // Vérifier si l'API nécessite une clé et si on l'a
+      let available = true;
+      let needsKey = false;
+      
+      if (api.requiresKey) {
+        const key = this.apiKeys[api.keyName];
+        needsKey = true;
+        available = key && key.length > 0;
+      }
+      
+      apis.push({
+        id: api.id,
+        name: api.name,
+        description: api.description,
+        uncensored: api.uncensored,
+        requiresKey: api.requiresKey,
+        available: available,
+        needsKey: needsKey,
+        keyName: api.keyName,
+      });
+    }
+    
+    return apis;
+  }
+  
+  /**
+   * Retourne l'API actuellement sélectionnée
+   */
+  getSelectedApi() {
+    return this.availableApis[this.selectedApiId] || this.availableApis['pollinations-mistral'];
+  }
+  
+  /**
+   * Retourne l'ID de l'API sélectionnée
+   */
+  getSelectedApiId() {
+    return this.selectedApiId;
   }
 
   /**
@@ -235,39 +409,56 @@ class TextGenerationService {
   }
 
   /**
-   * Génère une réponse avec le provider sélectionné
-   * SYSTÈME IMMERSIF COMPLET avec mémoire, anti-répétition, tempérament
+   * Génère une réponse avec l'API sélectionnée
+   * v5.3.33 - Multi-API sans rotation automatique
    */
   async generateResponse(messages, character, userProfile = null, retries = 3) {
     await this.loadConfig();
     
-    const provider = this.currentProvider;
-    console.log(`🤖 Génération avec ${this.providers[provider]?.name || provider}`);
+    const api = this.getSelectedApi();
+    console.log(`🤖 Génération avec ${api.name}`);
     
     // Analyser le contexte de conversation + scénario du personnage
     const conversationContext = this.analyzeConversationContext(messages, character);
     console.log(`📊 Contexte: ${conversationContext.messageCount} msgs, Mode: ${conversationContext.mode}, Intensité: ${conversationContext.intensity}`);
 
-    // Utiliser le provider sélectionné
-    if (provider === 'pollinations') {
-      try {
-        const response = await this.generateWithPollinations(messages, character, userProfile, conversationContext);
-        if (response) return response;
-      } catch (error) {
-        console.log('⚠️ Pollinations échoué:', error.message);
+    // Vérifier si l'API nécessite une clé
+    if (api.requiresKey) {
+      const key = this.apiKeys[api.keyName];
+      if (!key) {
+        console.log(`⚠️ ${api.name} nécessite une clé API`);
+        console.log('🔄 Fallback vers Pollinations...');
+        return await this.generateWithSelectedApi(
+          messages, character, userProfile, conversationContext,
+          this.availableApis['pollinations-mistral']
+        );
+      }
+    }
+
+    try {
+      const response = await this.generateWithSelectedApi(messages, character, userProfile, conversationContext, api);
+      if (response) return response;
+    } catch (error) {
+      console.log(`⚠️ ${api.name} échoué:`, error.message);
+      
+      // Fallback vers Pollinations si ce n'est pas déjà Pollinations
+      if (!api.id.startsWith('pollinations')) {
+        console.log('🔄 Fallback vers Pollinations...');
+        return await this.generateWithSelectedApi(
+          messages, character, userProfile, conversationContext,
+          this.availableApis['pollinations-mistral']
+        );
+      }
+      
+      // Sinon fallback Ollama
+      if (api.id !== 'ollama') {
         console.log('🔄 Fallback vers Ollama...');
         return await this.generateWithOllama(messages, character, userProfile, conversationContext);
       }
-    } else {
-      try {
-        const response = await this.generateWithOllama(messages, character, userProfile, conversationContext);
-        if (response) return response;
-      } catch (error) {
-        console.log('⚠️ Ollama échoué:', error.message);
-        console.log('🔄 Fallback vers Pollinations...');
-        return await this.generateWithPollinations(messages, character, userProfile, conversationContext);
-      }
     }
+    
+    // Dernier recours: fallback contextuel
+    return this.generateContextualFallback(character, userProfile, conversationContext);
   }
 
   /**
@@ -713,8 +904,163 @@ class TextGenerationService {
     throw new Error('Format API non supporté');
   }
 
+  /**
+   * Génération avec une API spécifique v5.3.33
+   */
+  async generateWithSelectedApi(messages, character, userProfile, context, api) {
+    console.log(`🚀 Génération avec ${api.name} - v5.3.33`);
+    
+    const maxAttempts = 2;
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const fullMessages = [];
+        const totalMessages = messages.length;
+        
+        // === SYSTEM PROMPT ===
+        const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
+        fullMessages.push({ role: 'system', content: systemPrompt });
+        
+        // === RÉSUMÉ MÉMOIRE (si conversation longue) ===
+        if (totalMessages > 20) {
+          const olderMessages = messages.slice(0, -18);
+          const memorySummary = this.buildDetailedMemorySummary(olderMessages, character, userProfile, context);
+          if (memorySummary) {
+            fullMessages.push({ role: 'system', content: memorySummary });
+          }
+        }
+        
+        // === MÉMOIRE AUGMENTÉE ===
+        const recentCount = Math.min(isNSFW ? 20 : 15, totalMessages);
+        const recentMessages = messages.slice(-recentCount);
+        
+        fullMessages.push(...recentMessages.map((msg) => ({
+          role: msg.role,
+          content: isNSFW ? msg.content.substring(0, 1500) : msg.content.substring(0, 800)
+        })));
+        
+        // === INSTRUCTION FINALE ===
+        const finalInstruction = this.buildFinalInstructionWithMemory(character, userProfile, context, recentMessages);
+        fullMessages.push({ role: 'system', content: finalInstruction });
+        
+        console.log(`📡 ${api.name} - ${fullMessages.length} messages (${recentCount} récents)`);
+        
+        // Appeler l'API selon son format
+        let content;
+        
+        if (api.format === 'pollinations') {
+          content = await this.callPollinationsApi(api, fullMessages, { temperature: 0.85, maxTokens: 350 });
+        } else if (api.format === 'openai') {
+          content = await this.callOpenAIApi(api, fullMessages, { temperature: 0.85, maxTokens: 350 });
+        } else if (api.format === 'ollama') {
+          return await this.generateWithOllama(messages, character, userProfile, context);
+        }
+        
+        if (!content) throw new Error('Réponse vide');
+        
+        console.log(`📝 Réponse: ${content.substring(0, 100)}...`);
+        
+        // Vérifier refus
+        if (this.isRefusalResponse(content)) {
+          console.log(`⚠️ Refus détecté`);
+          const cleanedContent = this.cleanRefusalFromResponse(content);
+          if (cleanedContent && cleanedContent.length > 20) {
+            return this.cleanAndValidateResponse(cleanedContent, context);
+          }
+          if (attempt < maxAttempts) continue;
+          return this.generateContextualFallback(character, userProfile, context);
+        }
+        
+        console.log(`✅ Réponse valide`);
+        return this.cleanAndValidateResponse(content, context);
+        
+      } catch (error) {
+        console.log(`❌ Erreur tentative ${attempt}: ${error.message}`);
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+      }
+    }
+    
+    throw new Error('Toutes les tentatives ont échoué');
+  }
+  
+  /**
+   * Appel API format Pollinations
+   */
+  async callPollinationsApi(api, fullMessages, options = {}) {
+    const { temperature = 0.85, maxTokens = 350 } = options;
+    
+    const systemMessages = fullMessages.filter(m => m.role === 'system');
+    const conversationMessages = fullMessages.filter(m => m.role !== 'system');
+    const systemPrompt = systemMessages.map(m => m.content).join('\n\n');
+    
+    const conversationHistory = conversationMessages.map(m => 
+      `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`
+    ).join('\n');
+    
+    let combinedPrompt = systemPrompt;
+    if (conversationHistory) {
+      combinedPrompt += `\n\n=== CONVERSATION ===\n${conversationHistory}\n\n=== RÉPONDS ===\nAssistant:`;
+    }
+    
+    const shortPrompt = combinedPrompt.substring(0, 4000);
+    
+    const response = await axios.get(
+      `${api.url}/${encodeURIComponent(shortPrompt)}`,
+      {
+        params: { 
+          model: api.model,
+          seed: Math.floor(Math.random() * 100000)
+        },
+        timeout: 40000,
+      }
+    );
+    
+    return typeof response.data === 'string' ? response.data : response.data?.text;
+  }
+  
+  /**
+   * Appel API format OpenAI (Venice, DeepInfra, etc.)
+   */
+  async callOpenAIApi(api, fullMessages, options = {}) {
+    const { temperature = 0.85, maxTokens = 350 } = options;
+    
+    // Récupérer la clé API
+    const apiKey = this.apiKeys[api.keyName];
+    if (!apiKey) {
+      throw new Error(`Clé API ${api.keyName} non configurée`);
+    }
+    
+    const response = await axios.post(
+      api.url,
+      {
+        model: api.model,
+        messages: fullMessages,
+        max_tokens: maxTokens,
+        temperature: temperature,
+      },
+      {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        timeout: 45000,
+      }
+    );
+    
+    return response.data?.choices?.[0]?.message?.content;
+  }
+
   async generateWithPollinations(messages, character, userProfile, context) {
-    console.log(`🚀 Génération Pollinations AI - v5.3.32`);
+    // Utiliser la nouvelle méthode unifiée avec l'API Pollinations par défaut
+    const api = this.availableApis['pollinations-mistral'];
+    return this.generateWithSelectedApi(messages, character, userProfile, context, api);
+  }
+
+  async generateWithPollinationsLegacy(messages, character, userProfile, context) {
+    console.log(`🚀 Génération Pollinations AI (legacy)`);
     
     const maxAttempts = 3;
     let lastError = null;

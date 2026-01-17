@@ -26,15 +26,18 @@ export default function SettingsScreen({ navigation, onLogout }) {
   const [userProfile, setUserProfile] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   
-  // Provider de génération de texte (Pollinations ou Ollama)
-  const [textProvider, setTextProvider] = useState('pollinations');
-  const [textProviders, setTextProviders] = useState([
-    { id: 'pollinations', name: 'Pollinations AI', description: '🚀 Rapide (~3s)', speed: 'fast' },
-    { id: 'ollama', name: 'Ollama Freebox', description: '🏠 Local (~30s)', speed: 'slow' },
-  ]);
+  // === API de génération de texte v5.3.33 ===
+  const [selectedApi, setSelectedApi] = useState('pollinations-mistral');
+  const [availableApis, setAvailableApis] = useState([]);
   
-  // Mode API spécifique (pour éviter rotation automatique)
-  const [apiMode, setApiMode] = useState('auto');
+  // Clés API optionnelles
+  const [veniceApiKey, setVeniceApiKey] = useState('');
+  const [deepinfraApiKey, setDeepinfraApiKey] = useState('');
+  
+  // Anciens états (pour compatibilité)
+  const [textProvider, setTextProvider] = useState('pollinations');
+  const [textProviders, setTextProviders] = useState([]);
+  const [apiMode, setApiMode] = useState('pollinations-mistral');
   const [availableApiModes, setAvailableApiModes] = useState([]);
   
   // Anciens états Groq (pour compatibilité)
@@ -92,49 +95,75 @@ export default function SettingsScreen({ navigation, onLogout }) {
     }
   };
 
-  // Charger le provider de texte sélectionné
+  // Charger les APIs de texte disponibles v5.3.33
   const loadTextProvider = async () => {
     try {
-      const provider = await AsyncStorage.getItem('text_generation_provider');
-      if (provider) {
-        setTextProvider(provider);
+      await TextGenerationService.loadConfig();
+      
+      // Charger les APIs disponibles
+      const apis = TextGenerationService.getAvailableApisForUI();
+      setAvailableApis(apis);
+      
+      // Charger l'API sélectionnée
+      const currentApi = TextGenerationService.getSelectedApiId();
+      setSelectedApi(currentApi || 'pollinations-mistral');
+      
+      // Charger les clés API
+      setVeniceApiKey(TextGenerationService.getApiKey('venice_api_key') || '');
+      setDeepinfraApiKey(TextGenerationService.getApiKey('deepinfra_api_key') || '');
+      
+      // Pour compatibilité
+      setApiMode(currentApi || 'pollinations-mistral');
+    } catch (error) {
+      console.error('Erreur chargement APIs texte:', error);
+    }
+  };
+
+  // Sélectionner une API de texte
+  const selectTextApi = async (apiId) => {
+    try {
+      // Vérifier si l'API nécessite une clé
+      const api = availableApis.find(a => a.id === apiId);
+      if (api?.requiresKey && !api.available) {
+        Alert.alert(
+          '🔑 Clé API requise',
+          `${api.name} nécessite une clé API.\n\nConfigurez la clé ci-dessous avant de sélectionner cette API.`
+        );
+        return;
       }
       
-      // Charger la liste des APIs disponibles
-      await TextGenerationService.loadConfig();
-      const apis = TextGenerationService.getAvailableApis();
-      setAvailableApiModes(apis);
+      setSelectedApi(apiId);
+      await TextGenerationService.setSelectedApi(apiId);
       
-      // Charger le mode API actuel
-      const currentMode = TextGenerationService.getApiMode();
-      setApiMode(currentMode || 'auto');
+      const apiName = availableApis.find(a => a.id === apiId)?.name || apiId;
+      Alert.alert('✅ API sélectionnée', apiName);
     } catch (error) {
-      console.error('Erreur chargement provider texte:', error);
+      Alert.alert('Erreur', error.message);
     }
   };
 
-  // Sauvegarder le provider de texte
+  // Sauvegarder une clé API
+  const saveApiKey = async (keyName, keyValue) => {
+    try {
+      await TextGenerationService.setApiKey(keyName, keyValue);
+      
+      // Recharger les APIs pour mettre à jour la disponibilité
+      const apis = TextGenerationService.getAvailableApisForUI();
+      setAvailableApis(apis);
+      
+      Alert.alert('✅ Clé sauvegardée', 'La clé API a été enregistrée.');
+    } catch (error) {
+      Alert.alert('Erreur', error.message);
+    }
+  };
+
+  // Compatibilité anciennes fonctions
   const saveTextProvider = async (providerId) => {
-    try {
-      setTextProvider(providerId);
-      await AsyncStorage.setItem('text_generation_provider', providerId);
-      await TextGenerationService.setProvider(providerId);
-      Alert.alert('✅ Succès', `Provider changé: ${textProviders.find(p => p.id === providerId)?.name}`);
-    } catch (error) {
-      Alert.alert('Erreur', error.message);
-    }
+    await selectTextApi(providerId);
   };
 
-  // Sauvegarder le mode API (fixe ou rotation auto)
   const saveApiMode = async (mode) => {
-    try {
-      setApiMode(mode);
-      await TextGenerationService.setApiMode(mode);
-      const modeName = availableApiModes.find(m => m.id === mode)?.name || mode;
-      Alert.alert('✅ Succès', `Mode API: ${modeName}`);
-    } catch (error) {
-      Alert.alert('Erreur', error.message);
-    }
+    await selectTextApi(mode);
   };
 
   const loadSyncStatus = async () => {
@@ -558,83 +587,130 @@ export default function SettingsScreen({ navigation, onLogout }) {
         </TouchableOpacity>
       </View>
 
-      {/* GÉNÉRATION DE TEXTE - Pour tous les utilisateurs */}
+      {/* === GÉNÉRATION DE TEXTE v5.3.33 - Multi-API === */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🤖 Génération de Texte</Text>
         <Text style={styles.sectionDescription}>
-          Choisissez le service pour générer les réponses des personnages
+          Sélectionnez l'API pour les réponses des personnages.{'\n'}
+          Pas de rotation automatique - vous gardez l'API choisie.
         </Text>
 
-        <View style={styles.infoBox}>
-          <Text style={styles.infoText}>ℹ️ Deux options disponibles:</Text>
-          <Text style={styles.infoSteps}>🚀 Pollinations AI - Rapide (~3 secondes)</Text>
-          <Text style={styles.infoSteps}>🏠 Ollama Freebox - Local (~30 secondes)</Text>
+        {/* === APIS GRATUITES (sans clé) === */}
+        <View style={styles.apiCategoryBox}>
+          <Text style={styles.apiCategoryTitle}>🆓 APIs Gratuites (sans clé)</Text>
+          
+          {availableApis.filter(api => !api.requiresKey).map((api) => (
+            <TouchableOpacity
+              key={api.id}
+              style={[
+                styles.apiModeOption,
+                selectedApi === api.id && styles.apiModeOptionActive
+              ]}
+              onPress={() => selectTextApi(api.id)}
+            >
+              <View style={styles.radioButtonSmall}>
+                {selectedApi === api.id && <View style={styles.radioButtonSmallInner} />}
+              </View>
+              <View style={styles.apiModeContent}>
+                <Text style={[
+                  styles.apiModeName,
+                  selectedApi === api.id && styles.apiModeNameActive
+                ]}>
+                  {api.name}
+                </Text>
+                <Text style={styles.apiModeDescription}>
+                  {api.description}
+                  {api.uncensored && ' 🔓'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {textProviders.map((provider) => (
-          <TouchableOpacity
-            key={provider.id}
-            style={[
-              styles.optionCard,
-              textProvider === provider.id && styles.optionCardActive
-            ]}
-            onPress={() => saveTextProvider(provider.id)}
-          >
-            <View style={styles.radioButton}>
-              {textProvider === provider.id && <View style={styles.radioButtonInner} />}
-            </View>
-            <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>{provider.name}</Text>
-              <Text style={styles.optionDescription}>{provider.description}</Text>
-              {provider.id === 'pollinations' && (
-                <Text style={styles.optionHint}>✨ Recommandé - Plus rapide</Text>
-              )}
-              {provider.id === 'ollama' && (
-                <Text style={styles.optionHint}>📡 Serveur Freebox requis</Text>
-              )}
-            </View>
-          </TouchableOpacity>
-        ))}
-        
-        {/* === SÉLECTION API SPÉCIFIQUE (si Pollinations) === */}
-        {textProvider === 'pollinations' && availableApiModes.length > 0 && (
-          <View style={styles.apiModeSection}>
-            <Text style={styles.apiModeTitle}>🔧 Mode API</Text>
-            <Text style={styles.apiModeDesc}>
-              La rotation automatique peut causer des incohérences.{'\n'}
-              Sélectionnez une API fixe pour plus de stabilité.
-            </Text>
-            
-            {availableApiModes.map((mode) => (
-              <TouchableOpacity
-                key={mode.id}
-                style={[
-                  styles.apiModeOption,
-                  apiMode === mode.id && styles.apiModeOptionActive
-                ]}
-                onPress={() => saveApiMode(mode.id)}
-              >
-                <View style={styles.radioButtonSmall}>
-                  {apiMode === mode.id && <View style={styles.radioButtonSmallInner} />}
-                </View>
-                <View style={styles.apiModeContent}>
-                  <Text style={[
-                    styles.apiModeName,
-                    apiMode === mode.id && styles.apiModeNameActive
-                  ]}>
-                    {mode.name}
-                  </Text>
-                  <Text style={styles.apiModeDescription}>{mode.description}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+        {/* === APIS AVEC CLÉ (optionnelles) === */}
+        <View style={styles.apiKeySection}>
+          <Text style={styles.apiKeyTitle}>🔑 APIs avec clé (optionnel)</Text>
+          <Text style={styles.apiKeyDesc}>
+            Ces APIs offrent des modèles uncensored mais nécessitent une clé gratuite.
+          </Text>
+          
+          {/* Venice AI */}
+          <View style={styles.apiKeyInputBox}>
+            <Text style={styles.apiKeyLabel}>🔓 Venice AI (uncensored)</Text>
+            <Text style={styles.apiKeyHint}>Créez un compte sur venice.ai pour obtenir une clé</Text>
+            <TextInput
+              style={styles.apiKeyInput}
+              value={veniceApiKey}
+              onChangeText={setVeniceApiKey}
+              placeholder="Entrez votre clé Venice AI..."
+              placeholderTextColor="#9ca3af"
+              secureTextEntry={true}
+            />
+            <TouchableOpacity
+              style={styles.apiKeySaveButton}
+              onPress={() => saveApiKey('venice_api_key', veniceApiKey)}
+            >
+              <Text style={styles.apiKeySaveText}>Sauvegarder</Text>
+            </TouchableOpacity>
           </View>
-        )}
-        
+          
+          {/* DeepInfra */}
+          <View style={styles.apiKeyInputBox}>
+            <Text style={styles.apiKeyLabel}>⚡ DeepInfra (rapide)</Text>
+            <Text style={styles.apiKeyHint}>Créez un compte sur deepinfra.com pour obtenir une clé</Text>
+            <TextInput
+              style={styles.apiKeyInput}
+              value={deepinfraApiKey}
+              onChangeText={setDeepinfraApiKey}
+              placeholder="Entrez votre clé DeepInfra..."
+              placeholderTextColor="#9ca3af"
+              secureTextEntry={true}
+            />
+            <TouchableOpacity
+              style={styles.apiKeySaveButton}
+              onPress={() => saveApiKey('deepinfra_api_key', deepinfraApiKey)}
+            >
+              <Text style={styles.apiKeySaveText}>Sauvegarder</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {/* APIs nécessitant clé */}
+          {availableApis.filter(api => api.requiresKey).map((api) => (
+            <TouchableOpacity
+              key={api.id}
+              style={[
+                styles.apiModeOption,
+                selectedApi === api.id && styles.apiModeOptionActive,
+                !api.available && styles.apiModeOptionDisabled
+              ]}
+              onPress={() => selectTextApi(api.id)}
+              disabled={!api.available}
+            >
+              <View style={styles.radioButtonSmall}>
+                {selectedApi === api.id && <View style={styles.radioButtonSmallInner} />}
+              </View>
+              <View style={styles.apiModeContent}>
+                <Text style={[
+                  styles.apiModeName,
+                  selectedApi === api.id && styles.apiModeNameActive,
+                  !api.available && styles.apiModeNameDisabled
+                ]}>
+                  {api.name} {!api.available && '(clé requise)'}
+                </Text>
+                <Text style={styles.apiModeDescription}>
+                  {api.description}
+                  {api.uncensored && ' 🔓'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <View style={styles.providerNote}>
           <Text style={styles.providerNoteText}>
-            💡 Pollinations AI est gratuit et ne nécessite aucune clé API.
-            Si Pollinations est lent, l'application basculera automatiquement sur Ollama.
+            💡 Les APIs Pollinations sont gratuites et ne nécessitent aucune clé.{'\n'}
+            🔓 = Mode uncensored (sans restrictions){'\n'}
+            En cas d'erreur, l'app bascule automatiquement vers Pollinations Mistral.
           </Text>
         </View>
       </View>
@@ -1762,5 +1838,89 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#92400e',
     marginTop: 2,
+  },
+  apiModeOptionDisabled: {
+    backgroundColor: '#f3f4f6',
+    borderColor: '#d1d5db',
+    opacity: 0.7,
+  },
+  apiModeNameDisabled: {
+    color: '#9ca3af',
+  },
+  // === Nouveaux styles pour Multi-API v5.3.33 ===
+  apiCategoryBox: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: '#ecfdf5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#10b981',
+  },
+  apiCategoryTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#065f46',
+    marginBottom: 12,
+  },
+  apiKeySection: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+  },
+  apiKeyTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#92400e',
+    marginBottom: 8,
+  },
+  apiKeyDesc: {
+    fontSize: 12,
+    color: '#78350f',
+    marginBottom: 15,
+    lineHeight: 18,
+  },
+  apiKeyInputBox: {
+    marginBottom: 15,
+    padding: 12,
+    backgroundColor: '#fffbeb',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+  },
+  apiKeyLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#78350f',
+    marginBottom: 4,
+  },
+  apiKeyHint: {
+    fontSize: 11,
+    color: '#92400e',
+    marginBottom: 8,
+  },
+  apiKeyInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 14,
+    color: '#1f2937',
+  },
+  apiKeySaveButton: {
+    marginTop: 10,
+    backgroundColor: '#f59e0b',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  apiKeySaveText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
