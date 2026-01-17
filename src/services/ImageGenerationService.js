@@ -3392,106 +3392,115 @@ class ImageGenerationService {
     const morphology = [];
     let detectedType = 'standard';
     
-    // === v5.3.14 MORPHOLOGIE SELON SPÉCIFICATIONS EXACTES ===
-    // TRÈS RONDE = TOUT (ventre, bras, cuisses, visage, etc.)
-    // RONDE = Léger ventre + poitrine + fesses
-    // GÉNÉREUSE/VOLUPTUEUSE = SEULEMENT poitrine + fesses, ventre PLAT
+    // === v5.3.17 MORPHOLOGIE BASÉE SUR BAGBOT BOYS & GIRLS ===
+    // Extraction complète des caractéristiques corporelles
     
-    // === TRÈS RONDE / BBW === (TOUT est gros)
+    // === TRÈS RONDE / BBW / OBÈSE === (TOUT est gros: ventre, bras, cuisses, visage)
     if (lowerPrompt.includes('très ronde') || 
-        lowerPrompt.includes('bbw') || 
-        lowerPrompt.includes('obèse') ||
+        lowerPrompt.includes('very round') ||
         lowerPrompt.includes('très grosse') ||
+        lowerPrompt.includes('very fat') ||
+        lowerPrompt.includes('obèse') ||
+        lowerPrompt.includes('obese') ||
         lowerPrompt.includes('ssbbw') ||
-        lowerPrompt.includes('obese')) {
+        lowerPrompt.includes('bbw')) {
       morphology.push(
-        'BBW woman, fat body everywhere, ' +
-        'big hanging belly, belly rolls, fat stomach, ' +
-        'huge heavy breasts, massive bust, ' +
-        'very big round butt, wide fat hips, ' +
-        'thick fat arms, chubby arms, ' +
-        'thick fat thighs, thighs touching, ' +
-        'chubby round face, double chin, ' +
-        'fat all over body, overweight everywhere'
+        'very round very curvy very plump body, extremely soft full figure, very chubby thick, ' +
+        'big round soft belly, large plump tummy, prominent soft midsection, ' +
+        'huge heavy breasts, enormous bust, very large chest, ' +
+        'huge massive round butt, enormous thick buttocks, very big jiggly ass, ' +
+        'very wide generous hips, extremely broad curvy hips, ' +
+        'very thick massive thighs, huge plump legs, ' +
+        'thick chubby arms, soft padded arms, ' +
+        'chubby round face, double chin, pudgy cheeks'
       );
-      detectedType = 'TRÈS RONDE (tout gros)';
+      detectedType = 'TRÈS RONDE / BBW (tout gros)';
     }
-    // === RONDE / CHUBBY === (Léger ventre + poitrine + fesses)
+    // === RONDE / CHUBBY / POTELÉE === (Léger ventre + poitrine + fesses)
     else if (lowerPrompt.includes('ronde') || 
-             lowerPrompt.includes('rondelette') ||
+             lowerPrompt.includes('rondelet') ||
              lowerPrompt.includes('chubby') ||
-             lowerPrompt.includes('potelée') ||
-             lowerPrompt.includes('dodue') ||
-             lowerPrompt.includes('enrobée')) {
+             lowerPrompt.includes('potelé') ||
+             lowerPrompt.includes('dodu') ||
+             lowerPrompt.includes('plump') ||
+             lowerPrompt.includes('enrobé')) {
       morphology.push(
-        'chubby woman, ' +
-        'slight soft belly, small tummy pouch, little belly, ' +
-        'big natural breasts, full bust, large chest, ' +
-        'big round butt, wide hips, thick buttocks, ' +
-        'normal arms, normal face, ' +
-        'curvy with small belly only'
+        'curvy plump soft rounded body, soft full figure, chubby cute, ' +
+        'soft round belly, plump cute tummy, gentle belly curve, ' +
+        'large full breasts, big generous bust, heavy ample chest, ' +
+        'big round plump butt, large thick buttocks, generous thick ass, ' +
+        'wide generous hips, broad curvy hips, ' +
+        'thick meaty thighs, full plump legs, ' +
+        'soft smooth skin, cushiony touchable body'
       );
-      detectedType = 'RONDE (léger ventre + poitrine + fesses)';
+      detectedType = 'RONDE / CHUBBY (ventre + poitrine + fesses)';
     }
-    // === GÉNÉREUSE === (SEULEMENT poitrine + fesses, PAS de ventre)
+    // === GÉNÉREUSE === (Poitrine + fesses SEULEMENT, ventre plat)
     else if (lowerPrompt.includes('généreus') || 
              lowerPrompt.includes('generous') ||
+             lowerPrompt.includes('formes généreuses') ||
              lowerPrompt.includes('plantureuse') ||
              lowerPrompt.includes('bien en chair')) {
       morphology.push(
-        'curvy woman with flat stomach, ' +
-        'very big natural breasts, huge bust, large heavy chest, ' +
-        'big round firm butt, wide hips, thick buttocks, ' +
-        'FLAT TONED STOMACH, no belly fat, slim waist, ' +
-        'slim arms, pretty face, ' +
-        'big breasts and butt only, thin waist'
+        'generous curvy body, ample soft curves, full figured, ' +
+        'large full breasts, big generous bust, heavy ample chest, impressive cleavage, ' +
+        'generous curvy butt, full round buttocks, shapely thick rear, ' +
+        'wide generous hips, curvy hip bones, ' +
+        'FLAT TONED STOMACH, slim waist, no belly fat, ' +
+        'toned arms, pretty face'
       );
-      detectedType = 'GÉNÉREUSE (poitrine + fesses SEULEMENT)';
+      detectedType = 'GÉNÉREUSE (poitrine + fesses, ventre plat)';
     }
-    // === VOLUPTUEUSE / PULPEUSE === (SEULEMENT poitrine + fesses, PAS de ventre)
+    // === VOLUPTUEUSE / PULPEUSE === (Formes extrêmes, ventre plat)
     else if (lowerPrompt.includes('voluptu') || 
              lowerPrompt.includes('pulpeuse') ||
-             lowerPrompt.includes('opulente') ||
+             lowerPrompt.includes('voluptuous') ||
+             lowerPrompt.includes('lush') ||
              lowerPrompt.includes('bombshell') ||
-             lowerPrompt.includes('bimbo') ||
              lowerPrompt.includes('hourglass')) {
       morphology.push(
-        'voluptuous hourglass body, ' +
-        'huge breasts, very big bust, massive cleavage, ' +
-        'big round firm butt, wide curvy hips, thick ass, ' +
+        'voluptuous lush curvy body with generous sensual curves, ' +
+        'huge massive breasts, enormous bust, very large heavy chest, deep cleavage, ' +
+        'big round firm butt, large plump buttocks, juicy round ass, ' +
+        'very wide hips, extreme curvy hips, perfect hourglass, ' +
         'FLAT TONED STOMACH, narrow waist, no belly, ' +
         'slim toned arms, beautiful face, ' +
-        'extreme curves breasts and butt only, flat belly'
+        'extreme curves, pin-up body'
       );
-      detectedType = 'VOLUPTUEUSE (poitrine + fesses SEULEMENT)';
+      detectedType = 'VOLUPTUEUSE / PULPEUSE (formes extrêmes, ventre plat)';
     }
-    // === CURVY / FORMES ===
+    // === CURVY / THICK ===
     else if (lowerPrompt.includes('curvy') || 
+             lowerPrompt.includes('thick') ||
+             lowerPrompt.includes('thicc') ||
              lowerPrompt.includes('courbes') ||
-             lowerPrompt.includes('formes') ||
-             lowerPrompt.includes('thicc')) {
+             lowerPrompt.includes('formes')) {
       morphology.push(
-        'curvy fit body, ' +
-        'nice medium breasts, proportional bust, ' +
-        'round firm butt, shapely hips, ' +
+        'thick curvy body with pronounced sexy curves, ' +
+        'full round breasts, nice bust, feminine cleavage, ' +
+        'round bubble butt, perky plump buttocks, shapely rear, ' +
+        'shapely hips, feminine curves, ' +
         'flat stomach, toned waist, ' +
-        'natural feminine curves'
+        'natural attractive figure'
       );
-      detectedType = 'CURVY (courbes naturelles)';
+      detectedType = 'CURVY / THICK (courbes prononcées)';
     }
-    // === DOUCE / MATERNELLE ===
-    else if (lowerPrompt.includes('maternal') || 
+    // === MATERNELLE / MILF / DOUCE ===
+    else if (lowerPrompt.includes('maternal') ||
              lowerPrompt.includes('maternelle') ||
              lowerPrompt.includes('maman') ||
+             lowerPrompt.includes('mommy') ||
              lowerPrompt.includes('milf') ||
-             lowerPrompt.includes('douce')) {
+             lowerPrompt.includes('douce') ||
+             lowerPrompt.includes('moelleuse')) {
       morphology.push(
-        'soft maternal body, MILF figure, ' +
-        'natural full breasts, motherly bust, ' +
-        'soft round butt, wide hips, ' +
-        'slight soft belly, gentle curves'
+        'soft maternal curvy body, nurturing motherly figure, womanly curves, ' +
+        'full natural breasts, motherly bust, soft chest, ' +
+        'soft round butt, maternal hips, ' +
+        'small soft belly pooch, gentle tummy, slight belly curve, ' +
+        'soft smooth skin, warm comforting body'
       );
-      detectedType = 'DOUCE / MATERNELLE';
+      detectedType = 'MATERNELLE / MILF / DOUCE';
     }
     
     console.log(`🎯 Type morphologie détecté: ${detectedType}`);
