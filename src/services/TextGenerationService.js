@@ -6,7 +6,7 @@ import AuthService from './AuthService';
  * Service de génération de texte - MULTI-API GRATUIT
  * APIs supportées: Pollinations AI, HuggingFace, OpenRouter Free
  * 
- * v5.3.8 - Multi-API avec fallback automatique + config PAR UTILISATEUR
+ * v5.3.24 - API FIXE OPTIONNELLE (sans rotation automatique)
  */
 class TextGenerationService {
   constructor() {
@@ -17,6 +17,7 @@ class TextGenerationService {
     // === APIS GRATUITES DISPONIBLES ===
     this.freeApis = [
       {
+        id: 'pollinations',
         name: 'Pollinations',
         url: 'https://text.pollinations.ai',
         models: ['mistral', 'llama', 'openai'],
@@ -24,12 +25,14 @@ class TextGenerationService {
         format: 'pollinations', // Format spécial Pollinations
       },
       {
+        id: 'huggingface',
         name: 'HuggingFace',
         url: 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
         models: ['Mistral-7B-Instruct-v0.2'],
         format: 'huggingface',
       },
       {
+        id: 'openrouter',
         name: 'OpenRouter Free',
         url: 'https://openrouter.ai/api/v1/chat/completions',
         models: ['mistralai/mistral-7b-instruct:free', 'meta-llama/llama-3.2-3b-instruct:free'],
@@ -38,6 +41,9 @@ class TextGenerationService {
       }
     ];
     this.currentApiIndex = 0;
+    
+    // === MODE API: 'auto' = rotation, ou ID d'une API spécifique ===
+    this.selectedApiMode = 'auto'; // 'auto', 'pollinations', 'huggingface', 'openrouter'
     
     // Providers disponibles
     this.providers = {
@@ -99,10 +105,75 @@ class TextGenerationService {
         this.currentProvider = provider;
       }
       
+      // === CHARGER LE MODE API (auto ou fixe) ===
+      const apiModeKey = `text_api_mode_${userId}`;
+      let apiMode = await AsyncStorage.getItem(apiModeKey);
+      if (!apiMode) {
+        apiMode = await AsyncStorage.getItem('text_api_mode');
+      }
+      
+      if (apiMode) {
+        this.selectedApiMode = apiMode;
+        // Si une API spécifique est sélectionnée, positionner currentApiIndex dessus
+        if (apiMode !== 'auto') {
+          const apiIndex = this.freeApis.findIndex(api => api.id === apiMode);
+          if (apiIndex !== -1) {
+            this.currentApiIndex = apiIndex;
+          }
+        }
+      }
+      
       console.log(`🤖 Provider texte (user: ${userId}): ${this.providers[this.currentProvider]?.name || this.currentProvider}`);
+      console.log(`🔧 Mode API: ${this.selectedApiMode} (${this.selectedApiMode === 'auto' ? 'rotation auto' : 'fixe'})`);
     } catch (error) {
       console.error('Erreur chargement config:', error);
     }
+  }
+
+  /**
+   * Définit le mode API: 'auto' pour rotation, ou ID d'une API spécifique
+   */
+  async setApiMode(mode) {
+    const userId = await this.getCurrentUserId();
+    this.selectedApiMode = mode;
+    
+    // Sauvegarder avec clé utilisateur
+    const apiModeKey = `text_api_mode_${userId}`;
+    await AsyncStorage.setItem(apiModeKey, mode);
+    
+    // Si une API spécifique, positionner dessus
+    if (mode !== 'auto') {
+      const apiIndex = this.freeApis.findIndex(api => api.id === mode);
+      if (apiIndex !== -1) {
+        this.currentApiIndex = apiIndex;
+        console.log(`🔒 API fixée: ${this.freeApis[apiIndex].name}`);
+      }
+    } else {
+      console.log('🔄 Mode rotation auto activé');
+    }
+    
+    return true;
+  }
+
+  /**
+   * Retourne le mode API actuel
+   */
+  getApiMode() {
+    return this.selectedApiMode;
+  }
+
+  /**
+   * Retourne la liste des APIs disponibles pour la sélection
+   */
+  getAvailableApis() {
+    return [
+      { id: 'auto', name: 'Rotation Auto', description: '🔄 Change d\'API automatiquement (peut causer incohérences)' },
+      ...this.freeApis.map(api => ({
+        id: api.id,
+        name: api.name,
+        description: api.format === 'pollinations' ? '⭐ Recommandé - Plus stable' : `📡 ${api.format}`
+      }))
+    ];
   }
 
   /**
@@ -522,6 +593,12 @@ class TextGenerationService {
    * Fait tourner vers l'API suivante
    */
   rotateApi() {
+    // === NE PAS FAIRE DE ROTATION SI API FIXE ===
+    if (this.selectedApiMode !== 'auto') {
+      console.log(`🔒 API fixe (${this.selectedApiMode}) - pas de rotation`);
+      return this.freeApis[this.currentApiIndex];
+    }
+    
     this.currentApiIndex = (this.currentApiIndex + 1) % this.freeApis.length;
     const newApi = this.freeApis[this.currentApiIndex];
     console.log(`🔄 Rotation API: ${newApi.name}`);
@@ -644,9 +721,14 @@ class TextGenerationService {
   }
 
   async generateWithPollinations(messages, character, userProfile, context) {
-    console.log('🚀 Multi-API - Génération immersive avec mémoire étendue...');
+    const currentApi = this.getCurrentApi();
+    const modeStr = this.selectedApiMode === 'auto' 
+      ? '🔄 Mode rotation auto' 
+      : `🔒 API fixe: ${currentApi.name}`;
+    console.log(`🚀 Génération - ${modeStr}`);
     
-    const maxAttempts = 5; // 5 tentatives avec différentes APIs
+    // En mode API fixe, moins de tentatives car on reste sur la même API
+    const maxAttempts = this.selectedApiMode === 'auto' ? 5 : 3;
     let lastError = null;
     
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {

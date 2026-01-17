@@ -33,6 +33,10 @@ export default function SettingsScreen({ navigation, onLogout }) {
     { id: 'ollama', name: 'Ollama Freebox', description: '🏠 Local (~30s)', speed: 'slow' },
   ]);
   
+  // Mode API spécifique (pour éviter rotation automatique)
+  const [apiMode, setApiMode] = useState('auto');
+  const [availableApiModes, setAvailableApiModes] = useState([]);
+  
   // Anciens états Groq (pour compatibilité)
   const [groqApiKeys, setGroqApiKeys] = useState(['']);
   const [testingApi, setTestingApi] = useState(false);
@@ -95,6 +99,15 @@ export default function SettingsScreen({ navigation, onLogout }) {
       if (provider) {
         setTextProvider(provider);
       }
+      
+      // Charger la liste des APIs disponibles
+      await TextGenerationService.loadConfig();
+      const apis = TextGenerationService.getAvailableApis();
+      setAvailableApiModes(apis);
+      
+      // Charger le mode API actuel
+      const currentMode = TextGenerationService.getApiMode();
+      setApiMode(currentMode || 'auto');
     } catch (error) {
       console.error('Erreur chargement provider texte:', error);
     }
@@ -107,6 +120,18 @@ export default function SettingsScreen({ navigation, onLogout }) {
       await AsyncStorage.setItem('text_generation_provider', providerId);
       await TextGenerationService.setProvider(providerId);
       Alert.alert('✅ Succès', `Provider changé: ${textProviders.find(p => p.id === providerId)?.name}`);
+    } catch (error) {
+      Alert.alert('Erreur', error.message);
+    }
+  };
+
+  // Sauvegarder le mode API (fixe ou rotation auto)
+  const saveApiMode = async (mode) => {
+    try {
+      setApiMode(mode);
+      await TextGenerationService.setApiMode(mode);
+      const modeName = availableApiModes.find(m => m.id === mode)?.name || mode;
+      Alert.alert('✅ Succès', `Mode API: ${modeName}`);
     } catch (error) {
       Alert.alert('Erreur', error.message);
     }
@@ -570,6 +595,41 @@ export default function SettingsScreen({ navigation, onLogout }) {
             </View>
           </TouchableOpacity>
         ))}
+        
+        {/* === SÉLECTION API SPÉCIFIQUE (si Pollinations) === */}
+        {textProvider === 'pollinations' && availableApiModes.length > 0 && (
+          <View style={styles.apiModeSection}>
+            <Text style={styles.apiModeTitle}>🔧 Mode API</Text>
+            <Text style={styles.apiModeDesc}>
+              La rotation automatique peut causer des incohérences.{'\n'}
+              Sélectionnez une API fixe pour plus de stabilité.
+            </Text>
+            
+            {availableApiModes.map((mode) => (
+              <TouchableOpacity
+                key={mode.id}
+                style={[
+                  styles.apiModeOption,
+                  apiMode === mode.id && styles.apiModeOptionActive
+                ]}
+                onPress={() => saveApiMode(mode.id)}
+              >
+                <View style={styles.radioButtonSmall}>
+                  {apiMode === mode.id && <View style={styles.radioButtonSmallInner} />}
+                </View>
+                <View style={styles.apiModeContent}>
+                  <Text style={[
+                    styles.apiModeName,
+                    apiMode === mode.id && styles.apiModeNameActive
+                  ]}>
+                    {mode.name}
+                  </Text>
+                  <Text style={styles.apiModeDescription}>{mode.description}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
         
         <View style={styles.providerNote}>
           <Text style={styles.providerNoteText}>
@@ -1635,5 +1695,72 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#065f46',
     lineHeight: 18,
+  },
+  // === Styles pour le sélecteur d'API ===
+  apiModeSection: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+  },
+  apiModeTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#92400e',
+    marginBottom: 8,
+  },
+  apiModeDesc: {
+    fontSize: 12,
+    color: '#78350f',
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+  apiModeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginVertical: 4,
+    backgroundColor: '#fffbeb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+  },
+  apiModeOptionActive: {
+    backgroundColor: '#fef08a',
+    borderColor: '#f59e0b',
+  },
+  radioButtonSmall: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#d97706',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  radioButtonSmallInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#f59e0b',
+  },
+  apiModeContent: {
+    flex: 1,
+  },
+  apiModeName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#78350f',
+  },
+  apiModeNameActive: {
+    color: '#92400e',
+  },
+  apiModeDescription: {
+    fontSize: 11,
+    color: '#92400e',
+    marginTop: 2,
   },
 });
