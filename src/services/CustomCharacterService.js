@@ -269,82 +269,158 @@ class CustomCharacterService {
     try {
       const characters = await this.getCustomCharacters();
       const charToDelete = characters.find(char => char.id === characterId);
+      const user = AuthService.getCurrentUser();
       
       console.log(`🗑️ Suppression personnage: ${characterId}`, charToDelete?.name);
       
-      // Retirer du serveur public - TOUJOURS essayer avec plusieurs IDs
+      // === SUPPRESSION SERVER-SIDE COMPLÈTE ===
+      // Collecter TOUS les IDs possibles pour ce personnage
       const idsToTry = [
         charToDelete?.serverId,
         characterId,
         charToDelete?.id,
         charToDelete?.originalId,
+        charToDelete?.publicId,
+        // Essayer aussi avec le nom comme fallback
+        charToDelete?.name?.toLowerCase()?.replace(/\s+/g, '_'),
       ].filter(Boolean);
       
-      for (const idToDelete of idsToTry) {
-        try {
-          // Méthode 1: SyncService
-          await SyncService.init();
-          await SyncService.unpublishCharacter(idToDelete);
-          console.log(`✅ Supprimé du serveur (SyncService): ${idToDelete}`);
-        } catch (e) {
-          console.log(`⚠️ SyncService échoué pour ${idToDelete}:`, e.message);
-        }
-        
-        try {
-          // Méthode 2: Appel direct à l'API
-          await axios.delete(
-            `${this.FREEBOX_URL}/api/characters/public/${idToDelete}`,
-            { 
-              headers: { 'Content-Type': 'application/json' },
-              timeout: 10000 
-            }
-          );
-          console.log(`✅ Supprimé du serveur (API directe): ${idToDelete}`);
-        } catch (e) {
-          console.log(`⚠️ API directe échouée pour ${idToDelete}:`, e.message);
-        }
-        
-        try {
-          // Méthode 3: Marquer comme supprimé via POST
-          await axios.post(
-            `${this.FREEBOX_URL}/api/characters/delete`,
-            { characterId: idToDelete },
-            { 
-              headers: { 'Content-Type': 'application/json' },
-              timeout: 10000 
-            }
-          );
-          console.log(`✅ Marqué supprimé (POST): ${idToDelete}`);
-        } catch (e) {
-          // Silencieux si cette route n'existe pas
+      // Ajouter des variantes d'IDs
+      const allIdsToTry = new Set(idsToTry);
+      for (const id of idsToTry) {
+        // Ajouter avec et sans préfixe custom_
+        if (id.startsWith('custom_')) {
+          allIdsToTry.add(id.substring(7));
+        } else {
+          allIdsToTry.add(`custom_${id}`);
         }
       }
       
-      // Supprimer localement
+      console.log(`🔍 IDs à supprimer du serveur:`, [...allIdsToTry]);
+      
+      // 1. Méthode principale: DELETE sur /api/characters/public/:id
+      for (const idToDelete of allIdsToTry) {
+        try {
+          const response = await axios.delete(
+            `${this.FREEBOX_URL}/api/characters/public/${idToDelete}`,
+            { 
+              headers: { 
+                'Content-Type': 'application/json',
+                'X-User-ID': user?.id || 'anonymous'
+              },
+              timeout: 10000 
+            }
+          );
+          if (response.data?.success) {
+            console.log(`✅ Supprimé du serveur (DELETE): ${idToDelete}`);
+          }
+        } catch (e) {
+          // Silencieux - essayer les autres méthodes
+        }
+      }
+      
+      // 2. Méthode POST pour marquer comme supprimé
+      try {
+        await axios.post(
+          `${this.FREEBOX_URL}/api/characters/delete`,
+          { 
+            characterId: characterId,
+            allIds: [...allIdsToTry],
+            userId: user?.id || 'anonymous',
+            characterName: charToDelete?.name,
+            forceDelete: true
+          },
+          { 
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-User-ID': user?.id || 'anonymous'
+            },
+            timeout: 10000 
+          }
+        );
+        console.log(`✅ Marqué supprimé sur serveur (POST): ${characterId}`);
+      } catch (e) {
+        console.log(`⚠️ POST delete échoué:`, e.message);
+      }
+      
+      // 3. Méthode de broadcast: demander au serveur de supprimer de tous les caches
+      try {
+        await axios.post(
+          `${this.FREEBOX_URL}/api/characters/purge`,
+          { 
+            characterIds: [...allIdsToTry],
+            userId: user?.id || 'anonymous',
+            reason: 'user_deleted'
+          },
+          { 
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 10000 
+          }
+        );
+        console.log(`✅ Purge demandée au serveur`);
+      } catch (e) {
+        // Route peut ne pas exister
+      }
+      
+      // 4. Forcer une resync des personnages publics pour invalider le cache
+      try {
+        await axios.post(
+          `${this.FREEBOX_URL}/api/characters/invalidate-cache`,
+          { timestamp: Date.now() },
+          { 
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 5000 
+          }
+        );
+      } catch (e) {
+        // Route peut ne pas exister
+      }
+      
+      // === SUPPRESSION LOCALE COMPLÈTE ===
+      // Supprimer de la liste actuelle
       const updated = characters.filter(char => char.id !== characterId);
       await AsyncStorage.setItem(this.getUserStorageKey(), JSON.stringify(updated));
       
-      // Aussi supprimer de toutes les autres clés possibles
+      // Supprimer de TOUTES les clés possibles
       const allKeys = await AsyncStorage.getAllKeys();
-      for (const key of allKeys) {
-        if (key.includes('custom_characters') || key.includes('my_characters')) {
-          try {
-            const data = await AsyncStorage.getItem(key);
-            if (data) {
-              const chars = JSON.parse(data);
-              if (Array.isArray(chars)) {
-                const filtered = chars.filter(c => c.id !== characterId);
-                if (filtered.length !== chars.length) {
-                  await AsyncStorage.setItem(key, JSON.stringify(filtered));
-                  console.log(`✅ Supprimé de ${key}`);
-                }
+      const keysToClean = allKeys.filter(key => 
+        key.includes('custom_characters') || 
+        key.includes('my_characters') ||
+        key.includes('created_characters') ||
+        key.includes('public_characters') ||
+        key.includes('cached_public')
+      );
+      
+      for (const key of keysToClean) {
+        try {
+          const data = await AsyncStorage.getItem(key);
+          if (data) {
+            const chars = JSON.parse(data);
+            if (Array.isArray(chars)) {
+              const filtered = chars.filter(c => {
+                // Supprimer par tous les IDs possibles
+                return !allIdsToTry.has(c.id) && 
+                       !allIdsToTry.has(c.serverId) &&
+                       !allIdsToTry.has(c.originalId) &&
+                       c.id !== characterId;
+              });
+              if (filtered.length !== chars.length) {
+                await AsyncStorage.setItem(key, JSON.stringify(filtered));
+                console.log(`✅ Supprimé de ${key} (${chars.length} -> ${filtered.length})`);
               }
             }
-          } catch (e) {}
-        }
+          }
+        } catch (e) {}
       }
       
-      console.log(`✅ Personnage ${characterId} supprimé complètement`);
+      // Vider les caches de personnages publics pour forcer un refresh
+      try {
+        await AsyncStorage.removeItem('cached_public_characters');
+        await AsyncStorage.removeItem('cached_public_characters_time');
+        console.log(`✅ Cache personnages publics vidé`);
+      } catch (e) {}
+      
+      console.log(`✅ Personnage ${characterId} supprimé complètement (local + serveur)`);
       return updated;
     } catch (error) {
       console.error('❌ Error deleting custom character:', error);

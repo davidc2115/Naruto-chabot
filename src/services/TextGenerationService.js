@@ -521,7 +521,7 @@ class TextGenerationService {
   }
 
   async generateWithPollinations(messages, character, userProfile, context) {
-    console.log('🚀 Multi-API - Génération immersive...');
+    console.log('🚀 Multi-API - Génération immersive avec mémoire étendue...');
     
     const maxAttempts = 5; // 5 tentatives avec différentes APIs
     let lastError = null;
@@ -531,13 +531,20 @@ class TextGenerationService {
         const currentApi = this.getCurrentApi();
         const fullMessages = [];
         
+        // === MÉMOIRE CONVERSATIONNELLE ÉTENDUE ===
+        // Plus de messages = meilleure cohérence
+        const totalMessages = messages.length;
+        
         // Adapter le prompt selon le nombre de tentatives
         if (attempt <= 2) {
           const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
           fullMessages.push({ role: 'system', content: systemPrompt });
           
-          if (attempt === 1 && context.isLongConversation && messages.length > 10) {
-            const memorySummary = this.buildMemorySummary(messages.slice(0, -8), character);
+          // === RÉSUMÉ DE LA CONVERSATION PASSÉE (si longue) ===
+          if (totalMessages > 15) {
+            // Créer un résumé des anciens messages (au-delà des 12 derniers)
+            const olderMessages = messages.slice(0, -12);
+            const memorySummary = this.buildDetailedMemorySummary(olderMessages, character, userProfile);
             if (memorySummary) {
               fullMessages.push({ role: 'system', content: memorySummary });
             }
@@ -550,26 +557,40 @@ class TextGenerationService {
           fullMessages.push({ role: 'system', content: minimalPrompt });
         }
         
-        // Messages récents
-        const recentCount = attempt <= 2 ? 6 : 3;
+        // === MESSAGES RÉCENTS - AUGMENTÉS POUR MEILLEURE MÉMOIRE ===
+        // Première tentative: 12 messages, puis 8, puis 4
+        let recentCount;
+        if (attempt <= 1) {
+          recentCount = Math.min(12, totalMessages); // Maximum 12 messages récents
+        } else if (attempt <= 2) {
+          recentCount = Math.min(8, totalMessages);
+        } else if (attempt <= 4) {
+          recentCount = Math.min(6, totalMessages);
+        } else {
+          recentCount = Math.min(4, totalMessages);
+        }
+        
         const recentMessages = messages.slice(-recentCount);
-        fullMessages.push(...recentMessages.map(msg => ({
+        
+        // Ajouter les messages avec un contexte plus riche
+        fullMessages.push(...recentMessages.map((msg, idx) => ({
           role: msg.role,
-          content: msg.content.substring(0, 500)
+          // Garder plus de contenu pour les messages récents
+          content: msg.content.substring(0, idx >= recentCount - 3 ? 800 : 400)
         })));
         
-        // Instruction finale
+        // Instruction finale avec rappel de cohérence
         if (attempt <= 2) {
-          const finalInstruction = this.buildFinalInstruction(character, userProfile, context);
+          const finalInstruction = this.buildFinalInstructionWithMemory(character, userProfile, context, recentMessages);
           fullMessages.push({ role: 'system', content: finalInstruction });
         }
         
-        console.log(`📡 Tentative ${attempt}/${maxAttempts} - API: ${currentApi.name}, ${fullMessages.length} messages`);
+        console.log(`📡 Tentative ${attempt}/${maxAttempts} - API: ${currentApi.name}, ${fullMessages.length} messages (${recentCount} récents)`);
         
-        // Appeler l'API
+        // Appeler l'API avec tokens augmentés pour réponses plus riches
         const content = await this.callApi(currentApi, fullMessages, {
           temperature: attempt <= 2 ? 0.85 : 0.95,
-          maxTokens: 250,
+          maxTokens: 350, // Augmenté pour réponses plus élaborées
         });
         
         if (!content) throw new Error('Réponse vide');
@@ -623,6 +644,123 @@ class TextGenerationService {
     }
     
     return this.generateContextualFallback(character, userProfile, context);
+  }
+  
+  /**
+   * Construit un résumé détaillé de la conversation passée
+   * Pour maintenir la cohérence sur les longues conversations
+   */
+  buildDetailedMemorySummary(messages, character, userProfile) {
+    if (!messages || messages.length < 5) return null;
+    
+    const charName = character?.name || 'le personnage';
+    const userName = userProfile?.username || "l'utilisateur";
+    
+    // Extraire les éléments importants des messages passés
+    const keyMoments = [];
+    const topicsDiscussed = new Set();
+    const emotionalMoments = [];
+    const actionsPerformed = [];
+    
+    for (const msg of messages) {
+      const content = (msg.content || '').toLowerCase();
+      
+      // Détecter les sujets discutés
+      if (content.includes('travail') || content.includes('métier')) topicsDiscussed.add('travail');
+      if (content.includes('famille') || content.includes('parent')) topicsDiscussed.add('famille');
+      if (content.includes('amour') || content.includes('relation')) topicsDiscussed.add('amour');
+      if (content.includes('passé') || content.includes('souvenir')) topicsDiscussed.add('souvenirs');
+      if (content.includes('rêve') || content.includes('avenir')) topicsDiscussed.add('aspirations');
+      if (content.includes('peur') || content.includes('inqui')) topicsDiscussed.add('peurs');
+      if (content.includes('passion') || content.includes('hobby')) topicsDiscussed.add('passions');
+      
+      // Détecter les moments émotionnels
+      if (content.includes('je t\'aime') || content.includes('tu me plais')) {
+        emotionalMoments.push('déclaration d\'affection');
+      }
+      if (content.includes('embras') || content.includes('caress')) {
+        emotionalMoments.push('moment intime');
+      }
+      if (content.includes('triste') || content.includes('pleur')) {
+        emotionalMoments.push('moment de tristesse');
+      }
+      if (content.includes('rire') || content.includes('drôle')) {
+        emotionalMoments.push('moment de joie');
+      }
+      
+      // Extraire les actions décrites (entre *)
+      const actions = content.match(/\*([^*]+)\*/g);
+      if (actions) {
+        actions.forEach(a => {
+          const action = a.replace(/\*/g, '').substring(0, 50);
+          if (action.length > 10) actionsPerformed.push(action);
+        });
+      }
+    }
+    
+    // Construire le résumé
+    let summary = `## 📖 RÉSUMÉ DE VOTRE CONVERSATION PRÉCÉDENTE\n`;
+    summary += `Tu parles avec ${userName} depuis ${messages.length} messages.\n\n`;
+    
+    if (topicsDiscussed.size > 0) {
+      summary += `**Sujets abordés:** ${[...topicsDiscussed].slice(0, 5).join(', ')}\n`;
+    }
+    
+    if (emotionalMoments.length > 0) {
+      const uniqueMoments = [...new Set(emotionalMoments)].slice(0, 3);
+      summary += `**Moments clés:** ${uniqueMoments.join(', ')}\n`;
+    }
+    
+    if (actionsPerformed.length > 0) {
+      const recentActions = actionsPerformed.slice(-3);
+      summary += `**Actions récentes:** ${recentActions.join('; ')}\n`;
+    }
+    
+    summary += `\n**IMPORTANT:** Référence-toi à ces éléments passés pour maintenir la cohérence. `;
+    summary += `Ne répète pas les mêmes actions ou phrases. Fais évoluer la conversation naturellement.\n`;
+    
+    console.log(`📚 Résumé mémoire: ${topicsDiscussed.size} sujets, ${emotionalMoments.length} moments émotionnels`);
+    return summary;
+  }
+  
+  /**
+   * Construit l'instruction finale avec rappel de mémoire
+   */
+  buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
+    const charName = character?.name || 'le personnage';
+    const userName = userProfile?.username || '';
+    const hasUserName = userName && userName.trim() !== '';
+    
+    let instruction = `\n[RÉPONDS MAINTENANT EN TANT QUE ${charName.toUpperCase()}]\n`;
+    
+    // Rappeler le dernier message de l'utilisateur
+    const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
+    if (lastUserMsg) {
+      instruction += `L'utilisateur${hasUserName ? ` (${userName})` : ''} vient de dire: "${lastUserMsg.content.substring(0, 100)}..."\n`;
+    }
+    
+    // Rappeler la dernière action du personnage pour continuité
+    const lastAssistantMsg = recentMessages.filter(m => m.role === 'assistant').slice(-1)[0];
+    if (lastAssistantMsg) {
+      const actionMatch = lastAssistantMsg.content.match(/\*([^*]+)\*/);
+      if (actionMatch) {
+        instruction += `Ta dernière action était: "${actionMatch[1].substring(0, 50)}"\n`;
+      }
+    }
+    
+    instruction += `\nRÈGLES:\n`;
+    instruction += `- Réponds DIRECTEMENT au message de l'utilisateur\n`;
+    instruction += `- Continue l'histoire de manière cohérente\n`;
+    instruction += `- Ne répète PAS les mêmes actions ou phrases\n`;
+    instruction += `- Format: *action* "dialogue" (pensée)\n`;
+    
+    if (context.mode === 'nsfw') {
+      instruction += `- MODE NSFW: Sois explicite et sensuel\n`;
+    }
+    
+    instruction += `- 2-4 phrases maximum\n`;
+    
+    return instruction;
   }
 
   /**

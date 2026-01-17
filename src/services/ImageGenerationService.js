@@ -3390,123 +3390,179 @@ class ImageGenerationService {
   extractMorphologyKeywords(prompt) {
     const lowerPrompt = prompt.toLowerCase();
     const morphology = [];
+    let detectedType = 'standard';
     
-    // === DÉTECTION PRIORITAIRE DES COMBINAISONS ===
-    // "généreuse et douce" = corps doux avec des formes généreuses
-    if ((lowerPrompt.includes('généreus') && lowerPrompt.includes('douc')) ||
-        (lowerPrompt.includes('douc') && lowerPrompt.includes('form'))) {
-      morphology.push('soft curvy body, gentle generous curves, full-figured woman with soft features, plump soft body, wide hips, soft belly');
-      console.log('🎯 Morphologie détectée: généreuse et douce');
+    // === HIÉRARCHIE DE MORPHOLOGIE: DU PLUS AU MOINS ROND ===
+    // Chaque niveau est DISTINCT et ne se chevauche pas
+    
+    // === NIVEAU 5: TRÈS RONDE / BBW / OBÈSE ===
+    // Corps très large, gros ventre proéminent, cuisses très épaisses
+    if (lowerPrompt.includes('très ronde') || 
+        lowerPrompt.includes('bbw') || 
+        lowerPrompt.includes('obèse') ||
+        lowerPrompt.includes('très grosse') ||
+        lowerPrompt.includes('very fat') ||
+        lowerPrompt.includes('extremely curvy')) {
+      morphology.push('BBW body type, very fat woman, extremely chubby, big belly, very wide hips, thick everywhere, plus-size, heavy set, large belly roll, fat thighs, double chin, big arms');
+      detectedType = 'TRÈS RONDE (BBW)';
+    }
+    // === NIVEAU 4: RONDE / CHUBBY ===
+    // Corps rond avec ventre visible, cuisses pleines, visiblement en surpoids
+    else if (lowerPrompt.includes('ronde') || 
+             lowerPrompt.includes('rondelette') ||
+             lowerPrompt.includes('chubby') ||
+             lowerPrompt.includes('potelée') ||
+             lowerPrompt.includes('dodue') ||
+             lowerPrompt.includes('enrobée') ||
+             lowerPrompt.includes('en chair') ||
+             lowerPrompt.includes('plump body')) {
+      morphology.push('chubby plump body, visibly overweight, soft round belly, plump arms, thick thighs, round cheeks, full-figured with visible belly, soft pudgy body, cute chubby');
+      detectedType = 'RONDE (Chubby)';
+    }
+    // === NIVEAU 3: GÉNÉREUSE / FULL-FIGURED ===
+    // Corps avec formes prononcées mais pas de gros ventre, silhouette en sablier élargie
+    else if (lowerPrompt.includes('généreus') || 
+             lowerPrompt.includes('generous') ||
+             lowerPrompt.includes('full-figured') ||
+             lowerPrompt.includes('formes généreus') ||
+             (lowerPrompt.includes('généreus') && lowerPrompt.includes('douc'))) {
+      morphology.push('generous curvy body, full-figured woman, wide hips, big bust, soft curves, hourglass plus-size, thick but shapely, womanly curves, gentle belly curve, big butt');
+      detectedType = 'GÉNÉREUSE (Full-figured)';
+    }
+    // === NIVEAU 2: VOLUPTUEUSE / PULPEUSE ===
+    // Silhouette en sablier sexy avec grosses formes mais pas de surpoids visible
+    else if (lowerPrompt.includes('voluptu') || 
+             lowerPrompt.includes('pulpeuse') ||
+             lowerPrompt.includes('plantureuse') ||
+             lowerPrompt.includes('opulente') ||
+             lowerPrompt.includes('sensual curves')) {
+      morphology.push('voluptuous hourglass body, sexy big curves, large bust, wide hips, thin waist, bombshell figure, sensual curves, big boobs, curvy butt, sexy thick thighs');
+      detectedType = 'VOLUPTUEUSE (Bombshell)';
+    }
+    // === NIVEAU 1: CURVY / FORMES ===
+    // Corps avec courbes attrayantes mais proportionné
+    else if (lowerPrompt.includes('curvy') || 
+             lowerPrompt.includes('courbes') ||
+             lowerPrompt.includes('formes') ||
+             lowerPrompt.includes('thick') ||
+             lowerPrompt.includes('épaisse') ||
+             lowerPrompt.includes('thicc')) {
+      morphology.push('curvy body, attractive curves, nice bust, shapely hips, feminine figure, curvy but fit, sexy curves');
+      detectedType = 'CURVY (Courbes)';
+    }
+    // === NIVEAU 0: MATERNELLE / DOUCE ===
+    // Corps maternel doux avec des formes confortables
+    else if (lowerPrompt.includes('maternal') || 
+             lowerPrompt.includes('maternelle') ||
+             lowerPrompt.includes('maman') ||
+             lowerPrompt.includes('milf') ||
+             lowerPrompt.includes('douce') ||
+             lowerPrompt.includes('moelleuse') ||
+             lowerPrompt.includes('tendre')) {
+      morphology.push('soft maternal body, nurturing curves, mature woman, MILF figure, soft gentle curves, comfortable body, motherly shape');
+      detectedType = 'MATERNELLE (Douce)';
     }
     
-    // "formes généreuses" = très courbes
-    if (lowerPrompt.includes('formes généreus') || lowerPrompt.includes('generous curves')) {
-      morphology.push('very curvy body, generous full curves, voluptuous figure, wide hips, big bust, full-figured');
-      console.log('🎯 Morphologie détectée: formes généreuses');
-    }
+    console.log(`🎯 Type morphologie détecté: ${detectedType}`);
     
-    // "rondeurs" = formes arrondies
-    if (lowerPrompt.includes('rondeur')) {
-      morphology.push('curvy rounded body, soft round curves, plump figure, rounded hips and bust');
-      console.log('🎯 Morphologie détectée: rondeurs');
-    }
-    
-    // Détecter les types de corps - MOTS FRANÇAIS ET ANGLAIS
-    const bodyKeywords = {
-      // Douce / Soft (IMPORTANT - souvent associé à des formes)
-      'douce': 'soft curvy body, gentle curves, soft plump figure',
-      'doux': 'soft body, gentle features, soft curves',
-      'moelleuse': 'soft plump body, cushiony curves',
-      'tendre': 'soft tender body, gentle curves',
-      
-      // Ronde / Chubby
-      'chubby': 'chubby plump body, soft round curves, full-figured',
-      'plump': 'plump soft body, chubby curves, full figure',
-      'ronde': 'round chubby body, plump soft curves, full-figured woman, soft belly',
-      'rondelette': 'chubby plump body, soft round curves, rounded figure',
-      'potelée': 'chubby plump body, soft curves, plump figure',
-      'dodue': 'chubby soft body, plump figure, round curves',
-      'enrobée': 'plump curvy body, soft full figure, rounded',
-      'en chair': 'plump meaty body, full-figured, curvy',
-      
-      // Généreuse / Voluptueuse
-      'generous': 'generous curvy body, full-figured, wide hips, big curves, voluptuous',
-      'généreus': 'generous curvy body, full-figured woman, wide hips, voluptuous, big curves',
-      'voluptu': 'voluptuous body, sexy curves, hourglass figure, big bust, wide hips, full-figured',
-      'pulpeuse': 'voluptuous curvy body, sexy full figure, big curves, plump',
-      'plantureuse': 'voluptuous full-figured body, big bust, curvy, generous curves',
-      'opulente': 'opulent curvy body, generous figure, full bust, wide hips',
-      
-      // Curvy / Formes
-      'curvy': 'curvy body, hourglass figure, pronounced curves, full-figured',
-      'courbes': 'curvy body with curves, hourglass figure, sexy curves',
-      'formes': 'curvy body with sexy curves, full-figured, voluptuous',
-      
-      // Thick / Épaisse  
-      'thick': 'thick curvy body, thicc figure, wide hips, thick thighs, full-figured',
-      'épaisse': 'thick curvy body, wide hips, thick thighs, full figure',
-      'thicc': 'thicc body, thick curves, wide hips, thick thighs',
-      
-      // BBW
-      'bbw': 'BBW body, big beautiful woman, very curvy, fat body, chubby, plus-size',
-      'très ronde': 'BBW very curvy body, big beautiful woman, fat, plus-size',
-      'obèse': 'BBW body, very fat, very curvy, big woman, plus-size',
-      'grosse': 'big curvy body, plus-size woman, chubby, full-figured',
-      
-      // Maternelle
-      'maternal': 'mature maternal body, soft curvy figure, MILF body, nurturing curves',
-      'maternelle': 'mature maternal body, soft curves, MILF, motherly figure',
-      'milf': 'MILF body, mature curvy woman, experienced beauty',
-      'maman': 'motherly body, soft maternal curves, nurturing figure',
-    };
-    
-    for (const [keyword, description] of Object.entries(bodyKeywords)) {
-      if (lowerPrompt.includes(keyword) && !morphology.some(m => m.includes(keyword))) {
-        morphology.push(description);
-        console.log(`📍 Mot-clé morphologie: ${keyword}`);
-      }
-    }
-    
-    // Détecter la poitrine - avec descriptions plus fortes
-    const bustKeywords = {
-      'huge breast': 'huge massive breasts, very big bust, enormous chest',
-      'big breast': 'big breasts, large bust, full chest',
-      'large bust': 'large bust, big breasts, full chest',
-      'd-cup': 'large D-cup breasts, big bust, full cleavage',
-      'dd-cup': 'very large DD-cup breasts, huge bust, impressive chest',
-      'e-cup': 'huge E-cup breasts, massive bust, very big chest',
-      'f-cup': 'huge F-cup breasts, massive bust, enormous chest',
-      'g-cup': 'gigantic G-cup breasts, enormous bust, huge chest',
-      'h-cup': 'massive H-cup breasts, gigantic bust',
-      'grosse poitrine': 'big breasts, large bust, full chest',
-      'forte poitrine': 'big strong breasts, large bust',
-      'poitrine généreuse': 'generous big breasts, full bust, large chest',
-      'énorme poitrine': 'huge massive breasts, enormous bust',
-      'small breast': 'small breasts, flat chest, petite bust',
-      'petite poitrine': 'small breasts, flat chest, petite bust',
-      'a-cup': 'small A-cup breasts, flat chest, petite',
+    // === DÉTECTION SUPPLÉMENTAIRE: POITRINE ===
+    // Ces ajouts s'ajoutent au type de corps principal
+    const bustDescriptions = {
+      // Très grosse poitrine
+      'h-cup': 'gigantic H-cup breasts, enormous massive bust',
+      'g-cup': 'huge G-cup breasts, very big bust',
+      'énorme poitrine': 'enormous huge breasts, massive bust',
+      'huge breast': 'huge massive breasts, very big bust',
+      // Grosse poitrine
+      'f-cup': 'big F-cup breasts, large bust',
+      'e-cup': 'big E-cup breasts, large full bust',
+      'dd-cup': 'large DD-cup breasts, impressive bust',
+      'd-cup': 'full D-cup breasts, nice bust',
+      'grosse poitrine': 'big breasts, large full bust',
+      'forte poitrine': 'big strong breasts, impressive bust',
+      'poitrine généreuse': 'generous full breasts, big bust',
+      'big breast': 'big breasts, large bust',
+      // Moyenne
+      'c-cup': 'medium C-cup breasts, average bust',
+      'moyenne poitrine': 'average medium breasts',
+      // Petite
       'b-cup': 'small B-cup breasts, modest bust',
+      'a-cup': 'small A-cup breasts, flat chest',
+      'petite poitrine': 'small breasts, petite bust',
+      'small breast': 'small petite breasts, flat chest',
     };
     
-    for (const [keyword, description] of Object.entries(bustKeywords)) {
-      if (lowerPrompt.includes(keyword) && !morphology.some(m => m.includes(keyword))) {
+    for (const [keyword, description] of Object.entries(bustDescriptions)) {
+      if (lowerPrompt.includes(keyword)) {
         morphology.push(description);
-        console.log(`👙 Mot-clé poitrine: ${keyword}`);
+        console.log(`👙 Poitrine: ${keyword}`);
+        break; // Une seule description de poitrine
       }
     }
     
-    // Si aucune morphologie détectée mais le prompt contient des indices de courbes
+    // === DÉTECTION SUPPLÉMENTAIRE: FESSES ===
+    const buttDescriptions = {
+      'énorme fesse': 'huge massive butt, very big round ass',
+      'grosse fesse': 'big round butt, large plump ass',
+      'grosses fesses': 'big round butt, large plump ass',
+      'fesses rebondies': 'round bubble butt, perky ass',
+      'bubble butt': 'round bubble butt, perky bouncy ass',
+      'fesses généreuses': 'generous curvy butt, full round ass',
+      'big butt': 'big round butt, large ass',
+      'thick ass': 'thick juicy ass, big butt',
+      'petites fesses': 'small flat butt, petite rear',
+      'fesses plates': 'flat small butt',
+    };
+    
+    for (const [keyword, description] of Object.entries(buttDescriptions)) {
+      if (lowerPrompt.includes(keyword)) {
+        morphology.push(description);
+        console.log(`🍑 Fesses: ${keyword}`);
+        break;
+      }
+    }
+    
+    // === DÉTECTION SUPPLÉMENTAIRE: VENTRE ===
+    const bellyDescriptions = {
+      'gros ventre': 'big round belly, large soft stomach',
+      'ventre rond': 'round soft belly, pudgy tummy',
+      'ventre arrondi': 'rounded soft belly',
+      'ventre proéminent': 'prominent big belly, visible stomach',
+      'ventre plat': 'flat toned stomach, no belly',
+      'abdos': 'toned abs, flat stomach',
+    };
+    
+    for (const [keyword, description] of Object.entries(bellyDescriptions)) {
+      if (lowerPrompt.includes(keyword)) {
+        morphology.push(description);
+        console.log(`🔘 Ventre: ${keyword}`);
+        break;
+      }
+    }
+    
+    // === DÉTECTION SUPPLÉMENTAIRE: HANCHES/CUISSES ===
+    if (lowerPrompt.includes('hanches larges') || lowerPrompt.includes('wide hips')) {
+      morphology.push('wide hips, broad pelvis');
+      console.log(`📍 Hanches larges`);
+    }
+    if (lowerPrompt.includes('cuisses épaisses') || lowerPrompt.includes('thick thighs')) {
+      morphology.push('thick meaty thighs, big legs');
+      console.log(`📍 Cuisses épaisses`);
+    }
+    
+    // Si aucune morphologie détectée, utiliser les indices secondaires
     if (morphology.length === 0) {
-      const curveIndicators = ['courbe', 'forme', 'hanch', 'fess', 'cuiss', 'ventre'];
+      const curveIndicators = ['courbe', 'forme', 'hanch', 'fess', 'cuiss', 'ventre', 'poitrine', 'sein'];
       for (const indicator of curveIndicators) {
         if (lowerPrompt.includes(indicator)) {
-          morphology.push('curvy body, feminine curves, attractive figure');
-          console.log(`📍 Indicateur de courbes détecté: ${indicator}`);
+          morphology.push('curvy feminine body, attractive figure');
+          console.log(`📍 Indicateur de courbes: ${indicator}`);
           break;
         }
       }
     }
     
+    console.log(`✅ Morphologie finale: ${morphology.length} éléments`);
     return morphology;
   }
 
