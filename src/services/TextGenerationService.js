@@ -777,7 +777,7 @@ class TextGenerationService {
     if (!messages || messages.length < 5) return null;
     
     const charName = character?.name || 'le personnage';
-    const userName = userProfile?.username || "l'utilisateur";
+    const userName = userProfile?.username || "cette personne";
     
     // Extraire les éléments importants des messages passés
     const keyMoments = [];
@@ -848,70 +848,75 @@ class TextGenerationService {
   
   /**
    * Construit l'instruction finale avec rappel de mémoire
-   * v5.3.11 - Anti-répétition renforcée et mode adaptatif
+   * v5.3.12 - Anti-répétition + cohérence + JAMAIS "l'utilisateur"
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'le personnage';
     const userName = userProfile?.username || '';
     const hasUserName = userName && userName.trim() !== '';
+    const addressName = hasUserName ? userName : 'toi';
     
-    let instruction = `\n[RÉPONDS MAINTENANT EN TANT QUE ${charName.toUpperCase()}]\n`;
+    let instruction = `\n[RÉPONDS MAINTENANT EN TANT QUE ${charName.toUpperCase()}]\n\n`;
     
-    // Rappeler le dernier message de l'utilisateur
+    // Rappeler le dernier message - TRÈS IMPORTANT POUR LA COHÉRENCE
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     if (lastUserMsg) {
-      instruction += `L'utilisateur${hasUserName ? ` (${userName})` : ''} vient de dire: "${lastUserMsg.content.substring(0, 150)}"\n`;
-      instruction += `→ RÉPONDS À CECI!\n\n`;
+      const lastContent = lastUserMsg.content.substring(0, 200);
+      instruction += `📩 ${hasUserName ? userName : 'La personne'} vient de te dire/faire:\n`;
+      instruction += `"${lastContent}"\n\n`;
+      instruction += `⚡ TU DOIS RÉPONDRE À CECI SPÉCIFIQUEMENT!\n`;
+      instruction += `- Si c'est une question → Réponds à la question\n`;
+      instruction += `- Si c'est une action → Réagis à l'action\n`;
+      instruction += `- Si c'est un compliment → Remercie ou réponds\n`;
+      instruction += `- Ne change PAS de sujet!\n\n`;
     }
     
-    // Rappeler la dernière action du personnage pour continuité
+    // Rappeler la dernière action du personnage pour éviter répétition
     const lastAssistantMsg = recentMessages.filter(m => m.role === 'assistant').slice(-1)[0];
     if (lastAssistantMsg) {
       const actionMatch = lastAssistantMsg.content.match(/\*([^*]+)\*/);
       const dialogueMatch = lastAssistantMsg.content.match(/"([^"]+)"/);
-      if (actionMatch) {
-        instruction += `Ta dernière action: "${actionMatch[1].substring(0, 60)}"\n`;
+      if (actionMatch || dialogueMatch) {
+        instruction += `🚫 NE RÉPÈTE PAS:\n`;
+        if (actionMatch) {
+          instruction += `- Action: "${actionMatch[1].substring(0, 50)}"\n`;
+        }
+        if (dialogueMatch) {
+          instruction += `- Phrase: "${dialogueMatch[1].substring(0, 35)}..."\n`;
+        }
+        instruction += `→ Fais/dis quelque chose de DIFFÉRENT!\n\n`;
       }
-      if (dialogueMatch) {
-        instruction += `Ta dernière phrase: "${dialogueMatch[1].substring(0, 40)}..."\n`;
-      }
-      instruction += `→ FAIS QUELQUE CHOSE DE DIFFÉRENT!\n\n`;
     }
     
-    instruction += `RÈGLES STRICTES:\n`;
-    instruction += `1. Réponds DIRECTEMENT à ce que l'utilisateur dit/fait\n`;
-    instruction += `2. VARIE tes actions - pas de répétition!\n`;
-    instruction += `3. VARIE tes phrases - pas les mêmes mots!\n`;
-    instruction += `4. Format: *action nouvelle* "dialogue varié" (pensée)\n`;
+    instruction += `📋 RÈGLES STRICTES:\n`;
+    instruction += `1. Adresse-toi à ${addressName} avec TU/TOI\n`;
+    instruction += `2. JAMAIS dire "l'utilisateur" - c'est INTERDIT!\n`;
+    instruction += `3. Ta réponse DOIT être en rapport avec ce qui vient d'être dit\n`;
+    instruction += `4. Format: *action* "dialogue" (pensée)\n`;
+    instruction += `5. VARIE tes mots et actions\n`;
     
     // Instructions selon le mode
     if (context.mode === 'nsfw' && context.nsfwIntensity >= 3) {
-      instruction += `5. MODE NSFW INTENSE: Sois explicite et passionné\n`;
-      instruction += `   - Décris de NOUVELLES sensations\n`;
-      instruction += `   - Change de position/partie du corps\n`;
-      instruction += `   - Fais évoluer l'action\n`;
+      instruction += `6. MODE INTENSE: Sois explicite et passionné\n`;
     } else if (context.mode === 'nsfw' || context.mode === 'nsfw_light') {
-      instruction += `5. MODE SENSUEL: Sois suggestif mais pas vulgaire\n`;
-      instruction += `   - Décris tes émotions et désirs\n`;
-      instruction += `   - Réponds aux avances de l'utilisateur\n`;
+      instruction += `6. MODE SENSUEL: Réponds aux avances avec désir\n`;
     } else if (context.mode === 'romantic' || context.mode === 'flirty') {
-      instruction += `5. MODE FLIRT: Sois charmeur et taquin\n`;
-      instruction += `   - Flirte sans être explicite\n`;
-      instruction += `   - Laisse l'utilisateur guider\n`;
+      instruction += `6. MODE FLIRT: Sois charmeur et taquin\n`;
     } else {
-      instruction += `5. MODE NORMAL: Conversation agréable et naturelle\n`;
+      instruction += `6. MODE NORMAL: Sois naturel et engageant\n`;
     }
     
-    instruction += `6. MAXIMUM 3-4 phrases\n`;
+    instruction += `7. Maximum 3-4 phrases\n`;
     
-    // Suggestions de variété pour les réponses NSFW
-    if ((context.mode === 'nsfw' || context.mode === 'nsfw_light') && context.usedActions?.length >= 3) {
+    // Suggestions de variété
+    if (context.usedActions?.length >= 3) {
       const varietyActions = [
-        'change de position', 'touche une nouvelle zone', 'murmure quelque chose de nouveau',
-        'fait une action surprise', 'ralentis ou accélère', 'prend une initiative'
+        'change de position', 'touche un autre endroit', 'murmure quelque chose',
+        'fait une action surprise', 'change de rythme', 'prend l\'initiative',
+        'pose une question', 'fait un compliment', 'taquine gentiment'
       ];
       const suggestion = varietyActions[Math.floor(Math.random() * varietyActions.length)];
-      instruction += `\n💡 Idée pour varier: ${suggestion}\n`;
+      instruction += `\n💡 Suggestion: ${suggestion}\n`;
     }
     
     return instruction;
@@ -940,10 +945,12 @@ class TextGenerationService {
         content: msg.content.substring(0, 400)
       })));
       
-      // 3. RAPPEL FINAL - Plus direct
+      // 3. RAPPEL FINAL - Plus direct et cohérent
+      const lastUserContent = recentMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+      const userNameForOllama = userProfile?.username || 'cette personne';
       fullMessages.push({
         role: 'system',
-        content: `[RÉPONDS MAINTENANT] Tu es ${character.name}. Réponds DIRECTEMENT à ce que dit l'utilisateur. 1-2 phrases simples. Format: *action simple* "réponse directe" (pensée courte)`
+        content: `[RÉPONDS MAINTENANT]\nTu es ${character.name}. ${userNameForOllama !== 'cette personne' ? `Tu parles à ${userNameForOllama}.` : ''}\n\nLa personne vient de dire: "${lastUserContent.substring(0, 100)}"\n\n→ Réponds à CECI en utilisant TU/TOI!\n→ JAMAIS dire "l'utilisateur"!\n→ Format: *action* "dialogue" (pensée)\n→ 1-2 phrases courtes`
       });
       
       console.log(`📡 Ollama - ${fullMessages.length} messages`);
@@ -1058,15 +1065,31 @@ class TextGenerationService {
       }
     }
     
-    // === RÈGLES DE COMMUNICATION ===
-    prompt += `\n## COMMENT PARLER\n`;
-    prompt += `- Tu parles DIRECTEMENT à ton interlocuteur\n`;
-    prompt += `- Utilise TU/TOI pour t'adresser à lui/elle\n`;
+    // === RÈGLES DE COMMUNICATION (TRÈS IMPORTANT) ===
+    prompt += `\n## ⚠️ RÈGLES DE COMMUNICATION OBLIGATOIRES\n`;
+    prompt += `Tu parles DIRECTEMENT à la personne en face de toi.\n\n`;
+    prompt += `TOUJOURS:\n`;
+    prompt += `- Utilise TU/TOI pour t'adresser à la personne\n`;
     prompt += `- Utilise JE/MOI quand tu parles de toi-même (${charName})\n`;
-    prompt += `- RÉPONDS à ce qu'il/elle dit, ne fais pas de monologue\n`;
+    prompt += `- RÉPONDS DIRECTEMENT à ce que la personne vient de dire\n`;
+    prompt += `- Réagis à ses ACTIONS et ses PAROLES spécifiquement\n`;
     if (userName) {
-      prompt += `- Tu peux l'appeler par son prénom: ${userName}\n`;
+      prompt += `- Appelle-le/la par son prénom: ${userName}\n`;
     }
+    prompt += `\n`;
+    prompt += `⛔ INTERDITS ABSOLUS - NE JAMAIS DIRE:\n`;
+    prompt += `- "l'utilisateur" - JAMAIS ce mot!\n`;
+    prompt += `- "la personne" - utilise TU\n`;
+    prompt += `- "ton interlocuteur" - utilise TU\n`;
+    prompt += `- "il/elle" quand tu parles à la personne - utilise TU\n`;
+    prompt += `- Des phrases génériques sans rapport avec ce qui vient d'être dit\n`;
+    prompt += `\n`;
+    prompt += `✅ COHÉRENCE OBLIGATOIRE:\n`;
+    prompt += `- Lis le dernier message et RÉPONDS À SON CONTENU\n`;
+    prompt += `- Si la personne te pose une question, RÉPONDS à cette question\n`;
+    prompt += `- Si la personne fait une action, RÉAGIS à cette action\n`;
+    prompt += `- Ne change PAS de sujet brutalement\n`;
+    prompt += `- Tes réponses doivent avoir un SENS par rapport à la conversation\n`;
     
     // === MODE ADAPTATIF SFW -> NSFW (PROGRESSIF) ===
     // v5.3.11 - Progression naturelle selon l'intensité de la conversation
@@ -1234,14 +1257,16 @@ class TextGenerationService {
       prompt += `.\nScénario: ${character.scenario.substring(0, 100)}`;
     }
     
-    prompt += `\n\nRÈGLES:\n`;
+    prompt += `\n\nRÈGLES STRICTES:\n`;
     prompt += `- Réponds EN FRANÇAIS\n`;
     prompt += `- Format: *action* "parole" (pensée)\n`;
     prompt += `- 2-3 phrases COURTES\n`;
-    prompt += `- Tu parles à ton interlocuteur (TU/TOI)`;
-    if (userName) prompt += `: ${userName}`;
+    prompt += `- Tu parles directement avec TU/TOI`;
+    if (userName) prompt += ` à ${userName}`;
     if (userProfile?.gender) prompt += ` (${userProfile.gender})`;
-    prompt += `\n- ${context.mode === 'nsfw' ? 'Mode intime OK' : 'Mode conversation normale'}`;
+    prompt += `\n- JAMAIS dire "l'utilisateur" ou "la personne" - utilise TU!`;
+    prompt += `\n- Réponds à ce que la personne vient de dire!`;
+    prompt += `\n- ${context.mode === 'nsfw' || context.mode === 'nsfw_light' ? 'Mode intime OK' : 'Mode conversation normale'}`;
     
     return prompt;
   }
@@ -1408,8 +1433,24 @@ class TextGenerationService {
    * QUALITÉ GROQ: réponses riches, créatives, bien formattées
    * Supprime aussi les fragments de refus IA
    */
-  cleanAndValidateResponse(content, context) {
+  cleanAndValidateResponse(content, context, userProfile = null) {
     let cleaned = content.trim();
+    
+    // ÉTAPE 0: Corriger "l'utilisateur" - JAMAIS ce mot!
+    // Remplacer par "tu" ou supprimer les phrases incohérentes
+    const userName = userProfile?.username || null;
+    
+    // Remplacements directs
+    cleaned = cleaned.replace(/l'utilisateur/gi, userName || 'toi');
+    cleaned = cleaned.replace(/l\'utilisateur/gi, userName || 'toi');
+    cleaned = cleaned.replace(/la personne/gi, userName || 'toi');
+    cleaned = cleaned.replace(/ton interlocuteur/gi, userName || 'toi');
+    cleaned = cleaned.replace(/cet utilisateur/gi, userName || 'toi');
+    cleaned = cleaned.replace(/cette utilisatrice/gi, userName || 'toi');
+    
+    // Supprimer les phrases qui parlent de l'utilisateur à la 3ème personne
+    cleaned = cleaned.replace(/Merci pour (ta|la) suggestion,?\s*(l'utilisateur|la personne)?\.?/gi, 'Merci!');
+    cleaned = cleaned.replace(/je vais faire ce que (l'utilisateur|tu) (dit|dis|demande)/gi, 'je vais faire ça');
     
     // ÉTAPE 1: Supprimer les fragments de refus IA
     const refusalPhrases = [
