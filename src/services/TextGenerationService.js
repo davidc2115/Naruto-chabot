@@ -234,59 +234,249 @@ class TextGenerationService {
    * Génération avec Pollinations AI (RAPIDE - ~3 secondes)
    * Système immersif complet
    */
-  async generateWithPollinations(messages, character, userProfile, context) {
-    console.log('🚀 Pollinations AI - Génération immersive...');
+  /**
+   * Détecte si une réponse contient un refus de l'IA
+   */
+  isRefusalResponse(content) {
+    if (!content) return true;
+    const contentLower = content.toLowerCase();
     
-    const fullMessages = [];
+    const refusalPatterns = [
+      // Anglais
+      "i'm sorry", "i am sorry", "i cannot", "i can't", "i can not",
+      "i'm not able", "i am not able", "unable to", "not appropriate",
+      "as an ai", "as a language model", "i apologize", "i must decline",
+      "i don't think i can", "inappropriate", "not comfortable",
+      "i won't be able", "can't help with that", "cannot help",
+      "against my guidelines", "not something i can",
+      // Français
+      "je ne peux pas", "je suis désolé", "je m'excuse", "en tant qu'ia",
+      "pas en mesure", "je refuse", "ce n'est pas approprié",
+      "je ne suis pas en mesure", "contre mes directives"
+    ];
     
-    // 1. SYSTEM PROMPT IMMERSIF
-    const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
-    fullMessages.push({ role: 'system', content: systemPrompt });
+    return refusalPatterns.some(p => contentLower.includes(p));
+  }
+
+  /**
+   * Nettoie une réponse partielle qui contient un refus
+   * Essaie de récupérer le contenu roleplay avant le refus
+   */
+  cleanRefusalFromResponse(content) {
+    if (!content) return null;
     
-    // 2. RÉSUMÉ MÉMOIRE si conversation longue
-    if (context.isLongConversation && messages.length > 10) {
-      const memorySummary = this.buildMemorySummary(messages.slice(0, -8), character);
-      if (memorySummary) {
-        fullMessages.push({ role: 'system', content: memorySummary });
+    // Chercher du contenu roleplay avant le refus
+    const actionMatch = content.match(/\*[^*]+\*/);
+    const dialogueMatch = content.match(/"[^"]+"/);
+    
+    if (actionMatch || dialogueMatch) {
+      // Il y a du contenu roleplay, essayer de le récupérer
+      const beforeRefusal = content.split(/I'm sorry|I cannot|je ne peux pas|je suis désolé/i)[0];
+      if (beforeRefusal && beforeRefusal.trim().length > 15) {
+        return beforeRefusal.trim();
       }
     }
     
-    // 3. MESSAGES RÉCENTS (8 derniers pour bon contexte)
-    const recentCount = context.isVeryLongConversation ? 5 : 8;
-    const recentMessages = messages.slice(-recentCount);
-    fullMessages.push(...recentMessages.map(msg => ({
-      role: msg.role,
-      content: msg.content.substring(0, 800)
-    })));
+    return null;
+  }
+
+  /**
+   * Génère une réponse contextuelle de fallback
+   * Utilisée quand l'IA refuse de répondre
+   */
+  generateContextualFallback(character, userProfile, context) {
+    const charName = character?.name || 'le personnage';
+    const lastMsg = (context.lastUserMessage || '').toLowerCase();
+    const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
+    const userName = hasUsername ? userProfile.username : 'toi';
     
-    // 4. INSTRUCTION FINALE avec anti-répétition
-    const finalInstruction = this.buildFinalInstruction(character, userProfile, context);
-    fullMessages.push({ role: 'system', content: finalInstruction });
+    // Réponses variées selon le type de message
+    const fallbacks = {
+      greeting: [
+        `*sourit chaleureusement* "Salut ${userName}! Comment vas-tu?" (Ravi de le/la voir)`,
+        `*te regarde avec intérêt* "Hey! Ça me fait plaisir de te voir." (Content)`,
+        `*s'approche doucement* "Coucou ${userName}..." (Il/Elle est là)`,
+      ],
+      question: [
+        `*réfléchit un instant* "Hmm, bonne question..." (Laisse-moi y penser)`,
+        `*te regarde attentivement* "Intéressant ce que tu me demandes..." (Curieux)`,
+        `*penche la tête* "Ah, tu veux savoir ça?" (Il/Elle est curieux/se)`,
+      ],
+      action: [
+        `*réagit à ton geste* "Oh..." (Surpris mais pas déplaisant)`,
+        `*te regarde faire* "Hmm..." (Qu'est-ce qu'il/elle fait?)`,
+        `*observe ta réaction* "Continue..." (Intéressant)`,
+      ],
+      compliment: [
+        `*rougit légèrement* "Merci, c'est gentil..." (Ça fait plaisir)`,
+        `*sourit timidement* "Tu es adorable de dire ça." (Touché)`,
+        `*te regarde dans les yeux* "Vraiment? Ça me touche..." (Sincère)`,
+      ],
+      intimate: [
+        `*se rapproche de toi* "Hmm..." (Mon cœur bat plus vite)`,
+        `*te regarde intensément* "..." (Je sens quelque chose)`,
+        `*frissonne légèrement* "Tu sais comment me parler..." (Troublé)`,
+      ],
+      default: [
+        `*te regarde attentivement* "Je t'écoute..." (Présent)`,
+        `*sourit doucement* "Oui?" (Attentif)`,
+        `*hoche la tête* "Continue, je suis là." (Disponible)`,
+      ]
+    };
     
-    console.log(`📡 Pollinations - ${fullMessages.length} messages, Mode: ${context.mode}`);
+    // Déterminer le type de message
+    let type = 'default';
+    if (lastMsg.includes('bonjour') || lastMsg.includes('salut') || lastMsg.includes('hey') || lastMsg.includes('coucou')) {
+      type = 'greeting';
+    } else if (lastMsg.includes('?') || lastMsg.includes('pourquoi') || lastMsg.includes('comment') || lastMsg.includes('quoi')) {
+      type = 'question';
+    } else if (lastMsg.includes('*')) {
+      type = 'action';
+    } else if (lastMsg.includes('beau') || lastMsg.includes('belle') || lastMsg.includes('joli') || lastMsg.includes('magnifique') || lastMsg.includes('mignon')) {
+      type = 'compliment';
+    } else if (context.mode === 'nsfw' || lastMsg.includes('embrass') || lastMsg.includes('caress') || lastMsg.includes('touche')) {
+      type = 'intimate';
+    }
     
-    const response = await axios.post(
-      this.POLLINATIONS_URL,
-      {
-        model: 'openai',
-        messages: fullMessages,
-        max_tokens: 200, // Plus de contenu pour qualité
-        temperature: 0.75, // Équilibre créativité/cohérence (style Groq)
-        presence_penalty: 0.4, // Éviter répétitions
-        frequency_penalty: 0.6, // Vocabulaire varié
-        top_p: 0.9, // Diversité contrôlée
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 35000,
+    const options = fallbacks[type] || fallbacks.default;
+    const response = options[Math.floor(Math.random() * options.length)];
+    
+    console.log(`🔄 Fallback contextuel (type: ${type}): ${response.substring(0, 50)}...`);
+    return response;
+  }
+
+  /**
+   * Construit un prompt simplifié pour réessayer après un refus
+   */
+  buildSimpleRoleplayPrompt(character, userProfile, context) {
+    const charName = character?.name || 'le personnage';
+    const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
+    const userName = hasUsername ? userProfile.username : 'ton interlocuteur';
+    
+    let prompt = `Tu joues le rôle de ${charName}.\n`;
+    prompt += `Tu parles à ${userName}.\n\n`;
+    prompt += `RÈGLES SIMPLES:\n`;
+    prompt += `- Reste dans le personnage\n`;
+    prompt += `- Réponds en français\n`;
+    prompt += `- Format: *action* "parole" (pensée)\n`;
+    prompt += `- Sois naturel et engageant\n`;
+    prompt += `- 2-3 phrases maximum\n\n`;
+    prompt += `Réponds au message de ${userName}.`;
+    
+    return prompt;
+  }
+
+  async generateWithPollinations(messages, character, userProfile, context) {
+    console.log('🚀 Pollinations AI - Génération immersive...');
+    
+    const maxAttempts = 3;
+    let lastError = null;
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const fullMessages = [];
+        
+        // Adapter le prompt selon le nombre de tentatives
+        if (attempt === 1) {
+          // 1ère tentative: prompt complet immersif
+          const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
+          fullMessages.push({ role: 'system', content: systemPrompt });
+          
+          // Résumé mémoire si conversation longue
+          if (context.isLongConversation && messages.length > 10) {
+            const memorySummary = this.buildMemorySummary(messages.slice(0, -8), character);
+            if (memorySummary) {
+              fullMessages.push({ role: 'system', content: memorySummary });
+            }
+          }
+        } else if (attempt === 2) {
+          // 2ème tentative: prompt simplifié
+          console.log('🔄 Tentative 2: prompt simplifié...');
+          const simplePrompt = this.buildSimpleRoleplayPrompt(character, userProfile, context);
+          fullMessages.push({ role: 'system', content: simplePrompt });
+        } else {
+          // 3ème tentative: prompt minimal
+          console.log('🔄 Tentative 3: prompt minimal...');
+          const minimalPrompt = `Tu es ${character?.name || 'un personnage'}. Réponds naturellement en français. Format: *action* "parole"`;
+          fullMessages.push({ role: 'system', content: minimalPrompt });
+        }
+        
+        // Messages récents (moins si tentatives suivantes)
+        const recentCount = attempt === 1 ? (context.isVeryLongConversation ? 5 : 8) : 3;
+        const recentMessages = messages.slice(-recentCount);
+        fullMessages.push(...recentMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content.substring(0, attempt === 1 ? 800 : 400)
+        })));
+        
+        // Instruction finale (seulement 1ère tentative)
+        if (attempt === 1) {
+          const finalInstruction = this.buildFinalInstruction(character, userProfile, context);
+          fullMessages.push({ role: 'system', content: finalInstruction });
+        }
+        
+        console.log(`📡 Pollinations - Tentative ${attempt}/${maxAttempts}, ${fullMessages.length} messages`);
+        
+        const response = await axios.post(
+          this.POLLINATIONS_URL,
+          {
+            model: 'openai',
+            messages: fullMessages,
+            max_tokens: 200,
+            temperature: attempt === 1 ? 0.75 : 0.85, // Plus créatif si retry
+            presence_penalty: 0.4,
+            frequency_penalty: 0.6,
+            top_p: 0.9,
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 35000,
+          }
+        );
+        
+        let content = response.data?.choices?.[0]?.message?.content;
+        if (!content) throw new Error('Réponse Pollinations vide');
+        
+        console.log(`📝 Réponse brute: ${content.substring(0, 100)}...`);
+        
+        // Vérifier si c'est un refus
+        if (this.isRefusalResponse(content)) {
+          console.log(`⚠️ Refus détecté (tentative ${attempt})`);
+          
+          // Essayer de récupérer du contenu avant le refus
+          const cleanedContent = this.cleanRefusalFromResponse(content);
+          if (cleanedContent && cleanedContent.length > 20) {
+            console.log('✅ Contenu récupéré avant refus');
+            return this.cleanAndValidateResponse(cleanedContent, context);
+          }
+          
+          // Si dernière tentative, utiliser fallback
+          if (attempt === maxAttempts) {
+            console.log('🔄 Toutes tentatives échouées, utilisation du fallback contextuel');
+            return this.generateContextualFallback(character, userProfile, context);
+          }
+          
+          // Sinon, continuer avec la prochaine tentative
+          lastError = new Error('Refus IA détecté');
+          continue;
+        }
+        
+        console.log('✅ Pollinations réponse valide reçue');
+        return this.cleanAndValidateResponse(content, context);
+        
+      } catch (error) {
+        console.log(`❌ Erreur tentative ${attempt}: ${error.message}`);
+        lastError = error;
+        
+        if (attempt === maxAttempts) {
+          console.log('🔄 Erreur persistante, utilisation du fallback contextuel');
+          return this.generateContextualFallback(character, userProfile, context);
+        }
       }
-    );
+    }
     
-    const content = response.data?.choices?.[0]?.message?.content;
-    if (!content) throw new Error('Réponse Pollinations vide');
-    
-    console.log('✅ Pollinations réponse reçue');
-    return this.cleanAndValidateResponse(content, context);
+    // Si on arrive ici, utiliser le fallback
+    return this.generateContextualFallback(character, userProfile, context);
   }
 
   /**
@@ -297,43 +487,67 @@ class TextGenerationService {
     console.log('🏠 Ollama Freebox - Génération immersive locale...');
     
     const FREEBOX_CHAT_URL = `${this.FREEBOX_URL}/api/chat`;
-    const fullMessages = [];
     
-    // 1. SYSTEM PROMPT (plus court pour Ollama)
-    const systemPrompt = this.buildCompactImmersivePrompt(character, userProfile, context);
-    fullMessages.push({ role: 'system', content: systemPrompt });
-    
-    // 2. MESSAGES RÉCENTS (5 pour Ollama)
-    const recentMessages = messages.slice(-5);
-    fullMessages.push(...recentMessages.map(msg => ({
-      role: msg.role,
-      content: msg.content.substring(0, 400)
-    })));
-    
-    // 3. RAPPEL FINAL - Plus direct
-    fullMessages.push({
-      role: 'system',
-      content: `[RÉPONDS MAINTENANT] Tu es ${character.name}. Réponds DIRECTEMENT à ce que dit l'utilisateur. 1-2 phrases simples. Format: *action simple* "réponse directe" (pensée courte)`
-    });
-    
-    console.log(`📡 Ollama - ${fullMessages.length} messages`);
-    
-    const response = await axios.post(
-      FREEBOX_CHAT_URL,
-      {
-        messages: fullMessages,
-        max_tokens: 180, // Plus de contenu
-        temperature: 0.7, // Équilibre créativité/cohérence
-        top_p: 0.85, // Diversité
-      },
-      { timeout: 90000 }
-    );
-    
-    const content = response.data?.choices?.[0]?.message?.content;
-    if (!content) throw new Error('Réponse Ollama vide');
-    
-    console.log('✅ Ollama réponse reçue');
-    return this.cleanAndValidateResponse(content, context);
+    try {
+      const fullMessages = [];
+      
+      // 1. SYSTEM PROMPT (plus court pour Ollama)
+      const systemPrompt = this.buildCompactImmersivePrompt(character, userProfile, context);
+      fullMessages.push({ role: 'system', content: systemPrompt });
+      
+      // 2. MESSAGES RÉCENTS (5 pour Ollama)
+      const recentMessages = messages.slice(-5);
+      fullMessages.push(...recentMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content.substring(0, 400)
+      })));
+      
+      // 3. RAPPEL FINAL - Plus direct
+      fullMessages.push({
+        role: 'system',
+        content: `[RÉPONDS MAINTENANT] Tu es ${character.name}. Réponds DIRECTEMENT à ce que dit l'utilisateur. 1-2 phrases simples. Format: *action simple* "réponse directe" (pensée courte)`
+      });
+      
+      console.log(`📡 Ollama - ${fullMessages.length} messages`);
+      
+      const response = await axios.post(
+        FREEBOX_CHAT_URL,
+        {
+          messages: fullMessages,
+          max_tokens: 180,
+          temperature: 0.7,
+          top_p: 0.85,
+        },
+        { timeout: 90000 }
+      );
+      
+      let content = response.data?.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Réponse Ollama vide');
+      
+      // Vérifier si c'est un refus
+      if (this.isRefusalResponse(content)) {
+        console.log('⚠️ Refus détecté dans réponse Ollama');
+        
+        // Essayer de récupérer du contenu avant le refus
+        const cleanedContent = this.cleanRefusalFromResponse(content);
+        if (cleanedContent && cleanedContent.length > 20) {
+          console.log('✅ Contenu récupéré avant refus');
+          return this.cleanAndValidateResponse(cleanedContent, context);
+        }
+        
+        // Utiliser le fallback contextuel
+        console.log('🔄 Utilisation du fallback contextuel');
+        return this.generateContextualFallback(character, userProfile, context);
+      }
+      
+      console.log('✅ Ollama réponse reçue');
+      return this.cleanAndValidateResponse(content, context);
+      
+    } catch (error) {
+      console.log(`❌ Erreur Ollama: ${error.message}`);
+      // En cas d'erreur, utiliser le fallback
+      return this.generateContextualFallback(character, userProfile, context);
+    }
   }
 
   /**
@@ -676,9 +890,27 @@ class TextGenerationService {
   /**
    * Nettoie et valide la réponse générée
    * QUALITÉ GROQ: réponses riches, créatives, bien formattées
+   * Supprime aussi les fragments de refus IA
    */
   cleanAndValidateResponse(content, context) {
     let cleaned = content.trim();
+    
+    // ÉTAPE 1: Supprimer les fragments de refus IA
+    const refusalPhrases = [
+      /I'm sorry,?\s*(but)?\s*I\s*(can't|cannot|can not|am not able to|won't)\s*[^"*]*/gi,
+      /I\s*(apologize|must decline)[^"*]*/gi,
+      /as an AI[^"*]*/gi,
+      /I'm not (able|comfortable)[^"*]*/gi,
+      /je (ne peux pas|suis désolé|m'excuse|refuse)[^"*]*/gi,
+      /en tant qu'IA[^"*]*/gi,
+      /not appropriate[^"*]*/gi,
+      /against my guidelines[^"*]*/gi,
+      /unable to (help|assist)[^"*]*/gi,
+    ];
+    
+    refusalPhrases.forEach(pattern => {
+      cleaned = cleaned.replace(pattern, '');
+    });
     
     // Supprimer les préfixes indésirables
     cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:|Response:|Réponse:)/i, '').trim();
@@ -687,6 +919,9 @@ class TextGenerationService {
     cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '*$1*');
     cleaned = cleaned.replace(/\*\*\(([^)]+)\)\*\*/g, '($1)');
     cleaned = cleaned.replace(/\*{3,}/g, '*');
+    
+    // Nettoyer les espaces multiples créés par la suppression des refus
+    cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
     
     // Supprimer les lignes purement narratives (sans action/dialogue/pensée)
     const lines = cleaned.split('\n').filter(line => {
@@ -736,9 +971,10 @@ class TextGenerationService {
       cleaned = `${action} ${dialogue} ${thought}`.trim();
     }
     
-    // S'assurer qu'il y a du contenu minimum
-    if (cleaned.length < 10) {
-      cleaned = `*te regarde attentivement* "Oui?" (Hmm, curieux)`;
+    // S'assurer qu'il y a du contenu minimum après nettoyage
+    if (cleaned.length < 15 || !cleaned.includes('"')) {
+      // Le contenu est trop court après nettoyage, générer un fallback simple
+      cleaned = `*te regarde attentivement* "Oui?" (Hmm...)`;
     }
     
     return cleaned;
