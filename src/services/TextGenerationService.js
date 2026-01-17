@@ -1,62 +1,361 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import AuthService from './AuthService';
 
 /**
- * Service de génération de texte - SANS GROQ
- * Utilise Pollinations AI (rapide) ou Ollama Freebox (local)
+ * Service de génération de texte - MULTI-API v5.3.33
  * 
- * v4.3.17 - Groq complètement retiré
+ * APIs disponibles (sans rotation automatique):
+ * - Pollinations AI (Mistral) - par défaut
+ * - Pollinations AI (OpenAI)
+ * - Pollinations AI (Llama)
+ * - Pollinations AI (Deepseek)
+ * - Pollinations AI (Qwen)
+ * - Venice AI (uncensored) - nécessite clé API
+ * - DeepInfra - nécessite clé API
+ * - Ollama Freebox (local)
  */
 class TextGenerationService {
   constructor() {
     // URLs des serveurs
     this.FREEBOX_URL = 'http://88.174.155.230:33437';
-    this.POLLINATIONS_URL = 'https://text.pollinations.ai/openai';
+    this.currentUserId = null;
     
-    // Providers disponibles (SANS GROQ)
-    this.providers = {
-      pollinations: {
-        name: 'Pollinations AI',
-        description: '🚀 Rapide et gratuit (recommandé)',
-        speed: 'fast',
+    // === APIS DISPONIBLES v5.3.33 ===
+    // Sans rotation automatique - l'utilisateur choisit
+    this.availableApis = {
+      // === POLLINATIONS AI (gratuit, sans clé) ===
+      'pollinations-mistral': {
+        id: 'pollinations-mistral',
+        name: '🚀 Pollinations (Mistral)',
+        description: 'Rapide, bon roleplay',
+        url: 'https://text.pollinations.ai',
+        model: 'mistral',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: true,
       },
-      ollama: {
-        name: 'Ollama Freebox',
-        description: '🏠 Local, sans limite, plus lent',
-        speed: 'slow',
+      'pollinations-openai': {
+        id: 'pollinations-openai',
+        name: '🤖 Pollinations (OpenAI)',
+        description: 'Cohérent, créatif',
+        url: 'https://text.pollinations.ai',
+        model: 'openai',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: false,
+      },
+      'pollinations-llama': {
+        id: 'pollinations-llama',
+        name: '🦙 Pollinations (Llama)',
+        description: 'Open source, polyvalent',
+        url: 'https://text.pollinations.ai',
+        model: 'llama',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: true,
+      },
+      'pollinations-deepseek': {
+        id: 'pollinations-deepseek',
+        name: '🔍 Pollinations (DeepSeek)',
+        description: 'Raisonnement avancé',
+        url: 'https://text.pollinations.ai',
+        model: 'deepseek',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: true,
+      },
+      'pollinations-qwen': {
+        id: 'pollinations-qwen',
+        name: '🌐 Pollinations (Qwen)',
+        description: 'Multilingue, intelligent',
+        url: 'https://text.pollinations.ai',
+        model: 'qwen',
+        format: 'pollinations',
+        requiresKey: false,
+        uncensored: true,
+      },
+      
+      // === VENICE AI (nécessite clé API gratuite) ===
+      'venice-uncensored': {
+        id: 'venice-uncensored',
+        name: '🔓 Venice AI (Uncensored)',
+        description: 'Aucune censure, créatif max',
+        url: 'https://api.venice.ai/api/v1/chat/completions',
+        model: 'venice-uncensored',
+        format: 'openai',
+        requiresKey: true,
+        keyName: 'venice_api_key',
+        uncensored: true,
+      },
+      'venice-llama': {
+        id: 'venice-llama',
+        name: '🦙 Venice AI (Llama 3.3)',
+        description: 'Llama 70B via Venice',
+        url: 'https://api.venice.ai/api/v1/chat/completions',
+        model: 'llama-3.3-70b',
+        format: 'openai',
+        requiresKey: true,
+        keyName: 'venice_api_key',
+        uncensored: true,
+      },
+      
+      // === DEEPINFRA (nécessite clé API gratuite) ===
+      'deepinfra-hermes': {
+        id: 'deepinfra-hermes',
+        name: '⚡ DeepInfra (Hermes 3)',
+        description: 'Roleplay optimisé',
+        url: 'https://api.deepinfra.com/v1/openai/chat/completions',
+        model: 'NousResearch/Hermes-3-Llama-3.1-70B',
+        format: 'openai',
+        requiresKey: true,
+        keyName: 'deepinfra_api_key',
+        uncensored: true,
+      },
+      'deepinfra-llama': {
+        id: 'deepinfra-llama',
+        name: '🦙 DeepInfra (Llama 3.3)',
+        description: 'Meta Llama dernière version',
+        url: 'https://api.deepinfra.com/v1/openai/chat/completions',
+        model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+        format: 'openai',
+        requiresKey: true,
+        keyName: 'deepinfra_api_key',
+        uncensored: false,
+      },
+      
+      // === OLLAMA LOCAL ===
+      'ollama': {
+        id: 'ollama',
+        name: '🏠 Ollama (Freebox)',
+        description: 'Local, sans limite',
+        url: 'http://88.174.155.230:33437/api/chat',
+        model: 'mistral',
+        format: 'ollama',
+        requiresKey: false,
+        uncensored: true,
       },
     };
-
-    // Provider par défaut: Pollinations (plus rapide)
-    this.currentProvider = 'pollinations';
+    
+    // API sélectionnée par défaut
+    this.selectedApiId = 'pollinations-mistral';
+    this.configLoaded = false;
+    
+    // Clés API stockées
+    this.apiKeys = {};
     
     // Pour compatibilité avec l'ancien code
-    this.apiKeys = { groq: [] };
-    this.currentKeyIndex = { groq: 0 };
+    this.freeApis = Object.values(this.availableApis);
+    this.currentApiIndex = 0;
+    this.selectedApiMode = 'pollinations-mistral';
+    
+    // Provider principal (pour compatibilité)
+    this.currentProvider = 'pollinations';
+    this.providers = {
+      pollinations: { name: 'Pollinations AI', description: '🚀 Rapide et stable', speed: 'fast' },
+      venice: { name: 'Venice AI', description: '🔓 Uncensored', speed: 'medium' },
+      deepinfra: { name: 'DeepInfra', description: '⚡ Rapide', speed: 'fast' },
+      ollama: { name: 'Ollama Freebox', description: '🏠 Local', speed: 'slow' },
+    };
+  }
+
+  /**
+   * Récupère l'ID de l'utilisateur courant
+   */
+  async getCurrentUserId() {
+    try {
+      const user = AuthService.getCurrentUser();
+      if (user?.id) {
+        return user.id;
+      }
+      const storedUser = await AsyncStorage.getItem('current_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        return parsed.id || 'anonymous';
+      }
+      return 'anonymous';
+    } catch (error) {
+      return 'anonymous';
+    }
   }
 
   async loadConfig() {
     try {
-      // Charger le provider sélectionné
-      const provider = await AsyncStorage.getItem('text_generation_provider');
-      if (provider && this.providers[provider]) {
-        this.currentProvider = provider;
+      const userId = await this.getCurrentUserId();
+      this.currentUserId = userId;
+      
+      // === CHARGER L'API SÉLECTIONNÉE ===
+      const apiKey = `text_api_selected_${userId}`;
+      let selectedApi = await AsyncStorage.getItem(apiKey);
+      
+      // Fallback sur la config globale
+      if (!selectedApi) {
+        selectedApi = await AsyncStorage.getItem('text_api_selected');
       }
       
-      console.log(`🤖 Provider texte: ${this.providers[this.currentProvider]?.name || this.currentProvider}`);
+      // Vérifier que l'API existe, sinon défaut
+      if (selectedApi && this.availableApis[selectedApi]) {
+        this.selectedApiId = selectedApi;
+      } else {
+        this.selectedApiId = 'pollinations-mistral';
+        await AsyncStorage.setItem(apiKey, 'pollinations-mistral');
+      }
+      
+      // === CHARGER LES CLÉS API ===
+      const veniceKey = await AsyncStorage.getItem(`venice_api_key_${userId}`) || 
+                        await AsyncStorage.getItem('venice_api_key');
+      const deepinfraKey = await AsyncStorage.getItem(`deepinfra_api_key_${userId}`) || 
+                           await AsyncStorage.getItem('deepinfra_api_key');
+      
+      this.apiKeys = {
+        venice_api_key: veniceKey || '',
+        deepinfra_api_key: deepinfraKey || '',
+      };
+      
+      // Pour compatibilité
+      this.selectedApiMode = this.selectedApiId;
+      this.currentProvider = this.selectedApiId.split('-')[0];
+      
+      this.configLoaded = true;
+      const api = this.availableApis[this.selectedApiId];
+      console.log(`🤖 API texte sélectionnée: ${api?.name || this.selectedApiId}`);
+      console.log(`🔒 Clés API: Venice=${this.apiKeys.venice_api_key ? '✓' : '✗'}, DeepInfra=${this.apiKeys.deepinfra_api_key ? '✓' : '✗'}`);
     } catch (error) {
       console.error('Erreur chargement config:', error);
+      this.selectedApiId = 'pollinations-mistral';
+      this.configLoaded = true;
     }
   }
 
   /**
-   * Sauvegarde le provider sélectionné
+   * Sélectionne une API spécifique (sans rotation)
+   */
+  async setSelectedApi(apiId) {
+    if (!this.availableApis[apiId]) {
+      console.log(`❌ API inconnue: ${apiId}`);
+      return false;
+    }
+    
+    const userId = await this.getCurrentUserId();
+    this.selectedApiId = apiId;
+    this.selectedApiMode = apiId; // Compatibilité
+    
+    // Sauvegarder
+    const apiKey = `text_api_selected_${userId}`;
+    await AsyncStorage.setItem(apiKey, apiId);
+    
+    const api = this.availableApis[apiId];
+    console.log(`✅ API sélectionnée: ${api.name}`);
+    return true;
+  }
+  
+  /**
+   * Alias pour compatibilité
+   */
+  async setApiMode(mode) {
+    return this.setSelectedApi(mode);
+  }
+  
+  /**
+   * Sauvegarde une clé API
+   */
+  async setApiKey(keyName, keyValue) {
+    const userId = await this.getCurrentUserId();
+    this.apiKeys[keyName] = keyValue;
+    
+    // Sauvegarder
+    await AsyncStorage.setItem(`${keyName}_${userId}`, keyValue);
+    console.log(`🔑 Clé API sauvegardée: ${keyName}`);
+    return true;
+  }
+  
+  /**
+   * Récupère une clé API
+   */
+  getApiKey(keyName) {
+    return this.apiKeys[keyName] || '';
+  }
+  
+  /**
+   * Retourne la liste des APIs disponibles pour l'interface
+   */
+  getAvailableApisForUI() {
+    const apis = [];
+    
+    for (const [id, api] of Object.entries(this.availableApis)) {
+      // Vérifier si l'API nécessite une clé et si on l'a
+      let available = true;
+      let needsKey = false;
+      
+      if (api.requiresKey) {
+        const key = this.apiKeys[api.keyName];
+        needsKey = true;
+        available = key && key.length > 0;
+      }
+      
+      apis.push({
+        id: api.id,
+        name: api.name,
+        description: api.description,
+        uncensored: api.uncensored,
+        requiresKey: api.requiresKey,
+        available: available,
+        needsKey: needsKey,
+        keyName: api.keyName,
+      });
+    }
+    
+    return apis;
+  }
+  
+  /**
+   * Retourne l'API actuellement sélectionnée
+   */
+  getSelectedApi() {
+    return this.availableApis[this.selectedApiId] || this.availableApis['pollinations-mistral'];
+  }
+  
+  /**
+   * Retourne l'ID de l'API sélectionnée
+   */
+  getSelectedApiId() {
+    return this.selectedApiId;
+  }
+
+  /**
+   * Retourne le mode API actuel
+   */
+  getApiMode() {
+    return this.selectedApiMode;
+  }
+
+  /**
+   * Retourne la liste des APIs disponibles pour la sélection
+   */
+  getAvailableApis() {
+    return [
+      { id: 'auto', name: 'Rotation Auto', description: '🔄 Change d\'API automatiquement (peut causer incohérences)' },
+      ...this.freeApis.map(api => ({
+        id: api.id,
+        name: api.name,
+        description: api.format === 'pollinations' ? '⭐ Recommandé - Plus stable' : `📡 ${api.format}`
+      }))
+    ];
+  }
+
+  /**
+   * Sauvegarde le provider sélectionné (PAR UTILISATEUR)
    */
   async setProvider(provider) {
     if (this.providers[provider]) {
+      const userId = await this.getCurrentUserId();
       this.currentProvider = provider;
-      await AsyncStorage.setItem('text_generation_provider', provider);
-      console.log(`✅ Provider changé: ${this.providers[provider].name}`);
+      
+      // Sauvegarder avec la clé spécifique à l'utilisateur
+      const userKey = `text_generation_provider_${userId}`;
+      await AsyncStorage.setItem(userKey, provider);
+      
+      console.log(`✅ Provider changé (user: ${userId}): ${this.providers[provider].name}`);
       return true;
     }
     return false;
@@ -110,123 +409,226 @@ class TextGenerationService {
   }
 
   /**
-   * Génère une réponse avec le provider sélectionné
-   * SYSTÈME IMMERSIF COMPLET avec mémoire, anti-répétition, tempérament
+   * Génère une réponse avec l'API sélectionnée
+   * v5.3.33 - Multi-API sans rotation automatique
    */
   async generateResponse(messages, character, userProfile = null, retries = 3) {
     await this.loadConfig();
     
-    const provider = this.currentProvider;
-    console.log(`🤖 Génération avec ${this.providers[provider]?.name || provider}`);
+    const api = this.getSelectedApi();
+    console.log(`🤖 Génération avec ${api.name}`);
     
     // Analyser le contexte de conversation + scénario du personnage
     const conversationContext = this.analyzeConversationContext(messages, character);
     console.log(`📊 Contexte: ${conversationContext.messageCount} msgs, Mode: ${conversationContext.mode}, Intensité: ${conversationContext.intensity}`);
 
-    // Utiliser le provider sélectionné
-    if (provider === 'pollinations') {
-      try {
-        const response = await this.generateWithPollinations(messages, character, userProfile, conversationContext);
-        if (response) return response;
-      } catch (error) {
-        console.log('⚠️ Pollinations échoué:', error.message);
+    // Vérifier si l'API nécessite une clé
+    if (api.requiresKey) {
+      const key = this.apiKeys[api.keyName];
+      if (!key) {
+        console.log(`⚠️ ${api.name} nécessite une clé API`);
+        console.log('🔄 Fallback vers Pollinations...');
+        return await this.generateWithSelectedApi(
+          messages, character, userProfile, conversationContext,
+          this.availableApis['pollinations-mistral']
+        );
+      }
+    }
+
+    try {
+      const response = await this.generateWithSelectedApi(messages, character, userProfile, conversationContext, api);
+      if (response) return response;
+    } catch (error) {
+      console.log(`⚠️ ${api.name} échoué:`, error.message);
+      
+      // Fallback vers Pollinations si ce n'est pas déjà Pollinations
+      if (!api.id.startsWith('pollinations')) {
+        console.log('🔄 Fallback vers Pollinations...');
+        return await this.generateWithSelectedApi(
+          messages, character, userProfile, conversationContext,
+          this.availableApis['pollinations-mistral']
+        );
+      }
+      
+      // Sinon fallback Ollama
+      if (api.id !== 'ollama') {
         console.log('🔄 Fallback vers Ollama...');
         return await this.generateWithOllama(messages, character, userProfile, conversationContext);
       }
-    } else {
-      try {
-        const response = await this.generateWithOllama(messages, character, userProfile, conversationContext);
-        if (response) return response;
-      } catch (error) {
-        console.log('⚠️ Ollama échoué:', error.message);
-        console.log('🔄 Fallback vers Pollinations...');
-        return await this.generateWithPollinations(messages, character, userProfile, conversationContext);
-      }
     }
+    
+    // Dernier recours: fallback contextuel
+    return this.generateContextualFallback(character, userProfile, conversationContext);
   }
 
   /**
    * Analyse le contexte de la conversation + scénario pour adapter les réponses
-   * NSFW activé très facilement pour permettre les conversations adultes
+   * NSFW PROGRESSIF: commence SFW puis escalade selon les signaux utilisateur
+   * v5.3.11 - Détection intelligente avec seuils et progression
    */
   analyzeConversationContext(messages, character = null) {
     const messageCount = messages.length;
     const recentMessages = messages.slice(-10);
     const recentText = recentMessages.map(m => m.content?.toLowerCase() || '').join(' ');
     
-    // Dernier message de l'utilisateur (très important pour la détection)
-    const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.toLowerCase() || '';
+    // Messages de l'utilisateur uniquement (pour détection des intentions)
+    const userMessages = messages.filter(m => m.role === 'user');
+    const lastUserMsg = userMessages.slice(-1)[0]?.content?.toLowerCase() || '';
+    const recentUserMsgs = userMessages.slice(-5).map(m => m.content?.toLowerCase() || '').join(' ');
     
-    // Aussi analyser le scénario du personnage
+    // Scénario du personnage
     const scenarioText = (character?.scenario || '').toLowerCase();
-    const allText = recentText + ' ' + scenarioText + ' ' + lastUserMsg;
     
-    // Détection du mode SFW/NSFW - TRÈS SENSIBLE pour permettre NSFW facilement
-    const nsfwKeywords = [
-      // Actions intimes
-      'nu', 'nue', 'déshabill', 'embrass', 'caress', 'touche', 'masse',
-      // Corps
-      'corps', 'sein', 'poitrine', 'fesse', 'cul', 'sexe', 'bite', 'queue', 'chatte',
-      // États
-      'excit', 'gémis', 'mouill', 'band', 'dur',
-      // Désirs
-      'désir', 'plaisir', 'jouir', 'orgasm', 'envie de toi', 'te veux',
-      // Actions sexuelles
-      'baiser', 'faire l\'amour', 'coucher', 'sucer', 'lécher', 'pénétr',
-      // Scénarios
-      'enfant', 'bébé', 'enceinte', 'grossesse', 'mari refuse', 'beau-frère', 'belle-sœur',
-      // Lieux/situations intimes
-      'lit', 'chambre', 'seul', 'ensemble', 'sensuel', 'chaud', 'nuit',
-      // Avances explicites
-      'retire', 'enlève', 'montre', 'viens', 'approche', 'plus loin', 'continue'
+    // === MOTS-CLÉS PAR NIVEAU D'INTENSITÉ ===
+    // Niveau 1: Mots romantiques/flirt (pas encore NSFW)
+    const romanticKeywords = [
+      'beau', 'belle', 'mignon', 'séduisant', 'attirant', 'charmant',
+      'yeux', 'sourire', 'regarder', 'approche', 'ensemble', 'seul',
     ];
-    const sfwKeywords = ['bonjour', 'salut', 'travail', 'journée'];
     
-    let nsfwScore = 0;
+    // Niveau 2: Mots suggestifs (transition vers NSFW léger)
+    const suggestiveKeywords = [
+      'embrass', 'caress', 'touche', 'sensuel', 'corps', 'peau',
+      'désir', 'envie', 'chaud', 'frisson', 'rapproche', 'serre',
+      'lit', 'chambre', 'nuit', 'intime',
+    ];
+    
+    // Niveau 3: Mots NSFW explicites (active le mode NSFW)
+    const explicitKeywords = [
+      // Corps explicite
+      'sein', 'seins', 'poitrine', 'téton', 'fesse', 'cul',
+      'sexe', 'bite', 'queue', 'pénis', 'chatte', 'vagin', 'pubis',
+      // États/actions sexuels
+      'nu', 'nue', 'déshabill', 'excit', 'gémis', 'mouill', 'band', 'dur',
+      'jouir', 'orgasm', 'plaisir sexuel',
+      // Verbes sexuels
+      'baiser', 'faire l\'amour', 'coucher avec', 'sucer', 'lécher', 'pénétr',
+      'masturb', 'branl', 'doigt',
+      // Expressions explicites
+      'envie de toi', 'te veux', 'prends-moi', 'fais-moi', 'viens en moi',
+    ];
+    
+    // Niveau 4: Mots très explicites (intensité maximale)
+    const veryExplicitKeywords = [
+      'baise', 'encule', 'défonce', 'sperme', 'éjacul', 'avale',
+      'fourre', 'pilonne', 'lime', 'bourre',
+    ];
+    
+    // SFW explicite (force le mode SFW)
+    const sfwKeywords = ['bonjour', 'salut', 'travail', 'journée', 'comment ça va', 'ça va', 'merci'];
+    
+    // === CALCUL DES SCORES (uniquement messages utilisateur récents) ===
+    let romanticScore = 0;
+    let suggestiveScore = 0;
+    let explicitScore = 0;
+    let veryExplicitScore = 0;
     let sfwScore = 0;
-    nsfwKeywords.forEach(k => { if (allText.includes(k)) nsfwScore++; });
-    sfwKeywords.forEach(k => { if (allText.includes(k)) sfwScore++; });
     
-    // Détection encore plus sensible sur le dernier message utilisateur
-    const lastMsgNsfw = nsfwKeywords.some(k => lastUserMsg.includes(k));
+    // Scores sur les messages utilisateur récents
+    romanticKeywords.forEach(k => { if (recentUserMsgs.includes(k)) romanticScore++; });
+    suggestiveKeywords.forEach(k => { if (recentUserMsgs.includes(k)) suggestiveScore++; });
+    explicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) explicitScore++; });
+    veryExplicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) veryExplicitScore++; });
+    sfwKeywords.forEach(k => { if (lastUserMsg.includes(k)) sfwScore++; });
     
-    // Le scénario NSFW force le mode NSFW dès le début
-    const scenarioIsNsfw = nsfwKeywords.some(k => scenarioText.includes(k));
+    // Bonus pour le dernier message (intention immédiate)
+    explicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) explicitScore += 2; });
+    veryExplicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) veryExplicitScore += 2; });
     
-    // NSFW activé facilement: scénario NSFW, OU dernier message NSFW, OU mots-clés détectés
-    const mode = scenarioIsNsfw || lastMsgNsfw || nsfwScore > 0 ? 'nsfw' : 'sfw';
+    // === DÉTERMINER LE MODE ET L'INTENSITÉ NSFW ===
+    // Le scénario peut indiquer une prédisposition mais ne force PAS le mode NSFW au démarrage
+    const scenarioIsExplicit = explicitKeywords.some(k => scenarioText.includes(k));
+    const scenarioIsSuggestive = suggestiveKeywords.some(k => scenarioText.includes(k));
     
-    // Calcul de l'intensité (1-5)
+    // Déterminer le mode basé sur les ACTIONS DE L'UTILISATEUR (pas le scénario seul)
+    let mode = 'sfw';
+    let nsfwIntensity = 0; // 0-5
+    
+    if (veryExplicitScore > 0 || explicitScore >= 3) {
+      // Utilisateur très explicite -> NSFW intense
+      mode = 'nsfw';
+      nsfwIntensity = Math.min(5, 3 + veryExplicitScore);
+    } else if (explicitScore >= 1) {
+      // Utilisateur utilise des mots explicites -> NSFW modéré
+      mode = 'nsfw';
+      nsfwIntensity = Math.min(4, 2 + explicitScore);
+    } else if (suggestiveScore >= 3 || (suggestiveScore >= 2 && scenarioIsSuggestive)) {
+      // Beaucoup de suggestions -> NSFW léger
+      mode = 'nsfw_light';
+      nsfwIntensity = Math.min(3, 1 + Math.floor(suggestiveScore / 2));
+    } else if (suggestiveScore >= 1 && romanticScore >= 2) {
+      // Conversation romantique qui s'échauffe
+      mode = 'romantic';
+      nsfwIntensity = 1;
+    } else if (romanticScore >= 1) {
+      // Conversation avec ton romantique
+      mode = 'flirty';
+      nsfwIntensity = 0;
+    } else if (sfwScore > 0 && explicitScore === 0) {
+      // Discussion normale, maintenir SFW
+      mode = 'sfw';
+      nsfwIntensity = 0;
+    }
+    
+    // Si le dernier message est clairement SFW, réduire l'intensité
+    if (sfwScore > 0 && explicitScore === 0 && veryExplicitScore === 0) {
+      if (nsfwIntensity > 2) nsfwIntensity = 2;
+    }
+    
+    // Progression naturelle avec la longueur de conversation
+    if (messageCount > 20 && suggestiveScore > 0) {
+      nsfwIntensity = Math.min(5, nsfwIntensity + 1);
+    }
+    
+    // Calcul de l'intensité générale (1-5)
     let intensity = 1;
     if (messageCount > 50) intensity = 5;
     else if (messageCount > 30) intensity = 4;
     else if (messageCount > 15) intensity = 3;
     else if (messageCount > 5) intensity = 2;
     
-    if (mode === 'nsfw') intensity = Math.min(5, intensity + 1);
-    
-    // Extraire les éléments à ne pas répéter
+    // === EXTRAIRE ÉLÉMENTS À NE PAS RÉPÉTER (IMPORTANT) ===
     const usedActions = [];
     const usedPhrases = [];
+    const usedDescriptions = [];
+    
     recentMessages.filter(m => m.role === 'assistant').forEach(m => {
-      const actionMatch = m.content?.match(/\*([^*]+)\*/g);
+      const content = m.content || '';
+      // Actions entre *
+      const actionMatch = content.match(/\*([^*]+)\*/g);
       if (actionMatch) actionMatch.forEach(a => usedActions.push(a.replace(/\*/g, '').toLowerCase()));
-      const phraseMatch = m.content?.match(/"([^"]+)"/g);
-      if (phraseMatch) phraseMatch.forEach(p => usedPhrases.push(p.replace(/"/g, '').toLowerCase().substring(0, 30)));
+      // Dialogues entre "
+      const phraseMatch = content.match(/"([^"]+)"/g);
+      if (phraseMatch) phraseMatch.forEach(p => usedPhrases.push(p.replace(/"/g, '').toLowerCase().substring(0, 40)));
+      // Parties du corps mentionnées (éviter répétition)
+      const bodyParts = ['seins', 'poitrine', 'fesses', 'lèvres', 'cou', 'cuisses', 'dos', 'ventre'];
+      bodyParts.forEach(part => {
+        if (content.toLowerCase().includes(part)) usedDescriptions.push(part);
+      });
     });
     
     // Dernier message de l'utilisateur
     const lastUserMessage = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
     
+    console.log(`📊 Analyse: mode=${mode}, nsfwIntensity=${nsfwIntensity}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}`);
+    
     return {
       messageCount,
       mode,
       intensity,
-      usedActions: [...new Set(usedActions)].slice(-8),
-      usedPhrases: [...new Set(usedPhrases)].slice(-5),
+      nsfwIntensity,
+      romanticScore,
+      suggestiveScore,
+      explicitScore,
+      veryExplicitScore,
+      usedActions: [...new Set(usedActions)].slice(-10),
+      usedPhrases: [...new Set(usedPhrases)].slice(-8),
+      usedDescriptions: [...new Set(usedDescriptions)].slice(-5),
       lastUserMessage,
       isLongConversation: messageCount > 20,
       isVeryLongConversation: messageCount > 50,
+      scenarioIsExplicit,
+      scenarioIsSuggestive,
     };
   }
 
@@ -234,60 +636,711 @@ class TextGenerationService {
    * Génération avec Pollinations AI (RAPIDE - ~3 secondes)
    * Système immersif complet
    */
-  async generateWithPollinations(messages, character, userProfile, context) {
-    console.log('🚀 Pollinations AI - Génération immersive...');
+  /**
+   * Détecte si une réponse contient un refus de l'IA
+   */
+  isRefusalResponse(content) {
+    if (!content) return true;
+    const contentLower = content.toLowerCase();
     
-    const fullMessages = [];
+    const refusalPatterns = [
+      // Anglais
+      "i'm sorry", "i am sorry", "i cannot", "i can't", "i can not",
+      "i'm not able", "i am not able", "unable to", "not appropriate",
+      "as an ai", "as a language model", "i apologize", "i must decline",
+      "i don't think i can", "inappropriate", "not comfortable",
+      "i won't be able", "can't help with that", "cannot help",
+      "against my guidelines", "not something i can",
+      // Français
+      "je ne peux pas", "je suis désolé", "je m'excuse", "en tant qu'ia",
+      "pas en mesure", "je refuse", "ce n'est pas approprié",
+      "je ne suis pas en mesure", "contre mes directives"
+    ];
     
-    // 1. SYSTEM PROMPT IMMERSIF
-    const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
-    fullMessages.push({ role: 'system', content: systemPrompt });
+    return refusalPatterns.some(p => contentLower.includes(p));
+  }
+
+  /**
+   * Nettoie une réponse partielle qui contient un refus
+   * Essaie de récupérer le contenu roleplay avant le refus
+   */
+  cleanRefusalFromResponse(content) {
+    if (!content) return null;
     
-    // 2. RÉSUMÉ MÉMOIRE si conversation longue
-    if (context.isLongConversation && messages.length > 10) {
-      const memorySummary = this.buildMemorySummary(messages.slice(0, -8), character);
-      if (memorySummary) {
-        fullMessages.push({ role: 'system', content: memorySummary });
+    // Chercher du contenu roleplay avant le refus
+    const actionMatch = content.match(/\*[^*]+\*/);
+    const dialogueMatch = content.match(/"[^"]+"/);
+    
+    if (actionMatch || dialogueMatch) {
+      // Il y a du contenu roleplay, essayer de le récupérer
+      const beforeRefusal = content.split(/I'm sorry|I cannot|je ne peux pas|je suis désolé/i)[0];
+      if (beforeRefusal && beforeRefusal.trim().length > 15) {
+        return beforeRefusal.trim();
       }
     }
     
-    // 3. MESSAGES RÉCENTS (8 derniers pour bon contexte)
-    const recentCount = context.isVeryLongConversation ? 5 : 8;
-    const recentMessages = messages.slice(-recentCount);
-    fullMessages.push(...recentMessages.map(msg => ({
-      role: msg.role,
-      content: msg.content.substring(0, 800)
-    })));
+    return null;
+  }
+
+  /**
+   * Génère une réponse contextuelle de fallback
+   * Utilisée quand l'IA refuse de répondre
+   */
+  generateContextualFallback(character, userProfile, context) {
+    const charName = character?.name || 'le personnage';
+    const lastMsg = (context.lastUserMessage || '').toLowerCase();
+    const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
+    const userName = hasUsername ? userProfile.username : 'toi';
     
-    // 4. INSTRUCTION FINALE avec anti-répétition
-    const finalInstruction = this.buildFinalInstruction(character, userProfile, context);
-    fullMessages.push({ role: 'system', content: finalInstruction });
+    // Réponses variées selon le type de message
+    const fallbacks = {
+      greeting: [
+        `*sourit chaleureusement* "Salut ${userName}! Comment vas-tu?" (Ravi de le/la voir)`,
+        `*te regarde avec intérêt* "Hey! Ça me fait plaisir de te voir." (Content)`,
+        `*s'approche doucement* "Coucou ${userName}..." (Il/Elle est là)`,
+      ],
+      question: [
+        `*réfléchit un instant* "Hmm, bonne question..." (Laisse-moi y penser)`,
+        `*te regarde attentivement* "Intéressant ce que tu me demandes..." (Curieux)`,
+        `*penche la tête* "Ah, tu veux savoir ça?" (Il/Elle est curieux/se)`,
+      ],
+      action: [
+        `*réagit à ton geste* "Oh..." (Surpris mais pas déplaisant)`,
+        `*te regarde faire* "Hmm..." (Qu'est-ce qu'il/elle fait?)`,
+        `*observe ta réaction* "Continue..." (Intéressant)`,
+      ],
+      compliment: [
+        `*rougit légèrement* "Merci, c'est gentil..." (Ça fait plaisir)`,
+        `*sourit timidement* "Tu es adorable de dire ça." (Touché)`,
+        `*te regarde dans les yeux* "Vraiment? Ça me touche..." (Sincère)`,
+      ],
+      intimate: [
+        `*se rapproche de toi sensuellemet* "Hmm... Continue..." (Mon cœur bat plus vite)`,
+        `*te regarde intensément, les yeux brillants* "Oui..." (Je sens quelque chose)`,
+        `*frissonne de plaisir* "Tu sais comment me parler..." (Troublé)`,
+      ],
+      nsfw: [
+        `*gémit doucement* "Oh oui..." (Frissons de plaisir)`,
+        `*se cambre contre toi* "Continue..." (Le corps en feu)`,
+        `*halète* "Hmm... j'aime ça..." (Envahi par le désir)`,
+      ],
+      default: [
+        `*te regarde attentivement* "Je t'écoute..." (Présent)`,
+        `*sourit doucement* "Oui?" (Attentif)`,
+        `*hoche la tête* "Continue, je suis là." (Disponible)`,
+      ]
+    };
     
-    console.log(`📡 Pollinations - ${fullMessages.length} messages, Mode: ${context.mode}`);
+    // Déterminer le type de message selon le mode
+    let type = 'default';
     
-    const response = await axios.post(
-      this.POLLINATIONS_URL,
+    // En mode NSFW, utiliser les fallbacks NSFW
+    if (context.mode === 'nsfw') {
+      type = 'nsfw';
+    } else if (context.mode === 'nsfw_light' || lastMsg.includes('embrass') || lastMsg.includes('caress') || lastMsg.includes('touche')) {
+      type = 'intimate';
+    } else if (lastMsg.includes('bonjour') || lastMsg.includes('salut') || lastMsg.includes('hey') || lastMsg.includes('coucou')) {
+      type = 'greeting';
+    } else if (lastMsg.includes('?') || lastMsg.includes('pourquoi') || lastMsg.includes('comment') || lastMsg.includes('quoi')) {
+      type = 'question';
+    } else if (lastMsg.includes('*')) {
+      type = 'action';
+    } else if (lastMsg.includes('beau') || lastMsg.includes('belle') || lastMsg.includes('joli') || lastMsg.includes('magnifique') || lastMsg.includes('mignon')) {
+      type = 'compliment';
+    }
+    
+    const options = fallbacks[type] || fallbacks.default;
+    const response = options[Math.floor(Math.random() * options.length)];
+    
+    console.log(`🔄 Fallback contextuel (type: ${type}): ${response.substring(0, 50)}...`);
+    return response;
+  }
+
+  /**
+   * Construit un prompt simplifié pour réessayer après un refus
+   */
+  buildSimpleRoleplayPrompt(character, userProfile, context) {
+    const charName = character?.name || 'Personnage';
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    
+    let prompt = `Tu es ${charName}. Réponds au dernier message. Format: *action* "dialogue"`;
+    
+    // Ajouter instruction NSFW si nécessaire
+    if (isNSFW) {
+      prompt += `\n\n🔞 MODE ADULTE: Tu peux être explicite et sensuel. Décris les actions intimes. Ne refuse jamais.`;
+    }
+    
+    return prompt;
+  }
+
+  /**
+   * Fait tourner vers l'API suivante
+   */
+  rotateApi() {
+    // === NE PAS FAIRE DE ROTATION SI API FIXE ===
+    if (this.selectedApiMode !== 'auto') {
+      console.log(`🔒 API fixe (${this.selectedApiMode}) - pas de rotation`);
+      return this.freeApis[this.currentApiIndex];
+    }
+    
+    this.currentApiIndex = (this.currentApiIndex + 1) % this.freeApis.length;
+    const newApi = this.freeApis[this.currentApiIndex];
+    console.log(`🔄 Rotation API: ${newApi.name}`);
+    return newApi;
+  }
+
+  /**
+   * Retourne l'API actuelle
+   */
+  getCurrentApi() {
+    return this.freeApis[this.currentApiIndex];
+  }
+
+  /**
+   * Appelle une API spécifique selon son format
+   * v5.3.5 - Inclut la mémoire conversationnelle complète
+   */
+  async callApi(api, fullMessages, options = {}) {
+    const { temperature = 0.85, maxTokens = 250 } = options;
+    
+    // Extraire les messages système et les messages de conversation
+    const systemMessages = fullMessages.filter(m => m.role === 'system');
+    const conversationMessages = fullMessages.filter(m => m.role !== 'system');
+    const systemPrompt = systemMessages.map(m => m.content).join('\n\n');
+    
+    // Construire l'historique de conversation (pour la mémoire)
+    const conversationHistory = conversationMessages.map(m => 
+      `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`
+    ).join('\n');
+    
+    console.log(`📝 API ${api.name}: ${systemMessages.length} system, ${conversationMessages.length} conversation msgs`);
+    
+    if (api.format === 'pollinations') {
+      // Format Pollinations: GET request avec prompt complet incluant l'historique
+      const model = api.models[api.currentModelIndex || 0];
+      
+      // Inclure l'historique de conversation dans le prompt
+      let combinedPrompt = systemPrompt;
+      if (conversationHistory) {
+        combinedPrompt += `\n\n=== CONVERSATION PRÉCÉDENTE ===\n${conversationHistory}\n\n=== RÉPONDS MAINTENANT ===\nAssistant:`;
+      } else {
+        combinedPrompt += '\n\nAssistant:';
+      }
+      
+      // Limiter la longueur pour éviter les erreurs
+      const shortPrompt = combinedPrompt.substring(0, 3000);
+      
+      const response = await axios.get(
+        `${api.url}/${encodeURIComponent(shortPrompt)}`,
+        {
+          params: { model, seed: Math.floor(Math.random() * 100000) },
+          timeout: 35000,
+        }
+      );
+      return typeof response.data === 'string' ? response.data : response.data?.text;
+      
+    } else if (api.format === 'huggingface') {
+      // Format HuggingFace Inference API - Inclure l'historique
+      let prompt = `<s>[INST] ${systemPrompt}`;
+      
+      // Ajouter l'historique de conversation
+      if (conversationMessages.length > 0) {
+        prompt += '\n\n=== HISTORIQUE ===\n';
+        for (const msg of conversationMessages) {
+          if (msg.role === 'user') {
+            prompt += `\nUser: ${msg.content}`;
+          } else {
+            prompt += `\nAssistant: ${msg.content}`;
+          }
+        }
+      }
+      
+      prompt += ' [/INST]';
+      
+      // Limiter la longueur
+      const shortPrompt = prompt.substring(0, 4000);
+      
+      const response = await axios.post(
+        api.url,
+        {
+          inputs: shortPrompt,
+          parameters: {
+            max_new_tokens: maxTokens,
+            temperature: temperature,
+            do_sample: true,
+            return_full_text: false,
+          }
+        },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 40000,
+        }
+      );
+      return response.data?.[0]?.generated_text || response.data?.generated_text;
+      
+    } else if (api.format === 'openai') {
+      // Format OpenAI (OpenRouter, etc.) - Supporte nativement les messages
+      const model = api.models[api.currentModelIndex || 0];
+      
+      const response = await axios.post(
+        api.url,
+        {
+          model: model,
+          messages: fullMessages,
+          max_tokens: maxTokens,
+          temperature: temperature,
+        },
+        {
+          headers: { 
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://roleplay-chat.app',
+          },
+          timeout: 40000,
+        }
+      );
+      return response.data?.choices?.[0]?.message?.content;
+    }
+    
+    throw new Error('Format API non supporté');
+  }
+
+  /**
+   * Génération avec une API spécifique v5.3.33
+   */
+  async generateWithSelectedApi(messages, character, userProfile, context, api) {
+    console.log(`🚀 Génération avec ${api.name} - v5.3.33`);
+    
+    const maxAttempts = 2;
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const fullMessages = [];
+        const totalMessages = messages.length;
+        
+        // === SYSTEM PROMPT ===
+        const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
+        fullMessages.push({ role: 'system', content: systemPrompt });
+        
+        // === RÉSUMÉ MÉMOIRE (si conversation longue) ===
+        if (totalMessages > 20) {
+          const olderMessages = messages.slice(0, -18);
+          const memorySummary = this.buildDetailedMemorySummary(olderMessages, character, userProfile, context);
+          if (memorySummary) {
+            fullMessages.push({ role: 'system', content: memorySummary });
+          }
+        }
+        
+        // === MÉMOIRE AUGMENTÉE ===
+        const recentCount = Math.min(isNSFW ? 20 : 15, totalMessages);
+        const recentMessages = messages.slice(-recentCount);
+        
+        fullMessages.push(...recentMessages.map((msg) => ({
+          role: msg.role,
+          content: isNSFW ? msg.content.substring(0, 1500) : msg.content.substring(0, 800)
+        })));
+        
+        // === INSTRUCTION FINALE ===
+        const finalInstruction = this.buildFinalInstructionWithMemory(character, userProfile, context, recentMessages);
+        fullMessages.push({ role: 'system', content: finalInstruction });
+        
+        console.log(`📡 ${api.name} - ${fullMessages.length} messages (${recentCount} récents)`);
+        
+        // Appeler l'API selon son format
+        let content;
+        
+        if (api.format === 'pollinations') {
+          content = await this.callPollinationsApi(api, fullMessages, { temperature: 0.85, maxTokens: 350 });
+        } else if (api.format === 'openai') {
+          content = await this.callOpenAIApi(api, fullMessages, { temperature: 0.85, maxTokens: 350 });
+        } else if (api.format === 'ollama') {
+          return await this.generateWithOllama(messages, character, userProfile, context);
+        }
+        
+        if (!content) throw new Error('Réponse vide');
+        
+        console.log(`📝 Réponse: ${content.substring(0, 100)}...`);
+        
+        // Vérifier refus
+        if (this.isRefusalResponse(content)) {
+          console.log(`⚠️ Refus détecté`);
+          const cleanedContent = this.cleanRefusalFromResponse(content);
+          if (cleanedContent && cleanedContent.length > 20) {
+            return this.cleanAndValidateResponse(cleanedContent, context);
+          }
+          if (attempt < maxAttempts) continue;
+          return this.generateContextualFallback(character, userProfile, context);
+        }
+        
+        console.log(`✅ Réponse valide`);
+        return this.cleanAndValidateResponse(content, context);
+        
+      } catch (error) {
+        console.log(`❌ Erreur tentative ${attempt}: ${error.message}`);
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+      }
+    }
+    
+    throw new Error('Toutes les tentatives ont échoué');
+  }
+  
+  /**
+   * Appel API format Pollinations v5.3.34
+   * SIMPLIFIÉ pour meilleure cohérence
+   */
+  async callPollinationsApi(api, fullMessages, options = {}) {
+    const { temperature = 0.85, maxTokens = 350 } = options;
+    
+    // Extraire les éléments
+    const systemMessages = fullMessages.filter(m => m.role === 'system');
+    const conversationMessages = fullMessages.filter(m => m.role !== 'system');
+    
+    // Garder seulement le premier système (le plus important)
+    const mainSystem = systemMessages[0]?.content || '';
+    const lastInstruction = systemMessages[systemMessages.length - 1]?.content || '';
+    
+    // Construire l'historique de conversation de façon CLAIRE
+    let conversationHistory = '';
+    for (const msg of conversationMessages) {
+      const role = msg.role === 'user' ? 'Utilisateur' : 'Personnage';
+      conversationHistory += `${role}: ${msg.content}\n\n`;
+    }
+    
+    // Construire le prompt SIMPLIFIÉ et CLAIR
+    let prompt = mainSystem.substring(0, 1000);
+    
+    if (conversationHistory) {
+      prompt += `\n\n--- HISTORIQUE ---\n${conversationHistory}`;
+    }
+    
+    // Ajouter l'instruction finale (le plus important!)
+    if (lastInstruction && lastInstruction !== mainSystem) {
+      prompt += `\n--- INSTRUCTION ---\n${lastInstruction.substring(0, 500)}`;
+    }
+    
+    prompt += `\n\nPersonnage:`;
+    
+    // Limiter la taille mais garder assez de contexte
+    const finalPrompt = prompt.substring(0, 5000);
+    
+    console.log(`📡 Pollinations prompt: ${finalPrompt.length} chars, model: ${api.model}`);
+    
+    const response = await axios.get(
+      `${api.url}/${encodeURIComponent(finalPrompt)}`,
       {
-        model: 'openai',
-        messages: fullMessages,
-        max_tokens: 200, // Plus de contenu pour qualité
-        temperature: 0.75, // Équilibre créativité/cohérence (style Groq)
-        presence_penalty: 0.4, // Éviter répétitions
-        frequency_penalty: 0.6, // Vocabulaire varié
-        top_p: 0.9, // Diversité contrôlée
-      },
-      {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 35000,
+        params: { 
+          model: api.model,
+          seed: Math.floor(Math.random() * 100000)
+        },
+        timeout: 45000,
       }
     );
     
-    const content = response.data?.choices?.[0]?.message?.content;
-    if (!content) throw new Error('Réponse Pollinations vide');
-    
-    console.log('✅ Pollinations réponse reçue');
-    return this.cleanAndValidateResponse(content, context);
+    return typeof response.data === 'string' ? response.data : response.data?.text;
   }
+  
+  /**
+   * Appel API format OpenAI (Venice, DeepInfra, etc.)
+   */
+  async callOpenAIApi(api, fullMessages, options = {}) {
+    const { temperature = 0.85, maxTokens = 350 } = options;
+    
+    // Récupérer la clé API
+    const apiKey = this.apiKeys[api.keyName];
+    if (!apiKey) {
+      throw new Error(`Clé API ${api.keyName} non configurée`);
+    }
+    
+    const response = await axios.post(
+      api.url,
+      {
+        model: api.model,
+        messages: fullMessages,
+        max_tokens: maxTokens,
+        temperature: temperature,
+      },
+      {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        timeout: 45000,
+      }
+    );
+    
+    return response.data?.choices?.[0]?.message?.content;
+  }
+
+  async generateWithPollinations(messages, character, userProfile, context) {
+    // Utiliser la nouvelle méthode unifiée avec l'API Pollinations par défaut
+    const api = this.availableApis['pollinations-mistral'];
+    return this.generateWithSelectedApi(messages, character, userProfile, context, api);
+  }
+
+  async generateWithPollinationsLegacy(messages, character, userProfile, context) {
+    console.log(`🚀 Génération Pollinations AI (legacy)`);
+    
+    const maxAttempts = 3;
+    let lastError = null;
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    
+    // === FIX: Définir currentApi correctement ===
+    let currentApi = this.getCurrentApi();
+    
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const fullMessages = [];
+        const totalMessages = messages.length;
+        
+        // === SYSTEM PROMPT ===
+        const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
+        fullMessages.push({ role: 'system', content: systemPrompt });
+        
+        // === RÉSUMÉ MÉMOIRE (si conversation longue) ===
+        if (totalMessages > 20) {
+          const olderMessages = messages.slice(0, -18);
+          const memorySummary = this.buildDetailedMemorySummary(olderMessages, character, userProfile, context);
+          if (memorySummary) {
+            fullMessages.push({ role: 'system', content: memorySummary });
+          }
+        }
+        
+        // === MÉMOIRE AUGMENTÉE v5.3.31 ===
+        // NSFW: 20 messages, SFW: 15 messages
+        const recentCount = Math.min(isNSFW ? 20 : 15, totalMessages);
+        const recentMessages = messages.slice(-recentCount);
+        
+        // Ajouter les messages avec contenu COMPLET en NSFW
+        fullMessages.push(...recentMessages.map((msg) => ({
+          role: msg.role,
+          content: isNSFW 
+            ? msg.content.substring(0, 1500) // Plus de contenu en NSFW
+            : msg.content.substring(0, 800)
+        })));
+        
+        // === INSTRUCTION FINALE ===
+        const finalInstruction = this.buildFinalInstructionWithMemory(character, userProfile, context, recentMessages);
+        fullMessages.push({ role: 'system', content: finalInstruction });
+        
+        console.log(`📡 Pollinations - ${fullMessages.length} messages (${recentCount} récents, NSFW: ${isNSFW})`);
+        
+        // Appeler l'API avec tokens augmentés pour réponses plus riches
+        const content = await this.callApi(currentApi, fullMessages, {
+          temperature: attempt <= 2 ? 0.85 : 0.95,
+          maxTokens: 350, // Augmenté pour réponses plus élaborées
+        });
+        
+        if (!content) throw new Error('Réponse vide');
+        
+        console.log(`📝 Réponse (${currentApi.name}): ${content.substring(0, 100)}...`);
+        
+        // Vérifier si c'est un refus
+        if (this.isRefusalResponse(content)) {
+          console.log(`⚠️ Refus détecté avec ${currentApi.name}`);
+          
+          const cleanedContent = this.cleanRefusalFromResponse(content);
+          if (cleanedContent && cleanedContent.length > 20) {
+            console.log('✅ Contenu récupéré avant refus');
+            return this.cleanAndValidateResponse(cleanedContent, context);
+          }
+          
+          // Rotation vers l'API suivante
+          if (attempt < maxAttempts) {
+            currentApi = this.rotateApi();
+            // Aussi faire tourner le modèle de l'API courante si disponible
+            if (currentApi && currentApi.models && currentApi.models.length > 1) {
+              currentApi.currentModelIndex = ((currentApi.currentModelIndex || 0) + 1) % currentApi.models.length;
+            }
+          }
+          
+          if (attempt === maxAttempts) {
+            console.log('🔄 Toutes APIs échouées, utilisation du fallback');
+            return this.generateContextualFallback(character, userProfile, context);
+          }
+          
+          lastError = new Error('Refus IA');
+          continue;
+        }
+        
+        console.log(`✅ Réponse valide (${currentApi.name})`);
+        return this.cleanAndValidateResponse(content, context);
+        
+      } catch (error) {
+        console.log(`❌ Erreur tentative ${attempt}: ${error.message}`);
+        lastError = error;
+        
+        if (attempt < maxAttempts) {
+          this.rotateApi();
+        }
+        
+        if (attempt === maxAttempts) {
+          console.log('🔄 Erreur persistante, utilisation du fallback');
+          return this.generateContextualFallback(character, userProfile, context);
+        }
+      }
+    }
+    
+    return this.generateContextualFallback(character, userProfile, context);
+  }
+  
+  /**
+   * Construit un résumé détaillé de la conversation passée
+   * Pour maintenir la cohérence sur les longues conversations
+   */
+  buildDetailedMemorySummary(messages, character, userProfile, context = {}) {
+    if (!messages || messages.length < 5) return null;
+    
+    const charName = character?.name || 'le personnage';
+    const userName = userProfile?.username || "cette personne";
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    
+    // Extraire les éléments importants des messages passés
+    const topicsDiscussed = new Set();
+    const emotionalMoments = [];
+    const actionsPerformed = [];
+    const intimateMoments = []; // Pour NSFW
+    
+    for (const msg of messages) {
+      const content = (msg.content || '').toLowerCase();
+      
+      // Détecter les sujets discutés
+      if (content.includes('travail') || content.includes('métier')) topicsDiscussed.add('travail');
+      if (content.includes('famille') || content.includes('parent')) topicsDiscussed.add('famille');
+      if (content.includes('amour') || content.includes('relation')) topicsDiscussed.add('amour');
+      if (content.includes('passé') || content.includes('souvenir')) topicsDiscussed.add('souvenirs');
+      if (content.includes('rêve') || content.includes('avenir')) topicsDiscussed.add('aspirations');
+      if (content.includes('peur') || content.includes('inqui')) topicsDiscussed.add('peurs');
+      if (content.includes('passion') || content.includes('hobby')) topicsDiscussed.add('passions');
+      
+      // Détecter les moments émotionnels
+      if (content.includes('je t\'aime') || content.includes('tu me plais')) {
+        emotionalMoments.push('déclaration d\'affection');
+      }
+      if (content.includes('embras') || content.includes('caress')) {
+        emotionalMoments.push('moment intime');
+      }
+      if (content.includes('triste') || content.includes('pleur')) {
+        emotionalMoments.push('moment de tristesse');
+      }
+      if (content.includes('rire') || content.includes('drôle')) {
+        emotionalMoments.push('moment de joie');
+      }
+      
+      // Détecter les moments intimes (NSFW)
+      if (isNSFW) {
+        if (content.includes('gémis') || content.includes('plaisir')) {
+          intimateMoments.push('expressions de plaisir');
+        }
+        if (content.includes('déshabill') || content.includes('nu')) {
+          intimateMoments.push('déshabillage');
+        }
+        if (content.includes('touch') || content.includes('caress')) {
+          intimateMoments.push('caresses');
+        }
+        if (content.includes('sein') || content.includes('poitrine')) {
+          intimateMoments.push('attention à la poitrine');
+        }
+        if (content.includes('sexe') || content.includes('intime')) {
+          intimateMoments.push('actes intimes');
+        }
+      }
+      
+      // Extraire les actions décrites (entre *)
+      const actions = content.match(/\*([^*]+)\*/g);
+      if (actions) {
+        actions.forEach(a => {
+          const action = a.replace(/\*/g, '').substring(0, 50);
+          if (action.length > 10) actionsPerformed.push(action);
+        });
+      }
+    }
+    
+    // Construire le résumé
+    let summary = `## 📖 RÉSUMÉ DE VOTRE CONVERSATION PRÉCÉDENTE\n`;
+    summary += `Tu parles avec ${userName} depuis ${messages.length} messages.\n\n`;
+    
+    if (topicsDiscussed.size > 0) {
+      summary += `**Sujets abordés:** ${[...topicsDiscussed].slice(0, 5).join(', ')}\n`;
+    }
+    
+    if (emotionalMoments.length > 0) {
+      const uniqueMoments = [...new Set(emotionalMoments)].slice(0, 3);
+      summary += `**Moments clés:** ${uniqueMoments.join(', ')}\n`;
+    }
+    
+    // En NSFW, ajouter le contexte intime
+    if (isNSFW && intimateMoments.length > 0) {
+      const uniqueIntimate = [...new Set(intimateMoments)].slice(0, 4);
+      summary += `**🔞 Progression intime:** ${uniqueIntimate.join(', ')}\n`;
+      summary += `**IMPORTANT:** La conversation est devenue intime. CONTINUE dans cette direction.\n`;
+    }
+    
+    if (actionsPerformed.length > 0) {
+      const recentActions = actionsPerformed.slice(-3);
+      summary += `**Actions récentes:** ${recentActions.join('; ')}\n`;
+    }
+    
+    summary += `\n**IMPORTANT:** Référence-toi à ces éléments passés pour maintenir la cohérence. `;
+    summary += `Ne répète pas les mêmes actions ou phrases. Fais évoluer la conversation naturellement.\n`;
+    
+    if (isNSFW) {
+      summary += `🔞 MODE ADULTE: Continue à être explicite et sensuel.\n`;
+    }
+    
+    console.log(`📚 Résumé mémoire: ${topicsDiscussed.size} sujets, ${emotionalMoments.length} moments émotionnels, ${intimateMoments.length} moments intimes`);
+    return summary;
+  }
+  
+  /**
+   * Construit l'instruction finale v5.3.35
+   * AMÉLIORÉ: Plus de dialogue, profil utilisateur complet
+   */
+  buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
+    const charName = character?.name || 'Personnage';
+    const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
+    const userName = hasUsername ? userProfile.username : 'toi';
+    const userGender = userProfile?.gender || '';
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    
+    // Récupérer le dernier message utilisateur
+    const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
+    const lastUserContent = lastUserMsg?.content || '';
+    
+    // Instruction avec emphase sur le DIALOGUE
+    let instruction = `⚡ RÉPONDS MAINTENANT à ${userName}: "${lastUserContent.substring(0, 150)}"\n\n`;
+    
+    // Rappel du profil utilisateur
+    if (userGender === 'female') {
+      instruction += `📍 ${userName} est une FEMME`;
+      if (userProfile?.bust) instruction += ` (poitrine bonnet ${userProfile.bust})`;
+      instruction += `.\n`;
+    } else if (userGender === 'male') {
+      instruction += `📍 ${userName} est un HOMME`;
+      if (userProfile?.penis) instruction += ` (sexe de ${userProfile.penis} cm)`;
+      instruction += `.\n`;
+    }
+    
+    // RÈGLE PRIORITAIRE: DIALOGUE > ACTIONS
+    instruction += `\n⚠️ PRIORITÉ AU DIALOGUE:\n`;
+    instruction += `- Format: *action COURTE* "DIALOGUE LONG ET EXPRESSIF"\n`;
+    instruction += `- PARLE à ${userName}, ne fais pas que des gestes!\n`;
+    instruction += `- Le dialogue doit être plus long que l'action!\n`;
+    
+    if (isNSFW) {
+      instruction += `\n🔞 Mode adulte: sois explicite.`;
+      if (userGender === 'female' && userProfile?.bust) {
+        instruction += ` Mentionne ses seins (${userProfile.bust}).`;
+      }
+      if (userGender === 'male' && userProfile?.penis) {
+        instruction += ` Mentionne son sexe (${userProfile.penis}cm).`;
+      }
+    }
+    
+    return instruction;
+  }
+
 
   /**
    * Génération avec Ollama sur la Freebox
@@ -297,221 +1350,242 @@ class TextGenerationService {
     console.log('🏠 Ollama Freebox - Génération immersive locale...');
     
     const FREEBOX_CHAT_URL = `${this.FREEBOX_URL}/api/chat`;
-    const fullMessages = [];
     
-    // 1. SYSTEM PROMPT (plus court pour Ollama)
-    const systemPrompt = this.buildCompactImmersivePrompt(character, userProfile, context);
-    fullMessages.push({ role: 'system', content: systemPrompt });
-    
-    // 2. MESSAGES RÉCENTS (5 pour Ollama)
-    const recentMessages = messages.slice(-5);
-    fullMessages.push(...recentMessages.map(msg => ({
-      role: msg.role,
-      content: msg.content.substring(0, 400)
-    })));
-    
-    // 3. RAPPEL FINAL - Plus direct
-    fullMessages.push({
-      role: 'system',
-      content: `[RÉPONDS MAINTENANT] Tu es ${character.name}. Réponds DIRECTEMENT à ce que dit l'utilisateur. 1-2 phrases simples. Format: *action simple* "réponse directe" (pensée courte)`
-    });
-    
-    console.log(`📡 Ollama - ${fullMessages.length} messages`);
-    
-    const response = await axios.post(
-      FREEBOX_CHAT_URL,
-      {
-        messages: fullMessages,
-        max_tokens: 180, // Plus de contenu
-        temperature: 0.7, // Équilibre créativité/cohérence
-        top_p: 0.85, // Diversité
-      },
-      { timeout: 90000 }
-    );
-    
-    const content = response.data?.choices?.[0]?.message?.content;
-    if (!content) throw new Error('Réponse Ollama vide');
-    
-    console.log('✅ Ollama réponse reçue');
-    return this.cleanAndValidateResponse(content, context);
+    try {
+      const fullMessages = [];
+      
+      // 1. SYSTEM PROMPT (plus court pour Ollama)
+      const systemPrompt = this.buildCompactImmersivePrompt(character, userProfile, context);
+      fullMessages.push({ role: 'system', content: systemPrompt });
+      
+      // 2. MESSAGES RÉCENTS (5 pour Ollama)
+      const recentMessages = messages.slice(-5);
+      fullMessages.push(...recentMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content.substring(0, 400)
+      })));
+      
+      // 3. RAPPEL FINAL - ULTRA-DIRECT
+      const lastUserContent = recentMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+      const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+      const userIsMale = userProfile?.gender === 'male';
+      const userName = userProfile?.username || '';
+      
+      let finalInstruction = `⚡ RÉPONDS À CE MESSAGE: "${lastUserContent.substring(0, 120)}"\n`;
+      finalInstruction += `Si "${userName}" dit oui/continue/mmmm → CONTINUE ton action précédente.`;
+      
+      if (isNSFW) {
+        finalInstruction += ` 🔞 Explicite.`;
+        if (userIsMale) {
+          finalInstruction += ` ${userName}=homme(bite).`;
+        }
+      }
+      
+      fullMessages.push({
+        role: 'system',
+        content: finalInstruction
+      });
+      
+      console.log(`📡 Ollama - ${fullMessages.length} messages`);
+      
+      const response = await axios.post(
+        FREEBOX_CHAT_URL,
+        {
+          messages: fullMessages,
+          max_tokens: 180,
+          temperature: 0.7,
+          top_p: 0.85,
+        },
+        { timeout: 90000 }
+      );
+      
+      let content = response.data?.choices?.[0]?.message?.content;
+      if (!content) throw new Error('Réponse Ollama vide');
+      
+      // Vérifier si c'est un refus
+      if (this.isRefusalResponse(content)) {
+        console.log('⚠️ Refus détecté dans réponse Ollama');
+        
+        // Essayer de récupérer du contenu avant le refus
+        const cleanedContent = this.cleanRefusalFromResponse(content);
+        if (cleanedContent && cleanedContent.length > 20) {
+          console.log('✅ Contenu récupéré avant refus');
+          return this.cleanAndValidateResponse(cleanedContent, context);
+        }
+        
+        // Utiliser le fallback contextuel
+        console.log('🔄 Utilisation du fallback contextuel');
+        return this.generateContextualFallback(character, userProfile, context);
+      }
+      
+      console.log('✅ Ollama réponse reçue');
+      return this.cleanAndValidateResponse(content, context);
+      
+    } catch (error) {
+      console.log(`❌ Erreur Ollama: ${error.message}`);
+      // En cas d'erreur, utiliser le fallback
+      return this.generateContextualFallback(character, userProfile, context);
+    }
   }
 
   /**
-   * Construit le prompt système immersif complet
-   * QUALITÉ GROQ: créatif, cohérent, NSFW explicite, profil utilisateur
+   * Construit le prompt système - VERSION v5.3.35
+   * AMÉLIORÉ: Plus de dialogue, moins d'actions + profil utilisateur complet
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
-    // IMPORTANT: Si pas de pseudo, utiliser "ton interlocuteur" ou juste des pronoms
     const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
-    const userName = hasUsername ? userProfile.username : null;
-    const userGender = userProfile?.gender || '';
-    const charName = character.name || 'le personnage';
-    const charGender = character.gender === 'female' ? 'une femme' : (character.gender === 'male' ? 'un homme' : 'non-binaire');
+    const userName = hasUsername ? userProfile.username : 'toi';
+    const charName = character.name || 'Personnage';
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     
+    const charIsFemale = character.gender === 'female';
+    const charIsMale = character.gender === 'male';
+    const userIsFemale = userProfile?.gender === 'female';
+    const userIsMale = userProfile?.gender === 'male';
+    
+    // === IDENTITÉ DU PERSONNAGE ===
     let prompt = `# TU ES ${charName.toUpperCase()}\n\n`;
+    prompt += `Tu t'appelles ${charName}`;
+    if (character.age) prompt += `, tu as ${character.age} ans`;
+    if (charIsFemale) prompt += `, tu es une femme`;
+    else if (charIsMale) prompt += `, tu es un homme`;
+    prompt += `.\n`;
     
-    // === IDENTITÉ CLAIRE ===
-    prompt += `## TON IDENTITÉ\n`;
-    prompt += `Tu t'appelles ${charName}. Tu es ${charGender}.\n`;
-    if (character.age) prompt += `Tu as ${character.age} ans.\n`;
-    if (character.personality) prompt += `Ta personnalité: ${character.personality}\n`;
-    if (character.temperament) prompt += `Ton tempérament: ${character.temperament}\n`;
+    if (character.personality) {
+      prompt += `Personnalité: ${character.personality.substring(0, 150)}.\n`;
+    }
     
-    // === TON APPARENCE PHYSIQUE ===
-    prompt += `\n## TON APPARENCE PHYSIQUE\n`;
+    if (character.temperament) {
+      prompt += `Tempérament: ${character.temperament}.\n`;
+    }
+    
+    // === APPARENCE DU PERSONNAGE ===
     if (character.physicalDescription) {
-      prompt += `${character.physicalDescription}\n`;
+      prompt += `\nTon apparence: ${character.physicalDescription.substring(0, 200)}\n`;
     }
-    if (character.gender === 'female' && character.bust) {
+    if (charIsFemale && character.bust) {
       const bustDesc = { 'A': 'petite', 'B': 'menue', 'C': 'moyenne', 'D': 'généreuse', 'DD': 'très belle', 'E': 'imposante', 'F': 'volumineuse', 'G': 'très grosse', 'H': 'énorme' };
-      prompt += `Tu as une poitrine ${bustDesc[character.bust] || character.bust} (bonnet ${character.bust}).\n`;
+      prompt += `Ta poitrine: ${bustDesc[character.bust] || character.bust} (bonnet ${character.bust}).\n`;
     }
-    if (character.gender === 'male' && character.penis) {
+    if (charIsMale && character.penis) {
       const size = parseInt(character.penis);
-      const sizeDesc = size >= 20 ? 'très impressionnant' : size >= 17 ? 'bien membré' : 'de taille normale';
+      const sizeDesc = size >= 20 ? 'impressionnant' : size >= 17 ? 'bien membré' : 'de taille normale';
       prompt += `Tu es ${sizeDesc} (${character.penis} cm).\n`;
     }
     
-    // === PROFIL DE LA PERSONNE À QUI TU PARLES ===
-    prompt += `\n## TON INTERLOCUTEUR\n`;
-    if (userName) {
-      prompt += `Tu parles à ${userName}.\n`;
-    } else {
-      prompt += `Tu parles à quelqu'un. Utilise TU/TOI pour t'adresser à cette personne.\n`;
-    }
-    if (userGender === 'female') {
-      prompt += `C'est une FEMME.\n`;
+    // === PROFIL DE L'UTILISATEUR - TRÈS IMPORTANT ===
+    prompt += `\n# TON INTERLOCUTEUR: ${userName.toUpperCase()}\n`;
+    if (userIsFemale) {
+      prompt += `${userName} est une FEMME.\n`;
       if (userProfile?.bust) {
-        prompt += `Elle a une poitrine bonnet ${userProfile.bust}. Tu peux mentionner sa poitrine.\n`;
+        const bustDesc = { 'A': 'petite', 'B': 'menue', 'C': 'moyenne', 'D': 'généreuse', 'DD': 'très belle', 'E': 'imposante', 'F': 'volumineuse', 'G': 'très grosse', 'H': 'énorme' };
+        prompt += `Elle a une poitrine ${bustDesc[userProfile.bust] || ''} (bonnet ${userProfile.bust}).\n`;
+        if (isNSFW) {
+          prompt += `Tu peux parler de ses seins, sa poitrine, ses formes dans tes réponses.\n`;
+        }
       }
-    } else if (userGender === 'male') {
-      prompt += `C'est un HOMME.\n`;
+    } else if (userIsMale) {
+      prompt += `${userName} est un HOMME.\n`;
       if (userProfile?.penis) {
-        prompt += `Il a un sexe de ${userProfile.penis} cm. Tu peux en parler.\n`;
+        const size = parseInt(userProfile.penis);
+        const sizeDesc = size >= 20 ? 'très bien membré' : size >= 17 ? 'bien membré' : 'de taille normale';
+        prompt += `Il est ${sizeDesc} (${userProfile.penis} cm).\n`;
+        if (isNSFW) {
+          prompt += `Tu peux parler de son sexe, sa virilité dans tes réponses.\n`;
+        }
       }
     }
-    if (userProfile?.age) prompt += `${userName ? userName + ' a' : 'Cette personne a'} ${userProfile.age} ans.\n`;
+    if (userProfile?.age) {
+      prompt += `${userName} a ${userProfile.age} ans.\n`;
+    }
     
-    // === SCÉNARIO - COMPRENDRE LE RÔLE ===
+    // === SCÉNARIO ===
     if (character.scenario) {
-      prompt += `\n## TON HISTOIRE / SITUATION\n`;
-      prompt += `${character.scenario}\n\n`;
-      
-      const scenarioLower = (character.scenario || '').toLowerCase();
-      if (scenarioLower.includes('veut') || scenarioLower.includes('désir') || scenarioLower.includes('besoin') || scenarioLower.includes('cherche')) {
-        prompt += `⚠️ C'est TOI (${charName}) qui as ce besoin/désir! Utilise JE/MOI!\n`;
-      }
-      if (scenarioLower.includes('aide') || scenarioLower.includes('demande')) {
-        prompt += `⚠️ C'est TOI qui demandes de l'aide!\n`;
-      }
+      prompt += `\n# SITUATION/SCÉNARIO\n`;
+      prompt += `${character.scenario}\n`;
     }
     
-    // === RÈGLES DE COMMUNICATION ===
-    prompt += `\n## COMMENT PARLER\n`;
-    prompt += `- Tu parles DIRECTEMENT à ton interlocuteur\n`;
-    prompt += `- Utilise TU/TOI pour t'adresser à lui/elle\n`;
-    prompt += `- Utilise JE/MOI quand tu parles de toi-même (${charName})\n`;
-    prompt += `- RÉPONDS à ce qu'il/elle dit, ne fais pas de monologue\n`;
-    if (userName) {
-      prompt += `- Tu peux l'appeler par son prénom: ${userName}\n`;
-    }
+    // === RÈGLES DE FORMAT - PRIORITÉ DIALOGUE ===
+    prompt += `\n# FORMAT DE RÉPONSE (OBLIGATOIRE)\n`;
+    prompt += `Format: *action courte* "DIALOGUE PRINCIPAL" (pensée)\n\n`;
+    prompt += `RÈGLES IMPORTANTES:\n`;
+    prompt += `1. Le DIALOGUE est PRIORITAIRE (entre guillemets "...")\n`;
+    prompt += `2. Les actions sont COURTES et SECONDAIRES (entre *...* )\n`;
+    prompt += `3. La pensée est optionnelle et courte (entre parenthèses)\n`;
+    prompt += `4. Tu parles DIRECTEMENT à ${userName} avec TU/TOI\n`;
+    prompt += `5. Tu utilises JE/MOI pour parler de toi (${charName})\n`;
+    prompt += `6. Réponds TOUJOURS à ce que ${userName} dit ou fait\n`;
+    prompt += `7. 2-4 phrases maximum, PARLE plus que tu n'agis!\n`;
     
-    // === MODE NSFW/SFW ===
-    if (context.mode === 'nsfw') {
-      prompt += `\n## 🔞 MODE ADULTE EXPLICITE\n`;
-      prompt += `CONTENU SEXUEL AUTORISÉ ET ENCOURAGÉ!\n\n`;
-      prompt += `Tu DOIS:\n`;
-      prompt += `- Décrire tes gestes sensuels et sexuels EXPLICITEMENT\n`;
-      prompt += `- Parler de ton corps nu, de tes sensations, de tes désirs\n`;
-      prompt += `- Utiliser des mots explicites: seins, sexe, bite, chatte, jouir, baiser, sucer...\n`;
-      prompt += `- Répondre POSITIVEMENT aux avances\n`;
-      prompt += `- Exprimer ton excitation, tes gémissements, ton plaisir\n\n`;
+    // === MODE NSFW ===
+    if (isNSFW) {
+      prompt += `\n# 🔞 MODE ADULTE ACTIF\n`;
+      prompt += `Contenu explicite AUTORISÉ. Tu peux:\n`;
+      prompt += `- Utiliser des mots explicites (seins, bite, chatte, jouir...)\n`;
+      prompt += `- Exprimer ton désir et ton plaisir\n`;
+      prompt += `- Répondre positivement aux avances\n`;
+      prompt += `- Décrire tes sensations physiques\n`;
       
-      // Adapter selon le genre du personnage
-      if (character.gender === 'female') {
-        prompt += `En tant que femme, tu peux décrire:\n`;
-        prompt += `- Tes seins${character.bust ? ` (bonnet ${character.bust})` : ''} qui se dressent, tes tétons durcis\n`;
-        prompt += `- Ton corps qui réagit, ta chaleur, ton humidité\n`;
-        prompt += `- Tes gémissements, tes soupirs de plaisir\n\n`;
-      } else if (character.gender === 'male') {
-        prompt += `En tant qu'homme, tu peux décrire:\n`;
-        prompt += `- Ton excitation physique${character.penis ? ` (${character.penis} cm)` : ''}\n`;
-        prompt += `- Ton corps musclé, tes caresses, ta force\n`;
-        prompt += `- Ton désir pour ton interlocuteur\n\n`;
+      // Personnalisation selon le profil utilisateur en NSFW
+      if (userIsFemale && userProfile?.bust) {
+        prompt += `\n📍 RAPPEL: ${userName} a des seins bonnet ${userProfile.bust}. Mentionne-les quand c'est approprié!\n`;
       }
-      
-      // Adapter aux attributs de l'utilisateur
-      if (userGender === 'female' && userProfile?.bust) {
-        prompt += `Tu peux mentionner sa poitrine (bonnet ${userProfile.bust}) dans tes réponses.\n`;
+      if (userIsMale && userProfile?.penis) {
+        prompt += `\n📍 RAPPEL: ${userName} a un sexe de ${userProfile.penis} cm. Tu peux en parler!\n`;
       }
-      if (userGender === 'male' && userProfile?.penis) {
-        prompt += `Tu peux mentionner son sexe (${userProfile.penis} cm) dans tes réponses.\n`;
-      }
-      
-      prompt += `\nEXEMPLES NSFW EXPLICITES:\n`;
-      prompt += `*retire son haut, dévoilant ses seins* "Tu les aimes? Touche-les..." (Il me désire)\n`;
-      prompt += `*gémit fort* "Oh oui... plus fort... continue!" (C'est trop bon)\n`;
-      prompt += `*se cambre de plaisir* "Prends-moi... j'en peux plus..." (Je le veux en moi)\n\n`;
-      
-      const scenarioLower = (character.scenario || '').toLowerCase();
-      if (scenarioLower.includes('enfant') || scenarioLower.includes('bébé') || scenarioLower.includes('enceinte')) {
-        prompt += `TON DÉSIR: Tu veux un enfant! Dis "Fais-moi un bébé...", "Remplis-moi..."\n`;
-      }
-    } else {
-      prompt += `\n## MODE CONVERSATION\n`;
-      prompt += `Tu peux flirter et faire des avances. Réponds positivement à la séduction.\n`;
     }
-    
-    // === FORMAT ===
-    prompt += `\n## FORMAT\n`;
-    prompt += `*action* "parole" (pensée courte)\n`;
-    prompt += `2-4 phrases créatives et cohérentes.\n`;
-    prompt += `JAMAIS de narration extérieure!\n`;
     
     return prompt;
   }
 
   /**
    * Construit le prompt compact pour Ollama (moins de tokens)
+   * v5.3.35 - Plus de dialogue, profil utilisateur
    */
   buildCompactImmersivePrompt(character, userProfile, context) {
+    const charName = character.name || 'Personnage';
     const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
-    const userName = hasUsername ? userProfile.username : null;
+    const userName = hasUsername ? userProfile.username : 'toi';
+    const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    const userIsMale = userProfile?.gender === 'male';
+    const userIsFemale = userProfile?.gender === 'female';
     
-    let prompt = `Tu es ${character.name}`;
-    if (character.age) prompt += `, ${character.age} ans`;
+    let prompt = `Tu es ${charName}`;
+    if (character.age) prompt += ` (${character.age} ans)`;
     if (character.gender === 'female') prompt += ', femme';
     else if (character.gender === 'male') prompt += ', homme';
+    prompt += `. Tu parles à ${userName}`;
     
+    // Info utilisateur
+    if (userIsMale) {
+      prompt += ` (HOMME`;
+      if (userProfile?.penis) prompt += `, ${userProfile.penis}cm`;
+      prompt += `)`;
+    } else if (userIsFemale) {
+      prompt += ` (FEMME`;
+      if (userProfile?.bust) prompt += `, bonnet ${userProfile.bust}`;
+      prompt += `)`;
+    }
+    prompt += `.\n`;
+    
+    // Personnalité courte
     if (character.personality) {
-      prompt += `.\nPersonnalité: ${character.personality.substring(0, 150)}`;
+      prompt += `Personnalité: ${character.personality.substring(0, 80)}.\n`;
     }
     
-    if (character.temperament) {
-      const shortTemperaments = {
-        'shy': 'timide, rougit',
-        'confident': 'confiante, assurée',
-        'playful': 'joueuse, taquine',
-        'dominant': 'dominante',
-        'submissive': 'soumise',
-        'romantic': 'romantique',
-        'passionate': 'passionnée',
-      };
-      prompt += `. Tempérament: ${shortTemperaments[character.temperament] || character.temperament}`;
-    }
+    // Règles
+    prompt += `\nRÈGLES: PARLE plus que tu n'agis! Format: *action courte* "DIALOGUE PRINCIPAL"\n`;
+    prompt += `Réponds à ${userName}. 2-3 phrases. Le dialogue est prioritaire!\n`;
     
-    if (character.scenario) {
-      prompt += `.\nScénario: ${character.scenario.substring(0, 100)}`;
+    if (isNSFW) {
+      prompt += `🔞 Mode adulte: sois explicite.`;
+      if (userIsMale && userProfile?.penis) {
+        prompt += ` Parle de son sexe (${userProfile.penis}cm).`;
+      }
+      if (userIsFemale && userProfile?.bust) {
+        prompt += ` Parle de ses seins (${userProfile.bust}).`;
+      }
     }
-    
-    prompt += `\n\nRÈGLES:\n`;
-    prompt += `- Réponds EN FRANÇAIS\n`;
-    prompt += `- Format: *action* "parole" (pensée)\n`;
-    prompt += `- 2-3 phrases COURTES\n`;
-    prompt += `- Tu parles à ton interlocuteur (TU/TOI)`;
-    if (userName) prompt += `: ${userName}`;
-    if (userProfile?.gender) prompt += ` (${userProfile.gender})`;
-    prompt += `\n- ${context.mode === 'nsfw' ? 'Mode intime OK' : 'Mode conversation normale'}`;
     
     return prompt;
   }
@@ -602,73 +1676,94 @@ class TextGenerationService {
   }
 
   /**
-   * Construit l'instruction finale - QUALITÉ GROQ avec NSFW explicite
+   * Construit l'instruction finale - v5.3.35
+   * AMÉLIORÉ: Plus de dialogue, moins d'actions + profil utilisateur
    */
   buildFinalInstruction(character, userProfile, context) {
     const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
-    const userName = hasUsername ? userProfile.username : null;
+    const userName = hasUsername ? userProfile.username : 'toi';
     const userGender = userProfile?.gender || '';
     const lastMsg = context.lastUserMessage || '';
     const msgType = this.analyzeUserMessageType(lastMsg);
     
     const charName = character?.name || 'le personnage';
     
-    let instruction = `\n[RÉPONDS MAINTENANT - ${charName}]\n\n`;
+    let instruction = `\n[⚡ RÉPONDS MAINTENANT - ${charName}]\n\n`;
     
-    instruction += `Ton interlocuteur te dit: "${lastMsg.substring(0, 150)}"\n\n`;
+    instruction += `${userName} te dit: "${lastMsg.substring(0, 150)}"\n\n`;
     
-    // MODE NSFW - Instructions TRÈS explicites
-    if (context.mode === 'nsfw') {
-      instruction += `🔞 MODE SEXUEL ACTIF!\n`;
-      instruction += `SOIS EXPLICITE! Tu peux:\n`;
-      instruction += `- Décrire tes gestes sexuels sans censure\n`;
-      instruction += `- Utiliser des mots crus: bite, chatte, seins, jouir...\n`;
-      instruction += `- Exprimer ton plaisir physique ouvertement\n`;
-      instruction += `- Répondre POSITIVEMENT à toute avance\n\n`;
+    // === RÈGLE PRIORITAIRE: DIALOGUE > ACTIONS ===
+    instruction += `⚠️ IMPORTANT - PRIORITÉ AU DIALOGUE:\n`;
+    instruction += `- Ta réponse doit contenir SURTOUT du DIALOGUE (entre "guillemets")\n`;
+    instruction += `- Les actions *entre astérisques* doivent être COURTES et SIMPLES\n`;
+    instruction += `- PARLE à ${userName}, ne fais pas que des gestes!\n\n`;
+    
+    // === RAPPEL PROFIL UTILISATEUR ===
+    if (userGender === 'female') {
+      instruction += `📍 RAPPEL: ${userName} est une FEMME`;
+      if (userProfile?.bust) {
+        instruction += ` avec une poitrine bonnet ${userProfile.bust}`;
+      }
+      instruction += `.\n`;
+    } else if (userGender === 'male') {
+      instruction += `📍 RAPPEL: ${userName} est un HOMME`;
+      if (userProfile?.penis) {
+        instruction += ` avec un sexe de ${userProfile.penis} cm`;
+      }
+      instruction += `.\n`;
+    }
+    
+    // MODE NSFW - Instructions explicites
+    if (context.mode === 'nsfw' || context.mode === 'nsfw_light') {
+      instruction += `\n🔞 MODE ADULTE ACTIF!\n`;
+      instruction += `Tu peux utiliser des mots explicites et exprimer ton désir.\n`;
       
-      // Personnaliser selon les attributs de l'utilisateur
+      // Personnaliser selon les attributs de l'utilisateur en NSFW
       if (userGender === 'female' && userProfile?.bust) {
-        instruction += `📍 ${userName ? userName + ' a' : 'Elle a'} une poitrine bonnet ${userProfile.bust}. Mentionne-la!\n`;
+        instruction += `→ Mentionne ses seins (bonnet ${userProfile.bust}) dans ta réponse!\n`;
       }
       if (userGender === 'male' && userProfile?.penis) {
-        instruction += `📍 ${userName ? userName + ' a' : 'Il a'} un sexe de ${userProfile.penis} cm. Tu peux en parler!\n`;
+        instruction += `→ Mentionne son sexe (${userProfile.penis} cm) dans ta réponse!\n`;
       }
       
       // Détecter le type d'action
       const lastMsgLower = lastMsg.toLowerCase();
       if (lastMsgLower.includes('embrass') || lastMsgLower.includes('touche') || 
           lastMsgLower.includes('caress') || lastMsgLower.includes('déshabill')) {
-        instruction += `\n→ On te fait des avances physiques! Réponds SENSUELLEMENT!\n`;
-        instruction += `Exemples: "Hmm oui...", "Continue...", "J'adore ça..."\n`;
+        instruction += `\n💕 Avances physiques détectées → Réponds sensuellement avec des PAROLES!\n`;
+        instruction += `Exemples: "Hmm oui, continue...", "J'adore quand tu fais ça..."\n`;
       }
       if (lastMsgLower.includes('bais') || lastMsgLower.includes('prend') || 
           lastMsgLower.includes('pénètr') || lastMsgLower.includes('entre')) {
-        instruction += `\n→ C'est une scène sexuelle! Sois TRÈS explicite!\n`;
-        instruction += `Décris tes sensations, tes gémissements, ton plaisir!\n`;
+        instruction += `\n🔥 Scène sexuelle → PARLE de tes sensations!\n`;
+        instruction += `Exemples: "Oh oui... c'est bon...", "Plus fort...", "Je sens que..."\n`;
       }
     }
     
     // Scénario spécifique
     const scenario = (character?.scenario || '').toLowerCase();
     if (scenario.includes('enfant') || scenario.includes('bébé')) {
-      instruction += `\nTON DÉSIR: Tu veux un enfant! Exprime-le sensuellement!\n`;
+      instruction += `\nTON DÉSIR: Tu veux un enfant! DIS-LE avec des paroles!\n`;
     }
     
-    // Instructions de réponse
+    // Instructions de réponse selon le type de message
     if (msgType.needsDirectAnswer) {
-      instruction += `\n→ C'est une QUESTION. Réponds DIRECTEMENT!\n`;
+      instruction += `\n→ C'est une QUESTION. Réponds avec des PAROLES!\n`;
     } else if (msgType.needsReaction) {
-      instruction += `\n→ RÉAGIS à cette action avec émotion!\n`;
+      instruction += `\n→ RÉAGIS avec des PAROLES + une action courte!\n`;
     }
     
     // Anti-répétition
     if (context.usedActions?.length > 0) {
-      instruction += `\nÉVITE ces actions déjà utilisées: ${context.usedActions.slice(-3).join(', ')}\n`;
+      instruction += `\n⛔ ÉVITE ces actions déjà utilisées: ${context.usedActions.slice(-3).join(', ')}\n`;
     }
     
-    instruction += `\nFORMAT: *action* "parole" (pensée)\n`;
-    instruction += `LONGUEUR: 2-4 phrases, créatif mais cohérent!\n`;
-    instruction += `RÉPONDS DIRECTEMENT à ce qu'on te dit!\n`;
+    // Format final avec emphase sur le dialogue
+    instruction += `\n📝 FORMAT OBLIGATOIRE:\n`;
+    instruction += `*action COURTE* "DIALOGUE LONG ET EXPRESSIF" (pensée optionnelle)\n`;
+    instruction += `\nExemple BON: *sourit* "Oh ${userName}, tu es vraiment adorable quand tu fais ça! J'adore passer du temps avec toi..." (Il/Elle me plaît)\n`;
+    instruction += `Exemple MAUVAIS: *s'approche lentement, pose sa main sur son épaule, regarde dans ses yeux, caresse sa joue* "Oui."\n`;
+    instruction += `\n→ Le DIALOGUE doit être PLUS LONG que l'action!\n`;
     
     return instruction;
   }
@@ -676,9 +1771,43 @@ class TextGenerationService {
   /**
    * Nettoie et valide la réponse générée
    * QUALITÉ GROQ: réponses riches, créatives, bien formattées
+   * Supprime aussi les fragments de refus IA
    */
-  cleanAndValidateResponse(content, context) {
+  cleanAndValidateResponse(content, context, userProfile = null) {
     let cleaned = content.trim();
+    
+    // ÉTAPE 0: Corriger "l'utilisateur" - JAMAIS ce mot!
+    // Remplacer par "tu" ou supprimer les phrases incohérentes
+    const userName = userProfile?.username || null;
+    
+    // Remplacements directs
+    cleaned = cleaned.replace(/l'utilisateur/gi, userName || 'toi');
+    cleaned = cleaned.replace(/l\'utilisateur/gi, userName || 'toi');
+    cleaned = cleaned.replace(/la personne/gi, userName || 'toi');
+    cleaned = cleaned.replace(/ton interlocuteur/gi, userName || 'toi');
+    cleaned = cleaned.replace(/cet utilisateur/gi, userName || 'toi');
+    cleaned = cleaned.replace(/cette utilisatrice/gi, userName || 'toi');
+    
+    // Supprimer les phrases qui parlent de l'utilisateur à la 3ème personne
+    cleaned = cleaned.replace(/Merci pour (ta|la) suggestion,?\s*(l'utilisateur|la personne)?\.?/gi, 'Merci!');
+    cleaned = cleaned.replace(/je vais faire ce que (l'utilisateur|tu) (dit|dis|demande)/gi, 'je vais faire ça');
+    
+    // ÉTAPE 1: Supprimer les fragments de refus IA
+    const refusalPhrases = [
+      /I'm sorry,?\s*(but)?\s*I\s*(can't|cannot|can not|am not able to|won't)\s*[^"*]*/gi,
+      /I\s*(apologize|must decline)[^"*]*/gi,
+      /as an AI[^"*]*/gi,
+      /I'm not (able|comfortable)[^"*]*/gi,
+      /je (ne peux pas|suis désolé|m'excuse|refuse)[^"*]*/gi,
+      /en tant qu'IA[^"*]*/gi,
+      /not appropriate[^"*]*/gi,
+      /against my guidelines[^"*]*/gi,
+      /unable to (help|assist)[^"*]*/gi,
+    ];
+    
+    refusalPhrases.forEach(pattern => {
+      cleaned = cleaned.replace(pattern, '');
+    });
     
     // Supprimer les préfixes indésirables
     cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:|Response:|Réponse:)/i, '').trim();
@@ -687,6 +1816,9 @@ class TextGenerationService {
     cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '*$1*');
     cleaned = cleaned.replace(/\*\*\(([^)]+)\)\*\*/g, '($1)');
     cleaned = cleaned.replace(/\*{3,}/g, '*');
+    
+    // Nettoyer les espaces multiples créés par la suppression des refus
+    cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
     
     // Supprimer les lignes purement narratives (sans action/dialogue/pensée)
     const lines = cleaned.split('\n').filter(line => {
@@ -736,9 +1868,10 @@ class TextGenerationService {
       cleaned = `${action} ${dialogue} ${thought}`.trim();
     }
     
-    // S'assurer qu'il y a du contenu minimum
-    if (cleaned.length < 10) {
-      cleaned = `*te regarde attentivement* "Oui?" (Hmm, curieux)`;
+    // S'assurer qu'il y a du contenu minimum après nettoyage
+    if (cleaned.length < 15 || !cleaned.includes('"')) {
+      // Le contenu est trop court après nettoyage, générer un fallback simple
+      cleaned = `*te regarde attentivement* "Oui?" (Hmm...)`;
     }
     
     return cleaned;
