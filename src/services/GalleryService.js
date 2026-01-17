@@ -189,13 +189,52 @@ class GalleryService {
       if (!data) return [];
       
       const gallery = JSON.parse(data);
-      // Filtrer par URL (compatible avec ancien et nouveau format)
+      
+      // Extraire le seed de l'URL à supprimer pour comparaison
+      const seedToDelete = this.extractSeedFromUrl(imageUrl);
+      
+      console.log(`🗑️ Suppression image - URL: ${imageUrl?.substring(0, 50)}..., Seed: ${seedToDelete}`);
+      
+      // Filtrer par URL OU par seed (compatible avec tous les formats)
       const updated = gallery.filter(item => {
-        const url = typeof item === 'string' ? item : item.url;
-        return url !== imageUrl;
+        // Ancien format (string)
+        if (typeof item === 'string') {
+          const itemSeed = this.extractSeedFromUrl(item);
+          // Supprimer si l'URL match OU si le seed match
+          if (item === imageUrl) return false;
+          if (seedToDelete && itemSeed === seedToDelete) return false;
+          return true;
+        }
+        
+        // Nouveau format (objet avec url, seed, prompt)
+        // Supprimer si l'URL match OU si le seed match
+        if (item.url === imageUrl) return false;
+        if (seedToDelete && item.seed === seedToDelete) return false;
+        
+        // Aussi comparer les URLs régénérées
+        if (item.seed && item.prompt) {
+          const regeneratedUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(item.prompt)}?width=768&height=1024&seed=${item.seed}&nologo=true&model=flux&enhance=true`;
+          if (regeneratedUrl === imageUrl) return false;
+        }
+        
+        return true;
       });
+      
+      console.log(`🗑️ Galerie: ${gallery.length} -> ${updated.length} images`);
+      
       await AsyncStorage.setItem(key, JSON.stringify(updated));
-      return updated.map(item => typeof item === 'string' ? item : item.url);
+      
+      // Retourner les URLs régénérées
+      return updated.map(item => {
+        if (typeof item === 'string') {
+          return this.regeneratePollinationsUrl(item);
+        }
+        if (item.seed && item.prompt) {
+          const encodedPrompt = encodeURIComponent(item.prompt);
+          return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=768&height=1024&seed=${item.seed}&nologo=true&model=flux&enhance=true`;
+        }
+        return item.url;
+      });
     } catch (error) {
       console.error('Error deleting image:', error);
       throw error;
