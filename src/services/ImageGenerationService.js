@@ -989,7 +989,7 @@ class ImageGenerationService {
       'mince|slim|élancé|slender': 'slim slender body',
       'athlétique|athletic|musclé|toned|fit': 'athletic toned fit body',
       'moyenne|average|normal': 'average balanced body',
-      'voluptu|curvy|généreuse': 'voluptuous curvy full-figured body',
+      'curvy': 'curvy body with soft curves',
       'pulpeuse|thick|épaisse': 'thick curvy body with curves',
       'ronde|plump|chubby|potelé': 'soft plump rounded body',
       'très ronde|very curvy|bbw': 'very curvy plump body, BBW',
@@ -1045,7 +1045,7 @@ class ImageGenerationService {
       'énorme fesse|huge butt|très grosse': 'huge massive round butt',
       'grosse fesse|big butt|large butt': 'big round plump butt',
       'fesses rebond|bubble butt|fesses rondes': 'round bubble butt',
-      'fesses généreuses|curvy butt': 'generous curvy butt',
+      'curvy butt': 'curvy butt',
       'fesses musclé|toned butt|fit butt': 'toned muscular firm butt',
       'fesses plates|flat butt|petites fesses': 'small flat butt',
       'fesses fermes|firm butt|perky': 'firm perky butt',
@@ -1331,8 +1331,8 @@ class ImageGenerationService {
       description += ', athletic toned fit body with defined muscles';
     } else if (appearance.includes('mince') || appearance.includes('slim') || appearance.includes('élancé') || appearance.includes('slender')) {
       description += ', slim slender lean body';
-    } else if (appearance.includes('voluptu') || appearance.includes('curvy') || appearance.includes('généreuses') || appearance.includes('formes')) {
-      description += ', voluptuous curvy full-figured body with generous curves';
+    } else if (appearance.includes('curvy') || appearance.includes('formes')) {
+      description += ', curvy body with soft feminine curves';
     } else if (appearance.includes('ronde') || appearance.includes('round') || appearance.includes('potelée') || appearance.includes('chubby')) {
       description += ', curvy soft rounded plump body';
     } else if (appearance.includes('pulpeuse') || appearance.includes('thick')) {
@@ -1350,7 +1350,7 @@ class ImageGenerationService {
     }
     
     // Fesses
-    if (appearance.includes('grosse fesse') || appearance.includes('grosses fesses') || appearance.includes('big butt') || appearance.includes('fesses généreuses')) {
+    if (appearance.includes('grosse fesse') || appearance.includes('grosses fesses') || appearance.includes('big butt')) {
       description += ', big round butt, large plump buttocks, thick ass';
     } else if (appearance.includes('fesses rebondies') || appearance.includes('bubble butt') || appearance.includes('fesses rondes')) {
       description += ', round bubble butt, perky buttocks';
@@ -1359,8 +1359,8 @@ class ImageGenerationService {
     }
     
     // Hanches
-    if (appearance.includes('hanches larges') || appearance.includes('wide hips') || appearance.includes('hanches généreuses')) {
-      description += ', wide generous hips, curvy hips';
+    if (appearance.includes('hanches larges') || appearance.includes('wide hips')) {
+      description += ', wide hips, curvy hips';
     } else if (appearance.includes('hanches étroites') || appearance.includes('narrow hips')) {
       description += ', narrow slim hips';
     }
@@ -1597,8 +1597,6 @@ class ImageGenerationService {
         { pattern: /énorme.*poitrine|huge.*breast|massive.*breast/i, value: 'H' },
         { pattern: /très grosse.*poitrine|very large.*breast/i, value: 'G' },
         { pattern: /grosse.*poitrine|large.*breast/i, value: 'F' },
-        { pattern: /généreuse.*poitrine|generous.*breast/i, value: 'E' },
-        { pattern: /poitrine.*généreuse/i, value: 'E' },
         { pattern: /moyenne.*poitrine|medium.*breast/i, value: 'C' },
         { pattern: /poitrine.*moyenne/i, value: 'C' },
         { pattern: /petite.*poitrine|small.*breast/i, value: 'B' },
@@ -1611,24 +1609,19 @@ class ImageGenerationService {
     
     if (type === 'body') {
       const bodyTypes = [
-        // Rondeurs et formes généreuses
+        // Rondeurs et formes
         { key: 'très ronde', value: 'very curvy chubby plump body' },
         { key: 'very curvy', value: 'very curvy full-figured' },
         { key: 'ronde', value: 'curvy plump soft body' },
         { key: 'chubby', value: 'chubby curvy plump' },
         { key: 'potelée', value: 'chubby plump soft body' },
         { key: 'thick', value: 'thick curvy body' },
-        { key: 'voluptueuse', value: 'voluptuous curvy full-figured' },
-        { key: 'voluptuous', value: 'voluptuous curvy' },
-        { key: 'pulpeuse', value: 'voluptuous full-figured curvy' },
-        { key: 'généreuse', value: 'generous curvy full-figured' },
-        { key: 'formes généreuses', value: 'generous curves full-figured' },
+        { key: 'pulpeuse', value: 'curvy full-figured' },
         { key: 'curvy', value: 'curvy full-figured' },
         { key: 'bbw', value: 'BBW curvy thick plump body' },
         // Fesses spécifiques
         { key: 'grosses fesses', value: 'big round butt thick ass' },
         { key: 'grosse fesse', value: 'big round butt thick ass' },
-        { key: 'fesses généreuses', value: 'generous round butt curvy ass' },
         { key: 'fesses rebondies', value: 'bubble butt perky round ass' },
         { key: 'big butt', value: 'big round butt thick ass' },
         { key: 'bubble butt', value: 'bubble butt round perky ass' },
@@ -1638,7 +1631,6 @@ class ImageGenerationService {
         { key: 'belly', value: 'soft belly plump midsection' },
         // Hanches et cuisses
         { key: 'hanches larges', value: 'wide hips curvy hips' },
-        { key: 'hanches généreuses', value: 'wide generous hips' },
         { key: 'cuisses épaisses', value: 'thick thighs full legs' },
         { key: 'thick thighs', value: 'thick meaty thighs' },
         // Silhouettes
@@ -1745,13 +1737,8 @@ class ImageGenerationService {
       features.push('soft plump chubby body, cute pudgy figure, doughy soft curves');
     }
     
-    // GÉNÉREUSE / FORMES GÉNÉREUSES / COURBES GÉNÉREUSES
-    if (fullText.includes('généreuse') || fullText.includes('courbes généreuses') || fullText.includes('formes généreuses') || fullText.includes('generous curves') || fullText.includes('generous figure')) {
-      features.push('generous curvy body, ample soft curves everywhere, full figured');
-    }
-    
-    // VOLUPTUEUSE / PULPEUSE
-    if (fullText.includes('voluptu') || fullText.includes('pulpeuse') || fullText.includes('voluptuous') || fullText.includes('lush')) {
+    // PULPEUSE (v5.3.30 - généreuse/voluptueuse désactivés)
+    if (fullText.includes('pulpeuse') || fullText.includes('lush')) {
       features.push('voluptuous lush curvy body with generous sensual curves');
     }
     
@@ -1793,29 +1780,29 @@ class ImageGenerationService {
       features.push('big round plump butt, large thick buttocks, generous thick ass, wide jiggly rear');
     } else if (fullText.includes('fesses rebondies') || fullText.includes('bubble butt') || fullText.includes('fesses rondes') || fullText.includes('round butt') || fullText.includes('perky butt')) {
       features.push('round bubble butt, perky plump buttocks, juicy round ass, bouncy rear');
-    } else if (fullText.includes('fesses généreuses') || fullText.includes('curvy butt') || fullText.includes('nice butt') || fullText.includes('beau fessier')) {
-      features.push('generous curvy butt, full round buttocks, shapely rear');
+    } else if (fullText.includes('curvy butt') || fullText.includes('nice butt') || fullText.includes('beau fessier')) {
+      features.push('curvy butt, round buttocks, shapely rear');
     }
     
     // === HANCHES SPÉCIFIQUES ===
     if (fullText.includes('très larges hanches') || fullText.includes('hanches très larges') || fullText.includes('very wide hips') || fullText.includes('huge hips')) {
       features.push('very wide generous hips, extremely broad curvy hip bones, massive childbearing hips');
-    } else if (fullText.includes('hanches larges') || fullText.includes('wide hips') || fullText.includes('hanches généreuses') || fullText.includes('larges hanches') || fullText.includes('broad hips') || fullText.includes('hanches rondes')) {
-      features.push('wide generous hips, broad curvy hip bones, childbearing hips');
+    } else if (fullText.includes('hanches larges') || fullText.includes('wide hips') || fullText.includes('larges hanches') || fullText.includes('broad hips') || fullText.includes('hanches rondes')) {
+      features.push('wide hips, broad curvy hip bones');
     }
     
     // === CUISSES SPÉCIFIQUES ===
     if (fullText.includes('très grosses cuisses') || fullText.includes('huge thighs') || fullText.includes('massive thighs')) {
       features.push('very thick massive thighs, huge plump legs, extremely generous meaty thighs');
-    } else if (fullText.includes('cuisses épaisses') || fullText.includes('thick thighs') || fullText.includes('grosses cuisses') || fullText.includes('cuisses généreuses') || fullText.includes('cuisses pleines') || fullText.includes('full thighs') || fullText.includes('fat thighs')) {
-      features.push('thick meaty thighs, full plump legs, generous thick thighs');
+    } else if (fullText.includes('cuisses épaisses') || fullText.includes('thick thighs') || fullText.includes('grosses cuisses') || fullText.includes('cuisses pleines') || fullText.includes('full thighs') || fullText.includes('fat thighs')) {
+      features.push('thick meaty thighs, full plump legs');
     }
     
     // === POITRINE TRÈS GÉNÉREUSE ===
     if (fullText.includes('énorme poitrine') || fullText.includes('très grosse poitrine') || fullText.includes('huge breasts') || fullText.includes('enormous breasts') || fullText.includes('massive breasts') || fullText.includes('énormes seins') || fullText.includes('gigantic breasts')) {
       features.push('huge massive breasts, enormous bust, very large heavy chest');
-    } else if (fullText.includes('grosse poitrine') || fullText.includes('large breasts') || fullText.includes('big breasts') || fullText.includes('gros seins') || fullText.includes('poitrine généreuse') || fullText.includes('generous bust') || fullText.includes('full breasts')) {
-      features.push('large full breasts, big generous bust, heavy ample chest');
+    } else if (fullText.includes('grosse poitrine') || fullText.includes('large breasts') || fullText.includes('big breasts') || fullText.includes('gros seins') || fullText.includes('full breasts')) {
+      features.push('large full breasts, big bust, ample chest');
     } else if (fullText.includes('poitrine pleine') || fullText.includes('full bust') || fullText.includes('ample bust')) {
       features.push('full round breasts, ample bust, nicely filled chest');
     }
@@ -1896,15 +1883,15 @@ class ImageGenerationService {
         anatomy += ', big round plump butt, large thick buttocks, generous rear, wide ass';
       } else if (fullAppearance.includes('fesses rebondies') || fullAppearance.includes('bubble butt') || fullAppearance.includes('fesses rondes')) {
         anatomy += ', round bubble butt, perky plump buttocks, nice round ass';
-      } else if (fullAppearance.includes('fesses généreuses') || fullAppearance.includes('curvy butt')) {
-        anatomy += ', generous curvy butt, full round buttocks';
+      } else if (fullAppearance.includes('curvy butt')) {
+        anatomy += ', curvy butt, round buttocks';
       } else if (fullAppearance.includes('fesses plates') || fullAppearance.includes('flat butt')) {
         anatomy += ', small flat butt, petite rear';
       }
       
       // Hanches détaillées
-      if (fullAppearance.includes('hanches larges') || fullAppearance.includes('wide hips') || fullAppearance.includes('hanches généreuses')) {
-        anatomy += ', wide generous hips, curvy wide hip bones, broad feminine hips';
+      if (fullAppearance.includes('hanches larges') || fullAppearance.includes('wide hips')) {
+        anatomy += ', wide hips, curvy hip bones, feminine hips';
       } else if (fullAppearance.includes('hanches étroites') || fullAppearance.includes('narrow hips')) {
         anatomy += ', narrow slim hips, petite hip bones';
       }
@@ -1924,8 +1911,8 @@ class ImageGenerationService {
       }
       
       // Type de corps global (curvy, ronde, etc.)
-      if (fullAppearance.includes('voluptu') || fullAppearance.includes('curvy') || fullAppearance.includes('généreuse') || fullAppearance.includes('formes')) {
-        anatomy += ', voluptuous curvy full-figured body, generous curves everywhere';
+      if (fullAppearance.includes('curvy') || fullAppearance.includes('formes')) {
+        anatomy += ', curvy body with soft feminine curves';
       } else if (fullAppearance.includes('ronde') || fullAppearance.includes('plump') || fullAppearance.includes('chubby') || fullAppearance.includes('potelée')) {
         anatomy += ', curvy plump soft body, rounded figure, soft curves';
       } else if (fullAppearance.includes('pulpeuse') || fullAppearance.includes('thick')) {
@@ -1935,8 +1922,8 @@ class ImageGenerationService {
       }
       
       // Silhouette basée sur la poitrine ET le corps
-      const isCurvy = fullAppearance.includes('curvy') || fullAppearance.includes('voluptu') || fullAppearance.includes('ronde') || 
-                      fullAppearance.includes('généreuse') || fullAppearance.includes('grosse') || fullAppearance.includes('thick');
+      const isCurvy = fullAppearance.includes('curvy') || fullAppearance.includes('ronde') || 
+                      fullAppearance.includes('grosse') || fullAppearance.includes('thick');
       
       if (isCurvy || ['D', 'DD', 'E', 'F', 'G', 'H'].includes(normalizedBust)) {
         anatomy += ', hourglass figure, curvy sexy body, prominent bust and hips';
@@ -2488,8 +2475,8 @@ class ImageGenerationService {
       bbw: allText.includes('bbw') || allText.includes('très ronde') || allText.includes('très grosse') || allText.includes('obèse'),
       round: allText.includes('ronde') || allText.includes('rondelette') || allText.includes('potelée') || allText.includes('dodue'),
       chubby: allText.includes('chubby') || allText.includes('enrobée') || allText.includes('en chair'),
-      generous: allText.includes('généreuse') || allText.includes('généreux') || allText.includes('formes généreuses'),
-      voluptuous: allText.includes('voluptu') || allText.includes('pulpeuse') || allText.includes('plantureuse'),
+      generous: false, // Désactivé v5.3.30
+      voluptuous: allText.includes('pulpeuse') || allText.includes('plantureuse'),
       curvy: allText.includes('courbes') || allText.includes('formes') || allText.includes('curvy') || allText.includes('curves'),
       thick: allText.includes('thick') || allText.includes('épaisse') || allText.includes('cuisses épaisses'),
       maternal: allText.includes('maternelle') || allText.includes('maman') || allText.includes('milf') || allText.includes('mature'),
@@ -3435,39 +3422,24 @@ class ImageGenerationService {
       );
       detectedType = 'RONDE / CHUBBY (ventre + poitrine + fesses)';
     }
-    // === GÉNÉREUSE === (Poitrine + fesses SEULEMENT, ventre plat)
-    else if (lowerPrompt.includes('généreus') || 
-             lowerPrompt.includes('generous') ||
-             lowerPrompt.includes('formes généreuses') ||
-             lowerPrompt.includes('plantureuse') ||
-             lowerPrompt.includes('bien en chair')) {
-      morphology.push(
-        'generous curvy body, ample soft curves, full figured, ' +
-        'large full breasts, big generous bust, heavy ample chest, impressive cleavage, ' +
-        'generous curvy butt, full round buttocks, shapely thick rear, ' +
-        'wide generous hips, curvy hip bones, ' +
-        'FLAT TONED STOMACH, slim waist, no belly fat, ' +
-        'toned arms, pretty face'
-      );
-      detectedType = 'GÉNÉREUSE (poitrine + fesses, ventre plat)';
-    }
-    // === VOLUPTUEUSE / PULPEUSE === (Formes extrêmes, ventre plat)
-    else if (lowerPrompt.includes('voluptu') || 
-             lowerPrompt.includes('pulpeuse') ||
-             lowerPrompt.includes('voluptuous') ||
+    // === GÉNÉREUSE / VOLUPTUEUSE === DÉSACTIVÉS (v5.3.30)
+    // Ces termes ne sont plus utilisés pour la génération d'image
+    // Ils seront traités comme "curvy" standard
+    
+    // === PULPEUSE === (Formes prononcées, ventre plat)
+    else if (lowerPrompt.includes('pulpeuse') ||
              lowerPrompt.includes('lush') ||
              lowerPrompt.includes('bombshell') ||
              lowerPrompt.includes('hourglass')) {
       morphology.push(
-        'voluptuous lush curvy body with generous sensual curves, ' +
-        'huge massive breasts, enormous bust, very large heavy chest, deep cleavage, ' +
-        'big round firm butt, large plump buttocks, juicy round ass, ' +
-        'very wide hips, extreme curvy hips, perfect hourglass, ' +
-        'FLAT TONED STOMACH, narrow waist, no belly, ' +
-        'slim toned arms, beautiful face, ' +
-        'extreme curves, pin-up body'
+        'curvy body with soft curves, ' +
+        'full breasts, nice bust, feminine cleavage, ' +
+        'round butt, plump buttocks, shapely rear, ' +
+        'feminine hips, hourglass figure, ' +
+        'FLAT TONED STOMACH, slim waist, no belly, ' +
+        'slim arms, beautiful face'
       );
-      detectedType = 'VOLUPTUEUSE / PULPEUSE (formes extrêmes, ventre plat)';
+      detectedType = 'PULPEUSE (formes, ventre plat)';
     }
     // === CURVY / THICK ===
     else if (lowerPrompt.includes('curvy') || 
@@ -3520,7 +3492,6 @@ class ImageGenerationService {
       'd-cup': 'full D-cup breasts, nice bust',
       'grosse poitrine': 'big breasts, large full bust',
       'forte poitrine': 'big strong breasts, impressive bust',
-      'poitrine généreuse': 'generous full breasts, big bust',
       'big breast': 'big breasts, large bust',
       // Moyenne
       'c-cup': 'medium C-cup breasts, average bust',
@@ -3547,7 +3518,6 @@ class ImageGenerationService {
       'grosses fesses': 'big round butt, large plump ass',
       'fesses rebondies': 'round bubble butt, perky ass',
       'bubble butt': 'round bubble butt, perky bouncy ass',
-      'fesses généreuses': 'generous curvy butt, full round ass',
       'big butt': 'big round butt, large ass',
       'thick ass': 'thick juicy ass, big butt',
       'petites fesses': 'small flat butt, petite rear',
