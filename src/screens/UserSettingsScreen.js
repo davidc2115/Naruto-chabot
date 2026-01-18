@@ -15,6 +15,7 @@ import AuthService from '../services/AuthService';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
+import appJson from '../../app.json';
 
 /**
  * Écran de paramètres pour les utilisateurs non-admin
@@ -42,8 +43,8 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [updateInfo, setUpdateInfo] = useState(null);
 
   const DISCORD_INVITE = 'https://discord.gg/9KHCqSmz';
-  const CURRENT_VERSION = '3.7.54';
-  const GITHUB_RELEASES_URL = 'https://api.github.com/repos/YOUR_USERNAME/roleplay-chat/releases/latest';
+  const CURRENT_VERSION = appJson?.expo?.version || '5.3.20';
+  const GITHUB_RELEASES_URL = 'https://api.github.com/repos/davidc2115/Naruto-chabot/releases/latest';
 
   useEffect(() => {
     loadUserData();

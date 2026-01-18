@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,44 +10,58 @@ import {
   Image,
   ActivityIndicator,
   Switch,
-  Modal,
 } from 'react-native';
-// expo-image-picker retiré pour compatibilité build
-// Import d'image via URL uniquement
+// expo-image-picker désactivé - cause erreurs de build
+const ImagePicker = null;
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
 import UserProfileService from '../services/UserProfileService';
-import SyncService from '../services/SyncService';
 import AuthService from '../services/AuthService';
 
 export default function CreateCharacterScreen({ navigation, route }) {
   const { characterToEdit } = route.params || {};
   const isEditing = !!characterToEdit;
 
+  // === INFORMATIONS DE BASE ===
   const [name, setName] = useState(characterToEdit?.name || '');
   const [age, setAge] = useState(characterToEdit?.age?.toString() || '');
   const [gender, setGender] = useState(characterToEdit?.gender || 'female');
+  
+  // === APPARENCE PHYSIQUE DÉTAILLÉE ===
   const [hairColor, setHairColor] = useState(characterToEdit?.hairColor || '');
-  const [appearance, setAppearance] = useState(characterToEdit?.appearance || '');
+  const [hairLength, setHairLength] = useState(characterToEdit?.hairLength || 'longs');
+  const [eyeColor, setEyeColor] = useState(characterToEdit?.eyeColor || 'marron');
+  const [height, setHeight] = useState(characterToEdit?.height?.replace(' cm', '') || '165');
+  const [bodyType, setBodyType] = useState(characterToEdit?.bodyType || 'moyenne');
+  const [skinTone, setSkinTone] = useState(characterToEdit?.skinTone || 'claire');
   const [bust, setBust] = useState(characterToEdit?.bust || 'C');
   const [penis, setPenis] = useState(characterToEdit?.penis?.replace('cm', '') || '17');
+  const [appearance, setAppearance] = useState(characterToEdit?.appearance || '');
+  
+  // === PERSONNALITÉ ===
   const [personality, setPersonality] = useState(characterToEdit?.personality || '');
   const [temperament, setTemperament] = useState(characterToEdit?.temperament || 'amical');
+  
+  // === SCÉNARIO ===
   const [scenario, setScenario] = useState(characterToEdit?.scenario || '');
   const [startMessage, setStartMessage] = useState(characterToEdit?.startMessage || '');
+  
+  // === IMAGE ===
   const [imageUrl, setImageUrl] = useState(characterToEdit?.imageUrl || '');
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [importedImage, setImportedImage] = useState(false);
   
-  // Option public/privé
+  // === OPTIONS ===
   const [isPublic, setIsPublic] = useState(characterToEdit?.isPublic || false);
   const [serverOnline, setServerOnline] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
   
-  // Modal pour import d'image
-  const [showImageOptions, setShowImageOptions] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [tempImageUrl, setTempImageUrl] = useState('');
+  // === LISTES DE CHOIX ===
+  const hairLengths = ['très courts', 'courts', 'mi-longs', 'longs', 'très longs'];
+  const eyeColors = ['marron', 'noisette', 'vert', 'bleu', 'gris', 'noir', 'ambre', 'violet'];
+  const bodyTypes = ['mince', 'élancée', 'moyenne', 'athlétique', 'voluptueuse', 'généreuse', 'ronde', 'pulpeuse'];
+  const skinTones = ['très claire', 'claire', 'mate', 'bronzée', 'caramel', 'ébène'];
 
   // Vérifier le statut premium au montage
   React.useEffect(() => {
@@ -78,30 +92,116 @@ export default function CreateCharacterScreen({ navigation, route }) {
     }
   };
 
-  const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
-  const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
+  // Vérifier le statut du serveur pour la publication
+  const checkServerStatus = async () => {
+    try {
+      setServerOnline(null); // En cours de vérification
+      
+      // Timeout de 5 secondes
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      const response = await fetch('http://88.174.155.230:33437/api/ping', {
+        method: 'GET',
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      setServerOnline(response.ok);
+    } catch (error) {
+      console.log('⚠️ Serveur hors ligne:', error.message);
+      setServerOnline(false);
+    }
+  };
 
-  // === FONCTIONS D'IMPORT D'IMAGE ===
-  // Note: Import depuis galerie/caméra désactivé (problème build)
-  // Seul l'import via URL est disponible
-  
-  const importFromUrl = () => {
-    if (!tempImageUrl.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer une URL valide.');
+  const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
+  const temperaments = [
+    { id: 'amical', label: '😊 Amical', desc: 'Chaleureux et accessible' },
+    { id: 'timide', label: '🙈 Timide', desc: 'Réservé et discret' },
+    { id: 'flirt', label: '😏 Séducteur', desc: 'Charmeur et taquin' },
+    { id: 'direct', label: '💪 Direct', desc: 'Franc et confiant' },
+    { id: 'taquin', label: '😜 Taquin', desc: 'Espiègle et joueur' },
+    { id: 'romantique', label: '💕 Romantique', desc: 'Tendre et rêveur' },
+    { id: 'mystérieux', label: '🔮 Mystérieux', desc: 'Énigmatique' },
+    { id: 'passionné', label: '🔥 Passionné', desc: 'Intense et fougueux' },
+    { id: 'dominant', label: '👑 Dominant', desc: 'Assuré et leader' },
+    { id: 'soumis', label: '🎀 Doux', desc: 'Docile et attentionné' },
+  ];
+
+  // === IMPORTER UNE IMAGE v5.3.32 ===
+  const pickImage = async () => {
+    if (!ImagePicker || !ImagePicker.requestMediaLibraryPermissionsAsync) {
+      Alert.alert(
+        'Non disponible', 
+        'L\'import d\'image nécessite une mise à jour de l\'application.\n\nUtilisez la génération IA à la place.',
+        [{ text: 'OK' }]
+      );
       return;
     }
     
-    // Vérifier que c'est une URL valide
-    if (!tempImageUrl.startsWith('http://') && !tempImageUrl.startsWith('https://')) {
-      Alert.alert('Erreur', 'L\'URL doit commencer par http:// ou https://');
-      return;
+    try {
+      // Demander la permission
+      const permResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permResult.status !== 'granted') {
+        Alert.alert('Permission refusée', 'L\'accès à la galerie est nécessaire pour importer une image.');
+        return;
+      }
+
+      // Lancer le sélecteur d'images
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions ? ImagePicker.MediaTypeOptions.Images : ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      console.log('📷 Résultat picker:', result.canceled ? 'annulé' : 'sélectionné');
+      
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setImageUrl(result.assets[0].uri);
+        setImportedImage(true);
+        Alert.alert('✅ Image importée', 'Vous pouvez maintenant sauvegarder le personnage avec cette image.');
+      }
+    } catch (error) {
+      console.log('❌ Erreur import image:', error);
+      Alert.alert('Erreur', 'Impossible d\'importer l\'image: ' + (error.message || 'erreur inconnue'));
+    }
+  };
+
+  // === GÉNÉRER DESCRIPTION PHYSIQUE AUTO ===
+  const generatePhysicalDescription = () => {
+    const genderLabel = gender === 'female' ? 'Femme' : 'Homme';
+    const genderAdj = gender === 'female' ? 'e' : '';
+    const bustOrPenis = gender === 'female' ? `, poitrine bonnet ${bust}` : `, ${penis}cm`;
+    
+    const desc = `${genderLabel} de ${age} ans, ${height}cm, silhouette ${bodyType}${bustOrPenis}. ` +
+      `Cheveux ${hairLength} ${hairColor || 'naturels'}, yeux ${eyeColor}, peau ${skinTone}. ` +
+      `${appearance || ''}`.trim();
+    
+    return desc;
+  };
+
+  // === GÉNÉRER PROMPT IMAGE ===
+  const generateImagePrompt = () => {
+    const genderEn = gender === 'female' ? 'woman' : 'man';
+    const bodyEn = {
+      'mince': 'slim', 'élancée': 'slender', 'moyenne': 'average',
+      'athlétique': 'athletic', 'voluptueuse': 'voluptuous curvy',
+      'généreuse': 'generous full-figured', 'ronde': 'plump chubby',
+      'pulpeuse': 'curvaceous thick'
+    }[bodyType] || 'average';
+    
+    const hairEn = hairLength === 'très courts' ? 'very short' :
+      hairLength === 'courts' ? 'short' : hairLength === 'mi-longs' ? 'medium length' :
+      hairLength === 'longs' ? 'long' : 'very long';
+    
+    let prompt = `beautiful ${age}yo ${genderEn}, ${bodyEn} body, ${hairEn} ${hairColor || 'natural'} hair, ${eyeColor} eyes`;
+    
+    if (gender === 'female' && bust) {
+      prompt += `, ${bust} cup breasts`;
     }
     
-    setImageUrl(tempImageUrl.trim());
-    setShowUrlInput(false);
-    setShowImageOptions(false);
-    setTempImageUrl('');
-    Alert.alert('Succès', 'Image importée depuis l\'URL !');
+    return prompt;
   };
 
   const generateCharacterImage = async () => {
@@ -165,37 +265,54 @@ export default function CreateCharacterScreen({ navigation, route }) {
     }
   };
 
-  const checkServerStatus = async () => {
-    const online = await SyncService.checkServerHealth();
-    setServerOnline(online);
-  };
-
-  // Vérifier le serveur au montage si on veut publier
-  React.useEffect(() => {
-    if (isPublic) {
-      checkServerStatus();
-    }
-  }, [isPublic]);
-
   const handleSave = async () => {
-    if (!name || !age || !appearance || !personality || !scenario || !startMessage) {
+    if (!name || !age || !personality || !scenario || !startMessage) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
       return;
     }
 
     try {
+      // Générer la description physique automatiquement si vide
+      const finalAppearance = appearance || generatePhysicalDescription();
+      const finalImagePrompt = generateImagePrompt();
+      
       const character = {
         name,
         age: parseInt(age),
         gender,
+        // === APPARENCE DÉTAILLÉE ===
         hairColor,
-        appearance,
+        hairLength,
+        eyeColor,
+        height: `${height} cm`,
+        bodyType,
+        skinTone,
+        appearance: finalAppearance,
+        physicalDescription: generatePhysicalDescription(),
+        imagePrompt: finalImagePrompt,
         ...(gender === 'female' ? { bust } : { penis: `${penis}cm` }),
+        // === PERSONNALITÉ ===
         personality,
         temperament,
-        tags: [temperament, 'personnalisé'],
+        temperamentDetails: {
+          emotionnel: `Personnage ${temperament}, ${personality.substring(0, 100)}...`,
+          seduction: gender === 'female' ? 'Séduction féminine' : 'Séduction masculine',
+          intimite: 'Adapté selon la relation',
+          communication: `Style ${temperament}`,
+          reactions: 'Réactions naturelles',
+        },
+        // === TAGS ===
+        tags: [
+          temperament, 
+          'personnalisé', 
+          gender === 'female' ? 'femme' : 'homme',
+          bodyType,
+        ].filter(Boolean),
+        // === SCÉNARIO ===
         scenario,
+        description: scenario,
         startMessage,
+        // === MÉTADONNÉES ===
         imageUrl: imageUrl || undefined,
         isCustom: true,
         isPublic: isPublic,
@@ -205,29 +322,11 @@ export default function CreateCharacterScreen({ navigation, route }) {
       if (isEditing) {
         savedCharacter = await CustomCharacterService.updateCustomCharacter(characterToEdit.id, character);
         
-        // Gérer le changement de statut public/privé
-        if (isPublic && !characterToEdit.isPublic) {
-          try {
-            await CustomCharacterService.publishCharacter(characterToEdit.id);
-          } catch (e) {
-            console.warn('Erreur publication:', e);
-          }
-        } else if (!isPublic && characterToEdit.isPublic) {
-          try {
-            await CustomCharacterService.unpublishCharacter(characterToEdit.id);
-          } catch (e) {
-            console.warn('Erreur dépublication:', e);
-          }
-        }
-        
         if (imageUrl && imageUrl !== characterToEdit.imageUrl) {
           await GalleryService.saveImageToGallery(characterToEdit.id, imageUrl);
         }
         
-        const message = isPublic 
-          ? 'Personnage modifié et visible publiquement !' 
-          : 'Personnage modifié !';
-        Alert.alert('Succès', message, [
+        Alert.alert('✅ Succès', 'Personnage modifié !', [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       } else {
@@ -237,15 +336,13 @@ export default function CreateCharacterScreen({ navigation, route }) {
           await GalleryService.saveImageToGallery(savedCharacter.id, imageUrl);
         }
         
-        const message = isPublic 
-          ? 'Personnage créé et partagé avec la communauté !' 
-          : 'Personnage créé ! L\'image a été ajoutée à la galerie.';
-        Alert.alert('Succès', message, [
+        Alert.alert('✅ Succès', 'Personnage créé !', [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de sauvegarder le personnage');
+      console.error('Erreur sauvegarde:', error);
+      Alert.alert('❌ Erreur', 'Impossible de sauvegarder le personnage');
     }
   };
 
@@ -261,54 +358,56 @@ export default function CreateCharacterScreen({ navigation, route }) {
         {imageUrl ? (
           <View style={styles.imagePreview}>
             <Image source={{ uri: imageUrl }} style={styles.previewImage} />
-            <View style={styles.imageButtons}>
+            <View style={styles.imageButtonsRow}>
               <TouchableOpacity
-                style={styles.changeImageButton}
-                onPress={() => setShowImageOptions(true)}
+                style={styles.imageActionButton}
+                onPress={pickImage}
               >
-                <Text style={styles.changeImageButtonText}>📷 Changer</Text>
+                <Text style={styles.imageActionButtonText}>📁 Changer</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.regenerateButton}
+                style={[styles.imageActionButton, styles.regenerateButton]}
                 onPress={generateCharacterImage}
-                disabled={generatingImage}
+                disabled={generatingImage || !isPremium}
               >
-                <Text style={styles.regenerateButtonText}>
-                  {generatingImage ? '⏳...' : '🎨 Générer'}
+                <Text style={styles.imageActionButtonText}>
+                  {generatingImage ? '...' : '🎨 IA'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.removeImageButton}
-                onPress={() => setImageUrl('')}
+                style={[styles.imageActionButton, styles.deleteImageButton]}
+                onPress={() => { setImageUrl(''); setImportedImage(false); }}
               >
-                <Text style={styles.removeImageButtonText}>🗑️</Text>
+                <Text style={styles.imageActionButtonText}>🗑️</Text>
               </TouchableOpacity>
             </View>
           </View>
         ) : (
-          <View style={styles.noImageContainer}>
-            {/* Bouton Import Image */}
+          <View style={styles.imageOptionsContainer}>
+            {/* Option 1: Importer une image v5.3.32 */}
             <TouchableOpacity
-              style={styles.importImageButton}
-              onPress={() => setShowImageOptions(true)}
+              style={[
+                styles.importImageButton, 
+                !ImagePicker && styles.importImageButtonDisabled
+              ]}
+              onPress={pickImage}
             >
-              <Text style={styles.importImageIcon}>📷</Text>
-              <Text style={styles.importImageText}>Importer une image</Text>
-              <Text style={styles.importImageHint}>Galerie, caméra ou URL</Text>
+              <Text style={styles.importImageIcon}>
+                {ImagePicker ? '📸' : '⚠️'}
+              </Text>
+              <Text style={styles.importImageText}>
+                {ImagePicker ? 'Importer une image' : 'Import indisponible'}
+              </Text>
+              <Text style={styles.importImageHint}>
+                {ImagePicker ? 'Depuis votre galerie' : 'Générez avec l\'IA'}
+              </Text>
             </TouchableOpacity>
             
-            {/* Séparateur */}
-            <View style={styles.separator}>
-              <View style={styles.separatorLine} />
-              <Text style={styles.separatorText}>ou</Text>
-              <View style={styles.separatorLine} />
-            </View>
-            
-            {/* Bouton Générer Image */}
+            {/* Option 2: Générer avec IA */}
             <TouchableOpacity
               style={[styles.generateImageButton, !isPremium && styles.generateImageButtonLocked]}
               onPress={generateCharacterImage}
-              disabled={generatingImage}
+              disabled={generatingImage || !isPremium}
             >
               {generatingImage ? (
                 <ActivityIndicator size="large" color="#6366f1" />
@@ -316,12 +415,12 @@ export default function CreateCharacterScreen({ navigation, route }) {
                 <>
                   <Text style={styles.generateImageIcon}>{isPremium ? '🎨' : '🔒'}</Text>
                   <Text style={styles.generateImageText}>
-                    {isPremium ? 'Générer par IA' : 'Générer par IA (Premium)'}
+                    {isPremium ? 'Générer avec IA' : 'Générer (Premium)'}
                   </Text>
                   <Text style={styles.generateImageHint}>
                     {isPremium 
-                      ? 'Remplissez l\'apparence physique'
-                      : '💎 Devenez Premium pour cette option'}
+                      ? 'Basé sur la description'
+                      : '💎 Premium requis'}
                   </Text>
                 </>
               )}
@@ -329,55 +428,6 @@ export default function CreateCharacterScreen({ navigation, route }) {
           </View>
         )}
       </View>
-      
-      {/* Modal Options d'Image */}
-      <Modal
-        visible={showImageOptions}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowImageOptions(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>🔗 Importer une image</Text>
-            
-            <Text style={styles.modalSubtitle}>
-              Collez l'URL d'une image depuis internet
-            </Text>
-            
-            <View style={styles.urlInputContainer}>
-              <TextInput
-                style={styles.urlInput}
-                value={tempImageUrl}
-                onChangeText={setTempImageUrl}
-                placeholder="https://example.com/image.jpg"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoFocus={true}
-              />
-            </View>
-            
-            <TouchableOpacity style={styles.urlSubmitButtonLarge} onPress={importFromUrl}>
-              <Text style={styles.urlSubmitTextLarge}>✓ Importer l'image</Text>
-            </TouchableOpacity>
-            
-            <Text style={styles.modalHint}>
-              💡 Astuce: Faites un clic droit sur une image dans votre navigateur, puis "Copier l'adresse de l'image"
-            </Text>
-            
-            <TouchableOpacity 
-              style={styles.modalCancel} 
-              onPress={() => {
-                setShowImageOptions(false);
-                setShowUrlInput(false);
-                setTempImageUrl('');
-              }}
-            >
-              <Text style={styles.modalCancelText}>Annuler</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       <Text style={styles.label}>Nom *</Text>
       <TextInput
@@ -451,17 +501,87 @@ export default function CreateCharacterScreen({ navigation, route }) {
         style={styles.input}
         value={hairColor}
         onChangeText={setHairColor}
-        placeholder="Ex: blonde, brune, rousse..."
+        placeholder="Ex: blonde, brune, rousse, noir, roux..."
       />
 
-      <Text style={styles.label}>Apparence physique *</Text>
+      <Text style={styles.label}>Longueur des cheveux</Text>
+      <View style={styles.choiceContainer}>
+        {hairLengths.map(length => (
+          <TouchableOpacity
+            key={length}
+            style={[styles.choiceButton, hairLength === length && styles.choiceButtonActive]}
+            onPress={() => setHairLength(length)}
+          >
+            <Text style={[styles.choiceText, hairLength === length && styles.choiceTextActive]}>
+              {length}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text style={styles.label}>Couleur des yeux</Text>
+      <View style={styles.choiceContainer}>
+        {eyeColors.map(color => (
+          <TouchableOpacity
+            key={color}
+            style={[styles.choiceButton, eyeColor === color && styles.choiceButtonActive]}
+            onPress={() => setEyeColor(color)}
+          >
+            <Text style={[styles.choiceText, eyeColor === color && styles.choiceTextActive]}>
+              {color}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text style={styles.label}>Taille (cm)</Text>
+      <TextInput
+        style={styles.input}
+        value={height}
+        onChangeText={setHeight}
+        placeholder="Ex: 165"
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.label}>Morphologie</Text>
+      <View style={styles.choiceContainer}>
+        {bodyTypes.map(type => (
+          <TouchableOpacity
+            key={type}
+            style={[styles.choiceButton, bodyType === type && styles.choiceButtonActive]}
+            onPress={() => setBodyType(type)}
+          >
+            <Text style={[styles.choiceText, bodyType === type && styles.choiceTextActive]}>
+              {type}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text style={styles.label}>Couleur de peau</Text>
+      <View style={styles.choiceContainer}>
+        {skinTones.map(tone => (
+          <TouchableOpacity
+            key={tone}
+            style={[styles.choiceButton, skinTone === tone && styles.choiceButtonActive]}
+            onPress={() => setSkinTone(tone)}
+          >
+            <Text style={[styles.choiceText, skinTone === tone && styles.choiceTextActive]}>
+              {tone}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text style={styles.label}>Apparence détaillée (optionnel)</Text>
+      <Text style={styles.labelHint}>Laissez vide pour génération automatique</Text>
       <TextInput
         style={[styles.input, styles.textArea]}
         value={appearance}
         onChangeText={setAppearance}
-        placeholder="Décrivez l'apparence détaillée..."
+        placeholder="Description supplémentaire (visage, style, particularités...)"
         multiline
-        numberOfLines={4}
+        numberOfLines={3}
       />
 
       <Text style={styles.label}>Personnalité *</Text>
@@ -478,12 +598,15 @@ export default function CreateCharacterScreen({ navigation, route }) {
       <View style={styles.tempContainer}>
         {temperaments.map(temp => (
           <TouchableOpacity
-            key={temp}
-            style={[styles.tempButton, temperament === temp && styles.tempButtonActive]}
-            onPress={() => setTemperament(temp)}
+            key={temp.id}
+            style={[styles.tempButton, temperament === temp.id && styles.tempButtonActive]}
+            onPress={() => setTemperament(temp.id)}
           >
-            <Text style={[styles.tempText, temperament === temp && styles.tempTextActive]}>
-              {temp}
+            <Text style={[styles.tempText, temperament === temp.id && styles.tempTextActive]}>
+              {temp.label}
+            </Text>
+            <Text style={[styles.tempDesc, temperament === temp.id && styles.tempDescActive]}>
+              {temp.desc}
             </Text>
           </TouchableOpacity>
         ))}
@@ -638,10 +761,13 @@ const styles = StyleSheet.create({
   },
   tempButton: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#d1d5db',
+    backgroundColor: '#f9fafb',
+    minWidth: '45%',
+    marginBottom: 4,
   },
   tempButtonActive: {
     backgroundColor: '#6366f1',
@@ -649,11 +775,108 @@ const styles = StyleSheet.create({
   },
   tempText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#374151',
+    fontWeight: '600',
   },
   tempTextActive: {
     color: '#fff',
     fontWeight: '600',
+  },
+  tempDesc: {
+    fontSize: 11,
+    color: '#9ca3af',
+    marginTop: 2,
+  },
+  tempDescActive: {
+    color: '#e0e7ff',
+  },
+  // === Choix multiples ===
+  choiceContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 5,
+  },
+  choiceButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    backgroundColor: '#f9fafb',
+  },
+  choiceButtonActive: {
+    backgroundColor: '#6366f1',
+    borderColor: '#6366f1',
+  },
+  choiceText: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  choiceTextActive: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  labelHint: {
+    fontSize: 11,
+    color: '#9ca3af',
+    marginBottom: 6,
+    fontStyle: 'italic',
+  },
+  // === Options d'image ===
+  imageOptionsContainer: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  importImageButton: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#ecfdf5',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#10b981',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  importImageButtonDisabled: {
+    backgroundColor: '#f3f4f6',
+    borderColor: '#d1d5db',
+  },
+  importImageIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+  importImageText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#059669',
+    marginBottom: 4,
+  },
+  importImageHint: {
+    fontSize: 11,
+    color: '#6b7280',
+  },
+  imageButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  imageActionButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#e0e7ff',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  imageActionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4338ca',
+  },
+  deleteImageButton: {
+    backgroundColor: '#fee2e2',
+    flex: 0.4,
   },
   saveButton: {
     backgroundColor: '#6366f1',
@@ -680,7 +903,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   generateImageButton: {
-    padding: 40,
+    flex: 1,
+    padding: 20,
     backgroundColor: '#fff',
     borderRadius: 12,
     borderWidth: 2,
@@ -773,137 +997,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#d97706',
     fontWeight: '500',
-  },
-  // Styles pour import d'image
-  noImageContainer: {
-    gap: 15,
-  },
-  importImageButton: {
-    padding: 30,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#10b981',
-    borderStyle: 'dashed',
-    alignItems: 'center',
-  },
-  importImageIcon: {
-    fontSize: 40,
-    marginBottom: 8,
-  },
-  importImageText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#10b981',
-    marginBottom: 4,
-  },
-  importImageHint: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  separator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 5,
-  },
-  separatorLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#d1d5db',
-  },
-  separatorText: {
-    marginHorizontal: 15,
-    color: '#9ca3af',
-    fontSize: 14,
-  },
-  imageButtons: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
-  },
-  changeImageButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    backgroundColor: '#10b981',
-    borderRadius: 8,
-  },
-  changeImageButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  removeImageButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#ef4444',
-    borderRadius: 8,
-  },
-  removeImageButtonText: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  // Styles Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    paddingBottom: 40,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#374151',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  modalSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  modalHint: {
-    fontSize: 12,
-    color: '#9ca3af',
-    textAlign: 'center',
-    marginTop: 15,
-    paddingHorizontal: 10,
-  },
-  urlInputContainer: {
-    marginBottom: 15,
-  },
-  urlInput: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 8,
-    padding: 15,
-    fontSize: 14,
-    backgroundColor: '#f9fafb',
-  },
-  urlSubmitButtonLarge: {
-    backgroundColor: '#10b981',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  urlSubmitTextLarge: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalCancel: {
-    padding: 15,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  modalCancelText: {
-    fontSize: 16,
-    color: '#6b7280',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,62 +9,169 @@ import {
   ActivityIndicator,
   Image,
   RefreshControl,
+  SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomCharacterService from '../services/CustomCharacterService';
-import AuthService from '../services/AuthService';
+
+// Import optionnel AuthService
+let AuthService = null;
+try {
+  AuthService = require('../services/AuthService').default;
+} catch (e) {
+  console.log('AuthService non disponible');
+}
+
+// Cache pour éviter les rechargements inutiles
+let cachedCharacters = null;
+let lastLoadTime = 0;
+const CACHE_DURATION = 10000; // 10 secondes
 
 export default function MyCharactersScreen({ navigation }) {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'public', 'private'
+  const loadingRef = useRef(false);
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
-    loadCharacters();
+    // Charger immédiatement depuis le cache si disponible
+    if (cachedCharacters && cachedCharacters.length > 0) {
+      setCharacters(cachedCharacters);
+      setLoading(false);
+    }
+    
+    // Puis charger les données fraîches
+    loadCharacters(false);
   }, []);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      loadCharacters();
+      // Afficher le cache immédiatement
+      if (cachedCharacters) {
+        setCharacters(cachedCharacters);
+      }
+      
+      // Ne recharger que si nécessaire
+      const now = Date.now();
+      if (now - lastLoadTime > CACHE_DURATION) {
+        loadCharacters(false);
+      }
     });
     return unsubscribe;
   }, [navigation]);
 
-  const loadCharacters = async () => {
+  const loadCharacters = async (forceRefresh = false) => {
+    // Éviter les chargements multiples
+    if (loadingRef.current && !forceRefresh) return;
+    loadingRef.current = true;
+    
     try {
-      setLoading(true);
-      
-      // Charger les personnages locaux
-      const localChars = await CustomCharacterService.getCustomCharacters();
-      
-      // Si connecté, synchroniser avec le serveur
-      if (AuthService.isLoggedIn()) {
-        try {
-          const serverChars = await AuthService.getMyCharacters();
-          // Fusionner les listes (priorité au local)
-          const merged = mergeCharacters(localChars, serverChars);
-          setCharacters(merged);
-        } catch (e) {
-          setCharacters(localChars);
-        }
-      } else {
-        setCharacters(localChars);
+      // Utiliser le cache si disponible et non expiré
+      const now = Date.now();
+      if (!forceRefresh && cachedCharacters && (now - lastLoadTime < CACHE_DURATION)) {
+        setCharacters(cachedCharacters);
+        setLoading(false);
+        loadingRef.current = false;
+        return;
       }
+      
+      // Ne montrer le loading que si pas de données en cache
+      if (!cachedCharacters || cachedCharacters.length === 0) {
+        setLoading(true);
+      }
+      
+      // ÉTAPE 1: Charger les personnages locaux IMMÉDIATEMENT (rapide)
+      let localChars = [];
+      try {
+        // Essayer d'abord le stockage local direct (plus rapide)
+        const localData = await AsyncStorage.getItem('custom_characters_anonymous');
+        if (localData) {
+          localChars = JSON.parse(localData);
+        }
+        
+        // Essayer aussi la clé avec l'utilisateur si connecté
+        if (AuthService) {
+          const user = AuthService.getCurrentUser();
+          if (user?.id) {
+            const userData = await AsyncStorage.getItem(`custom_characters_${user.id}`);
+            if (userData) {
+              const userChars = JSON.parse(userData);
+              // Fusionner sans doublons
+              const existingIds = new Set(localChars.map(c => c.id));
+              userChars.forEach(c => {
+                if (!existingIds.has(c.id)) {
+                  localChars.push(c);
+                }
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur lecture locale:', e.message);
+      }
+      
+      // Mettre à jour immédiatement avec les données locales
+      if (localChars.length > 0) {
+        cachedCharacters = localChars;
+        lastLoadTime = now;
+        setCharacters(localChars);
+        setLoading(false);
+        initialLoadDone.current = true;
+      }
+      
+      // ÉTAPE 2: Synchroniser avec le serveur en arrière-plan (avec timeout)
+      loadServerDataAsync(localChars);
+      
     } catch (error) {
       console.error('Erreur chargement personnages:', error);
-      setCharacters([]);
+      if (cachedCharacters) {
+        setCharacters(cachedCharacters);
+      }
     } finally {
       setLoading(false);
+      loadingRef.current = false;
+    }
+  };
+  
+  // Charger les données du serveur en arrière-plan
+  const loadServerDataAsync = async (localChars) => {
+    try {
+      if (!CustomCharacterService || !AuthService) return;
+      if (!AuthService.isLoggedIn()) return;
+      
+      // Timeout pour éviter de bloquer
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+      
+      const serverChars = await Promise.race([
+        AuthService.getMyCharacters(),
+        timeoutPromise
+      ]);
+      
+      if (serverChars && serverChars.length > 0) {
+        const finalChars = mergeCharacters(localChars, serverChars);
+        cachedCharacters = finalChars;
+        lastLoadTime = Date.now();
+        setCharacters(finalChars);
+      }
+    } catch (e) {
+      console.log('⚠️ Sync serveur en arrière-plan échoué (normal si hors-ligne)');
     }
   };
 
   const mergeCharacters = (local, server) => {
     // Utiliser les personnages locaux comme base
     const merged = [...local];
+    const existingIds = new Set(merged.map(c => c.id));
     
     // Ajouter les personnages du serveur qui ne sont pas en local
     server.forEach(serverChar => {
-      if (!merged.find(c => c.id === serverChar.id || c.serverId === serverChar.id)) {
+      if (!existingIds.has(serverChar.id) && !merged.find(c => c.serverId === serverChar.id)) {
         merged.push({ ...serverChar, isFromServer: true });
       }
     });
@@ -74,11 +181,21 @@ export default function MyCharactersScreen({ navigation }) {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadCharacters();
+    await loadCharacters(true); // Forcer le rafraîchissement
     setRefreshing(false);
   }, []);
+  
+  // Filtrer les personnages avec useMemo
+  const getFilteredCharacters = useMemo(() => {
+    if (filter === 'public') {
+      return characters.filter(c => c.isPublic);
+    } else if (filter === 'private') {
+      return characters.filter(c => !c.isPublic);
+    }
+    return characters;
+  }, [characters, filter]);
 
-  const handleDelete = (character) => {
+  const handleDelete = useCallback((character) => {
     Alert.alert(
       'Supprimer le personnage',
       `Êtes-vous sûr de vouloir supprimer "${character.name}" ?`,
@@ -89,32 +206,84 @@ export default function MyCharactersScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await CustomCharacterService.deleteCustomCharacter(character.id);
+              console.log('🗑️ Suppression du personnage:', character.id);
               
-              // Si public, retirer aussi du serveur
-              if (character.isPublic && character.serverId) {
+              // ÉTAPE 1: Suppression immédiate de l'état local
+              setCharacters(prev => prev.filter(c => c.id !== character.id));
+              cachedCharacters = cachedCharacters ? cachedCharacters.filter(c => c.id !== character.id) : null;
+              
+              // ÉTAPE 2: Suppression directe dans TOUTES les clés AsyncStorage possibles
+              const keysToCheck = [
+                'custom_characters_anonymous',
+                'custom_characters',
+                'my_characters',
+                'created_characters',
+              ];
+              
+              // Ajouter les clés utilisateur
+              if (AuthService && AuthService.getCurrentUser) {
+                const user = AuthService.getCurrentUser();
+                if (user?.id) {
+                  keysToCheck.push(`custom_characters_${user.id}`);
+                  keysToCheck.push(`my_characters_${user.id}`);
+                }
+              }
+              
+              // Supprimer de chaque clé
+              for (const key of keysToCheck) {
+                try {
+                  const data = await AsyncStorage.getItem(key);
+                  if (data) {
+                    const chars = JSON.parse(data);
+                    if (Array.isArray(chars)) {
+                      const filtered = chars.filter(c => c.id !== character.id && c.id !== String(character.id));
+                      if (filtered.length !== chars.length) {
+                        await AsyncStorage.setItem(key, JSON.stringify(filtered));
+                        console.log('✅ Supprimé de', key);
+                      }
+                    }
+                  }
+                } catch (e) {
+                  console.log('⚠️ Clé', key, ':', e.message);
+                }
+              }
+              
+              // ÉTAPE 3: CustomCharacterService si disponible
+              if (CustomCharacterService && CustomCharacterService.deleteCustomCharacter) {
+                try {
+                  await CustomCharacterService.deleteCustomCharacter(character.id);
+                  console.log('✅ Supprimé via CustomCharacterService');
+                } catch (e) {
+                  console.log('⚠️ Erreur CustomCharacterService:', e.message);
+                }
+              }
+              
+              // ÉTAPE 4: Si public, retirer du serveur
+              if (character.isPublic && character.serverId && CustomCharacterService) {
                 try {
                   await CustomCharacterService.unpublishCharacter(character.id);
                 } catch (e) {}
               }
               
               // Si connecté, supprimer du serveur auth
-              if (AuthService.isLoggedIn()) {
+              if (AuthService && AuthService.isLoggedIn && AuthService.isLoggedIn()) {
                 try {
                   await AuthService.deleteCharacter(character.id);
                 } catch (e) {}
               }
               
-              loadCharacters();
-              Alert.alert('Succès', 'Personnage supprimé');
+              Alert.alert('Succès', 'Personnage supprimé avec succès');
             } catch (error) {
-              Alert.alert('Erreur', 'Impossible de supprimer le personnage');
+              console.error('❌ Erreur suppression:', error);
+              // Même en cas d'erreur, recharger pour être sûr
+              loadCharacters(true);
+              Alert.alert('Erreur', 'Problème lors de la suppression');
             }
           }
         }
       ]
     );
-  };
+  }, []);
 
   const handleEdit = (character) => {
     navigation.navigate('CreateCharacter', { characterToEdit: character });
@@ -137,78 +306,89 @@ export default function MyCharactersScreen({ navigation }) {
     }
   };
 
-  const getFilteredCharacters = () => {
-    if (filter === 'public') {
-      return characters.filter(c => c.isPublic);
-    } else if (filter === 'private') {
-      return characters.filter(c => !c.isPublic);
+  const renderCharacter = useCallback(({ item }) => {
+    // Protection contre les items null/undefined
+    if (!item || !item.id) {
+      console.log('⚠️ renderCharacter: item invalide');
+      return null;
     }
-    return characters;
-  };
-
-  const renderCharacter = ({ item }) => (
-    <View style={styles.characterCard}>
-      <View style={styles.characterHeader}>
-        {item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} style={styles.characterImage} />
-        ) : (
-          <View style={styles.characterImagePlaceholder}>
-            <Text style={styles.placeholderText}>{item.name?.charAt(0) || '?'}</Text>
-          </View>
-        )}
-        
-        <View style={styles.characterInfo}>
-          <Text style={styles.characterName}>{item.name}</Text>
-          <Text style={styles.characterAge}>{item.age} ans • {item.gender === 'female' ? 'Femme' : 'Homme'}</Text>
-          <View style={styles.tagRow}>
-            <View style={[styles.tag, item.isPublic ? styles.tagPublic : styles.tagPrivate]}>
-              <Text style={styles.tagText}>{item.isPublic ? '🌐 Public' : '🔒 Privé'}</Text>
+    
+    // Formater la date de manière sécurisée
+    const formatDate = (dateValue) => {
+      try {
+        if (!dateValue) return 'Date inconnue';
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return 'Date inconnue';
+        return date.toLocaleDateString('fr-FR');
+      } catch {
+        return 'Date inconnue';
+      }
+    };
+    
+    return (
+      <View style={styles.characterCard}>
+        <View style={styles.characterHeader}>
+          {item.imageUrl ? (
+            <Image source={{ uri: item.imageUrl }} style={styles.characterImage} />
+          ) : (
+            <View style={styles.characterImagePlaceholder}>
+              <Text style={styles.placeholderText}>{item.name?.charAt(0) || '?'}</Text>
             </View>
-            {item.temperament && (
-              <View style={styles.tag}>
-                <Text style={styles.tagText}>{item.temperament}</Text>
+          )}
+          
+          <View style={styles.characterInfo}>
+            <Text style={styles.characterName}>{item.name || 'Sans nom'}</Text>
+            <Text style={styles.characterAge}>{item.age || '?'} ans • {item.gender === 'female' ? 'Femme' : 'Homme'}</Text>
+            <View style={styles.tagRow}>
+              <View style={[styles.tag, item.isPublic ? styles.tagPublic : styles.tagPrivate]}>
+                <Text style={styles.tagText}>{item.isPublic ? '🌐 Public' : '🔒 Privé'}</Text>
               </View>
-            )}
+              {item.temperament && (
+                <View style={styles.tag}>
+                  <Text style={styles.tagText}>{item.temperament}</Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
-      </View>
-      
-      {item.personality && (
-        <Text style={styles.characterPersonality} numberOfLines={2}>
-          {item.personality}
-        </Text>
-      )}
-      
-      <View style={styles.characterActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.editButton]}
-          onPress={() => handleEdit(item)}
-        >
-          <Text style={styles.actionButtonText}>✏️ Modifier</Text>
-        </TouchableOpacity>
         
-        <TouchableOpacity
-          style={[styles.actionButton, item.isPublic ? styles.privateButton : styles.publicButton]}
-          onPress={() => handleTogglePublic(item)}
-        >
-          <Text style={styles.actionButtonText}>
-            {item.isPublic ? '🔒 Rendre privé' : '🌐 Publier'}
+        {item.personality && (
+          <Text style={styles.characterPersonality} numberOfLines={2}>
+            {item.personality}
           </Text>
-        </TouchableOpacity>
+        )}
         
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => handleDelete(item)}
-        >
-          <Text style={styles.actionButtonText}>🗑️</Text>
-        </TouchableOpacity>
+        <View style={styles.characterActions}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.editButton]}
+            onPress={() => handleEdit(item)}
+          >
+            <Text style={styles.actionButtonText}>✏️ Modifier</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.actionButton, item.isPublic ? styles.privateButton : styles.publicButton]}
+            onPress={() => handleTogglePublic(item)}
+          >
+            <Text style={styles.actionButtonText}>
+              {item.isPublic ? '🔒 Rendre privé' : '🌐 Publier'}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDelete(item)}
+          >
+            <Text style={styles.actionButtonText}>🗑️</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <Text style={styles.characterDate}>
+          Créé le {formatDate(item.createdAt)}
+        </Text>
       </View>
-      
-      <Text style={styles.characterDate}>
-        Créé le {new Date(item.createdAt).toLocaleDateString('fr-FR')}
-      </Text>
-    </View>
-  );
+    );
+  }, [handleDelete, handleEdit, handleTogglePublic]);
 
   if (loading) {
     return (
@@ -220,9 +400,15 @@ export default function MyCharactersScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Filtres */}
-      <View style={styles.filterContainer}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Titre */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Mes personnages</Text>
+        </View>
+        
+        {/* Filtres */}
+        <View style={styles.filterContainer}>
         <TouchableOpacity
           style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
           onPress={() => setFilter('all')}
@@ -251,7 +437,7 @@ export default function MyCharactersScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {getFilteredCharacters().length === 0 ? (
+      {getFilteredCharacters.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>📝</Text>
           <Text style={styles.emptyTitle}>Aucun personnage créé</Text>
@@ -267,31 +453,51 @@ export default function MyCharactersScreen({ navigation }) {
         </View>
       ) : (
         <FlatList
-          data={getFilteredCharacters()}
+          data={getFilteredCharacters}
           renderItem={renderCharacter}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={5}
+          removeClippedSubviews={true}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6366f1']} />
           }
         />
       )}
 
-      {/* Bouton flottant */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('CreateCharacter')}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Bouton flottant */}
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('CreateCharacter')}
+        >
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#6366f1',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  header: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   loadingContainer: {
     flex: 1,

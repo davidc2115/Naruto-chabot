@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  SafeAreaView,
+  Platform,
+  StatusBar,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import StorageService from '../services/StorageService';
 import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
@@ -14,46 +20,99 @@ import CustomCharacterService from '../services/CustomCharacterService';
 export default function ChatsScreen({ navigation }) {
   const [allCharacters, setAllCharacters] = useState([]);
   const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const isInitialized = useRef(false);
 
+  // Charger au premier rendu
   useEffect(() => {
-    loadData();
-    
-    // Refresh when screen is focused
-    const unsubscribe = navigation.addListener('focus', () => {
-      loadData();
-    });
+    if (!isInitialized.current) {
+      isInitialized.current = true;
+      loadData(true); // Force refresh au premier chargement
+    }
+  }, []);
 
-    return unsubscribe;
-  }, [navigation]);
+  // Recharger quand l'écran reprend le focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('📱 ChatsScreen: Focus - Rechargement...');
+      loadData(false);
+    }, [])
+  );
 
-  const loadData = async () => {
-    // Charger tous les personnages (de base + personnalisés + publics)
-    const customChars = await CustomCharacterService.getCustomCharacters();
-    
-    // Aussi charger les personnages publics des autres utilisateurs
-    let publicChars = [];
+  const loadData = async (forceRefresh = false) => {
     try {
-      publicChars = await CustomCharacterService.getPublicCharacters();
-    } catch (e) {
-      console.log('Erreur chargement personnages publics:', e.message);
+      if (!refreshing) setLoading(true);
+      console.log('📱 ChatsScreen: Chargement des données...');
+      
+      // D'abord charger les conversations LOCALES (rapide)
+      const allConversations = await StorageService.getAllConversations();
+      
+      // === TRIER PAR DATE: plus récentes en haut ===
+      const sortedConversations = allConversations.sort((a, b) => {
+        const dateA = a.lastUpdated || a.createdAt || 0;
+        const dateB = b.lastUpdated || b.createdAt || 0;
+        return dateB - dateA; // Ordre décroissant (plus récent en premier)
+      });
+      
+      console.log(`✅ ${sortedConversations.length} conversations chargées et triées par date`);
+      setConversations(sortedConversations);
+      
+      // Charger les personnages de base immédiatement
+      const allChars = [...enhancedCharacters];
+      const seenIds = new Set(allChars.map(c => c.id));
+      setAllCharacters(allChars);
+      
+      // Puis charger les personnages custom/publics en arrière-plan (avec timeout)
+      const loadExtras = async () => {
+        try {
+          // Timeout de 5 secondes max pour les personnages custom/publics
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 5000)
+          );
+          
+          const [customChars, publicChars] = await Promise.race([
+            Promise.all([
+              CustomCharacterService.getCustomCharacters().catch(() => []),
+              CustomCharacterService.getPublicCharacters().catch(() => [])
+            ]),
+            timeoutPromise
+          ]);
+          
+          // Ajouter les personnages custom/publics
+          for (const char of [...(customChars || []), ...(publicChars || [])]) {
+            if (char && char.id && !seenIds.has(char.id)) {
+              allChars.push(char);
+              seenIds.add(char.id);
+            }
+          }
+          
+          setAllCharacters([...allChars]);
+          console.log(`✅ ${allChars.length} personnages chargés (avec custom)`);
+        } catch (e) {
+          console.log('⚠️ Personnages custom non chargés (timeout ou erreur):', e.message);
+        }
+      };
+      
+      // Lancer le chargement des extras sans bloquer
+      loadExtras();
+      
+    } catch (error) {
+      console.error('❌ Erreur loadData ChatsScreen:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-    
-    // Combiner tous les personnages (éviter les doublons par ID)
-    const allChars = [...enhancedCharacters];
-    const seenIds = new Set(allChars.map(c => c.id));
-    
-    for (const char of [...customChars, ...publicChars]) {
-      if (!seenIds.has(char.id)) {
-        allChars.push(char);
-        seenIds.add(char.id);
-      }
-    }
-    
-    setAllCharacters(allChars);
-    
-    // Charger les conversations
-    const allConversations = await StorageService.getAllConversations();
-    setConversations(allConversations);
+  };
+  
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadData(true);
+  }, []);
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    await loadData(true);
   };
 
   const deleteConversation = async (characterId) => {
@@ -67,9 +126,14 @@ export default function ChatsScreen({ navigation }) {
           text: 'Supprimer définitivement',
           style: 'destructive',
           onPress: async () => {
-            await StorageService.deleteConversation(characterId);
-            loadData();
-            Alert.alert('✅ Supprimée', 'La conversation a été supprimée définitivement.');
+            const success = await StorageService.deleteConversation(characterId);
+            if (success) {
+              // Recharger immédiatement avec forceRefresh
+              await loadData(true);
+              Alert.alert('✅ Supprimée', 'La conversation a été supprimée définitivement.');
+            } else {
+              Alert.alert('❌ Erreur', 'Impossible de supprimer la conversation.');
+            }
           },
         },
       ]
@@ -102,24 +166,38 @@ export default function ChatsScreen({ navigation }) {
   };
 
   const renderConversation = ({ item }) => {
-    const character = getCharacter(item.characterId);
-    if (!character) return null;
+    try {
+      const character = getCharacter(item?.characterId);
+      if (!character || !character.name) {
+        console.log('⚠️ Personnage non trouvé pour conversation:', item?.characterId);
+        return null;
+      }
 
-    const lastMessage = item.messages[item.messages.length - 1];
-    const messagePreview = lastMessage?.content?.substring(0, 80) + '...' || 'Aucun message';
+      const lastMessage = item?.messages?.[item.messages.length - 1];
+      const messagePreview = lastMessage?.content?.substring(0, 80) + '...' || 'Aucun message';
+      
+      // Extraire les initiales de manière sécurisée
+      const getInitials = (name) => {
+        try {
+          if (!name || typeof name !== 'string') return '?';
+          return name.split(' ').filter(n => n).map(n => n[0] || '').join('').substring(0, 2) || '?';
+        } catch {
+          return '?';
+        }
+      };
 
-    return (
-      <View style={styles.card}>
-        <TouchableOpacity
-          style={styles.cardTouchable}
-          onPress={() => navigation.navigate('Conversation', { character })}
-        >
-          <View style={styles.cardContent}>
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {character.name.split(' ').map(n => n[0]).join('')}
-              </Text>
-            </View>
+      return (
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.cardTouchable}
+            onPress={() => navigation.navigate('Conversation', { character })}
+          >
+            <View style={styles.cardContent}>
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                  {getInitials(character.name)}
+                </Text>
+              </View>
             <View style={styles.info}>
               <View style={styles.header}>
                 <Text style={styles.name}>{character.name}</Text>
@@ -144,54 +222,124 @@ export default function ChatsScreen({ navigation }) {
             </View>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => deleteConversation(item.characterId)}
-        >
-          <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
-        </TouchableOpacity>
-      </View>
-    );
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => deleteConversation(item?.characterId)}
+          >
+            <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    } catch (error) {
+      console.error('❌ Erreur renderConversation:', error);
+      return null;
+    }
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={styles.loadingText}>Chargement des conversations...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (conversations.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyEmoji}>💬</Text>
-        <Text style={styles.emptyTitle}>Aucune conversation</Text>
-        <Text style={styles.emptyText}>
-          Commencez une conversation avec un personnage depuis l'onglet Personnages
-        </Text>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerBar}>
+          <Text style={styles.title}>Conversations</Text>
+          <Text style={styles.subtitle}>0 conversation</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyEmoji}>💬</Text>
+          <Text style={styles.emptyTitle}>Aucune conversation</Text>
+          <Text style={styles.emptyText}>
+            Commencez une conversation avec un personnage depuis l'onglet Personnages
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerBar}>
-        <Text style={styles.title}>Conversations</Text>
-        <Text style={styles.subtitle}>{conversations.length} conversation(s)</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.headerBar}>
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={styles.title}>Conversations</Text>
+              <Text style={styles.subtitle}>{conversations.length} conversation(s)</Text>
+            </View>
+            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+              <Text style={styles.refreshButtonText}>🔄</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <FlatList
+          data={conversations}
+          renderItem={renderConversation}
+          keyExtractor={item => item.characterId?.toString() || Math.random().toString()}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#6366f1']}
+              tintColor="#6366f1"
+            />
+          }
+        />
       </View>
-      <FlatList
-        data={conversations}
-        renderItem={renderConversation}
-        keyExtractor={item => item.characterId.toString()}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#6366f1',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#6b7280',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
   headerBar: {
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 15,
     backgroundColor: '#6366f1',
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  refreshButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  refreshButtonText: {
+    fontSize: 22,
   },
   title: {
     fontSize: 32,

@@ -99,40 +99,108 @@ class SyncService {
 
   /**
    * Récupère tous les personnages publics du serveur
+   * v5.3.8 - Toujours forcer le refresh pour voir les suppressions/modifications
    */
-  async getPublicCharacters() {
+  async getPublicCharacters(forceRefresh = true) {
     try {
+      // Toujours forcer le refresh par défaut pour voir les modifications
       const response = await axios.get(
         `${this.baseUrl}/api/characters/public`,
-        { headers: this.getHeaders(), timeout: 10000 }
+        { 
+          headers: this.getHeaders(), 
+          timeout: 15000,
+          params: { _t: Date.now() } // Anti-cache
+        }
       );
 
       if (response.data.success) {
-        // Marquer les personnages comme venant du serveur
-        const characters = response.data.characters.map(char => ({
-          ...char,
-          isFromServer: true,
-          isPublic: true
-        }));
+        // Récupérer la liste des IDs supprimés localement
+        const deletedIdsJson = await AsyncStorage.getItem('deleted_character_ids');
+        const deletedIds = deletedIdsJson ? new Set(JSON.parse(deletedIdsJson)) : new Set();
+        
+        // Filtrer les personnages supprimés localement
+        const characters = response.data.characters
+          .filter(char => {
+            // Exclure les personnages qui ont été supprimés localement
+            const isDeleted = deletedIds.has(char.id) || 
+                              deletedIds.has(char.serverId) ||
+                              deletedIds.has(char.originalId);
+            if (isDeleted) {
+              console.log(`🚫 Personnage filtré (supprimé): ${char.name}`);
+            }
+            return !isDeleted;
+          })
+          .map(char => ({
+            ...char,
+            isFromServer: true,
+            isPublic: true,
+            lastFetched: Date.now()
+          }));
 
         // Mettre en cache localement
         await AsyncStorage.setItem('cached_public_characters', JSON.stringify(characters));
         await AsyncStorage.setItem('cached_public_characters_time', Date.now().toString());
+        
+        // Stocker aussi la version du cache serveur si disponible
+        if (response.data.cacheVersion) {
+          await AsyncStorage.setItem('server_cache_version', response.data.cacheVersion.toString());
+        }
 
-        console.log(`✅ ${characters.length} personnages publics récupérés`);
+        console.log(`✅ ${characters.length} personnages publics récupérés (${response.data.characters.length - characters.length} filtrés)`);
         return characters;
       }
       return [];
     } catch (error) {
       console.error('❌ Erreur récupération personnages publics:', error.message);
       
-      // Retourner le cache si disponible
-      const cached = await AsyncStorage.getItem('cached_public_characters');
-      if (cached) {
-        console.log('📦 Utilisation du cache personnages publics');
-        return JSON.parse(cached);
+      // Retourner le cache uniquement si pas de force refresh
+      if (!forceRefresh) {
+        const cached = await AsyncStorage.getItem('cached_public_characters');
+        if (cached) {
+          console.log('📦 Utilisation du cache personnages publics');
+          return JSON.parse(cached);
+        }
       }
       return [];
+    }
+  }
+  
+  /**
+   * Ajoute un ID à la liste locale des personnages supprimés
+   * Cette liste est utilisée pour filtrer les personnages même si le serveur ne les a pas encore supprimés
+   */
+  async addToDeletedList(characterId) {
+    try {
+      const deletedIdsJson = await AsyncStorage.getItem('deleted_character_ids');
+      const deletedIds = deletedIdsJson ? JSON.parse(deletedIdsJson) : [];
+      
+      if (!deletedIds.includes(characterId)) {
+        deletedIds.push(characterId);
+        // Aussi ajouter les variantes
+        if (characterId.startsWith('custom_')) {
+          deletedIds.push(characterId.substring(7));
+        } else {
+          deletedIds.push(`custom_${characterId}`);
+        }
+        
+        await AsyncStorage.setItem('deleted_character_ids', JSON.stringify(deletedIds));
+        console.log(`🗑️ ID ajouté à la liste supprimée: ${characterId}`);
+      }
+    } catch (error) {
+      console.error('Erreur ajout liste supprimée:', error);
+    }
+  }
+  
+  /**
+   * Invalide le cache local des personnages publics
+   */
+  async invalidatePublicCache() {
+    try {
+      await AsyncStorage.removeItem('cached_public_characters');
+      await AsyncStorage.removeItem('cached_public_characters_time');
+      console.log('🔄 Cache personnages publics invalidé');
+    } catch (error) {
+      console.error('Erreur invalidation cache:', error);
     }
   }
 

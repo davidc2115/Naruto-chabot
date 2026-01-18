@@ -10,7 +10,7 @@ class StorageService {
 
   /**
    * Récupère l'ID de l'utilisateur courant pour isoler les données
-   * v5.3.35 - Plus robuste avec cache et fallback device ID
+   * v5.3.43 - Plus robuste avec cache et fallback device ID persistant
    */
   async getCurrentUserId() {
     try {
@@ -43,10 +43,9 @@ class StorageService {
         }
       }
 
-      // 3. Utiliser ou créer un ID device persistant
+      // 3. Utiliser ou créer un ID device PERSISTANT (ne change jamais)
       let deviceId = await AsyncStorage.getItem('device_user_id');
       if (!deviceId) {
-        // Créer un ID unique pour cet appareil
         deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
         await AsyncStorage.setItem('device_user_id', deviceId);
         console.log('📱 Nouvel ID device créé:', deviceId);
@@ -57,7 +56,6 @@ class StorageService {
       return deviceId;
     } catch (error) {
       console.error('Error getting user ID:', error);
-      // En dernier recours, utiliser 'default' (pas 'anonymous' qui peut changer)
       return 'default';
     }
   }
@@ -75,16 +73,38 @@ class StorageService {
   async saveConversation(characterId, messages, relationship) {
     try {
       const userId = await this.getCurrentUserId();
+      // Utiliser UN SEUL format de clé simple et prévisible
       const key = `conv_${userId}_${characterId}`;
       const data = {
-        characterId,
+        characterId: String(characterId),
         userId,
-        messages,
-        relationship,
+        messages: messages || [],
+        relationship: relationship || { level: 1, affection: 50, trust: 50 },
         lastUpdated: new Date().toISOString(),
+        savedAt: Date.now(),
       };
+      
+      // Sauvegarder la conversation
       await AsyncStorage.setItem(key, JSON.stringify(data));
-      console.log(`💾 Conversation sauvegardée: ${key} (${messages.length} messages)`);
+      console.log(`💾 Conversation sauvegardée: ${key} (${messages?.length || 0} messages)`);
+      
+      // AUSSI sauvegarder dans un index de conversations pour récupération facile
+      // L'index stocke la liste des characterIds avec lesquels l'utilisateur a des conversations
+      const indexKey = `conv_index_${userId}`;
+      let index = [];
+      try {
+        const indexData = await AsyncStorage.getItem(indexKey);
+        if (indexData) {
+          index = JSON.parse(indexData);
+        }
+      } catch (e) {}
+      
+      // Ajouter le characterId à l'index s'il n'y est pas déjà
+      if (!index.includes(String(characterId))) {
+        index.push(String(characterId));
+        await AsyncStorage.setItem(indexKey, JSON.stringify(index));
+        console.log(`📋 Index mis à jour: ${index.length} conversations`);
+      }
     } catch (error) {
       console.error('Error saving conversation:', error);
     }
@@ -99,20 +119,39 @@ class StorageService {
       if (data) {
         const parsed = JSON.parse(data);
         console.log(`📖 Conversation chargée: ${key} (${parsed.messages?.length || 0} messages)`);
+        
+        // S'assurer que cette conversation est dans l'index
+        try {
+          const indexKey = `conv_index_${userId}`;
+          let index = [];
+          const indexData = await AsyncStorage.getItem(indexKey);
+          if (indexData) index = JSON.parse(indexData);
+          if (!index.includes(String(characterId))) {
+            index.push(String(characterId));
+            await AsyncStorage.setItem(indexKey, JSON.stringify(index));
+          }
+        } catch (e) {}
+        
         return parsed;
       }
       
-      // Migration: essayer de charger l'ancienne clé sans userId
-      const oldKey = `conversation_${characterId}`;
-      const oldData = await AsyncStorage.getItem(oldKey);
-      if (oldData) {
-        console.log(`🔄 Migration ancienne conversation: ${oldKey} -> ${key}`);
-        const parsed = JSON.parse(oldData);
-        // Sauvegarder avec la nouvelle clé
-        await this.saveConversation(characterId, parsed.messages, parsed.relationship);
-        // Supprimer l'ancienne clé
-        await AsyncStorage.removeItem(oldKey);
-        return parsed;
+      // Essayer d'autres formats de clés
+      const alternativeKeys = [
+        `conv_anonymous_${characterId}`,
+        `conversation_${characterId}`,
+      ];
+      
+      for (const altKey of alternativeKeys) {
+        try {
+          const altData = await AsyncStorage.getItem(altKey);
+          if (altData) {
+            const parsed = JSON.parse(altData);
+            console.log(`🔄 Conversation trouvée avec clé alternative: ${altKey}`);
+            // Sauvegarder avec le bon format (ceci met aussi à jour l'index)
+            await this.saveConversation(characterId, parsed.messages, parsed.relationship);
+            return parsed;
+          }
+        } catch (e) {}
       }
       
       return null;
@@ -125,40 +164,204 @@ class StorageService {
   async getAllConversations() {
     try {
       const userId = await this.getCurrentUserId();
+      const result = [];
+      const seenCharacterIds = new Set();
+      
+      console.log(`🔍 Recherche conversations pour userId: ${userId}`);
+      
+      // Charger la liste des conversations supprimées
+      let deletedIds = [];
+      try {
+        const deletedKey = `deleted_conversations_${userId}`;
+        const deletedData = await AsyncStorage.getItem(deletedKey);
+        if (deletedData) deletedIds = JSON.parse(deletedData);
+      } catch (e) {}
+      
+      console.log(`🚫 Conversations supprimées à ignorer: ${deletedIds.length}`);
+      
+      // Chercher les clés de conversation pour cet utilisateur UNIQUEMENT
       const keys = await AsyncStorage.getAllKeys();
+      const convKeys = keys.filter(key => {
+        // Format principal: conv_userId_characterId
+        if (key.startsWith(`conv_${userId}_`) && !key.includes('index') && !key.includes('deleted')) return true;
+        return false;
+      });
       
-      // Filtrer les conversations de l'utilisateur courant
-      const userConvPrefix = `conv_${userId}_`;
-      const conversationKeys = keys.filter(key => key.startsWith(userConvPrefix));
+      console.log(`📚 ${convKeys.length} clés de conversations trouvées`);
       
-      console.log(`📚 Chargement de ${conversationKeys.length} conversations pour ${userId}`);
+      // Reconstruire l'index
+      const indexKey = `conv_index_${userId}`;
+      const newIndex = [];
       
-      const conversations = await AsyncStorage.multiGet(conversationKeys);
-      
-      return conversations
-        .map(([key, value]) => {
-          try {
-            return JSON.parse(value);
-          } catch {
-            return null;
+      for (const key of convKeys) {
+        try {
+          const value = await AsyncStorage.getItem(key);
+          if (!value) continue;
+          
+          const parsed = JSON.parse(value);
+          let messages = parsed.messages || parsed.history;
+          
+          if (!Array.isArray(messages) || messages.length === 0) continue;
+          
+          // Extraire characterId
+          let characterId = parsed.characterId;
+          if (!characterId && key.includes('_')) {
+            const parts = key.split('_');
+            if (key.startsWith('conv_') && parts.length >= 3) {
+              characterId = parts.slice(2).join('_');
+            }
           }
-        })
-        .filter(conv => conv !== null)
-        .sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+          
+          if (!characterId) continue;
+          
+          const charIdStr = String(characterId);
+          
+          // VÉRIFIER si cette conversation a été supprimée
+          if (deletedIds.includes(charIdStr)) {
+            console.log(`🚫 Conversation ignorée (supprimée): ${charIdStr}`);
+            // Supprimer aussi la clé résiduelle
+            await AsyncStorage.removeItem(key);
+            continue;
+          }
+          
+          // Éviter les doublons
+          if (seenCharacterIds.has(charIdStr)) continue;
+          seenCharacterIds.add(charIdStr);
+          
+          // Normaliser les messages
+          const normalizedMessages = messages
+            .filter(m => m && m.content)
+            .map(m => ({
+              role: m.role || 'assistant',
+              content: String(m.content || '').trim(),
+            }))
+            .filter(m => m.content !== '');
+          
+          if (normalizedMessages.length > 0) {
+            result.push({
+              characterId: charIdStr,
+              messages: normalizedMessages,
+              relationship: parsed.relationship || { level: 1, affection: 50 },
+              lastUpdated: parsed.lastUpdated || new Date().toISOString(),
+              savedAt: parsed.savedAt || Date.now(),
+            });
+            
+            // Ajouter à l'index
+            if (!newIndex.includes(charIdStr)) {
+              newIndex.push(charIdStr);
+            }
+            
+            console.log(`✅ Conversation: ${charIdStr} (${normalizedMessages.length} msgs)`);
+          }
+        } catch (e) {
+          console.log(`⚠️ Erreur traitement ${key}:`, e.message);
+        }
+      }
+      
+      // Mettre à jour l'index
+      try {
+        await AsyncStorage.setItem(indexKey, JSON.stringify(newIndex));
+        console.log(`📋 Index reconstruit: ${newIndex.length} conversations`);
+      } catch (e) {}
+      
+      // Trier par date (plus récentes en premier)
+      result.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+      
+      console.log(`✅ TOTAL: ${result.length} conversations chargées`);
+      return result;
     } catch (error) {
-      console.error('Error loading all conversations:', error);
+      console.error('❌ Error loading all conversations:', error);
       return [];
     }
+  }
+  
+  /**
+   * Force le rechargement de toutes les conversations (ignore le cache/index)
+   */
+  async refreshConversations() {
+    return await this.getAllConversations();
   }
 
   async deleteConversation(characterId) {
     try {
       const userId = await this.getCurrentUserId();
-      const key = `conv_${userId}_${characterId}`;
-      await AsyncStorage.removeItem(key);
-      console.log(`🗑️ Conversation supprimée: ${key}`);
+      const charIdStr = String(characterId);
+      
+      console.log(`🗑️ Suppression TOTALE conversation: ${characterId}`);
+      
+      // 1. Récupérer TOUTES les clés
+      const allKeys = await AsyncStorage.getAllKeys();
+      
+      // 2. Trouver toutes les clés liées à ce characterId
+      const keysToDelete = allKeys.filter(key => {
+        // Clés de conversation
+        if (key.includes(charIdStr)) return true;
+        if (key.includes(`_${characterId}`)) return true;
+        // Format conv_userId_characterId
+        if (key.startsWith('conv_') && key.endsWith(`_${characterId}`)) return true;
+        if (key.startsWith('conv_') && key.endsWith(`_${charIdStr}`)) return true;
+        return false;
+      });
+      
+      console.log(`🔍 Clés à supprimer: ${keysToDelete.length}`, keysToDelete);
+      
+      // 3. Supprimer TOUTES ces clés
+      for (const key of keysToDelete) {
+        try {
+          await AsyncStorage.removeItem(key);
+          console.log(`✅ Supprimé: ${key}`);
+        } catch (e) {
+          console.log(`⚠️ Erreur suppression ${key}:`, e.message);
+        }
+      }
+      
+      // 4. Mettre à jour l'index
+      const indexKey = `conv_index_${userId}`;
+      try {
+        const indexData = await AsyncStorage.getItem(indexKey);
+        if (indexData) {
+          let index = JSON.parse(indexData);
+          index = index.filter(id => id !== charIdStr && id !== characterId);
+          await AsyncStorage.setItem(indexKey, JSON.stringify(index));
+          console.log(`📋 Index mis à jour: ${index.length} conversations`);
+        }
+      } catch (e) {}
+      
+      // 5. Ajouter à une liste de suppressions pour éviter recréation
+      try {
+        const deletedKey = `deleted_conversations_${userId}`;
+        let deleted = [];
+        const deletedData = await AsyncStorage.getItem(deletedKey);
+        if (deletedData) deleted = JSON.parse(deletedData);
+        if (!deleted.includes(charIdStr)) {
+          deleted.push(charIdStr);
+          await AsyncStorage.setItem(deletedKey, JSON.stringify(deleted));
+        }
+      } catch (e) {}
+      
+      console.log(`✅ Conversation ${characterId} supprimée COMPLÈTEMENT`);
+      return true;
     } catch (error) {
-      console.error('Error deleting conversation:', error);
+      console.error('❌ Error deleting conversation:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Vérifie si une conversation a été supprimée
+   */
+  async isConversationDeleted(characterId) {
+    try {
+      const userId = await this.getCurrentUserId();
+      const deletedKey = `deleted_conversations_${userId}`;
+      const deletedData = await AsyncStorage.getItem(deletedKey);
+      if (deletedData) {
+        const deleted = JSON.parse(deletedData);
+        return deleted.includes(String(characterId));
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
   }
 
