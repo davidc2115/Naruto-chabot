@@ -9,11 +9,78 @@ class CustomCharacterService {
   }
   
   /**
+   * Cache pour l'ID utilisateur
+   */
+  _cachedUserId = null;
+  _lastUserIdCheck = 0;
+
+  /**
+   * Récupère l'ID utilisateur de manière cohérente avec StorageService
+   * v5.3.42 - Utilise device_user_id comme fallback
+   */
+  async getCurrentUserId() {
+    try {
+      const now = Date.now();
+      if (this._cachedUserId && (now - this._lastUserIdCheck) < 5000) {
+        return this._cachedUserId;
+      }
+
+      // 1. Essayer AuthService
+      const user = AuthService.getCurrentUser();
+      if (user?.id) {
+        this._cachedUserId = user.id;
+        this._lastUserIdCheck = now;
+        return user.id;
+      }
+
+      // 2. Essayer le token stocké
+      const storedUser = await AsyncStorage.getItem('current_user');
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed.id) {
+            this._cachedUserId = parsed.id;
+            this._lastUserIdCheck = now;
+            return parsed.id;
+          }
+        } catch (e) {}
+      }
+
+      // 3. Utiliser ou créer un ID device persistant (même que StorageService)
+      let deviceId = await AsyncStorage.getItem('device_user_id');
+      if (!deviceId) {
+        deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+        await AsyncStorage.setItem('device_user_id', deviceId);
+        console.log('📱 Nouvel ID device créé:', deviceId);
+      }
+
+      this._cachedUserId = deviceId;
+      this._lastUserIdCheck = now;
+      return deviceId;
+    } catch (error) {
+      return 'default';
+    }
+  }
+
+  /**
    * Récupère la clé de stockage unique pour l'utilisateur connecté
+   * v5.3.42 - Utilise getCurrentUserId pour cohérence
    */
   getUserStorageKey() {
+    // Pour la compatibilité synchrone, utiliser le cache
+    if (this._cachedUserId) {
+      return `custom_characters_${this._cachedUserId}`;
+    }
     const user = AuthService.getCurrentUser();
-    const userId = user?.id || 'anonymous';
+    const userId = user?.id || 'default';
+    return `custom_characters_${userId}`;
+  }
+
+  /**
+   * Version async de getUserStorageKey
+   */
+  async getUserStorageKeyAsync() {
+    const userId = await this.getCurrentUserId();
     return `custom_characters_${userId}`;
   }
 
@@ -149,10 +216,11 @@ class CustomCharacterService {
    * Sauvegarde un personnage personnalisé
    * @param {object} character - Le personnage à sauvegarder
    * @param {boolean} isPublic - Si true, le personnage sera publié sur le serveur
+   * v5.3.42 - Utilise getUserStorageKeyAsync
    */
   async saveCustomCharacter(character, isPublic = false) {
     try {
-      const key = this.getUserStorageKey();
+      const key = await this.getUserStorageKeyAsync();
       const existing = await AsyncStorage.getItem(key);
       const characters = existing ? JSON.parse(existing) : [];
       
@@ -205,15 +273,17 @@ class CustomCharacterService {
 
   /**
    * Récupère les personnages de l'utilisateur connecté uniquement
-   * Synchronise automatiquement depuis le serveur si possible
+   * v5.3.42 - Utilise getUserStorageKeyAsync pour cohérence
    */
   async getCustomCharacters() {
     try {
-      const key = this.getUserStorageKey();
+      const key = await this.getUserStorageKeyAsync();
       const data = await AsyncStorage.getItem(key);
       let localChars = data ? JSON.parse(data) : [];
       
-      // Essayer de synchroniser depuis le serveur
+      console.log(`📚 Chargement personnages: ${key} (${localChars.length} trouvés)`);
+      
+      // Essayer de synchroniser depuis le serveur si connecté
       const user = AuthService.getCurrentUser();
       if (user?.id) {
         try {

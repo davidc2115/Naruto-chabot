@@ -943,9 +943,9 @@ class TextGenerationService {
         
         console.log(`📡 ${api.name} - ${fullMessages.length} messages (${recentCount} récents, max 6)`);
         
-        // Appeler l'API - tokens réduits pour réponses courtes
+        // Appeler l'API - tokens ajustés pour dialogues expressifs
         let content;
-        const maxTokens = isNSFW ? 220 : 200;
+        const maxTokens = isNSFW ? 280 : 250;
         
         if (api.format === 'pollinations') {
           content = await this.callPollinationsApi(api, fullMessages, { temperature: 0.8, maxTokens });
@@ -1352,9 +1352,9 @@ class TextGenerationService {
       instruction += `\n`;
     }
     
-    // FORMAT STRICT avec pensées
-    instruction += `\n📝 FORMAT OBLIGATOIRE:\n`;
-    instruction += `*action courte 5-10 mots* "Dialogue 1-2 phrases" (ta pensée)\n`;
+    // FORMAT avec pensées - dialogues expressifs
+    instruction += `\n📝 FORMAT:\n`;
+    instruction += `*action courte* "Dialogue expressif 2-3 phrases" (ta pensée)\n`;
     
     if (isNSFW) {
       instruction += `\n🔞 Explicite autorisé.`;
@@ -1865,17 +1865,17 @@ class TextGenerationService {
       }
     }
     
-    // Raccourcir dialogue si trop long (max 120 chars)
-    if (dialogue.length > 125) {
+    // Raccourcir dialogue si trop long (max 200 chars - augmenté pour expressivité)
+    if (dialogue.length > 205) {
       const dialogueContent = dialogue.match(/"([^"]+)"/)?.[1] || '';
-      let shortDialogue = dialogueContent.substring(0, 100);
+      let shortDialogue = dialogueContent.substring(0, 180);
       // Trouver fin de phrase naturelle
       const lastPunct = Math.max(
         shortDialogue.lastIndexOf('.'),
         shortDialogue.lastIndexOf('!'),
         shortDialogue.lastIndexOf('?')
       );
-      if (lastPunct > 30) {
+      if (lastPunct > 50) {
         shortDialogue = shortDialogue.substring(0, lastPunct + 1);
       } else {
         shortDialogue = shortDialogue.trim() + '...';
@@ -1903,9 +1903,9 @@ class TextGenerationService {
     // Supprimer doublons
     cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, '$1');
     
-    // Max 280 caractères
-    if (cleaned.length > 280) {
-      cleaned = `${action} ${dialogue} ${thought}`.substring(0, 280).trim();
+    // Max 380 caractères (augmenté pour dialogues expressifs)
+    if (cleaned.length > 380) {
+      cleaned = `${action} ${dialogue} ${thought}`.substring(0, 380).trim();
     }
     
     // Minimum de contenu
