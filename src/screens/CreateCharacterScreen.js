@@ -12,7 +12,8 @@ import {
   Switch,
   Modal,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+// expo-image-picker retiré pour compatibilité build
+// Import d'image via URL uniquement
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
@@ -81,65 +82,8 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
 
   // === FONCTIONS D'IMPORT D'IMAGE ===
-  
-  const pickImageFromGallery = async () => {
-    try {
-      // Demander la permission
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permission requise',
-          'Nous avons besoin de votre permission pour accéder à la galerie.'
-        );
-        return;
-      }
-      
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-      
-      if (!result.canceled && result.assets && result.assets[0]) {
-        setImageUrl(result.assets[0].uri);
-        setShowImageOptions(false);
-        Alert.alert('Succès', 'Image importée !');
-      }
-    } catch (error) {
-      console.error('Erreur import galerie:', error);
-      Alert.alert('Erreur', 'Impossible d\'importer l\'image depuis la galerie.');
-    }
-  };
-  
-  const takePhoto = async () => {
-    try {
-      // Demander la permission
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permission requise',
-          'Nous avons besoin de votre permission pour accéder à la caméra.'
-        );
-        return;
-      }
-      
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-      
-      if (!result.canceled && result.assets && result.assets[0]) {
-        setImageUrl(result.assets[0].uri);
-        setShowImageOptions(false);
-        Alert.alert('Succès', 'Photo prise !');
-      }
-    } catch (error) {
-      console.error('Erreur caméra:', error);
-      Alert.alert('Erreur', 'Impossible de prendre une photo.');
-    }
-  };
+  // Note: Import depuis galerie/caméra désactivé (problème build)
+  // Seul l'import via URL est disponible
   
   const importFromUrl = () => {
     if (!tempImageUrl.trim()) {
@@ -395,47 +339,31 @@ export default function CreateCharacterScreen({ navigation, route }) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>📸 Choisir une image</Text>
+            <Text style={styles.modalTitle}>🔗 Importer une image</Text>
             
-            <TouchableOpacity style={styles.modalOption} onPress={pickImageFromGallery}>
-              <Text style={styles.modalOptionIcon}>🖼️</Text>
-              <View style={styles.modalOptionText}>
-                <Text style={styles.modalOptionTitle}>Galerie</Text>
-                <Text style={styles.modalOptionDesc}>Choisir depuis vos photos</Text>
-              </View>
+            <Text style={styles.modalSubtitle}>
+              Collez l'URL d'une image depuis internet
+            </Text>
+            
+            <View style={styles.urlInputContainer}>
+              <TextInput
+                style={styles.urlInput}
+                value={tempImageUrl}
+                onChangeText={setTempImageUrl}
+                placeholder="https://example.com/image.jpg"
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoFocus={true}
+              />
+            </View>
+            
+            <TouchableOpacity style={styles.urlSubmitButtonLarge} onPress={importFromUrl}>
+              <Text style={styles.urlSubmitTextLarge}>✓ Importer l'image</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.modalOption} onPress={takePhoto}>
-              <Text style={styles.modalOptionIcon}>📷</Text>
-              <View style={styles.modalOptionText}>
-                <Text style={styles.modalOptionTitle}>Caméra</Text>
-                <Text style={styles.modalOptionDesc}>Prendre une nouvelle photo</Text>
-              </View>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.modalOption} onPress={() => setShowUrlInput(true)}>
-              <Text style={styles.modalOptionIcon}>🔗</Text>
-              <View style={styles.modalOptionText}>
-                <Text style={styles.modalOptionTitle}>URL</Text>
-                <Text style={styles.modalOptionDesc}>Coller un lien d'image</Text>
-              </View>
-            </TouchableOpacity>
-            
-            {showUrlInput && (
-              <View style={styles.urlInputContainer}>
-                <TextInput
-                  style={styles.urlInput}
-                  value={tempImageUrl}
-                  onChangeText={setTempImageUrl}
-                  placeholder="https://example.com/image.jpg"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                <TouchableOpacity style={styles.urlSubmitButton} onPress={importFromUrl}>
-                  <Text style={styles.urlSubmitText}>✓</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+            <Text style={styles.modalHint}>
+              💡 Astuce: Faites un clic droit sur une image dans votre navigateur, puis "Copier l'adresse de l'image"
+            </Text>
             
             <TouchableOpacity 
               style={styles.modalCancel} 
@@ -932,57 +860,42 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#374151',
     textAlign: 'center',
+    marginBottom: 10,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
     marginBottom: 20,
   },
-  modalOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    marginBottom: 10,
-  },
-  modalOptionIcon: {
-    fontSize: 32,
-    marginRight: 15,
-  },
-  modalOptionText: {
-    flex: 1,
-  },
-  modalOptionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  modalOptionDesc: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginTop: 2,
+  modalHint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginTop: 15,
+    paddingHorizontal: 10,
   },
   urlInputContainer: {
-    flexDirection: 'row',
-    marginTop: 10,
-    marginBottom: 10,
+    marginBottom: 15,
   },
   urlInput: {
-    flex: 1,
     borderWidth: 1,
     borderColor: '#d1d5db',
     borderRadius: 8,
-    padding: 12,
+    padding: 15,
     fontSize: 14,
+    backgroundColor: '#f9fafb',
   },
-  urlSubmitButton: {
-    marginLeft: 10,
+  urlSubmitButtonLarge: {
     backgroundColor: '#10b981',
-    paddingHorizontal: 20,
-    justifyContent: 'center',
+    padding: 15,
     borderRadius: 8,
+    alignItems: 'center',
   },
-  urlSubmitText: {
+  urlSubmitTextLarge: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalCancel: {
     padding: 15,
