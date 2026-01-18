@@ -490,44 +490,54 @@ export default function ConversationScreen({ route, navigation }) {
     }
   };
 
-  // Génère l'image de récompense pour un level up (MÊME SANS PREMIUM)
+  // v5.3.69 - Génère l'image de récompense pour un level up (MÊME SANS PREMIUM)
+  // UTILISE le même système de profil physique que les images en conversation
   const generateLevelUpRewardImage = async (reward, newLevel) => {
     try {
       console.log(`🎁 Génération image récompense niveau ${newLevel}: ${reward.imageType}`);
       
-      // Construire le prompt ULTRA-DÉTAILLÉ avec TOUTES les caractéristiques du personnage
+      // v5.3.69 - Utiliser le PROFIL PHYSIQUE PRIORITAIRE (même système que conversation)
+      const priorityPhysicalPrompt = ImageGenerationService.buildPriorityPhysicalPrompt(character);
+      
+      // Obtenir le prompt de récompense selon le type et le niveau
       const rewardPromptPart = LevelService.getRewardImagePrompt(reward.imageType, character);
       
-      // Utiliser les fonctions de ImageGenerationService pour les détails physiques
-      const physicalDesc = ImageGenerationService.buildDetailedPhysicalDescription(character, true);
-      const anatomyDesc = ImageGenerationService.buildAnatomyDescription(character, true);
+      // v5.3.69 - Déterminer la tenue/pose selon le niveau
+      let levelOutfitPrompt = '';
+      if (newLevel >= 10) {
+        levelOutfitPrompt = 'completely nude, naked, full nudity, explicit, erotic pose, spread legs';
+      } else if (newLevel >= 8) {
+        levelOutfitPrompt = 'topless, bare breasts, nude torso, wearing only panties, seductive pose';
+      } else if (newLevel >= 6) {
+        levelOutfitPrompt = 'wearing only underwear, bra and panties, lingerie, revealing';
+      } else if (newLevel >= 4) {
+        levelOutfitPrompt = 'sexy lingerie, lace bra, thong, stockings, provocative pose';
+      } else if (newLevel >= 2) {
+        levelOutfitPrompt = 'sexy lingerie, revealing outfit, cleavage visible, seductive';
+      } else {
+        levelOutfitPrompt = 'elegant sexy outfit, tight dress, showing curves';
+      }
       
-      // Extraire les caractéristiques spécifiques du personnage
-      const hairDesc = character.hairColor ? `${character.hairColor} hair` : '';
-      const eyeDesc = character.eyeColor ? `${character.eyeColor} eyes` : '';
-      const skinDesc = character.skinTone || '';
-      const heightDesc = character.height || '';
-      const bustDesc = character.bust ? `${character.bust} cup breasts` : '';
-      
-      // Prompt ULTRA-DÉTAILLÉ avec qualité maximale
-      const fullPrompt = `masterpiece, best quality, hyper-realistic photograph, professional photography, 8K ultra HD resolution, 
-        ${physicalDesc},
-        ${anatomyDesc},
-        ${hairDesc}, ${eyeDesc}, ${skinDesc},
+      // v5.3.69 - Prompt ULTRA-DÉTAILLÉ avec profil physique EN PREMIER
+      const fullPrompt = `FULL BODY SHOT from head to feet, complete figure visible, 
+        ${priorityPhysicalPrompt},
+        ${levelOutfitPrompt},
+        ${rewardPromptPart},
+        masterpiece, best quality, hyper-realistic photograph, professional photography, 8K ultra HD,
         ${character.appearance || ''},
         ${character.physicalDescription || ''},
-        ${rewardPromptPart},
-        perfect human anatomy, anatomically correct perfect body,
-        proper symmetrical face, exactly two arms attached to shoulders, exactly two legs,
-        proper hands with exactly five fingers each, correct natural proportions,
+        perfect human anatomy, anatomically correct body,
+        proper symmetrical face, exactly two arms, exactly two legs,
+        proper hands with five fingers, correct proportions,
         professional studio lighting, high-end boudoir photography,
-        skin texture visible with pores, ultra-realistic skin details, lifelike photograph,
-        single person in frame, solo portrait shot,
+        skin texture visible, ultra-realistic details, lifelike,
+        single person, solo, portrait, 
         sharp focus, bokeh background, cinematic lighting,
         NEGATIVE: deformed, distorted, extra limbs, missing limbs, bad anatomy, mutated, 
-        extra fingers, fused fingers, bad hands, wrong proportions, ugly, blurry, watermark`;
+        extra fingers, fused fingers, bad hands, wrong proportions, ugly, blurry, watermark, thin, skinny`;
       
-      console.log(`📸 Prompt récompense niveau ${newLevel} généré avec détails complets du personnage`);
+      console.log(`📸 Prompt récompense niveau ${newLevel}: ${levelOutfitPrompt}`);
+      console.log(`📋 Profil physique: ${priorityPhysicalPrompt.substring(0, 150)}...`);
       
       // Générer l'image via l'API (même sans premium pour les récompenses)
       const imageUrl = await ImageGenerationService.generateImage(fullPrompt);
@@ -549,7 +559,7 @@ export default function ConversationScreen({ route, navigation }) {
           [{ text: '👀 Super !', style: 'default' }]
         );
         
-        console.log(`✅ Image récompense générée et sauvegardée`);
+        console.log(`✅ Image récompense niveau ${newLevel} générée et sauvegardée`);
       }
     } catch (error) {
       console.error('❌ Erreur génération image récompense:', error);

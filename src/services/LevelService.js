@@ -33,19 +33,19 @@ class LevelService {
       100: 'Divin',
     };
     
-    // Récompenses par niveau - IMAGES EXCLUSIVES
+    // v5.3.69 - Récompenses par niveau - IMAGES EXCLUSIVES avec descriptions explicites
     this.rewards = {
-      2: { type: 'image', description: 'Image sexy en lingerie', imageType: 'lingerie' },
-      3: { type: 'image', description: 'Image en tenue provocante', imageType: 'provocative' },
-      4: { type: 'image', description: 'Image en sous-vêtements', imageType: 'underwear' },
-      5: { type: 'image', description: 'Image topless exclusive', imageType: 'topless' },
-      6: { type: 'image', description: 'Image nue artistique', imageType: 'artistic_nude' },
-      7: { type: 'image', description: 'Image nue sensuelle', imageType: 'sensual_nude' },
-      8: { type: 'image', description: 'Image très sexy', imageType: 'very_sexy' },
-      9: { type: 'image', description: 'Image érotique exclusive', imageType: 'erotic' },
-      10: { type: 'image', description: 'Image ultra-hot', imageType: 'ultra_hot' },
-      15: { type: 'image', description: 'Galerie spéciale', imageType: 'special_gallery' },
-      20: { type: 'image', description: 'Image personnalisée', imageType: 'custom' },
+      2: { type: 'image', description: '🔥 Image sexy en lingerie provocante', imageType: 'lingerie', nsfwLevel: 2 },
+      3: { type: 'image', description: '💋 Image en tenue très provocante', imageType: 'provocative', nsfwLevel: 3 },
+      4: { type: 'image', description: '🩲 Image en sous-vêtements sexy', imageType: 'underwear', nsfwLevel: 3 },
+      5: { type: 'image', description: '👙 Image topless exclusive', imageType: 'topless', nsfwLevel: 4 },
+      6: { type: 'image', description: '🔞 Image nue artistique', imageType: 'artistic_nude', nsfwLevel: 4 },
+      7: { type: 'image', description: '💕 Image nue sensuelle', imageType: 'sensual_nude', nsfwLevel: 5 },
+      8: { type: 'image', description: '🔥 Image très sexy et explicite', imageType: 'very_sexy', nsfwLevel: 5 },
+      9: { type: 'image', description: '💦 Image érotique exclusive', imageType: 'erotic', nsfwLevel: 5 },
+      10: { type: 'image', description: '🌶️ Image ultra-hot sans censure', imageType: 'ultra_hot', nsfwLevel: 5 },
+      15: { type: 'image', description: '✨ Galerie spéciale exclusive', imageType: 'special_gallery', nsfwLevel: 5 },
+      20: { type: 'image', description: '⭐ Image personnalisée ultime', imageType: 'custom', nsfwLevel: 5 },
     };
   }
 
