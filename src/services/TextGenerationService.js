@@ -1175,10 +1175,8 @@ class TextGenerationService {
     }
     
     if (!apiKey) {
-      // Fallback vers Pollinations si pas de clé Groq
-      console.log('⚠️ Pas de clé Groq, fallback vers Pollinations...');
-      const pollinationsApi = this.availableApis['pollinations-mistral'];
-      return this.callPollinationsApi(pollinationsApi, fullMessages, options);
+      // v5.3.61 - PAS de fallback, erreur si pas de clé
+      throw new Error('Clé API Groq requise. Ajoutez votre clé dans Paramètres > API.');
     }
     
     console.log(`📡 Groq API: ${api.model}`);
@@ -1217,22 +1215,16 @@ class TextGenerationService {
       
       console.error(`❌ Groq erreur (${status}): ${errorMsg}`);
       
-      // Si rate limit ou clé invalide, rotation et retry
+      // v5.3.61 - PAS de fallback, juste rotation et retry si possible
       if (status === 429 || status === 401) {
         this.groqCurrentKeyIndex = (this.groqCurrentKeyIndex + 1) % Math.max(1, this.groqSharedKeysEncoded.length);
         console.log('🔄 Groq: rotation de clé après erreur');
-        
-        // Fallback vers Pollinations
-        console.log('🔄 Fallback vers Pollinations...');
-        const pollinationsApi = this.availableApis['pollinations-mistral'];
-        return this.callPollinationsApi(pollinationsApi, fullMessages, options);
+        throw new Error(`Erreur Groq (${status}): ${errorMsg}. Réessayez ou changez d'API.`);
       }
       
-      // Si organisation restreinte, fallback
+      // Si organisation restreinte
       if (errorMsg && (errorMsg.includes('restricted') || errorMsg.includes('Organization'))) {
-        console.log('🚫 Organisation Groq restreinte, fallback vers Pollinations');
-        const pollinationsApi = this.availableApis['pollinations-mistral'];
-        return this.callPollinationsApi(pollinationsApi, fullMessages, options);
+        throw new Error('Compte Groq restreint. Créez un nouveau compte sur console.groq.com');
       }
       
       throw error;

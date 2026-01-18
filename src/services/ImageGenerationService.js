@@ -3925,11 +3925,18 @@ class ImageGenerationService {
     // 1. FULL BODY SHOT EN PREMIER
     finalPrompt += 'FULL BODY SHOT from head to feet, complete figure visible, ';
     
-    // 2. GENRE + ÂGE (CRITIQUE)
-    if (physicalDetails.gender === 'male') {
-      finalPrompt += isAnime ? 'handsome anime man, ' : 'handsome real man, male, ';
+    // 2. v5.3.61 - GENRE + ÂGE (avec support NON-BINAIRE)
+    const gender = physicalDetails.gender || (character ? character.gender : null);
+    if (gender === 'male') {
+      finalPrompt += isAnime ? 'handsome anime man, male, ' : 'handsome real man, male, ';
+    } else if (gender === 'non-binary' || gender === 'nonbinary' || gender === 'nb') {
+      // v5.3.61 - Support non-binaire: apparence ANDROGYNE
+      finalPrompt += isAnime 
+        ? 'beautiful ANDROGYNOUS anime person, neither fully male nor female, androgynous features, ' 
+        : 'beautiful ANDROGYNOUS person, neither fully male nor female, androgynous delicate features, ambiguous gender, ';
+      console.log('🏳️‍🌈 Genre NON-BINAIRE détecté -> androgyne');
     } else {
-      finalPrompt += isAnime ? 'beautiful anime woman, ' : 'beautiful real woman, female, ';
+      finalPrompt += isAnime ? 'beautiful anime woman, female, ' : 'beautiful real woman, female, ';
     }
     if (physicalDetails.age) {
       finalPrompt += `${physicalDetails.age} years old, `;
@@ -3963,20 +3970,30 @@ class ImageGenerationService {
       console.log(`📏 Taille: ${physicalDetails.height}`);
     }
     
-    // 7. === MORPHOLOGIE / CORPS - TRÈS IMPORTANT ===
+    // 7. === v5.3.61 - MORPHOLOGIE / CORPS - TRIPLE EMPHASE ===
     if (physicalDetails.bodyType) {
-      finalPrompt += `${physicalDetails.bodyType}, `;
-      console.log(`🏋️ Morphologie: ${physicalDetails.bodyType}`);
+      // Ajouter 3 fois pour emphase maximale dans les modèles AI
+      finalPrompt += `${physicalDetails.bodyType}, ${physicalDetails.bodyType}, `;
+      console.log(`🏋️ Morphologie (x2): ${physicalDetails.bodyType}`);
+      
+      // Ajouter des exclusions explicites pour les corps ronds
+      const bt = physicalDetails.bodyType.toLowerCase();
+      if (bt.includes('chubby') || bt.includes('plump') || bt.includes('bbw') || 
+          bt.includes('curvy') || bt.includes('voluptuous') || bt.includes('round') ||
+          bt.includes('generous') || bt.includes('thick')) {
+        finalPrompt += 'NOT THIN, NOT SKINNY, NOT SLIM, NOT ATHLETIC, fat belly visible, ';
+        console.log('🚫 Exclusions: NOT THIN/SKINNY/SLIM ajoutées');
+      }
     }
     
-    // 8. === POITRINE (femmes) - TRÈS IMPORTANT ===
-    if (physicalDetails.bust && physicalDetails.gender === 'female') {
-      finalPrompt += `${physicalDetails.bust}, `;
-      console.log(`👙 Poitrine: ${physicalDetails.bust}`);
+    // 8. === POITRINE (femmes ET non-binaires) - TRÈS IMPORTANT ===
+    if (physicalDetails.bust && (gender === 'female' || !physicalDetails.bust.toLowerCase().includes('flat'))) {
+      finalPrompt += `${physicalDetails.bust}, ${physicalDetails.bust}, `; // Répéter pour emphase
+      console.log(`👙 Poitrine (x2): ${physicalDetails.bust}`);
     }
     
     // 9. === PÉNIS (hommes) ===
-    if (physicalDetails.penis && physicalDetails.gender === 'male' && isNSFW) {
+    if (physicalDetails.penis && gender === 'male' && isNSFW) {
       finalPrompt += `${physicalDetails.penis}, `;
       console.log(`🍆 Pénis: ${physicalDetails.penis}`);
     }
@@ -3995,6 +4012,20 @@ class ImageGenerationService {
     // 11. === VENTRE ===
     if (physicalDetails.belly) {
       finalPrompt += `${physicalDetails.belly}, `;
+    }
+    
+    // v5.3.61 - Ajouter physicalDescription brut si contient des infos sur les formes
+    if (character && character.physicalDescription) {
+      const pd = character.physicalDescription.toLowerCase();
+      if (pd.includes('rond') || pd.includes('curvy') || pd.includes('plump') || 
+          pd.includes('généreus') || pd.includes('voluptu') || pd.includes('gros')) {
+        // Extraire les mots-clés importants
+        const keywords = character.physicalDescription
+          .replace(/\d+\s*(ans|cm|kg)/gi, '')
+          .substring(0, 150);
+        finalPrompt += `${keywords}, `;
+        console.log(`📋 PhysicalDesc ajouté: ${keywords.substring(0, 80)}...`);
+      }
     }
     
     // 12. Style et qualité
@@ -4094,14 +4125,25 @@ class ImageGenerationService {
     
     console.log(`📋 Analyse physicalDescription: ${fullText.substring(0, 200)}...`);
     
-    // === GENRE ===
+    // === v5.3.61 - GENRE avec support NON-BINAIRE ===
     details.gender = character.gender || null;
     if (!details.gender) {
-      if (fullText.includes('femme') || fullText.includes('woman') || fullText.includes('female')) {
+      // Vérifier d'abord non-binaire
+      if (fullText.includes('non-binaire') || fullText.includes('non binaire') || 
+          fullText.includes('nonbinary') || fullText.includes('androgyne') ||
+          fullText.includes('gender fluid') || fullText.includes('genderfluid')) {
+        details.gender = 'non-binary';
+        console.log('🏳️‍🌈 Genre NON-BINAIRE détecté dans texte');
+      } else if (fullText.includes('femme') || fullText.includes('woman') || fullText.includes('female')) {
         details.gender = 'female';
-      } else if (fullText.includes('homme') || fullText.includes('man') || fullText.includes('male')) {
+      } else if (fullText.includes('homme') || fullText.includes('man ') || fullText.includes('male')) {
         details.gender = 'male';
       }
+    }
+    // Vérifier si character.gender est 'non-binary' exactement
+    if (character.gender === 'non-binary' || character.gender === 'nonbinary' || character.gender === 'nb') {
+      details.gender = 'non-binary';
+      console.log('🏳️‍🌈 Genre NON-BINAIRE depuis character.gender');
     }
     
     // === ÂGE ===
