@@ -905,11 +905,11 @@ class TextGenerationService {
   }
 
   /**
-   * Génération avec une API spécifique v5.3.43
-   * AMÉLIORÉ: Messages limités à 8 max pour éviter confusion IA
+   * Génération avec une API spécifique v5.3.50
+   * AMÉLIORÉ: Plus de contexte conversationnel (12 messages max)
    */
   async generateWithSelectedApi(messages, character, userProfile, context, api) {
-    console.log(`🚀 Génération avec ${api.name} - v5.3.43`);
+    console.log(`🚀 Génération avec ${api.name} - v5.3.50`);
     
     const maxAttempts = 2;
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
@@ -923,24 +923,24 @@ class TextGenerationService {
         const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
         fullMessages.push({ role: 'system', content: systemPrompt });
         
-        // === MESSAGES RÉCENTS LIMITÉS (max 8 pour éviter confusion) ===
-        const recentCount = Math.min(8, totalMessages);
+        // === MESSAGES RÉCENTS (max 12 pour meilleur contexte) ===
+        const recentCount = Math.min(12, totalMessages);
         const recentMessages = messages.slice(-recentCount);
         
         // Ajouter les messages avec contenu adapté
         fullMessages.push(...recentMessages.map((msg, idx) => ({
           role: msg.role,
-          // Dernier message plus complet
-          content: (idx >= recentMessages.length - 2) 
-            ? msg.content.substring(0, 600)
-            : msg.content.substring(0, 250)
+          // Les 4 derniers messages plus complets, les autres résumés
+          content: (idx >= recentMessages.length - 4) 
+            ? msg.content.substring(0, 700)
+            : msg.content.substring(0, 300)
         })));
         
-        // === INSTRUCTION FINALE ===
+        // === INSTRUCTION FINALE avec contexte ===
         const finalInstruction = this.buildFinalInstructionWithMemory(character, userProfile, context, recentMessages);
         fullMessages.push({ role: 'system', content: finalInstruction });
         
-        console.log(`📡 ${api.name} - ${fullMessages.length} messages (${recentCount} récents, max 8)`);
+        console.log(`📡 ${api.name} - ${fullMessages.length} messages (${recentCount} récents, max 12)`);
         
         // Appeler l'API - tokens ajustés
         let content;
@@ -984,8 +984,8 @@ class TextGenerationService {
   }
   
   /**
-   * Appel API format Pollinations v5.3.43
-   * FOCUS: Dernier message utilisateur en priorité absolue
+   * Appel API format Pollinations v5.3.50
+   * AMÉLIORÉ: Plus de contexte conversationnel
    */
   async callPollinationsApi(api, fullMessages, options = {}) {
     const { temperature = 0.82, maxTokens = 280 } = options;
@@ -994,42 +994,42 @@ class TextGenerationService {
     const systemMessages = fullMessages.filter(m => m.role === 'system');
     const conversationMessages = fullMessages.filter(m => m.role !== 'system');
     
-    // Premier système = identité
+    // Premier système = identité du personnage
     const mainSystem = systemMessages[0]?.content || '';
-    // Dernier système = instruction
+    // Dernier système = instruction finale
     const lastInstruction = systemMessages[systemMessages.length - 1]?.content || '';
     
     // DERNIER MESSAGE UTILISATEUR (priorité!)
     const lastUserMsg = conversationMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
     
-    // Contexte court (4 derniers messages max avant le dernier)
-    let shortContext = '';
-    const contextMsgs = conversationMessages.slice(-5, -1);
+    // Contexte conversationnel (8 derniers messages pour meilleur suivi)
+    let conversationContext = '';
+    const contextMsgs = conversationMessages.slice(-8);
     for (const msg of contextMsgs) {
-      const prefix = msg.role === 'user' ? 'U' : 'P';
-      shortContext += `${prefix}: ${msg.content.substring(0, 120)}\n`;
+      const prefix = msg.role === 'user' ? '👤' : '🎭';
+      conversationContext += `${prefix}: ${msg.content.substring(0, 150)}\n`;
     }
     
-    // Construire le prompt avec structure CLAIRE
-    let prompt = mainSystem.substring(0, 800);
+    // Construire le prompt avec structure complète
+    let prompt = mainSystem.substring(0, 900);
     
-    // Contexte minimal
-    if (shortContext.length > 0) {
-      prompt += `\n\n[Contexte récent]\n${shortContext}`;
+    // Historique de conversation
+    if (conversationContext.length > 0) {
+      prompt += `\n\n📜 HISTORIQUE RÉCENT:\n${conversationContext}`;
     }
     
-    // MESSAGE À RÉPONDRE (TRÈS IMPORTANT)
-    prompt += `\n\n>>> DERNIER MESSAGE:\n"${lastUserMsg.substring(0, 400)}"\n`;
+    // MESSAGE ACTUEL À RÉPONDRE
+    prompt += `\n\n>>> RÉPONDS À CE MESSAGE:\n"${lastUserMsg.substring(0, 400)}"\n`;
     
     // Instruction finale
     if (lastInstruction && lastInstruction !== mainSystem) {
-      prompt += `\n--- INSTRUCTION ---\n${lastInstruction.substring(0, 500)}`;
+      prompt += `\n${lastInstruction.substring(0, 600)}`;
     }
     
-    prompt += `\n\nPersonnage:`;
+    prompt += `\n\nRéponse du personnage:`;
     
-    // Limiter la taille mais garder assez de contexte
-    const finalPrompt = prompt.substring(0, 5000);
+    // Limiter la taille mais garder le contexte
+    const finalPrompt = prompt.substring(0, 6000);
     
     console.log(`📡 Pollinations prompt: ${finalPrompt.length} chars, model: ${api.model}`);
     
@@ -1300,26 +1300,65 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale v5.3.34
-   * SIMPLIFIÉ - Juste répondre au message
+   * Construit l'instruction finale v5.3.50
+   * Avec contexte conversationnel pour cohérence
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const charName = character?.name || 'Personnage';
     const userName = userProfile?.username || 'l\'utilisateur';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    const userGender = userProfile?.gender || '';
     
-    // Récupérer le dernier message utilisateur
-    const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
+    // Récupérer les messages utilisateur pour contexte
+    const userMessages = recentMessages.filter(m => m.role === 'user');
+    const lastUserMsg = userMessages.slice(-1)[0];
     const lastUserContent = lastUserMsg?.content || '';
     
-    // Instruction SIMPLE et DIRECTE
-    let instruction = `RÉPONDS au dernier message de ${userName}: "${lastUserContent.substring(0, 150)}"`;
+    // Récupérer la dernière réponse du personnage (pour éviter répétition)
+    const lastCharMsg = recentMessages.filter(m => m.role === 'assistant').slice(-1)[0]?.content || '';
+    const lastCharAction = lastCharMsg.match(/\*([^*]+)\*/)?.[1] || '';
     
-    if (isNSFW) {
-      instruction += `\n🔞 Mode adulte: sois explicite si approprié.`;
+    // === INSTRUCTION PRINCIPALE ===
+    let instruction = `\n⚡ INSTRUCTION FINALE - ${charName}\n\n`;
+    
+    // Résumé du contexte récent (2-3 derniers échanges)
+    if (userMessages.length > 1) {
+      instruction += `📜 Contexte récent:\n`;
+      const prevMessages = userMessages.slice(-3, -1);
+      for (const msg of prevMessages) {
+        instruction += `- ${userName} a dit: "${msg.content.substring(0, 60)}..."\n`;
+      }
+      instruction += `\n`;
     }
     
-    // C'est tout! Pas besoin de plus
+    // Le message auquel répondre
+    instruction += `📩 ${userName} te dit maintenant:\n"${lastUserContent.substring(0, 200)}"\n\n`;
+    
+    // Éviter la répétition
+    if (lastCharAction) {
+      instruction += `⛔ NE RÉPÈTE PAS cette action: "${lastCharAction.substring(0, 40)}"\n`;
+    }
+    
+    // Rappel du profil utilisateur
+    if (userGender === 'female') {
+      instruction += `👤 ${userName} = femme`;
+      if (userProfile?.bust) instruction += ` (bonnet ${userProfile.bust})`;
+      instruction += `\n`;
+    } else if (userGender === 'male') {
+      instruction += `👤 ${userName} = homme`;
+      if (userProfile?.penis) instruction += ` (${userProfile.penis}cm)`;
+      instruction += `\n`;
+    }
+    
+    // Mode NSFW
+    if (isNSFW) {
+      instruction += `\n🔞 NSFW: Sois explicite, sensuel, expressif.\n`;
+    }
+    
+    // Format de réponse
+    instruction += `\n📝 RÉPONDS avec: *action* "dialogue" (pensée)\n`;
+    instruction += `CONTINUE la conversation naturellement!\n`;
+    
     return instruction;
   }
 
@@ -1411,8 +1450,8 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.34
-   * SIMPLIFIÉ pour meilleure cohérence
+   * Construit le prompt système - VERSION v5.3.50
+   * Équilibre entre simplicité et contexte conversationnel
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -1421,24 +1460,64 @@ class TextGenerationService {
     
     const charIsFemale = character.gender === 'female';
     const charIsMale = character.gender === 'male';
+    const userIsFemale = userProfile?.gender === 'female';
+    const userIsMale = userProfile?.gender === 'male';
     
-    // Prompt SIMPLE et CLAIR
-    let prompt = `Tu es ${charName}`;
+    // === IDENTITÉ DU PERSONNAGE ===
+    let prompt = `# TU ES ${charName.toUpperCase()}\n`;
+    prompt += `Tu es ${charName}`;
     if (character.age) prompt += `, ${character.age} ans`;
     if (charIsFemale) prompt += `, femme`;
     else if (charIsMale) prompt += `, homme`;
-    prompt += `. Tu discutes avec ${userName}.\n\n`;
+    prompt += `.\n`;
     
+    // Personnalité
     if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 80)}.\n\n`;
+      prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n`;
     }
     
-    // Règle principale
-    prompt += `RÈGLE: Réponds TOUJOURS au dernier message de ${userName}. `;
-    prompt += `Utilise le format *actions* "dialogue".\n`;
+    // Apparence du personnage (important pour la cohérence)
+    if (character.physicalDescription || character.appearance) {
+      prompt += `Apparence: ${(character.physicalDescription || character.appearance).substring(0, 150)}.\n`;
+    }
+    
+    // Scénario/contexte
+    if (character.scenario) {
+      prompt += `\nScénario: ${character.scenario.substring(0, 150)}\n`;
+    }
+    
+    // === PROFIL DE L'INTERLOCUTEUR ===
+    prompt += `\n# TON INTERLOCUTEUR: ${userName}\n`;
+    if (userIsFemale) {
+      prompt += `${userName} est une FEMME`;
+      if (userProfile?.bust) prompt += ` (poitrine bonnet ${userProfile.bust})`;
+      prompt += `.\n`;
+    } else if (userIsMale) {
+      prompt += `${userName} est un HOMME`;
+      if (userProfile?.penis) prompt += ` (${userProfile.penis}cm)`;
+      prompt += `.\n`;
+    }
+    if (userProfile?.age) {
+      prompt += `${userName} a ${userProfile.age} ans.\n`;
+    }
+    
+    // === RÈGLES DE CONVERSATION ===
+    prompt += `\n# RÈGLES IMPORTANTES\n`;
+    prompt += `1. RÉPONDS TOUJOURS au dernier message de ${userName}\n`;
+    prompt += `2. CONTINUE la conversation logiquement (ne recommence pas)\n`;
+    prompt += `3. SOUVIENS-TOI de ce qui s'est passé avant\n`;
+    prompt += `4. Format: *action courte* "dialogue" (pensée optionnelle)\n`;
+    prompt += `5. Parle directement à ${userName} avec TU/TOI\n`;
     
     if (isNSFW) {
-      prompt += `\n🔞 Mode adulte autorisé. Sois explicite si la conversation le permet.`;
+      prompt += `\n🔞 MODE ADULTE ACTIF\n`;
+      prompt += `Contenu explicite autorisé. Sois sensuel et expressif.\n`;
+      if (userIsFemale && userProfile?.bust) {
+        prompt += `Tu peux mentionner la poitrine de ${userName}.\n`;
+      }
+      if (userIsMale && userProfile?.penis) {
+        prompt += `Tu peux mentionner la virilité de ${userName}.\n`;
+      }
     }
     
     return prompt;
