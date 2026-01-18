@@ -3130,24 +3130,146 @@ class ImageGenerationService {
       prompt += `, ${randomAngle}`;
       console.log(`📷 ANGLE: ${randomAngle.substring(0, 50)}...`);
       
-      // === POSITION NSFW VARIÉE ===
+      // === v5.3.52 - POSITIONS NSFW TRÈS VARIÉES ===
       const nsfwPositions = [
-        'standing nude, confident sexy pose, hand on hip',
-        'lying on bed on back, legs slightly spread, inviting',
-        'lying on stomach, butt raised, looking back seductively',
-        'sitting on edge of bed, legs open, topless',
-        'kneeling on bed, breasts visible, sensual pose',
-        'on all fours, rear view, arched back',
-        'leaning against wall, nude, provocative stance',
-        'in bathtub, wet skin, sensual relaxed',
-        'by window, nude silhouette, natural light',
-        'on leather couch, legs spread, confident',
-        'stretching on bed, full body exposed',
-        'bending over, rear fully visible',
+        // Debout
+        'standing nude, confident sexy pose, hand on hip, full body view',
+        'standing by window, nude silhouette, natural light, elegant pose',
+        'standing leaning against wall, one leg bent, provocative stance',
+        
+        // Allongée sur lit
+        'lying on bed on back, legs slightly spread, inviting pose, breasts visible',
+        'lying on stomach on silk sheets, butt raised, looking back seductively',
+        'lying on side, propped on elbow, curves emphasized, sensual',
+        'sprawled on bed, relaxed nude pose, carefree and sexy',
+        
+        // À genoux
+        'kneeling on bed, sitting back on heels, breasts prominent, sensual gaze',
+        'kneeling upright, hands on thighs, submissive pose, looking up',
+        'kneeling from behind, looking over shoulder, butt emphasized',
+        'on knees looking up seductively, submissive sexy pose',
+        
+        // À quatre pattes
+        'on all fours on bed, rear view, arched back, butt prominent',
+        'on all fours looking back over shoulder, provocative pose',
+        'crawling on bed on all fours, predatory sexy pose',
+        
+        // Penchée en avant
+        'bending forward, showing cleavage, provocative stance',
+        'bent over vanity, looking in mirror, rear view emphasized',
+        'leaning forward on hands, breasts hanging, seductive',
+        'bending over, rear fully visible, looking back',
+        
+        // Montrant les fesses
+        'rear view standing, looking over shoulder, butt fully visible',
+        'lying on stomach, butt raised high, provocative',
+        'on all fours, rear emphasized, sexy arch in back',
+        'bending over showing butt, thong visible, seductive',
+        
+        // Montrant les seins
+        'frontal nude pose, breasts fully visible, confident',
+        'cupping breasts with hands, provocative pose',
+        'arms raised above head, breasts prominent, sensual stretch',
+        'lying on back, breasts visible, inviting pose',
+        
+        // Doigts dans la bouche
+        'finger on lips, seductive gaze, teasing pose',
+        'finger in mouth, innocent but sexy expression',
+        'biting finger seductively, playful naughty look',
+        'sucking finger suggestively, erotic pose',
+        
+        // Positions assises
+        'sitting on edge of bed, legs parted, inviting',
+        'sitting cross-legged on floor, nude, artistic',
+        'sitting in chair, legs spread, provocative',
+        'straddling chair backwards, butt visible',
+        
+        // Positions spéciales
+        'stretching like just woke up, natural nude beauty',
+        'getting out of shower, water droplets on skin',
+        'in bathtub, wet skin glistening, sensual',
+        'undressing, dress halfway off, teasing',
+        'pulling down panties, revealing pose',
+        'legs wide open lying on bed, intimate view',
       ];
       const randomPosition = nsfwPositions[Math.floor(Math.random() * nsfwPositions.length)];
       prompt += `, ${randomPosition}`;
       console.log(`🎭 POSITION: ${randomPosition.substring(0, 50)}...`);
+      
+      // === v5.3.52 - TENUES NSFW TRÈS VARIÉES ===
+      const nsfwOutfits = [
+        // Nuisettes
+        'wearing sheer babydoll nightgown, see-through, lace trim',
+        'wearing silk slip nightgown, barely covers body, elegant sexy',
+        'wearing transparent negligee, nothing hidden underneath',
+        
+        // Lingerie
+        'wearing sexy lace lingerie set, matching bra and panties',
+        'wearing red lace thong and push-up bra, seductive',
+        'wearing black mesh bodysuit, sheer, revealing',
+        'wearing garter belt with stockings, classic sexy',
+        
+        // Déshabillé transparent
+        'wearing sheer robe, open front, nothing underneath',
+        'wearing transparent kimono robe, body visible through',
+        'wearing see-through dress, completely visible underneath',
+        
+        // Jupes courtes
+        'wearing micro miniskirt, barely covering, no panties',
+        'wearing pleated schoolgirl skirt, lifted to show',
+        'wearing tight pencil skirt, riding up, revealing',
+        
+        // Robes moulantes
+        'wearing skin-tight dress, every curve visible',
+        'wearing backless dress, no bra, elegant sexy',
+        'wearing side-slit dress, leg fully exposed',
+        
+        // Topless
+        'topless, bare breasts exposed, wearing only panties',
+        'topless in jeans, casual but very sexy',
+        'topless with open shirt, teasing reveal',
+        
+        // Collants et leggings
+        'wearing only sheer pantyhose, nothing else, body visible',
+        'wearing yoga leggings only, topless, athletic sexy',
+        'wearing fishnet stockings, garter belt, seductive',
+        
+        // Talons
+        'wearing only high heels, completely nude otherwise',
+        'in stilettos and lingerie, legs emphasized',
+        
+        // Nue
+        'completely nude, nothing on, full exposure',
+        'nude except for jewelry, elegant naked',
+        'nude with strategically placed hands, teasing',
+      ];
+      // Sélection aléatoire de tenue basée sur le niveau
+      if (level >= 5) {
+        const selectedOutfit = nsfwOutfits[Math.floor(Math.random() * nsfwOutfits.length)];
+        prompt += `, ${selectedOutfit}`;
+        console.log(`👗 TENUE NSFW: ${selectedOutfit.substring(0, 50)}...`);
+      }
+      
+      // === v5.3.52 - VUES/ANGLES VARIÉS ===
+      const nsfwViews = [
+        'full body shot, showing entire figure from head to toe',
+        'portrait shot, face and upper body, cleavage visible',
+        'view from above, looking down at body, voyeuristic angle',
+        'plunging view on cleavage, from above, breasts prominent',
+        'back view, showing butt and spine, looking over shoulder',
+        'side profile view, curves silhouette, artistic',
+        'low angle looking up, dominant perspective',
+        'close-up on breasts, detailed, sensual',
+        'close-up on butt, rear focus, provocative',
+        'between legs view, intimate perspective',
+        'mirror reflection showing front and back simultaneously',
+        'skirt lifted up revealing underwear or bare',
+        'dress strap falling off shoulder, teasing reveal',
+        'panties being pulled down, revealing pose',
+      ];
+      const selectedView = nsfwViews[Math.floor(Math.random() * nsfwViews.length)];
+      prompt += `, ${selectedView}`;
+      console.log(`📷 VUE: ${selectedView.substring(0, 50)}...`);
       
       // Lieu intime
       prompt += `, ${sceneElements.location}`;
@@ -3810,7 +3932,8 @@ class ImageGenerationService {
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
     // Utiliser flux pour meilleure qualité
-    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
+    // v5.3.52 - Ratio 9:16 pour smartphones (576x1024)
+    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
     
     console.log(`🔗 URL Pollinations (seed: ${seed}, NSFW: ${nsfwLevel}, Genre: ${detectedGender})`);
     console.log(`📝 Prompt FINAL (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
@@ -3834,7 +3957,8 @@ class ImageGenerationService {
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
     const separator = freeboxUrl.includes('?') ? '&' : '?';
-    let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=768&height=768&seed=${seed}`;
+    // v5.3.52 - Ratio 9:16 pour smartphones
+    let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=576&height=1024&seed=${seed}`;
     
     console.log(`🔗 URL Freebox générée`);
     return imageUrl;
@@ -3862,7 +3986,8 @@ class ImageGenerationService {
     await new Promise(r => setTimeout(r, 3000)); // Attendre 3s
     
     const antiCache = Date.now();
-    const url = `https://image.pollinations.ai/prompt/${encoded}?width=768&height=768&seed=${seed}&nologo=true&nofeed=true&model=flux&t=${antiCache}`;
+    // v5.3.52 - Ratio 9:16 pour smartphones
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=576&height=1024&seed=${seed}&nologo=true&nofeed=true&model=flux&t=${antiCache}`;
     
     console.log(`🌐 Fallback API (attente anti-rate-limit)`);
     return url;

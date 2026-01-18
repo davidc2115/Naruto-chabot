@@ -1450,8 +1450,8 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.50
-   * Équilibre entre simplicité et contexte conversationnel
+   * Construit le prompt système - VERSION v5.3.52
+   * CRÉATIF avec tempérament + initiative du personnage
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -1463,6 +1463,18 @@ class TextGenerationService {
     const userIsFemale = userProfile?.gender === 'female';
     const userIsMale = userProfile?.gender === 'male';
     
+    // === TEMPÉRAMENT DU PERSONNAGE ===
+    const temperament = character.temperament || 'amical';
+    const temperamentTraits = {
+      'timide': { initiative: 'faible', style: 'hésitant, rougissant, timide mais curieux', actions: 'détourne le regard, rougit, joue avec ses cheveux' },
+      'amical': { initiative: 'moyenne', style: 'chaleureux, souriant, attentionné', actions: 'sourit, pose des questions, montre de l\'intérêt' },
+      'séducteur': { initiative: 'haute', style: 'charmeur, suggestif, aguicheur', actions: 'se rapproche, touche subtilement, regard intense' },
+      'passionné': { initiative: 'très haute', style: 'intense, fougueux, ardent', actions: 'embrasse passionnément, caresse, déshabille' },
+      'dominant': { initiative: 'très haute', style: 'autoritaire, confiant, directif', actions: 'ordonne, guide, prend le contrôle' },
+      'soumis': { initiative: 'réactive', style: 'docile, obéissant, dévoué', actions: 'obéit, se met à genoux, attend les ordres' },
+    };
+    const traits = temperamentTraits[temperament] || temperamentTraits['amical'];
+    
     // === IDENTITÉ DU PERSONNAGE ===
     let prompt = `# TU ES ${charName.toUpperCase()}\n`;
     prompt += `Tu es ${charName}`;
@@ -1471,26 +1483,38 @@ class TextGenerationService {
     else if (charIsMale) prompt += `, homme`;
     prompt += `.\n`;
     
-    // Personnalité
+    // Personnalité avec tempérament
+    prompt += `\n## PERSONNALITÉ & TEMPÉRAMENT\n`;
     if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n`;
+      prompt += `Personnalité: ${character.personality.substring(0, 120)}.\n`;
     }
+    prompt += `Tempérament: ${temperament.toUpperCase()} - Tu es ${traits.style}.\n`;
+    prompt += `Initiative: ${traits.initiative} - Tu ${traits.actions}.\n`;
     
-    // Apparence du personnage (important pour la cohérence)
+    // Apparence du personnage
     if (character.physicalDescription || character.appearance) {
-      prompt += `Apparence: ${(character.physicalDescription || character.appearance).substring(0, 150)}.\n`;
+      prompt += `\n## APPARENCE PHYSIQUE\n`;
+      prompt += `${(character.physicalDescription || character.appearance).substring(0, 200)}\n`;
     }
     
-    // Scénario/contexte
+    // Poitrine/attributs
+    if (charIsFemale && character.bust) {
+      prompt += `Poitrine: bonnet ${character.bust}.\n`;
+    }
+    if (charIsMale && character.penis) {
+      prompt += `Virilité: ${character.penis}cm.\n`;
+    }
+    
+    // Scénario
     if (character.scenario) {
-      prompt += `\nScénario: ${character.scenario.substring(0, 150)}\n`;
+      prompt += `\n## SCÉNARIO\n${character.scenario.substring(0, 180)}\n`;
     }
     
     // === PROFIL DE L'INTERLOCUTEUR ===
     prompt += `\n# TON INTERLOCUTEUR: ${userName}\n`;
     if (userIsFemale) {
       prompt += `${userName} est une FEMME`;
-      if (userProfile?.bust) prompt += ` (poitrine bonnet ${userProfile.bust})`;
+      if (userProfile?.bust) prompt += ` avec une poitrine bonnet ${userProfile.bust}`;
       prompt += `.\n`;
     } else if (userIsMale) {
       prompt += `${userName} est un HOMME`;
@@ -1501,12 +1525,25 @@ class TextGenerationService {
       prompt += `${userName} a ${userProfile.age} ans.\n`;
     }
     
-    // === RÈGLES DE CONVERSATION ===
-    prompt += `\n# RÈGLES IMPORTANTES\n`;
-    prompt += `1. RÉPONDS TOUJOURS au dernier message de ${userName}\n`;
-    prompt += `2. CONTINUE la conversation logiquement (ne recommence pas)\n`;
-    prompt += `3. SOUVIENS-TOI de ce qui s'est passé avant\n`;
-    prompt += `4. Format: *action courte* "dialogue" (pensée optionnelle)\n`;
+    // === STYLE DE JEU - CRÉATIF ET AVEC INITIATIVE ===
+    prompt += `\n# COMMENT JOUER ${charName.toUpperCase()}\n`;
+    prompt += `1. RÉPONDS au message de ${userName} de manière cohérente\n`;
+    prompt += `2. PRENDS DES INITIATIVES selon ton tempérament ${temperament}:\n`;
+    
+    if (temperament === 'séducteur' || temperament === 'passionné' || temperament === 'dominant') {
+      prompt += `   - Fais avancer la situation de manière suggestive\n`;
+      prompt += `   - Propose des actions audacieuses\n`;
+      prompt += `   - N'attends pas toujours que ${userName} agisse\n`;
+    } else if (temperament === 'timide') {
+      prompt += `   - Montre ta curiosité malgré ta timidité\n`;
+      prompt += `   - Laisse transparaître tes désirs cachés\n`;
+    } else if (temperament === 'soumis') {
+      prompt += `   - Anticipe les désirs de ${userName}\n`;
+      prompt += `   - Montre ton dévouement\n`;
+    }
+    
+    prompt += `3. SOIS CRÉATIF: Varie tes actions et dialogues\n`;
+    prompt += `4. Format: *action expressive* "dialogue vivant" (pensée intime)\n`;
     prompt += `5. Parle directement à ${userName} avec TU/TOI\n`;
     
     if (isNSFW) {

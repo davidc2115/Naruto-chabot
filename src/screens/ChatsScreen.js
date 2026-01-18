@@ -13,136 +13,188 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import StorageService from '../services/StorageService';
-import CustomCharacterService from '../services/CustomCharacterService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Import sécurisé des personnages
+// Import des services avec protection
+let StorageService = null;
+let CustomCharacterService = null;
 let enhancedCharacters = [];
+
+try {
+  StorageService = require('../services/StorageService').default;
+} catch (e) {
+  console.error('❌ Erreur import StorageService:', e.message);
+}
+
+try {
+  CustomCharacterService = require('../services/CustomCharacterService').default;
+} catch (e) {
+  console.error('❌ Erreur import CustomCharacterService:', e.message);
+}
+
 try {
   const allCharsModule = require('../data/allCharacters');
   enhancedCharacters = allCharsModule.enhancedCharacters || allCharsModule.default || [];
-  console.log(`📚 ${enhancedCharacters.length} personnages importés`);
 } catch (e) {
-  console.error('❌ Erreur import personnages:', e.message);
-  enhancedCharacters = [];
+  console.error('❌ Erreur import allCharacters:', e.message);
 }
 
 export default function ChatsScreen({ navigation }) {
-  const [allCharacters, setAllCharacters] = useState([]);
+  const [characters, setCharacters] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [debugInfo, setDebugInfo] = useState('');
-  const mounted = useRef(true);
+  const isMounted = useRef(true);
 
-  // Cleanup on unmount
   useEffect(() => {
-    mounted.current = true;
-    loadData();
-    return () => { mounted.current = false; };
+    isMounted.current = true;
+    console.log('📱 ChatsScreen monté');
+    loadAllData();
+    
+    return () => {
+      isMounted.current = false;
+      console.log('📱 ChatsScreen démonté');
+    };
   }, []);
 
-  // Recharger quand l'écran reprend le focus
   useFocusEffect(
     useCallback(() => {
-      console.log('📱 ChatsScreen: Focus');
-      if (mounted.current) {
-        loadData();
-      }
+      console.log('📱 ChatsScreen focus');
+      loadAllData();
+      return () => {};
     }, [])
   );
 
-  const loadData = async () => {
-    if (!mounted.current) return;
+  const loadAllData = async () => {
+    if (!isMounted.current) return;
+    
+    console.log('🔄 Chargement des données...');
+    setError(null);
     
     try {
-      setError(null);
-      setDebugInfo('Chargement...');
-      setLoading(true);
-      
-      console.log('📱 ChatsScreen: Début chargement');
-      
-      // 1. Charger les personnages de base
-      let chars = [];
+      // 1. Charger les personnages
+      let allChars = [];
       try {
-        chars = Array.isArray(enhancedCharacters) ? [...enhancedCharacters] : [];
-        console.log(`📚 ${chars.length} personnages de base`);
+        allChars = Array.isArray(enhancedCharacters) ? [...enhancedCharacters] : [];
+        console.log(`📚 ${allChars.length} personnages de base`);
       } catch (e) {
-        console.error('❌ Erreur personnages:', e);
-        chars = [];
+        console.log('⚠️ Erreur personnages:', e.message);
       }
       
-      if (mounted.current) {
-        setAllCharacters(chars);
-        setDebugInfo(`${chars.length} personnages`);
+      // Ajouter les personnages custom
+      try {
+        if (CustomCharacterService) {
+          const custom = await CustomCharacterService.getCustomCharacters();
+          if (Array.isArray(custom)) {
+            const seenIds = new Set(allChars.map(c => c?.id));
+            for (const c of custom) {
+              if (c?.id && !seenIds.has(c.id)) {
+                allChars.push(c);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur custom chars:', e.message);
+      }
+      
+      if (isMounted.current) {
+        setCharacters(allChars);
       }
       
       // 2. Charger les conversations
       let convs = [];
       try {
-        convs = await StorageService.getAllConversations();
-        convs = Array.isArray(convs) ? convs : [];
-        console.log(`💬 ${convs.length} conversations`);
+        if (StorageService) {
+          convs = await StorageService.getAllConversations();
+          convs = Array.isArray(convs) ? convs : [];
+        } else {
+          // Fallback: charger directement depuis AsyncStorage
+          convs = await loadConversationsDirectly();
+        }
+        console.log(`💬 ${convs.length} conversations trouvées`);
       } catch (e) {
-        console.error('❌ Erreur conversations:', e);
-        convs = [];
+        console.log('⚠️ Erreur conversations:', e.message);
+        // Fallback
+        try {
+          convs = await loadConversationsDirectly();
+        } catch (e2) {
+          console.log('⚠️ Fallback échoué:', e2.message);
+        }
       }
       
-      // 3. Trier par date
+      // Trier par date
       const sorted = convs.sort((a, b) => {
         const dateA = new Date(a?.lastUpdated || a?.createdAt || 0).getTime() || 0;
         const dateB = new Date(b?.lastUpdated || b?.createdAt || 0).getTime() || 0;
         return dateB - dateA;
       });
       
-      if (mounted.current) {
+      if (isMounted.current) {
         setConversations(sorted);
-        setDebugInfo(`${chars.length} perso, ${sorted.length} conv`);
-        console.log(`✅ Chargement terminé: ${sorted.length} conversations`);
-      }
-      
-      // 4. Charger les personnages custom en arrière-plan
-      try {
-        const customChars = await CustomCharacterService.getCustomCharacters();
-        if (Array.isArray(customChars) && mounted.current) {
-          const seenIds = new Set(chars.map(c => c?.id));
-          for (const char of customChars) {
-            if (char?.id && !seenIds.has(char.id)) {
-              chars.push(char);
-              seenIds.add(char.id);
-            }
-          }
-          setAllCharacters([...chars]);
-        }
-      } catch (e) {
-        console.log('⚠️ Custom chars:', e.message);
+        setLoading(false);
+        setRefreshing(false);
       }
       
     } catch (err) {
-      console.error('❌ Erreur loadData:', err);
-      if (mounted.current) {
-        setError(err?.message || 'Erreur inconnue');
-        setConversations([]);
-      }
-    } finally {
-      if (mounted.current) {
+      console.error('❌ Erreur loadAllData:', err);
+      if (isMounted.current) {
+        setError(err?.message || 'Erreur de chargement');
         setLoading(false);
         setRefreshing(false);
       }
     }
   };
   
+  // Fallback: charger les conversations directement depuis AsyncStorage
+  const loadConversationsDirectly = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const convKeys = keys.filter(k => 
+        k.startsWith('conv_') && !k.includes('index') && !k.includes('deleted')
+      );
+      
+      const result = [];
+      const seenIds = new Set();
+      
+      for (const key of convKeys) {
+        try {
+          const data = await AsyncStorage.getItem(key);
+          if (data) {
+            const parsed = JSON.parse(data);
+            const charId = parsed?.characterId || key.split('_').pop();
+            
+            if (charId && !seenIds.has(charId)) {
+              seenIds.add(charId);
+              result.push({
+                characterId: charId,
+                messages: parsed?.messages || [],
+                relationship: parsed?.relationship || { level: 1, affection: 50 },
+                lastUpdated: parsed?.lastUpdated || new Date().toISOString(),
+              });
+            }
+          }
+        } catch (e) {}
+      }
+      
+      return result;
+    } catch (e) {
+      console.error('❌ loadConversationsDirectly:', e);
+      return [];
+    }
+  };
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
+    loadAllData();
   }, []);
 
-  const deleteConversation = async (characterId) => {
-    const character = findCharacter(characterId);
+  const deleteConversation = (characterId) => {
+    const char = findCharacter(characterId);
     Alert.alert(
       'Supprimer',
-      `Supprimer la conversation avec ${character?.name || 'ce personnage'}?`,
+      `Supprimer la conversation avec ${char?.name || 'ce personnage'}?`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
@@ -150,8 +202,10 @@ export default function ChatsScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await StorageService.deleteConversation(characterId);
-              loadData();
+              if (StorageService) {
+                await StorageService.deleteConversation(characterId);
+              }
+              loadAllData();
             } catch (e) {
               Alert.alert('Erreur', 'Impossible de supprimer');
             }
@@ -162,341 +216,244 @@ export default function ChatsScreen({ navigation }) {
   };
 
   const findCharacter = (characterId) => {
-    if (!characterId || !Array.isArray(allCharacters)) return null;
-    
+    if (!characterId) return null;
     const id = String(characterId);
-    return allCharacters.find(c => 
+    return characters.find(c => 
       c?.id === characterId || 
       c?.id === id || 
-      String(c?.id) === id ||
-      c?.serverId === characterId ||
-      c?.originalId === characterId
+      String(c?.id) === id
     );
   };
 
-  const renderItem = ({ item, index }) => {
-    if (!item) return null;
-    
+  const openConversation = (character) => {
     try {
-      const characterId = item?.characterId || item?.id || `unknown-${index}`;
-      let character = findCharacter(characterId);
-      
-      // Créer un placeholder si non trouvé
-      if (!character) {
-        character = {
-          id: characterId,
-          name: `Chat #${String(characterId).substring(0, 6)}`,
-          gender: 'unknown',
-        };
-      }
-      
-      const messages = Array.isArray(item?.messages) ? item.messages : [];
-      const lastMessage = messages[messages.length - 1];
-      const preview = lastMessage?.content 
-        ? String(lastMessage.content).substring(0, 80) + '...'
-        : 'Aucun message';
-      
-      const initials = (character?.name || '??')
-        .split(' ')
-        .map(n => (n || '')[0] || '')
-        .join('')
-        .substring(0, 2)
-        .toUpperCase() || '??';
-
-      return (
-        <View style={styles.card}>
-          <TouchableOpacity
-            style={styles.cardTouchable}
-            onPress={() => navigation.navigate('Conversation', { character })}
-          >
-            <View style={styles.cardContent}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{initials}</Text>
-              </View>
-              <View style={styles.info}>
-                <View style={styles.header}>
-                  <Text style={styles.name} numberOfLines={1}>
-                    {character?.name || 'Inconnu'}
-                  </Text>
-                  <Text style={styles.date}>
-                    {item?.lastUpdated 
-                      ? new Date(item.lastUpdated).toLocaleDateString('fr-FR')
-                      : ''}
-                  </Text>
-                </View>
-                <Text style={styles.preview} numberOfLines={2}>{preview}</Text>
-                <View style={styles.stats}>
-                  <Text style={styles.statText}>💬 {messages.length}</Text>
-                  <Text style={styles.statText}>💖 {item?.relationship?.affection || 50}%</Text>
-                </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.deleteBtn}
-            onPress={() => deleteConversation(characterId)}
-          >
-            <Text style={styles.deleteBtnText}>🗑️ Supprimer</Text>
-          </TouchableOpacity>
-        </View>
-      );
+      navigation.navigate('Conversation', { character });
     } catch (e) {
-      console.error('❌ Erreur rendu item:', e);
-      return null;
+      console.error('Navigation error:', e);
     }
   };
 
-  // Fonction de navigation retour sécurisée
-  const goBack = () => {
-    try {
-      if (navigation?.canGoBack?.()) {
-        navigation.goBack();
-      } else {
-        navigation.navigate('Home');
-      }
-    } catch (e) {
-      console.log('Navigation error:', e);
+  const renderConversation = ({ item, index }) => {
+    if (!item) return null;
+    
+    const characterId = item?.characterId || `unknown-${index}`;
+    let character = findCharacter(characterId);
+    
+    if (!character) {
+      character = {
+        id: characterId,
+        name: item?.characterName || `Chat #${String(characterId).slice(0, 6)}`,
+        gender: 'unknown',
+      };
     }
+    
+    const messages = Array.isArray(item?.messages) ? item.messages : [];
+    const lastMsg = messages[messages.length - 1];
+    const preview = lastMsg?.content 
+      ? String(lastMsg.content).slice(0, 60) + '...'
+      : 'Commencer la conversation';
+    
+    const initials = (character?.name || '??')
+      .split(' ')
+      .map(n => (n || '')[0] || '')
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || '??';
+
+    return (
+      <View style={styles.card}>
+        <TouchableOpacity
+          style={styles.cardContent}
+          onPress={() => openConversation(character)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
+          <View style={styles.info}>
+            <View style={styles.row}>
+              <Text style={styles.name} numberOfLines={1}>{character?.name}</Text>
+              <Text style={styles.date}>
+                {item?.lastUpdated 
+                  ? new Date(item.lastUpdated).toLocaleDateString('fr-FR')
+                  : ''}
+              </Text>
+            </View>
+            <Text style={styles.preview} numberOfLines={2}>{preview}</Text>
+            <View style={styles.statsRow}>
+              <Text style={styles.stat}>💬 {messages.length}</Text>
+              <Text style={styles.stat}>💖 {item?.relationship?.affection || 50}%</Text>
+              <Text style={styles.stat}>⭐ Niv.{item?.relationship?.level || 1}</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={() => deleteConversation(characterId)}
+        >
+          <Text style={styles.deleteBtnText}>🗑️</Text>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   // === RENDU ===
-  
-  // Header commun
-  const renderHeader = (subtitle = '') => (
-    <View style={styles.headerBar}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity style={styles.backBtn} onPress={goBack}>
-          <Text style={styles.backBtnText}>← Retour</Text>
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.title}>Conversations</Text>
-          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-        </View>
-        <TouchableOpacity style={styles.refreshBtn} onPress={loadData}>
-          <Text style={styles.refreshBtnText}>🔄</Text>
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#12121f" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>💬 Conversations</Text>
+        <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
+          <Text style={styles.refreshText}>🔄</Text>
         </TouchableOpacity>
       </View>
-    </View>
-  );
-
-  // État de chargement
-  if (loading && !refreshing) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        {renderHeader('Chargement...')}
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#6366f1" />
-          <Text style={styles.loadingText}>Chargement...</Text>
-          <Text style={styles.debugText}>{debugInfo}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // État d'erreur
-  if (error) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        {renderHeader('Erreur')}
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorEmoji}>⚠️</Text>
-          <Text style={styles.errorTitle}>Erreur</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={loadData}>
-            <Text style={styles.retryBtnText}>Réessayer</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Aucune conversation
-  if (!conversations || conversations.length === 0) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        {renderHeader('0 conversation')}
-        <View style={styles.centerContainer}>
-          <Text style={styles.emptyEmoji}>💬</Text>
-          <Text style={styles.emptyTitle}>Aucune conversation</Text>
-          <Text style={styles.emptyText}>
-            Commencez une conversation avec un personnage
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // Liste des conversations
-  return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        {renderHeader(`${conversations.length} conversation(s)`)}
-        <FlatList
-          data={conversations}
-          renderItem={renderItem}
-          keyExtractor={(item, index) => 
-            item?.characterId?.toString() || `conv-${index}`
-          }
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={['#6366f1']}
-              tintColor="#6366f1"
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.centerContainer}>
-              <Text style={styles.emptyText}>Aucune conversation</Text>
-            </View>
-          }
-        />
+      
+      {/* Contenu principal */}
+      <View style={styles.content}>
+        {loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color="#C9A227" />
+            <Text style={styles.loadingText}>Chargement...</Text>
+          </View>
+        ) : error ? (
+          <View style={styles.center}>
+            <Text style={styles.errorIcon}>⚠️</Text>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={loadAllData}>
+              <Text style={styles.retryText}>Réessayer</Text>
+            </TouchableOpacity>
+          </View>
+        ) : conversations.length === 0 ? (
+          <View style={styles.center}>
+            <Text style={styles.emptyIcon}>💬</Text>
+            <Text style={styles.emptyTitle}>Aucune conversation</Text>
+            <Text style={styles.emptyText}>
+              Allez dans l'onglet "Découvrir" pour commencer une conversation
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={conversations}
+            renderItem={renderConversation}
+            keyExtractor={(item, index) => item?.characterId?.toString() || `c-${index}`}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#C9A227']}
+                tintColor="#C9A227"
+                progressBackgroundColor="#1a1a2e"
+              />
+            }
+          />
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#6366f1',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#0a0a12',
   },
-  headerBar: {
-    padding: 15,
-    backgroundColor: '#6366f1',
-  },
-  headerRow: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  headerCenter: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  backBtn: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  backBtnText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  refreshBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  refreshBtnText: {
-    fontSize: 18,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: '#12121f',
+    borderBottomWidth: 1,
+    borderBottomColor: '#C9A227',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#C9A227',
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#e0e7ff',
-    marginTop: 2,
+  refreshBtn: {
+    padding: 8,
   },
-  centerContainer: {
+  refreshText: {
+    fontSize: 22,
+  },
+  content: {
+    flex: 1,
+  },
+  center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 30,
-    backgroundColor: '#f8f9fa',
   },
   loadingText: {
     marginTop: 15,
+    color: '#D4AF37',
     fontSize: 16,
-    color: '#6b7280',
   },
-  debugText: {
-    marginTop: 10,
-    fontSize: 12,
-    color: '#9ca3af',
-  },
-  errorEmoji: {
-    fontSize: 60,
+  errorIcon: {
+    fontSize: 50,
     marginBottom: 15,
   },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 10,
-  },
   errorText: {
+    color: '#ef4444',
     fontSize: 14,
-    color: '#6b7280',
     textAlign: 'center',
   },
   retryBtn: {
     marginTop: 20,
-    paddingVertical: 12,
+    backgroundColor: '#C9A227',
     paddingHorizontal: 24,
-    backgroundColor: '#6366f1',
-    borderRadius: 10,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
-  retryBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  retryText: {
+    color: '#0a0a12',
+    fontWeight: 'bold',
   },
-  emptyEmoji: {
+  emptyIcon: {
     fontSize: 60,
     marginBottom: 15,
   },
   emptyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#111827',
+    color: '#C9A227',
     marginBottom: 10,
   },
   emptyText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#9ca3af',
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
   list: {
     padding: 15,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1a1a2e',
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    flexDirection: 'row',
     overflow: 'hidden',
-  },
-  cardTouchable: {
-    flex: 1,
+    borderWidth: 1,
+    borderColor: '#2a2a4e',
   },
   cardContent: {
+    flex: 1,
     flexDirection: 'row',
-    padding: 15,
+    padding: 12,
   },
   avatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#6366f1',
+    backgroundColor: '#C9A227',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -504,12 +461,12 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#0a0a12',
   },
   info: {
     flex: 1,
   },
-  header: {
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -518,37 +475,34 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#111827',
+    color: '#fff',
     flex: 1,
   },
   date: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#6b7280',
     marginLeft: 8,
   },
   preview: {
     fontSize: 13,
-    color: '#6b7280',
-    marginBottom: 8,
-    lineHeight: 18,
+    color: '#9ca3af',
+    marginBottom: 6,
   },
-  stats: {
+  statsRow: {
     flexDirection: 'row',
     gap: 12,
   },
-  statText: {
+  stat: {
     fontSize: 11,
-    color: '#4f46e5',
-    fontWeight: '500',
+    color: '#D4AF37',
   },
   deleteBtn: {
-    backgroundColor: '#ef4444',
-    padding: 10,
+    backgroundColor: '#8B0000',
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 15,
   },
   deleteBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#fff',
+    fontSize: 18,
   },
 });
