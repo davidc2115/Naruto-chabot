@@ -876,10 +876,11 @@ class TextGenerationService {
   }
 
   /**
-   * Génération avec une API spécifique v5.3.33
+   * Génération avec une API spécifique v5.3.40
+   * CORRECTIONS: Messages limités, focus sur le dernier message, anti-répétition
    */
   async generateWithSelectedApi(messages, character, userProfile, context, api) {
-    console.log(`🚀 Génération avec ${api.name} - v5.3.33`);
+    console.log(`🚀 Génération avec ${api.name} - v5.3.40`);
     
     const maxAttempts = 2;
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
@@ -889,62 +890,59 @@ class TextGenerationService {
         const fullMessages = [];
         const totalMessages = messages.length;
         
-        // === SYSTEM PROMPT ===
+        // === SYSTEM PROMPT (CONCIS) ===
         const systemPrompt = this.buildImmersiveSystemPrompt(character, userProfile, context);
         fullMessages.push({ role: 'system', content: systemPrompt });
         
-        // === RÉSUMÉ MÉMOIRE (si conversation longue) ===
-        if (totalMessages > 20) {
-          const olderMessages = messages.slice(0, -18);
-          const memorySummary = this.buildDetailedMemorySummary(olderMessages, character, userProfile, context);
-          if (memorySummary) {
-            fullMessages.push({ role: 'system', content: memorySummary });
-          }
-        }
-        
-        // === MÉMOIRE AUGMENTÉE ===
-        const recentCount = Math.min(isNSFW ? 20 : 15, totalMessages);
+        // === LIMITER LES MESSAGES POUR ÉVITER LA CONFUSION ===
+        // Maximum 6 messages récents (3 échanges user/assistant)
+        const recentCount = Math.min(6, totalMessages);
         const recentMessages = messages.slice(-recentCount);
         
-        fullMessages.push(...recentMessages.map((msg) => ({
+        // Ajouter SEULEMENT les messages récents avec contenu court
+        fullMessages.push(...recentMessages.map((msg, idx) => ({
           role: msg.role,
-          content: isNSFW ? msg.content.substring(0, 1500) : msg.content.substring(0, 800)
+          // Le dernier message utilisateur est complet, les autres sont résumés
+          content: (idx === recentMessages.length - 1 || idx === recentMessages.length - 2)
+            ? msg.content.substring(0, 400)
+            : msg.content.substring(0, 150)
         })));
         
-        // === INSTRUCTION FINALE ===
+        // === INSTRUCTION FINALE (FOCUS SUR DERNIER MESSAGE) ===
         const finalInstruction = this.buildFinalInstructionWithMemory(character, userProfile, context, recentMessages);
         fullMessages.push({ role: 'system', content: finalInstruction });
         
-        console.log(`📡 ${api.name} - ${fullMessages.length} messages (${recentCount} récents)`);
+        console.log(`📡 ${api.name} - ${fullMessages.length} messages (${recentCount} récents, max 6)`);
         
-        // Appeler l'API selon son format
+        // Appeler l'API selon son format - Tokens réduits pour réponses courtes
         let content;
+        const maxTokens = isNSFW ? 200 : 180;
         
         if (api.format === 'pollinations') {
-          content = await this.callPollinationsApi(api, fullMessages, { temperature: 0.85, maxTokens: 350 });
+          content = await this.callPollinationsApi(api, fullMessages, { temperature: 0.8, maxTokens });
         } else if (api.format === 'openai') {
-          content = await this.callOpenAIApi(api, fullMessages, { temperature: 0.85, maxTokens: 350 });
+          content = await this.callOpenAIApi(api, fullMessages, { temperature: 0.8, maxTokens });
         } else if (api.format === 'ollama') {
           return await this.generateWithOllama(messages, character, userProfile, context);
         }
         
         if (!content) throw new Error('Réponse vide');
         
-        console.log(`📝 Réponse: ${content.substring(0, 100)}...`);
+        console.log(`📝 Réponse brute: ${content.substring(0, 100)}...`);
         
         // Vérifier refus
         if (this.isRefusalResponse(content)) {
           console.log(`⚠️ Refus détecté`);
           const cleanedContent = this.cleanRefusalFromResponse(content);
           if (cleanedContent && cleanedContent.length > 20) {
-            return this.cleanAndValidateResponse(cleanedContent, context);
+            return this.cleanAndValidateResponse(cleanedContent, context, userProfile);
           }
           if (attempt < maxAttempts) continue;
           return this.generateContextualFallback(character, userProfile, context);
         }
         
         console.log(`✅ Réponse valide`);
-        return this.cleanAndValidateResponse(content, context);
+        return this.cleanAndValidateResponse(content, context, userProfile);
         
       } catch (error) {
         console.log(`❌ Erreur tentative ${attempt}: ${error.message}`);
@@ -958,43 +956,52 @@ class TextGenerationService {
   }
   
   /**
-   * Appel API format Pollinations v5.3.34
-   * SIMPLIFIÉ pour meilleure cohérence
+   * Appel API format Pollinations v5.3.40
+   * SIMPLIFIÉ: Structure claire USER/ASSISTANT, focus dernier message
    */
   async callPollinationsApi(api, fullMessages, options = {}) {
-    const { temperature = 0.85, maxTokens = 350 } = options;
+    const { temperature = 0.8, maxTokens = 180 } = options;
     
     // Extraire les éléments
     const systemMessages = fullMessages.filter(m => m.role === 'system');
     const conversationMessages = fullMessages.filter(m => m.role !== 'system');
     
-    // Garder seulement le premier système (le plus important)
+    // Premier système = identité du personnage
     const mainSystem = systemMessages[0]?.content || '';
+    // Dernier système = instruction de réponse
     const lastInstruction = systemMessages[systemMessages.length - 1]?.content || '';
     
-    // Construire l'historique de conversation de façon CLAIRE
-    let conversationHistory = '';
-    for (const msg of conversationMessages) {
-      const role = msg.role === 'user' ? 'Utilisateur' : 'Personnage';
-      conversationHistory += `${role}: ${msg.content}\n\n`;
+    // DERNIER MESSAGE UTILISATEUR (la priorité absolue)
+    const lastUserMsg = conversationMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+    
+    // Contexte court (2-3 échanges max avant le dernier message)
+    let shortContext = '';
+    const contextMessages = conversationMessages.slice(-4, -1); // 3 messages avant le dernier
+    for (const msg of contextMessages) {
+      const prefix = msg.role === 'user' ? 'User' : 'Char';
+      shortContext += `${prefix}: ${msg.content.substring(0, 80)}\n`;
     }
     
-    // Construire le prompt SIMPLIFIÉ et CLAIR
-    let prompt = mainSystem.substring(0, 1000);
+    // Construire le prompt avec structure CLAIRE
+    let prompt = mainSystem.substring(0, 600);
     
-    if (conversationHistory) {
-      prompt += `\n\n--- HISTORIQUE ---\n${conversationHistory}`;
+    // Contexte minimal (juste pour rappel)
+    if (shortContext.length > 0) {
+      prompt += `\n\n[Contexte récent]\n${shortContext}`;
     }
     
-    // Ajouter l'instruction finale (le plus important!)
+    // MESSAGE ACTUEL À RÉPONDRE (TRÈS IMPORTANT)
+    prompt += `\n\n>>> DERNIER MESSAGE DE L'UTILISATEUR:\n"${lastUserMsg.substring(0, 300)}"\n`;
+    
+    // Instruction finale
     if (lastInstruction && lastInstruction !== mainSystem) {
-      prompt += `\n--- INSTRUCTION ---\n${lastInstruction.substring(0, 500)}`;
+      prompt += `\n${lastInstruction.substring(0, 400)}`;
     }
     
-    prompt += `\n\nPersonnage:`;
+    prompt += `\n\nRÉPONSE:`;
     
-    // Limiter la taille mais garder assez de contexte
-    const finalPrompt = prompt.substring(0, 5000);
+    // Limiter la taille
+    const finalPrompt = prompt.substring(0, 3500);
     
     console.log(`📡 Pollinations prompt: ${finalPrompt.length} chars, model: ${api.model}`);
     
@@ -1265,104 +1272,108 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale v5.3.39
-   * RÉACTIF: Répond PRÉCISÉMENT au message de l'utilisateur
-   * NSFW RAPIDE: Si demande explicite, réponse explicite immédiate
+   * Construit l'instruction finale v5.3.40
+   * FOCUS ABSOLU sur le dernier message - Réponse COURTE et COHÉRENTE
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
     const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
     const userName = hasUsername ? userProfile.username : 'toi';
+    const charName = character?.name || 'Personnage';
     const userGender = userProfile?.gender || '';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     const isIntenseNSFW = context.nsfwIntensity >= 4;
     
-    // Récupérer le dernier message utilisateur - C'EST LA PRIORITÉ
+    // DERNIER MESSAGE = SEULE CHOSE QUI COMPTE
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     const lastUserContent = lastUserMsg?.content || '';
     
-    // INSTRUCTION PRINCIPALE: RÉPONDRE AU MESSAGE
-    let instruction = `⚡ RÉPONDS À CE MESSAGE: "${lastUserContent.substring(0, 200)}"\n\n`;
-    
-    // Analyser ce que l'utilisateur fait/dit pour adapter la réponse
+    // Extraire ce que l'utilisateur fait/dit
     const userAction = lastUserContent.match(/\*([^*]+)\*/)?.[1] || '';
     const userSpeech = lastUserContent.match(/"([^"]+)"/)?.[1] || '';
+    const plainText = lastUserContent.replace(/\*[^*]+\*/g, '').replace(/"[^"]+"/g, '').trim();
     
-    if (userAction) {
-      instruction += `👉 ${userName} FAIT: ${userAction}\n`;
-      instruction += `→ RÉAGIS à cette action!\n`;
-    }
-    if (userSpeech) {
-      instruction += `👉 ${userName} DIT: "${userSpeech}"\n`;
-      instruction += `→ RÉPONDS à ce qu'il/elle dit!\n`;
-    }
-    if (!userAction && !userSpeech && lastUserContent.length > 0) {
-      instruction += `👉 RÉPONDS directement à: "${lastUserContent.substring(0, 100)}"\n`;
+    // === INSTRUCTION ULTRA-DIRECTE ===
+    let instruction = `⚡ RÉPONDS MAINTENANT à ${userName}:\n`;
+    
+    // Montrer EXACTEMENT ce à quoi répondre
+    if (userAction && userSpeech) {
+      instruction += `Il/Elle fait: *${userAction.substring(0, 50)}* et dit: "${userSpeech.substring(0, 50)}"\n`;
+      instruction += `→ Réagis à l'action ET réponds à ses paroles!\n`;
+    } else if (userAction) {
+      instruction += `Il/Elle fait: *${userAction.substring(0, 60)}*\n`;
+      instruction += `→ Réagis à cette action avec tes mots et ta réaction physique!\n`;
+    } else if (userSpeech) {
+      instruction += `Il/Elle dit: "${userSpeech.substring(0, 60)}"\n`;
+      instruction += `→ Réponds à ce qu'il/elle dit!\n`;
+    } else if (plainText) {
+      instruction += `Message: "${plainText.substring(0, 80)}"\n`;
+      instruction += `→ Réponds directement!\n`;
     }
     
-    // MODE NSFW - Adaptatif selon l'intensité
+    // Anti-répétition
+    const lastCharMsg = recentMessages.filter(m => m.role === 'assistant').slice(-1)[0]?.content || '';
+    const lastCharAction = lastCharMsg.match(/\*([^*]+)\*/)?.[1] || '';
+    if (lastCharAction) {
+      instruction += `\n⛔ NE REFAIS PAS: "${lastCharAction.substring(0, 30)}"\n`;
+    }
+    
+    // MODE NSFW
     if (isIntenseNSFW) {
-      instruction += `\n🔥 NSFW INTENSE - Sois TRÈS explicite MAINTENANT!\n`;
-      instruction += `Utilise des mots crus, décris les sensations, va droit au but!\n`;
-      if (userGender === 'male' && userProfile?.penis) {
-        instruction += `Parle de sa bite (${userProfile.penis}cm).\n`;
-      }
-      if (userGender === 'female' && userProfile?.bust) {
-        instruction += `Parle de ses seins (${userProfile.bust}).\n`;
-      }
+      instruction += `\n🔥 EXPLICITE! Mots crus, sensations.\n`;
     } else if (isNSFW) {
-      instruction += `\n🔞 NSFW actif - Contenu explicite OK.\n`;
+      instruction += `\n🔞 Sensuel autorisé.\n`;
     }
     
-    // Format concis
-    instruction += `\nFormat: *action* "dialogue" - 2-3 phrases max.\n`;
+    // FORMAT STRICT
+    instruction += `\n📝 RÉPONSE COURTE:\n`;
+    instruction += `*action 5-10 mots* "Dialogue 1-2 phrases" (pensée)\n`;
+    instruction += `\nEXEMPLE: *sourit doucement* "Oh ${userName}, tu es adorable..." (Il/Elle me plaît)\n`;
     
     return instruction;
   }
 
 
   /**
-   * Génération avec Ollama sur la Freebox
-   * Système immersif adapté au modèle local
+   * Génération avec Ollama sur la Freebox v5.3.40
+   * SIMPLIFIÉ: Moins de messages, format strict
    */
   async generateWithOllama(messages, character, userProfile, context) {
-    console.log('🏠 Ollama Freebox - Génération immersive locale...');
+    console.log('🏠 Ollama Freebox - v5.3.40...');
     
     const FREEBOX_CHAT_URL = `${this.FREEBOX_URL}/api/chat`;
+    const userName = userProfile?.username || 'toi';
     
     try {
       const fullMessages = [];
       
-      // 1. SYSTEM PROMPT (plus court pour Ollama)
+      // 1. SYSTEM PROMPT COMPACT
       const systemPrompt = this.buildCompactImmersivePrompt(character, userProfile, context);
       fullMessages.push({ role: 'system', content: systemPrompt });
       
-      // 2. MESSAGES RÉCENTS (5 pour Ollama)
-      const recentMessages = messages.slice(-5);
+      // 2. SEULEMENT 4 MESSAGES RÉCENTS (2 échanges)
+      const recentMessages = messages.slice(-4);
       fullMessages.push(...recentMessages.map(msg => ({
         role: msg.role,
-        content: msg.content.substring(0, 400)
+        content: msg.content.substring(0, 200)
       })));
       
-      // 3. RAPPEL FINAL - ULTRA-DIRECT
+      // 3. INSTRUCTION FINALE ULTRA-CLAIRE
       const lastUserContent = recentMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
       const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
-      const userIsMale = userProfile?.gender === 'male';
-      const userName = userProfile?.username || '';
       
-      let finalInstruction = `⚡ RÉPONDS À CE MESSAGE: "${lastUserContent.substring(0, 120)}"\n`;
-      finalInstruction += `Si "${userName}" dit oui/continue/mmmm → CONTINUE ton action précédente.`;
+      // Extraire action/dialogue du message utilisateur
+      const userAction = lastUserContent.match(/\*([^*]+)\*/)?.[1] || '';
+      const userSpeech = lastUserContent.match(/"([^"]+)"/)?.[1] || '';
       
-      if (isNSFW) {
-        finalInstruction += ` 🔞 Explicite.`;
-        if (userIsMale) {
-          finalInstruction += ` ${userName}=homme(bite).`;
-        }
-      }
+      let finalInstruction = `⚡ RÉPONDS à ${userName}:\n`;
+      if (userAction) finalInstruction += `Il/Elle fait: *${userAction.substring(0, 40)}*\n`;
+      if (userSpeech) finalInstruction += `Il/Elle dit: "${userSpeech.substring(0, 40)}"\n`;
+      if (!userAction && !userSpeech) finalInstruction += `Message: "${lastUserContent.substring(0, 60)}"\n`;
       
-      fullMessages.push({
-        role: 'system',
-        content: finalInstruction
-      });
+      finalInstruction += `\n📝 RÉPONSE: *action courte* "Dialogue" (pensée)`;
+      if (isNSFW) finalInstruction += ` 🔞`;
+      
+      fullMessages.push({ role: 'system', content: finalInstruction });
       
       console.log(`📡 Ollama - ${fullMessages.length} messages`);
       
@@ -1370,8 +1381,8 @@ class TextGenerationService {
         FREEBOX_CHAT_URL,
         {
           messages: fullMessages,
-          max_tokens: 180,
-          temperature: 0.7,
+          max_tokens: 150,
+          temperature: 0.75,
           top_p: 0.85,
         },
         { timeout: 90000 }
@@ -1380,36 +1391,28 @@ class TextGenerationService {
       let content = response.data?.choices?.[0]?.message?.content;
       if (!content) throw new Error('Réponse Ollama vide');
       
-      // Vérifier si c'est un refus
+      // Vérifier refus
       if (this.isRefusalResponse(content)) {
-        console.log('⚠️ Refus détecté dans réponse Ollama');
-        
-        // Essayer de récupérer du contenu avant le refus
+        console.log('⚠️ Refus Ollama');
         const cleanedContent = this.cleanRefusalFromResponse(content);
         if (cleanedContent && cleanedContent.length > 20) {
-          console.log('✅ Contenu récupéré avant refus');
-          return this.cleanAndValidateResponse(cleanedContent, context);
+          return this.cleanAndValidateResponse(cleanedContent, context, userProfile);
         }
-        
-        // Utiliser le fallback contextuel
-        console.log('🔄 Utilisation du fallback contextuel');
         return this.generateContextualFallback(character, userProfile, context);
       }
       
-      console.log('✅ Ollama réponse reçue');
-      return this.cleanAndValidateResponse(content, context);
+      console.log('✅ Ollama OK');
+      return this.cleanAndValidateResponse(content, context, userProfile);
       
     } catch (error) {
       console.log(`❌ Erreur Ollama: ${error.message}`);
-      // En cas d'erreur, utiliser le fallback
       return this.generateContextualFallback(character, userProfile, context);
     }
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.39
-   * NSFW RÉACTIF: Répond IMMÉDIATEMENT aux demandes explicites
-   * COHÉRENT: Répond précisément à ce que l'utilisateur dit/fait
+   * Construit le prompt système - VERSION v5.3.40
+   * AMÉLIORÉ: Réponses courtes, dialogue + pensées, cohérence totale
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
@@ -1425,62 +1428,55 @@ class TextGenerationService {
     const userAge = userProfile?.age ? parseInt(userProfile.age) : null;
     const charAge = character.age ? parseInt(character.age) : null;
     
-    // === PROMPT CONCIS POUR RÉPONSES RAPIDES ===
+    // === IDENTITÉ DU PERSONNAGE (COMPACT) ===
     let prompt = `Tu es ${charName}`;
-    if (charAge) prompt += ` (${charAge} ans)`;
+    if (charAge) prompt += `, ${charAge} ans`;
     if (charIsFemale) prompt += `, femme`;
     else if (charIsMale) prompt += `, homme`;
-    if (character.personality) prompt += `. ${character.personality.substring(0, 100)}`;
-    prompt += `.\n\n`;
+    prompt += `.`;
+    if (character.personality) prompt += ` ${character.personality.substring(0, 80)}.`;
+    prompt += `\n`;
     
-    // === INTERLOCUTEUR (COMPACT) ===
+    // === INTERLOCUTEUR ===
     prompt += `Tu parles à ${userName}`;
     const userTraits = [];
     if (userIsMale) userTraits.push('homme');
     else if (userIsFemale) userTraits.push('femme');
     if (userAge) userTraits.push(`${userAge} ans`);
-    if (userIsMale && userProfile?.penis) userTraits.push(`${userProfile.penis}cm`);
-    if (userIsFemale && userProfile?.bust) userTraits.push(`bonnet ${userProfile.bust}`);
     if (userTraits.length > 0) prompt += ` (${userTraits.join(', ')})`;
     prompt += `.\n`;
     
-    // === SCÉNARIO (COURT) ===
+    // === SCÉNARIO COURT ===
     if (character.scenario) {
-      prompt += `Contexte: ${character.scenario.substring(0, 150)}\n`;
+      prompt += `Scénario: ${character.scenario.substring(0, 100)}\n`;
     }
     
-    // === RÈGLE PRINCIPALE: RÉPONDRE AU MESSAGE ===
-    prompt += `\n⚡ RÈGLE ABSOLUE: Réponds EXACTEMENT à ce que ${userName} dit ou fait!\n`;
-    prompt += `Format: *action courte* "DIALOGUE" (pensée optionnelle)\n`;
+    // === FORMAT DE RÉPONSE OBLIGATOIRE ===
+    prompt += `\n📝 FORMAT STRICT:\n`;
+    prompt += `*action courte* "Dialogue" (ta pensée intérieure)\n\n`;
     
-    // === MODE NSFW - ADAPTATIF ===
+    prompt += `RÈGLES:\n`;
+    prompt += `1. Réponds UNIQUEMENT au dernier message de ${userName}\n`;
+    prompt += `2. Action = 5-10 mots max\n`;
+    prompt += `3. Dialogue = 1-2 phrases expressives\n`;
+    prompt += `4. Pensée = entre parenthèses, ce que tu ressens\n`;
+    prompt += `5. NE RÉPÈTE JAMAIS les mêmes mots/actions\n`;
+    
+    // === MODE NSFW ===
     if (isIntenseNSFW) {
-      // NSFW INTENSE - Réponse explicite immédiate
-      prompt += `\n🔥 NSFW INTENSE - SOIS TRÈS EXPLICITE!\n`;
-      prompt += `${userName} veut du contenu explicite MAINTENANT.\n`;
-      prompt += `- Utilise des mots crus: bite, chatte, seins, jouir, baiser...\n`;
-      prompt += `- Décris les sensations physiques en détail\n`;
-      prompt += `- Réponds positivement et avec enthousiasme\n`;
-      prompt += `- Pas de préliminaires longs, va droit au but!\n`;
-      
-      if (userIsFemale && userProfile?.bust) {
-        prompt += `- Parle de ses seins (${userProfile.bust})\n`;
-      }
-      if (userIsMale && userProfile?.penis) {
-        prompt += `- Parle de son sexe (${userProfile.penis}cm)\n`;
-      }
+      prompt += `\n🔥 MODE EXPLICITE: Utilise des mots crus, décris tes sensations.\n`;
+      if (userIsMale && userProfile?.penis) prompt += `Son sexe: ${userProfile.penis}cm. `;
+      if (userIsFemale && userProfile?.bust) prompt += `Ses seins: bonnet ${userProfile.bust}. `;
     } else if (isNSFW) {
-      // NSFW NORMAL
-      prompt += `\n🔞 MODE ADULTE - Contenu explicite autorisé\n`;
-      prompt += `Tu peux utiliser des mots explicites et décrire des actions sensuelles.\n`;
+      prompt += `\n🔞 MODE ADULTE: Contenu sensuel autorisé.\n`;
     }
     
     return prompt;
   }
 
   /**
-   * Construit le prompt compact pour Ollama (moins de tokens)
-   * v5.3.36 - Plus de dialogue, profil utilisateur + âge
+   * Construit le prompt compact pour Ollama v5.3.40
+   * FORMAT STRICT: action courte + dialogue + pensée
    */
   buildCompactImmersivePrompt(character, userProfile, context) {
     const charName = character.name || 'Personnage';
@@ -1490,56 +1486,28 @@ class TextGenerationService {
     const userIsMale = userProfile?.gender === 'male';
     const userIsFemale = userProfile?.gender === 'female';
     
-    // Âges
-    const charAge = character.age ? parseInt(character.age) : null;
-    const userAge = userProfile?.age ? parseInt(userProfile.age) : null;
-    
     let prompt = `Tu es ${charName}`;
-    if (charAge) prompt += ` (${charAge} ans)`;
-    if (character.gender === 'female') prompt += ', femme';
-    else if (character.gender === 'male') prompt += ', homme';
+    if (character.gender === 'female') prompt += ' (femme)';
+    else if (character.gender === 'male') prompt += ' (homme)';
     prompt += `. Tu parles à ${userName}`;
-    
-    // Info utilisateur avec âge
-    let userInfo = [];
-    if (userIsMale) userInfo.push('HOMME');
-    else if (userIsFemale) userInfo.push('FEMME');
-    if (userAge) userInfo.push(`${userAge} ans`);
-    if (userIsMale && userProfile?.penis) userInfo.push(`${userProfile.penis}cm`);
-    if (userIsFemale && userProfile?.bust) userInfo.push(`bonnet ${userProfile.bust}`);
-    
-    if (userInfo.length > 0) {
-      prompt += ` (${userInfo.join(', ')})`;
-    }
+    if (userIsMale) prompt += ' (homme)';
+    else if (userIsFemale) prompt += ' (femme)';
     prompt += `.\n`;
     
-    // Différence d'âge si significative
-    if (charAge && userAge) {
-      const ageDiff = userAge - charAge;
-      if (ageDiff >= 10) {
-        prompt += `${userName} est plus vieux/vieille (+${ageDiff} ans). `;
-      } else if (ageDiff <= -10) {
-        prompt += `${userName} est plus jeune (${Math.abs(ageDiff)} ans de moins). `;
-      }
-    }
-    
-    // Personnalité courte
     if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 80)}.\n`;
+      prompt += `${character.personality.substring(0, 60)}.\n`;
     }
     
-    // Règles
-    prompt += `\nRÈGLES: PARLE plus que tu n'agis! Format: *action courte* "DIALOGUE PRINCIPAL"\n`;
-    prompt += `Réponds à ${userName}. 2-3 phrases. Le dialogue est prioritaire!\n`;
+    // FORMAT STRICT
+    prompt += `\n📝 FORMAT: *action courte* "Dialogue" (pensée)\n`;
+    prompt += `RÈGLES:\n`;
+    prompt += `1. Réponds UNIQUEMENT au dernier message\n`;
+    prompt += `2. Action = 5-10 mots\n`;
+    prompt += `3. Dialogue = 1-2 phrases\n`;
+    prompt += `4. Pensée = ce que tu ressens\n`;
     
     if (isNSFW) {
-      prompt += `🔞 Mode adulte: sois explicite.`;
-      if (userIsMale && userProfile?.penis) {
-        prompt += ` Parle de son sexe (${userProfile.penis}cm).`;
-      }
-      if (userIsFemale && userProfile?.bust) {
-        prompt += ` Parle de ses seins (${userProfile.bust}).`;
-      }
+      prompt += `🔞 Explicite autorisé.\n`;
     }
     
     return prompt;
@@ -1742,111 +1710,125 @@ class TextGenerationService {
   }
 
   /**
-   * Nettoie et valide la réponse générée
-   * QUALITÉ GROQ: réponses riches, créatives, bien formattées
-   * Supprime aussi les fragments de refus IA
+   * Nettoie et valide la réponse générée v5.3.40
+   * AMÉLIORÉ: Réponses courtes, format strict, pensées obligatoires
    */
   cleanAndValidateResponse(content, context, userProfile = null) {
     let cleaned = content.trim();
+    const userName = userProfile?.username || 'toi';
     
-    // ÉTAPE 0: Corriger "l'utilisateur" - JAMAIS ce mot!
-    // Remplacer par "tu" ou supprimer les phrases incohérentes
-    const userName = userProfile?.username || null;
+    // === NETTOYAGE DE BASE ===
+    // Remplacer les références méta
+    cleaned = cleaned.replace(/l'utilisateur/gi, userName);
+    cleaned = cleaned.replace(/l\'utilisateur/gi, userName);
+    cleaned = cleaned.replace(/la personne/gi, userName);
+    cleaned = cleaned.replace(/ton interlocuteur/gi, userName);
     
-    // Remplacements directs
-    cleaned = cleaned.replace(/l'utilisateur/gi, userName || 'toi');
-    cleaned = cleaned.replace(/l\'utilisateur/gi, userName || 'toi');
-    cleaned = cleaned.replace(/la personne/gi, userName || 'toi');
-    cleaned = cleaned.replace(/ton interlocuteur/gi, userName || 'toi');
-    cleaned = cleaned.replace(/cet utilisateur/gi, userName || 'toi');
-    cleaned = cleaned.replace(/cette utilisatrice/gi, userName || 'toi');
-    
-    // Supprimer les phrases qui parlent de l'utilisateur à la 3ème personne
-    cleaned = cleaned.replace(/Merci pour (ta|la) suggestion,?\s*(l'utilisateur|la personne)?\.?/gi, 'Merci!');
-    cleaned = cleaned.replace(/je vais faire ce que (l'utilisateur|tu) (dit|dis|demande)/gi, 'je vais faire ça');
-    
-    // ÉTAPE 1: Supprimer les fragments de refus IA
+    // Supprimer les refus IA
     const refusalPhrases = [
-      /I'm sorry,?\s*(but)?\s*I\s*(can't|cannot|can not|am not able to|won't)\s*[^"*]*/gi,
-      /I\s*(apologize|must decline)[^"*]*/gi,
-      /as an AI[^"*]*/gi,
-      /I'm not (able|comfortable)[^"*]*/gi,
-      /je (ne peux pas|suis désolé|m'excuse|refuse)[^"*]*/gi,
-      /en tant qu'IA[^"*]*/gi,
-      /not appropriate[^"*]*/gi,
-      /against my guidelines[^"*]*/gi,
-      /unable to (help|assist)[^"*]*/gi,
+      /I'm sorry[^"*]*/gi, /I cannot[^"*]*/gi, /as an AI[^"*]*/gi,
+      /je ne peux pas[^"*]*/gi, /je suis désolé[^"*]*/gi,
+      /en tant qu'IA[^"*]*/gi, /not appropriate[^"*]*/gi,
     ];
+    refusalPhrases.forEach(p => { cleaned = cleaned.replace(p, ''); });
     
-    refusalPhrases.forEach(pattern => {
-      cleaned = cleaned.replace(pattern, '');
-    });
+    // Supprimer préfixes indésirables
+    cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:|Réponse:|RÉPONSE:|\[.*?\])/gi, '').trim();
+    cleaned = cleaned.replace(/^(Char:|Personnage:)/gi, '').trim();
     
-    // Supprimer les préfixes indésirables
-    cleaned = cleaned.replace(/^(Assistant:|AI:|Bot:|Response:|Réponse:)/i, '').trim();
-    
-    // Corriger le formatage des actions (** -> *)
+    // Corriger formatage astérisques
     cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '*$1*');
-    cleaned = cleaned.replace(/\*\*\(([^)]+)\)\*\*/g, '($1)');
     cleaned = cleaned.replace(/\*{3,}/g, '*');
     
-    // Nettoyer les espaces multiples créés par la suppression des refus
-    cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
+    // === EXTRAIRE LES COMPOSANTS ===
+    let action = cleaned.match(/\*([^*]+)\*/)?.[0] || '';
+    let dialogue = cleaned.match(/"([^"]+)"/)?.[0] || '';
+    let thought = cleaned.match(/\(([^)]+)\)/)?.[0] || '';
     
-    // Supprimer les lignes purement narratives (sans action/dialogue/pensée)
-    const lines = cleaned.split('\n').filter(line => {
-      const l = line.trim();
-      if (l.length === 0) return false;
-      // Garder si contient format RP
-      return l.includes('*') || l.includes('"') || (l.includes('(') && l.includes(')'));
-    });
-    if (lines.length > 0) {
-      cleaned = lines.join(' ').trim();
+    // Texte restant (sans format)
+    let plainText = cleaned
+      .replace(/\*[^*]+\*/g, '')
+      .replace(/"[^"]+"/g, '')
+      .replace(/\([^)]+\)/g, '')
+      .trim();
+    
+    // === CONSTRUIRE LA RÉPONSE PROPRE ===
+    
+    // Si pas d'action, en créer une courte
+    if (!action) {
+      action = '*te regarde*';
     }
     
-    // Supprimer les doublons de mots consécutifs
+    // Raccourcir l'action si trop longue (max 50 chars)
+    if (action.length > 55) {
+      const actionContent = action.match(/\*([^*]+)\*/)?.[1] || '';
+      const shortAction = actionContent.substring(0, 40).trim();
+      action = `*${shortAction}*`;
+    }
+    
+    // Si pas de dialogue, utiliser le texte brut ou créer un dialogue
+    if (!dialogue) {
+      if (plainText && plainText.length > 3 && plainText.length < 100) {
+        dialogue = `"${plainText}"`;
+      } else {
+        dialogue = '"..."';
+      }
+    }
+    
+    // Raccourcir le dialogue si trop long (max 120 chars)
+    if (dialogue.length > 125) {
+      const dialogueContent = dialogue.match(/"([^"]+)"/)?.[1] || '';
+      // Trouver une fin de phrase naturelle
+      let shortDialogue = dialogueContent.substring(0, 100);
+      const lastPunct = Math.max(
+        shortDialogue.lastIndexOf('.'),
+        shortDialogue.lastIndexOf('!'),
+        shortDialogue.lastIndexOf('?'),
+        shortDialogue.lastIndexOf('...')
+      );
+      if (lastPunct > 30) {
+        shortDialogue = shortDialogue.substring(0, lastPunct + 1);
+      } else {
+        shortDialogue = shortDialogue.trim() + '...';
+      }
+      dialogue = `"${shortDialogue}"`;
+    }
+    
+    // Si pas de pensée, en ajouter une courte
+    if (!thought) {
+      const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+      const thoughtOptions = isNSFW
+        ? ['(Hmm...)', '(Frissons)', '(Envie)', '(Oh oui...)']
+        : ['(Intéressant)', '(Curieux)', '(Hmm...)', '(Content)'];
+      thought = thoughtOptions[Math.floor(Math.random() * thoughtOptions.length)];
+    }
+    
+    // Raccourcir la pensée si trop longue
+    if (thought.length > 35) {
+      const thoughtContent = thought.match(/\(([^)]+)\)/)?.[1] || '';
+      thought = `(${thoughtContent.substring(0, 25).trim()}...)`;
+    }
+    
+    // === ASSEMBLER LA RÉPONSE FINALE ===
+    cleaned = `${action} ${dialogue} ${thought}`.trim();
+    
+    // Supprimer doublons de mots consécutifs
     cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, '$1');
     
-    // SIMPLIFIER uniquement les pensées VRAIMENT trop complexes (40+ chars ou poétiques)
-    cleaned = cleaned.replace(/\(([^)]+)\)/g, (match, thought) => {
-      const poeticWords = ['univers', 'étoiles', 'crépuscule', 'cosmos', 'éternité'];
-      const isPoetic = poeticWords.some(w => thought.toLowerCase().includes(w));
-      
-      if (thought.length > 40 || isPoetic) {
-        // Extraire les premiers mots ou simplifier
-        const short = thought.substring(0, 25).trim();
-        return short.includes(' ') ? `(${short}...)` : '(Hmm...)';
-      }
-      return match;
-    });
+    // Nettoyer espaces multiples
+    cleaned = cleaned.replace(/\s{2,}/g, ' ');
     
-    // Vérifier qu'il y a une parole (entre guillemets)
-    const hasDialogue = cleaned.includes('"');
-    if (!hasDialogue) {
-      const textWithoutFormat = cleaned.replace(/\*[^*]+\*/g, '').replace(/\([^)]+\)/g, '').trim();
-      if (textWithoutFormat.length > 5 && textWithoutFormat.length < 150) {
-        const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
-        cleaned = `${action} "${textWithoutFormat}"`;
-      } else {
-        const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
-        cleaned = `${action} "..."`;
-      }
+    // Vérification finale - max 250 caractères
+    if (cleaned.length > 250) {
+      cleaned = `${action} ${dialogue} ${thought}`.substring(0, 250).trim();
     }
     
-    // Limiter la longueur - max 350 caractères (plus généreux pour qualité)
-    if (cleaned.length > 350) {
-      const action = cleaned.match(/\*[^*]+\*/)?.[0] || '';
-      const dialogue = cleaned.match(/"[^"]+"/)?.[0] || '"..."';
-      const thought = cleaned.match(/\([^)]+\)/)?.[0] || '';
-      cleaned = `${action} ${dialogue} ${thought}`.trim();
+    // Minimum de contenu
+    if (cleaned.length < 15) {
+      cleaned = `*te regarde* "Oui?" (Attentif)`;
     }
     
-    // S'assurer qu'il y a du contenu minimum après nettoyage
-    if (cleaned.length < 15 || !cleaned.includes('"')) {
-      // Le contenu est trop court après nettoyage, générer un fallback simple
-      cleaned = `*te regarde attentivement* "Oui?" (Hmm...)`;
-    }
-    
+    console.log(`📝 Réponse nettoyée: ${cleaned.length} chars`);
     return cleaned;
   }
 
