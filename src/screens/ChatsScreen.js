@@ -166,54 +166,63 @@ export default function ChatsScreen({ navigation }) {
   };
 
   const renderConversation = ({ item }) => {
-    try {
-      if (!item || !item.characterId) {
-        console.log('⚠️ Item invalide');
-        return null;
-      }
-      
-      let character = getCharacter(item.characterId);
-      
-      // v5.3.45 - Si personnage non trouvé, créer un placeholder
-      if (!character || !character.name) {
-        console.log('⚠️ Personnage non trouvé, création placeholder pour:', item.characterId);
-        // Créer un personnage placeholder avec les infos de la conversation
-        character = {
-          id: item.characterId,
-          name: `Personnage #${String(item.characterId).substring(0, 8)}`,
-          gender: 'female',
-          age: 25,
-          tags: ['inconnu'],
-        };
-      }
-
-      const lastMessage = item?.messages?.[item.messages.length - 1];
-      const messagePreview = lastMessage?.content 
-        ? lastMessage.content.substring(0, 80) + (lastMessage.content.length > 80 ? '...' : '')
-        : 'Aucun message';
-      
-      // Extraire les initiales de manière sécurisée
-      const getInitials = (name) => {
-        try {
-          if (!name || typeof name !== 'string') return '?';
-          return name.split(' ').filter(n => n).map(n => n[0] || '').join('').substring(0, 2) || '?';
-        } catch {
-          return '?';
-        }
+    // v5.3.47 - TOUJOURS afficher la conversation, même sans personnage
+    if (!item) {
+      console.log('⚠️ Item null, skip');
+      return null;
+    }
+    
+    const characterId = item.characterId || item.id || 'unknown';
+    console.log(`🔍 Rendu conversation: ${characterId}`);
+    
+    // Chercher le personnage
+    let character = getCharacter(characterId);
+    
+    // v5.3.47 - TOUJOURS créer un placeholder si non trouvé
+    if (!character) {
+      console.log(`⚠️ Personnage ${characterId} non trouvé, création placeholder`);
+      character = {
+        id: characterId,
+        name: `Conversation #${String(characterId).substring(0, 6)}`,
+        gender: 'unknown',
+        age: 25,
+        tags: ['conversation'],
+        scenario: 'Conversation en cours',
+        startMessage: '...',
       };
+    }
+    
+    // S'assurer que name existe
+    if (!character.name) {
+      character.name = `Chat ${String(characterId).substring(0, 6)}`;
+    }
 
-      return (
-        <View style={styles.card}>
-          <TouchableOpacity
-            style={styles.cardTouchable}
-            onPress={() => navigation.navigate('Conversation', { character })}
-          >
-            <View style={styles.cardContent}>
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>
-                  {getInitials(character.name)}
-                </Text>
-              </View>
+    const messages = item.messages || [];
+    const lastMessage = messages[messages.length - 1];
+    const messagePreview = lastMessage?.content 
+      ? lastMessage.content.substring(0, 80) + (lastMessage.content.length > 80 ? '...' : '')
+      : 'Aucun message';
+    
+    // Extraire les initiales
+    const getInitials = (name) => {
+      if (!name || typeof name !== 'string') return '?';
+      const parts = name.split(' ').filter(n => n);
+      if (parts.length === 0) return '?';
+      return parts.map(n => n[0] || '').join('').substring(0, 2) || '?';
+    };
+
+    return (
+      <View style={styles.card}>
+        <TouchableOpacity
+          style={styles.cardTouchable}
+          onPress={() => navigation.navigate('Conversation', { character })}
+        >
+          <View style={styles.cardContent}>
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>
+                {getInitials(character.name)}
+              </Text>
+            </View>
             <View style={styles.info}>
               <View style={styles.header}>
                 <Text style={styles.name}>{character.name}</Text>
@@ -226,30 +235,26 @@ export default function ChatsScreen({ navigation }) {
               </Text>
               <View style={styles.statsContainer}>
                 <Text style={styles.stats}>
-                  💬 {item.messages?.length || 0} messages
+                  💬 {messages.length} messages
                 </Text>
                 <Text style={styles.stats}>
-                  💖 Affection: {item.relationship?.affection || 50}%
+                  💖 {item.relationship?.affection || 50}%
                 </Text>
                 <Text style={styles.stats}>
-                  ⭐ Niveau: {item.relationship?.level || 1}
+                  ⭐ Niv.{item.relationship?.level || 1}
                 </Text>
               </View>
             </View>
           </View>
         </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => deleteConversation(item?.characterId)}
-          >
-            <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    } catch (error) {
-      console.error('❌ Erreur renderConversation:', error);
-      return null;
-    }
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => deleteConversation(characterId)}
+        >
+          <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   if (loading) {
