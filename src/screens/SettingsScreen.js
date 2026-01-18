@@ -81,6 +81,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
       
       await loadProfile();
       await loadTextProvider();
+      await loadGroqKeys(); // v5.3.63 - Charger les clés Groq
       
       // Charger les paramètres sensibles seulement si admin
       if (adminStatus) {
@@ -236,13 +237,30 @@ export default function SettingsScreen({ navigation, onLogout }) {
 
   const loadGroqKeys = async () => {
     try {
+      // D'abord charger les clés multiples
       const saved = await AsyncStorage.getItem('groq_api_keys');
       if (saved) {
         const keys = JSON.parse(saved);
-        setGroqApiKeys(keys.length > 0 ? keys : ['']);
+        if (keys && keys.length > 0) {
+          setGroqApiKeys(keys);
+          console.log(`🔑 ${keys.length} clé(s) Groq chargée(s)`);
+          return;
+        }
       }
+      
+      // Sinon, vérifier si une clé unique existe dans TextGenerationService
+      const singleKey = TextGenerationService.getApiKey('groq_api_key');
+      if (singleKey && singleKey.trim()) {
+        setGroqApiKeys([singleKey]);
+        console.log('🔑 1 clé Groq chargée (depuis service)');
+        return;
+      }
+      
+      // Aucune clé trouvée
+      setGroqApiKeys(['']);
     } catch (error) {
       console.error('Erreur chargement clés Groq:', error);
+      setGroqApiKeys(['']);
     }
   };
 
@@ -311,8 +329,19 @@ export default function SettingsScreen({ navigation, onLogout }) {
         return;
       }
 
+      // Sauvegarder le tableau de clés
       await AsyncStorage.setItem('groq_api_keys', JSON.stringify(validKeys));
-      Alert.alert('✅ Succès', `${validKeys.length} clé(s) API sauvegardée(s) !`);
+      
+      // v5.3.63 - Sauvegarder aussi la première clé pour TextGenerationService
+      if (validKeys.length > 0) {
+        await TextGenerationService.setApiKey('groq_api_key', validKeys[0]);
+        
+        // Recharger les APIs pour mettre à jour la disponibilité
+        const apis = TextGenerationService.getAvailableApisForUI();
+        setAvailableApis(apis);
+      }
+      
+      Alert.alert('✅ Succès', `${validKeys.length} clé(s) API Groq sauvegardée(s) !\n\nVous pouvez maintenant sélectionner Groq dans la liste des APIs.`);
     } catch (error) {
       Alert.alert('❌ Erreur', `Impossible de sauvegarder: ${error.message}`);
     }
@@ -672,6 +701,71 @@ export default function SettingsScreen({ navigation, onLogout }) {
             >
               <Text style={styles.apiKeySaveText}>Sauvegarder</Text>
             </TouchableOpacity>
+          </View>
+          
+          {/* === GROQ API - MULTI-CLÉS v5.3.63 === */}
+          <View style={styles.groqSection}>
+            <Text style={styles.groqSectionTitle}>⚡ Groq API (Ultra Rapide)</Text>
+            <Text style={styles.apiKeyHint}>
+              Créez un compte sur console.groq.com pour obtenir des clés gratuites.{'\n'}
+              Ajoutez plusieurs clés pour une rotation automatique.
+            </Text>
+            
+            {/* Liste des clés Groq */}
+            {groqApiKeys.map((key, index) => (
+              <View key={index} style={styles.keyInputContainer}>
+                <TextInput
+                  style={styles.keyInput}
+                  value={key}
+                  onChangeText={(value) => updateKey(index, value)}
+                  placeholder={`Clé Groq ${index + 1} (gsk_...)`}
+                  placeholderTextColor="#9ca3af"
+                  secureTextEntry={true}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                {groqApiKeys.length > 1 && (
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() => removeKeyField(index)}
+                  >
+                    <Text style={styles.removeButtonText}>×</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+            
+            {/* Bouton ajouter clé */}
+            <TouchableOpacity style={styles.addButton} onPress={addKeyField}>
+              <Text style={styles.addButtonText}>+ Ajouter une clé Groq</Text>
+            </TouchableOpacity>
+            
+            {/* Boutons d'action */}
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={[styles.testButton, testingApi && { opacity: 0.7 }]}
+                onPress={testGroqKey}
+                disabled={testingApi}
+              >
+                <Text style={styles.testButtonText}>
+                  {testingApi ? '⏳ Test...' : '🧪 Tester'}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={saveGroqKeys}
+              >
+                <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {/* Info clés */}
+            <Text style={styles.groqInfoText}>
+              💡 {groqApiKeys.filter(k => k && k.trim()).length} clé(s) configurée(s){'\n'}
+              🔄 Rotation automatique entre les clés{'\n'}
+              ⚡ Llama 70B, 8B et Mixtral disponibles
+            </Text>
           </View>
           
           {/* APIs nécessitant clé */}
@@ -1922,5 +2016,27 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 14,
+  },
+  // === v5.3.63 - Styles section Groq ===
+  groqSection: {
+    marginTop: 15,
+    padding: 15,
+    backgroundColor: '#f0fdf4',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#10b981',
+  },
+  groqSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#065f46',
+    marginBottom: 8,
+  },
+  groqInfoText: {
+    fontSize: 12,
+    color: '#065f46',
+    marginTop: 10,
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
 });
