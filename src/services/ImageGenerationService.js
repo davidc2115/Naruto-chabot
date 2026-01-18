@@ -199,36 +199,30 @@ class ImageGenerationService {
       ],
     };
     
-    // === VARIÉTÉ DE TYPES DE PHOTOS ET ANGLES NSFW ===
+    // === v5.3.54 - TYPES DE PHOTOS CORPS ENTIER TOUJOURS ===
     this.shotTypes = [
-      // Vues de face sexy
-      'full body frontal shot showing entire figure, breasts and body visible',
-      'frontal view facing camera, confident sexy pose, cleavage prominent',
-      'front view, legs slightly spread, inviting pose',
-      // Vues de profil sensuelles
-      'side profile view, curves emphasized, breasts silhouette visible',
-      'profile shot showing breast shape and butt curve',
-      'three-quarter angle, one breast visible, mysterious allure',
-      // Vues de dos érotiques
-      'back view, showing full butt and spine, looking over shoulder seductively',
-      'rear view bent over slightly, butt emphasized, arched back',
-      'from behind on all fours, rear fully visible, looking back',
-      // Zooms NSFW spécifiques
-      'close-up on breasts and cleavage, nipples visible or implied',
-      'zoomed on butt and hips, rear focus, thong visible',
-      'focus on spread legs, intimate view',
-      'upper body close-up, bare breasts prominent',
-      'close-up between legs, intimate perspective',
-      // Poses aguichantes
-      'lying on bed legs open, inviting pose, sensual',
-      'on knees looking up, submissive sexy pose',
-      'straddling position, dominant sexy pose',
-      'arched back showing breasts, erotic pose',
-      // Angles voyeuristes
-      'from above looking down at body, voyeuristic',
-      'low angle looking up between legs, erotic perspective',
-      'mirror reflection showing front and back, voyeuristic',
-      'caught undressing, candid sexy moment',
+      // Vues de face corps entier sexy
+      'full body frontal shot showing entire figure from head to feet, breasts and body visible',
+      'full body frontal view facing camera, confident sexy pose, entire figure visible',
+      'full body front view, legs visible, inviting pose, complete figure',
+      // Vues de profil corps entier
+      'full body side profile view, curves emphasized, entire figure from head to feet',
+      'full body profile shot showing complete figure, breast and butt curve visible',
+      'full body three-quarter angle, entire person visible, mysterious allure',
+      // Vues de dos corps entier
+      'full body back view, showing butt and spine, looking over shoulder, head to feet visible',
+      'full body rear view, bent over slightly, entire figure shown, arched back',
+      'full body from behind, rear visible, entire person head to feet',
+      // Poses aguichantes corps entier
+      'full body lying on bed, legs open, inviting pose, entire figure visible',
+      'full body on knees, looking up, complete figure shown',
+      'full body straddling position, dominant sexy pose, entire person visible',
+      'full body arched back showing curves, erotic pose, head to feet',
+      // Angles variés corps entier
+      'full body shot from above, entire figure visible, voyeuristic angle',
+      'full body low angle, powerful pose, complete figure from feet to head',
+      'full body mirror reflection showing complete figure, front and back',
+      'full body caught undressing, candid sexy moment, entire figure',
     ];
     
     // === VARIÉTÉ D'ÉCLAIRAGES ===
@@ -2193,7 +2187,8 @@ class ImageGenerationService {
     // Choisir le style (anime ou réaliste)
     const { style, isRealistic } = this.getRandomStyle();
     
-    let prompt = style;
+    // v5.3.54 - TOUJOURS COMMENCER PAR "FULL BODY SHOT" pour voir le personnage entier
+    let prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
     
     // === v5.3.45 - DESCRIPTION PHYSIQUE DÉTAILLÉE DIRECTE ===
     // Utiliser directement les champs du personnage sans transformation excessive
@@ -3046,7 +3041,8 @@ class ImageGenerationService {
     // === GÉNÉRER LES ÉLÉMENTS VARIÉS ===
     const sceneElements = this.generateVariedSceneElements();
     
-    let prompt = style;
+    // v5.3.54 - TOUJOURS COMMENCER PAR "FULL BODY SHOT" pour voir le personnage entier
+    let prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
     
     // === DESCRIPTION PHYSIQUE ULTRA-DÉTAILLÉE ===
     prompt += ', ' + this.buildUltraDetailedPhysicalPrompt(character, isRealistic);
@@ -3097,34 +3093,30 @@ class ImageGenerationService {
       // Anatomie détaillée pour NSFW
       prompt += this.buildAnatomyDescription(character, isRealistic);
       
-      // === ANGLE/TYPE DE PHOTO NSFW VARIÉ ===
+      // === v5.3.54 - ANGLE/TYPE DE PHOTO TOUJOURS CORPS ENTIER ===
       const nsfwAngles = [
-        // Corps entier
-        'full body shot showing entire figure from head to toe, naked or lingerie',
-        'full body frontal nude, entire body visible, standing pose',
-        'full body view lying on bed, complete figure shown',
-        'full length shot, whole body exposed, sensual pose',
-        // Vues de face
-        'frontal view, breasts fully visible, sexy confident pose',
-        'front facing camera, nude body, seductive expression',
-        'facing viewer, topless or nude, inviting pose',
-        // Vues de profil
-        'side profile showing breast and butt curves',
-        'profile view, breast silhouette, elegant nude',
-        'three-quarter angle, curves emphasized',
-        // Vues de dos
-        'back view, full butt visible, looking over shoulder',
-        'rear view on all fours, butt emphasized, arched back',
-        'from behind, nude back and butt, seductive glance back',
-        // Zooms intimes
-        'close-up on breasts, nipples visible, sensual',
-        'zoom on butt and hips, rear focus',
-        'upper body shot, bare breasts prominent',
-        // Poses provocantes
-        'lying on bed with legs spread, inviting',
-        'on knees, looking up seductively',
-        'bent over, rear view, provocative',
-        'straddling position, dominant pose',
+        // Corps entier obligatoire
+        'full body shot showing entire figure from head to feet, complete person visible',
+        'full body frontal view, entire body from head to toes visible',
+        'full body view lying on bed, complete figure from top to bottom',
+        'full length shot, whole body exposed from head to feet',
+        // Vues de face corps entier
+        'full body frontal view, entire figure visible, sexy confident pose',
+        'full body front facing camera, complete person head to feet',
+        'full body facing viewer, entire figure shown, inviting pose',
+        // Vues de profil corps entier
+        'full body side profile, entire figure from head to feet',
+        'full body profile view, complete silhouette visible',
+        'full body three-quarter angle, entire person shown',
+        // Vues de dos corps entier
+        'full body back view, entire figure from head to feet, looking over shoulder',
+        'full body rear view, complete person visible, arched back',
+        'full body from behind, entire figure head to toes visible',
+        // Poses corps entier
+        'full body lying on bed, entire figure visible, inviting pose',
+        'full body on knees, complete figure from head to floor',
+        'full body bent over, entire person visible, provocative',
+        'full body straddling position, complete figure shown',
       ];
       const randomAngle = nsfwAngles[Math.floor(Math.random() * nsfwAngles.length)];
       prompt += `, ${randomAngle}`;
@@ -3251,24 +3243,21 @@ class ImageGenerationService {
       }
       
       // === v5.3.52 - VUES/ANGLES VARIÉS ===
+      // v5.3.54 - TOUTES LES VUES EN CORPS ENTIER (pas de close-up)
       const nsfwViews = [
-        'full body shot, showing entire figure from head to toe',
-        'portrait shot, face and upper body, cleavage visible',
-        'view from above, looking down at body, voyeuristic angle',
-        'plunging view on cleavage, from above, breasts prominent',
-        'back view, showing butt and spine, looking over shoulder',
-        'side profile view, curves silhouette, artistic',
-        'low angle looking up, dominant perspective',
-        'close-up on breasts, detailed, sensual',
-        'close-up on butt, rear focus, provocative',
-        'between legs view, intimate perspective',
-        'mirror reflection showing front and back simultaneously',
-        'skirt lifted up revealing underwear or bare',
-        'dress strap falling off shoulder, teasing reveal',
-        'panties being pulled down, revealing pose',
+        'full body shot, showing entire figure from head to feet, complete person',
+        'full body view from above, entire figure visible from head to toes',
+        'full body back view, showing entire back from head to feet',
+        'full body side profile view, complete silhouette head to feet',
+        'full body low angle, entire figure from feet to head',
+        'full body mirror reflection showing complete figure',
+        'full body three-quarter view, entire person visible',
+        'full body frontal, complete figure with clothing action',
+        'full body dramatic pose, entire figure head to feet',
+        'full body artistic nude, complete figure visible',
       ];
       const selectedView = nsfwViews[Math.floor(Math.random() * nsfwViews.length)];
-      prompt += `, ${selectedView}`;
+      prompt += `, ${selectedView}, NOT cropped, NOT zoomed in`;
       console.log(`📷 VUE: ${selectedView.substring(0, 50)}...`);
       
       // Lieu intime
@@ -3913,24 +3902,27 @@ class ImageGenerationService {
       finalPrompt += morphologyKeywords[0] + ', ';
     }
     
-    // 9. Mode SFW/NSFW - v5.3.53 POSITIONS ET TENUES VARIÉES
+    // 9. Mode SFW/NSFW - v5.3.54 TOUJOURS CORPS ENTIER + POSITIONS ET TENUES VARIÉES
     if (isNSFW) {
       console.log(`🔞 MODE NSFW - Niveau ${nsfwLevel}`);
       
-      // POSITIONS NSFW VARIÉES
+      // ⚠️ v5.3.54 - FORCER CORPS ENTIER EN PREMIER (toujours voir la tête ET les pieds)
+      finalPrompt += 'FULL BODY SHOT showing entire character from head to feet, complete body visible, not cropped, not cut off, ';
+      
+      // POSITIONS NSFW VARIÉES (toutes avec corps entier)
       const nsfwPositions = [
-        'standing nude full body, hand on hip',
-        'lying on bed, legs spread, inviting pose',
-        'on all fours, rear view, arched back',
-        'kneeling on bed, looking up seductively',
-        'bent over, showing butt, looking back',
-        'sitting with legs open, topless',
-        'lying on stomach, butt raised',
-        'standing by window, nude silhouette',
-        'finger in mouth, teasing pose',
-        'lying on back, legs up, intimate view',
-        'on knees, submissive pose',
-        'straddling position, dominant',
+        'standing full body, hand on hip, entire figure visible',
+        'lying on bed full body view, legs visible, entire body shown',
+        'on all fours, rear view, full body from head to feet',
+        'kneeling full body, entire figure visible from top to bottom',
+        'bent over full body shot, showing complete figure',
+        'sitting full body, legs and feet visible',
+        'lying on stomach full body, feet up, entire body visible',
+        'standing by window full body, silhouette showing complete figure',
+        'finger in mouth, standing full body pose',
+        'lying on back full body, legs up, entire figure visible',
+        'on knees full body shot, complete figure',
+        'straddling position full body, entire figure shown',
       ];
       const randomPos = nsfwPositions[Math.floor(Math.random() * nsfwPositions.length)];
       finalPrompt += randomPos + ', ';
@@ -3939,53 +3931,53 @@ class ImageGenerationService {
       if (nsfwLevel >= 5) {
         // Nue
         const nudeStyles = [
-          'completely nude, fully naked, nothing on',
-          'nude body, naked, full exposure',
-          'naked, nude, bare skin everywhere',
+          'completely nude full body, fully naked, nothing on',
+          'nude body visible entirely, naked, full exposure',
+          'naked full figure, nude, bare skin everywhere',
         ];
         finalPrompt += nudeStyles[Math.floor(Math.random() * nudeStyles.length)] + ', ';
       } else if (nsfwLevel >= 4) {
         // Topless
         const toplessStyles = [
-          'topless, bare breasts, nipples visible, wearing only panties',
-          'naked from waist up, breasts exposed, bottomwear only',
-          'topless, open shirt, breasts showing',
+          'topless full body, bare breasts, wearing only panties',
+          'naked from waist up full figure, breasts exposed',
+          'topless full body shot, open shirt, breasts showing',
         ];
         finalPrompt += toplessStyles[Math.floor(Math.random() * toplessStyles.length)] + ', ';
       } else if (nsfwLevel >= 3) {
         // Lingerie
         const lingerieStyles = [
-          'sexy lace lingerie, matching bra and panties',
-          'sheer babydoll nightgown, see-through',
-          'black mesh bodysuit, revealing',
-          'garter belt with stockings, sexy underwear',
-          'red lace thong and push-up bra',
+          'sexy lace lingerie full body, matching bra and panties',
+          'sheer babydoll nightgown full figure, see-through',
+          'black mesh bodysuit full body, revealing',
+          'garter belt with stockings full body, sexy underwear',
+          'red lace thong and push-up bra full body shot',
         ];
         finalPrompt += lingerieStyles[Math.floor(Math.random() * lingerieStyles.length)] + ', ';
       } else {
         // Sexy mais couvert
         const sexyStyles = [
-          'tight miniskirt, low-cut top, cleavage',
-          'short dress, legs showing, seductive',
-          'revealing outfit, attractive, provocative',
+          'tight miniskirt full body, low-cut top, cleavage',
+          'short dress full figure, legs showing, seductive',
+          'revealing outfit full body shot, attractive, provocative',
         ];
         finalPrompt += sexyStyles[Math.floor(Math.random() * sexyStyles.length)] + ', ';
       }
       
-      // VUES VARIÉES
+      // ⚠️ v5.3.54 - ANGLES DE VUE (TOUJOURS CORPS ENTIER - PAS DE CLOSE-UP)
       const nsfwViews = [
-        'full body shot',
-        'view from above, looking down',
-        'plunging view on cleavage',
-        'back view, butt visible',
-        'side profile, curves emphasized',
-        'close-up upper body, breasts prominent',
+        'full body frontal view from head to toe',
+        'full body shot from slightly above, entire figure visible',
+        'full body back view, showing entire back from head to feet',
+        'full body side profile, complete figure visible',
+        'full body three-quarter view, entire person shown',
+        'full body slightly low angle, powerful pose, complete figure',
       ];
       const randomView = nsfwViews[Math.floor(Math.random() * nsfwViews.length)];
-      finalPrompt += randomView + ', sensual, erotic, adult content';
+      finalPrompt += randomView + ', sensual, erotic, adult content, NOT cropped, NOT zoomed in';
       
     } else {
-      finalPrompt += 'elegant, stylish, attractive, tasteful';
+      finalPrompt += 'full body shot, elegant, stylish, attractive, tasteful, complete figure visible';
     }
     
     // Limiter la longueur

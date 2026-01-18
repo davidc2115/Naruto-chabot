@@ -1582,10 +1582,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   generatedImage: {
-    width: 300,
-    height: 300,
+    width: 280,
+    height: 498,  // Ratio 9:16 (280 * 16/9 = 498) pour afficher l'image complète
     borderRadius: 15,
     backgroundColor: '#e5e7eb',
+    resizeMode: 'contain',  // Affiche l'image complète sans couper
   },
   imageTimestamp: {
     fontSize: 10,
