@@ -4061,8 +4061,8 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.3.58 - Extrait les détails physiques DIRECTEMENT de l'objet character
-   * C'est la méthode PRIORITAIRE car elle utilise les vraies données
+   * v5.3.60 - Extrait TOUS les détails physiques de l'objet character
+   * Parse COMPLÈTEMENT physicalDescription pour les formes, rondeurs, poitrine, pénis
    */
   extractPhysicalDetailsFromCharacter(character) {
     const details = {
@@ -4084,61 +4084,118 @@ class ImageGenerationService {
     
     if (!character) return details;
     
+    // === COLLECTER TOUT LE TEXTE POUR ANALYSE ===
+    const fullText = [
+      character.physicalDescription || '',
+      character.appearance || '',
+      character.bodyType || '',
+      character.imagePrompt || '',
+    ].join(' ').toLowerCase();
+    
+    console.log(`📋 Analyse physicalDescription: ${fullText.substring(0, 200)}...`);
+    
     // === GENRE ===
     details.gender = character.gender || null;
+    if (!details.gender) {
+      if (fullText.includes('femme') || fullText.includes('woman') || fullText.includes('female')) {
+        details.gender = 'female';
+      } else if (fullText.includes('homme') || fullText.includes('man') || fullText.includes('male')) {
+        details.gender = 'male';
+      }
+    }
     
     // === ÂGE ===
     details.age = this.parseCharacterAge(character.age);
     
-    // === CHEVEUX - COULEUR (traduction FR -> EN) ===
+    // === CHEVEUX - COULEUR ===
+    const hairColorPatterns = {
+      'noir|noirs|noire|jet black': 'jet black',
+      'brun|brune|bruns|châtain|chatain': 'brown',
+      'blond|blonde|blonds|doré': 'blonde',
+      'roux|rousse|auburn|ginger': 'red ginger',
+      'blanc|blanche|argenté|silver|gris': 'silver white',
+      'rose|pink': 'pink', 'bleu|blue': 'blue', 'vert|green': 'green', 'violet|purple': 'purple',
+    };
     if (character.hairColor) {
-      const hairColorMap = {
-        'noir': 'black', 'noirs': 'black', 'noire': 'black',
-        'brun': 'brown', 'brune': 'brown', 'châtain': 'chestnut brown',
-        'blond': 'blonde', 'blonde': 'blonde', 'blonds': 'blonde',
-        'roux': 'red ginger', 'rousse': 'red ginger', 'auburn': 'auburn',
-        'blanc': 'white', 'blanche': 'white', 'argenté': 'silver', 'gris': 'grey',
-        'rose': 'pink', 'bleu': 'blue', 'vert': 'green', 'violet': 'purple',
-      };
-      const lowerHair = character.hairColor.toLowerCase();
-      details.hairColor = hairColorMap[lowerHair] || character.hairColor;
-      console.log(`💇 Cheveux (character): ${character.hairColor} -> ${details.hairColor}`);
+      const lh = character.hairColor.toLowerCase();
+      for (const [pattern, value] of Object.entries(hairColorPatterns)) {
+        if (new RegExp(pattern).test(lh)) { details.hairColor = value; break; }
+      }
+      if (!details.hairColor) details.hairColor = character.hairColor;
+    }
+    if (!details.hairColor) {
+      for (const [pattern, value] of Object.entries(hairColorPatterns)) {
+        if (new RegExp(`cheveux\\s+${pattern}|${pattern}\\s+hair`, 'i').test(fullText)) {
+          details.hairColor = value; break;
+        }
+      }
     }
     
     // === CHEVEUX - LONGUEUR ===
+    const hairLengthPatterns = {
+      'très courts|very short|rasé': 'very short buzz cut',
+      'courts|short': 'short',
+      'mi-longs|mi-long|shoulder': 'medium shoulder-length',
+      'longs|long': 'long flowing',
+      'très longs|very long|waist|hanches': 'very long waist-length',
+    };
     if (character.hairLength) {
-      const hairLengthMap = {
-        'très courts': 'very short', 'courts': 'short',
-        'mi-longs': 'medium shoulder-length', 'longs': 'long flowing',
-        'très longs': 'very long waist-length',
-      };
-      const lowerLen = character.hairLength.toLowerCase();
-      details.hairLength = hairLengthMap[lowerLen] || character.hairLength;
-      console.log(`💇 Longueur (character): ${character.hairLength} -> ${details.hairLength}`);
+      const ll = character.hairLength.toLowerCase();
+      for (const [pattern, value] of Object.entries(hairLengthPatterns)) {
+        if (new RegExp(pattern).test(ll)) { details.hairLength = value; break; }
+      }
+      if (!details.hairLength) details.hairLength = character.hairLength;
+    }
+    if (!details.hairLength) {
+      for (const [pattern, value] of Object.entries(hairLengthPatterns)) {
+        if (new RegExp(pattern, 'i').test(fullText)) { details.hairLength = value; break; }
+      }
     }
     
     // === YEUX ===
+    const eyeColorPatterns = {
+      'bleu|bleus|blue': 'blue', 'vert|verts|green': 'green',
+      'marron|brown': 'brown', 'noisette|hazel': 'hazel',
+      'noir|noirs|black': 'dark black', 'gris|grey|gray': 'grey',
+      'ambre|amber': 'amber', 'violet|purple': 'violet',
+    };
     if (character.eyeColor) {
-      const eyeColorMap = {
-        'bleu': 'blue', 'bleus': 'blue', 'vert': 'green', 'verts': 'green',
-        'marron': 'brown', 'noisette': 'hazel', 'noir': 'black', 'noirs': 'black',
-        'ambre': 'amber', 'gris': 'grey', 'violet': 'violet',
-      };
-      const lowerEye = character.eyeColor.toLowerCase();
-      details.eyeColor = eyeColorMap[lowerEye] || character.eyeColor;
-      console.log(`👁️ Yeux (character): ${character.eyeColor} -> ${details.eyeColor}`);
+      const le = character.eyeColor.toLowerCase();
+      for (const [pattern, value] of Object.entries(eyeColorPatterns)) {
+        if (new RegExp(pattern).test(le)) { details.eyeColor = value; break; }
+      }
+      if (!details.eyeColor) details.eyeColor = character.eyeColor;
+    }
+    if (!details.eyeColor) {
+      for (const [pattern, value] of Object.entries(eyeColorPatterns)) {
+        if (new RegExp(`yeux\\s+${pattern}|${pattern}\\s+eyes`, 'i').test(fullText)) {
+          details.eyeColor = value; break;
+        }
+      }
     }
     
     // === PEAU ===
+    const skinPatterns = {
+      'porcelaine|très pale|très claire|very pale': 'porcelain pale white',
+      'pale|claire|fair|pâle': 'fair light',
+      'mate|olive|méditerran': 'olive tan',
+      'bronzé|tan|doré|golden': 'tanned golden',
+      'caramel|métis': 'caramel brown',
+      'ébène|noir|dark|foncé|ebony': 'dark ebony',
+    };
     if (character.skinTone) {
-      const skinMap = {
-        'très claire': 'very pale fair', 'claire': 'fair light',
-        'mate': 'olive tan', 'bronzée': 'tanned golden',
-        'caramel': 'caramel brown', 'ébène': 'dark ebony',
-      };
-      const lowerSkin = character.skinTone.toLowerCase();
-      details.skinTone = skinMap[lowerSkin] || character.skinTone;
-      console.log(`🎨 Peau (character): ${character.skinTone} -> ${details.skinTone}`);
+      const ls = character.skinTone.toLowerCase();
+      for (const [pattern, value] of Object.entries(skinPatterns)) {
+        if (new RegExp(pattern).test(ls)) { details.skinTone = value; break; }
+      }
+      if (!details.skinTone) details.skinTone = character.skinTone;
+    }
+    if (!details.skinTone) {
+      for (const [pattern, value] of Object.entries(skinPatterns)) {
+        if (new RegExp(`peau\\s+${pattern}|${pattern}\\s+skin`, 'i').test(fullText)) {
+          details.skinTone = value; break;
+        }
+      }
     }
     
     // === TAILLE ===
@@ -4148,86 +4205,208 @@ class ImageGenerationService {
       else if (h < 165) details.height = 'average height (155-165cm)';
       else if (h < 175) details.height = 'tall (165-175cm)';
       else details.height = 'very tall (over 175cm)';
-      console.log(`📏 Taille (character): ${character.height} -> ${details.height}`);
+    }
+    // Chercher dans physicalDescription
+    const heightMatch = fullText.match(/(\d{3})\s*cm/);
+    if (heightMatch && !details.height) {
+      const h = parseInt(heightMatch[1]);
+      if (h < 155) details.height = 'petite short';
+      else if (h < 165) details.height = 'average height';
+      else if (h < 175) details.height = 'tall';
+      else details.height = 'very tall';
     }
     
-    // === MORPHOLOGIE / CORPS - v5.3.58 TRÈS DÉTAILLÉ ===
+    // === v5.3.60 - MORPHOLOGIE / FORMES / RONDEURS - ANALYSE COMPLÈTE ===
+    const bodyPatterns = {
+      // Mince
+      'très mince|very thin|maigre|skinny': 'very thin skinny body',
+      'mince|slim|slender|fine': 'slim slender body',
+      'élancé|élancée|tall slender': 'slender elegant tall body',
+      // Athlétique
+      'athlétique|athletic|musclé|muscular|toned|fit': 'athletic toned muscular body',
+      // Moyenne
+      'moyenne|average|normal': 'average normal body',
+      // Courbes
+      'voluptueuse|voluptueux|voluptuous': 'VOLUPTUOUS CURVY body, hourglass figure, BIG BUST, WIDE HIPS, sexy curves',
+      'généreuse|généreux|generous': 'GENEROUS CURVY body, FULL-FIGURED, soft curves everywhere, plump',
+      'pulpeuse|pulpeux|thick curvy': 'THICK CURVY body, PLUMP figure, soft curves, full thighs',
+      'plantureuse|plantureux|buxom': 'BUXOM VOLUPTUOUS body, BIG BREASTS, WIDE HIPS, hourglass',
+      // Ronde
+      'très ronde|très rond|very chubby|bbw|obèse': 'VERY CHUBBY BBW body, BIG SOFT BELLY, very plump, plus size, full figure',
+      'ronde|rond|chubby|plump|potelé|potelée': 'CHUBBY ROUND body, SOFT BELLY, plump figure, BBW curves',
+      'enrobé|enrobée|plump soft': 'PLUMP SOFT body, chubby, soft curves, round belly',
+      // Maternelle
+      'maternelle|maternel|maternal|milf': 'soft maternal curvy body, MILF figure',
+    };
+    
+    // D'abord vérifier character.bodyType
     if (character.bodyType) {
-      const bodyMap = {
-        'mince': 'slim slender thin body',
-        'élancée': 'slender elegant tall body',
-        'moyenne': 'average normal body',
-        'athlétique': 'athletic toned muscular body',
-        'voluptueuse': 'VOLUPTUOUS CURVY body, hourglass figure, big bust, wide hips',
-        'généreuse': 'GENEROUS CURVY body, full-figured, soft curves everywhere',
-        'pulpeuse': 'THICK CURVY body, plump figure, soft curves',
-        'ronde': 'CHUBBY ROUND body, soft belly, plump figure, BBW',
-        'très ronde': 'VERY CHUBBY BBW body, big soft belly, very plump, plus size',
-        'plantureuse': 'VOLUPTUOUS body, big breasts, wide hips, curvy',
-        'enrobée': 'PLUMP SOFT body, chubby, soft curves',
-        'potelée': 'CHUBBY CUTE body, soft plump figure',
-      };
-      const lowerBody = character.bodyType.toLowerCase();
-      details.bodyType = bodyMap[lowerBody] || character.bodyType;
-      console.log(`🏋️ Morphologie (character): ${character.bodyType} -> ${details.bodyType}`);
+      const lb = character.bodyType.toLowerCase();
+      for (const [pattern, value] of Object.entries(bodyPatterns)) {
+        if (new RegExp(pattern).test(lb)) { details.bodyType = value; break; }
+      }
+      if (!details.bodyType) {
+        // Mapping direct
+        const directMap = {
+          'mince': 'slim slender body',
+          'moyenne': 'average body',
+          'athlétique': 'athletic toned body',
+          'voluptueuse': 'VOLUPTUOUS CURVY body, hourglass, BIG BUST, WIDE HIPS',
+          'généreuse': 'GENEROUS CURVY body, FULL-FIGURED, soft curves',
+          'pulpeuse': 'THICK CURVY body, PLUMP, soft curves',
+          'ronde': 'CHUBBY ROUND body, SOFT BELLY, plump, BBW',
+          'très ronde': 'VERY CHUBBY BBW, BIG SOFT BELLY, very plump',
+          'plantureuse': 'BUXOM body, BIG BREASTS, WIDE HIPS',
+          'enrobée': 'PLUMP SOFT body, chubby',
+          'potelée': 'CHUBBY CUTE body, soft plump',
+        };
+        details.bodyType = directMap[lb] || character.bodyType;
+      }
     }
     
-    // === POITRINE ===
-    if (character.bust && character.gender === 'female') {
-      const bustMap = {
-        'A': 'SMALL A-CUP breasts, petite flat chest',
-        'B': 'SMALL B-CUP breasts, modest small bust',
-        'C': 'MEDIUM C-CUP breasts, average bust',
-        'D': 'LARGE D-CUP breasts, big full breasts',
-        'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts',
-        'E': 'HUGE E-CUP breasts, very big breasts',
-        'F': 'HUGE F-CUP breasts, massive breasts',
-        'G': 'GIGANTIC G-CUP breasts, enormous bust',
-        'H': 'MASSIVE H-CUP breasts, extremely huge breasts',
-      };
-      details.bust = bustMap[character.bust.toUpperCase()] || `${character.bust}-cup breasts`;
-      console.log(`👙 Poitrine (character): ${character.bust} -> ${details.bust}`);
+    // Ensuite chercher dans physicalDescription
+    if (!details.bodyType) {
+      for (const [pattern, value] of Object.entries(bodyPatterns)) {
+        if (new RegExp(pattern, 'i').test(fullText)) { details.bodyType = value; break; }
+      }
     }
     
-    // === PÉNIS ===
-    if (character.penis && character.gender === 'male') {
-      const penisNum = parseInt(character.penis);
-      if (penisNum < 12) details.penis = 'small penis';
-      else if (penisNum < 16) details.penis = 'average penis';
-      else if (penisNum < 20) details.penis = 'big penis, large cock';
-      else details.penis = 'huge penis, massive cock';
-      console.log(`🍆 Pénis (character): ${character.penis} -> ${details.penis}`);
+    console.log(`🏋️ MORPHOLOGIE FINALE: ${details.bodyType || 'non détectée'}`);
+    
+    // === v5.3.60 - POITRINE - ANALYSE COMPLÈTE ===
+    const isFemale = details.gender === 'female' || fullText.includes('femme') || fullText.includes('woman');
+    
+    if (isFemale) {
+      // D'abord character.bust
+      if (character.bust) {
+        const bustMap = {
+          'A': 'SMALL A-CUP breasts, petite flat chest',
+          'B': 'SMALL B-CUP breasts, modest small bust',
+          'C': 'MEDIUM C-CUP breasts, average bust',
+          'D': 'LARGE D-CUP breasts, BIG full breasts',
+          'DD': 'VERY LARGE DD-CUP breasts, BIG heavy breasts',
+          'E': 'HUGE E-CUP breasts, very BIG breasts',
+          'F': 'HUGE F-CUP breasts, MASSIVE breasts',
+          'G': 'GIGANTIC G-CUP breasts, ENORMOUS bust',
+          'H': 'MASSIVE H-CUP breasts, extremely HUGE breasts',
+          'I': 'GIGANTIC I-CUP breasts, massive heavy bust',
+        };
+        details.bust = bustMap[character.bust.toUpperCase()] || `${character.bust}-cup breasts`;
+      }
+      
+      // Chercher dans physicalDescription
+      if (!details.bust) {
+        const bustPatterns = {
+          'bonnet a|a-cup|petite poitrine|flat chest|petit sein': 'SMALL A-CUP breasts, petite flat chest',
+          'bonnet b|b-cup|petits seins': 'SMALL B-CUP breasts, modest bust',
+          'bonnet c|c-cup|poitrine moyenne': 'MEDIUM C-CUP breasts, average bust',
+          'bonnet d|d-cup|belle poitrine|grosse poitrine': 'LARGE D-CUP breasts, BIG full breasts',
+          'bonnet dd|dd-cup|très grosse poitrine': 'VERY LARGE DD-CUP breasts, BIG heavy breasts',
+          'bonnet e|e-cup|énorme poitrine': 'HUGE E-CUP breasts, very BIG breasts',
+          'bonnet f|f-cup|poitrine massive': 'HUGE F-CUP breasts, MASSIVE breasts',
+          'bonnet g|g-cup|poitrine gigantesque': 'GIGANTIC G-CUP breasts, ENORMOUS bust',
+          'bonnet h|h-cup': 'MASSIVE H-CUP breasts, extremely HUGE breasts',
+          'gros seins|big breasts|large breasts|heavy breasts': 'BIG full breasts, large bust',
+          'énormes seins|huge breasts|massive breasts': 'HUGE MASSIVE breasts, very large bust',
+          'petits seins|small breasts|flat chest': 'small breasts, modest bust',
+        };
+        for (const [pattern, value] of Object.entries(bustPatterns)) {
+          if (new RegExp(pattern, 'i').test(fullText)) { details.bust = value; break; }
+        }
+      }
+      console.log(`👙 POITRINE FINALE: ${details.bust || 'non détectée'}`);
     }
     
-    // === ANALYSER physicalDescription pour détails supplémentaires ===
-    const physDesc = (character.physicalDescription || '').toLowerCase();
-    const appearance = (character.appearance || '').toLowerCase();
-    const fullText = physDesc + ' ' + appearance;
+    // === v5.3.60 - PÉNIS - ANALYSE COMPLÈTE ===
+    const isMale = details.gender === 'male' || fullText.includes('homme') || fullText.includes('man');
     
-    // Fesses
-    if (fullText.includes('grosses fesses') || fullText.includes('big butt')) {
-      details.butt = 'big round butt, large plump ass';
-    } else if (fullText.includes('fesses rebondies') || fullText.includes('bubble butt')) {
-      details.butt = 'round bubble butt, perky ass';
+    if (isMale) {
+      // D'abord character.penis
+      if (character.penis) {
+        const penisNum = parseInt(character.penis);
+        if (penisNum < 12) details.penis = 'small penis';
+        else if (penisNum < 15) details.penis = 'average penis';
+        else if (penisNum < 18) details.penis = 'big penis, large cock';
+        else if (penisNum < 22) details.penis = 'HUGE penis, MASSIVE cock';
+        else details.penis = 'ENORMOUS penis, GIGANTIC cock';
+      }
+      
+      // Chercher dans physicalDescription
+      if (!details.penis) {
+        const penisPatterns = {
+          'petit pénis|small penis|small cock': 'small penis',
+          'pénis moyen|average penis': 'average penis',
+          'gros pénis|big penis|big cock|large cock': 'big penis, large cock',
+          'énorme pénis|huge penis|huge cock|massive cock': 'HUGE penis, MASSIVE cock',
+          '(\\d+)\\s*cm': null, // Will be processed separately
+        };
+        for (const [pattern, value] of Object.entries(penisPatterns)) {
+          if (value && new RegExp(pattern, 'i').test(fullText)) { details.penis = value; break; }
+        }
+        // Taille en cm
+        const penisMatch = fullText.match(/pénis[^\\d]*(\\d+)\\s*cm|sexe[^\\d]*(\\d+)\\s*cm|(\\d+)\\s*cm.*pénis/i);
+        if (penisMatch && !details.penis) {
+          const size = parseInt(penisMatch[1] || penisMatch[2] || penisMatch[3]);
+          if (size < 12) details.penis = 'small penis';
+          else if (size < 15) details.penis = 'average penis';
+          else if (size < 18) details.penis = 'big penis, large cock';
+          else details.penis = 'HUGE penis, MASSIVE cock';
+        }
+      }
+      console.log(`🍆 PÉNIS FINAL: ${details.penis || 'non détecté'}`);
     }
     
-    // Hanches
-    if (fullText.includes('hanches larges') || fullText.includes('wide hips')) {
-      details.hips = 'wide hips, curvy hip bones';
+    // === FESSES ===
+    const buttPatterns = {
+      'énormes fesses|huge butt|huge ass|très grosses fesses': 'HUGE round butt, very large plump ass',
+      'grosses fesses|big butt|big ass|large butt': 'BIG round butt, large plump ass',
+      'fesses rebondies|bubble butt|perky butt': 'round bubble butt, perky ass',
+      'belles fesses|nice butt|nice ass': 'nice round butt',
+      'petites fesses|small butt|flat butt': 'small flat butt',
+    };
+    for (const [pattern, value] of Object.entries(buttPatterns)) {
+      if (new RegExp(pattern, 'i').test(fullText)) { details.butt = value; break; }
     }
     
-    // Cuisses
-    if (fullText.includes('cuisses épaisses') || fullText.includes('thick thighs')) {
-      details.thighs = 'thick meaty thighs';
+    // === HANCHES ===
+    const hipPatterns = {
+      'très larges hanches|very wide hips': 'very WIDE hips, curvy',
+      'larges hanches|wide hips|hanches larges': 'WIDE hips, curvy hip bones',
+      'hanches généreuses|generous hips': 'generous WIDE hips',
+    };
+    for (const [pattern, value] of Object.entries(hipPatterns)) {
+      if (new RegExp(pattern, 'i').test(fullText)) { details.hips = value; break; }
     }
     
-    // Ventre
-    if (fullText.includes('ventre plat') || fullText.includes('flat stomach')) {
-      details.belly = 'flat toned stomach';
-    } else if (fullText.includes('petit ventre') || fullText.includes('soft belly')) {
-      details.belly = 'soft small belly';
-    } else if (fullText.includes('gros ventre') || fullText.includes('big belly')) {
-      details.belly = 'big round belly, chubby tummy';
+    // === CUISSES ===
+    const thighPatterns = {
+      'très grosses cuisses|very thick thighs': 'very THICK meaty thighs',
+      'grosses cuisses|thick thighs|cuisses épaisses': 'THICK meaty thighs',
+      'cuisses galbées|toned thighs': 'toned shapely thighs',
+    };
+    for (const [pattern, value] of Object.entries(thighPatterns)) {
+      if (new RegExp(pattern, 'i').test(fullText)) { details.thighs = value; break; }
+    }
+    
+    // === VENTRE ===
+    const bellyPatterns = {
+      'gros ventre|big belly|large belly': 'BIG round belly, chubby tummy',
+      'petit ventre|small belly|soft belly|léger ventre': 'soft small belly, slight tummy',
+      'ventre plat|flat stomach|flat belly': 'flat toned stomach',
+      'ventre rebondi|round belly': 'round soft belly',
+    };
+    for (const [pattern, value] of Object.entries(bellyPatterns)) {
+      if (new RegExp(pattern, 'i').test(fullText)) { details.belly = value; break; }
+    }
+    
+    // Si ronde/généreuse et pas de ventre spécifié, ajouter automatiquement
+    if (details.bodyType && !details.belly) {
+      const bt = details.bodyType.toLowerCase();
+      if (bt.includes('bbw') || bt.includes('chubby') || bt.includes('plump')) {
+        details.belly = 'soft round belly';
+      } else if (bt.includes('curvy') || bt.includes('voluptuous')) {
+        details.belly = 'soft slight belly';
+      }
     }
     
     return details;
