@@ -10,6 +10,8 @@ import {
   Modal,
   Dimensions,
   StatusBar,
+  SafeAreaView,
+  Platform,
 } from 'react-native';
 import GalleryService from '../services/GalleryService';
 
@@ -24,7 +26,7 @@ export default function GalleryScreen({ route, navigation }) {
 
   useEffect(() => {
     loadGallery();
-    navigation.setOptions({ title: `Galerie - ${character.name}` });
+    // v5.3.70 - Ne pas utiliser setOptions pour éviter les problèmes de header
   }, [character]);
 
   const loadGallery = async () => {
@@ -61,11 +63,22 @@ export default function GalleryScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🖼️ Galerie</Text>
-        <Text style={styles.subtitle}>{gallery.length} image(s)</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* v5.3.70 - Header personnalisé avec bouton retour visible */}
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backButtonText}>← Retour</Text>
+          </TouchableOpacity>
+          <View style={styles.headerCenter}>
+            <Text style={styles.title}>🖼️ {character.name}</Text>
+            <Text style={styles.subtitle}>{gallery.length} image(s)</Text>
+          </View>
+          <View style={styles.headerSpacer} />
+        </View>
 
       {gallery.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -170,7 +183,8 @@ export default function GalleryScreen({ route, navigation }) {
           )}
         </View>
       </Modal>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -179,22 +193,44 @@ const thumbnailWidth = (width - 30) / 2;
 const thumbnailHeight = thumbnailWidth * (16 / 9);
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#6366f1',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: '#1a1a2e',
   },
   header: {
-    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    paddingTop: 10,
     backgroundColor: '#6366f1',
   },
+  backButton: {
+    padding: 8,
+    marginRight: 10,
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  headerCenter: {
+    flex: 1,
+  },
+  headerSpacer: {
+    width: 60,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#e0e7ff',
   },
   emptyContainer: {

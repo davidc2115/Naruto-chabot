@@ -490,57 +490,29 @@ export default function ConversationScreen({ route, navigation }) {
     }
   };
 
-  // v5.3.69 - Génère l'image de récompense pour un level up (MÊME SANS PREMIUM)
-  // UTILISE le même système de profil physique que les images en conversation
+  // v5.3.70 - Génère l'image de récompense pour un level up (MÊME SANS PREMIUM)
+  // UTILISE generateSceneImage qui est le même système que les conversations
   const generateLevelUpRewardImage = async (reward, newLevel) => {
     try {
       console.log(`🎁 Génération image récompense niveau ${newLevel}: ${reward.imageType}`);
       
-      // v5.3.69 - Utiliser le PROFIL PHYSIQUE PRIORITAIRE (même système que conversation)
-      const priorityPhysicalPrompt = ImageGenerationService.buildPriorityPhysicalPrompt(character);
+      // v5.3.70 - Utiliser generateSceneImage avec le niveau NSFW approprié
+      // C'est la même fonction que pour les images en conversation
+      const profile = userProfile || await UserProfileService.getProfile();
       
-      // Obtenir le prompt de récompense selon le type et le niveau
-      const rewardPromptPart = LevelService.getRewardImagePrompt(reward.imageType, character);
+      // Calculer le niveau de relation équivalent pour l'image
+      // Plus le niveau est élevé, plus l'image est explicite
+      const relationLevel = Math.min(newLevel, 10); // Cap at 10 for max NSFW
       
-      // v5.3.69 - Déterminer la tenue/pose selon le niveau
-      let levelOutfitPrompt = '';
-      if (newLevel >= 10) {
-        levelOutfitPrompt = 'completely nude, naked, full nudity, explicit, erotic pose, spread legs';
-      } else if (newLevel >= 8) {
-        levelOutfitPrompt = 'topless, bare breasts, nude torso, wearing only panties, seductive pose';
-      } else if (newLevel >= 6) {
-        levelOutfitPrompt = 'wearing only underwear, bra and panties, lingerie, revealing';
-      } else if (newLevel >= 4) {
-        levelOutfitPrompt = 'sexy lingerie, lace bra, thong, stockings, provocative pose';
-      } else if (newLevel >= 2) {
-        levelOutfitPrompt = 'sexy lingerie, revealing outfit, cleavage visible, seductive';
-      } else {
-        levelOutfitPrompt = 'elegant sexy outfit, tight dress, showing curves';
-      }
+      console.log(`📸 Génération image niveau ${newLevel} avec relationLevel=${relationLevel}`);
       
-      // v5.3.69 - Prompt ULTRA-DÉTAILLÉ avec profil physique EN PREMIER
-      const fullPrompt = `FULL BODY SHOT from head to feet, complete figure visible, 
-        ${priorityPhysicalPrompt},
-        ${levelOutfitPrompt},
-        ${rewardPromptPart},
-        masterpiece, best quality, hyper-realistic photograph, professional photography, 8K ultra HD,
-        ${character.appearance || ''},
-        ${character.physicalDescription || ''},
-        perfect human anatomy, anatomically correct body,
-        proper symmetrical face, exactly two arms, exactly two legs,
-        proper hands with five fingers, correct proportions,
-        professional studio lighting, high-end boudoir photography,
-        skin texture visible, ultra-realistic details, lifelike,
-        single person, solo, portrait, 
-        sharp focus, bokeh background, cinematic lighting,
-        NEGATIVE: deformed, distorted, extra limbs, missing limbs, bad anatomy, mutated, 
-        extra fingers, fused fingers, bad hands, wrong proportions, ugly, blurry, watermark, thin, skinny`;
-      
-      console.log(`📸 Prompt récompense niveau ${newLevel}: ${levelOutfitPrompt}`);
-      console.log(`📋 Profil physique: ${priorityPhysicalPrompt.substring(0, 150)}...`);
-      
-      // Générer l'image via l'API (même sans premium pour les récompenses)
-      const imageUrl = await ImageGenerationService.generateImage(fullPrompt);
+      // Utiliser la même fonction que les conversations pour garantir la cohérence
+      const imageUrl = await ImageGenerationService.generateSceneImage(
+        character,
+        profile,
+        [], // Pas de messages récents nécessaires
+        relationLevel
+      );
       
       if (imageUrl) {
         // Sauvegarder dans la galerie
