@@ -3793,8 +3793,12 @@ class ImageGenerationService {
     return morphology;
   }
 
+  /**
+   * v5.3.56 - RÉÉCRITURE COMPLÈTE pour prioriser les détails physiques
+   * Les détails physiques sont extraits et placés EN PREMIER dans le prompt
+   */
   async generateWithFreebox(prompt) {
-    console.log('🖼️ Génération image via Pollinations.ai...');
+    console.log('🖼️ v5.3.56 - Génération image avec PRIORITÉ DÉTAILS PHYSIQUES...');
     
     await this.waitForRateLimit();
     
@@ -3802,207 +3806,353 @@ class ImageGenerationService {
     const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
     const lowerPrompt = prompt.toLowerCase();
     
-    // Détecter le niveau NSFW via le marqueur [NSFW_LEVEL_X]
+    // Détecter le niveau NSFW
     const nsfwMatch = prompt.match(/\[NSFW_LEVEL_(\d+)\]/);
     const nsfwLevel = nsfwMatch ? parseInt(nsfwMatch[1]) : 0;
     const isNSFW = nsfwLevel >= 2;
     
-    // Détecter si c'est anime ou réaliste
-    const isAnime = lowerPrompt.includes('anime') || 
-                    lowerPrompt.includes('manga') ||
-                    !lowerPrompt.includes('realistic');
+    // Détecter si anime ou réaliste
+    const isAnime = lowerPrompt.includes('anime') || lowerPrompt.includes('manga');
+    const isRealistic = lowerPrompt.includes('realistic') || lowerPrompt.includes('photo');
     
-    // === DÉTECTION DU GENRE - CRUCIAL ===
-    // Indicateurs masculins forts
-    const maleIndicators = [
-      'male', 'man ', 'man,', 'homme', 'masculin', 'masculine', 
-      'handsome', 'gentleman', 'guy', 'boy', 'garçon',
-      'barbe', 'beard', 'muscular man', 'male body', 'male character',
-      'pénis', 'penis', 'torse', 'chest hair', 'male human'
-    ];
-    // Indicateurs féminins forts
-    const femaleIndicators = [
-      'female', 'woman', 'femme', 'féminin', 'feminine',
-      'beautiful woman', 'lady', 'girl', 'fille',
-      'breast', 'bust', 'poitrine', 'seins', 'cleavage',
-      'female body', 'female character', 'female human'
-    ];
+    // === v5.3.56 - EXTRAIRE TOUS LES DÉTAILS PHYSIQUES DU PROMPT ===
+    const physicalDetails = this.extractAllPhysicalDetails(prompt);
+    console.log('📋 Détails physiques extraits:', JSON.stringify(physicalDetails).substring(0, 200));
     
-    const hasMaleIndicator = maleIndicators.some(ind => lowerPrompt.includes(ind));
-    const hasFemaleIndicator = femaleIndicators.some(ind => lowerPrompt.includes(ind));
-    
-    // Déterminer le genre
-    let detectedGender = 'unknown';
-    if (hasMaleIndicator && !hasFemaleIndicator) {
-      detectedGender = 'male';
-    } else if (hasFemaleIndicator && !hasMaleIndicator) {
-      detectedGender = 'female';
-    } else if (hasMaleIndicator && hasFemaleIndicator) {
-      // Les deux présents - compter les occurrences
-      const maleCount = maleIndicators.filter(ind => lowerPrompt.includes(ind)).length;
-      const femaleCount = femaleIndicators.filter(ind => lowerPrompt.includes(ind)).length;
-      detectedGender = maleCount > femaleCount ? 'male' : 'female';
-    }
-    
-    console.log(`👤 Genre détecté: ${detectedGender} (male: ${hasMaleIndicator}, female: ${hasFemaleIndicator})`);
-    
-    // Retirer le marqueur et les termes négatifs (qui ne fonctionnent pas)
-    let cleanPrompt = prompt
-      .replace(/\[NSFW_LEVEL_\d+\]\s*/, '')
-      .replace(/NOT\s+\w+,?\s*/gi, '')  // Enlever "NOT thin" etc.
-      .replace(/multiple|several|many|various/gi, 'single');
-    
-    // === EXTRAIRE LA MORPHOLOGIE DU PROMPT ===
-    const morphologyKeywords = this.extractMorphologyKeywords(prompt);
-    const hasCurvyBody = morphologyKeywords.length > 0;
-    
-    console.log(`🏋️ Morphologie détectée: ${morphologyKeywords.length > 0 ? morphologyKeywords[0] : 'standard'}`);
-    
-    // === CONSTRUIRE LE PROMPT FINAL ===
+    // === CONSTRUIRE LE PROMPT OPTIMISÉ ===
     let finalPrompt = '';
     
-    // 1. GENRE EN PREMIER - C'EST CRUCIAL !
-    if (detectedGender === 'male') {
-      if (isAnime) {
-        finalPrompt = 'handsome anime man, male character, masculine, ';
-      } else {
-        finalPrompt = 'handsome real man, male human, masculine features, real male person, ';
-      }
-      console.log(`👨 Prompt MASCULIN appliqué`);
-    } else if (detectedGender === 'female') {
-      if (isAnime) {
-        finalPrompt = 'beautiful anime woman, female character, feminine, ';
-      } else {
-        finalPrompt = 'beautiful real woman, female human, feminine features, real female person, ';
-      }
-      console.log(`👩 Prompt FÉMININ appliqué`);
-    }
+    // 1. FULL BODY SHOT EN PREMIER
+    finalPrompt += 'FULL BODY SHOT from head to feet, complete figure visible, ';
     
-    // 2. MORPHOLOGIE (si détectée)
-    if (hasCurvyBody) {
-      finalPrompt += morphologyKeywords.join(', ') + ', ';
-      console.log(`📍 Morphologie prioritaire: ${morphologyKeywords[0]}`);
-    }
-    
-    // 3. Qualité
-    const qualityCore = 'masterpiece, best quality, highly detailed, 8K';
-    finalPrompt += qualityCore + ', ';
-    
-    // 4. Style
-    if (isAnime) {
-      finalPrompt += 'anime art style, anime illustration, ';
+    // 2. GENRE + ÂGE (CRITIQUE)
+    if (physicalDetails.gender === 'male') {
+      finalPrompt += isAnime ? 'handsome anime man, ' : 'handsome real man, male, ';
     } else {
-      finalPrompt += 'photorealistic, professional photography, ';
+      finalPrompt += isAnime ? 'beautiful anime woman, ' : 'beautiful real woman, female, ';
+    }
+    if (physicalDetails.age) {
+      finalPrompt += `${physicalDetails.age} years old, `;
     }
     
-    // 5. Anatomie (version courte)
+    // 3. === CHEVEUX (COULEUR + LONGUEUR) - PRIORITÉ HAUTE ===
+    if (physicalDetails.hairColor) {
+      finalPrompt += `${physicalDetails.hairColor} hair, `;
+      console.log(`💇 Cheveux couleur: ${physicalDetails.hairColor}`);
+    }
+    if (physicalDetails.hairLength) {
+      finalPrompt += `${physicalDetails.hairLength} hair, `;
+      console.log(`💇 Cheveux longueur: ${physicalDetails.hairLength}`);
+    }
+    
+    // 4. === YEUX - PRIORITÉ HAUTE ===
+    if (physicalDetails.eyeColor) {
+      finalPrompt += `${physicalDetails.eyeColor} eyes, `;
+      console.log(`👁️ Yeux: ${physicalDetails.eyeColor}`);
+    }
+    
+    // 5. === PEAU - PRIORITÉ HAUTE ===
+    if (physicalDetails.skinTone) {
+      finalPrompt += `${physicalDetails.skinTone} skin, `;
+      console.log(`🎨 Peau: ${physicalDetails.skinTone}`);
+    }
+    
+    // 6. === TAILLE ===
+    if (physicalDetails.height) {
+      finalPrompt += `${physicalDetails.height}, `;
+      console.log(`📏 Taille: ${physicalDetails.height}`);
+    }
+    
+    // 7. === MORPHOLOGIE / CORPS - TRÈS IMPORTANT ===
+    if (physicalDetails.bodyType) {
+      finalPrompt += `${physicalDetails.bodyType}, `;
+      console.log(`🏋️ Morphologie: ${physicalDetails.bodyType}`);
+    }
+    
+    // 8. === POITRINE (femmes) - TRÈS IMPORTANT ===
+    if (physicalDetails.bust && physicalDetails.gender === 'female') {
+      finalPrompt += `${physicalDetails.bust}, `;
+      console.log(`👙 Poitrine: ${physicalDetails.bust}`);
+    }
+    
+    // 9. === PÉNIS (hommes) ===
+    if (physicalDetails.penis && physicalDetails.gender === 'male' && isNSFW) {
+      finalPrompt += `${physicalDetails.penis}, `;
+      console.log(`🍆 Pénis: ${physicalDetails.penis}`);
+    }
+    
+    // 10. === FESSES / HANCHES / CUISSES ===
+    if (physicalDetails.butt) {
+      finalPrompt += `${physicalDetails.butt}, `;
+    }
+    if (physicalDetails.hips) {
+      finalPrompt += `${physicalDetails.hips}, `;
+    }
+    if (physicalDetails.thighs) {
+      finalPrompt += `${physicalDetails.thighs}, `;
+    }
+    
+    // 11. === VENTRE ===
+    if (physicalDetails.belly) {
+      finalPrompt += `${physicalDetails.belly}, `;
+    }
+    
+    // 12. Style et qualité
+    if (isAnime) {
+      finalPrompt += 'anime art style, masterpiece, best quality, ';
+    } else if (isRealistic) {
+      finalPrompt += 'photorealistic, professional photo, 8K quality, ';
+    } else {
+      finalPrompt += 'high quality, detailed, ';
+    }
+    
+    // 13. Anatomie
     finalPrompt += 'perfect anatomy, single person, solo, ';
     
-    // 6. Contenu principal (le prompt original nettoyé)
-    finalPrompt += cleanPrompt + ', ';
-    
-    // 7. RÉPÉTER LE GENRE À LA FIN pour renforcement
-    if (detectedGender === 'male') {
-      finalPrompt += 'male, man, masculine, ';
-    } else if (detectedGender === 'female') {
-      finalPrompt += 'female, woman, feminine, ';
-    }
-    
-    // 8. RÉPÉTER LA MORPHOLOGIE À LA FIN pour renforcement
-    if (hasCurvyBody) {
-      finalPrompt += morphologyKeywords[0] + ', ';
-    }
-    
-    // 9. Mode SFW/NSFW - v5.3.54 TOUJOURS CORPS ENTIER + POSITIONS ET TENUES VARIÉES
+    // 14. Mode NSFW
     if (isNSFW) {
-      console.log(`🔞 MODE NSFW - Niveau ${nsfwLevel}`);
-      
-      // ⚠️ v5.3.54 - FORCER CORPS ENTIER EN PREMIER (toujours voir la tête ET les pieds)
-      finalPrompt += 'FULL BODY SHOT showing entire character from head to feet, complete body visible, not cropped, not cut off, ';
-      
-      // POSITIONS NSFW VARIÉES (toutes avec corps entier)
+      // Position
       const nsfwPositions = [
-        'standing full body, hand on hip, entire figure visible',
-        'lying on bed full body view, legs visible, entire body shown',
-        'on all fours, rear view, full body from head to feet',
-        'kneeling full body, entire figure visible from top to bottom',
-        'bent over full body shot, showing complete figure',
-        'sitting full body, legs and feet visible',
-        'lying on stomach full body, feet up, entire body visible',
-        'standing by window full body, silhouette showing complete figure',
-        'finger in mouth, standing full body pose',
-        'lying on back full body, legs up, entire figure visible',
-        'on knees full body shot, complete figure',
-        'straddling position full body, entire figure shown',
+        'standing full body, confident pose',
+        'lying on bed, full body visible',
+        'kneeling, entire figure shown',
+        'sitting, legs and body visible',
       ];
-      const randomPos = nsfwPositions[Math.floor(Math.random() * nsfwPositions.length)];
-      finalPrompt += randomPos + ', ';
+      finalPrompt += nsfwPositions[Math.floor(Math.random() * nsfwPositions.length)] + ', ';
       
-      // TENUES SELON NIVEAU
+      // Tenue selon niveau
       if (nsfwLevel >= 5) {
-        // Nue
-        const nudeStyles = [
-          'completely nude full body, fully naked, nothing on',
-          'nude body visible entirely, naked, full exposure',
-          'naked full figure, nude, bare skin everywhere',
-        ];
-        finalPrompt += nudeStyles[Math.floor(Math.random() * nudeStyles.length)] + ', ';
+        finalPrompt += 'completely nude, naked, ';
       } else if (nsfwLevel >= 4) {
-        // Topless
-        const toplessStyles = [
-          'topless full body, bare breasts, wearing only panties',
-          'naked from waist up full figure, breasts exposed',
-          'topless full body shot, open shirt, breasts showing',
-        ];
-        finalPrompt += toplessStyles[Math.floor(Math.random() * toplessStyles.length)] + ', ';
+        finalPrompt += 'topless, bare breasts, ';
       } else if (nsfwLevel >= 3) {
-        // Lingerie
-        const lingerieStyles = [
-          'sexy lace lingerie full body, matching bra and panties',
-          'sheer babydoll nightgown full figure, see-through',
-          'black mesh bodysuit full body, revealing',
-          'garter belt with stockings full body, sexy underwear',
-          'red lace thong and push-up bra full body shot',
-        ];
-        finalPrompt += lingerieStyles[Math.floor(Math.random() * lingerieStyles.length)] + ', ';
+        finalPrompt += 'sexy lingerie, ';
       } else {
-        // Sexy mais couvert
-        const sexyStyles = [
-          'tight miniskirt full body, low-cut top, cleavage',
-          'short dress full figure, legs showing, seductive',
-          'revealing outfit full body shot, attractive, provocative',
-        ];
-        finalPrompt += sexyStyles[Math.floor(Math.random() * sexyStyles.length)] + ', ';
+        finalPrompt += 'revealing outfit, ';
       }
       
-      // ⚠️ v5.3.54 - ANGLES DE VUE (TOUJOURS CORPS ENTIER - PAS DE CLOSE-UP)
-      const nsfwViews = [
-        'full body frontal view from head to toe',
-        'full body shot from slightly above, entire figure visible',
-        'full body back view, showing entire back from head to feet',
-        'full body side profile, complete figure visible',
-        'full body three-quarter view, entire person shown',
-        'full body slightly low angle, powerful pose, complete figure',
-      ];
-      const randomView = nsfwViews[Math.floor(Math.random() * nsfwViews.length)];
-      finalPrompt += randomView + ', sensual, erotic, adult content, NOT cropped, NOT zoomed in';
-      
+      finalPrompt += 'sensual, erotic';
     } else {
-      finalPrompt += 'full body shot, elegant, stylish, attractive, tasteful, complete figure visible';
+      finalPrompt += 'elegant pose, attractive, tasteful';
     }
     
-    // Limiter la longueur
-    const shortPrompt = finalPrompt.substring(0, 1200);
+    // 15. === RÉPÉTER LES DÉTAILS IMPORTANTS À LA FIN (renforcement) ===
+    if (physicalDetails.hairColor) {
+      finalPrompt += `, ${physicalDetails.hairColor} hair`;
+    }
+    if (physicalDetails.bodyType) {
+      finalPrompt += `, ${physicalDetails.bodyType}`;
+    }
+    if (physicalDetails.bust && physicalDetails.gender === 'female') {
+      finalPrompt += `, ${physicalDetails.bust}`;
+    }
+    
+    // v5.3.56 - Limite augmentée à 1800 caractères pour inclure tous les détails
+    const shortPrompt = finalPrompt.substring(0, 1800);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // Utiliser flux pour meilleure qualité
-    // v5.3.52 - Ratio 9:16 pour smartphones (576x1024)
+    // Ratio 9:16
     const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
     
-    console.log(`🔗 URL Pollinations (seed: ${seed}, NSFW: ${nsfwLevel}, Genre: ${detectedGender})`);
-    console.log(`📝 Prompt FINAL (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
+    console.log(`🔗 URL Pollinations (seed: ${seed}, NSFW: ${nsfwLevel})`);
+    console.log(`📝 Prompt FINAL (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
     
     return imageUrl;
+  }
+  
+  /**
+   * v5.3.56 - Extrait TOUS les détails physiques d'un prompt
+   */
+  extractAllPhysicalDetails(prompt) {
+    const lower = prompt.toLowerCase();
+    const details = {
+      gender: null,
+      age: null,
+      hairColor: null,
+      hairLength: null,
+      eyeColor: null,
+      skinTone: null,
+      height: null,
+      bodyType: null,
+      bust: null,
+      penis: null,
+      butt: null,
+      hips: null,
+      thighs: null,
+      belly: null,
+    };
+    
+    // === GENRE ===
+    if (lower.includes('woman') || lower.includes('female') || lower.includes('femme') || lower.includes('girl')) {
+      details.gender = 'female';
+    } else if (lower.includes('man ') || lower.includes('male') || lower.includes('homme') || lower.includes('boy')) {
+      details.gender = 'male';
+    }
+    
+    // === ÂGE ===
+    const ageMatch = prompt.match(/(\d{2})\s*(ans|years?\s*old|yo)/i);
+    if (ageMatch) {
+      details.age = parseInt(ageMatch[1]);
+    }
+    
+    // === CHEVEUX - COULEUR ===
+    const hairColors = {
+      'black hair': 'black', 'noir': 'black', 'noirs': 'black',
+      'brown hair': 'brown', 'brun': 'brown', 'châtain': 'chestnut brown',
+      'blonde': 'blonde', 'blond': 'blonde', 'blonds': 'blonde',
+      'red hair': 'red', 'roux': 'red ginger', 'rousse': 'red ginger', 'auburn': 'auburn',
+      'white hair': 'white', 'blanc': 'white', 'silver': 'silver', 'argenté': 'silver',
+      'pink hair': 'pink', 'rose': 'pink',
+      'blue hair': 'blue', 'bleu': 'blue',
+      'green hair': 'green', 'vert': 'green',
+      'purple hair': 'purple', 'violet': 'purple',
+    };
+    for (const [key, value] of Object.entries(hairColors)) {
+      if (lower.includes(key)) {
+        details.hairColor = value;
+        break;
+      }
+    }
+    
+    // === CHEVEUX - LONGUEUR ===
+    const hairLengths = {
+      'very long hair': 'very long', 'très longs': 'very long', 'waist-length': 'very long flowing',
+      'long hair': 'long', 'longs': 'long',
+      'medium hair': 'medium length', 'mi-longs': 'medium length', 'shoulder': 'shoulder-length',
+      'short hair': 'short', 'courts': 'short', 'très courts': 'very short',
+    };
+    for (const [key, value] of Object.entries(hairLengths)) {
+      if (lower.includes(key)) {
+        details.hairLength = value;
+        break;
+      }
+    }
+    
+    // === YEUX ===
+    const eyeColors = {
+      'blue eyes': 'blue', 'bleu': 'blue', 'yeux bleus': 'blue',
+      'green eyes': 'green', 'vert': 'green', 'yeux verts': 'green',
+      'brown eyes': 'brown', 'marron': 'brown', 'yeux marrons': 'brown', 'noisette': 'hazel',
+      'black eyes': 'black', 'noir': 'black',
+      'amber eyes': 'amber', 'ambre': 'amber',
+      'red eyes': 'red', 'rouge': 'red',
+      'violet eyes': 'violet', 'purple': 'purple',
+      'golden eyes': 'golden', 'doré': 'golden',
+    };
+    for (const [key, value] of Object.entries(eyeColors)) {
+      if (lower.includes(key)) {
+        details.eyeColor = value;
+        break;
+      }
+    }
+    
+    // === PEAU ===
+    const skinTones = {
+      'pale skin': 'pale fair', 'très claire': 'very pale fair', 'claire': 'fair light',
+      'fair skin': 'fair', 'light skin': 'light',
+      'tan skin': 'tanned', 'bronzée': 'tanned golden', 'mate': 'olive tan',
+      'dark skin': 'dark', 'ébène': 'dark ebony', 'caramel': 'caramel brown',
+      'olive skin': 'olive',
+    };
+    for (const [key, value] of Object.entries(skinTones)) {
+      if (lower.includes(key)) {
+        details.skinTone = value;
+        break;
+      }
+    }
+    
+    // === TAILLE ===
+    const heightMatch = prompt.match(/(\d{3})\s*cm/i);
+    if (heightMatch) {
+      const h = parseInt(heightMatch[1]);
+      if (h < 155) details.height = 'petite short';
+      else if (h < 165) details.height = 'average height';
+      else if (h < 175) details.height = 'tall';
+      else details.height = 'very tall';
+    } else if (lower.includes('petite') || lower.includes('small height')) {
+      details.height = 'petite short';
+    } else if (lower.includes('tall') || lower.includes('grande')) {
+      details.height = 'tall';
+    }
+    
+    // === MORPHOLOGIE ===
+    const bodyTypes = {
+      'slim': 'slim slender body', 'mince': 'slim slender body', 'slender': 'slender elegant body',
+      'athletic': 'athletic toned body', 'athlétique': 'athletic muscular body',
+      'curvy': 'curvy body with nice curves', 'voluptueuse': 'curvy body with curves',
+      'chubby': 'chubby soft body', 'ronde': 'soft curvy body with small belly',
+      'thick': 'thick curvy body', 'généreuse': 'curvy body with soft curves',
+      'muscular': 'muscular toned body', 'musclé': 'muscular strong body',
+      'petite body': 'petite small body', 'average body': 'average body',
+    };
+    for (const [key, value] of Object.entries(bodyTypes)) {
+      if (lower.includes(key)) {
+        details.bodyType = value;
+        break;
+      }
+    }
+    
+    // === POITRINE ===
+    const bustSizes = {
+      'a-cup': 'small A-cup breasts, petite bust', 'a cup': 'small A-cup breasts',
+      'b-cup': 'small B-cup breasts, modest bust', 'b cup': 'small B-cup breasts',
+      'c-cup': 'medium C-cup breasts, average bust', 'c cup': 'medium C-cup breasts',
+      'd-cup': 'full D-cup breasts, nice bust', 'd cup': 'full D-cup breasts, large bust',
+      'dd-cup': 'large DD-cup breasts, big bust', 'dd cup': 'large DD-cup breasts',
+      'e-cup': 'big E-cup breasts, large bust', 'e cup': 'big E-cup breasts',
+      'f-cup': 'huge F-cup breasts, very large bust', 'f cup': 'huge F-cup breasts',
+      'g-cup': 'massive G-cup breasts, enormous bust', 'g cup': 'massive G-cup breasts',
+      'big breasts': 'big breasts, large bust', 'large breasts': 'large breasts, big bust',
+      'small breasts': 'small breasts, petite bust', 'flat chest': 'flat chest, small breasts',
+      'huge breasts': 'huge breasts, massive bust', 'enormous breasts': 'enormous massive breasts',
+      'grosse poitrine': 'big breasts, large bust', 'petite poitrine': 'small breasts, petite bust',
+    };
+    for (const [key, value] of Object.entries(bustSizes)) {
+      if (lower.includes(key)) {
+        details.bust = value;
+        break;
+      }
+    }
+    
+    // === PÉNIS ===
+    const penisMatch = prompt.match(/(\d{1,2})\s*cm.*p[ée]nis/i) || prompt.match(/p[ée]nis.*(\d{1,2})\s*cm/i);
+    if (penisMatch) {
+      const size = parseInt(penisMatch[1]);
+      if (size < 12) details.penis = 'small penis';
+      else if (size < 16) details.penis = 'average penis';
+      else if (size < 20) details.penis = 'big penis, large cock';
+      else details.penis = 'huge penis, massive cock';
+    } else if (lower.includes('big penis') || lower.includes('gros pénis')) {
+      details.penis = 'big penis, large cock';
+    } else if (lower.includes('huge penis') || lower.includes('énorme pénis')) {
+      details.penis = 'huge penis, massive cock';
+    }
+    
+    // === FESSES ===
+    if (lower.includes('big butt') || lower.includes('grosses fesses') || lower.includes('large butt')) {
+      details.butt = 'big round butt, large ass';
+    } else if (lower.includes('bubble butt') || lower.includes('fesses rebondies')) {
+      details.butt = 'round bubble butt';
+    }
+    
+    // === HANCHES ===
+    if (lower.includes('wide hips') || lower.includes('hanches larges')) {
+      details.hips = 'wide hips';
+    }
+    
+    // === CUISSES ===
+    if (lower.includes('thick thighs') || lower.includes('cuisses épaisses')) {
+      details.thighs = 'thick thighs';
+    }
+    
+    // === VENTRE ===
+    if (lower.includes('flat stomach') || lower.includes('ventre plat')) {
+      details.belly = 'flat toned stomach';
+    } else if (lower.includes('soft belly') || lower.includes('petit ventre') || lower.includes('small belly')) {
+      details.belly = 'soft small belly';
+    }
+    
+    return details;
   }
   
   /**
