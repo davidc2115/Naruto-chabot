@@ -3913,18 +3913,79 @@ class ImageGenerationService {
       finalPrompt += morphologyKeywords[0] + ', ';
     }
     
-    // 9. Mode SFW/NSFW
+    // 9. Mode SFW/NSFW - v5.3.53 POSITIONS ET TENUES VARIÉES
     if (isNSFW) {
       console.log(`🔞 MODE NSFW - Niveau ${nsfwLevel}`);
-      if (nsfwLevel >= 4) {
-        finalPrompt += 'nude, naked body, sensual';
+      
+      // POSITIONS NSFW VARIÉES
+      const nsfwPositions = [
+        'standing nude full body, hand on hip',
+        'lying on bed, legs spread, inviting pose',
+        'on all fours, rear view, arched back',
+        'kneeling on bed, looking up seductively',
+        'bent over, showing butt, looking back',
+        'sitting with legs open, topless',
+        'lying on stomach, butt raised',
+        'standing by window, nude silhouette',
+        'finger in mouth, teasing pose',
+        'lying on back, legs up, intimate view',
+        'on knees, submissive pose',
+        'straddling position, dominant',
+      ];
+      const randomPos = nsfwPositions[Math.floor(Math.random() * nsfwPositions.length)];
+      finalPrompt += randomPos + ', ';
+      
+      // TENUES SELON NIVEAU
+      if (nsfwLevel >= 5) {
+        // Nue
+        const nudeStyles = [
+          'completely nude, fully naked, nothing on',
+          'nude body, naked, full exposure',
+          'naked, nude, bare skin everywhere',
+        ];
+        finalPrompt += nudeStyles[Math.floor(Math.random() * nudeStyles.length)] + ', ';
+      } else if (nsfwLevel >= 4) {
+        // Topless
+        const toplessStyles = [
+          'topless, bare breasts, nipples visible, wearing only panties',
+          'naked from waist up, breasts exposed, bottomwear only',
+          'topless, open shirt, breasts showing',
+        ];
+        finalPrompt += toplessStyles[Math.floor(Math.random() * toplessStyles.length)] + ', ';
       } else if (nsfwLevel >= 3) {
-        finalPrompt += 'lingerie, underwear, sexy';
+        // Lingerie
+        const lingerieStyles = [
+          'sexy lace lingerie, matching bra and panties',
+          'sheer babydoll nightgown, see-through',
+          'black mesh bodysuit, revealing',
+          'garter belt with stockings, sexy underwear',
+          'red lace thong and push-up bra',
+        ];
+        finalPrompt += lingerieStyles[Math.floor(Math.random() * lingerieStyles.length)] + ', ';
       } else {
-        finalPrompt += 'revealing outfit, attractive';
+        // Sexy mais couvert
+        const sexyStyles = [
+          'tight miniskirt, low-cut top, cleavage',
+          'short dress, legs showing, seductive',
+          'revealing outfit, attractive, provocative',
+        ];
+        finalPrompt += sexyStyles[Math.floor(Math.random() * sexyStyles.length)] + ', ';
       }
+      
+      // VUES VARIÉES
+      const nsfwViews = [
+        'full body shot',
+        'view from above, looking down',
+        'plunging view on cleavage',
+        'back view, butt visible',
+        'side profile, curves emphasized',
+        'close-up upper body, breasts prominent',
+      ];
+      const randomView = nsfwViews[Math.floor(Math.random() * nsfwViews.length)];
+      finalPrompt += randomView + ', sensual, erotic, adult content';
+      
     } else {
-      finalPrompt += 'elegant, stylish, attractive';
+      finalPrompt += 'elegant, stylish, attractive, tasteful';
     }
     
     // Limiter la longueur
