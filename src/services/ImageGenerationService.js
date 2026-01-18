@@ -2217,6 +2217,9 @@ class ImageGenerationService {
 
     console.log(`✨ Génération image PROFIL (SFW) pour ${character.name}`);
 
+    // v5.3.67 - Obtenir le profil physique prioritaire (PERSISTANT)
+    const priorityPhysicalPrompt = this.buildPriorityPhysicalPrompt(character);
+    
     // Choisir le style (anime ou réaliste)
     const { style, isRealistic } = this.getRandomStyle();
     
@@ -2225,6 +2228,12 @@ class ImageGenerationService {
     
     // v5.3.59 - COMMENCER PAR FULL BODY + STYLE
     let prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
+    
+    // === v5.3.67 - PROFIL PHYSIQUE PRIORITAIRE EN PREMIER (persistant) ===
+    if (priorityPhysicalPrompt) {
+      prompt += ', ' + priorityPhysicalPrompt;
+      console.log('✅ Profil physique prioritaire ajouté (generateCharacterImage)');
+    }
     
     // === v5.3.59 - MORPHOLOGIE EN PREMIER POUR EMPHASE MAXIMALE (comme v5.3.34) ===
     if (physicalDetails.body.type) {
@@ -3133,6 +3142,9 @@ class ImageGenerationService {
     
     console.log(`🖼️ Génération image niveau ${level} - ${isNSFW ? '🔞 NSFW' : '✨ SFW'}`);
 
+    // v5.3.67 - Obtenir le profil physique prioritaire (PERSISTANT)
+    const priorityPhysicalPrompt = this.buildPriorityPhysicalPrompt(character);
+
     // Choisir le style
     const { style, isRealistic } = this.getRandomStyle();
     
@@ -3145,6 +3157,12 @@ class ImageGenerationService {
     
     // v5.3.59 - COMMENCER PAR "FULL BODY SHOT" + STYLE
     let prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
+    
+    // === v5.3.67 - PROFIL PHYSIQUE PRIORITAIRE EN PREMIER (persistant) ===
+    if (priorityPhysicalPrompt) {
+      prompt += ', ' + priorityPhysicalPrompt;
+      console.log('✅ Profil physique prioritaire ajouté (generateSceneImage)');
+    }
     
     // === v5.3.59 - MORPHOLOGIE EN PREMIER POUR EMPHASE MAXIMALE (comme v5.3.34) ===
     const physicalDetailsScene = this.parsePhysicalDescription(character);
@@ -4044,19 +4062,28 @@ class ImageGenerationService {
       return imageUrl;
     }
     
-    // === FALLBACK: Extraire les détails physiques ===
+    // === v5.3.67 - UTILISER LE PROFIL PHYSIQUE PRIORITAIRE (PERSISTANT) ===
     let physicalDetails;
+    let priorityPhysicalPrompt = '';
+    
     if (character) {
-      console.log('📋 Utilisation données CHARACTER (sans imagePrompt)');
+      console.log('📋 Utilisation données CHARACTER avec profil prioritaire');
       physicalDetails = this.extractPhysicalDetailsFromCharacter(character);
+      priorityPhysicalPrompt = this.buildPriorityPhysicalPrompt(character);
     } else {
-      console.log('📋 Extraction depuis le prompt texte');
+      console.log('📋 Extraction depuis le prompt texte (pas de cache)');
       physicalDetails = this.extractAllPhysicalDetails(prompt);
     }
     console.log('📋 Détails physiques:', JSON.stringify(physicalDetails).substring(0, 300));
     
     // 1. FULL BODY SHOT EN PREMIER
     finalPrompt += 'FULL BODY SHOT from head to feet, complete figure visible, ';
+    
+    // 2. v5.3.67 - PROFIL PHYSIQUE PRIORITAIRE (s'il existe)
+    if (priorityPhysicalPrompt) {
+      finalPrompt += priorityPhysicalPrompt + ', ';
+      console.log('✅ Profil physique prioritaire ajouté EN PREMIER');
+    }
     
     // 2. v5.3.61 - GENRE + ÂGE (avec support NON-BINAIRE)
     const gender = physicalDetails.gender || (character ? character.gender : null);
@@ -4267,8 +4294,163 @@ class ImageGenerationService {
   }
   
   /**
+   * v5.3.67 - CACHE des profils physiques pour persistance
+   * Garantit que le même personnage a toujours la même apparence
+   */
+  physicalProfileCache = {};
+  
+  /**
+   * v5.3.67 - Génère une clé unique pour un personnage basée sur ses attributs physiques
+   */
+  getCharacterPhysicalKey(character) {
+    if (!character) return 'unknown';
+    const parts = [
+      character.id || character.name || 'anon',
+      character.gender || '',
+      character.bodyType || '',
+      character.bust || '',
+      character.hairColor || '',
+      character.eyeColor || '',
+    ];
+    return parts.join('_').toLowerCase().replace(/\s+/g, '_');
+  }
+  
+  /**
+   * v5.3.67 - Construit le PROMPT PHYSIQUE COMPLET en PRIORITÉ ABSOLUE
+   * Ce prompt est placé EN PREMIER dans toutes les générations d'images
+   * Inclut: taille, poids, morphologie, bras, jambes, ventre, visage, cheveux, yeux, corps
+   */
+  buildPriorityPhysicalPrompt(character) {
+    if (!character) return '';
+    
+    // Vérifier le cache pour persistance
+    const cacheKey = this.getCharacterPhysicalKey(character);
+    if (this.physicalProfileCache[cacheKey]) {
+      console.log(`💾 Profil physique en cache pour: ${cacheKey}`);
+      return this.physicalProfileCache[cacheKey];
+    }
+    
+    const parts = [];
+    const physicalDetails = this.extractPhysicalDetailsFromCharacter(character);
+    
+    // === 1. GENRE (OBLIGATOIRE EN PREMIER) ===
+    if (physicalDetails.gender === 'female') {
+      parts.push('beautiful woman, female');
+    } else if (physicalDetails.gender === 'male') {
+      parts.push('handsome man, male');
+    } else if (physicalDetails.gender === 'non-binary') {
+      parts.push('androgynous person, non-binary');
+    }
+    
+    // === 2. ÂGE ===
+    if (physicalDetails.age) {
+      parts.push(`${physicalDetails.age} years old`);
+    }
+    
+    // === 3. MORPHOLOGIE / CORPS (TRÈS HAUTE PRIORITÉ) ===
+    if (physicalDetails.bodyType) {
+      parts.push(physicalDetails.bodyType);
+      // Répéter pour emphase
+      if (physicalDetails.bodyCategory) {
+        if (physicalDetails.bodyCategory === 'bbw_big_belly') {
+          parts.push('BBW body, BIG FAT ROUND BELLY visible, fat chubby body');
+        } else if (physicalDetails.bodyCategory === 'chubby_small_belly') {
+          parts.push('plump body, small soft belly, chubby soft body');
+        } else if (physicalDetails.bodyCategory === 'curvy_no_belly') {
+          parts.push('curvy hourglass, FLAT STOMACH, slim waist');
+        }
+      }
+    }
+    
+    // === 4. POITRINE (femmes) ===
+    if (physicalDetails.bust && physicalDetails.gender === 'female') {
+      parts.push(physicalDetails.bust);
+    }
+    
+    // === 5. PÉNIS (hommes, NSFW) ===
+    if (physicalDetails.penis && physicalDetails.gender === 'male') {
+      parts.push(physicalDetails.penis);
+    }
+    
+    // === 6. VENTRE (spécifique) ===
+    if (physicalDetails.belly) {
+      parts.push(physicalDetails.belly);
+    }
+    
+    // === 7. FESSES ===
+    if (physicalDetails.butt) {
+      parts.push(physicalDetails.butt);
+    }
+    
+    // === 8. HANCHES ===
+    if (physicalDetails.hips) {
+      parts.push(physicalDetails.hips);
+    }
+    
+    // === 9. CUISSES ===
+    if (physicalDetails.thighs) {
+      parts.push(physicalDetails.thighs);
+    }
+    
+    // === 10. BRAS ===
+    if (physicalDetails.arms) {
+      parts.push(physicalDetails.arms);
+    }
+    
+    // === 11. TAILLE / HAUTEUR ===
+    if (physicalDetails.height) {
+      parts.push(physicalDetails.height);
+    }
+    
+    // === 12. POIDS (si spécifié) ===
+    if (physicalDetails.weight) {
+      parts.push(physicalDetails.weight);
+    }
+    
+    // === 13. VISAGE ===
+    if (physicalDetails.faceShape) {
+      parts.push(physicalDetails.faceShape);
+    }
+    
+    // === 14. CHEVEUX - COULEUR ===
+    if (physicalDetails.hairColor) {
+      parts.push(`${physicalDetails.hairColor} hair`);
+    }
+    
+    // === 15. CHEVEUX - LONGUEUR ===
+    if (physicalDetails.hairLength) {
+      parts.push(`${physicalDetails.hairLength} hair`);
+    }
+    
+    // === 16. CHEVEUX - STYLE ===
+    if (physicalDetails.hairStyle) {
+      parts.push(`${physicalDetails.hairStyle} hair`);
+    }
+    
+    // === 17. YEUX ===
+    if (physicalDetails.eyeColor) {
+      parts.push(`${physicalDetails.eyeColor} eyes`);
+    }
+    
+    // === 18. PEAU ===
+    if (physicalDetails.skinTone) {
+      parts.push(`${physicalDetails.skinTone} skin`);
+    }
+    
+    // Construire le prompt final
+    const priorityPrompt = parts.join(', ');
+    
+    // Mettre en cache pour persistance
+    this.physicalProfileCache[cacheKey] = priorityPrompt;
+    console.log(`✅ Profil physique créé et mis en cache: ${cacheKey}`);
+    console.log(`📋 Profil: ${priorityPrompt.substring(0, 200)}...`);
+    
+    return priorityPrompt;
+  }
+  
+  /**
    * v5.3.60 - Extrait TOUS les détails physiques de l'objet character
-   * Parse COMPLÈTEMENT physicalDescription pour les formes, rondeurs, poitrine, pénis
+   * v5.3.67 - Amélioré avec bras, jambes, visage, poids, style cheveux
    */
   extractPhysicalDetailsFromCharacter(character) {
     const details = {
@@ -4276,16 +4458,21 @@ class ImageGenerationService {
       age: null,
       hairColor: null,
       hairLength: null,
+      hairStyle: null,  // v5.3.67
       eyeColor: null,
       skinTone: null,
       height: null,
+      weight: null,     // v5.3.67
       bodyType: null,
+      bodyCategory: null, // v5.3.66
       bust: null,
       penis: null,
       butt: null,
       hips: null,
       thighs: null,
       belly: null,
+      arms: null,       // v5.3.67
+      faceShape: null,  // v5.3.67
     };
     
     if (!character) return details;
@@ -4691,6 +4878,84 @@ class ImageGenerationService {
         details.belly = 'soft slight belly';
       }
     }
+    
+    // === v5.3.67 - BRAS ===
+    const armPatterns = {
+      'gros bras|fat arms|bras potelés|chubby arms': 'chubby fat arms, soft arms',
+      'bras fins|slim arms|thin arms': 'slim thin arms',
+      'bras musclés|muscular arms|toned arms': 'muscular toned arms',
+      'bras doux|soft arms': 'soft plump arms',
+    };
+    for (const [pattern, value] of Object.entries(armPatterns)) {
+      if (new RegExp(pattern, 'i').test(fullText)) { details.arms = value; break; }
+    }
+    // Auto-détection selon morphologie
+    if (!details.arms && details.bodyCategory) {
+      if (details.bodyCategory === 'bbw_big_belly') {
+        details.arms = 'fat chubby arms';
+      } else if (details.bodyCategory === 'chubby_small_belly') {
+        details.arms = 'soft chubby arms';
+      } else if (details.bodyCategory === 'curvy_no_belly') {
+        details.arms = 'soft arms';
+      } else if (details.bodyCategory === 'athletic') {
+        details.arms = 'toned muscular arms';
+      } else if (details.bodyCategory === 'slim') {
+        details.arms = 'slim thin arms';
+      }
+    }
+    
+    // === v5.3.67 - VISAGE ===
+    const facePatterns = {
+      'visage rond|round face|joues rondes|chubby face': 'round chubby face, soft cheeks',
+      'visage fin|thin face|narrow face': 'thin narrow face, defined cheekbones',
+      'visage carré|square face|mâchoire carrée': 'square face, strong jaw',
+      'visage ovale|oval face': 'oval face, balanced features',
+      'visage doux|soft face|sweet face': 'soft sweet face, gentle features',
+      'visage angulaire|angular face': 'angular face, sharp features',
+      'double menton|double chin': 'double chin, chubby face',
+    };
+    for (const [pattern, value] of Object.entries(facePatterns)) {
+      if (new RegExp(pattern, 'i').test(fullText)) { details.faceShape = value; break; }
+    }
+    // Auto-détection selon morphologie
+    if (!details.faceShape && details.bodyCategory) {
+      if (details.bodyCategory === 'bbw_big_belly') {
+        details.faceShape = 'round chubby face, double chin';
+      } else if (details.bodyCategory === 'chubby_small_belly') {
+        details.faceShape = 'round soft face, chubby cheeks';
+      }
+    }
+    
+    // === v5.3.67 - POIDS ===
+    const weightMatch = fullText.match(/(\d{2,3})\s*kg/i);
+    if (weightMatch) {
+      const weight = parseInt(weightMatch[1]);
+      if (weight < 50) details.weight = 'very light weight (under 50kg)';
+      else if (weight < 60) details.weight = 'slim weight (50-60kg)';
+      else if (weight < 70) details.weight = 'average weight (60-70kg)';
+      else if (weight < 85) details.weight = 'curvy weight (70-85kg)';
+      else if (weight < 100) details.weight = 'plump weight (85-100kg), chubby';
+      else details.weight = 'heavy weight (100kg+), BBW, very chubby';
+      console.log(`⚖️ POIDS: ${weight}kg -> ${details.weight}`);
+    }
+    
+    // === v5.3.67 - STYLE CHEVEUX ===
+    const hairStylePatterns = {
+      'cheveux bouclés|curly hair|boucles': 'curly hair, bouncy curls',
+      'cheveux raides|straight hair|lisses': 'straight sleek hair',
+      'cheveux ondulés|wavy hair|ondulations': 'wavy flowing hair',
+      'cheveux crépus|kinky hair|afro': 'kinky afro hair',
+      'queue de cheval|ponytail': 'ponytail hairstyle',
+      'chignon|bun': 'hair in bun',
+      'tresse|braid|nattes': 'braided hair',
+      'cheveux attachés|tied hair': 'tied up hair',
+      'cheveux lâchés|loose hair': 'loose flowing hair',
+    };
+    for (const [pattern, value] of Object.entries(hairStylePatterns)) {
+      if (new RegExp(pattern, 'i').test(fullText)) { details.hairStyle = value; break; }
+    }
+    
+    console.log(`📋 DÉTAILS PHYSIQUES COMPLETS: genre=${details.gender}, age=${details.age}, morpho=${details.bodyCategory}, cheveux=${details.hairColor}/${details.hairLength}, yeux=${details.eyeColor}, peau=${details.skinTone}`);
     
     return details;
   }
