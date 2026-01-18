@@ -674,18 +674,24 @@ class ImageGenerationService {
   getShortBodyType(bodyType) {
     if (!bodyType) return '';
     const lower = bodyType.toLowerCase();
-    // === TRÈS RONDE = GROS ventre ===
-    if (lower.includes('bbw') || lower.includes('très rond') || lower.includes('very fat')) return 'BBW fat body, big belly';
-    // === RONDE = LÉGER ventre ===
-    if (lower.includes('chubby') || lower.includes('plump') || lower.includes('ronde') || lower.includes('potelé')) return 'plump soft, small belly';
-    if (lower.includes('enrobé')) return 'plump soft, small belly';
-    // === VOLUPTUEUSE/PULPEUSE = SANS ventre ===
-    if (lower.includes('generous') || lower.includes('généreus')) return 'generous curves, flat stomach';
-    if (lower.includes('voluptuous') || lower.includes('voluptue') || lower.includes('bombshell')) return 'voluptuous curvy, flat stomach';
-    if (lower.includes('pulpeu') || lower.includes('thick curvy')) return 'thick curvy, flat stomach';
-    if (lower.includes('plantureu') || lower.includes('buxom')) return 'buxom curvy, flat stomach';
-    if (lower.includes('curvy') || lower.includes('hourglass')) return 'curvy, flat stomach';
-    if (lower.includes('thick')) return 'thick curvy, flat stomach';
+    // === v5.3.66 - Renvoie description COURTE avec info ventre ===
+    // TRÈS RONDE = GROS ventre
+    if (lower.includes('bbw') || lower.includes('très rond') || lower.includes('very fat') || lower.includes('big belly') || lower.includes('huge belly')) {
+      return 'BBW fat, BIG BELLY visible';
+    }
+    // RONDE = LÉGER ventre
+    if (lower.includes('chubby') || lower.includes('plump') || lower.includes('ronde') || lower.includes('potelé') || 
+        lower.includes('enrobé') || lower.includes('small belly') || lower.includes('soft belly')) {
+      return 'plump soft, small belly';
+    }
+    // VOLUPTUEUSE/PULPEUSE = SANS ventre
+    if (lower.includes('voluptuous') || lower.includes('voluptue') || lower.includes('generous') || lower.includes('généreus') ||
+        lower.includes('pulpeu') || lower.includes('plantureu') || lower.includes('buxom') || lower.includes('bombshell')) {
+      return 'curvy hourglass, FLAT STOMACH';
+    }
+    if (lower.includes('curvy') || lower.includes('hourglass') || lower.includes('thick')) {
+      return 'curvy, flat stomach';
+    }
     // Autres
     if (lower.includes('maternal') || lower.includes('milf')) return 'mature curvy, small belly';
     if (lower.includes('athletic') || lower.includes('toned')) return 'athletic, flat stomach';
@@ -2382,26 +2388,36 @@ class ImageGenerationService {
       }
     }
     
-    // === v5.3.59 - EXCLUSIONS MORPHOLOGIQUES (comme v5.3.34) ===
+    // === v5.3.66 - EXCLUSIONS MORPHOLOGIQUES avec CATÉGORIE ===
+    // Déterminer la catégorie depuis le bodyType ou le character
+    let charCategory = 'unknown';
     const bodyType = (physicalDetails.body.type || character.bodyType || '').toLowerCase();
-    if (bodyType.includes('bbw') || bodyType.includes('chubby') || bodyType.includes('plump') ||
-        bodyType.includes('generous') || bodyType.includes('voluptuous') || bodyType.includes('curvy') ||
-        bodyType.includes('thick') || bodyType.includes('round') || bodyType.includes('ronde') ||
-        bodyType.includes('généreus') || bodyType.includes('pulpeu') || bodyType.includes('enrobé') ||
-        bodyType.includes('potelé') || bodyType.includes('plantureu')) {
-      // v5.3.64 - RENFORCEMENT selon le type exact
-      const bt = bodyType.toLowerCase();
-      if (bt.includes('très rond') || bt.includes('bbw')) {
-        prompt += ', BBW fat body, BIG FAT BELLY, fat arms, fat thighs, huge butt, NOT thin, NOT skinny';
-        console.log('🔴 RENFORCEMENT: TRÈS RONDE (gros ventre)');
-      } else if (bt.includes('ronde') || bt.includes('potelé') || bt.includes('enrobé') || bt.includes('chubby') || bt.includes('plump')) {
-        prompt += ', soft plump body, SMALL SOFT BELLY, chubby arms, thick thighs, big butt, NOT thin, NOT skinny';
-        console.log('🔴 RENFORCEMENT: RONDE (léger ventre)');
-      } else {
-        // Voluptueuse/Pulpeuse/Généreuse = SANS ventre
-        prompt += ', curvy hourglass body, FLAT STOMACH, slim waist, wide hips, big butt, NOT fat belly, NOT chubby';
-        console.log('🔴 RENFORCEMENT: VOLUPTUEUSE (sans ventre)');
-      }
+    const charPhysDesc = (character.physicalDescription || '').toLowerCase();
+    
+    // Priorité: très rond > rond > voluptueuse (ordre important!)
+    if (bodyType.includes('bbw') || bodyType.includes('très rond') || charPhysDesc.includes('très rond') || 
+        charPhysDesc.includes('bbw') || charPhysDesc.includes('obèse')) {
+      charCategory = 'bbw_big_belly';
+    } else if (bodyType.includes('chubby') || bodyType.includes('plump') || bodyType.includes('ronde') || 
+               bodyType.includes('potelé') || bodyType.includes('enrobé') ||
+               charPhysDesc.includes('ronde') || charPhysDesc.includes('potelé') || charPhysDesc.includes('enrobé')) {
+      charCategory = 'chubby_small_belly';
+    } else if (bodyType.includes('voluptu') || bodyType.includes('généreus') || bodyType.includes('pulpeu') ||
+               bodyType.includes('curvy') || bodyType.includes('plantureu') || bodyType.includes('hourglass') ||
+               charPhysDesc.includes('voluptu') || charPhysDesc.includes('généreus') || charPhysDesc.includes('pulpeu')) {
+      charCategory = 'curvy_no_belly';
+    }
+    
+    // Appliquer renforcement selon catégorie
+    if (charCategory === 'bbw_big_belly') {
+      prompt += ', BBW fat body, BIG FAT ROUND BELLY visible, fat arms, fat thighs, huge butt, NOT thin, NOT slim, NOT fit';
+      console.log('🔴 RENFORCEMENT PROFIL: BBW GROS VENTRE');
+    } else if (charCategory === 'chubby_small_belly') {
+      prompt += ', soft plump body, small soft round belly, chubby arms, thick thighs, big soft butt, NOT thin, NOT slim';
+      console.log('🟠 RENFORCEMENT PROFIL: RONDE LÉGER VENTRE');
+    } else if (charCategory === 'curvy_no_belly') {
+      prompt += ', curvy hourglass body, FLAT TONED STOMACH, slim waist, wide hips, big butt, NOT fat belly, NOT round belly';
+      console.log('🟢 RENFORCEMENT PROFIL: CURVY SANS VENTRE');
     }
 
     console.log(`🖼️ Génération image profil SFW (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
@@ -3545,26 +3561,35 @@ class ImageGenerationService {
         prompt += `, ${shortBody} body, ${shortBody}`;
       }
       
-      // Exclusions morphologiques pour les personnages ronds (comme v5.3.34)
+      // === v5.3.66 - EXCLUSIONS MORPHOLOGIQUES SCÈNE avec CATÉGORIE ===
+      let sceneCategory = 'unknown';
       const bodyType = (physicalDetails.body.type || character.bodyType || '').toLowerCase();
-      if (bodyType.includes('bbw') || bodyType.includes('chubby') || bodyType.includes('plump') ||
-          bodyType.includes('generous') || bodyType.includes('voluptuous') || bodyType.includes('curvy') ||
-          bodyType.includes('thick') || bodyType.includes('round') || bodyType.includes('ronde') ||
-          bodyType.includes('généreus') || bodyType.includes('pulpeu') || bodyType.includes('enrobé') ||
-          bodyType.includes('potelé') || bodyType.includes('plantureu')) {
-        // v5.3.64 - RENFORCEMENT selon le type exact
-        const bt = bodyType.toLowerCase();
-        if (bt.includes('très rond') || bt.includes('bbw')) {
-          prompt += ', BBW fat body, BIG FAT BELLY, fat arms, fat thighs, huge butt, NOT thin, NOT skinny';
-          console.log('🔴 RENFORCEMENT SCÈNE: TRÈS RONDE (gros ventre)');
-        } else if (bt.includes('ronde') || bt.includes('potelé') || bt.includes('enrobé') || bt.includes('chubby') || bt.includes('plump')) {
-          prompt += ', soft plump body, SMALL SOFT BELLY, chubby arms, thick thighs, big butt, NOT thin, NOT skinny';
-          console.log('🔴 RENFORCEMENT SCÈNE: RONDE (léger ventre)');
-        } else {
-          // Voluptueuse/Pulpeuse/Généreuse = SANS ventre
-          prompt += ', curvy hourglass body, FLAT STOMACH, slim waist, wide hips, big butt, NOT fat belly';
-          console.log('🔴 RENFORCEMENT SCÈNE: VOLUPTUEUSE (sans ventre)');
-        }
+      const scenePhysDesc = (character.physicalDescription || '').toLowerCase();
+      
+      // Priorité: très rond > rond > voluptueuse
+      if (bodyType.includes('bbw') || bodyType.includes('très rond') || scenePhysDesc.includes('très rond') || 
+          scenePhysDesc.includes('bbw') || scenePhysDesc.includes('obèse')) {
+        sceneCategory = 'bbw_big_belly';
+      } else if (bodyType.includes('chubby') || bodyType.includes('plump') || bodyType.includes('ronde') || 
+                 bodyType.includes('potelé') || bodyType.includes('enrobé') ||
+                 scenePhysDesc.includes('ronde') || scenePhysDesc.includes('potelé') || scenePhysDesc.includes('enrobé')) {
+        sceneCategory = 'chubby_small_belly';
+      } else if (bodyType.includes('voluptu') || bodyType.includes('généreus') || bodyType.includes('pulpeu') ||
+                 bodyType.includes('curvy') || bodyType.includes('plantureu') ||
+                 scenePhysDesc.includes('voluptu') || scenePhysDesc.includes('généreus') || scenePhysDesc.includes('pulpeu')) {
+        sceneCategory = 'curvy_no_belly';
+      }
+      
+      // Appliquer renforcement selon catégorie
+      if (sceneCategory === 'bbw_big_belly') {
+        prompt += ', BBW fat body, BIG FAT ROUND BELLY visible, fat arms, fat thighs, huge butt, NOT thin, NOT slim';
+        console.log('🔴 RENFORCEMENT SCÈNE: BBW GROS VENTRE');
+      } else if (sceneCategory === 'chubby_small_belly') {
+        prompt += ', soft plump body, small soft round belly, chubby arms, thick thighs, big soft butt, NOT thin, NOT slim';
+        console.log('🟠 RENFORCEMENT SCÈNE: RONDE LÉGER VENTRE');
+      } else if (sceneCategory === 'curvy_no_belly') {
+        prompt += ', curvy hourglass body, FLAT TONED STOMACH, slim waist, wide hips, big butt, NOT fat belly, NOT round belly';
+        console.log('🟢 RENFORCEMENT SCÈNE: CURVY SANS VENTRE');
       }
     }
     
@@ -3980,24 +4005,29 @@ class ImageGenerationService {
       const physDescLower = (character.physicalDescription || '').toLowerCase();
       const combinedText = imgPromptLower + ' ' + physDescLower;
       
-      if (combinedText.includes('round') || combinedText.includes('plump') || 
-          combinedText.includes('chubby') || combinedText.includes('bbw') ||
-          combinedText.includes('curvy') || combinedText.includes('thick') ||
-          combinedText.includes('voluptuous') || combinedText.includes('generous') ||
-          combinedText.includes('ronde') || combinedText.includes('généreus') ||
-          combinedText.includes('pulpeu') || combinedText.includes('voluptu')) {
-        // v5.3.64 - RENFORCEMENT selon le type de rondeur
-        if (combinedText.includes('très rond') || combinedText.includes('bbw')) {
-          finalPrompt += ', BBW fat body, BIG FAT BELLY, fat arms, fat thighs, huge butt, NOT thin, NOT skinny, ';
-          console.log('🔴 RENFORCEMENT: TRÈS RONDE (gros ventre)');
-        } else if (combinedText.includes('ronde') || combinedText.includes('potelé') || combinedText.includes('enrobé')) {
-          finalPrompt += ', soft plump body, SMALL SOFT BELLY, chubby arms, thick thighs, big butt, NOT thin, ';
-          console.log('🔴 RENFORCEMENT: RONDE (léger ventre)');
-        } else {
-          // Voluptueuse/Pulpeuse/Généreuse = SANS ventre
-          finalPrompt += ', curvy hourglass, FLAT STOMACH, slim waist, wide hips, big butt, NOT fat belly, ';
-          console.log('🔴 RENFORCEMENT: VOLUPTUEUSE (sans ventre)');
-        }
+      // v5.3.66 - Déterminer la catégorie depuis imagePrompt/physicalDescription
+      let imgCategory = 'unknown';
+      if (combinedText.includes('très rond') || combinedText.includes('bbw') || combinedText.includes('obèse') ||
+          combinedText.includes('very fat') || combinedText.includes('big belly')) {
+        imgCategory = 'bbw_big_belly';
+      } else if (combinedText.includes('ronde') || combinedText.includes('potelé') || combinedText.includes('enrobé') ||
+                 combinedText.includes('chubby') || combinedText.includes('plump')) {
+        imgCategory = 'chubby_small_belly';
+      } else if (combinedText.includes('voluptu') || combinedText.includes('pulpeu') || combinedText.includes('généreus') ||
+                 combinedText.includes('plantureu') || combinedText.includes('curvy') || combinedText.includes('hourglass')) {
+        imgCategory = 'curvy_no_belly';
+      }
+      
+      // Appliquer le renforcement selon la catégorie
+      if (imgCategory === 'bbw_big_belly') {
+        finalPrompt += ', BBW fat body, BIG FAT ROUND BELLY visible, fat chubby arms, fat thighs, huge butt, NOT thin, NOT slim, ';
+        console.log('🔴 RENFORCEMENT imagePrompt: BBW GROS VENTRE');
+      } else if (imgCategory === 'chubby_small_belly') {
+        finalPrompt += ', soft plump body, small soft round belly, chubby arms, thick thighs, big soft butt, NOT thin, NOT slim, ';
+        console.log('🟠 RENFORCEMENT imagePrompt: RONDE LÉGER VENTRE');
+      } else if (imgCategory === 'curvy_no_belly') {
+        finalPrompt += ', curvy hourglass, FLAT TONED STOMACH, slim waist, wide hips, big butt, NOT fat belly, NOT round belly, ';
+        console.log('🟢 RENFORCEMENT imagePrompt: CURVY SANS VENTRE');
       }
       
       // Ajouter qualité et NSFW si nécessaire
@@ -4073,48 +4103,60 @@ class ImageGenerationService {
       console.log(`📏 Taille: ${physicalDetails.height}`);
     }
     
-    // 7. === v5.3.62 - MORPHOLOGIE / CORPS - EMPHASE ULTRA FORTE ===
+    // 7. === v5.3.66 - MORPHOLOGIE / CORPS - EMPHASE ULTRA FORTE avec CATÉGORIE ===
     if (physicalDetails.bodyType) {
       // Ajouter 3 fois pour emphase maximale
       finalPrompt += `${physicalDetails.bodyType}, ${physicalDetails.bodyType}, ${physicalDetails.bodyType}, `;
       console.log(`🏋️ Morphologie (x3): ${physicalDetails.bodyType}`);
       
-      // Ajouter des exclusions TRÈS FORTES pour les corps ronds
-      const bt = physicalDetails.bodyType.toLowerCase();
-      if (bt.includes('fat') || bt.includes('obese') || bt.includes('chubby') || bt.includes('plump') || 
-          bt.includes('bbw') || bt.includes('curvy') || bt.includes('voluptuous') || bt.includes('round') ||
-          bt.includes('generous') || bt.includes('thick') || bt.includes('overweight')) {
-        // v5.3.64 - RENFORCEMENT selon le type
-        if (bt.includes('bbw') || bt.includes('très') || bt.includes('very fat') || bt.includes('obese')) {
-          finalPrompt += 'BBW fat body, BIG FAT BELLY, fat arms, fat thighs, huge butt, NOT thin, ';
-          console.log('🔴 RENFORCEMENT: TRÈS RONDE (gros ventre)');
-        } else if (bt.includes('chubby') || bt.includes('plump') || bt.includes('round')) {
-          finalPrompt += 'soft plump body, SMALL SOFT BELLY, chubby arms, thick thighs, big butt, NOT thin, ';
-          console.log('🔴 RENFORCEMENT: RONDE (léger ventre)');
-        } else {
-          // Voluptueuse/Pulpeuse/Généreuse/Curvy = SANS ventre
-          finalPrompt += 'curvy hourglass, FLAT STOMACH, slim waist, wide hips, big butt, NOT fat belly, ';
-          console.log('🔴 RENFORCEMENT: VOLUPTUEUSE (sans ventre)');
-        }
+      // v5.3.66 - RENFORCEMENT basé sur la CATÉGORIE (plus fiable)
+      const cat = physicalDetails.bodyCategory || '';
+      console.log(`🏷️ Catégorie corps: ${cat}`);
+      
+      if (cat === 'bbw_big_belly') {
+        // TRÈS RONDE = GROS ventre obligatoire
+        finalPrompt += 'BBW fat body, BIG FAT ROUND BELLY visible, fat chubby arms, very fat thick thighs, huge fat butt, overweight, NOT thin, NOT slim, NOT fit, ';
+        console.log('🔴 RENFORCEMENT BBW: GROS VENTRE');
+      } else if (cat === 'chubby_small_belly') {
+        // RONDE = LÉGER ventre
+        finalPrompt += 'soft plump chubby body, small soft round belly, soft chubby arms, thick soft thighs, big soft butt, NOT thin, NOT slim, NOT athletic, ';
+        console.log('🟠 RENFORCEMENT RONDE: LÉGER VENTRE');
+      } else if (cat === 'curvy_no_belly') {
+        // VOLUPTUEUSE/PULPEUSE = PAS de ventre, courbes sexy
+        finalPrompt += 'curvy hourglass figure, FLAT TONED STOMACH, slim narrow waist, wide curvy hips, big round butt, NOT fat belly, NOT chubby belly, NOT round belly, ';
+        console.log('🟢 RENFORCEMENT CURVY: SANS VENTRE');
+      } else if (cat === 'athletic') {
+        finalPrompt += 'athletic toned fit body, flat muscular stomach, toned arms, toned legs, firm butt, ';
+        console.log('💪 RENFORCEMENT ATHLETIC');
+      } else if (cat === 'slim') {
+        finalPrompt += 'slim thin body, flat stomach, slim arms, slim legs, small butt, ';
+        console.log('🔵 RENFORCEMENT SLIM');
       }
     } else {
-      // Si pas de bodyType mais character.physicalDescription contient des indices
+      // v5.3.66 - Si pas de bodyType, analyser physicalDescription avec catégorie
       if (character && character.physicalDescription) {
         const pd = character.physicalDescription.toLowerCase();
-        if (pd.includes('rond') || pd.includes('généreus') || pd.includes('pulpeu') || 
-            pd.includes('voluptu') || pd.includes('plantureu') || pd.includes('enrobé') ||
-            pd.includes('potelé') || pd.includes('gros ventre') || pd.includes('95kg') || pd.includes('100kg')) {
-          // v5.3.64 - Distinguer les types
-          if (pd.includes('très rond') || pd.includes('bbw') || pd.includes('95kg') || pd.includes('100kg')) {
-            finalPrompt += 'BBW fat body, BIG FAT BELLY, fat arms, fat thighs, NOT thin, ';
-            console.log('🔴 RENFORCEMENT physicalDesc: TRÈS RONDE (gros ventre)');
-          } else if (pd.includes('ronde') || pd.includes('potelé') || pd.includes('enrobé')) {
-            finalPrompt += 'soft plump body, SMALL SOFT BELLY, chubby arms, thick thighs, NOT thin, ';
-            console.log('🔴 RENFORCEMENT physicalDesc: RONDE (léger ventre)');
-          } else {
-            finalPrompt += 'curvy hourglass, FLAT STOMACH, slim waist, wide hips, NOT fat belly, ';
-            console.log('🔴 RENFORCEMENT physicalDesc: VOLUPTUEUSE (sans ventre)');
-          }
+        let pdCategory = 'unknown';
+        
+        // Déterminer la catégorie (ordre important: très rond avant rond!)
+        if (pd.includes('très rond') || pd.includes('bbw') || pd.includes('95kg') || pd.includes('100kg') || pd.includes('obèse')) {
+          pdCategory = 'bbw_big_belly';
+        } else if (pd.includes('ronde') || pd.includes('potelé') || pd.includes('enrobé') || pd.includes('chubby')) {
+          pdCategory = 'chubby_small_belly';
+        } else if (pd.includes('voluptu') || pd.includes('pulpeu') || pd.includes('généreus') || pd.includes('plantureu')) {
+          pdCategory = 'curvy_no_belly';
+        }
+        
+        // Appliquer renforcement selon catégorie
+        if (pdCategory === 'bbw_big_belly') {
+          finalPrompt += 'BBW fat body, BIG FAT ROUND BELLY visible, fat arms, fat thighs, huge butt, NOT thin, NOT slim, ';
+          console.log('🔴 RENFORCEMENT physicalDesc: BBW GROS VENTRE');
+        } else if (pdCategory === 'chubby_small_belly') {
+          finalPrompt += 'soft plump body, small soft round belly, chubby arms, thick thighs, big soft butt, NOT thin, ';
+          console.log('🟠 RENFORCEMENT physicalDesc: RONDE LÉGER VENTRE');
+        } else if (pdCategory === 'curvy_no_belly') {
+          finalPrompt += 'curvy hourglass, FLAT TONED STOMACH, slim waist, wide hips, big butt, NOT fat belly, ';
+          console.log('🟢 RENFORCEMENT physicalDesc: CURVY SANS VENTRE');
         }
       }
     }
@@ -4391,82 +4433,119 @@ class ImageGenerationService {
       else details.height = 'very tall';
     }
     
-    // === v5.3.64 - MORPHOLOGIE PRÉCISE avec ventre/bras/jambes/fesses ===
+    // === v5.3.66 - MORPHOLOGIE PRÉCISE avec CATÉGORIE SAUVEGARDÉE ===
     // VOLUPTUEUSE/PULPEUSE = Courbes sexy SANS ventre (taille fine)
     // RONDE = Potelée avec LÉGER ventre
     // TRÈS RONDE = Grosse avec GROS ventre
+    // CATÉGORIES: 'slim', 'athletic', 'average', 'curvy_no_belly', 'chubby_small_belly', 'bbw_big_belly'
     const bodyPatterns = {
-      // Mince
-      'très mince|very thin|maigre|skinny': 'very slim thin body, flat stomach, slim arms, slim legs, small butt',
-      'mince|slim|slender|fine': 'slim slender body, flat stomach, toned arms, slim legs, small firm butt',
-      'élancé|élancée|tall slender': 'slender elegant tall body, flat stomach, long slim arms, long slim legs',
-      // Athlétique
-      'athlétique|athletic|musclé|muscular|toned|fit': 'athletic toned fit body, flat stomach, muscular arms, toned legs, firm round butt',
-      // Moyenne
-      'moyenne|average|normal': 'average balanced body, flat stomach, normal arms, normal legs, average butt',
-      // === VOLUPTUEUSE/PULPEUSE = Courbes SANS ventre (sexy hourglass) ===
-      'voluptueuse|voluptueux|voluptuous': 'voluptuous curvy hourglass body, FLAT STOMACH, slim waist, wide hips, big breasts, curvy thighs, big round butt, NO belly',
-      'généreuse|généreux|generous': 'generous curves, full-figured body, FLAT STOMACH, slim waist, curvy hips, soft arms, thick thighs, big butt, NO belly',
-      'pulpeuse|pulpeux|thick': 'thick curvy body, FLAT STOMACH, slim waist, wide hips, full thighs, big round butt, soft arms, NO belly',
-      'plantureuse|plantureux|buxom': 'buxom body, big breasts, FLAT STOMACH, slim waist, wide hips, curvy thighs, big butt, NO belly',
-      // === RONDE = Potelée avec LÉGER ventre ===
-      'ronde|rond|chubby|plump|potelé|potelée': 'soft plump body, SLIGHTLY CHUBBY, small soft belly, soft chubby arms, thick soft thighs, big soft butt',
-      'enrobé|enrobée': 'plump soft body, SLIGHTLY CHUBBY, small round belly, soft arms, thick thighs, big soft butt',
-      // === TRÈS RONDE = BBW avec GROS ventre ===
-      'très ronde|très rond|very curvy|bbw': 'BBW very fat body, BIG ROUND BELLY, fat arms, very thick fat thighs, huge butt, overweight, plus size',
-      'corps très rond': 'very fat round body, HUGE BELLY, chubby fat arms, very fat thick thighs, massive butt, BBW, obese',
-      // Maternelle
-      'maternelle|maternel|maternal|milf': 'soft maternal curvy body, small soft belly, soft arms, curvy thighs, big motherly butt',
+      // Mince -> catégorie 'slim'
+      'très mince|very thin|maigre|skinny': { desc: 'very slim thin body, flat stomach, slim arms, slim legs, small butt', cat: 'slim' },
+      'mince|slim|slender|fine': { desc: 'slim slender body, flat stomach, toned arms, slim legs, small firm butt', cat: 'slim' },
+      'élancé|élancée|tall slender': { desc: 'slender elegant tall body, flat stomach, long slim arms, long slim legs', cat: 'slim' },
+      // Athlétique -> catégorie 'athletic'
+      'athlétique|athletic|musclé|muscular|toned|fit': { desc: 'athletic toned fit body, flat stomach, muscular arms, toned legs, firm round butt', cat: 'athletic' },
+      // Moyenne -> catégorie 'average'
+      'moyenne|average|normal': { desc: 'average balanced body, flat stomach, normal arms, normal legs, average butt', cat: 'average' },
+      // === VOLUPTUEUSE/PULPEUSE = SANS ventre -> catégorie 'curvy_no_belly' ===
+      'voluptueuse|voluptueux|voluptuous': { desc: 'voluptuous curvy hourglass body, FLAT STOMACH, slim waist, wide hips, big breasts, curvy thighs, big round butt, NO belly', cat: 'curvy_no_belly' },
+      'généreuse|généreux|generous': { desc: 'generous curves, full-figured body, FLAT STOMACH, slim waist, curvy hips, soft arms, thick thighs, big butt, NO belly', cat: 'curvy_no_belly' },
+      'pulpeuse|pulpeux|thick': { desc: 'thick curvy body, FLAT STOMACH, slim waist, wide hips, full thighs, big round butt, soft arms, NO belly', cat: 'curvy_no_belly' },
+      'plantureuse|plantureux|buxom': { desc: 'buxom body, big breasts, FLAT STOMACH, slim waist, wide hips, curvy thighs, big butt, NO belly', cat: 'curvy_no_belly' },
+      // === RONDE = LÉGER ventre -> catégorie 'chubby_small_belly' ===
+      'ronde|rond|chubby|plump|potelé|potelée': { desc: 'soft plump body, SLIGHTLY CHUBBY, small soft belly, soft chubby arms, thick soft thighs, big soft butt', cat: 'chubby_small_belly' },
+      'enrobé|enrobée': { desc: 'plump soft body, SLIGHTLY CHUBBY, small round belly, soft arms, thick thighs, big soft butt', cat: 'chubby_small_belly' },
+      // === TRÈS RONDE = GROS ventre -> catégorie 'bbw_big_belly' ===
+      'très ronde|très rond|very curvy|bbw': { desc: 'BBW very fat body, BIG ROUND BELLY, fat arms, very thick fat thighs, huge butt, overweight, plus size', cat: 'bbw_big_belly' },
+      'corps très rond': { desc: 'very fat round body, HUGE BELLY, chubby fat arms, very fat thick thighs, massive butt, BBW, obese', cat: 'bbw_big_belly' },
+      // Maternelle -> catégorie 'chubby_small_belly'
+      'maternelle|maternel|maternal|milf': { desc: 'soft maternal curvy body, small soft belly, soft arms, curvy thighs, big motherly butt', cat: 'chubby_small_belly' },
     };
     
     // D'abord vérifier character.bodyType
     if (character.bodyType) {
       const lb = character.bodyType.toLowerCase();
-      for (const [pattern, value] of Object.entries(bodyPatterns)) {
-        if (new RegExp(pattern).test(lb)) { details.bodyType = value; break; }
+      for (const [pattern, data] of Object.entries(bodyPatterns)) {
+        if (new RegExp(pattern).test(lb)) { 
+          details.bodyType = data.desc; 
+          details.bodyCategory = data.cat; // v5.3.66 - Sauvegarder la catégorie
+          break; 
+        }
       }
       if (!details.bodyType) {
-        // === v5.3.64 - Mapping direct PRÉCIS ===
+        // === v5.3.66 - Mapping direct avec CATÉGORIE ===
         const directMap = {
-          'mince': 'slim slender body, flat stomach, slim arms and legs',
-          'moyenne': 'average balanced body, flat stomach',
-          'athlétique': 'athletic toned fit body, flat stomach, muscular',
+          'mince': { desc: 'slim slender body, flat stomach, slim arms and legs', cat: 'slim' },
+          'moyenne': { desc: 'average balanced body, flat stomach', cat: 'average' },
+          'athlétique': { desc: 'athletic toned fit body, flat stomach, muscular', cat: 'athletic' },
           // VOLUPTUEUSE/PULPEUSE = PAS de ventre
-          'voluptueuse': 'voluptuous curvy hourglass, FLAT STOMACH, slim waist, wide hips, big breasts, curvy thighs, big butt, NO belly',
-          'généreuse': 'generous curves, FLAT STOMACH, slim waist, curvy hips, thick thighs, big butt, NO belly',
-          'pulpeuse': 'thick curvy body, FLAT STOMACH, slim waist, wide hips, full thighs, big butt, NO belly',
-          'plantureuse': 'buxom body, big breasts, FLAT STOMACH, wide hips, big butt, NO belly',
+          'voluptueuse': { desc: 'voluptuous curvy hourglass, FLAT STOMACH, slim waist, wide hips, big breasts, curvy thighs, big butt, NO belly', cat: 'curvy_no_belly' },
+          'généreuse': { desc: 'generous curves, FLAT STOMACH, slim waist, curvy hips, thick thighs, big butt, NO belly', cat: 'curvy_no_belly' },
+          'pulpeuse': { desc: 'thick curvy body, FLAT STOMACH, slim waist, wide hips, full thighs, big butt, NO belly', cat: 'curvy_no_belly' },
+          'plantureuse': { desc: 'buxom body, big breasts, FLAT STOMACH, wide hips, big butt, NO belly', cat: 'curvy_no_belly' },
           // RONDE = LÉGER ventre
-          'ronde': 'soft plump body, SMALL SOFT BELLY, chubby arms, thick thighs, big soft butt',
-          'potelée': 'cute plump body, SMALL BELLY, soft arms, thick thighs, round butt',
-          'enrobée': 'plump soft body, SMALL ROUND BELLY, soft arms, thick thighs, big butt',
+          'ronde': { desc: 'soft plump body, SMALL SOFT BELLY, chubby arms, thick thighs, big soft butt', cat: 'chubby_small_belly' },
+          'potelée': { desc: 'cute plump body, SMALL BELLY, soft arms, thick thighs, round butt', cat: 'chubby_small_belly' },
+          'enrobée': { desc: 'plump soft body, SMALL ROUND BELLY, soft arms, thick thighs, big butt', cat: 'chubby_small_belly' },
           // TRÈS RONDE = GROS ventre
-          'très ronde': 'BBW very fat body, BIG FAT BELLY, fat arms, very fat thighs, huge butt, overweight',
+          'très ronde': { desc: 'BBW very fat body, BIG FAT BELLY, fat arms, very fat thighs, huge butt, overweight', cat: 'bbw_big_belly' },
         };
-        details.bodyType = directMap[lb] || character.bodyType;
+        const mapped = directMap[lb];
+        if (mapped) {
+          details.bodyType = mapped.desc;
+          details.bodyCategory = mapped.cat;
+        } else {
+          details.bodyType = character.bodyType;
+          details.bodyCategory = 'unknown';
+        }
       }
     }
     
     // Ensuite chercher dans physicalDescription
     if (!details.bodyType) {
-      // Vérifier d'abord les patterns composés - TRÈS RONDE en premier
-      if (fullText.includes('très rond') || fullText.includes('very round') || fullText.includes('bbw')) {
+      // Vérifier d'abord les patterns composés - TRÈS RONDE en premier (ordre important!)
+      if (fullText.includes('très rond') || fullText.includes('very round') || fullText.includes('bbw') || fullText.includes('obèse')) {
         details.bodyType = 'BBW very fat body, BIG FAT BELLY, fat arms, very fat thighs, huge butt, overweight';
+        details.bodyCategory = 'bbw_big_belly';
         console.log('🔴 Détecté: très rond -> BBW avec GROS ventre');
-      } else if (fullText.includes('corps rond') || fullText.includes('round body') || fullText.includes('ronde')) {
+      } else if (fullText.includes('ronde') || fullText.includes('potelé') || fullText.includes('enrobé') || fullText.includes('chubby') || fullText.includes('plump')) {
         details.bodyType = 'soft plump body, SMALL SOFT BELLY, chubby arms, thick thighs, big soft butt';
+        details.bodyCategory = 'chubby_small_belly';
         console.log('🔴 Détecté: ronde -> LÉGER ventre');
-      } else if (fullText.includes('voluptue') || fullText.includes('pulpeu') || fullText.includes('généreus')) {
+      } else if (fullText.includes('voluptue') || fullText.includes('pulpeu') || fullText.includes('généreus') || fullText.includes('plantureu')) {
         details.bodyType = 'voluptuous curvy hourglass, FLAT STOMACH, slim waist, wide hips, curvy thighs, big butt, NO belly';
+        details.bodyCategory = 'curvy_no_belly';
         console.log('🔴 Détecté: voluptueuse/pulpeuse -> SANS ventre');
       } else {
-        for (const [pattern, value] of Object.entries(bodyPatterns)) {
-          if (new RegExp(pattern, 'i').test(fullText)) { details.bodyType = value; break; }
+        for (const [pattern, data] of Object.entries(bodyPatterns)) {
+          if (new RegExp(pattern, 'i').test(fullText)) { 
+            details.bodyType = data.desc; 
+            details.bodyCategory = data.cat;
+            break; 
+          }
         }
       }
     }
     
-    console.log(`🏋️ MORPHOLOGIE FINALE: ${details.bodyType || 'non détectée'}`);
+    // v5.3.66 - Si toujours pas de catégorie, la deviner depuis bodyType
+    if (!details.bodyCategory && details.bodyType) {
+      const bt = details.bodyType.toLowerCase();
+      if (bt.includes('bbw') || bt.includes('very fat') || bt.includes('big belly') || bt.includes('huge belly')) {
+        details.bodyCategory = 'bbw_big_belly';
+      } else if (bt.includes('chubby') || bt.includes('plump') || bt.includes('small belly') || bt.includes('soft belly')) {
+        details.bodyCategory = 'chubby_small_belly';
+      } else if (bt.includes('curvy') || bt.includes('hourglass') || bt.includes('flat stomach') || bt.includes('no belly')) {
+        details.bodyCategory = 'curvy_no_belly';
+      } else if (bt.includes('athletic') || bt.includes('toned') || bt.includes('muscular')) {
+        details.bodyCategory = 'athletic';
+      } else if (bt.includes('slim') || bt.includes('thin') || bt.includes('slender')) {
+        details.bodyCategory = 'slim';
+      } else {
+        details.bodyCategory = 'average';
+      }
+    }
+    
+    console.log(`🏋️ MORPHOLOGIE FINALE: ${details.bodyType || 'non détectée'} | Catégorie: ${details.bodyCategory || 'inconnue'}`);
     
     // === v5.3.60 - POITRINE - ANALYSE COMPLÈTE ===
     const isFemale = details.gender === 'female' || fullText.includes('femme') || fullText.includes('woman');
