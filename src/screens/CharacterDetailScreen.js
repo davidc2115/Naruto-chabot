@@ -611,15 +611,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
+  // v5.3.55 - Image de profil en ratio 9:16 (400 de hauteur pour voir le corps entier)
   imageContainer: {
     width: '100%',
-    height: 300,
-    backgroundColor: '#e5e7eb',
+    height: 450,  // Plus haut pour voir le personnage en entier
+    backgroundColor: '#1a1a2e',
   },
   characterImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'contain',  // 'contain' pour voir l'image complète sans couper
   },
   imagePlaceholder: {
     width: '100%',
@@ -885,11 +886,13 @@ const styles = StyleSheet.create({
   galleryPreview: {
     flexDirection: 'row',
   },
+  // v5.3.55 - Thumbnails galerie en ratio 9:16
   galleryThumbnail: {
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 142,  // 80 * 16/9 ≈ 142 (ratio 9:16)
     borderRadius: 8,
     marginRight: 10,
+    resizeMode: 'cover',
   },
   emptyGalleryContainer: {
     padding: 20,

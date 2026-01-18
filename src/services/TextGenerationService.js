@@ -919,21 +919,21 @@ class TextGenerationService {
         const fullMessages = [];
         const totalMessages = messages.length;
         
-        // === SYSTEM PROMPT COURT ===
+        // === SYSTEM PROMPT COHÉRENT ===
         const systemPrompt = this.buildSimpleSystemPrompt(character, userProfile, context);
         fullMessages.push({ role: 'system', content: systemPrompt });
         
-        // === MESSAGES RÉCENTS (max 6 pour rapidité) ===
-        const recentCount = Math.min(6, totalMessages);
+        // === v5.3.55 - MESSAGES RÉCENTS (10 pour meilleure mémoire) ===
+        const recentCount = Math.min(10, totalMessages);
         const recentMessages = messages.slice(-recentCount);
         
-        // Ajouter les messages (courts)
+        // Ajouter les messages avec contenu suffisant pour le contexte
         fullMessages.push(...recentMessages.map((msg, idx) => ({
           role: msg.role,
-          content: msg.content.substring(0, 400)
+          content: msg.content.substring(0, 500) // Plus de contexte pour cohérence
         })));
         
-        // === INSTRUCTION FINALE COURTE ===
+        // === INSTRUCTION FINALE AVEC MÉMOIRE ===
         const finalInstruction = this.buildShortFinalInstruction(character, userProfile, context, recentMessages);
         fullMessages.push({ role: 'system', content: finalInstruction });
         
@@ -1550,7 +1550,7 @@ class TextGenerationService {
   }
 
   /**
-   * v5.3.53 - Prompt système SIMPLE et RAPIDE
+   * v5.3.55 - Prompt système COHÉRENT avec MÉMOIRE des détails
    */
   buildSimpleSystemPrompt(character, userProfile, context) {
     const charName = character.name || 'Personnage';
@@ -1558,26 +1558,28 @@ class TextGenerationService {
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     const temperament = character.temperament || 'amical';
     
-    // Identité courte
+    // Identité
     let prompt = `Tu es ${charName}`;
     if (character.age) prompt += ` (${character.age} ans)`;
     if (character.gender === 'female') prompt += ', femme';
     else if (character.gender === 'male') prompt += ', homme';
-    prompt += '.\n';
+    prompt += `. Tempérament: ${temperament}.\n`;
     
-    // Personnalité courte
+    // Personnalité
     if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 60)}.\n`;
+      prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n`;
     }
     
     // SCÉNARIO - IMPORTANT!
     if (character.scenario) {
-      prompt += `\n📜 SCÉNARIO:\n${character.scenario.substring(0, 200)}\n`;
+      prompt += `\n📜 SCÉNARIO (SUIS-LE TOUJOURS):\n${character.scenario.substring(0, 300)}\n`;
     }
     
-    // Apparence physique
-    if (character.physicalDescription || character.appearance) {
-      prompt += `\nApparence: ${(character.physicalDescription || character.appearance).substring(0, 100)}\n`;
+    // Apparence physique détaillée
+    if (character.physicalDescription) {
+      prompt += `\nApparence physique: ${character.physicalDescription.substring(0, 150)}\n`;
+    } else if (character.appearance) {
+      prompt += `\nApparence: ${character.appearance.substring(0, 150)}\n`;
     }
     
     // Attributs physiques
@@ -1588,18 +1590,22 @@ class TextGenerationService {
       prompt += `Virilité: ${character.penis}cm. `;
     }
     
-    // Règles courtes
-    prompt += `\n\nRÈGLES: Réponds à ${userName}. Format: *action* "dialogue"`;
+    // === v5.3.55 - RÈGLES DE COHÉRENCE ===
+    prompt += `\n\n⚠️ RÈGLES OBLIGATOIRES:`;
+    prompt += `\n1. COHÉRENCE: Si tu as mentionné un détail (ex: tarte framboise), garde CE détail, ne change PAS.`;
+    prompt += `\n2. FORMAT OBLIGATOIRE: Chaque réponse doit avoir *action* ET "dialogue". JAMAIS action seule.`;
+    prompt += `\n3. Exemple correct: *${charName} sourit et prépare le café* "Voilà ton café, ${userName}!"`;
+    prompt += `\n4. INTERDIT: Répondre uniquement avec une action sans dialogue.`;
     
     if (isNSFW) {
-      prompt += `. 🔞 Mode adulte - sois explicite.`;
+      prompt += `\n5. 🔞 Mode adulte - sois explicite et sensuel.`;
     }
     
     return prompt;
   }
 
   /**
-   * v5.3.53 - Instruction finale COURTE
+   * v5.3.55 - Instruction finale avec MÉMOIRE et COHÉRENCE
    */
   buildShortFinalInstruction(character, userProfile, context, recentMessages) {
     const charName = character.name || 'Personnage';
@@ -1609,8 +1615,19 @@ class TextGenerationService {
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     const lastContent = lastUserMsg?.content?.substring(0, 150) || '';
     
-    let instruction = `\n⚡ ${userName} dit: "${lastContent}"\n`;
-    instruction += `RÉPONDS en tant que ${charName}.\n`;
+    // === v5.3.55 - EXTRAIRE LES DÉTAILS IMPORTANTS DES MESSAGES RÉCENTS ===
+    const importantDetails = this.extractImportantDetails(recentMessages);
+    
+    let instruction = `\n⚡ ${userName} vient de dire: "${lastContent}"\n`;
+    
+    // Rappeler les détails mentionnés pour éviter les incohérences
+    if (importantDetails.length > 0) {
+      instruction += `\n🧠 RAPPEL (garde ces détails cohérents):\n`;
+      instruction += importantDetails.join('\n');
+      instruction += '\n';
+    }
+    
+    instruction += `\nRÉPONDS en tant que ${charName}.\n`;
     
     if (isNSFW) {
       instruction += `🔞 Explicite autorisé.\n`;
@@ -1618,12 +1635,55 @@ class TextGenerationService {
     
     // Rappel du scénario
     if (character.scenario) {
-      instruction += `📜 Contexte: ${character.scenario.substring(0, 80)}\n`;
+      instruction += `📜 Contexte: ${character.scenario.substring(0, 100)}\n`;
     }
     
-    instruction += `Format: *action* "dialogue"`;
+    // === FORCER ACTION + DIALOGUE ===
+    instruction += `\n⚠️ FORMAT OBLIGATOIRE: *action* "dialogue" - TOUJOURS les deux!`;
+    instruction += `\nExemple: *${charName} regarde ${userName}* "Voilà ce que je pense..."`;
     
     return instruction;
+  }
+  
+  /**
+   * v5.3.55 - Extrait les détails importants des messages récents pour maintenir la cohérence
+   */
+  extractImportantDetails(messages) {
+    const details = [];
+    const allContent = messages.map(m => m.content || '').join(' ').toLowerCase();
+    
+    // Patterns de détails à mémoriser
+    const patterns = [
+      // Nourriture
+      { regex: /(tarte|gâteau|dessert|plat)\s+(aux?\s+)?(\w+(\s+\w+)?)/gi, prefix: '🍰 ' },
+      // Boissons
+      { regex: /(café|thé|vin|bière|cocktail)\s+(\w+)?/gi, prefix: '☕ ' },
+      // Lieux mentionnés
+      { regex: /(dans\s+la|dans\s+le|à\s+la|au)\s+(\w+(\s+\w+)?)/gi, prefix: '📍 ' },
+      // Vêtements
+      { regex: /(robe|chemise|pantalon|jupe|lingerie)\s+(\w+)?/gi, prefix: '👗 ' },
+      // Actions en cours
+      { regex: /(en train de|commence à|continue de)\s+(\w+)/gi, prefix: '🎬 ' },
+    ];
+    
+    // Extraire les mentions spécifiques des 5 derniers messages
+    const recentMsgs = messages.slice(-5);
+    for (const msg of recentMsgs) {
+      const content = msg.content || '';
+      for (const { regex, prefix } of patterns) {
+        const matches = content.match(regex);
+        if (matches) {
+          for (const match of matches.slice(0, 2)) { // Max 2 par pattern
+            const detail = `${prefix}${match.trim()}`;
+            if (!details.includes(detail) && detail.length < 50) {
+              details.push(detail);
+            }
+          }
+        }
+      }
+    }
+    
+    return details.slice(0, 5); // Max 5 détails
   }
 
   /**

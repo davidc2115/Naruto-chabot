@@ -2267,6 +2267,17 @@ class ImageGenerationService {
       console.log(`👙 Poitrine: ${character.bust} -> ${bustDesc}`);
     }
     
+    // === v5.3.55 - DESCRIPTIF PHYSIQUE DÉTAILLÉ EN PRIORITÉ ===
+    if (character.physicalDescription && character.physicalDescription.length > 20) {
+      // Utiliser le descriptif physique détaillé directement
+      const cleanPhysicalDesc = character.physicalDescription
+        .replace(/\n/g, ', ')
+        .replace(/\./g, ',')
+        .substring(0, 200);
+      prompt += `, ${cleanPhysicalDesc}`;
+      console.log(`📋 Descriptif physique: ${cleanPhysicalDesc.substring(0, 80)}...`);
+    }
+    
     // === APPARENCE SUPPLÉMENTAIRE ===
     if (character.appearance && character.appearance.length > 10) {
       // Extraire des mots-clés de l'apparence
@@ -2275,7 +2286,7 @@ class ImageGenerationService {
         .replace(/[,.:;!?]/g, ' ')
         .split(' ')
         .filter(w => w.length > 4)
-        .slice(0, 5)
+        .slice(0, 8)  // Plus de mots-clés
         .join(', ');
       if (appearanceKeywords) {
         prompt += `, ${appearanceKeywords}`;
