@@ -192,23 +192,33 @@ class GalleryService {
     try {
       const userId = await this.getCurrentUserId();
       const key = `gal_${userId}_${characterId}`;
-      const existing = await AsyncStorage.getItem(key);
-      const gallery = existing ? JSON.parse(existing) : [];
+      
+      // v5.3.68 - Double chargement pour s'assurer de ne pas perdre de données
+      let gallery = [];
+      try {
+        const existing = await AsyncStorage.getItem(key);
+        if (existing) {
+          gallery = JSON.parse(existing);
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur lecture galerie, création nouvelle');
+        gallery = [];
+      }
       
       // Extraire les infos importantes de l'URL
       const seed = this.extractSeedFromUrl(imageUrl);
       const prompt = this.extractPromptFromUrl(imageUrl);
       
-      // Vérifier si l'image existe déjà (par seed)
+      // Vérifier si l'image existe déjà (par seed ou URL)
       const exists = gallery.some(item => {
         if (typeof item === 'string') {
-          return this.extractSeedFromUrl(item) === seed;
+          return this.extractSeedFromUrl(item) === seed || item === imageUrl;
         }
-        return item.seed === seed;
+        return item.seed === seed || item.url === imageUrl;
       });
       
       if (!exists) {
-        // v5.3.15: SAUVEGARDER D'ABORD avec l'URL, puis télécharger en arrière-plan
+        // v5.3.68: SAUVEGARDER D'ABORD avec l'URL, puis télécharger en arrière-plan
         const imageData = {
           url: imageUrl,                    // URL originale (TOUJOURS gardée)
           localPath: null,                  // Sera rempli après téléchargement
@@ -231,17 +241,43 @@ class GalleryService {
           }
         }
         
-        // Sauvegarder IMMÉDIATEMENT avec l'URL
-        await AsyncStorage.setItem(key, JSON.stringify(gallery));
-        console.log(`🖼️ Image ajoutée à la galerie: seed=${seed}`);
+        // v5.3.68 - TRIPLE sauvegarde pour persistance garantie
+        const jsonData = JSON.stringify(gallery);
+        
+        // 1. Clé principale avec userId
+        await AsyncStorage.setItem(key, jsonData);
+        console.log(`🖼️ Image ajoutée à la galerie: ${key}, seed=${seed}`);
+        
+        // 2. Backup global sans userId (pour récupération)
+        const backupKey = `gal_backup_${characterId}`;
+        await AsyncStorage.setItem(backupKey, jsonData);
+        
+        // 3. Vérification que la sauvegarde a fonctionné
+        const verify = await AsyncStorage.getItem(key);
+        if (!verify) {
+          console.error('❌ ÉCHEC vérification sauvegarde galerie!');
+          // Réessayer
+          await AsyncStorage.setItem(key, jsonData);
+        } else {
+          console.log('✅ Sauvegarde galerie vérifiée');
+        }
         
         // Télécharger en ARRIÈRE-PLAN (ne bloque pas)
         this.downloadInBackground(characterId, imageUrl, seed, key, gallery);
+      } else {
+        console.log(`ℹ️ Image déjà dans galerie: seed=${seed}`);
       }
       
       return imageUrl;
     } catch (error) {
       console.error('Error saving image to gallery:', error);
+      // v5.3.68 - Tentative de sauvegarde de secours
+      try {
+        const fallbackKey = `gal_fallback_${characterId}`;
+        const simpleData = JSON.stringify([{ url: imageUrl, savedAt: Date.now() }]);
+        await AsyncStorage.setItem(fallbackKey, simpleData);
+        console.log('⚠️ Sauvegarde de secours effectuée');
+      } catch (e2) {}
       throw error;
     }
   }
@@ -275,14 +311,33 @@ class GalleryService {
     try {
       const userId = await this.getCurrentUserId();
       const key = `gal_${userId}_${characterId}`;
-      const data = await AsyncStorage.getItem(key);
+      let data = await AsyncStorage.getItem(key);
+      
+      // v5.3.68 - Si pas de données, essayer les clés de backup
+      if (!data) {
+        const backupKeys = [
+          `gal_backup_${characterId}`,
+          `gal_fallback_${characterId}`,
+          `gallery_${characterId}`,
+        ];
+        
+        for (const backupKey of backupKeys) {
+          const backupData = await AsyncStorage.getItem(backupKey);
+          if (backupData) {
+            console.log(`🔄 Galerie récupérée depuis backup: ${backupKey}`);
+            data = backupData;
+            // Migrer vers la clé principale
+            await AsyncStorage.setItem(key, data);
+            break;
+          }
+        }
+      }
       
       if (data) {
         const gallery = JSON.parse(data);
         const result = [];
         
-        // v5.3.15: NE PAS télécharger ici - ça cause des rate limits
-        // Utiliser les fichiers locaux s'ils existent, sinon l'URL originale
+        // v5.3.68: Utiliser les fichiers locaux s'ils existent, sinon l'URL originale
         for (const item of gallery) {
           if (typeof item === 'string') {
             // Ancien format string - utiliser l'URL directement
@@ -303,18 +358,11 @@ class GalleryService {
           }
         }
         
+        console.log(`📸 Galerie chargée: ${result.length} images pour ${characterId}`);
         return result;
       }
       
-      // Migration: essayer l'ancienne clé
-      const oldKey = `gallery_${characterId}`;
-      const oldData = await AsyncStorage.getItem(oldKey);
-      if (oldData) {
-        console.log(`🔄 Migration galerie: ${oldKey} -> ${key}`);
-        await AsyncStorage.setItem(key, oldData);
-        return this.getGallery(characterId);
-      }
-      
+      console.log(`ℹ️ Galerie vide pour ${characterId}`);
       return [];
     } catch (error) {
       console.error('Error getting gallery:', error);

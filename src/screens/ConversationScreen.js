@@ -65,7 +65,7 @@ export default function ConversationScreen({ route, navigation }) {
   
   const flatListRef = useRef(null);
 
-  // Vérification de sécurité
+  // v5.3.68 - Vérification de sécurité avec support forceNew
   useEffect(() => {
     if (!character || !character.id) {
       console.error('❌ Character invalide:', character);
@@ -78,9 +78,14 @@ export default function ConversationScreen({ route, navigation }) {
       return;
     }
     
-    console.log('✅ Initialisation conversation pour:', character.name, 'ID:', character.id);
+    // v5.3.68 - Log si nouvelle conversation forcée
+    if (forceNew) {
+      console.log('🔄 NOUVELLE CONVERSATION FORCÉE pour:', character.name);
+    }
+    
+    console.log('✅ Initialisation conversation pour:', character.name, 'ID:', character.id, 'forceNew:', forceNew);
     initializeScreen();
-  }, [character]);
+  }, [character, forceNew, timestamp]); // v5.3.68 - Ajout forceNew et timestamp aux dépendances
 
   const initializeScreen = async () => {
     try {
@@ -266,18 +271,28 @@ export default function ConversationScreen({ route, navigation }) {
         throw new Error('Character ID manquant');
       }
       
-      // Si forceNew est true, démarrer une nouvelle conversation
+      // v5.3.68 - Si forceNew est true, SUPPRIMER l'ancienne et démarrer une nouvelle conversation
       if (forceNew) {
-        console.log('🔄 Nouvelle conversation forcée (forceNew=true)');
+        console.log('🔄 Nouvelle conversation forcée (forceNew=true) - Suppression ancienne conversation');
+        
+        // IMPORTANT: D'abord supprimer l'ancienne conversation
+        await StorageService.deleteConversation(character.id);
+        
+        // Créer le message initial
         const initialMessage = {
           role: 'assistant',
           content: character.startMessage || character.greeting || `Bonjour, je suis ${character.name}.`,
         };
+        
+        // Réinitialiser les états
         setMessages([initialMessage]);
         const defaultRel = StorageService.getDefaultRelationship();
         setRelationship(defaultRel);
+        
         // Sauvegarder la nouvelle conversation
         await StorageService.saveConversation(character.id, [initialMessage], defaultRel);
+        
+        console.log('✅ Nouvelle conversation créée avec message initial');
         return;
       }
       

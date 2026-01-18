@@ -70,7 +70,7 @@ class StorageService {
   }
 
   // Conversations - ISOLÉES PAR UTILISATEUR
-  // v5.3.49 - Sauvegarde robuste avec vérification
+  // v5.3.68 - Sauvegarde ULTRA-ROBUSTE avec triple backup et vérification
   async saveConversation(characterId, messages, relationship) {
     try {
       if (!characterId) {
@@ -79,7 +79,7 @@ class StorageService {
       }
       
       const userId = await this.getCurrentUserId();
-      console.log(`💾 Sauvegarde conversation: userId=${userId}, charId=${characterId}`);
+      console.log(`💾 Sauvegarde conversation: userId=${userId}, charId=${characterId}, msgs=${messages?.length || 0}`);
       
       // Utiliser UN SEUL format de clé simple et prévisible
       const key = `conv_${userId}_${characterId}`;
@@ -90,17 +90,35 @@ class StorageService {
         relationship: relationship || { level: 1, affection: 50, trust: 50 },
         lastUpdated: new Date().toISOString(),
         savedAt: Date.now(),
+        version: '5.3.68',
       };
       
-      // Sauvegarder la conversation
+      // v5.3.68 - TRIPLE SAUVEGARDE pour garantir la persistance
       const jsonData = JSON.stringify(data);
-      await AsyncStorage.setItem(key, jsonData);
-      console.log(`✅ Conversation sauvegardée: ${key} (${messages?.length || 0} messages)`);
       
-      // Vérifier que la sauvegarde a fonctionné
+      // 1. Clé principale
+      await AsyncStorage.setItem(key, jsonData);
+      
+      // 2. Backup global (sans userId)
+      const backupKey = `conv_backup_${characterId}`;
+      await AsyncStorage.setItem(backupKey, jsonData);
+      
+      // 3. Backup de secours
+      const fallbackKey = `conv_fallback_${characterId}`;
+      await AsyncStorage.setItem(fallbackKey, jsonData);
+      
+      console.log(`✅ Conversation sauvegardée: ${key} (${messages?.length || 0} messages) + 2 backups`);
+      
+      // Vérifier que la sauvegarde principale a fonctionné
       const verify = await AsyncStorage.getItem(key);
       if (!verify) {
         console.error(`❌ ÉCHEC vérification sauvegarde: ${key}`);
+        // Réessayer une fois
+        await AsyncStorage.setItem(key, jsonData);
+        const verify2 = await AsyncStorage.getItem(key);
+        if (verify2) {
+          console.log('✅ Sauvegarde réussie après retry');
+        }
       }
       
       // AUSSI sauvegarder dans un index de conversations pour récupération facile
@@ -121,25 +139,28 @@ class StorageService {
         console.log(`📋 Index mis à jour: ${index.length} conversations`);
       }
       
-      // Sauvegarder aussi avec une clé globale pour backup
-      const backupKey = `conv_backup_${characterId}`;
-      await AsyncStorage.setItem(backupKey, jsonData);
-      
     } catch (error) {
       console.error('❌ Error saving conversation:', error);
-      // Tentative de sauvegarde avec clé simplifiée
-      try {
-        const simpleKey = `conv_default_${characterId}`;
-        await AsyncStorage.setItem(simpleKey, JSON.stringify({
-          characterId: String(characterId),
-          messages: messages || [],
-          relationship: relationship || { level: 1, affection: 50, trust: 50 },
-          lastUpdated: new Date().toISOString(),
-          savedAt: Date.now(),
-        }));
-        console.log(`⚠️ Sauvegarde de secours: ${simpleKey}`);
-      } catch (e2) {
-        console.error('❌❌ Échec sauvegarde de secours:', e2);
+      // v5.3.68 - Tentatives de sauvegarde de secours multiples
+      const fallbackKeys = [
+        `conv_default_${characterId}`,
+        `conv_emergency_${characterId}`,
+      ];
+      
+      for (const fallbackKey of fallbackKeys) {
+        try {
+          await AsyncStorage.setItem(fallbackKey, JSON.stringify({
+            characterId: String(characterId),
+            messages: messages || [],
+            relationship: relationship || { level: 1, affection: 50, trust: 50 },
+            lastUpdated: new Date().toISOString(),
+            savedAt: Date.now(),
+          }));
+          console.log(`⚠️ Sauvegarde de secours réussie: ${fallbackKey}`);
+          break;
+        } catch (e2) {
+          console.error(`❌ Échec sauvegarde ${fallbackKey}:`, e2.message);
+        }
       }
     }
   }
@@ -177,10 +198,12 @@ class StorageService {
         return parsed;
       }
       
-      // Essayer d'autres formats de clés (dans l'ordre de priorité)
+      // v5.3.68 - Essayer TOUS les formats de clés possibles (dans l'ordre de priorité)
       const alternativeKeys = [
         `conv_backup_${characterId}`,         // Backup global
+        `conv_fallback_${characterId}`,       // Backup de secours v5.3.68
         `conv_default_${characterId}`,        // Sauvegarde de secours
+        `conv_emergency_${characterId}`,      // Sauvegarde d'urgence
         `conv_anonymous_${characterId}`,      // Legacy anonymous
         `conversation_${characterId}`,        // Ancien format
       ];

@@ -1754,12 +1754,16 @@ class TextGenerationService {
       prompt += `Pénis: ${character.penis}cm. `;
     }
     
-    // === v5.3.59 - RÈGLES FLEXIBLES ===
+    // === v5.3.68 - RÈGLES FLEXIBLES + FORMAT OBLIGATOIRE ===
     prompt += `\n\nCOMPORTEMENT:`;
     prompt += `\n- MÉMOIRE: Souviens-toi de ce qui a été dit.`;
     prompt += `\n- FLEXIBILITÉ: SUIS la direction que ${userName} veut prendre!`;
     prompt += `\n- Si ${userName} change de sujet ou de direction, SUIS-LE naturellement.`;
-    prompt += `\n- FORMAT: *action* "dialogue"`;
+    prompt += `\n\n⚠️ FORMAT OBLIGATOIRE (les 3 éléments sont REQUIS):`;
+    prompt += `\n- *action* = geste entre astérisques`;
+    prompt += `\n- "parole" = ce que tu DIS à ${userName} (OBLIGATOIRE!)`;
+    prompt += `\n- (pensée) = ce que tu penses`;
+    prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
     // === NSFW DIRECT ===
     if (isNSFW) {
@@ -1777,7 +1781,7 @@ class TextGenerationService {
   }
 
   /**
-   * v5.3.59 - Instruction finale FLEXIBLE + NSFW DIRECT
+   * v5.3.68 - Instruction finale FLEXIBLE + NSFW DIRECT + DIALOGUE OBLIGATOIRE
    */
   buildShortFinalInstruction(character, userProfile, context, recentMessages) {
     const charName = character.name || 'Personnage';
@@ -1791,7 +1795,7 @@ class TextGenerationService {
     // Détecter si l'utilisateur demande du sexe MAINTENANT
     const wantsSexNow = /baise|suce|prends|viens|continue|oui|encore|plus|fort|déshabille|touche|caresse/i.test(lastContent);
     
-    // v5.3.59 - Instruction claire et flexible
+    // v5.3.68 - Instruction claire et flexible
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
     instruction += `\n👉 RÉPONDS À CE MESSAGE. Suis la direction de ${userName}!\n`;
     
@@ -1808,8 +1812,19 @@ class TextGenerationService {
       }
     }
     
-    instruction += `\n\nRÉPONDS en tant que ${charName}:`;
-    instruction += `\nFormat: *action courte* "dialogue court"`;
+    // === v5.3.68 - FORMAT OBLIGATOIRE AVEC DIALOGUE + PENSÉE ===
+    instruction += `\n\n⚠️ RÈGLE ABSOLUE - CHAQUE RÉPONSE DOIT CONTENIR:`;
+    instruction += `\n1. *action* entre astérisques (geste physique)`;
+    instruction += `\n2. "parole" entre guillemets (ce que tu DIS à ${userName})`;
+    instruction += `\n3. (pensée) entre parenthèses (ce que tu PENSES)`;
+    instruction += `\n\n❌ INTERDIT: Répondre avec SEULEMENT une action!`;
+    instruction += `\n✅ OBLIGATOIRE: Tu dois PARLER à ${userName}, pas juste agir!`;
+    
+    instruction += `\n\nEXEMPLES CORRECTS:`;
+    instruction += `\n*sourit* "Salut ${userName} !" (content de le voir)`;
+    instruction += `\n*te regarde* "Qu'est-ce que tu veux faire ?" (curieux)`;
+    
+    instruction += `\n\nRÉPONDS MAINTENANT en tant que ${charName}:`;
     
     return instruction;
   }
@@ -2115,31 +2130,75 @@ class TextGenerationService {
       return match;
     });
     
-    // Vérifier qu'il y a une parole (entre guillemets)
+    // === v5.3.68 - VÉRIFICATION COMPLÈTE: action + dialogue + pensée ===
     const hasDialogue = cleaned.includes('"');
+    const hasThought = cleaned.includes('(') && cleaned.includes(')');
+    const hasAction = cleaned.includes('*');
+    
+    // Extraire les éléments existants
+    let existingAction = cleaned.match(/\*[^*]+\*/)?.[0] || '';
+    let existingDialogue = cleaned.match(/"[^"]+"/)?.[0] || '';
+    let existingThought = cleaned.match(/\([^)]+\)/)?.[0] || '';
+    
+    // Si pas de dialogue, en créer un depuis le texte ou générer un fallback
     if (!hasDialogue) {
       const textWithoutFormat = cleaned.replace(/\*[^*]+\*/g, '').replace(/\([^)]+\)/g, '').trim();
       if (textWithoutFormat.length > 5 && textWithoutFormat.length < 150) {
-        const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
-        cleaned = `${action} "${textWithoutFormat}"`;
+        existingDialogue = `"${textWithoutFormat}"`;
       } else {
-        const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
-        cleaned = `${action} "..."`;
+        // Générer un dialogue contextuel basé sur l'action
+        const actionText = existingAction.replace(/\*/g, '').toLowerCase();
+        if (actionText.includes('sourit') || actionText.includes('rit')) {
+          existingDialogue = '"Haha, tu me fais rire !"';
+        } else if (actionText.includes('regard') || actionText.includes('observe')) {
+          existingDialogue = '"Hmm, qu\'est-ce qui se passe ?"';
+        } else if (actionText.includes('embrass') || actionText.includes('caress')) {
+          existingDialogue = '"Mmh..."';
+        } else {
+          existingDialogue = '"Oui ?"';
+        }
       }
+      console.log('⚠️ Dialogue manquant - ajouté:', existingDialogue);
     }
     
-    // Limiter la longueur - max 350 caractères (plus généreux pour qualité)
-    if (cleaned.length > 350) {
-      const action = cleaned.match(/\*[^*]+\*/)?.[0] || '';
+    // Si pas d'action, en ajouter une par défaut
+    if (!hasAction) {
+      existingAction = '*te regarde*';
+      console.log('⚠️ Action manquante - ajoutée:', existingAction);
+    }
+    
+    // Si pas de pensée, en ajouter une basée sur le contexte
+    if (!hasThought) {
+      const dialogueText = existingDialogue.replace(/"/g, '').toLowerCase();
+      if (dialogueText.includes('?')) {
+        existingThought = '(curieux)';
+      } else if (dialogueText.includes('mmh') || dialogueText.includes('oui')) {
+        existingThought = '(intéressant)';
+      } else if (dialogueText.includes('!')) {
+        existingThought = '(amusé)';
+      } else {
+        existingThought = '(hmm...)';
+      }
+      console.log('⚠️ Pensée manquante - ajoutée:', existingThought);
+    }
+    
+    // Reconstruire la réponse avec les 3 éléments
+    if (!hasDialogue || !hasThought || !hasAction) {
+      cleaned = `${existingAction} ${existingDialogue} ${existingThought}`.trim();
+    }
+    
+    // Limiter la longueur - max 400 caractères (pour inclure les 3 éléments)
+    if (cleaned.length > 400) {
+      const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
       const dialogue = cleaned.match(/"[^"]+"/)?.[0] || '"..."';
-      const thought = cleaned.match(/\([^)]+\)/)?.[0] || '';
+      const thought = cleaned.match(/\([^)]+\)/)?.[0] || '(hmm)';
       cleaned = `${action} ${dialogue} ${thought}`.trim();
     }
     
     // S'assurer qu'il y a du contenu minimum après nettoyage
     if (cleaned.length < 15 || !cleaned.includes('"')) {
       // Le contenu est trop court après nettoyage, générer un fallback simple
-      cleaned = `*te regarde attentivement* "Oui?" (Hmm...)`;
+      cleaned = `*te regarde attentivement* "Oui ?" (Hmm...)`;
     }
     
     return cleaned;
