@@ -10,7 +10,9 @@ import {
   Image,
   ActivityIndicator,
   Switch,
+  Modal,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
@@ -40,6 +42,11 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [isPublic, setIsPublic] = useState(characterToEdit?.isPublic || false);
   const [serverOnline, setServerOnline] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
+  
+  // Modal pour import d'image
+  const [showImageOptions, setShowImageOptions] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState('');
 
   // Vérifier le statut premium au montage
   React.useEffect(() => {
@@ -72,6 +79,86 @@ export default function CreateCharacterScreen({ navigation, route }) {
 
   const bustSizes = ['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G'];
   const temperaments = ['amical', 'timide', 'flirt', 'direct', 'taquin', 'romantique', 'mystérieux'];
+
+  // === FONCTIONS D'IMPORT D'IMAGE ===
+  
+  const pickImageFromGallery = async () => {
+    try {
+      // Demander la permission
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission requise',
+          'Nous avons besoin de votre permission pour accéder à la galerie.'
+        );
+        return;
+      }
+      
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setImageUrl(result.assets[0].uri);
+        setShowImageOptions(false);
+        Alert.alert('Succès', 'Image importée !');
+      }
+    } catch (error) {
+      console.error('Erreur import galerie:', error);
+      Alert.alert('Erreur', 'Impossible d\'importer l\'image depuis la galerie.');
+    }
+  };
+  
+  const takePhoto = async () => {
+    try {
+      // Demander la permission
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission requise',
+          'Nous avons besoin de votre permission pour accéder à la caméra.'
+        );
+        return;
+      }
+      
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setImageUrl(result.assets[0].uri);
+        setShowImageOptions(false);
+        Alert.alert('Succès', 'Photo prise !');
+      }
+    } catch (error) {
+      console.error('Erreur caméra:', error);
+      Alert.alert('Erreur', 'Impossible de prendre une photo.');
+    }
+  };
+  
+  const importFromUrl = () => {
+    if (!tempImageUrl.trim()) {
+      Alert.alert('Erreur', 'Veuillez entrer une URL valide.');
+      return;
+    }
+    
+    // Vérifier que c'est une URL valide
+    if (!tempImageUrl.startsWith('http://') && !tempImageUrl.startsWith('https://')) {
+      Alert.alert('Erreur', 'L\'URL doit commencer par http:// ou https://');
+      return;
+    }
+    
+    setImageUrl(tempImageUrl.trim());
+    setShowUrlInput(false);
+    setShowImageOptions(false);
+    setTempImageUrl('');
+    Alert.alert('Succès', 'Image importée depuis l\'URL !');
+  };
 
   const generateCharacterImage = async () => {
     // Vérifier le statut premium
@@ -230,40 +317,139 @@ export default function CreateCharacterScreen({ navigation, route }) {
         {imageUrl ? (
           <View style={styles.imagePreview}>
             <Image source={{ uri: imageUrl }} style={styles.previewImage} />
+            <View style={styles.imageButtons}>
+              <TouchableOpacity
+                style={styles.changeImageButton}
+                onPress={() => setShowImageOptions(true)}
+              >
+                <Text style={styles.changeImageButtonText}>📷 Changer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.regenerateButton}
+                onPress={generateCharacterImage}
+                disabled={generatingImage}
+              >
+                <Text style={styles.regenerateButtonText}>
+                  {generatingImage ? '⏳...' : '🎨 Générer'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.removeImageButton}
+                onPress={() => setImageUrl('')}
+              >
+                <Text style={styles.removeImageButtonText}>🗑️</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.noImageContainer}>
+            {/* Bouton Import Image */}
             <TouchableOpacity
-              style={styles.regenerateButton}
+              style={styles.importImageButton}
+              onPress={() => setShowImageOptions(true)}
+            >
+              <Text style={styles.importImageIcon}>📷</Text>
+              <Text style={styles.importImageText}>Importer une image</Text>
+              <Text style={styles.importImageHint}>Galerie, caméra ou URL</Text>
+            </TouchableOpacity>
+            
+            {/* Séparateur */}
+            <View style={styles.separator}>
+              <View style={styles.separatorLine} />
+              <Text style={styles.separatorText}>ou</Text>
+              <View style={styles.separatorLine} />
+            </View>
+            
+            {/* Bouton Générer Image */}
+            <TouchableOpacity
+              style={[styles.generateImageButton, !isPremium && styles.generateImageButtonLocked]}
               onPress={generateCharacterImage}
               disabled={generatingImage}
             >
-              <Text style={styles.regenerateButtonText}>
-                {generatingImage ? 'Génération...' : '🔄 Régénérer'}
-              </Text>
+              {generatingImage ? (
+                <ActivityIndicator size="large" color="#6366f1" />
+              ) : (
+                <>
+                  <Text style={styles.generateImageIcon}>{isPremium ? '🎨' : '🔒'}</Text>
+                  <Text style={styles.generateImageText}>
+                    {isPremium ? 'Générer par IA' : 'Générer par IA (Premium)'}
+                  </Text>
+                  <Text style={styles.generateImageHint}>
+                    {isPremium 
+                      ? 'Remplissez l\'apparence physique'
+                      : '💎 Devenez Premium pour cette option'}
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
           </View>
-        ) : (
-          <TouchableOpacity
-            style={[styles.generateImageButton, !isPremium && styles.generateImageButtonLocked]}
-            onPress={generateCharacterImage}
-            disabled={generatingImage}
-          >
-            {generatingImage ? (
-              <ActivityIndicator size="large" color="#6366f1" />
-            ) : (
-              <>
-                <Text style={styles.generateImageIcon}>{isPremium ? '🎨' : '🔒'}</Text>
-                <Text style={styles.generateImageText}>
-                  {isPremium ? 'Générer une image' : 'Génération d\'image (Premium)'}
-                </Text>
-                <Text style={styles.generateImageHint}>
-                  {isPremium 
-                    ? 'Remplissez d\'abord l\'apparence physique'
-                    : '💎 Devenez Premium pour générer des images'}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
         )}
       </View>
+      
+      {/* Modal Options d'Image */}
+      <Modal
+        visible={showImageOptions}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowImageOptions(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>📸 Choisir une image</Text>
+            
+            <TouchableOpacity style={styles.modalOption} onPress={pickImageFromGallery}>
+              <Text style={styles.modalOptionIcon}>🖼️</Text>
+              <View style={styles.modalOptionText}>
+                <Text style={styles.modalOptionTitle}>Galerie</Text>
+                <Text style={styles.modalOptionDesc}>Choisir depuis vos photos</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.modalOption} onPress={takePhoto}>
+              <Text style={styles.modalOptionIcon}>📷</Text>
+              <View style={styles.modalOptionText}>
+                <Text style={styles.modalOptionTitle}>Caméra</Text>
+                <Text style={styles.modalOptionDesc}>Prendre une nouvelle photo</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.modalOption} onPress={() => setShowUrlInput(true)}>
+              <Text style={styles.modalOptionIcon}>🔗</Text>
+              <View style={styles.modalOptionText}>
+                <Text style={styles.modalOptionTitle}>URL</Text>
+                <Text style={styles.modalOptionDesc}>Coller un lien d'image</Text>
+              </View>
+            </TouchableOpacity>
+            
+            {showUrlInput && (
+              <View style={styles.urlInputContainer}>
+                <TextInput
+                  style={styles.urlInput}
+                  value={tempImageUrl}
+                  onChangeText={setTempImageUrl}
+                  placeholder="https://example.com/image.jpg"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <TouchableOpacity style={styles.urlSubmitButton} onPress={importFromUrl}>
+                  <Text style={styles.urlSubmitText}>✓</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            
+            <TouchableOpacity 
+              style={styles.modalCancel} 
+              onPress={() => {
+                setShowImageOptions(false);
+                setShowUrlInput(false);
+                setTempImageUrl('');
+              }}
+            >
+              <Text style={styles.modalCancelText}>Annuler</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <Text style={styles.label}>Nom *</Text>
       <TextInput
@@ -659,5 +845,152 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#d97706',
     fontWeight: '500',
+  },
+  // Styles pour import d'image
+  noImageContainer: {
+    gap: 15,
+  },
+  importImageButton: {
+    padding: 30,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#10b981',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  importImageIcon: {
+    fontSize: 40,
+    marginBottom: 8,
+  },
+  importImageText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#10b981',
+    marginBottom: 4,
+  },
+  importImageHint: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  separator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#d1d5db',
+  },
+  separatorText: {
+    marginHorizontal: 15,
+    color: '#9ca3af',
+    fontSize: 14,
+  },
+  imageButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  changeImageButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    backgroundColor: '#10b981',
+    borderRadius: 8,
+  },
+  changeImageButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  removeImageButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#ef4444',
+    borderRadius: 8,
+  },
+  removeImageButtonText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  // Styles Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 40,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#374151',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  modalOptionIcon: {
+    fontSize: 32,
+    marginRight: 15,
+  },
+  modalOptionText: {
+    flex: 1,
+  },
+  modalOptionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  modalOptionDesc: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  urlInputContainer: {
+    flexDirection: 'row',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  urlInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+  },
+  urlSubmitButton: {
+    marginLeft: 10,
+    backgroundColor: '#10b981',
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+    borderRadius: 8,
+  },
+  urlSubmitText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  modalCancel: {
+    padding: 15,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    color: '#6b7280',
   },
 });
