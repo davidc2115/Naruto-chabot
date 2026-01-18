@@ -4300,23 +4300,6 @@ class ImageGenerationService {
       details.height = 'tall';
     }
     
-    // === MORPHOLOGIE ===
-    const bodyTypes = {
-      'slim': 'slim slender body', 'mince': 'slim slender body', 'slender': 'slender elegant body',
-      'athletic': 'athletic toned body', 'athlétique': 'athletic muscular body',
-      'curvy': 'curvy body with nice curves', 'voluptueuse': 'curvy body with curves',
-      'chubby': 'chubby soft body', 'ronde': 'soft curvy body with small belly',
-      'thick': 'thick curvy body', 'généreuse': 'curvy body with soft curves',
-      'muscular': 'muscular toned body', 'musclé': 'muscular strong body',
-      'petite body': 'petite small body', 'average body': 'average body',
-    };
-    for (const [key, value] of Object.entries(bodyTypes)) {
-      if (lower.includes(key)) {
-        details.bodyType = value;
-        break;
-      }
-    }
-    
     // === POITRINE ===
     const bustSizes = {
       'a-cup': 'small A-cup breasts, petite bust', 'a cup': 'small A-cup breasts',
