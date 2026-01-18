@@ -2353,9 +2353,9 @@ class ImageGenerationService {
         bodyType.includes('thick') || bodyType.includes('round') || bodyType.includes('ronde') ||
         bodyType.includes('généreus') || bodyType.includes('pulpeu') || bodyType.includes('enrobé') ||
         bodyType.includes('potelé') || bodyType.includes('plantureu')) {
-      // Exclure explicitement les corps minces pour les personnages ronds
-      prompt += ', NOT thin, NOT skinny, NOT slim body, full figured';
-      console.log('🚫 Exclusion morphologie mince dans prompt');
+      // v5.3.62 - MOTS TRÈS FORTS pour les personnages ronds
+      prompt += ', VERY FAT, OBESE, OVERWEIGHT, BIG BELLY, NOT THIN, NOT SKINNY, NOT SLIM, NOT FIT, NOT ATHLETIC';
+      console.log('🔴 RENFORCEMENT PROFIL: FAT/OBESE ajoutés');
     }
 
     console.log(`🖼️ Génération image profil SFW (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
@@ -3504,8 +3504,9 @@ class ImageGenerationService {
           bodyType.includes('thick') || bodyType.includes('round') || bodyType.includes('ronde') ||
           bodyType.includes('généreus') || bodyType.includes('pulpeu') || bodyType.includes('enrobé') ||
           bodyType.includes('potelé') || bodyType.includes('plantureu')) {
-        prompt += ', NOT thin, NOT skinny, NOT slim body, full figured';
-        console.log('🚫 Exclusion morphologie mince');
+        // v5.3.62 - MOTS TRÈS FORTS
+        prompt += ', VERY FAT, OBESE, OVERWEIGHT, BIG BELLY, NOT THIN, NOT SKINNY, NOT SLIM, NOT FIT, NOT ATHLETIC';
+        console.log('🔴 RENFORCEMENT SCÈNE: FAT/OBESE ajoutés');
       }
     }
     
@@ -3908,19 +3909,54 @@ class ImageGenerationService {
     const isAnime = lowerPrompt.includes('anime') || lowerPrompt.includes('manga');
     const isRealistic = lowerPrompt.includes('realistic') || lowerPrompt.includes('photo');
     
-    // === v5.3.58 - UTILISER LES DONNÉES CHARACTER DIRECTEMENT SI DISPONIBLES ===
+    // === v5.3.62 - UTILISER imagePrompt EN PRIORITÉ (contient les meilleures descriptions) ===
+    let finalPrompt = '';
+    
+    // Si character.imagePrompt existe, l'utiliser EN PREMIER (le plus précis)
+    if (character && character.imagePrompt) {
+      console.log('🎯 UTILISATION imagePrompt DIRECT (priorité max)');
+      finalPrompt = 'FULL BODY SHOT from head to feet, complete figure visible, ' + character.imagePrompt;
+      
+      // Vérifier si c'est un personnage rond/curvy et renforcer
+      const imgPromptLower = character.imagePrompt.toLowerCase();
+      const physDescLower = (character.physicalDescription || '').toLowerCase();
+      const combinedText = imgPromptLower + ' ' + physDescLower;
+      
+      if (combinedText.includes('round') || combinedText.includes('plump') || 
+          combinedText.includes('chubby') || combinedText.includes('bbw') ||
+          combinedText.includes('curvy') || combinedText.includes('thick') ||
+          combinedText.includes('voluptuous') || combinedText.includes('generous') ||
+          combinedText.includes('ronde') || combinedText.includes('généreus') ||
+          combinedText.includes('pulpeu') || combinedText.includes('voluptu')) {
+        // RENFORCEMENT ULTRA pour les corps ronds
+        finalPrompt += ', VERY FAT BODY, OBESE, CHUBBY, PLUMP, BIG BELLY, NOT THIN, NOT SKINNY, NOT SLIM, NOT FIT, NOT ATHLETIC, ';
+        console.log('🔴 RENFORCEMENT RONDEURS: FAT/OBESE/CHUBBY ajoutés');
+      }
+      
+      // Ajouter qualité et NSFW si nécessaire
+      if (isNSFW) {
+        finalPrompt += `, sensual, erotic, [NSFW_LEVEL_${nsfwLevel}]`;
+      }
+      finalPrompt += ', 8k ultra detailed, masterpiece';
+      
+      // Encoder et retourner
+      const shortPrompt = finalPrompt.substring(0, 1900);
+      const encodedPrompt = encodeURIComponent(shortPrompt);
+      const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
+      console.log(`📝 Prompt FINAL avec imagePrompt (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
+      return imageUrl;
+    }
+    
+    // === FALLBACK: Extraire les détails physiques ===
     let physicalDetails;
     if (character) {
-      console.log('📋 Utilisation données CHARACTER directes');
+      console.log('📋 Utilisation données CHARACTER (sans imagePrompt)');
       physicalDetails = this.extractPhysicalDetailsFromCharacter(character);
     } else {
       console.log('📋 Extraction depuis le prompt texte');
       physicalDetails = this.extractAllPhysicalDetails(prompt);
     }
     console.log('📋 Détails physiques:', JSON.stringify(physicalDetails).substring(0, 300));
-    
-    // === CONSTRUIRE LE PROMPT OPTIMISÉ ===
-    let finalPrompt = '';
     
     // 1. FULL BODY SHOT EN PREMIER
     finalPrompt += 'FULL BODY SHOT from head to feet, complete figure visible, ';
@@ -3970,19 +4006,30 @@ class ImageGenerationService {
       console.log(`📏 Taille: ${physicalDetails.height}`);
     }
     
-    // 7. === v5.3.61 - MORPHOLOGIE / CORPS - TRIPLE EMPHASE ===
+    // 7. === v5.3.62 - MORPHOLOGIE / CORPS - EMPHASE ULTRA FORTE ===
     if (physicalDetails.bodyType) {
-      // Ajouter 3 fois pour emphase maximale dans les modèles AI
-      finalPrompt += `${physicalDetails.bodyType}, ${physicalDetails.bodyType}, `;
-      console.log(`🏋️ Morphologie (x2): ${physicalDetails.bodyType}`);
+      // Ajouter 3 fois pour emphase maximale
+      finalPrompt += `${physicalDetails.bodyType}, ${physicalDetails.bodyType}, ${physicalDetails.bodyType}, `;
+      console.log(`🏋️ Morphologie (x3): ${physicalDetails.bodyType}`);
       
-      // Ajouter des exclusions explicites pour les corps ronds
+      // Ajouter des exclusions TRÈS FORTES pour les corps ronds
       const bt = physicalDetails.bodyType.toLowerCase();
-      if (bt.includes('chubby') || bt.includes('plump') || bt.includes('bbw') || 
-          bt.includes('curvy') || bt.includes('voluptuous') || bt.includes('round') ||
-          bt.includes('generous') || bt.includes('thick')) {
-        finalPrompt += 'NOT THIN, NOT SKINNY, NOT SLIM, NOT ATHLETIC, fat belly visible, ';
-        console.log('🚫 Exclusions: NOT THIN/SKINNY/SLIM ajoutées');
+      if (bt.includes('fat') || bt.includes('obese') || bt.includes('chubby') || bt.includes('plump') || 
+          bt.includes('bbw') || bt.includes('curvy') || bt.includes('voluptuous') || bt.includes('round') ||
+          bt.includes('generous') || bt.includes('thick') || bt.includes('overweight')) {
+        finalPrompt += 'VERY FAT, OBESE, OVERWEIGHT, BIG BELLY, NOT THIN, NOT SKINNY, NOT SLIM, NOT FIT, NOT ATHLETIC, NOT MUSCULAR, ';
+        console.log('🔴 RENFORCEMENT ULTRA: FAT/OBESE/OVERWEIGHT + exclusions');
+      }
+    } else {
+      // Si pas de bodyType mais character.physicalDescription contient des indices
+      if (character && character.physicalDescription) {
+        const pd = character.physicalDescription.toLowerCase();
+        if (pd.includes('rond') || pd.includes('généreus') || pd.includes('pulpeu') || 
+            pd.includes('voluptu') || pd.includes('plantureu') || pd.includes('enrobé') ||
+            pd.includes('potelé') || pd.includes('gros ventre') || pd.includes('95kg') || pd.includes('100kg')) {
+          finalPrompt += 'FAT CHUBBY OBESE body, BIG SOFT BELLY, OVERWEIGHT plump, NOT THIN, NOT SKINNY, ';
+          console.log('🔴 RENFORCEMENT depuis physicalDescription: FAT/OBESE ajoutés');
+        }
       }
     }
     
@@ -4258,7 +4305,8 @@ class ImageGenerationService {
       else details.height = 'very tall';
     }
     
-    // === v5.3.60 - MORPHOLOGIE / FORMES / RONDEURS - ANALYSE COMPLÈTE ===
+    // === v5.3.62 - MORPHOLOGIE / FORMES / RONDEURS - MOTS TRÈS FORTS ===
+    // Utiliser des mots que les modèles AI comprennent bien: FAT, OBESE, OVERWEIGHT
     const bodyPatterns = {
       // Mince
       'très mince|very thin|maigre|skinny': 'very thin skinny body',
@@ -4268,17 +4316,18 @@ class ImageGenerationService {
       'athlétique|athletic|musclé|muscular|toned|fit': 'athletic toned muscular body',
       // Moyenne
       'moyenne|average|normal': 'average normal body',
-      // Courbes
-      'voluptueuse|voluptueux|voluptuous': 'VOLUPTUOUS CURVY body, hourglass figure, BIG BUST, WIDE HIPS, sexy curves',
-      'généreuse|généreux|generous': 'GENEROUS CURVY body, FULL-FIGURED, soft curves everywhere, plump',
-      'pulpeuse|pulpeux|thick curvy': 'THICK CURVY body, PLUMP figure, soft curves, full thighs',
-      'plantureuse|plantureux|buxom': 'BUXOM VOLUPTUOUS body, BIG BREASTS, WIDE HIPS, hourglass',
-      // Ronde
-      'très ronde|très rond|very chubby|bbw|obèse': 'VERY CHUBBY BBW body, BIG SOFT BELLY, very plump, plus size, full figure',
-      'ronde|rond|chubby|plump|potelé|potelée': 'CHUBBY ROUND body, SOFT BELLY, plump figure, BBW curves',
-      'enrobé|enrobée|plump soft': 'PLUMP SOFT body, chubby, soft curves, round belly',
+      // Courbes - MOTS TRÈS FORTS
+      'voluptueuse|voluptueux|voluptuous': 'FAT CURVY body, OBESE hourglass figure, HUGE BREASTS, WIDE HIPS, very thick',
+      'généreuse|généreux|generous': 'FAT OVERWEIGHT body, OBESE full-figured, soft fat everywhere, very plump',
+      'pulpeuse|pulpeux|thick curvy': 'FAT THICK body, OBESE plump figure, soft fat, full thick thighs',
+      'plantureuse|plantureux|buxom': 'FAT BUXOM body, HUGE HEAVY BREASTS, WIDE FAT HIPS, obese hourglass',
+      // Ronde - MOTS TRÈS FORTS
+      'très ronde|très rond|very chubby|bbw|obèse': 'VERY FAT OBESE BBW body, HUGE FAT BELLY, extremely plump, plus size, morbidly obese',
+      'corps très rond': 'VERY FAT OBESE body, BIG FAT BELLY, extremely plump, BBW, overweight',
+      'ronde|rond|chubby|plump|potelé|potelée': 'FAT CHUBBY body, BIG SOFT BELLY, plump obese figure, BBW overweight',
+      'enrobé|enrobée|plump soft': 'FAT PLUMP body, OBESE chubby, soft fat, round fat belly',
       // Maternelle
-      'maternelle|maternel|maternal|milf': 'soft maternal curvy body, MILF figure',
+      'maternelle|maternel|maternal|milf': 'soft fat maternal body, MILF figure, plump',
     };
     
     // D'abord vérifier character.bodyType
@@ -4288,28 +4337,37 @@ class ImageGenerationService {
         if (new RegExp(pattern).test(lb)) { details.bodyType = value; break; }
       }
       if (!details.bodyType) {
-        // Mapping direct
+        // Mapping direct - MOTS TRÈS FORTS
         const directMap = {
           'mince': 'slim slender body',
           'moyenne': 'average body',
           'athlétique': 'athletic toned body',
-          'voluptueuse': 'VOLUPTUOUS CURVY body, hourglass, BIG BUST, WIDE HIPS',
-          'généreuse': 'GENEROUS CURVY body, FULL-FIGURED, soft curves',
-          'pulpeuse': 'THICK CURVY body, PLUMP, soft curves',
-          'ronde': 'CHUBBY ROUND body, SOFT BELLY, plump, BBW',
-          'très ronde': 'VERY CHUBBY BBW, BIG SOFT BELLY, very plump',
-          'plantureuse': 'BUXOM body, BIG BREASTS, WIDE HIPS',
-          'enrobée': 'PLUMP SOFT body, chubby',
-          'potelée': 'CHUBBY CUTE body, soft plump',
+          'voluptueuse': 'FAT CURVY body, OBESE hourglass, HUGE BREASTS, WIDE HIPS',
+          'généreuse': 'FAT OVERWEIGHT body, OBESE full-figured, soft fat everywhere',
+          'pulpeuse': 'FAT THICK body, OBESE plump, soft fat curves',
+          'ronde': 'FAT CHUBBY body, BIG SOFT BELLY, OBESE plump, BBW overweight',
+          'très ronde': 'VERY FAT OBESE BBW, HUGE FAT BELLY, extremely plump, morbidly obese',
+          'plantureuse': 'FAT BUXOM body, HUGE HEAVY BREASTS, WIDE FAT HIPS',
+          'enrobée': 'FAT PLUMP body, OBESE chubby, soft fat',
+          'potelée': 'FAT CHUBBY body, soft plump obese',
         };
         details.bodyType = directMap[lb] || character.bodyType;
       }
     }
     
-    // Ensuite chercher dans physicalDescription
+    // Ensuite chercher dans physicalDescription - patterns plus larges
     if (!details.bodyType) {
-      for (const [pattern, value] of Object.entries(bodyPatterns)) {
-        if (new RegExp(pattern, 'i').test(fullText)) { details.bodyType = value; break; }
+      // Vérifier d'abord les patterns composés
+      if (fullText.includes('très rond') || fullText.includes('very round')) {
+        details.bodyType = 'VERY FAT OBESE BBW body, HUGE FAT BELLY, extremely plump';
+        console.log('🔴 Détecté: très rond -> VERY FAT OBESE');
+      } else if (fullText.includes('corps rond') || fullText.includes('round body')) {
+        details.bodyType = 'FAT CHUBBY body, BIG SOFT BELLY, OBESE plump, BBW';
+        console.log('🔴 Détecté: corps rond -> FAT CHUBBY');
+      } else {
+        for (const [pattern, value] of Object.entries(bodyPatterns)) {
+          if (new RegExp(pattern, 'i').test(fullText)) { details.bodyType = value; break; }
+        }
       }
     }
     
