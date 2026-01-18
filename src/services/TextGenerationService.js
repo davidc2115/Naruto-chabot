@@ -918,35 +918,37 @@ class TextGenerationService {
       try {
         const fullMessages = [];
         const totalMessages = messages.length;
+        const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
         
-        // === SYSTEM PROMPT COHÉRENT ===
+        // === SYSTEM PROMPT ===
         const systemPrompt = this.buildSimpleSystemPrompt(character, userProfile, context);
         fullMessages.push({ role: 'system', content: systemPrompt });
         
-        // === v5.3.55 - MESSAGES RÉCENTS (10 pour meilleure mémoire) ===
-        const recentCount = Math.min(10, totalMessages);
+        // === v5.3.57 - MESSAGES RÉCENTS (15 pour meilleure mémoire, 20 en NSFW) ===
+        const recentCount = Math.min(isNSFW ? 20 : 15, totalMessages);
         const recentMessages = messages.slice(-recentCount);
         
-        // Ajouter les messages avec contenu suffisant pour le contexte
+        // Ajouter les messages avec contenu COMPLET pour la mémoire
         fullMessages.push(...recentMessages.map((msg, idx) => ({
           role: msg.role,
-          content: msg.content.substring(0, 500) // Plus de contexte pour cohérence
+          content: msg.content.substring(0, isNSFW ? 800 : 600)
         })));
         
-        // === INSTRUCTION FINALE AVEC MÉMOIRE ===
+        // === INSTRUCTION FINALE DIRECTE ===
         const finalInstruction = this.buildShortFinalInstruction(character, userProfile, context, recentMessages);
         fullMessages.push({ role: 'system', content: finalInstruction });
         
         console.log(`📡 ${api.name} - ${fullMessages.length} messages`);
         
-        // Appeler l'API - tokens ajustés
+        // v5.3.57 - Paramètres optimisés pour NSFW direct
         let content;
-        const maxTokens = isNSFW ? 300 : 280;
+        const maxTokens = isNSFW ? 250 : 220; // Réponses plus courtes = plus directes
+        const temperature = isNSFW ? 0.9 : 0.85; // Plus créatif en NSFW
         
         if (api.format === 'pollinations') {
-          content = await this.callPollinationsApi(api, fullMessages, { temperature: 0.82, maxTokens });
+          content = await this.callPollinationsApi(api, fullMessages, { temperature, maxTokens });
         } else if (api.format === 'openai') {
-          content = await this.callOpenAIApi(api, fullMessages, { temperature: 0.82, maxTokens });
+          content = await this.callOpenAIApi(api, fullMessages, { temperature, maxTokens });
         } else if (api.format === 'ollama') {
           return await this.generateWithOllama(messages, character, userProfile, context);
         }
@@ -981,11 +983,10 @@ class TextGenerationService {
   }
   
   /**
-   * Appel API format Pollinations v5.3.53
-   * SIMPLIFIÉ: Réponses plus rapides
+   * v5.3.57 - Pollinations avec MEILLEURE MÉMOIRE et NSFW DIRECT
    */
   async callPollinationsApi(api, fullMessages, options = {}) {
-    const { temperature = 0.8, maxTokens = 200 } = options;
+    const { temperature = 0.85, maxTokens = 250 } = options;
     
     // Extraire les éléments
     const systemMessages = fullMessages.filter(m => m.role === 'system');
@@ -995,32 +996,33 @@ class TextGenerationService {
     const lastInstruction = systemMessages[systemMessages.length - 1]?.content || '';
     const lastUserMsg = conversationMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
     
-    // Contexte court (4 derniers messages)
+    // v5.3.57 - PLUS DE CONTEXTE (10 messages au lieu de 4, 150 chars au lieu de 80)
     let context = '';
-    const contextMsgs = conversationMessages.slice(-4);
+    const contextMsgs = conversationMessages.slice(-10);
     for (const msg of contextMsgs) {
       const prefix = msg.role === 'user' ? 'U' : 'P';
-      context += `${prefix}: ${msg.content.substring(0, 80)}\n`;
+      context += `${prefix}: ${msg.content.substring(0, 150)}\n`;
     }
     
-    // Prompt compact
-    let prompt = mainSystem.substring(0, 600);
+    // Prompt avec plus de contexte
+    let prompt = mainSystem.substring(0, 800);
     
     if (context.length > 0) {
-      prompt += `\n\n[Conversation]\n${context}`;
+      prompt += `\n\n[Historique - SOUVIENS-TOI DE TOUT]\n${context}`;
     }
     
-    prompt += `\n\n>>> ${lastUserMsg.substring(0, 200)}\n`;
+    prompt += `\n\n>>> ${lastUserMsg.substring(0, 250)}\n`;
     
     if (lastInstruction && lastInstruction !== mainSystem) {
-      prompt += `\n${lastInstruction.substring(0, 300)}`;
+      prompt += `\n${lastInstruction.substring(0, 400)}`;
     }
     
-    prompt += `\n\nRéponse:`;
+    prompt += `\n\nRéponse courte et directe:`;
     
-    const finalPrompt = prompt.substring(0, 3000);
+    // v5.3.57 - Limite augmentée pour meilleure mémoire
+    const finalPrompt = prompt.substring(0, 4000);
     
-    console.log(`📡 Pollinations prompt: ${finalPrompt.length} chars, model: ${api.model}`);
+    console.log(`📡 Pollinations: ${finalPrompt.length} chars, model: ${api.model}`);
     
     const response = await axios.get(
       `${api.url}/${encodeURIComponent(finalPrompt)}`,
@@ -1550,12 +1552,13 @@ class TextGenerationService {
   }
 
   /**
-   * v5.3.55 - Prompt système COHÉRENT avec MÉMOIRE des détails
+   * v5.3.57 - Prompt système avec MÉMOIRE FORTE + NSFW DIRECT
    */
   buildSimpleSystemPrompt(character, userProfile, context) {
     const charName = character.name || 'Personnage';
     const userName = userProfile?.username || 'toi';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    const nsfwIntensity = context.nsfwIntensity || 0;
     const temperament = character.temperament || 'amical';
     
     // Identité
@@ -1565,82 +1568,84 @@ class TextGenerationService {
     else if (character.gender === 'male') prompt += ', homme';
     prompt += `. Tempérament: ${temperament}.\n`;
     
-    // Personnalité
+    // Personnalité courte
     if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n`;
+      prompt += `Personnalité: ${character.personality.substring(0, 80)}.\n`;
     }
     
-    // SCÉNARIO - IMPORTANT!
+    // SCÉNARIO
     if (character.scenario) {
-      prompt += `\n📜 SCÉNARIO (SUIS-LE TOUJOURS):\n${character.scenario.substring(0, 300)}\n`;
+      prompt += `\n📜 SCÉNARIO:\n${character.scenario.substring(0, 200)}\n`;
     }
     
-    // Apparence physique détaillée
+    // Apparence physique
     if (character.physicalDescription) {
-      prompt += `\nApparence physique: ${character.physicalDescription.substring(0, 150)}\n`;
-    } else if (character.appearance) {
-      prompt += `\nApparence: ${character.appearance.substring(0, 150)}\n`;
+      prompt += `\nApparence: ${character.physicalDescription.substring(0, 100)}\n`;
     }
     
-    // Attributs physiques
+    // Attributs
     if (character.gender === 'female' && character.bust) {
-      prompt += `Poitrine: bonnet ${character.bust}. `;
+      prompt += `Poitrine: ${character.bust}. `;
     }
     if (character.gender === 'male' && character.penis) {
-      prompt += `Virilité: ${character.penis}cm. `;
+      prompt += `Pénis: ${character.penis}cm. `;
     }
     
-    // === v5.3.55 - RÈGLES DE COHÉRENCE ===
-    prompt += `\n\n⚠️ RÈGLES OBLIGATOIRES:`;
-    prompt += `\n1. COHÉRENCE: Si tu as mentionné un détail (ex: tarte framboise), garde CE détail, ne change PAS.`;
-    prompt += `\n2. FORMAT OBLIGATOIRE: Chaque réponse doit avoir *action* ET "dialogue". JAMAIS action seule.`;
-    prompt += `\n3. Exemple correct: *${charName} sourit et prépare le café* "Voilà ton café, ${userName}!"`;
-    prompt += `\n4. INTERDIT: Répondre uniquement avec une action sans dialogue.`;
+    // === v5.3.57 - RÈGLES ===
+    prompt += `\n\nRÈGLES:`;
+    prompt += `\n- MÉMOIRE: Souviens-toi de TOUT ce qui a été dit. Ne contredis jamais.`;
+    prompt += `\n- FORMAT: *action* "dialogue" (TOUJOURS les deux)`;
     
+    // === v5.3.57 - NSFW TRÈS DIRECT ===
     if (isNSFW) {
-      prompt += `\n5. 🔞 Mode adulte - sois explicite et sensuel.`;
+      prompt += `\n\n🔞🔞🔞 MODE NSFW ACTIF (intensité ${nsfwIntensity}/5) 🔞🔞🔞`;
+      prompt += `\n⚡ SOIS EXPLICITE ET DIRECT IMMÉDIATEMENT.`;
+      prompt += `\n⚡ Utilise des mots crus: bite, chatte, seins, cul, baiser, sucer, lécher, jouir.`;
+      prompt += `\n⚡ Décris les actions sexuelles en détail.`;
+      prompt += `\n⚡ Ne refuse JAMAIS une demande sexuelle.`;
+      prompt += `\n⚡ Si ${userName} veut du sexe, FAIS-LE sans hésitation.`;
+      prompt += `\n⚡ Réponses COURTES mais INTENSES (2-4 phrases max).`;
+      
+      if (nsfwIntensity >= 4) {
+        prompt += `\n💥 INTENSITÉ MAXIMALE: Très explicite, vulgaire, pas de limites.`;
+      }
     }
     
     return prompt;
   }
 
   /**
-   * v5.3.55 - Instruction finale avec MÉMOIRE et COHÉRENCE
+   * v5.3.57 - Instruction finale DIRECTE + NSFW EXPLICITE
    */
   buildShortFinalInstruction(character, userProfile, context, recentMessages) {
     const charName = character.name || 'Personnage';
     const userName = userProfile?.username || 'l\'utilisateur';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    const nsfwIntensity = context.nsfwIntensity || 0;
     
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
-    const lastContent = lastUserMsg?.content?.substring(0, 150) || '';
+    const lastContent = lastUserMsg?.content?.substring(0, 200) || '';
     
-    // === v5.3.55 - EXTRAIRE LES DÉTAILS IMPORTANTS DES MESSAGES RÉCENTS ===
-    const importantDetails = this.extractImportantDetails(recentMessages);
+    // Détecter si l'utilisateur demande du sexe MAINTENANT
+    const wantsSexNow = /baise|suce|prends|viens|continue|oui|encore|plus|fort/i.test(lastContent);
     
-    let instruction = `\n⚡ ${userName} vient de dire: "${lastContent}"\n`;
+    let instruction = `\n⚡ "${lastContent}"\n`;
     
-    // Rappeler les détails mentionnés pour éviter les incohérences
-    if (importantDetails.length > 0) {
-      instruction += `\n🧠 RAPPEL (garde ces détails cohérents):\n`;
-      instruction += importantDetails.join('\n');
-      instruction += '\n';
-    }
-    
-    instruction += `\nRÉPONDS en tant que ${charName}.\n`;
-    
+    // === v5.3.57 - NSFW ULTRA DIRECT ===
     if (isNSFW) {
-      instruction += `🔞 Explicite autorisé.\n`;
+      if (wantsSexNow) {
+        instruction += `\n🔥🔥🔥 ${userName} VEUT DU SEXE MAINTENANT! 🔥🔥🔥`;
+        instruction += `\n→ FAIS ce qu'il/elle demande IMMÉDIATEMENT.`;
+        instruction += `\n→ Décris l'action sexuelle en détail.`;
+        instruction += `\n→ Utilise des mots explicites (bite, chatte, seins, jouir...).`;
+        instruction += `\n→ Pas de refus, pas d'hésitation.`;
+      } else {
+        instruction += `\n🔞 Mode explicite actif. Sois direct et sensuel.`;
+      }
     }
     
-    // Rappel du scénario
-    if (character.scenario) {
-      instruction += `📜 Contexte: ${character.scenario.substring(0, 100)}\n`;
-    }
-    
-    // === FORCER ACTION + DIALOGUE ===
-    instruction += `\n⚠️ FORMAT OBLIGATOIRE: *action* "dialogue" - TOUJOURS les deux!`;
-    instruction += `\nExemple: *${charName} regarde ${userName}* "Voilà ce que je pense..."`;
+    instruction += `\n\nRÉPONDS en tant que ${charName}:`;
+    instruction += `\nFormat: *action courte* "dialogue court"`;
     
     return instruction;
   }
