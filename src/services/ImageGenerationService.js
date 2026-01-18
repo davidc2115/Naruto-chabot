@@ -642,14 +642,26 @@ class ImageGenerationService {
       console.log('🚫 Negative prompt: exclusion morphologie ronde');
     }
     
-    // Poitrine
-    if (character.gender === 'female' && physicalDetails.bust.size) {
-      const bustSize = physicalDetails.bust.size.toLowerCase();
-      if (bustSize.includes('a-cup') || bustSize === 'small') {
-        negative += ', big breasts, large breasts, huge breasts, busty, big chest, large bust';
-      } else if (bustSize.includes('d') || bustSize.includes('e') || bustSize.includes('f') || 
-                 bustSize.includes('g') || bustSize.includes('h') || bustSize === 'large' || bustSize === 'huge') {
-        negative += ', flat chest, small breasts, tiny breasts, flat breasted, no breasts';
+    // === v5.3.65 - Poitrine - Exclusions PRÉCISES ===
+    if (character.gender === 'female') {
+      const bustSize = (physicalDetails.bust.size || character.bust || '').toLowerCase();
+      // Petite poitrine (A-B) -> exclure gros seins
+      if (bustSize.includes('a') || bustSize.includes('b') || bustSize === 'small' || bustSize === 'petite') {
+        negative += ', big breasts, large breasts, huge breasts, busty, big chest, large bust, massive breasts, heavy breasts, giant breasts';
+        console.log('🚫 Exclusion: gros seins (poitrine petite)');
+      }
+      // Grosse poitrine (D+) -> exclure petits seins
+      else if (bustSize.includes('d') || bustSize.includes('e') || bustSize.includes('f') || 
+               bustSize.includes('g') || bustSize.includes('h') || bustSize.includes('i') ||
+               bustSize === 'large' || bustSize === 'huge' || bustSize === 'big') {
+        negative += ', flat chest, small breasts, tiny breasts, flat breasted, no breasts, petite bust, modest bust, small chest';
+        console.log('🚫 Exclusion: petits seins (grosse poitrine)');
+      }
+      // Énorme poitrine (F+) -> renforcer l'exclusion
+      if (bustSize.includes('f') || bustSize.includes('g') || bustSize.includes('h') || bustSize.includes('i') ||
+          bustSize === 'huge' || bustSize === 'massive' || bustSize === 'gigantic') {
+        negative += ', medium breasts, average breasts, normal breasts';
+        console.log('🚫 Exclusion: seins moyens (poitrine énorme)');
       }
     }
     
@@ -1027,21 +1039,24 @@ class ImageGenerationService {
       else if (h <= 165) parts.push('average height');
     }
     
-    // === 12. POITRINE (femmes) ===
+    // === 12. POITRINE (femmes) - v5.3.65 RÉALISTE ===
     if (character.gender === 'female') {
-      const bust = character.bust || '';
+      const bust = (character.bust || '').toUpperCase();
       const bustDescriptions = {
-        'A': 'small petite A-cup breasts',
-        'B': 'modest B-cup breasts',
-        'C': 'medium C-cup breasts',
-        'D': 'full D-cup breasts',
-        'DD': 'large DD-cup breasts',
-        'E': 'very large E-cup breasts',
-        'F': 'huge F-cup breasts',
-        'G': 'massive G-cup breasts',
+        'A': 'VERY SMALL A-CUP breasts, nearly flat chest, small nipples, barely visible cleavage',
+        'B': 'SMALL B-CUP breasts, petite modest bust, small perky breasts, subtle cleavage',
+        'C': 'MEDIUM C-CUP breasts, average sized breasts, natural round shape, normal cleavage',
+        'D': 'LARGE D-CUP breasts, big full round breasts, visible cleavage, heavy bust',
+        'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts, deep prominent cleavage, bouncy',
+        'E': 'HUGE E-CUP breasts, very big heavy breasts, massive deep cleavage, bouncy jiggling',
+        'F': 'HUGE F-CUP breasts, enormous heavy breasts, huge deep cleavage, very bouncy',
+        'G': 'GIGANTIC G-CUP breasts, extremely large heavy breasts, massive cleavage, giant bust',
+        'H': 'MASSIVE H-CUP breasts, impossibly huge heavy breasts, enormous cleavage, gigantic',
+        'I': 'COLOSSAL I-CUP breasts, extremely massive heavy breasts, gigantic bust',
       };
       if (bustDescriptions[bust]) {
         parts.push(bustDescriptions[bust]);
+        console.log(`👙 POITRINE buildUltra: ${bust} -> ${bustDescriptions[bust]}`);
       }
     }
     
@@ -2237,18 +2252,20 @@ class ImageGenerationService {
         prompt += ', ' + physicalDetails.bust.description;
         console.log(`👙 POITRINE (priorité): ${physicalDetails.bust.description}`);
       } else if (character.bust) {
+        // === v5.3.65 - TAILLES DE POITRINE RÉALISTES ===
         const bustMap = {
-          'A': 'SMALL A-CUP breasts, petite flat chest',
-          'B': 'SMALL B-CUP breasts, modest small bust',
-          'C': 'MEDIUM C-CUP breasts, average bust',
-          'D': 'LARGE D-CUP breasts, big full breasts',
-          'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts',
-          'E': 'HUGE E-CUP breasts, very big breasts',
-          'F': 'HUGE F-CUP breasts, massive breasts',
-          'G': 'GIGANTIC G-CUP breasts, enormous bust',
-          'H': 'MASSIVE H-CUP breasts, extremely huge breasts'
+          'A': 'VERY SMALL A-CUP breasts, nearly flat chest, small nipples, barely visible cleavage',
+          'B': 'SMALL B-CUP breasts, petite modest bust, small perky breasts, subtle cleavage',
+          'C': 'MEDIUM C-CUP breasts, average sized breasts, natural round shape, normal cleavage',
+          'D': 'LARGE D-CUP breasts, big full round breasts, visible cleavage, heavy bust',
+          'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts, deep cleavage, bouncy',
+          'E': 'HUGE E-CUP breasts, very big heavy breasts, massive cleavage, bouncy jiggling',
+          'F': 'HUGE F-CUP breasts, enormous heavy breasts, huge deep cleavage, very bouncy',
+          'G': 'GIGANTIC G-CUP breasts, extremely large breasts, massive heavy bust, gigantic cleavage',
+          'H': 'MASSIVE H-CUP breasts, impossibly huge breasts, enormous heavy bust, giant cleavage',
+          'I': 'COLOSSAL I-CUP breasts, extremely massive breasts, gigantic heavy bust'
         };
-        const bustDesc = bustMap[character.bust.toUpperCase()] || `${character.bust} cup breasts`;
+        const bustDesc = bustMap[character.bust.toUpperCase()] || `${character.bust}-cup breasts`;
         prompt += `, ${bustDesc}`;
         console.log(`👙 POITRINE (fallback): ${character.bust} -> ${bustDesc}`);
       }
@@ -3146,18 +3163,20 @@ class ImageGenerationService {
         prompt += ', ' + physicalDetailsScene.bust.description;
         console.log(`👙 POITRINE SCÈNE (priorité): ${physicalDetailsScene.bust.description}`);
       } else if (character.bust) {
+        // === v5.3.65 - TAILLES DE POITRINE RÉALISTES ===
         const bustMap = {
-          'A': 'SMALL A-CUP breasts',
-          'B': 'SMALL B-CUP breasts',
-          'C': 'MEDIUM C-CUP breasts',
-          'D': 'LARGE D-CUP breasts, big full breasts',
-          'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts',
-          'E': 'HUGE E-CUP breasts, very big breasts',
-          'F': 'HUGE F-CUP breasts, massive breasts',
-          'G': 'GIGANTIC G-CUP breasts, enormous bust',
-          'H': 'MASSIVE H-CUP breasts, extremely huge breasts'
+          'A': 'VERY SMALL A-CUP breasts, nearly flat chest, small nipples',
+          'B': 'SMALL B-CUP breasts, petite modest bust, small perky breasts',
+          'C': 'MEDIUM C-CUP breasts, average sized breasts, natural round shape',
+          'D': 'LARGE D-CUP breasts, big full round breasts, visible cleavage',
+          'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts, deep cleavage',
+          'E': 'HUGE E-CUP breasts, very big heavy breasts, massive cleavage',
+          'F': 'HUGE F-CUP breasts, enormous heavy breasts, huge deep cleavage',
+          'G': 'GIGANTIC G-CUP breasts, extremely large breasts, massive heavy bust',
+          'H': 'MASSIVE H-CUP breasts, impossibly huge breasts, enormous heavy bust',
+          'I': 'COLOSSAL I-CUP breasts, extremely massive breasts, gigantic heavy bust'
         };
-        const bustDesc = bustMap[character.bust.toUpperCase()] || `${character.bust} cup breasts`;
+        const bustDesc = bustMap[character.bust.toUpperCase()] || `${character.bust}-cup breasts`;
         prompt += `, ${bustDesc}`;
         console.log(`👙 POITRINE SCÈNE (fallback): ${character.bust} -> ${bustDesc}`);
       }
@@ -4453,19 +4472,20 @@ class ImageGenerationService {
     const isFemale = details.gender === 'female' || fullText.includes('femme') || fullText.includes('woman');
     
     if (isFemale) {
+      // === v5.3.65 - TAILLES DE POITRINE RÉALISTES ET DÉTAILLÉES ===
       // D'abord character.bust
       if (character.bust) {
         const bustMap = {
-          'A': 'SMALL A-CUP breasts, petite flat chest',
-          'B': 'SMALL B-CUP breasts, modest small bust',
-          'C': 'MEDIUM C-CUP breasts, average bust',
-          'D': 'LARGE D-CUP breasts, BIG full breasts',
-          'DD': 'VERY LARGE DD-CUP breasts, BIG heavy breasts',
-          'E': 'HUGE E-CUP breasts, very BIG breasts',
-          'F': 'HUGE F-CUP breasts, MASSIVE breasts',
-          'G': 'GIGANTIC G-CUP breasts, ENORMOUS bust',
-          'H': 'MASSIVE H-CUP breasts, extremely HUGE breasts',
-          'I': 'GIGANTIC I-CUP breasts, massive heavy bust',
+          'A': 'VERY SMALL A-CUP breasts, nearly flat chest, small nipples, barely visible cleavage, petite bust',
+          'B': 'SMALL B-CUP breasts, petite modest bust, small perky breasts, subtle cleavage, youthful',
+          'C': 'MEDIUM C-CUP breasts, average sized breasts, natural round shape, normal cleavage, proportionate',
+          'D': 'LARGE D-CUP breasts, big full round breasts, visible cleavage, heavy bust, attractive',
+          'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts, deep prominent cleavage, bouncy, voluptuous',
+          'E': 'HUGE E-CUP breasts, very big heavy breasts, massive deep cleavage, bouncy jiggling, busty',
+          'F': 'HUGE F-CUP breasts, enormous heavy breasts, huge deep cleavage, very bouncy, extremely busty',
+          'G': 'GIGANTIC G-CUP breasts, extremely large heavy breasts, massive cleavage, giant bust, extremely busty',
+          'H': 'MASSIVE H-CUP breasts, impossibly huge heavy breasts, enormous cleavage, gigantic bust',
+          'I': 'COLOSSAL I-CUP breasts, extremely massive heavy breasts, gigantic bust, huge heavy',
         };
         details.bust = bustMap[character.bust.toUpperCase()] || `${character.bust}-cup breasts`;
       }
@@ -4473,18 +4493,26 @@ class ImageGenerationService {
       // Chercher dans physicalDescription
       if (!details.bust) {
         const bustPatterns = {
-          'bonnet a|a-cup|petite poitrine|flat chest|petit sein': 'SMALL A-CUP breasts, petite flat chest',
-          'bonnet b|b-cup|petits seins': 'SMALL B-CUP breasts, modest bust',
-          'bonnet c|c-cup|poitrine moyenne': 'MEDIUM C-CUP breasts, average bust',
-          'bonnet d|d-cup|belle poitrine|grosse poitrine': 'LARGE D-CUP breasts, BIG full breasts',
-          'bonnet dd|dd-cup|très grosse poitrine': 'VERY LARGE DD-CUP breasts, BIG heavy breasts',
-          'bonnet e|e-cup|énorme poitrine': 'HUGE E-CUP breasts, very BIG breasts',
-          'bonnet f|f-cup|poitrine massive': 'HUGE F-CUP breasts, MASSIVE breasts',
-          'bonnet g|g-cup|poitrine gigantesque': 'GIGANTIC G-CUP breasts, ENORMOUS bust',
-          'bonnet h|h-cup': 'MASSIVE H-CUP breasts, extremely HUGE breasts',
-          'gros seins|big breasts|large breasts|heavy breasts': 'BIG full breasts, large bust',
-          'énormes seins|huge breasts|massive breasts': 'HUGE MASSIVE breasts, very large bust',
-          'petits seins|small breasts|flat chest': 'small breasts, modest bust',
+          // Petites poitrines (A-B)
+          'bonnet a|a-cup|très petite poitrine|flat chest|presque plate': 'VERY SMALL A-CUP breasts, nearly flat chest, small nipples',
+          'bonnet b|b-cup|petite poitrine|petits seins|modest': 'SMALL B-CUP breasts, petite modest bust, small perky',
+          // Moyenne (C)
+          'bonnet c|c-cup|poitrine moyenne|average|normal': 'MEDIUM C-CUP breasts, average sized, natural round shape',
+          // Grosses (D-DD)
+          'bonnet d|d-cup|belle poitrine|grosse poitrine|big breast': 'LARGE D-CUP breasts, big full round breasts, visible cleavage',
+          'bonnet dd|dd-cup|très grosse poitrine|very large': 'VERY LARGE DD-CUP breasts, big heavy breasts, deep cleavage',
+          // Énormes (E-F)
+          'bonnet e|e-cup|énorme poitrine|huge breast': 'HUGE E-CUP breasts, very big heavy breasts, massive cleavage',
+          'bonnet f|f-cup|poitrine massive|massive breast': 'HUGE F-CUP breasts, enormous heavy breasts, huge cleavage',
+          // Gigantesques (G-H-I)
+          'bonnet g|g-cup|poitrine gigantesque|gigantic': 'GIGANTIC G-CUP breasts, extremely large breasts, massive bust',
+          'bonnet h|h-cup|poitrine énorme': 'MASSIVE H-CUP breasts, impossibly huge breasts, enormous bust',
+          'bonnet i|i-cup': 'COLOSSAL I-CUP breasts, extremely massive breasts, gigantic bust',
+          // Descriptions génériques
+          'gros seins|big breasts|large breasts|heavy breasts|poitrine généreuse': 'LARGE full breasts, big bust, visible cleavage',
+          'énormes seins|huge breasts|massive breasts|poitrine opulente': 'HUGE MASSIVE breasts, very large heavy bust',
+          'petits seins|small breasts|poitrine menue': 'small petite breasts, modest bust',
+          'seins fermes|perky breasts|poitrine ferme': 'firm perky breasts, shapely bust',
         };
         for (const [pattern, value] of Object.entries(bustPatterns)) {
           if (new RegExp(pattern, 'i').test(fullText)) { details.bust = value; break; }
