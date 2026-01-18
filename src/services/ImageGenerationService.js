@@ -2273,8 +2273,6 @@ class ImageGenerationService {
       else if (heightNum < 175) prompt += ', tall';
       else prompt += ', very tall';
     }
-      console.log(`👙 Poitrine: ${character.bust} -> ${bustDesc}`);
-    }
     
     // === v5.3.55 - DESCRIPTIF PHYSIQUE DÉTAILLÉ EN PRIORITÉ ===
     if (character.physicalDescription && character.physicalDescription.length > 20) {
