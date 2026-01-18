@@ -14,8 +14,18 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import StorageService from '../services/StorageService';
-import enhancedCharacters from '../data/allCharacters';
 import CustomCharacterService from '../services/CustomCharacterService';
+
+// Import sécurisé des personnages
+let enhancedCharacters = [];
+try {
+  const allCharsModule = require('../data/allCharacters');
+  enhancedCharacters = allCharsModule.enhancedCharacters || allCharsModule.default || [];
+  console.log(`📚 ${enhancedCharacters.length} personnages importés`);
+} catch (e) {
+  console.error('❌ Erreur import personnages:', e.message);
+  enhancedCharacters = [];
+}
 
 export default function ChatsScreen({ navigation }) {
   const [allCharacters, setAllCharacters] = useState([]);
@@ -23,109 +33,127 @@ export default function ChatsScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const isInitialized = useRef(false);
+  const [debugInfo, setDebugInfo] = useState('');
+  const mounted = useRef(true);
 
-  // Charger au premier rendu
+  // Cleanup on unmount
   useEffect(() => {
-    if (!isInitialized.current) {
-      isInitialized.current = true;
-      loadData(true);
-    }
+    mounted.current = true;
+    loadData();
+    return () => { mounted.current = false; };
   }, []);
 
   // Recharger quand l'écran reprend le focus
   useFocusEffect(
     useCallback(() => {
-      console.log('📱 ChatsScreen: Focus - Rechargement...');
-      loadData(false);
+      console.log('📱 ChatsScreen: Focus');
+      if (mounted.current) {
+        loadData();
+      }
     }, [])
   );
 
-  const loadData = async (forceRefresh = false) => {
+  const loadData = async () => {
+    if (!mounted.current) return;
+    
     try {
       setError(null);
-      if (!refreshing) setLoading(true);
-      console.log('📱 ChatsScreen: Chargement des données...');
+      setDebugInfo('Chargement...');
+      setLoading(true);
       
-      // Charger les personnages de base IMMÉDIATEMENT
-      const allChars = [...(enhancedCharacters || [])];
-      const seenIds = new Set(allChars.map(c => c.id));
-      setAllCharacters(allChars);
-      console.log(`📚 ${allChars.length} personnages de base chargés`);
+      console.log('📱 ChatsScreen: Début chargement');
       
-      // Charger les conversations LOCALES
-      let allConversations = [];
+      // 1. Charger les personnages de base
+      let chars = [];
       try {
-        allConversations = await StorageService.getAllConversations() || [];
+        chars = Array.isArray(enhancedCharacters) ? [...enhancedCharacters] : [];
+        console.log(`📚 ${chars.length} personnages de base`);
       } catch (e) {
-        console.log('⚠️ Erreur chargement conversations:', e.message);
-        allConversations = [];
+        console.error('❌ Erreur personnages:', e);
+        chars = [];
       }
       
-      // Trier par date
-      const sortedConversations = allConversations.sort((a, b) => {
-        const dateA = new Date(a.lastUpdated || a.createdAt || 0).getTime();
-        const dateB = new Date(b.lastUpdated || b.createdAt || 0).getTime();
+      if (mounted.current) {
+        setAllCharacters(chars);
+        setDebugInfo(`${chars.length} personnages`);
+      }
+      
+      // 2. Charger les conversations
+      let convs = [];
+      try {
+        convs = await StorageService.getAllConversations();
+        convs = Array.isArray(convs) ? convs : [];
+        console.log(`💬 ${convs.length} conversations`);
+      } catch (e) {
+        console.error('❌ Erreur conversations:', e);
+        convs = [];
+      }
+      
+      // 3. Trier par date
+      const sorted = convs.sort((a, b) => {
+        const dateA = new Date(a?.lastUpdated || a?.createdAt || 0).getTime() || 0;
+        const dateB = new Date(b?.lastUpdated || b?.createdAt || 0).getTime() || 0;
         return dateB - dateA;
       });
       
-      console.log(`✅ ${sortedConversations.length} conversations chargées`);
-      setConversations(sortedConversations);
+      if (mounted.current) {
+        setConversations(sorted);
+        setDebugInfo(`${chars.length} perso, ${sorted.length} conv`);
+        console.log(`✅ Chargement terminé: ${sorted.length} conversations`);
+      }
       
-      // Charger les personnages custom en arrière-plan (sans bloquer)
-      setTimeout(async () => {
-        try {
-          const customChars = await CustomCharacterService.getCustomCharacters().catch(() => []);
-          for (const char of (customChars || [])) {
-            if (char && char.id && !seenIds.has(char.id)) {
-              allChars.push(char);
+      // 4. Charger les personnages custom en arrière-plan
+      try {
+        const customChars = await CustomCharacterService.getCustomCharacters();
+        if (Array.isArray(customChars) && mounted.current) {
+          const seenIds = new Set(chars.map(c => c?.id));
+          for (const char of customChars) {
+            if (char?.id && !seenIds.has(char.id)) {
+              chars.push(char);
               seenIds.add(char.id);
             }
           }
-          setAllCharacters([...allChars]);
-        } catch (e) {
-          console.log('⚠️ Personnages custom non chargés:', e.message);
+          setAllCharacters([...chars]);
         }
-      }, 100);
+      } catch (e) {
+        console.log('⚠️ Custom chars:', e.message);
+      }
       
     } catch (err) {
-      console.error('❌ Erreur loadData ChatsScreen:', err);
-      setError(err.message || 'Erreur de chargement');
-      setConversations([]);
+      console.error('❌ Erreur loadData:', err);
+      if (mounted.current) {
+        setError(err?.message || 'Erreur inconnue');
+        setConversations([]);
+      }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (mounted.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   };
   
-  const onRefresh = useCallback(async () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    await loadData(true);
+    loadData();
   }, []);
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    await loadData(true);
-  };
-
   const deleteConversation = async (characterId) => {
-    const character = getCharacter(characterId);
+    const character = findCharacter(characterId);
     Alert.alert(
-      'Supprimer définitivement',
-      `Voulez-vous vraiment supprimer définitivement la conversation avec ${character?.name || 'ce personnage'} ? Cette action est irréversible.`,
+      'Supprimer',
+      `Supprimer la conversation avec ${character?.name || 'ce personnage'}?`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
-          text: 'Supprimer définitivement',
+          text: 'Supprimer',
           style: 'destructive',
           onPress: async () => {
-            const success = await StorageService.deleteConversation(characterId);
-            if (success) {
-              // Recharger immédiatement avec forceRefresh
-              await loadData(true);
-              Alert.alert('✅ Supprimée', 'La conversation a été supprimée définitivement.');
-            } else {
-              Alert.alert('❌ Erreur', 'Impossible de supprimer la conversation.');
+            try {
+              await StorageService.deleteConversation(characterId);
+              loadData();
+            } catch (e) {
+              Alert.alert('Erreur', 'Impossible de supprimer');
             }
           },
         },
@@ -133,144 +161,133 @@ export default function ChatsScreen({ navigation }) {
     );
   };
 
-  const getCharacter = (characterId) => {
-    // Chercher par ID exact
-    let char = allCharacters.find(c => c.id === characterId);
-    if (char) return char;
+  const findCharacter = (characterId) => {
+    if (!characterId || !Array.isArray(allCharacters)) return null;
     
-    // Chercher par ID converti en string
-    char = allCharacters.find(c => c.id === String(characterId));
-    if (char) return char;
-    
-    // Chercher par ID partiel (pour les custom_xxx)
-    char = allCharacters.find(c => 
-      c.id?.includes(characterId) || characterId?.includes(c.id)
+    const id = String(characterId);
+    return allCharacters.find(c => 
+      c?.id === characterId || 
+      c?.id === id || 
+      String(c?.id) === id ||
+      c?.serverId === characterId ||
+      c?.originalId === characterId
     );
-    if (char) return char;
-    
-    // Chercher par serverId
-    char = allCharacters.find(c => c.serverId === characterId);
-    if (char) return char;
-    
-    // Chercher par originalId
-    char = allCharacters.find(c => c.originalId === characterId);
-    
-    return char;
   };
 
-  const renderConversation = ({ item }) => {
-    // v5.3.47 - TOUJOURS afficher la conversation, même sans personnage
-    if (!item) {
-      console.log('⚠️ Item null, skip');
+  const renderItem = ({ item, index }) => {
+    if (!item) return null;
+    
+    try {
+      const characterId = item?.characterId || item?.id || `unknown-${index}`;
+      let character = findCharacter(characterId);
+      
+      // Créer un placeholder si non trouvé
+      if (!character) {
+        character = {
+          id: characterId,
+          name: `Chat #${String(characterId).substring(0, 6)}`,
+          gender: 'unknown',
+        };
+      }
+      
+      const messages = Array.isArray(item?.messages) ? item.messages : [];
+      const lastMessage = messages[messages.length - 1];
+      const preview = lastMessage?.content 
+        ? String(lastMessage.content).substring(0, 80) + '...'
+        : 'Aucun message';
+      
+      const initials = (character?.name || '??')
+        .split(' ')
+        .map(n => (n || '')[0] || '')
+        .join('')
+        .substring(0, 2)
+        .toUpperCase() || '??';
+
+      return (
+        <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.cardTouchable}
+            onPress={() => navigation.navigate('Conversation', { character })}
+          >
+            <View style={styles.cardContent}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{initials}</Text>
+              </View>
+              <View style={styles.info}>
+                <View style={styles.header}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {character?.name || 'Inconnu'}
+                  </Text>
+                  <Text style={styles.date}>
+                    {item?.lastUpdated 
+                      ? new Date(item.lastUpdated).toLocaleDateString('fr-FR')
+                      : ''}
+                  </Text>
+                </View>
+                <Text style={styles.preview} numberOfLines={2}>{preview}</Text>
+                <View style={styles.stats}>
+                  <Text style={styles.statText}>💬 {messages.length}</Text>
+                  <Text style={styles.statText}>💖 {item?.relationship?.affection || 50}%</Text>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.deleteBtn}
+            onPress={() => deleteConversation(characterId)}
+          >
+            <Text style={styles.deleteBtnText}>🗑️ Supprimer</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    } catch (e) {
+      console.error('❌ Erreur rendu item:', e);
       return null;
     }
-    
-    const characterId = item.characterId || item.id || 'unknown';
-    console.log(`🔍 Rendu conversation: ${characterId}`);
-    
-    // Chercher le personnage
-    let character = getCharacter(characterId);
-    
-    // v5.3.47 - TOUJOURS créer un placeholder si non trouvé
-    if (!character) {
-      console.log(`⚠️ Personnage ${characterId} non trouvé, création placeholder`);
-      character = {
-        id: characterId,
-        name: `Conversation #${String(characterId).substring(0, 6)}`,
-        gender: 'unknown',
-        age: 25,
-        tags: ['conversation'],
-        scenario: 'Conversation en cours',
-        startMessage: '...',
-      };
-    }
-    
-    // S'assurer que name existe
-    if (!character.name) {
-      character.name = `Chat ${String(characterId).substring(0, 6)}`;
-    }
-
-    const messages = item.messages || [];
-    const lastMessage = messages[messages.length - 1];
-    const messagePreview = lastMessage?.content 
-      ? lastMessage.content.substring(0, 80) + (lastMessage.content.length > 80 ? '...' : '')
-      : 'Aucun message';
-    
-    // Extraire les initiales
-    const getInitials = (name) => {
-      if (!name || typeof name !== 'string') return '?';
-      const parts = name.split(' ').filter(n => n);
-      if (parts.length === 0) return '?';
-      return parts.map(n => n[0] || '').join('').substring(0, 2) || '?';
-    };
-
-    return (
-      <View style={styles.card}>
-        <TouchableOpacity
-          style={styles.cardTouchable}
-          onPress={() => navigation.navigate('Conversation', { character })}
-        >
-          <View style={styles.cardContent}>
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {getInitials(character.name)}
-              </Text>
-            </View>
-            <View style={styles.info}>
-              <View style={styles.header}>
-                <Text style={styles.name}>{character.name}</Text>
-                <Text style={styles.date}>
-                  {item.lastUpdated ? new Date(item.lastUpdated).toLocaleDateString('fr-FR') : ''}
-                </Text>
-              </View>
-              <Text style={styles.preview} numberOfLines={2}>
-                {messagePreview}
-              </Text>
-              <View style={styles.statsContainer}>
-                <Text style={styles.stats}>
-                  💬 {messages.length} messages
-                </Text>
-                <Text style={styles.stats}>
-                  💖 {item.relationship?.affection || 50}%
-                </Text>
-                <Text style={styles.stats}>
-                  ⭐ Niv.{item.relationship?.level || 1}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => deleteConversation(characterId)}
-        >
-          <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
-        </TouchableOpacity>
-      </View>
-    );
   };
 
-  // État de chargement
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.headerBar}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity 
-              style={styles.backButton} 
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.backButtonText}>← Retour</Text>
-            </TouchableOpacity>
-            <View>
-              <Text style={styles.title}>Conversations</Text>
-            </View>
-            <View style={{ width: 70 }} />
-          </View>
+  // Fonction de navigation retour sécurisée
+  const goBack = () => {
+    try {
+      if (navigation?.canGoBack?.()) {
+        navigation.goBack();
+      } else {
+        navigation.navigate('Home');
+      }
+    } catch (e) {
+      console.log('Navigation error:', e);
+    }
+  };
+
+  // === RENDU ===
+  
+  // Header commun
+  const renderHeader = (subtitle = '') => (
+    <View style={styles.headerBar}>
+      <View style={styles.headerRow}>
+        <TouchableOpacity style={styles.backBtn} onPress={goBack}>
+          <Text style={styles.backBtnText}>← Retour</Text>
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Text style={styles.title}>Conversations</Text>
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
-        <View style={styles.loadingContainer}>
+        <TouchableOpacity style={styles.refreshBtn} onPress={loadData}>
+          <Text style={styles.refreshBtnText}>🔄</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  // État de chargement
+  if (loading && !refreshing) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        {renderHeader('Chargement...')}
+        <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#6366f1" />
-          <Text style={styles.loadingText}>Chargement des conversations...</Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
+          <Text style={styles.debugText}>{debugInfo}</Text>
         </View>
       </SafeAreaView>
     );
@@ -279,95 +296,47 @@ export default function ChatsScreen({ navigation }) {
   // État d'erreur
   if (error) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.headerBar}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity 
-              style={styles.backButton} 
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.backButtonText}>← Retour</Text>
-            </TouchableOpacity>
-            <View>
-              <Text style={styles.title}>Conversations</Text>
-            </View>
-            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-              <Text style={styles.refreshButtonText}>🔄</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyEmoji}>⚠️</Text>
-          <Text style={styles.emptyTitle}>Erreur de chargement</Text>
-          <Text style={styles.emptyText}>{error}</Text>
-          <TouchableOpacity 
-            style={styles.retryButton} 
-            onPress={() => loadData(true)}
-          >
-            <Text style={styles.retryButtonText}>Réessayer</Text>
+      <SafeAreaView style={styles.safe}>
+        {renderHeader('Erreur')}
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorEmoji}>⚠️</Text>
+          <Text style={styles.errorTitle}>Erreur</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadData}>
+            <Text style={styles.retryBtnText}>Réessayer</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
-  // Pas de conversations
+  // Aucune conversation
   if (!conversations || conversations.length === 0) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.headerBar}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity 
-              style={styles.backButton} 
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.backButtonText}>← Retour</Text>
-            </TouchableOpacity>
-            <View>
-              <Text style={styles.title}>Conversations</Text>
-              <Text style={styles.subtitle}>0 conversation</Text>
-            </View>
-            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-              <Text style={styles.refreshButtonText}>🔄</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.emptyContainer}>
+      <SafeAreaView style={styles.safe}>
+        {renderHeader('0 conversation')}
+        <View style={styles.centerContainer}>
           <Text style={styles.emptyEmoji}>💬</Text>
           <Text style={styles.emptyTitle}>Aucune conversation</Text>
           <Text style={styles.emptyText}>
-            Commencez une conversation avec un personnage depuis l'onglet Personnages
+            Commencez une conversation avec un personnage
           </Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  // Affichage normal avec conversations
+  // Liste des conversations
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <View style={styles.headerBar}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity 
-              style={styles.backButton} 
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.backButtonText}>← Retour</Text>
-            </TouchableOpacity>
-            <View>
-              <Text style={styles.title}>Conversations</Text>
-              <Text style={styles.subtitle}>{conversations.length} conversation(s)</Text>
-            </View>
-            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
-              <Text style={styles.refreshButtonText}>🔄</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        {renderHeader(`${conversations.length} conversation(s)`)}
         <FlatList
           data={conversations}
-          renderItem={renderConversation}
-          keyExtractor={(item, index) => item?.characterId?.toString() || `conv-${index}`}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => 
+            item?.characterId?.toString() || `conv-${index}`
+          }
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -378,6 +347,11 @@ export default function ChatsScreen({ navigation }) {
               tintColor="#6366f1"
             />
           }
+          ListEmptyComponent={
+            <View style={styles.centerContainer}>
+              <Text style={styles.emptyText}>Aucune conversation</Text>
+            </View>
+          }
         />
       </View>
     </SafeAreaView>
@@ -385,15 +359,64 @@ export default function ChatsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  safe: {
     flex: 1,
     backgroundColor: '#6366f1',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  loadingContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  headerBar: {
+    padding: 15,
+    backgroundColor: '#6366f1',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerCenter: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  backBtn: {
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  backBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  refreshBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  refreshBtnText: {
+    fontSize: 18,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#e0e7ff',
+    marginTop: 2,
+  },
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 30,
     backgroundColor: '#f8f9fa',
   },
   loadingText: {
@@ -401,71 +424,60 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
   },
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
+  debugText: {
+    marginTop: 10,
+    fontSize: 12,
+    color: '#9ca3af',
   },
-  headerBar: {
-    padding: 20,
-    paddingTop: 15,
-    backgroundColor: '#6366f1',
+  errorEmoji: {
+    fontSize: 60,
+    marginBottom: 15,
   },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 10,
   },
-  backButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  errorText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
   },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  retryButton: {
+  retryBtn: {
     marginTop: 20,
     paddingVertical: 12,
     paddingHorizontal: 24,
     backgroundColor: '#6366f1',
     borderRadius: 10,
   },
-  retryButtonText: {
+  retryBtnText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  refreshButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  emptyEmoji: {
+    fontSize: 60,
+    marginBottom: 15,
   },
-  refreshButtonText: {
-    fontSize: 22,
-  },
-  title: {
-    fontSize: 32,
+  emptyTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
+    color: '#111827',
+    marginBottom: 10,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#e0e7ff',
+  emptyText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
   },
   list: {
     padding: 15,
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 15,
-    marginBottom: 15,
+    borderRadius: 12,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -480,29 +492,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 15,
   },
-  deleteButton: {
-    backgroundColor: '#ef4444',
-    padding: 12,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#fee2e2',
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  avatarPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: '#6366f1',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 12,
   },
   avatarText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
@@ -513,53 +513,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 4,
   },
   name: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#111827',
+    flex: 1,
   },
   date: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#9ca3af',
+    marginLeft: 8,
   },
   preview: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6b7280',
-    marginBottom: 10,
-    lineHeight: 20,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 15,
+    marginBottom: 8,
+    lineHeight: 18,
   },
   stats: {
-    fontSize: 12,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statText: {
+    fontSize: 11,
     color: '#4f46e5',
     fontWeight: '500',
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  deleteBtn: {
+    backgroundColor: '#ef4444',
+    padding: 10,
     alignItems: 'center',
-    padding: 40,
-    backgroundColor: '#f8f9fa',
   },
-  emptyEmoji: {
-    fontSize: 80,
-    marginBottom: 20,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 10,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
-    lineHeight: 24,
+  deleteBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#fff',
   },
 });
