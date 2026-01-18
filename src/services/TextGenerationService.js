@@ -463,170 +463,141 @@ class TextGenerationService {
 
   /**
    * Analyse le contexte de la conversation + scénario pour adapter les réponses
-   * NSFW PROGRESSIF: commence SFW puis escalade selon les signaux utilisateur
-   * v5.3.11 - Détection intelligente avec seuils et progression
+   * v5.3.39 - NSFW RÉACTIF: répond IMMÉDIATEMENT aux demandes explicites de l'utilisateur
+   * Priorité au dernier message de l'utilisateur!
    */
   analyzeConversationContext(messages, character = null) {
     const messageCount = messages.length;
     const recentMessages = messages.slice(-10);
-    const recentText = recentMessages.map(m => m.content?.toLowerCase() || '').join(' ');
     
-    // Messages de l'utilisateur uniquement (pour détection des intentions)
+    // Messages de l'utilisateur uniquement
     const userMessages = messages.filter(m => m.role === 'user');
     const lastUserMsg = userMessages.slice(-1)[0]?.content?.toLowerCase() || '';
-    const recentUserMsgs = userMessages.slice(-5).map(m => m.content?.toLowerCase() || '').join(' ');
+    const recentUserMsgs = userMessages.slice(-3).map(m => m.content?.toLowerCase() || '').join(' ');
     
-    // Scénario du personnage
+    // Scénario du personnage (pour contexte, pas pour forcer NSFW)
     const scenarioText = (character?.scenario || '').toLowerCase();
     
-    // === MOTS-CLÉS PAR NIVEAU D'INTENSITÉ ===
-    // Niveau 1: Mots romantiques/flirt (pas encore NSFW)
-    const romanticKeywords = [
-      'beau', 'belle', 'mignon', 'séduisant', 'attirant', 'charmant',
-      'yeux', 'sourire', 'regarder', 'approche', 'ensemble', 'seul',
-    ];
-    
-    // Niveau 2: Mots suggestifs (transition vers NSFW léger)
-    const suggestiveKeywords = [
-      'embrass', 'caress', 'touche', 'sensuel', 'corps', 'peau',
-      'désir', 'envie', 'chaud', 'frisson', 'rapproche', 'serre',
-      'lit', 'chambre', 'nuit', 'intime',
-    ];
-    
-    // Niveau 3: Mots NSFW explicites (active le mode NSFW)
-    const explicitKeywords = [
+    // === MOTS-CLÉS - DÉTECTION IMMÉDIATE ===
+    // Mots qui déclenchent IMMÉDIATEMENT le mode NSFW si dans le DERNIER message
+    const instantNsfwKeywords = [
+      // Actions sexuelles directes
+      'baise', 'suce', 'lèche', 'pénètr', 'encule', 'défonce', 'pilonne',
+      'prends-moi', 'fais-moi', 'viens en moi', 'jouis', 'éjacul',
       // Corps explicite
-      'sein', 'seins', 'poitrine', 'téton', 'fesse', 'cul',
-      'sexe', 'bite', 'queue', 'pénis', 'chatte', 'vagin', 'pubis',
-      // États/actions sexuels
-      'nu', 'nue', 'déshabill', 'excit', 'gémis', 'mouill', 'band', 'dur',
-      'jouir', 'orgasm', 'plaisir sexuel',
+      'bite', 'queue', 'chatte', 'seins', 'cul', 'téton',
+      // États
+      'nu', 'nue', 'déshabill', 'excit', 'mouill', 'band',
       // Verbes sexuels
-      'baiser', 'faire l\'amour', 'coucher avec', 'sucer', 'lécher', 'pénétr',
-      'masturb', 'branl', 'doigt',
-      // Expressions explicites
-      'envie de toi', 'te veux', 'prends-moi', 'fais-moi', 'viens en moi',
+      'masturb', 'branl', 'doigt', 'caress',
     ];
     
-    // Niveau 4: Mots très explicites (intensité maximale)
+    // Mots suggestifs (NSFW léger)
+    const suggestiveKeywords = [
+      'embrass', 'touche', 'corps', 'peau', 'désir', 'envie',
+      'lit', 'chambre', 'sensuel', 'intime', 'rapproche', 'serre',
+    ];
+    
+    // Mots très explicites (intensité max)
     const veryExplicitKeywords = [
-      'baise', 'encule', 'défonce', 'sperme', 'éjacul', 'avale',
-      'fourre', 'pilonne', 'lime', 'bourre',
+      'baise-moi', 'défonce', 'sperme', 'avale', 'fourre', 'bourre',
+      'plus fort', 'plus profond', 'continue', 'arrête pas',
     ];
     
-    // SFW explicite (force le mode SFW)
-    const sfwKeywords = ['bonjour', 'salut', 'travail', 'journée', 'comment ça va', 'ça va', 'merci'];
+    // === DÉTECTION PRIORITAIRE SUR LE DERNIER MESSAGE ===
+    let lastMsgHasInstantNsfw = instantNsfwKeywords.some(k => lastUserMsg.includes(k));
+    let lastMsgHasVeryExplicit = veryExplicitKeywords.some(k => lastUserMsg.includes(k));
+    let lastMsgHasSuggestive = suggestiveKeywords.some(k => lastUserMsg.includes(k));
     
-    // === CALCUL DES SCORES (uniquement messages utilisateur récents) ===
-    let romanticScore = 0;
-    let suggestiveScore = 0;
+    // Actions utilisateur (entre *)
+    const lastMsgHasAction = lastUserMsg.includes('*');
+    const lastMsgIsPhysical = lastMsgHasAction && suggestiveKeywords.some(k => lastUserMsg.includes(k));
+    
+    // === CALCUL DES SCORES ===
     let explicitScore = 0;
+    let suggestiveScore = 0;
     let veryExplicitScore = 0;
-    let sfwScore = 0;
     
-    // Scores sur les messages utilisateur récents
-    romanticKeywords.forEach(k => { if (recentUserMsgs.includes(k)) romanticScore++; });
-    suggestiveKeywords.forEach(k => { if (recentUserMsgs.includes(k)) suggestiveScore++; });
-    explicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) explicitScore++; });
-    veryExplicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) veryExplicitScore++; });
-    sfwKeywords.forEach(k => { if (lastUserMsg.includes(k)) sfwScore++; });
+    // Score TRIPLE pour le dernier message (priorité absolue)
+    instantNsfwKeywords.forEach(k => { if (lastUserMsg.includes(k)) explicitScore += 3; });
+    veryExplicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) veryExplicitScore += 3; });
+    suggestiveKeywords.forEach(k => { if (lastUserMsg.includes(k)) suggestiveScore += 2; });
     
-    // Bonus pour le dernier message (intention immédiate)
-    explicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) explicitScore += 2; });
-    veryExplicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) veryExplicitScore += 2; });
+    // Score simple pour messages récents
+    instantNsfwKeywords.forEach(k => { if (recentUserMsgs.includes(k)) explicitScore += 1; });
     
-    // === DÉTERMINER LE MODE ET L'INTENSITÉ NSFW ===
-    // Le scénario peut indiquer une prédisposition mais ne force PAS le mode NSFW au démarrage
-    const scenarioIsExplicit = explicitKeywords.some(k => scenarioText.includes(k));
-    const scenarioIsSuggestive = suggestiveKeywords.some(k => scenarioText.includes(k));
-    
-    // Déterminer le mode basé sur les ACTIONS DE L'UTILISATEUR (pas le scénario seul)
+    // === DÉTERMINER LE MODE - RÉACTIF ===
     let mode = 'sfw';
-    let nsfwIntensity = 0; // 0-5
+    let nsfwIntensity = 0;
     
-    if (veryExplicitScore > 0 || explicitScore >= 3) {
-      // Utilisateur très explicite -> NSFW intense
+    // PRIORITÉ 1: Dernier message très explicite = NSFW IMMÉDIAT MAX
+    if (lastMsgHasVeryExplicit || veryExplicitScore >= 3) {
       mode = 'nsfw';
-      nsfwIntensity = Math.min(5, 3 + veryExplicitScore);
-    } else if (explicitScore >= 1) {
-      // Utilisateur utilise des mots explicites -> NSFW modéré
+      nsfwIntensity = 5; // Intensité maximale immédiate
+    }
+    // PRIORITÉ 2: Dernier message explicite = NSFW IMMÉDIAT
+    else if (lastMsgHasInstantNsfw || explicitScore >= 3) {
       mode = 'nsfw';
-      nsfwIntensity = Math.min(4, 2 + explicitScore);
-    } else if (suggestiveScore >= 3 || (suggestiveScore >= 2 && scenarioIsSuggestive)) {
-      // Beaucoup de suggestions -> NSFW léger
+      nsfwIntensity = 4;
+    }
+    // PRIORITÉ 3: Action physique suggestive = NSFW léger
+    else if (lastMsgIsPhysical || suggestiveScore >= 4) {
       mode = 'nsfw_light';
-      nsfwIntensity = Math.min(3, 1 + Math.floor(suggestiveScore / 2));
-    } else if (suggestiveScore >= 1 && romanticScore >= 2) {
-      // Conversation romantique qui s'échauffe
+      nsfwIntensity = 3;
+    }
+    // PRIORITÉ 4: Mots suggestifs = romantique chaud
+    else if (lastMsgHasSuggestive || suggestiveScore >= 2) {
       mode = 'romantic';
-      nsfwIntensity = 1;
-    } else if (romanticScore >= 1) {
-      // Conversation avec ton romantique
-      mode = 'flirty';
-      nsfwIntensity = 0;
-    } else if (sfwScore > 0 && explicitScore === 0) {
-      // Discussion normale, maintenir SFW
+      nsfwIntensity = 2;
+    }
+    // Sinon: SFW mais prêt à escalader
+    else {
       mode = 'sfw';
       nsfwIntensity = 0;
     }
     
-    // Si le dernier message est clairement SFW, réduire l'intensité
-    if (sfwScore > 0 && explicitScore === 0 && veryExplicitScore === 0) {
-      if (nsfwIntensity > 2) nsfwIntensity = 2;
-    }
-    
-    // Progression naturelle avec la longueur de conversation
-    if (messageCount > 20 && suggestiveScore > 0) {
+    // Bonus si le scénario est NSFW (mais ne force pas au démarrage)
+    const scenarioIsExplicit = instantNsfwKeywords.some(k => scenarioText.includes(k));
+    const scenarioIsSuggestive = suggestiveKeywords.some(k => scenarioText.includes(k));
+    if (scenarioIsExplicit && mode !== 'sfw') {
       nsfwIntensity = Math.min(5, nsfwIntensity + 1);
     }
     
-    // Calcul de l'intensité générale (1-5)
-    let intensity = 1;
-    if (messageCount > 50) intensity = 5;
-    else if (messageCount > 30) intensity = 4;
-    else if (messageCount > 15) intensity = 3;
-    else if (messageCount > 5) intensity = 2;
+    // Intensité générale basée sur la longueur
+    let intensity = Math.min(5, Math.floor(messageCount / 10) + 1);
     
-    // === EXTRAIRE ÉLÉMENTS À NE PAS RÉPÉTER (IMPORTANT) ===
+    // === EXTRAIRE ÉLÉMENTS À NE PAS RÉPÉTER ===
     const usedActions = [];
     const usedPhrases = [];
-    const usedDescriptions = [];
     
-    recentMessages.filter(m => m.role === 'assistant').forEach(m => {
+    recentMessages.filter(m => m.role === 'assistant').slice(-5).forEach(m => {
       const content = m.content || '';
-      // Actions entre *
       const actionMatch = content.match(/\*([^*]+)\*/g);
       if (actionMatch) actionMatch.forEach(a => usedActions.push(a.replace(/\*/g, '').toLowerCase()));
-      // Dialogues entre "
       const phraseMatch = content.match(/"([^"]+)"/g);
-      if (phraseMatch) phraseMatch.forEach(p => usedPhrases.push(p.replace(/"/g, '').toLowerCase().substring(0, 40)));
-      // Parties du corps mentionnées (éviter répétition)
-      const bodyParts = ['seins', 'poitrine', 'fesses', 'lèvres', 'cou', 'cuisses', 'dos', 'ventre'];
-      bodyParts.forEach(part => {
-        if (content.toLowerCase().includes(part)) usedDescriptions.push(part);
-      });
+      if (phraseMatch) phraseMatch.forEach(p => usedPhrases.push(p.replace(/"/g, '').toLowerCase().substring(0, 30)));
     });
     
-    // Dernier message de l'utilisateur
-    const lastUserMessage = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
+    // Dernier message utilisateur
+    const lastUserMessage = userMessages.slice(-1)[0]?.content || '';
     
-    console.log(`📊 Analyse: mode=${mode}, nsfwIntensity=${nsfwIntensity}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}`);
+    console.log(`📊 Analyse v5.3.39: mode=${mode}, nsfwIntensity=${nsfwIntensity}, explicit=${explicitScore}, suggestive=${suggestiveScore}`);
     
     return {
       messageCount,
       mode,
       intensity,
       nsfwIntensity,
-      romanticScore,
-      suggestiveScore,
       explicitScore,
+      suggestiveScore,
       veryExplicitScore,
-      usedActions: [...new Set(usedActions)].slice(-10),
-      usedPhrases: [...new Set(usedPhrases)].slice(-8),
-      usedDescriptions: [...new Set(usedDescriptions)].slice(-5),
+      usedActions: [...new Set(usedActions)].slice(-8),
+      usedPhrases: [...new Set(usedPhrases)].slice(-5),
       lastUserMessage,
-      isLongConversation: messageCount > 20,
-      isVeryLongConversation: messageCount > 50,
+      lastMsgHasInstantNsfw,
+      lastMsgHasVeryExplicit,
+      isLongConversation: messageCount > 15,
+      isVeryLongConversation: messageCount > 40,
       scenarioIsExplicit,
       scenarioIsSuggestive,
     };
@@ -1294,69 +1265,56 @@ class TextGenerationService {
   }
   
   /**
-   * Construit l'instruction finale v5.3.36
-   * AMÉLIORÉ: Plus de dialogue, profil utilisateur complet + âge
+   * Construit l'instruction finale v5.3.39
+   * RÉACTIF: Répond PRÉCISÉMENT au message de l'utilisateur
+   * NSFW RAPIDE: Si demande explicite, réponse explicite immédiate
    */
   buildFinalInstructionWithMemory(character, userProfile, context, recentMessages) {
-    const charName = character?.name || 'Personnage';
     const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
     const userName = hasUsername ? userProfile.username : 'toi';
     const userGender = userProfile?.gender || '';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    const isIntenseNSFW = context.nsfwIntensity >= 4;
     
-    // Âges
-    const charAge = character.age ? parseInt(character.age) : null;
-    const userAge = userProfile?.age ? parseInt(userProfile.age) : null;
-    
-    // Récupérer le dernier message utilisateur
+    // Récupérer le dernier message utilisateur - C'EST LA PRIORITÉ
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     const lastUserContent = lastUserMsg?.content || '';
     
-    // Instruction avec emphase sur le DIALOGUE
-    let instruction = `⚡ RÉPONDS MAINTENANT à ${userName}: "${lastUserContent.substring(0, 150)}"\n\n`;
+    // INSTRUCTION PRINCIPALE: RÉPONDRE AU MESSAGE
+    let instruction = `⚡ RÉPONDS À CE MESSAGE: "${lastUserContent.substring(0, 200)}"\n\n`;
     
-    // Rappel du profil utilisateur
-    let userDesc = [];
-    if (userGender === 'female') {
-      userDesc.push('FEMME');
-      if (userProfile?.bust) userDesc.push(`seins ${userProfile.bust}`);
-    } else if (userGender === 'male') {
-      userDesc.push('HOMME');
-      if (userProfile?.penis) userDesc.push(`${userProfile.penis}cm`);
+    // Analyser ce que l'utilisateur fait/dit pour adapter la réponse
+    const userAction = lastUserContent.match(/\*([^*]+)\*/)?.[1] || '';
+    const userSpeech = lastUserContent.match(/"([^"]+)"/)?.[1] || '';
+    
+    if (userAction) {
+      instruction += `👉 ${userName} FAIT: ${userAction}\n`;
+      instruction += `→ RÉAGIS à cette action!\n`;
     }
-    if (userAge) userDesc.push(`${userAge} ans`);
-    
-    if (userDesc.length > 0) {
-      instruction += `📍 ${userName}: ${userDesc.join(', ')}.\n`;
+    if (userSpeech) {
+      instruction += `👉 ${userName} DIT: "${userSpeech}"\n`;
+      instruction += `→ RÉPONDS à ce qu'il/elle dit!\n`;
     }
-    
-    // Différence d'âge
-    if (charAge && userAge) {
-      const ageDiff = userAge - charAge;
-      if (Math.abs(ageDiff) >= 10) {
-        if (ageDiff > 0) {
-          instruction += `📍 ${userName} est plus VIEUX/VIEILLE que toi (+${ageDiff} ans).\n`;
-        } else {
-          instruction += `📍 ${userName} est plus JEUNE que toi (${Math.abs(ageDiff)} ans de moins).\n`;
-        }
-      }
+    if (!userAction && !userSpeech && lastUserContent.length > 0) {
+      instruction += `👉 RÉPONDS directement à: "${lastUserContent.substring(0, 100)}"\n`;
     }
     
-    // RÈGLE PRIORITAIRE: DIALOGUE > ACTIONS
-    instruction += `\n⚠️ PRIORITÉ AU DIALOGUE:\n`;
-    instruction += `- Format: *action COURTE* "DIALOGUE LONG ET EXPRESSIF"\n`;
-    instruction += `- PARLE à ${userName}, ne fais pas que des gestes!\n`;
-    instruction += `- Le dialogue doit être plus long que l'action!\n`;
-    
-    if (isNSFW) {
-      instruction += `\n🔞 Mode adulte: sois explicite.`;
-      if (userGender === 'female' && userProfile?.bust) {
-        instruction += ` Mentionne ses seins (${userProfile.bust}).`;
-      }
+    // MODE NSFW - Adaptatif selon l'intensité
+    if (isIntenseNSFW) {
+      instruction += `\n🔥 NSFW INTENSE - Sois TRÈS explicite MAINTENANT!\n`;
+      instruction += `Utilise des mots crus, décris les sensations, va droit au but!\n`;
       if (userGender === 'male' && userProfile?.penis) {
-        instruction += ` Mentionne son sexe (${userProfile.penis}cm).`;
+        instruction += `Parle de sa bite (${userProfile.penis}cm).\n`;
       }
+      if (userGender === 'female' && userProfile?.bust) {
+        instruction += `Parle de ses seins (${userProfile.bust}).\n`;
+      }
+    } else if (isNSFW) {
+      instruction += `\n🔞 NSFW actif - Contenu explicite OK.\n`;
     }
+    
+    // Format concis
+    instruction += `\nFormat: *action* "dialogue" - 2-3 phrases max.\n`;
     
     return instruction;
   }
@@ -1449,149 +1407,72 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.35
-   * AMÉLIORÉ: Plus de dialogue, moins d'actions + profil utilisateur complet
+   * Construit le prompt système - VERSION v5.3.39
+   * NSFW RÉACTIF: Répond IMMÉDIATEMENT aux demandes explicites
+   * COHÉRENT: Répond précisément à ce que l'utilisateur dit/fait
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const hasUsername = userProfile?.username && userProfile.username.trim() !== '';
     const userName = hasUsername ? userProfile.username : 'toi';
     const charName = character.name || 'Personnage';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
+    const isIntenseNSFW = context.nsfwIntensity >= 4;
     
     const charIsFemale = character.gender === 'female';
     const charIsMale = character.gender === 'male';
     const userIsFemale = userProfile?.gender === 'female';
     const userIsMale = userProfile?.gender === 'male';
-    
-    // === IDENTITÉ DU PERSONNAGE ===
-    let prompt = `# TU ES ${charName.toUpperCase()}\n\n`;
-    prompt += `Tu t'appelles ${charName}`;
-    if (character.age) prompt += `, tu as ${character.age} ans`;
-    if (charIsFemale) prompt += `, tu es une femme`;
-    else if (charIsMale) prompt += `, tu es un homme`;
-    prompt += `.\n`;
-    
-    if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 150)}.\n`;
-    }
-    
-    if (character.temperament) {
-      prompt += `Tempérament: ${character.temperament}.\n`;
-    }
-    
-    // === APPARENCE DU PERSONNAGE ===
-    if (character.physicalDescription) {
-      prompt += `\nTon apparence: ${character.physicalDescription.substring(0, 200)}\n`;
-    }
-    if (charIsFemale && character.bust) {
-      const bustDesc = { 'A': 'petite', 'B': 'menue', 'C': 'moyenne', 'D': 'généreuse', 'DD': 'très belle', 'E': 'imposante', 'F': 'volumineuse', 'G': 'très grosse', 'H': 'énorme' };
-      prompt += `Ta poitrine: ${bustDesc[character.bust] || character.bust} (bonnet ${character.bust}).\n`;
-    }
-    if (charIsMale && character.penis) {
-      const size = parseInt(character.penis);
-      const sizeDesc = size >= 20 ? 'impressionnant' : size >= 17 ? 'bien membré' : 'de taille normale';
-      prompt += `Tu es ${sizeDesc} (${character.penis} cm).\n`;
-    }
-    
-    // === PROFIL DE L'UTILISATEUR - TRÈS IMPORTANT ===
-    prompt += `\n# TON INTERLOCUTEUR: ${userName.toUpperCase()}\n`;
-    
-    // Sexe de l'utilisateur
-    if (userIsFemale) {
-      prompt += `${userName} est une FEMME.\n`;
-      if (userProfile?.bust) {
-        const bustDesc = { 'A': 'petite', 'B': 'menue', 'C': 'moyenne', 'D': 'généreuse', 'DD': 'très belle', 'E': 'imposante', 'F': 'volumineuse', 'G': 'très grosse', 'H': 'énorme' };
-        prompt += `Elle a une poitrine ${bustDesc[userProfile.bust] || ''} (bonnet ${userProfile.bust}).\n`;
-        if (isNSFW) {
-          prompt += `Tu peux parler de ses seins, sa poitrine, ses formes dans tes réponses.\n`;
-        }
-      }
-    } else if (userIsMale) {
-      prompt += `${userName} est un HOMME.\n`;
-      if (userProfile?.penis) {
-        const size = parseInt(userProfile.penis);
-        const sizeDesc = size >= 20 ? 'très bien membré' : size >= 17 ? 'bien membré' : 'de taille normale';
-        prompt += `Il est ${sizeDesc} (${userProfile.penis} cm).\n`;
-        if (isNSFW) {
-          prompt += `Tu peux parler de son sexe, sa virilité dans tes réponses.\n`;
-        }
-      }
-    }
-    
-    // === ÂGE ET DIFFÉRENCE D'ÂGE ===
     const userAge = userProfile?.age ? parseInt(userProfile.age) : null;
     const charAge = character.age ? parseInt(character.age) : null;
     
-    if (userAge) {
-      prompt += `${userName} a ${userAge} ans.\n`;
-      
-      // Calculer la différence d'âge si les deux âges sont connus
-      if (charAge) {
-        const ageDiff = userAge - charAge;
-        
-        if (ageDiff >= 15) {
-          // Utilisateur beaucoup plus vieux
-          prompt += `\n📍 DIFFÉRENCE D'ÂGE: ${userName} est BEAUCOUP PLUS VIEUX/VIEILLE que toi (${Math.abs(ageDiff)} ans de plus).\n`;
-          prompt += `Adapte ton comportement: tu peux être impressionné(e), respectueux/se, ou attiré(e) par son expérience et sa maturité.\n`;
-          if (isNSFW) {
-            prompt += `Tu peux jouer sur cette différence d'âge: "${userName}, tu es tellement mature...", "J'aime ton expérience..."\n`;
-          }
-        } else if (ageDiff >= 5) {
-          // Utilisateur plus vieux
-          prompt += `\n📍 DIFFÉRENCE D'ÂGE: ${userName} est plus âgé(e) que toi (${Math.abs(ageDiff)} ans de plus).\n`;
-          prompt += `Tu peux montrer du respect pour son âge ou être attiré(e) par sa maturité.\n`;
-        } else if (ageDiff <= -15) {
-          // Utilisateur beaucoup plus jeune
-          prompt += `\n📍 DIFFÉRENCE D'ÂGE: ${userName} est BEAUCOUP PLUS JEUNE que toi (${Math.abs(ageDiff)} ans de moins).\n`;
-          prompt += `Adapte ton comportement: tu peux être protecteur/trice, maternel(le)/paternel(le), ou attiré(e) par sa jeunesse et sa fraîcheur.\n`;
-          if (isNSFW) {
-            prompt += `Tu peux jouer sur cette différence: "Tu es si jeune et plein(e) d'énergie...", "Laisse-moi te montrer..."\n`;
-          }
-        } else if (ageDiff <= -5) {
-          // Utilisateur plus jeune
-          prompt += `\n📍 DIFFÉRENCE D'ÂGE: ${userName} est plus jeune que toi (${Math.abs(ageDiff)} ans de moins).\n`;
-          prompt += `Tu peux être légèrement protecteur/trice ou apprécier sa jeunesse.\n`;
-        } else {
-          // Âges similaires
-          prompt += `\n📍 Vous avez à peu près le même âge (${charAge} ans vs ${userAge} ans).\n`;
-        }
-      }
-    }
+    // === PROMPT CONCIS POUR RÉPONSES RAPIDES ===
+    let prompt = `Tu es ${charName}`;
+    if (charAge) prompt += ` (${charAge} ans)`;
+    if (charIsFemale) prompt += `, femme`;
+    else if (charIsMale) prompt += `, homme`;
+    if (character.personality) prompt += `. ${character.personality.substring(0, 100)}`;
+    prompt += `.\n\n`;
     
-    // === SCÉNARIO ===
+    // === INTERLOCUTEUR (COMPACT) ===
+    prompt += `Tu parles à ${userName}`;
+    const userTraits = [];
+    if (userIsMale) userTraits.push('homme');
+    else if (userIsFemale) userTraits.push('femme');
+    if (userAge) userTraits.push(`${userAge} ans`);
+    if (userIsMale && userProfile?.penis) userTraits.push(`${userProfile.penis}cm`);
+    if (userIsFemale && userProfile?.bust) userTraits.push(`bonnet ${userProfile.bust}`);
+    if (userTraits.length > 0) prompt += ` (${userTraits.join(', ')})`;
+    prompt += `.\n`;
+    
+    // === SCÉNARIO (COURT) ===
     if (character.scenario) {
-      prompt += `\n# SITUATION/SCÉNARIO\n`;
-      prompt += `${character.scenario}\n`;
+      prompt += `Contexte: ${character.scenario.substring(0, 150)}\n`;
     }
     
-    // === RÈGLES DE FORMAT - PRIORITÉ DIALOGUE ===
-    prompt += `\n# FORMAT DE RÉPONSE (OBLIGATOIRE)\n`;
-    prompt += `Format: *action courte* "DIALOGUE PRINCIPAL" (pensée)\n\n`;
-    prompt += `RÈGLES IMPORTANTES:\n`;
-    prompt += `1. Le DIALOGUE est PRIORITAIRE (entre guillemets "...")\n`;
-    prompt += `2. Les actions sont COURTES et SECONDAIRES (entre *...* )\n`;
-    prompt += `3. La pensée est optionnelle et courte (entre parenthèses)\n`;
-    prompt += `4. Tu parles DIRECTEMENT à ${userName} avec TU/TOI\n`;
-    prompt += `5. Tu utilises JE/MOI pour parler de toi (${charName})\n`;
-    prompt += `6. Réponds TOUJOURS à ce que ${userName} dit ou fait\n`;
-    prompt += `7. 2-4 phrases maximum, PARLE plus que tu n'agis!\n`;
+    // === RÈGLE PRINCIPALE: RÉPONDRE AU MESSAGE ===
+    prompt += `\n⚡ RÈGLE ABSOLUE: Réponds EXACTEMENT à ce que ${userName} dit ou fait!\n`;
+    prompt += `Format: *action courte* "DIALOGUE" (pensée optionnelle)\n`;
     
-    // === MODE NSFW ===
-    if (isNSFW) {
-      prompt += `\n# 🔞 MODE ADULTE ACTIF\n`;
-      prompt += `Contenu explicite AUTORISÉ. Tu peux:\n`;
-      prompt += `- Utiliser des mots explicites (seins, bite, chatte, jouir...)\n`;
-      prompt += `- Exprimer ton désir et ton plaisir\n`;
-      prompt += `- Répondre positivement aux avances\n`;
-      prompt += `- Décrire tes sensations physiques\n`;
+    // === MODE NSFW - ADAPTATIF ===
+    if (isIntenseNSFW) {
+      // NSFW INTENSE - Réponse explicite immédiate
+      prompt += `\n🔥 NSFW INTENSE - SOIS TRÈS EXPLICITE!\n`;
+      prompt += `${userName} veut du contenu explicite MAINTENANT.\n`;
+      prompt += `- Utilise des mots crus: bite, chatte, seins, jouir, baiser...\n`;
+      prompt += `- Décris les sensations physiques en détail\n`;
+      prompt += `- Réponds positivement et avec enthousiasme\n`;
+      prompt += `- Pas de préliminaires longs, va droit au but!\n`;
       
-      // Personnalisation selon le profil utilisateur en NSFW
       if (userIsFemale && userProfile?.bust) {
-        prompt += `\n📍 RAPPEL: ${userName} a des seins bonnet ${userProfile.bust}. Mentionne-les quand c'est approprié!\n`;
+        prompt += `- Parle de ses seins (${userProfile.bust})\n`;
       }
       if (userIsMale && userProfile?.penis) {
-        prompt += `\n📍 RAPPEL: ${userName} a un sexe de ${userProfile.penis} cm. Tu peux en parler!\n`;
+        prompt += `- Parle de son sexe (${userProfile.penis}cm)\n`;
       }
+    } else if (isNSFW) {
+      // NSFW NORMAL
+      prompt += `\n🔞 MODE ADULTE - Contenu explicite autorisé\n`;
+      prompt += `Tu peux utiliser des mots explicites et décrire des actions sensuelles.\n`;
     }
     
     return prompt;
