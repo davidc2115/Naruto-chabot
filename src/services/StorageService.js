@@ -175,15 +175,32 @@ class StorageService {
         const deletedKey = `deleted_conversations_${userId}`;
         const deletedData = await AsyncStorage.getItem(deletedKey);
         if (deletedData) deletedIds = JSON.parse(deletedData);
+        // Aussi vérifier les anciens formats
+        const deletedKeyAnon = `deleted_conversations_anonymous`;
+        const deletedDataAnon = await AsyncStorage.getItem(deletedKeyAnon);
+        if (deletedDataAnon) {
+          const anonDeleted = JSON.parse(deletedDataAnon);
+          deletedIds = [...new Set([...deletedIds, ...anonDeleted])];
+        }
       } catch (e) {}
       
       console.log(`🚫 Conversations supprimées à ignorer: ${deletedIds.length}`);
       
-      // Chercher les clés de conversation pour cet utilisateur UNIQUEMENT
+      // v5.3.45 - Chercher TOUTES les conversations possibles (tous formats)
       const keys = await AsyncStorage.getAllKeys();
       const convKeys = keys.filter(key => {
+        // Exclure les index et deleted
+        if (key.includes('index') || key.includes('deleted')) return false;
+        
         // Format principal: conv_userId_characterId
-        if (key.startsWith(`conv_${userId}_`) && !key.includes('index') && !key.includes('deleted')) return true;
+        if (key.startsWith(`conv_${userId}_`)) return true;
+        
+        // Formats legacy: conv_anonymous_, conv_device_, conversation_
+        if (key.startsWith('conv_anonymous_')) return true;
+        if (key.startsWith('conv_device_')) return true;
+        if (key.startsWith('conversation_')) return true;
+        if (key.startsWith('conv_default_')) return true;
+        
         return false;
       });
       

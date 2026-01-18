@@ -167,14 +167,30 @@ export default function ChatsScreen({ navigation }) {
 
   const renderConversation = ({ item }) => {
     try {
-      const character = getCharacter(item?.characterId);
-      if (!character || !character.name) {
-        console.log('⚠️ Personnage non trouvé pour conversation:', item?.characterId);
+      if (!item || !item.characterId) {
+        console.log('⚠️ Item invalide');
         return null;
+      }
+      
+      let character = getCharacter(item.characterId);
+      
+      // v5.3.45 - Si personnage non trouvé, créer un placeholder
+      if (!character || !character.name) {
+        console.log('⚠️ Personnage non trouvé, création placeholder pour:', item.characterId);
+        // Créer un personnage placeholder avec les infos de la conversation
+        character = {
+          id: item.characterId,
+          name: `Personnage #${String(item.characterId).substring(0, 8)}`,
+          gender: 'female',
+          age: 25,
+          tags: ['inconnu'],
+        };
       }
 
       const lastMessage = item?.messages?.[item.messages.length - 1];
-      const messagePreview = lastMessage?.content?.substring(0, 80) + '...' || 'Aucun message';
+      const messagePreview = lastMessage?.content 
+        ? lastMessage.content.substring(0, 80) + (lastMessage.content.length > 80 ? '...' : '')
+        : 'Aucun message';
       
       // Extraire les initiales de manière sécurisée
       const getInitials = (name) => {
@@ -202,7 +218,7 @@ export default function ChatsScreen({ navigation }) {
               <View style={styles.header}>
                 <Text style={styles.name}>{character.name}</Text>
                 <Text style={styles.date}>
-                  {new Date(item.lastUpdated).toLocaleDateString('fr-FR')}
+                  {item.lastUpdated ? new Date(item.lastUpdated).toLocaleDateString('fr-FR') : ''}
                 </Text>
               </View>
               <Text style={styles.preview} numberOfLines={2}>
@@ -210,7 +226,7 @@ export default function ChatsScreen({ navigation }) {
               </Text>
               <View style={styles.statsContainer}>
                 <Text style={styles.stats}>
-                  💬 {item.messages.length} messages
+                  💬 {item.messages?.length || 0} messages
                 </Text>
                 <Text style={styles.stats}>
                   💖 Affection: {item.relationship?.affection || 50}%

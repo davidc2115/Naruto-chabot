@@ -2178,94 +2178,176 @@ class ImageGenerationService {
     }
 
     console.log(`✨ Génération image PROFIL (SFW) pour ${character.name}`);
+    console.log(`📋 Détails personnage:`, JSON.stringify({
+      age: character.age,
+      gender: character.gender,
+      hairColor: character.hairColor,
+      hairLength: character.hairLength,
+      eyeColor: character.eyeColor,
+      height: character.height,
+      bodyType: character.bodyType,
+      skinTone: character.skinTone,
+      bust: character.bust,
+    }).substring(0, 200));
 
     // Choisir le style (anime ou réaliste)
     const { style, isRealistic } = this.getRandomStyle();
     
-    // Parser les détails physiques pour l'emphase sur la morphologie
-    const physicalDetails = this.parsePhysicalDescription(character);
-    
     let prompt = style;
     
-    // === MORPHOLOGIE EN PREMIER POUR EMPHASE MAXIMALE ===
-    if (physicalDetails.body.type) {
-      prompt += ', ' + physicalDetails.body.type;
-      console.log(`🏋️ MORPHOLOGIE PROFIL: ${physicalDetails.body.type.substring(0, 60)}...`);
+    // === v5.3.45 - DESCRIPTION PHYSIQUE DÉTAILLÉE DIRECTE ===
+    // Utiliser directement les champs du personnage sans transformation excessive
+    
+    // Genre et âge
+    const genderEn = character.gender === 'female' ? 'woman' : 'man';
+    prompt += `, beautiful ${charAge} year old ${genderEn}`;
+    
+    // === CHEVEUX ===
+    if (character.hairColor || character.hairLength) {
+      const hairLengthEn = {
+        'très courts': 'very short', 'courts': 'short', 'mi-longs': 'medium length',
+        'longs': 'long', 'très longs': 'very long'
+      }[character.hairLength] || character.hairLength || '';
+      
+      const hairColorEn = this.translateColorToEnglish(character.hairColor);
+      prompt += `, ${hairLengthEn} ${hairColorEn} hair`.replace(/\s+/g, ' ');
     }
     
-    // === POITRINE EN PRIORITÉ (femmes) ===
-    if (character.gender === 'female' && physicalDetails.bust.description) {
-      prompt += ', ' + physicalDetails.bust.description;
-      console.log(`👙 POITRINE PROFIL: ${physicalDetails.bust.description.substring(0, 60)}...`);
+    // === YEUX ===
+    if (character.eyeColor) {
+      const eyeColorEn = this.translateColorToEnglish(character.eyeColor);
+      prompt += `, ${eyeColorEn} eyes`;
     }
     
-    // === CONSTRUIRE UN PROMPT DÉTAILLÉ ===
-    prompt += ', ' + this.buildUltraDetailedPrompt(character, isRealistic);
+    // === PEAU ===
+    if (character.skinTone) {
+      const skinToneEn = {
+        'très claire': 'very fair pale', 'claire': 'fair light', 'mate': 'olive tan',
+        'bronzée': 'tanned golden', 'caramel': 'caramel brown', 'ébène': 'dark ebony'
+      }[character.skinTone] || character.skinTone;
+      prompt += `, ${skinToneEn} skin`;
+    }
+    
+    // === TAILLE ===
+    if (character.height) {
+      const heightNum = parseInt(character.height);
+      if (heightNum < 155) prompt += ', petite short';
+      else if (heightNum < 165) prompt += ', average height';
+      else if (heightNum < 175) prompt += ', tall';
+      else prompt += ', very tall';
+    }
+    
+    // === MORPHOLOGIE / CORPS - v5.3.45 AMÉLIORÉ ===
+    // Ne pas utiliser "voluptuous" ou "generous"
+    const bodyTypeEn = {
+      'mince': 'slim slender body',
+      'élancée': 'slender elegant body',
+      'moyenne': 'average body',
+      'athlétique': 'athletic toned body',
+      'voluptueuse': 'curvy body with nice curves',  // PAS "voluptuous"
+      'généreuse': 'curvy body with soft curves',    // PAS "generous"
+      'ronde': 'soft curvy body, small soft belly, slight tummy curve',  // LÉGER VENTRE
+      'pulpeuse': 'curvy body, full figure, flat stomach'
+    }[character.bodyType];
+    
+    if (bodyTypeEn) {
+      prompt += `, ${bodyTypeEn}`;
+      console.log(`🏋️ Morphologie: ${character.bodyType} -> ${bodyTypeEn}`);
+    }
+    
+    // === POITRINE (femmes) ===
+    if (character.gender === 'female' && character.bust) {
+      const bustMap = {
+        'A': 'small A-cup breasts, petite bust',
+        'B': 'small B-cup breasts, modest bust',
+        'C': 'medium C-cup breasts, average bust',
+        'D': 'full D-cup breasts, nice bust',
+        'DD': 'large DD-cup breasts, big bust',
+        'E': 'large E-cup breasts, big bust',
+        'F': 'big F-cup breasts, large bust',
+        'G': 'huge G-cup breasts, very large bust'
+      };
+      const bustDesc = bustMap[character.bust] || `${character.bust} cup breasts`;
+      prompt += `, ${bustDesc}`;
+      console.log(`👙 Poitrine: ${character.bust} -> ${bustDesc}`);
+    }
+    
+    // === APPARENCE SUPPLÉMENTAIRE ===
+    if (character.appearance && character.appearance.length > 10) {
+      // Extraire des mots-clés de l'apparence
+      const appearanceKeywords = character.appearance
+        .toLowerCase()
+        .replace(/[,.:;!?]/g, ' ')
+        .split(' ')
+        .filter(w => w.length > 4)
+        .slice(0, 5)
+        .join(', ');
+      if (appearanceKeywords) {
+        prompt += `, ${appearanceKeywords}`;
+      }
+    }
     
     // === TENUES SFW ÉLÉGANTES POUR PROFIL ===
     const sfwOutfits = [
-      'wearing elegant casual outfit, fashionable, stylish',
-      'wearing beautiful dress, classy, sophisticated',
-      'wearing smart casual clothes, well-dressed, attractive',
-      'wearing trendy modern outfit, chic fashion',
-      'wearing stylish blouse and pants, elegant',
-      'wearing fashionable sundress, feminine charm',
-      'wearing professional yet attractive attire',
+      'wearing elegant casual outfit, fashionable',
+      'wearing beautiful dress, classy',
+      'wearing smart casual clothes, stylish',
+      'wearing trendy modern outfit, chic',
+      'wearing stylish blouse, elegant',
     ];
     prompt += `, ${sfwOutfits[Math.floor(Math.random() * sfwOutfits.length)]}`;
     
     // === POSES SFW NATURELLES ===
     const sfwPoses = [
-      'natural confident pose, warm genuine smile',
+      'natural confident pose, warm smile',
       'elegant standing pose, friendly expression',
       'relaxed casual pose, inviting look',
       'charming pose, attractive smile',
-      'graceful pose, soft natural expression',
     ];
     prompt += `, ${sfwPoses[Math.floor(Math.random() * sfwPoses.length)]}`;
     
     // Qualités positives SFW
-    prompt += ', beautiful, attractive, charming, approachable';
-    prompt += ', tasteful, classy, SFW, safe for work';
+    prompt += ', beautiful, attractive, charming';
+    prompt += ', tasteful, classy, SFW';
     
-    // ANATOMIE STRICTE (pour éviter les défauts)
+    // ANATOMIE STRICTE
     prompt += ', ' + this.anatomyStrictPrompt;
-    
-    // === EXCLUSIONS MORPHOLOGIQUES ===
-    // Ajouter des exclusions pour les morphologies incorrectes
-    const bodyType = (physicalDetails.body.type || '').toLowerCase();
-    if (bodyType.includes('bbw') || bodyType.includes('chubby') || bodyType.includes('plump') ||
-        bodyType.includes('generous') || bodyType.includes('voluptuous') || bodyType.includes('curvy') ||
-        bodyType.includes('thick') || bodyType.includes('round')) {
-      // Exclure explicitement les corps minces dans le prompt
-      prompt += ', NOT thin, NOT skinny, NOT slim body, full figured';
-      console.log('🚫 Exclusion morphologie mince dans prompt');
-    }
     
     // QUALITÉ SPÉCIFIQUE AU STYLE
     if (isRealistic) {
-      prompt += ', ' + this.buildRealisticQualityPrompts();
       prompt += ', ultra-high quality photo, 8K resolution, sharp focus, professional photography';
-      prompt += ', realistic skin texture, lifelike details, photographic quality';
-      prompt += ', single person only, one subject, solo portrait, perfect lighting';
+      prompt += ', realistic skin texture, lifelike details';
+      prompt += ', single person only, one subject, solo portrait';
     } else {
       prompt += ', masterpiece anime art, best quality illustration, highly detailed anime';
-      prompt += ', clean lines, vibrant colors, professional anime artwork';
-      prompt += ', single character, solo, one person, detailed face';
-    }
-    
-    // === RENFORCEMENT FINAL DE LA MORPHOLOGIE ===
-    // Répéter le body type à la fin pour emphase maximale
-    if (physicalDetails.body.type) {
-      const shortBody = this.getShortBodyType(physicalDetails.body.type);
-      if (shortBody) {
-        prompt += `, ${shortBody} body, ${shortBody}`;
-      }
+      prompt += ', clean lines, vibrant colors';
+      prompt += ', single character, solo, one person';
     }
 
     console.log(`🖼️ Génération image profil SFW (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
-    console.log(`📝 Prompt morphologie: ${prompt.substring(0, 200)}...`);
+    console.log(`📝 Prompt final: ${prompt.substring(0, 300)}...`);
     return await this.generateImage(prompt);
+  }
+  
+  /**
+   * Traduit une couleur française en anglais
+   */
+  translateColorToEnglish(colorFr) {
+    if (!colorFr) return '';
+    const colorMap = {
+      'noir': 'black', 'noirs': 'black', 'noire': 'black',
+      'brun': 'brown', 'brune': 'brown', 'bruns': 'brown',
+      'châtain': 'chestnut brown', 'chatain': 'chestnut',
+      'blond': 'blonde', 'blonde': 'blonde', 'blonds': 'blonde',
+      'roux': 'red ginger', 'rousse': 'red ginger',
+      'auburn': 'auburn',
+      'blanc': 'white', 'blanche': 'white', 'blancs': 'white',
+      'gris': 'grey', 'argenté': 'silver',
+      'rose': 'pink', 'bleu': 'blue', 'vert': 'green', 'violet': 'purple',
+      'marron': 'brown', 'noisette': 'hazel', 'ambre': 'amber'
+    };
+    const lower = colorFr.toLowerCase();
+    return colorMap[lower] || colorFr;
   }
   
   /**
@@ -3379,10 +3461,11 @@ class ImageGenerationService {
     const morphology = [];
     let detectedType = 'standard';
     
-    // === v5.3.17 MORPHOLOGIE BASÉE SUR BAGBOT BOYS & GIRLS ===
-    // Extraction complète des caractéristiques corporelles
+    // === v5.3.45 MORPHOLOGIE AMÉLIORÉE ===
+    // Ne plus utiliser "voluptuous", "generous" - termes trop vagues
+    // Ajouter ventre léger pour "ronde", ventre plus important pour "très ronde"
     
-    // === TRÈS RONDE / BBW / OBÈSE === (TOUT est gros: ventre, bras, cuisses, visage)
+    // === TRÈS RONDE / BBW === (Corps rond avec ventre IMPORTANT)
     if (lowerPrompt.includes('très ronde') || 
         lowerPrompt.includes('very round') ||
         lowerPrompt.includes('très grosse') ||
@@ -3392,18 +3475,18 @@ class ImageGenerationService {
         lowerPrompt.includes('ssbbw') ||
         lowerPrompt.includes('bbw')) {
       morphology.push(
-        'very round very curvy very plump body, extremely soft full figure, very chubby thick, ' +
-        'big round soft belly, large plump tummy, prominent soft midsection, ' +
-        'huge heavy breasts, enormous bust, very large chest, ' +
-        'huge massive round butt, enormous thick buttocks, very big jiggly ass, ' +
-        'very wide generous hips, extremely broad curvy hips, ' +
-        'very thick massive thighs, huge plump legs, ' +
-        'thick chubby arms, soft padded arms, ' +
-        'chubby round face, double chin, pudgy cheeks'
+        'chubby round body, soft full figure, thick body, ' +
+        'PROMINENT ROUND BELLY, big soft tummy, visible belly bulge, large midsection, ' +
+        'big heavy breasts, large bust, big chest, ' +
+        'big round butt, thick buttocks, wide rear, ' +
+        'wide hips, broad hips, ' +
+        'thick thighs, full legs, ' +
+        'thick arms, soft arms, ' +
+        'round face, soft cheeks'
       );
-      detectedType = 'TRÈS RONDE / BBW (tout gros)';
+      detectedType = 'TRÈS RONDE (ventre important)';
     }
-    // === RONDE / CHUBBY / POTELÉE === (Léger ventre + poitrine + fesses)
+    // === RONDE / CHUBBY / POTELÉE === (Corps doux avec LÉGER ventre)
     else if (lowerPrompt.includes('ronde') || 
              lowerPrompt.includes('rondelet') ||
              lowerPrompt.includes('chubby') ||
@@ -3412,20 +3495,32 @@ class ImageGenerationService {
              lowerPrompt.includes('plump') ||
              lowerPrompt.includes('enrobé')) {
       morphology.push(
-        'curvy plump soft rounded body, soft full figure, chubby cute, ' +
-        'soft round belly, plump cute tummy, gentle belly curve, ' +
-        'large full breasts, big generous bust, heavy ample chest, ' +
-        'big round plump butt, large thick buttocks, generous thick ass, ' +
-        'wide generous hips, broad curvy hips, ' +
-        'thick meaty thighs, full plump legs, ' +
-        'soft smooth skin, cushiony touchable body'
+        'soft curvy body, cute soft figure, ' +
+        'SMALL SOFT BELLY, slight tummy, gentle belly curve, little belly pooch, ' +
+        'full breasts, nice bust, feminine chest, ' +
+        'round butt, soft buttocks, shapely rear, ' +
+        'feminine hips, soft hips, ' +
+        'soft thighs, full legs, ' +
+        'soft smooth skin'
       );
-      detectedType = 'RONDE / CHUBBY (ventre + poitrine + fesses)';
+      detectedType = 'RONDE (léger ventre)';
     }
-    // === GÉNÉREUSE / VOLUPTUEUSE === DÉSACTIVÉS (v5.3.30)
-    // Ces termes ne sont plus utilisés pour la génération d'image
-    // Ils seront traités comme "curvy" standard
-    
+    // === VOLUPTUEUSE / GÉNÉREUSE === Traités comme corps normal avec formes
+    // v5.3.45 - Ne génère plus de corps gros pour ces termes
+    else if (lowerPrompt.includes('voluptueuse') ||
+             lowerPrompt.includes('voluptuous') ||
+             lowerPrompt.includes('généreuse') ||
+             lowerPrompt.includes('generous')) {
+      morphology.push(
+        'attractive feminine body, nice figure, ' +
+        'full breasts, nice bust, feminine cleavage, ' +
+        'round butt, shapely rear, ' +
+        'feminine hips, ' +
+        'flat stomach, slim waist, ' +
+        'beautiful face'
+      );
+      detectedType = 'NORMAL (voluptueuse/généreuse ignorés)';
+    }
     // === PULPEUSE === (Formes prononcées, ventre plat)
     else if (lowerPrompt.includes('pulpeuse') ||
              lowerPrompt.includes('lush') ||
@@ -3434,9 +3529,9 @@ class ImageGenerationService {
       morphology.push(
         'curvy body with soft curves, ' +
         'full breasts, nice bust, feminine cleavage, ' +
-        'round butt, plump buttocks, shapely rear, ' +
+        'round butt, shapely rear, ' +
         'feminine hips, hourglass figure, ' +
-        'FLAT TONED STOMACH, slim waist, no belly, ' +
+        'flat toned stomach, slim waist, ' +
         'slim arms, beautiful face'
       );
       detectedType = 'PULPEUSE (formes, ventre plat)';
@@ -3448,14 +3543,14 @@ class ImageGenerationService {
              lowerPrompt.includes('courbes') ||
              lowerPrompt.includes('formes')) {
       morphology.push(
-        'thick curvy body with pronounced sexy curves, ' +
-        'full round breasts, nice bust, feminine cleavage, ' +
-        'round bubble butt, perky plump buttocks, shapely rear, ' +
-        'shapely hips, feminine curves, ' +
-        'flat stomach, toned waist, ' +
-        'natural attractive figure'
+        'curvy body with nice curves, ' +
+        'full breasts, nice bust, feminine cleavage, ' +
+        'round butt, shapely rear, ' +
+        'feminine hips, ' +
+        'flat stomach, ' +
+        'attractive figure'
       );
-      detectedType = 'CURVY / THICK (courbes prononcées)';
+      detectedType = 'CURVY / THICK';
     }
     // === MATERNELLE / MILF / DOUCE ===
     else if (lowerPrompt.includes('maternal') ||
@@ -3466,11 +3561,11 @@ class ImageGenerationService {
              lowerPrompt.includes('douce') ||
              lowerPrompt.includes('moelleuse')) {
       morphology.push(
-        'soft maternal curvy body, nurturing motherly figure, womanly curves, ' +
-        'full natural breasts, motherly bust, soft chest, ' +
-        'soft round butt, maternal hips, ' +
-        'small soft belly pooch, gentle tummy, slight belly curve, ' +
-        'soft smooth skin, warm comforting body'
+        'soft maternal body, womanly figure, ' +
+        'full natural breasts, motherly bust, ' +
+        'round butt, maternal hips, ' +
+        'small soft belly, slight tummy curve, ' +
+        'soft smooth skin, warm body'
       );
       detectedType = 'MATERNELLE / MILF / DOUCE';
     }
