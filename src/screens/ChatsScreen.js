@@ -22,13 +22,14 @@ export default function ChatsScreen({ navigation }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
   const isInitialized = useRef(false);
 
   // Charger au premier rendu
   useEffect(() => {
     if (!isInitialized.current) {
       isInitialized.current = true;
-      loadData(true); // Force refresh au premier chargement
+      loadData(true);
     }
   }, []);
 
@@ -42,63 +43,55 @@ export default function ChatsScreen({ navigation }) {
 
   const loadData = async (forceRefresh = false) => {
     try {
+      setError(null);
       if (!refreshing) setLoading(true);
       console.log('📱 ChatsScreen: Chargement des données...');
       
-      // D'abord charger les conversations LOCALES (rapide)
-      const allConversations = await StorageService.getAllConversations();
-      
-      // === TRIER PAR DATE: plus récentes en haut ===
-      const sortedConversations = allConversations.sort((a, b) => {
-        const dateA = a.lastUpdated || a.createdAt || 0;
-        const dateB = b.lastUpdated || b.createdAt || 0;
-        return dateB - dateA; // Ordre décroissant (plus récent en premier)
-      });
-      
-      console.log(`✅ ${sortedConversations.length} conversations chargées et triées par date`);
-      setConversations(sortedConversations);
-      
-      // Charger les personnages de base immédiatement
-      const allChars = [...enhancedCharacters];
+      // Charger les personnages de base IMMÉDIATEMENT
+      const allChars = [...(enhancedCharacters || [])];
       const seenIds = new Set(allChars.map(c => c.id));
       setAllCharacters(allChars);
+      console.log(`📚 ${allChars.length} personnages de base chargés`);
       
-      // Puis charger les personnages custom/publics en arrière-plan (avec timeout)
-      const loadExtras = async () => {
+      // Charger les conversations LOCALES
+      let allConversations = [];
+      try {
+        allConversations = await StorageService.getAllConversations() || [];
+      } catch (e) {
+        console.log('⚠️ Erreur chargement conversations:', e.message);
+        allConversations = [];
+      }
+      
+      // Trier par date
+      const sortedConversations = allConversations.sort((a, b) => {
+        const dateA = new Date(a.lastUpdated || a.createdAt || 0).getTime();
+        const dateB = new Date(b.lastUpdated || b.createdAt || 0).getTime();
+        return dateB - dateA;
+      });
+      
+      console.log(`✅ ${sortedConversations.length} conversations chargées`);
+      setConversations(sortedConversations);
+      
+      // Charger les personnages custom en arrière-plan (sans bloquer)
+      setTimeout(async () => {
         try {
-          // Timeout de 5 secondes max pour les personnages custom/publics
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 5000)
-          );
-          
-          const [customChars, publicChars] = await Promise.race([
-            Promise.all([
-              CustomCharacterService.getCustomCharacters().catch(() => []),
-              CustomCharacterService.getPublicCharacters().catch(() => [])
-            ]),
-            timeoutPromise
-          ]);
-          
-          // Ajouter les personnages custom/publics
-          for (const char of [...(customChars || []), ...(publicChars || [])]) {
+          const customChars = await CustomCharacterService.getCustomCharacters().catch(() => []);
+          for (const char of (customChars || [])) {
             if (char && char.id && !seenIds.has(char.id)) {
               allChars.push(char);
               seenIds.add(char.id);
             }
           }
-          
           setAllCharacters([...allChars]);
-          console.log(`✅ ${allChars.length} personnages chargés (avec custom)`);
         } catch (e) {
-          console.log('⚠️ Personnages custom non chargés (timeout ou erreur):', e.message);
+          console.log('⚠️ Personnages custom non chargés:', e.message);
         }
-      };
+      }, 100);
       
-      // Lancer le chargement des extras sans bloquer
-      loadExtras();
-      
-    } catch (error) {
-      console.error('❌ Erreur loadData ChatsScreen:', error);
+    } catch (err) {
+      console.error('❌ Erreur loadData ChatsScreen:', err);
+      setError(err.message || 'Erreur de chargement');
+      setConversations([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -257,9 +250,24 @@ export default function ChatsScreen({ navigation }) {
     );
   };
 
+  // État de chargement
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerBar}>
+          <View style={styles.headerTop}>
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.backButtonText}>← Retour</Text>
+            </TouchableOpacity>
+            <View>
+              <Text style={styles.title}>Conversations</Text>
+            </View>
+            <View style={{ width: 70 }} />
+          </View>
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#6366f1" />
           <Text style={styles.loadingText}>Chargement des conversations...</Text>
@@ -268,12 +276,61 @@ export default function ChatsScreen({ navigation }) {
     );
   }
 
-  if (conversations.length === 0) {
+  // État d'erreur
+  if (error) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.headerBar}>
-          <Text style={styles.title}>Conversations</Text>
-          <Text style={styles.subtitle}>0 conversation</Text>
+          <View style={styles.headerTop}>
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.backButtonText}>← Retour</Text>
+            </TouchableOpacity>
+            <View>
+              <Text style={styles.title}>Conversations</Text>
+            </View>
+            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+              <Text style={styles.refreshButtonText}>🔄</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyEmoji}>⚠️</Text>
+          <Text style={styles.emptyTitle}>Erreur de chargement</Text>
+          <Text style={styles.emptyText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={() => loadData(true)}
+          >
+            <Text style={styles.retryButtonText}>Réessayer</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Pas de conversations
+  if (!conversations || conversations.length === 0) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerBar}>
+          <View style={styles.headerTop}>
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.backButtonText}>← Retour</Text>
+            </TouchableOpacity>
+            <View>
+              <Text style={styles.title}>Conversations</Text>
+              <Text style={styles.subtitle}>0 conversation</Text>
+            </View>
+            <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+              <Text style={styles.refreshButtonText}>🔄</Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyEmoji}>💬</Text>
@@ -286,11 +343,18 @@ export default function ChatsScreen({ navigation }) {
     );
   }
 
+  // Affichage normal avec conversations
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.headerBar}>
           <View style={styles.headerTop}>
+            <TouchableOpacity 
+              style={styles.backButton} 
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.backButtonText}>← Retour</Text>
+            </TouchableOpacity>
             <View>
               <Text style={styles.title}>Conversations</Text>
               <Text style={styles.subtitle}>{conversations.length} conversation(s)</Text>
@@ -303,7 +367,7 @@ export default function ChatsScreen({ navigation }) {
         <FlatList
           data={conversations}
           renderItem={renderConversation}
-          keyExtractor={item => item.characterId?.toString() || Math.random().toString()}
+          keyExtractor={(item, index) => item?.characterId?.toString() || `conv-${index}`}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -350,6 +414,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  backButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#6366f1',
+    borderRadius: 10,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   refreshButton: {
     width: 44,

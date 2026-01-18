@@ -70,9 +70,17 @@ class StorageService {
   }
 
   // Conversations - ISOLÉES PAR UTILISATEUR
+  // v5.3.49 - Sauvegarde robuste avec vérification
   async saveConversation(characterId, messages, relationship) {
     try {
+      if (!characterId) {
+        console.error('❌ saveConversation: characterId manquant!');
+        return;
+      }
+      
       const userId = await this.getCurrentUserId();
+      console.log(`💾 Sauvegarde conversation: userId=${userId}, charId=${characterId}`);
+      
       // Utiliser UN SEUL format de clé simple et prévisible
       const key = `conv_${userId}_${characterId}`;
       const data = {
@@ -85,11 +93,17 @@ class StorageService {
       };
       
       // Sauvegarder la conversation
-      await AsyncStorage.setItem(key, JSON.stringify(data));
-      console.log(`💾 Conversation sauvegardée: ${key} (${messages?.length || 0} messages)`);
+      const jsonData = JSON.stringify(data);
+      await AsyncStorage.setItem(key, jsonData);
+      console.log(`✅ Conversation sauvegardée: ${key} (${messages?.length || 0} messages)`);
+      
+      // Vérifier que la sauvegarde a fonctionné
+      const verify = await AsyncStorage.getItem(key);
+      if (!verify) {
+        console.error(`❌ ÉCHEC vérification sauvegarde: ${key}`);
+      }
       
       // AUSSI sauvegarder dans un index de conversations pour récupération facile
-      // L'index stocke la liste des characterIds avec lesquels l'utilisateur a des conversations
       const indexKey = `conv_index_${userId}`;
       let index = [];
       try {
@@ -100,25 +114,53 @@ class StorageService {
       } catch (e) {}
       
       // Ajouter le characterId à l'index s'il n'y est pas déjà
-      if (!index.includes(String(characterId))) {
-        index.push(String(characterId));
+      const charIdStr = String(characterId);
+      if (!index.includes(charIdStr)) {
+        index.push(charIdStr);
         await AsyncStorage.setItem(indexKey, JSON.stringify(index));
         console.log(`📋 Index mis à jour: ${index.length} conversations`);
       }
+      
+      // Sauvegarder aussi avec une clé globale pour backup
+      const backupKey = `conv_backup_${characterId}`;
+      await AsyncStorage.setItem(backupKey, jsonData);
+      
     } catch (error) {
-      console.error('Error saving conversation:', error);
+      console.error('❌ Error saving conversation:', error);
+      // Tentative de sauvegarde avec clé simplifiée
+      try {
+        const simpleKey = `conv_default_${characterId}`;
+        await AsyncStorage.setItem(simpleKey, JSON.stringify({
+          characterId: String(characterId),
+          messages: messages || [],
+          relationship: relationship || { level: 1, affection: 50, trust: 50 },
+          lastUpdated: new Date().toISOString(),
+          savedAt: Date.now(),
+        }));
+        console.log(`⚠️ Sauvegarde de secours: ${simpleKey}`);
+      } catch (e2) {
+        console.error('❌❌ Échec sauvegarde de secours:', e2);
+      }
     }
   }
 
+  // v5.3.49 - Chargement robuste avec recherche multi-clés
   async loadConversation(characterId) {
     try {
+      if (!characterId) {
+        console.log('⚠️ loadConversation: characterId manquant');
+        return null;
+      }
+      
       const userId = await this.getCurrentUserId();
+      console.log(`📖 Chargement conversation: userId=${userId}, charId=${characterId}`);
+      
       const key = `conv_${userId}_${characterId}`;
-      const data = await AsyncStorage.getItem(key);
+      let data = await AsyncStorage.getItem(key);
       
       if (data) {
         const parsed = JSON.parse(data);
-        console.log(`📖 Conversation chargée: ${key} (${parsed.messages?.length || 0} messages)`);
+        console.log(`✅ Conversation chargée: ${key} (${parsed.messages?.length || 0} messages)`);
         
         // S'assurer que cette conversation est dans l'index
         try {
@@ -135,10 +177,12 @@ class StorageService {
         return parsed;
       }
       
-      // Essayer d'autres formats de clés
+      // Essayer d'autres formats de clés (dans l'ordre de priorité)
       const alternativeKeys = [
-        `conv_anonymous_${characterId}`,
-        `conversation_${characterId}`,
+        `conv_backup_${characterId}`,         // Backup global
+        `conv_default_${characterId}`,        // Sauvegarde de secours
+        `conv_anonymous_${characterId}`,      // Legacy anonymous
+        `conversation_${characterId}`,        // Ancien format
       ];
       
       for (const altKey of alternativeKeys) {
@@ -186,7 +230,7 @@ class StorageService {
       
       console.log(`🚫 Conversations supprimées à ignorer: ${deletedIds.length}`);
       
-      // v5.3.45 - Chercher TOUTES les conversations possibles (tous formats)
+      // v5.3.49 - Chercher TOUTES les conversations possibles (tous formats)
       const keys = await AsyncStorage.getAllKeys();
       const convKeys = keys.filter(key => {
         // Exclure les index et deleted
@@ -194,6 +238,9 @@ class StorageService {
         
         // Format principal: conv_userId_characterId
         if (key.startsWith(`conv_${userId}_`)) return true;
+        
+        // Backups globaux
+        if (key.startsWith('conv_backup_')) return true;
         
         // Formats legacy: conv_anonymous_, conv_device_, conversation_
         if (key.startsWith('conv_anonymous_')) return true;
