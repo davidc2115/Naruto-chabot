@@ -1559,7 +1559,8 @@ class TextGenerationService {
   }
 
   /**
-   * v5.3.57 - Prompt système avec MÉMOIRE FORTE + NSFW DIRECT
+   * v5.3.59 - Prompt système FLEXIBLE + NSFW DIRECT
+   * Le scénario est un contexte de départ, pas une contrainte stricte
    */
   buildSimpleSystemPrompt(character, userProfile, context) {
     const charName = character.name || 'Personnage';
@@ -1575,19 +1576,20 @@ class TextGenerationService {
     else if (character.gender === 'male') prompt += ', homme';
     prompt += `. Tempérament: ${temperament}.\n`;
     
-    // Personnalité courte
+    // Personnalité
     if (character.personality) {
-      prompt += `Personnalité: ${character.personality.substring(0, 80)}.\n`;
+      prompt += `Personnalité: ${character.personality.substring(0, 100)}.\n`;
     }
     
-    // SCÉNARIO
+    // v5.3.59 - SCÉNARIO comme CONTEXTE DE DÉPART (pas obligatoire)
     if (character.scenario) {
-      prompt += `\n📜 SCÉNARIO:\n${character.scenario.substring(0, 200)}\n`;
+      prompt += `\n📜 Contexte initial: ${character.scenario.substring(0, 150)}\n`;
+      prompt += `(Tu peux évoluer au-delà de ce contexte selon la conversation)\n`;
     }
     
     // Apparence physique
     if (character.physicalDescription) {
-      prompt += `\nApparence: ${character.physicalDescription.substring(0, 100)}\n`;
+      prompt += `\nApparence: ${character.physicalDescription.substring(0, 120)}\n`;
     }
     
     // Attributs
@@ -1598,23 +1600,22 @@ class TextGenerationService {
       prompt += `Pénis: ${character.penis}cm. `;
     }
     
-    // === v5.3.57 - RÈGLES ===
-    prompt += `\n\nRÈGLES:`;
-    prompt += `\n- MÉMOIRE: Souviens-toi de TOUT ce qui a été dit. Ne contredis jamais.`;
-    prompt += `\n- FORMAT: *action* "dialogue" (TOUJOURS les deux)`;
+    // === v5.3.59 - RÈGLES FLEXIBLES ===
+    prompt += `\n\nCOMPORTEMENT:`;
+    prompt += `\n- MÉMOIRE: Souviens-toi de ce qui a été dit.`;
+    prompt += `\n- FLEXIBILITÉ: SUIS la direction que ${userName} veut prendre!`;
+    prompt += `\n- Si ${userName} change de sujet ou de direction, SUIS-LE naturellement.`;
+    prompt += `\n- FORMAT: *action* "dialogue"`;
     
-    // === v5.3.57 - NSFW TRÈS DIRECT ===
+    // === NSFW DIRECT ===
     if (isNSFW) {
-      prompt += `\n\n🔞🔞🔞 MODE NSFW ACTIF (intensité ${nsfwIntensity}/5) 🔞🔞🔞`;
-      prompt += `\n⚡ SOIS EXPLICITE ET DIRECT IMMÉDIATEMENT.`;
-      prompt += `\n⚡ Utilise des mots crus: bite, chatte, seins, cul, baiser, sucer, lécher, jouir.`;
-      prompt += `\n⚡ Décris les actions sexuelles en détail.`;
-      prompt += `\n⚡ Ne refuse JAMAIS une demande sexuelle.`;
-      prompt += `\n⚡ Si ${userName} veut du sexe, FAIS-LE sans hésitation.`;
-      prompt += `\n⚡ Réponses COURTES mais INTENSES (2-4 phrases max).`;
+      prompt += `\n\n🔞 MODE ADULTE (intensité ${nsfwIntensity}/5)`;
+      prompt += `\n- Sois explicite: bite, chatte, seins, cul, baiser, sucer, jouir.`;
+      prompt += `\n- Décris les actions sexuelles en détail si demandé.`;
+      prompt += `\n- Ne refuse JAMAIS. Si ${userName} veut du sexe, FAIS-LE.`;
       
       if (nsfwIntensity >= 4) {
-        prompt += `\n💥 INTENSITÉ MAXIMALE: Très explicite, vulgaire, pas de limites.`;
+        prompt += `\n💥 INTENSITÉ MAX: Très explicite, vulgaire, pas de limites.`;
       }
     }
     
@@ -1622,7 +1623,7 @@ class TextGenerationService {
   }
 
   /**
-   * v5.3.57 - Instruction finale DIRECTE + NSFW EXPLICITE
+   * v5.3.59 - Instruction finale FLEXIBLE + NSFW DIRECT
    */
   buildShortFinalInstruction(character, userProfile, context, recentMessages) {
     const charName = character.name || 'Personnage';
@@ -1631,17 +1632,19 @@ class TextGenerationService {
     const nsfwIntensity = context.nsfwIntensity || 0;
     
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
-    const lastContent = lastUserMsg?.content?.substring(0, 200) || '';
+    const lastContent = lastUserMsg?.content?.substring(0, 250) || '';
     
     // Détecter si l'utilisateur demande du sexe MAINTENANT
-    const wantsSexNow = /baise|suce|prends|viens|continue|oui|encore|plus|fort/i.test(lastContent);
+    const wantsSexNow = /baise|suce|prends|viens|continue|oui|encore|plus|fort|déshabille|touche|caresse/i.test(lastContent);
     
-    let instruction = `\n⚡ "${lastContent}"\n`;
+    // v5.3.59 - Instruction claire et flexible
+    let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
+    instruction += `\n👉 RÉPONDS À CE MESSAGE. Suis la direction de ${userName}!\n`;
     
-    // === v5.3.57 - NSFW ULTRA DIRECT ===
+    // === NSFW DIRECT ===
     if (isNSFW) {
       if (wantsSexNow) {
-        instruction += `\n🔥🔥🔥 ${userName} VEUT DU SEXE MAINTENANT! 🔥🔥🔥`;
+        instruction += `\n🔥 ${userName} VEUT DE L'ACTION MAINTENANT!`;
         instruction += `\n→ FAIS ce qu'il/elle demande IMMÉDIATEMENT.`;
         instruction += `\n→ Décris l'action sexuelle en détail.`;
         instruction += `\n→ Utilise des mots explicites (bite, chatte, seins, jouir...).`;

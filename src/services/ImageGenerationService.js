@@ -2164,6 +2164,10 @@ class ImageGenerationService {
    * Les images de profil sont TOUJOURS SFW (élégantes mais pas explicites)
    * v5.3.3 - Morphologie renforcée avec exclusions
    */
+  /**
+   * v5.3.59 - Génération image PROFIL comme v5.3.34
+   * MORPHOLOGIE EN PREMIER pour emphase maximale
+   */
   async generateCharacterImage(character, userProfile = null) {
     // Parser l'âge correctement (gère "300 ans (apparence 25)")
     const charAge = this.parseCharacterAge(character.age);
@@ -2172,26 +2176,64 @@ class ImageGenerationService {
     }
 
     console.log(`✨ Génération image PROFIL (SFW) pour ${character.name}`);
-    console.log(`📋 Détails personnage:`, JSON.stringify({
-      age: character.age,
-      gender: character.gender,
-      hairColor: character.hairColor,
-      hairLength: character.hairLength,
-      eyeColor: character.eyeColor,
-      height: character.height,
-      bodyType: character.bodyType,
-      skinTone: character.skinTone,
-      bust: character.bust,
-    }).substring(0, 200));
 
     // Choisir le style (anime ou réaliste)
     const { style, isRealistic } = this.getRandomStyle();
     
-    // v5.3.54 - TOUJOURS COMMENCER PAR "FULL BODY SHOT" pour voir le personnage entier
+    // v5.3.59 - Parser les détails physiques comme v5.3.34
+    const physicalDetails = this.parsePhysicalDescription(character);
+    
+    // v5.3.59 - COMMENCER PAR FULL BODY + STYLE
     let prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
     
-    // === v5.3.45 - DESCRIPTION PHYSIQUE DÉTAILLÉE DIRECTE ===
-    // Utiliser directement les champs du personnage sans transformation excessive
+    // === v5.3.59 - MORPHOLOGIE EN PREMIER POUR EMPHASE MAXIMALE (comme v5.3.34) ===
+    if (physicalDetails.body.type) {
+      prompt += ', ' + physicalDetails.body.type;
+      console.log(`🏋️ MORPHOLOGIE (priorité): ${physicalDetails.body.type}`);
+    } else if (character.bodyType) {
+      // Fallback: utiliser bodyType directement avec mapping complet
+      const bodyTypeEn = {
+        'mince': 'slim slender thin body',
+        'élancée': 'slender elegant tall body',
+        'moyenne': 'average normal body',
+        'athlétique': 'athletic toned muscular body',
+        'voluptueuse': 'VOLUPTUOUS CURVY body, hourglass figure, big bust, wide hips, sexy curves',
+        'généreuse': 'GENEROUS CURVY body, full-figured, soft curves everywhere, plump',
+        'pulpeuse': 'THICK CURVY body, plump figure, soft curves, full thighs',
+        'ronde': 'CHUBBY ROUND body, soft belly, plump figure, BBW, soft curves',
+        'très ronde': 'VERY CHUBBY BBW body, big soft belly, very plump, plus size, full figure',
+        'plantureuse': 'VOLUPTUOUS body, big breasts, wide hips, sexy curvy, hourglass',
+        'enrobée': 'PLUMP SOFT body, chubby, soft curves, round belly',
+        'potelée': 'CHUBBY CUTE body, soft plump figure, round face'
+      }[character.bodyType];
+      if (bodyTypeEn) {
+        prompt += `, ${bodyTypeEn}`;
+        console.log(`🏋️ MORPHOLOGIE (fallback): ${character.bodyType} -> ${bodyTypeEn}`);
+      }
+    }
+    
+    // === v5.3.59 - POITRINE EN SECOND POUR EMPHASE (comme v5.3.34) ===
+    if (character.gender === 'female') {
+      if (physicalDetails.bust.description) {
+        prompt += ', ' + physicalDetails.bust.description;
+        console.log(`👙 POITRINE (priorité): ${physicalDetails.bust.description}`);
+      } else if (character.bust) {
+        const bustMap = {
+          'A': 'SMALL A-CUP breasts, petite flat chest',
+          'B': 'SMALL B-CUP breasts, modest small bust',
+          'C': 'MEDIUM C-CUP breasts, average bust',
+          'D': 'LARGE D-CUP breasts, big full breasts',
+          'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts',
+          'E': 'HUGE E-CUP breasts, very big breasts',
+          'F': 'HUGE F-CUP breasts, massive breasts',
+          'G': 'GIGANTIC G-CUP breasts, enormous bust',
+          'H': 'MASSIVE H-CUP breasts, extremely huge breasts'
+        };
+        const bustDesc = bustMap[character.bust.toUpperCase()] || `${character.bust} cup breasts`;
+        prompt += `, ${bustDesc}`;
+        console.log(`👙 POITRINE (fallback): ${character.bust} -> ${bustDesc}`);
+      }
+    }
     
     // Genre et âge
     const genderEn = character.gender === 'female' ? 'woman' : 'man';
@@ -2231,39 +2273,6 @@ class ImageGenerationService {
       else if (heightNum < 175) prompt += ', tall';
       else prompt += ', very tall';
     }
-    
-    // === MORPHOLOGIE / CORPS - v5.3.45 AMÉLIORÉ ===
-    // Ne pas utiliser "voluptuous" ou "generous"
-    const bodyTypeEn = {
-      'mince': 'slim slender body',
-      'élancée': 'slender elegant body',
-      'moyenne': 'average body',
-      'athlétique': 'athletic toned body',
-      'voluptueuse': 'curvy body with nice curves',  // PAS "voluptuous"
-      'généreuse': 'curvy body with soft curves',    // PAS "generous"
-      'ronde': 'soft curvy body, small soft belly, slight tummy curve',  // LÉGER VENTRE
-      'pulpeuse': 'curvy body, full figure, flat stomach'
-    }[character.bodyType];
-    
-    if (bodyTypeEn) {
-      prompt += `, ${bodyTypeEn}`;
-      console.log(`🏋️ Morphologie: ${character.bodyType} -> ${bodyTypeEn}`);
-    }
-    
-    // === POITRINE (femmes) ===
-    if (character.gender === 'female' && character.bust) {
-      const bustMap = {
-        'A': 'small A-cup breasts, petite bust',
-        'B': 'small B-cup breasts, modest bust',
-        'C': 'medium C-cup breasts, average bust',
-        'D': 'full D-cup breasts, nice bust',
-        'DD': 'large DD-cup breasts, big bust',
-        'E': 'large E-cup breasts, big bust',
-        'F': 'big F-cup breasts, large bust',
-        'G': 'huge G-cup breasts, very large bust'
-      };
-      const bustDesc = bustMap[character.bust] || `${character.bust} cup breasts`;
-      prompt += `, ${bustDesc}`;
       console.log(`👙 Poitrine: ${character.bust} -> ${bustDesc}`);
     }
     
@@ -2329,10 +2338,31 @@ class ImageGenerationService {
       prompt += ', clean lines, vibrant colors';
       prompt += ', single character, solo, one person';
     }
+    
+    // === v5.3.59 - RENFORCEMENT FINAL DE LA MORPHOLOGIE (comme v5.3.34) ===
+    // Répéter le body type à la fin pour emphase maximale
+    if (physicalDetails.body.type) {
+      const shortBody = this.getShortBodyType(physicalDetails.body.type);
+      if (shortBody) {
+        prompt += `, ${shortBody} body, ${shortBody}`;
+      }
+    }
+    
+    // === v5.3.59 - EXCLUSIONS MORPHOLOGIQUES (comme v5.3.34) ===
+    const bodyType = (physicalDetails.body.type || character.bodyType || '').toLowerCase();
+    if (bodyType.includes('bbw') || bodyType.includes('chubby') || bodyType.includes('plump') ||
+        bodyType.includes('generous') || bodyType.includes('voluptuous') || bodyType.includes('curvy') ||
+        bodyType.includes('thick') || bodyType.includes('round') || bodyType.includes('ronde') ||
+        bodyType.includes('généreus') || bodyType.includes('pulpeu') || bodyType.includes('enrobé') ||
+        bodyType.includes('potelé') || bodyType.includes('plantureu')) {
+      // Exclure explicitement les corps minces pour les personnages ronds
+      prompt += ', NOT thin, NOT skinny, NOT slim body, full figured';
+      console.log('🚫 Exclusion morphologie mince dans prompt');
+    }
 
     console.log(`🖼️ Génération image profil SFW (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
-    console.log(`📝 Prompt final: ${prompt.substring(0, 300)}...`);
-    // v5.3.58 - Passer le character pour les détails physiques directs
+    console.log(`📝 Prompt final: ${prompt.substring(0, 400)}...`);
+    // v5.3.59 - Passer le character pour les détails physiques directs
     return await this.generateImage(prompt, character);
   }
   
@@ -3053,10 +3083,60 @@ class ImageGenerationService {
     // === GÉNÉRER LES ÉLÉMENTS VARIÉS ===
     const sceneElements = this.generateVariedSceneElements();
     
-    // v5.3.54 - TOUJOURS COMMENCER PAR "FULL BODY SHOT" pour voir le personnage entier
+    // v5.3.59 - COMMENCER PAR "FULL BODY SHOT" + STYLE
     let prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
     
-    // === DESCRIPTION PHYSIQUE ULTRA-DÉTAILLÉE ===
+    // === v5.3.59 - MORPHOLOGIE EN PREMIER POUR EMPHASE MAXIMALE (comme v5.3.34) ===
+    const physicalDetailsScene = this.parsePhysicalDescription(character);
+    if (physicalDetailsScene.body.type) {
+      prompt += ', ' + physicalDetailsScene.body.type;
+      console.log(`🏋️ MORPHOLOGIE SCÈNE (priorité): ${physicalDetailsScene.body.type}`);
+    } else if (character.bodyType) {
+      // Fallback: utiliser bodyType directement avec mapping complet
+      const bodyTypeEn = {
+        'mince': 'slim slender thin body',
+        'élancée': 'slender elegant tall body',
+        'moyenne': 'average normal body',
+        'athlétique': 'athletic toned muscular body',
+        'voluptueuse': 'VOLUPTUOUS CURVY body, hourglass figure, big bust, wide hips, sexy curves',
+        'généreuse': 'GENEROUS CURVY body, full-figured, soft curves everywhere, plump',
+        'pulpeuse': 'THICK CURVY body, plump figure, soft curves, full thighs',
+        'ronde': 'CHUBBY ROUND body, soft belly, plump figure, BBW, soft curves',
+        'très ronde': 'VERY CHUBBY BBW body, big soft belly, very plump, plus size, full figure',
+        'plantureuse': 'VOLUPTUOUS body, big breasts, wide hips, sexy curvy, hourglass',
+        'enrobée': 'PLUMP SOFT body, chubby, soft curves, round belly',
+        'potelée': 'CHUBBY CUTE body, soft plump figure, round face'
+      }[character.bodyType];
+      if (bodyTypeEn) {
+        prompt += `, ${bodyTypeEn}`;
+        console.log(`🏋️ MORPHOLOGIE SCÈNE (fallback): ${character.bodyType} -> ${bodyTypeEn}`);
+      }
+    }
+    
+    // === v5.3.59 - POITRINE EN SECOND POUR EMPHASE ===
+    if (character.gender === 'female') {
+      if (physicalDetailsScene.bust.description) {
+        prompt += ', ' + physicalDetailsScene.bust.description;
+        console.log(`👙 POITRINE SCÈNE (priorité): ${physicalDetailsScene.bust.description}`);
+      } else if (character.bust) {
+        const bustMap = {
+          'A': 'SMALL A-CUP breasts',
+          'B': 'SMALL B-CUP breasts',
+          'C': 'MEDIUM C-CUP breasts',
+          'D': 'LARGE D-CUP breasts, big full breasts',
+          'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts',
+          'E': 'HUGE E-CUP breasts, very big breasts',
+          'F': 'HUGE F-CUP breasts, massive breasts',
+          'G': 'GIGANTIC G-CUP breasts, enormous bust',
+          'H': 'MASSIVE H-CUP breasts, extremely huge breasts'
+        };
+        const bustDesc = bustMap[character.bust.toUpperCase()] || `${character.bust} cup breasts`;
+        prompt += `, ${bustDesc}`;
+        console.log(`👙 POITRINE SCÈNE (fallback): ${character.bust} -> ${bustDesc}`);
+      }
+    }
+    
+    // === DESCRIPTION PHYSIQUE ULTRA-DÉTAILLÉE (reste) ===
     prompt += ', ' + this.buildUltraDetailedPhysicalPrompt(character, isRealistic);
     
     // === UTILISER imagePrompt si disponible ===
@@ -3419,12 +3499,15 @@ class ImageGenerationService {
         prompt += `, ${shortBody} body, ${shortBody}`;
       }
       
-      // Exclusions morphologiques pour les personnages ronds
-      const bodyType = (physicalDetails.body.type || '').toLowerCase();
+      // Exclusions morphologiques pour les personnages ronds (comme v5.3.34)
+      const bodyType = (physicalDetails.body.type || character.bodyType || '').toLowerCase();
       if (bodyType.includes('bbw') || bodyType.includes('chubby') || bodyType.includes('plump') ||
           bodyType.includes('generous') || bodyType.includes('voluptuous') || bodyType.includes('curvy') ||
-          bodyType.includes('thick') || bodyType.includes('round')) {
+          bodyType.includes('thick') || bodyType.includes('round') || bodyType.includes('ronde') ||
+          bodyType.includes('généreus') || bodyType.includes('pulpeu') || bodyType.includes('enrobé') ||
+          bodyType.includes('potelé') || bodyType.includes('plantureu')) {
         prompt += ', NOT thin, NOT skinny, NOT slim body, full figured';
+        console.log('🚫 Exclusion morphologie mince');
       }
     }
     
