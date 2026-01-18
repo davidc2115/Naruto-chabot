@@ -11,8 +11,7 @@ import {
   ActivityIndicator,
   Switch,
 } from 'react-native';
-// expo-image-picker désactivé - cause erreurs de build
-const ImagePicker = null;
+import * as ImagePicker from 'expo-image-picker';
 import CustomCharacterService from '../services/CustomCharacterService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import GalleryService from '../services/GalleryService';
@@ -128,43 +127,90 @@ export default function CreateCharacterScreen({ navigation, route }) {
     { id: 'soumis', label: '🎀 Doux', desc: 'Docile et attentionné' },
   ];
 
-  // === IMPORTER UNE IMAGE v5.3.32 ===
+  // === IMPORTER UNE IMAGE DEPUIS LA GALERIE ===
   const pickImage = async () => {
-    if (!ImagePicker || !ImagePicker.requestMediaLibraryPermissionsAsync) {
-      Alert.alert(
-        'Non disponible', 
-        'L\'import d\'image nécessite une mise à jour de l\'application.\n\nUtilisez la génération IA à la place.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-    
     try {
-      // Demander la permission
+      // Demander la permission d'accès à la galerie
       const permResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
       if (permResult.status !== 'granted') {
-        Alert.alert('Permission refusée', 'L\'accès à la galerie est nécessaire pour importer une image.');
+        Alert.alert(
+          'Permission requise', 
+          'L\'accès à votre galerie photos est nécessaire pour importer une image.',
+          [{ text: 'OK' }]
+        );
         return;
       }
 
       // Lancer le sélecteur d'images
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions ? ImagePicker.MediaTypeOptions.Images : ['images'],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
 
-      console.log('📷 Résultat picker:', result.canceled ? 'annulé' : 'sélectionné');
+      console.log('📷 Résultat picker:', result.canceled ? 'annulé' : 'image sélectionnée');
       
       if (!result.canceled && result.assets && result.assets[0]) {
-        setImageUrl(result.assets[0].uri);
+        const selectedUri = result.assets[0].uri;
+        setImageUrl(selectedUri);
         setImportedImage(true);
-        Alert.alert('✅ Image importée', 'Vous pouvez maintenant sauvegarder le personnage avec cette image.');
+        console.log('✅ Image importée:', selectedUri.substring(0, 50) + '...');
+        Alert.alert(
+          '✅ Image importée', 
+          'L\'image a été ajoutée. Vous pouvez maintenant sauvegarder le personnage.'
+        );
       }
     } catch (error) {
-      console.log('❌ Erreur import image:', error);
-      Alert.alert('Erreur', 'Impossible d\'importer l\'image: ' + (error.message || 'erreur inconnue'));
+      console.error('❌ Erreur import image:', error);
+      Alert.alert(
+        'Erreur', 
+        'Impossible d\'importer l\'image: ' + (error.message || 'erreur inconnue')
+      );
+    }
+  };
+  
+  // === PRENDRE UNE PHOTO AVEC LA CAMÉRA ===
+  const takePhoto = async () => {
+    try {
+      // Demander la permission d'accès à la caméra
+      const permResult = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (permResult.status !== 'granted') {
+        Alert.alert(
+          'Permission requise', 
+          'L\'accès à votre caméra est nécessaire pour prendre une photo.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Lancer la caméra
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      console.log('📸 Photo:', result.canceled ? 'annulée' : 'prise');
+      
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const photoUri = result.assets[0].uri;
+        setImageUrl(photoUri);
+        setImportedImage(true);
+        console.log('✅ Photo prise:', photoUri.substring(0, 50) + '...');
+        Alert.alert(
+          '✅ Photo prise', 
+          'La photo a été ajoutée. Vous pouvez maintenant sauvegarder le personnage.'
+        );
+      }
+    } catch (error) {
+      console.error('❌ Erreur prise photo:', error);
+      Alert.alert(
+        'Erreur', 
+        'Impossible de prendre la photo: ' + (error.message || 'erreur inconnue')
+      );
     }
   };
 
@@ -363,7 +409,13 @@ export default function CreateCharacterScreen({ navigation, route }) {
                 style={styles.imageActionButton}
                 onPress={pickImage}
               >
-                <Text style={styles.imageActionButtonText}>📁 Changer</Text>
+                <Text style={styles.imageActionButtonText}>🖼️ Galerie</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.imageActionButton}
+                onPress={takePhoto}
+              >
+                <Text style={styles.imageActionButtonText}>📷 Photo</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.imageActionButton, styles.regenerateButton]}
@@ -384,26 +436,30 @@ export default function CreateCharacterScreen({ navigation, route }) {
           </View>
         ) : (
           <View style={styles.imageOptionsContainer}>
-            {/* Option 1: Importer une image v5.3.32 */}
-            <TouchableOpacity
-              style={[
-                styles.importImageButton, 
-                !ImagePicker && styles.importImageButtonDisabled
-              ]}
-              onPress={pickImage}
-            >
-              <Text style={styles.importImageIcon}>
-                {ImagePicker ? '📸' : '⚠️'}
-              </Text>
-              <Text style={styles.importImageText}>
-                {ImagePicker ? 'Importer une image' : 'Import indisponible'}
-              </Text>
-              <Text style={styles.importImageHint}>
-                {ImagePicker ? 'Depuis votre galerie' : 'Générez avec l\'IA'}
-              </Text>
-            </TouchableOpacity>
+            {/* Ligne 1: Options d'import */}
+            <View style={styles.importOptionsRow}>
+              {/* Option 1: Galerie */}
+              <TouchableOpacity
+                style={styles.importImageButton}
+                onPress={pickImage}
+              >
+                <Text style={styles.importImageIcon}>🖼️</Text>
+                <Text style={styles.importImageText}>Galerie</Text>
+                <Text style={styles.importImageHint}>Choisir une image</Text>
+              </TouchableOpacity>
+              
+              {/* Option 2: Caméra */}
+              <TouchableOpacity
+                style={styles.cameraImageButton}
+                onPress={takePhoto}
+              >
+                <Text style={styles.importImageIcon}>📷</Text>
+                <Text style={styles.cameraImageText}>Caméra</Text>
+                <Text style={styles.importImageHint}>Prendre une photo</Text>
+              </TouchableOpacity>
+            </View>
             
-            {/* Option 2: Générer avec IA */}
+            {/* Ligne 2: Génération IA */}
             <TouchableOpacity
               style={[styles.generateImageButton, !isPremium && styles.generateImageButtonLocked]}
               onPress={generateCharacterImage}
@@ -419,8 +475,8 @@ export default function CreateCharacterScreen({ navigation, route }) {
                   </Text>
                   <Text style={styles.generateImageHint}>
                     {isPremium 
-                      ? 'Basé sur la description'
-                      : '💎 Premium requis'}
+                      ? 'Basé sur la description physique'
+                      : '💎 Fonctionnalité Premium'}
                   </Text>
                 </>
               )}
@@ -825,6 +881,9 @@ const styles = StyleSheet.create({
   },
   // === Options d'image ===
   imageOptionsContainer: {
+    gap: 12,
+  },
+  importOptionsRow: {
     flexDirection: 'row',
     gap: 10,
   },
@@ -838,9 +897,15 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     alignItems: 'center',
   },
-  importImageButtonDisabled: {
-    backgroundColor: '#f3f4f6',
-    borderColor: '#d1d5db',
+  cameraImageButton: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#eff6ff',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#3b82f6',
+    borderStyle: 'dashed',
+    alignItems: 'center',
   },
   importImageIcon: {
     fontSize: 32,
@@ -850,6 +915,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#059669',
+    marginBottom: 4,
+  },
+  cameraImageText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2563eb',
     marginBottom: 4,
   },
   importImageHint: {
