@@ -2332,7 +2332,8 @@ class ImageGenerationService {
 
     console.log(`🖼️ Génération image profil SFW (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
     console.log(`📝 Prompt final: ${prompt.substring(0, 300)}...`);
-    return await this.generateImage(prompt);
+    // v5.3.58 - Passer le character pour les détails physiques directs
+    return await this.generateImage(prompt, character);
   }
   
   /**
@@ -3445,7 +3446,8 @@ class ImageGenerationService {
     
     console.log(`🖼️ Génération ${isNSFW ? 'NSFW' : 'SFW'} niveau ${level} (${isRealistic ? 'RÉALISTE' : 'ANIME'})`);
     console.log(`📝 Prompt FINAL (150 chars): ${prompt.substring(0, 150)}...`);
-    return await this.generateImage(prompt);
+    // v5.3.58 - Passer le character pour les détails physiques directs
+    return await this.generateImage(prompt, character);
   }
 
   /**
@@ -3490,9 +3492,18 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère une image avec retry et fallback intelligent
+   * v5.3.58 - Génère une image avec retry et fallback intelligent
+   * Accepte maintenant un objet character optionnel pour les détails physiques directs
    */
-  async generateImage(prompt, retryCount = 0) {
+  async generateImage(prompt, retryCountOrCharacter = 0, character = null) {
+    // Gérer la rétrocompatibilité
+    let retryCount = 0;
+    if (typeof retryCountOrCharacter === 'number') {
+      retryCount = retryCountOrCharacter;
+    } else if (typeof retryCountOrCharacter === 'object') {
+      character = retryCountOrCharacter;
+    }
+    
     await CustomImageAPIService.loadConfig();
     
     const strategy = CustomImageAPIService.getStrategy();
@@ -3504,7 +3515,8 @@ class ImageGenerationService {
     if (strategy === 'local') {
       imageUrl = await this.generateWithLocal(prompt);
     } else {
-      imageUrl = await this.generateWithFreebox(prompt);
+      // v5.3.58 - Passer le character pour les détails physiques directs
+      imageUrl = await this.generateWithFreebox(prompt, character);
     }
     
     // Vérifier si l'image est valide
@@ -3520,7 +3532,7 @@ class ImageGenerationService {
       console.log(`⚠️ Image invalide, retry ${retryCount + 2}...`);
       // Délai progressif: 2s, 4s, 6s...
       await new Promise(r => setTimeout(r, 2000 + retryCount * 2000));
-      return await this.generateImage(prompt, retryCount + 1);
+      return await this.generateImage(prompt, retryCount + 1, character);
     }
     
     // Dernière tentative: fallback API avec délai long
@@ -3794,11 +3806,11 @@ class ImageGenerationService {
   }
 
   /**
-   * v5.3.56 - RÉÉCRITURE COMPLÈTE pour prioriser les détails physiques
-   * Les détails physiques sont extraits et placés EN PREMIER dans le prompt
+   * v5.3.58 - RÉÉCRITURE COMPLÈTE avec données CHARACTER DIRECTES
+   * Accepte maintenant un objet character optionnel pour les détails physiques directs
    */
-  async generateWithFreebox(prompt) {
-    console.log('🖼️ v5.3.56 - Génération image avec PRIORITÉ DÉTAILS PHYSIQUES...');
+  async generateWithFreebox(prompt, character = null) {
+    console.log('🖼️ v5.3.58 - Génération image avec DONNÉES CHARACTER DIRECTES...');
     
     await this.waitForRateLimit();
     
@@ -3815,9 +3827,16 @@ class ImageGenerationService {
     const isAnime = lowerPrompt.includes('anime') || lowerPrompt.includes('manga');
     const isRealistic = lowerPrompt.includes('realistic') || lowerPrompt.includes('photo');
     
-    // === v5.3.56 - EXTRAIRE TOUS LES DÉTAILS PHYSIQUES DU PROMPT ===
-    const physicalDetails = this.extractAllPhysicalDetails(prompt);
-    console.log('📋 Détails physiques extraits:', JSON.stringify(physicalDetails).substring(0, 200));
+    // === v5.3.58 - UTILISER LES DONNÉES CHARACTER DIRECTEMENT SI DISPONIBLES ===
+    let physicalDetails;
+    if (character) {
+      console.log('📋 Utilisation données CHARACTER directes');
+      physicalDetails = this.extractPhysicalDetailsFromCharacter(character);
+    } else {
+      console.log('📋 Extraction depuis le prompt texte');
+      physicalDetails = this.extractAllPhysicalDetails(prompt);
+    }
+    console.log('📋 Détails physiques:', JSON.stringify(physicalDetails).substring(0, 300));
     
     // === CONSTRUIRE LE PROMPT OPTIMISÉ ===
     let finalPrompt = '';
@@ -3961,7 +3980,180 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.3.56 - Extrait TOUS les détails physiques d'un prompt
+   * v5.3.58 - Extrait les détails physiques DIRECTEMENT de l'objet character
+   * C'est la méthode PRIORITAIRE car elle utilise les vraies données
+   */
+  extractPhysicalDetailsFromCharacter(character) {
+    const details = {
+      gender: null,
+      age: null,
+      hairColor: null,
+      hairLength: null,
+      eyeColor: null,
+      skinTone: null,
+      height: null,
+      bodyType: null,
+      bust: null,
+      penis: null,
+      butt: null,
+      hips: null,
+      thighs: null,
+      belly: null,
+    };
+    
+    if (!character) return details;
+    
+    // === GENRE ===
+    details.gender = character.gender || null;
+    
+    // === ÂGE ===
+    details.age = this.parseCharacterAge(character.age);
+    
+    // === CHEVEUX - COULEUR (traduction FR -> EN) ===
+    if (character.hairColor) {
+      const hairColorMap = {
+        'noir': 'black', 'noirs': 'black', 'noire': 'black',
+        'brun': 'brown', 'brune': 'brown', 'châtain': 'chestnut brown',
+        'blond': 'blonde', 'blonde': 'blonde', 'blonds': 'blonde',
+        'roux': 'red ginger', 'rousse': 'red ginger', 'auburn': 'auburn',
+        'blanc': 'white', 'blanche': 'white', 'argenté': 'silver', 'gris': 'grey',
+        'rose': 'pink', 'bleu': 'blue', 'vert': 'green', 'violet': 'purple',
+      };
+      const lowerHair = character.hairColor.toLowerCase();
+      details.hairColor = hairColorMap[lowerHair] || character.hairColor;
+      console.log(`💇 Cheveux (character): ${character.hairColor} -> ${details.hairColor}`);
+    }
+    
+    // === CHEVEUX - LONGUEUR ===
+    if (character.hairLength) {
+      const hairLengthMap = {
+        'très courts': 'very short', 'courts': 'short',
+        'mi-longs': 'medium shoulder-length', 'longs': 'long flowing',
+        'très longs': 'very long waist-length',
+      };
+      const lowerLen = character.hairLength.toLowerCase();
+      details.hairLength = hairLengthMap[lowerLen] || character.hairLength;
+      console.log(`💇 Longueur (character): ${character.hairLength} -> ${details.hairLength}`);
+    }
+    
+    // === YEUX ===
+    if (character.eyeColor) {
+      const eyeColorMap = {
+        'bleu': 'blue', 'bleus': 'blue', 'vert': 'green', 'verts': 'green',
+        'marron': 'brown', 'noisette': 'hazel', 'noir': 'black', 'noirs': 'black',
+        'ambre': 'amber', 'gris': 'grey', 'violet': 'violet',
+      };
+      const lowerEye = character.eyeColor.toLowerCase();
+      details.eyeColor = eyeColorMap[lowerEye] || character.eyeColor;
+      console.log(`👁️ Yeux (character): ${character.eyeColor} -> ${details.eyeColor}`);
+    }
+    
+    // === PEAU ===
+    if (character.skinTone) {
+      const skinMap = {
+        'très claire': 'very pale fair', 'claire': 'fair light',
+        'mate': 'olive tan', 'bronzée': 'tanned golden',
+        'caramel': 'caramel brown', 'ébène': 'dark ebony',
+      };
+      const lowerSkin = character.skinTone.toLowerCase();
+      details.skinTone = skinMap[lowerSkin] || character.skinTone;
+      console.log(`🎨 Peau (character): ${character.skinTone} -> ${details.skinTone}`);
+    }
+    
+    // === TAILLE ===
+    if (character.height) {
+      const h = parseInt(character.height);
+      if (h < 155) details.height = 'petite short (under 155cm)';
+      else if (h < 165) details.height = 'average height (155-165cm)';
+      else if (h < 175) details.height = 'tall (165-175cm)';
+      else details.height = 'very tall (over 175cm)';
+      console.log(`📏 Taille (character): ${character.height} -> ${details.height}`);
+    }
+    
+    // === MORPHOLOGIE / CORPS - v5.3.58 TRÈS DÉTAILLÉ ===
+    if (character.bodyType) {
+      const bodyMap = {
+        'mince': 'slim slender thin body',
+        'élancée': 'slender elegant tall body',
+        'moyenne': 'average normal body',
+        'athlétique': 'athletic toned muscular body',
+        'voluptueuse': 'VOLUPTUOUS CURVY body, hourglass figure, big bust, wide hips',
+        'généreuse': 'GENEROUS CURVY body, full-figured, soft curves everywhere',
+        'pulpeuse': 'THICK CURVY body, plump figure, soft curves',
+        'ronde': 'CHUBBY ROUND body, soft belly, plump figure, BBW',
+        'très ronde': 'VERY CHUBBY BBW body, big soft belly, very plump, plus size',
+        'plantureuse': 'VOLUPTUOUS body, big breasts, wide hips, curvy',
+        'enrobée': 'PLUMP SOFT body, chubby, soft curves',
+        'potelée': 'CHUBBY CUTE body, soft plump figure',
+      };
+      const lowerBody = character.bodyType.toLowerCase();
+      details.bodyType = bodyMap[lowerBody] || character.bodyType;
+      console.log(`🏋️ Morphologie (character): ${character.bodyType} -> ${details.bodyType}`);
+    }
+    
+    // === POITRINE ===
+    if (character.bust && character.gender === 'female') {
+      const bustMap = {
+        'A': 'SMALL A-CUP breasts, petite flat chest',
+        'B': 'SMALL B-CUP breasts, modest small bust',
+        'C': 'MEDIUM C-CUP breasts, average bust',
+        'D': 'LARGE D-CUP breasts, big full breasts',
+        'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts',
+        'E': 'HUGE E-CUP breasts, very big breasts',
+        'F': 'HUGE F-CUP breasts, massive breasts',
+        'G': 'GIGANTIC G-CUP breasts, enormous bust',
+        'H': 'MASSIVE H-CUP breasts, extremely huge breasts',
+      };
+      details.bust = bustMap[character.bust.toUpperCase()] || `${character.bust}-cup breasts`;
+      console.log(`👙 Poitrine (character): ${character.bust} -> ${details.bust}`);
+    }
+    
+    // === PÉNIS ===
+    if (character.penis && character.gender === 'male') {
+      const penisNum = parseInt(character.penis);
+      if (penisNum < 12) details.penis = 'small penis';
+      else if (penisNum < 16) details.penis = 'average penis';
+      else if (penisNum < 20) details.penis = 'big penis, large cock';
+      else details.penis = 'huge penis, massive cock';
+      console.log(`🍆 Pénis (character): ${character.penis} -> ${details.penis}`);
+    }
+    
+    // === ANALYSER physicalDescription pour détails supplémentaires ===
+    const physDesc = (character.physicalDescription || '').toLowerCase();
+    const appearance = (character.appearance || '').toLowerCase();
+    const fullText = physDesc + ' ' + appearance;
+    
+    // Fesses
+    if (fullText.includes('grosses fesses') || fullText.includes('big butt')) {
+      details.butt = 'big round butt, large plump ass';
+    } else if (fullText.includes('fesses rebondies') || fullText.includes('bubble butt')) {
+      details.butt = 'round bubble butt, perky ass';
+    }
+    
+    // Hanches
+    if (fullText.includes('hanches larges') || fullText.includes('wide hips')) {
+      details.hips = 'wide hips, curvy hip bones';
+    }
+    
+    // Cuisses
+    if (fullText.includes('cuisses épaisses') || fullText.includes('thick thighs')) {
+      details.thighs = 'thick meaty thighs';
+    }
+    
+    // Ventre
+    if (fullText.includes('ventre plat') || fullText.includes('flat stomach')) {
+      details.belly = 'flat toned stomach';
+    } else if (fullText.includes('petit ventre') || fullText.includes('soft belly')) {
+      details.belly = 'soft small belly';
+    } else if (fullText.includes('gros ventre') || fullText.includes('big belly')) {
+      details.belly = 'big round belly, chubby tummy';
+    }
+    
+    return details;
+  }
+
+  /**
+   * v5.3.58 - Extrait les détails physiques d'un prompt (fallback)
    */
   extractAllPhysicalDetails(prompt) {
     const lower = prompt.toLowerCase();
@@ -3993,6 +4185,39 @@ class ImageGenerationService {
     const ageMatch = prompt.match(/(\d{2})\s*(ans|years?\s*old|yo)/i);
     if (ageMatch) {
       details.age = parseInt(ageMatch[1]);
+    }
+    
+    // === MORPHOLOGIE - v5.3.58 TRÈS COMPLÈTE ===
+    const bodyTypes = {
+      'mince': 'slim slender body', 'slim': 'slim slender body', 'slender': 'slender body',
+      'élancée': 'slender elegant body', 'élancé': 'slender elegant body',
+      'athlétique': 'athletic muscular body', 'athletic': 'athletic toned body',
+      'voluptueuse': 'VOLUPTUOUS CURVY body, hourglass, big bust, wide hips',
+      'voluptueux': 'VOLUPTUOUS body, curvy',
+      'généreuse': 'GENEROUS CURVY body, full-figured, soft curves',
+      'généreux': 'GENEROUS body, full-figured',
+      'pulpeuse': 'THICK CURVY body, plump, soft curves',
+      'pulpeux': 'THICK body, plump',
+      'ronde': 'CHUBBY ROUND body, soft belly, plump, BBW',
+      'rond': 'CHUBBY ROUND body',
+      'très ronde': 'VERY CHUBBY BBW body, big soft belly, very plump',
+      'plantureuse': 'VOLUPTUOUS body, big breasts, wide hips',
+      'enrobée': 'PLUMP SOFT body, chubby, soft curves',
+      'enrobé': 'PLUMP body, chubby',
+      'potelée': 'CHUBBY CUTE body, soft plump',
+      'potelé': 'CHUBBY body, plump',
+      'curvy': 'CURVY body with nice curves',
+      'thick': 'THICK body, curvy plump',
+      'chubby': 'CHUBBY soft body, plump',
+      'bbw': 'BBW body, very curvy, plus size',
+      'plump': 'PLUMP soft body',
+    };
+    for (const [key, value] of Object.entries(bodyTypes)) {
+      if (lower.includes(key)) {
+        details.bodyType = value;
+        console.log(`🏋️ Morphologie (prompt): ${key} -> ${value}`);
+        break;
+      }
     }
     
     // === CHEVEUX - COULEUR ===

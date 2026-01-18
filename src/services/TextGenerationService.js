@@ -924,14 +924,14 @@ class TextGenerationService {
         const systemPrompt = this.buildSimpleSystemPrompt(character, userProfile, context);
         fullMessages.push({ role: 'system', content: systemPrompt });
         
-        // === v5.3.57 - MESSAGES RÉCENTS (15 pour meilleure mémoire, 20 en NSFW) ===
-        const recentCount = Math.min(isNSFW ? 20 : 15, totalMessages);
+        // === v5.3.58 - CONTEXTE GROQ-STYLE (25 messages, contenu étendu) ===
+        const recentCount = Math.min(25, totalMessages);
         const recentMessages = messages.slice(-recentCount);
         
-        // Ajouter les messages avec contenu COMPLET pour la mémoire
+        // Ajouter les messages avec contenu TRÈS ÉTENDU pour la mémoire (comme Groq)
         fullMessages.push(...recentMessages.map((msg, idx) => ({
           role: msg.role,
-          content: msg.content.substring(0, isNSFW ? 800 : 600)
+          content: msg.content.substring(0, 1000) // 1000 chars comme Groq
         })));
         
         // === INSTRUCTION FINALE DIRECTE ===
@@ -940,10 +940,10 @@ class TextGenerationService {
         
         console.log(`📡 ${api.name} - ${fullMessages.length} messages`);
         
-        // v5.3.57 - Paramètres optimisés pour NSFW direct
+        // v5.3.58 - Paramètres GROQ-STYLE (plus de créativité et de contenu)
         let content;
-        const maxTokens = isNSFW ? 250 : 220; // Réponses plus courtes = plus directes
-        const temperature = isNSFW ? 0.9 : 0.85; // Plus créatif en NSFW
+        const maxTokens = isNSFW ? 350 : 300; // Plus de tokens comme Groq
+        const temperature = isNSFW ? 0.95 : 0.9; // Température élevée comme Groq
         
         if (api.format === 'pollinations') {
           content = await this.callPollinationsApi(api, fullMessages, { temperature, maxTokens });
@@ -983,10 +983,10 @@ class TextGenerationService {
   }
   
   /**
-   * v5.3.57 - Pollinations avec MEILLEURE MÉMOIRE et NSFW DIRECT
+   * v5.3.58 - Pollinations QUALITÉ GROQ avec MEILLEURE MÉMOIRE
    */
   async callPollinationsApi(api, fullMessages, options = {}) {
-    const { temperature = 0.85, maxTokens = 250 } = options;
+    const { temperature = 0.9, maxTokens = 300 } = options;
     
     // Extraire les éléments
     const systemMessages = fullMessages.filter(m => m.role === 'system');
@@ -996,33 +996,40 @@ class TextGenerationService {
     const lastInstruction = systemMessages[systemMessages.length - 1]?.content || '';
     const lastUserMsg = conversationMessages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
     
-    // v5.3.57 - PLUS DE CONTEXTE (10 messages au lieu de 4, 150 chars au lieu de 80)
+    // v5.3.58 - CONTEXTE ÉTENDU COMME GROQ (15 messages, 250 chars chacun)
     let context = '';
-    const contextMsgs = conversationMessages.slice(-10);
+    const contextMsgs = conversationMessages.slice(-15);
     for (const msg of contextMsgs) {
-      const prefix = msg.role === 'user' ? 'U' : 'P';
-      context += `${prefix}: ${msg.content.substring(0, 150)}\n`;
+      const prefix = msg.role === 'user' ? 'USER' : 'PERSONNAGE';
+      const content = msg.content.substring(0, 250).replace(/\n/g, ' ');
+      context += `${prefix}: ${content}\n`;
     }
     
-    // Prompt avec plus de contexte
-    let prompt = mainSystem.substring(0, 800);
+    // v5.3.58 - Prompt structuré comme Groq
+    let prompt = '';
     
+    // System prompt complet
+    prompt += `=== INSTRUCTIONS ===\n${mainSystem.substring(0, 1000)}\n\n`;
+    
+    // Historique complet
     if (context.length > 0) {
-      prompt += `\n\n[Historique - SOUVIENS-TOI DE TOUT]\n${context}`;
+      prompt += `=== CONVERSATION COMPLÈTE (MÉMORISE TOUT!) ===\n${context}\n`;
     }
     
-    prompt += `\n\n>>> ${lastUserMsg.substring(0, 250)}\n`;
+    // Dernier message utilisateur en évidence
+    prompt += `\n=== DERNIER MESSAGE DE L'UTILISATEUR ===\n${lastUserMsg.substring(0, 300)}\n`;
     
+    // Instructions finales
     if (lastInstruction && lastInstruction !== mainSystem) {
-      prompt += `\n${lastInstruction.substring(0, 400)}`;
+      prompt += `\n=== À FAIRE MAINTENANT ===\n${lastInstruction.substring(0, 500)}\n`;
     }
     
-    prompt += `\n\nRéponse courte et directe:`;
+    prompt += `\n=== TA RÉPONSE (continue la conversation, sois cohérent avec l'historique) ===\n`;
     
-    // v5.3.57 - Limite augmentée pour meilleure mémoire
-    const finalPrompt = prompt.substring(0, 4000);
+    // v5.3.58 - Limite à 5000 chars pour contexte maximal
+    const finalPrompt = prompt.substring(0, 5000);
     
-    console.log(`📡 Pollinations: ${finalPrompt.length} chars, model: ${api.model}`);
+    console.log(`📡 Pollinations GROQ-style: ${finalPrompt.length} chars, model: ${api.model}`);
     
     const response = await axios.get(
       `${api.url}/${encodeURIComponent(finalPrompt)}`,
@@ -1031,7 +1038,7 @@ class TextGenerationService {
           model: api.model,
           seed: Math.floor(Math.random() * 100000)
         },
-        timeout: 45000,
+        timeout: 60000, // Timeout augmenté
       }
     );
     
