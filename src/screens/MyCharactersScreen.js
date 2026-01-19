@@ -34,18 +34,34 @@ export default function MyCharactersScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'public', 'private'
+  const [error, setError] = useState(null); // v5.3.74 - Gestion d'erreur
   const loadingRef = useRef(false);
   const initialLoadDone = useRef(false);
+  const isMounted = useRef(true); // v5.3.74 - Tracking montage
 
+  // v5.3.74 - Initialisation robuste
   useEffect(() => {
+    console.log('📱 MyCharactersScreen: Montage');
+    isMounted.current = true;
+    
     // Charger immédiatement depuis le cache si disponible
     if (cachedCharacters && cachedCharacters.length > 0) {
       setCharacters(cachedCharacters);
       setLoading(false);
     }
     
-    // Puis charger les données fraîches
-    loadCharacters(false);
+    // Puis charger les données fraîches avec délai pour éviter race condition
+    const timer = setTimeout(() => {
+      if (isMounted.current) {
+        loadCharacters(false);
+      }
+    }, 100);
+    
+    return () => {
+      console.log('📱 MyCharactersScreen: Démontage');
+      isMounted.current = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -64,75 +80,103 @@ export default function MyCharactersScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
+  // v5.3.74 - Chargement robuste avec gestion d'erreur
   const loadCharacters = async (forceRefresh = false) => {
+    console.log('🔄 loadCharacters appelé, forceRefresh:', forceRefresh);
+    
     // Éviter les chargements multiples
-    if (loadingRef.current && !forceRefresh) return;
+    if (loadingRef.current && !forceRefresh) {
+      console.log('⏸️ Chargement déjà en cours, ignoré');
+      return;
+    }
     loadingRef.current = true;
+    setError(null);
     
     try {
+      // Vérifier si le composant est encore monté
+      if (!isMounted.current) {
+        console.log('⚠️ Composant démonté, abandon');
+        return;
+      }
+      
       // Utiliser le cache si disponible et non expiré
       const now = Date.now();
       if (!forceRefresh && cachedCharacters && (now - lastLoadTime < CACHE_DURATION)) {
-        setCharacters(cachedCharacters);
-        setLoading(false);
+        console.log('📦 Utilisation du cache');
+        if (isMounted.current) {
+          setCharacters(cachedCharacters);
+          setLoading(false);
+        }
         loadingRef.current = false;
         return;
       }
       
       // Ne montrer le loading que si pas de données en cache
       if (!cachedCharacters || cachedCharacters.length === 0) {
-        setLoading(true);
+        if (isMounted.current) setLoading(true);
       }
       
-      // ÉTAPE 1: Charger les personnages locaux IMMÉDIATEMENT (rapide)
+      // ÉTAPE 1: Charger les personnages locaux
       let localChars = [];
       try {
-        // Essayer d'abord le stockage local direct (plus rapide)
         const localData = await AsyncStorage.getItem('custom_characters_anonymous');
         if (localData) {
-          localChars = JSON.parse(localData);
+          const parsed = JSON.parse(localData);
+          if (Array.isArray(parsed)) {
+            localChars = parsed;
+          }
         }
+        console.log('📚 Personnages locaux:', localChars.length);
         
         // Essayer aussi la clé avec l'utilisateur si connecté
         if (AuthService) {
-          const user = AuthService.getCurrentUser();
-          if (user?.id) {
-            const userData = await AsyncStorage.getItem(`custom_characters_${user.id}`);
-            if (userData) {
-              const userChars = JSON.parse(userData);
-              // Fusionner sans doublons
-              const existingIds = new Set(localChars.map(c => c.id));
-              userChars.forEach(c => {
-                if (!existingIds.has(c.id)) {
-                  localChars.push(c);
+          try {
+            const user = AuthService.getCurrentUser();
+            if (user?.id) {
+              const userData = await AsyncStorage.getItem(`custom_characters_${user.id}`);
+              if (userData) {
+                const userChars = JSON.parse(userData);
+                if (Array.isArray(userChars)) {
+                  const existingIds = new Set(localChars.map(c => c.id));
+                  userChars.forEach(c => {
+                    if (c && c.id && !existingIds.has(c.id)) {
+                      localChars.push(c);
+                    }
+                  });
                 }
-              });
+              }
             }
+          } catch (authError) {
+            console.log('⚠️ AuthService error:', authError.message);
           }
         }
       } catch (e) {
         console.log('⚠️ Erreur lecture locale:', e.message);
       }
       
-      // Mettre à jour immédiatement avec les données locales
-      if (localChars.length > 0) {
+      // Mettre à jour si composant encore monté
+      if (isMounted.current) {
         cachedCharacters = localChars;
         lastLoadTime = now;
         setCharacters(localChars);
         setLoading(false);
         initialLoadDone.current = true;
+        console.log('✅ État mis à jour avec', localChars.length, 'personnages');
       }
       
-      // ÉTAPE 2: Synchroniser avec le serveur en arrière-plan (avec timeout)
+      // ÉTAPE 2: Synchroniser avec le serveur en arrière-plan
       loadServerDataAsync(localChars);
       
     } catch (error) {
-      console.error('Erreur chargement personnages:', error);
-      if (cachedCharacters) {
-        setCharacters(cachedCharacters);
+      console.error('❌ Erreur chargement personnages:', error);
+      if (isMounted.current) {
+        setError(error.message || 'Erreur de chargement');
+        if (cachedCharacters) {
+          setCharacters(cachedCharacters);
+        }
+        setLoading(false);
       }
     } finally {
-      setLoading(false);
       loadingRef.current = false;
     }
   };
@@ -390,21 +434,41 @@ export default function MyCharactersScreen({ navigation }) {
     );
   }, [handleDelete, handleEdit, handleTogglePublic]);
 
-  // v5.3.73 - Écran de chargement avec SafeAreaView
+  // v5.3.74 - Écran de chargement
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+      <View style={styles.rootContainer}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6366f1" />
+          <ActivityIndicator size="large" color="#fff" />
           <Text style={styles.loadingText}>Chargement des personnages...</Text>
         </View>
       </View>
     );
   }
 
-  // v5.3.73 - Rendu principal avec structure robuste
+  // v5.3.74 - Écran d'erreur
+  if (error) {
+    return (
+      <View style={styles.rootContainer}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Mes personnages</Text>
+          </View>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorIcon}>⚠️</Text>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={() => loadCharacters(true)}>
+              <Text style={styles.retryButtonText}>🔄 Réessayer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // v5.3.74 - Rendu principal
   return (
-    <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+    <View style={styles.rootContainer}>
       <View style={styles.container}>
         {/* Titre */}
         <View style={styles.header}>
@@ -484,6 +548,12 @@ export default function MyCharactersScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  // v5.3.74 - Style racine unifié
+  rootContainer: {
+    flex: 1,
+    backgroundColor: '#6366f1',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#6366f1',
@@ -492,6 +562,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  // v5.3.74 - Styles erreur
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorIcon: {
+    fontSize: 48,
+    marginBottom: 15,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#dc2626',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   header: {
     backgroundColor: '#6366f1',
@@ -507,11 +605,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#6366f1',
   },
   loadingText: {
     marginTop: 15,
     fontSize: 16,
+    color: '#fff',
     color: '#6b7280',
   },
   filterContainer: {
