@@ -253,101 +253,113 @@ class ImageGenerationService {
       'relaxed comfortable, natural beauty',
     ];
     
-    // v5.3.77 - TENUES NSFW ULTRA-VARIÉES - SEXY/PROVOCANTES/EXPLICITES
+    // v5.4.3 - TENUES NSFW ULTRA-EXPLICITES ET SUGGESTIVES
     this.nsfwOutfits = [
-      // Lingerie sexy
-      'wearing sexy red lace lingerie set, push-up bra and thong',
-      'wearing black satin lingerie, garter belt and stockings',
-      'wearing sheer white lace bra and panties, barely covering',
-      'wearing matching lingerie set, sexy and seductive',
-      'wearing sexy corset pushing breasts up, matching panties',
+      // === LINGERIE TRÈS SEXY ===
+      'wearing tiny red lace thong and matching push-up bra barely containing breasts, nipples almost visible through sheer fabric',
+      'wearing black crotchless lace panties and cupless bra, nipples and pussy fully exposed',
+      'wearing see-through mesh lingerie set, nipples clearly visible, pussy outline visible',
+      'wearing string thong riding up between ass cheeks, bra pushed down showing nipples',
+      'wearing sexy corset crushing waist, breasts overflowing on top, nipples peeking out',
+      'wearing open-crotch bodysuit, pussy fully exposed, breasts barely covered',
+      'wearing slutty red lingerie, bra too small for big tits, thong disappearing between legs',
       
-      // Nuisettes et déshabillés
-      'wearing sheer babydoll nightgown, body visible through fabric',
-      'wearing silk negligee barely covering body, elegant sexy',
-      'wearing transparent nightie, nothing hidden underneath',
-      'wearing sexy short satin slip, riding up to show thighs',
-      'wearing open robe over lingerie, loosely tied',
+      // === NUISETTES TRANSPARENTES ===
+      'wearing completely transparent babydoll nightgown, nipples and pussy clearly visible through fabric',
+      'wearing sheer silk slip riding up to waist, no panties underneath, ass exposed',
+      'wearing see-through negligee open at front, full frontal exposure, nothing hidden',
+      'wearing micro negligee barely covering nipples, pussy fully visible when standing',
+      'wearing transparent chemise, body completely visible, nipples erect through fabric',
       
-      // Déshabillés transparents
-      'wearing completely see-through robe, body fully visible',
-      'wearing sheer mesh dress, curves visible through fabric',
-      'wearing transparent kimono, open front, body exposed',
-      'wearing sheer lace dress with nothing underneath',
+      // === TOPLESS EXPLICITE ===
+      'topless, big bare breasts with erect nipples fully exposed, wearing only tiny g-string',
+      'topless with open unbuttoned shirt, full breasts and hard nipples on display',
+      'topless, breasts bouncing freely, wearing only stockings and heels',
+      'topless and sweaty, breasts glistening, only panties pulled to the side',
+      'topless squeezing breasts together, nipples pointing forward, very erotic',
       
-      // Mini-jupes et robes moulantes
-      'wearing tight micro mini-skirt barely covering, no panties',
-      'wearing skin-tight bodycon dress showing every curve',
-      'wearing backless dress with no bra, side boob visible',
-      'wearing deep V-neck dress, cleavage fully exposed',
-      'wearing slit dress showing leg up to hip, no panties',
+      // === ENTIÈREMENT NUE ===
+      'completely nude and exposed, full frontal showing breasts, nipples, and shaved pussy',
+      'fully naked with legs spread, pussy lips visible, breasts heaving',
+      'totally nude lying down, legs open, everything exposed and inviting',
+      'naked except for high heels, standing with legs apart showing everything',
+      'nude and wet from shower, water dripping down breasts and between legs',
+      'completely naked on all fours, ass up, pussy and ass exposed from behind',
+      'nude with body oil glistening on skin, breasts shiny, thighs parted',
       
-      // Topless
-      'topless, bare breasts fully exposed, wearing only panties',
-      'topless in unbuttoned shirt, breasts visible between fabric',
-      'topless wearing only shorts, confident nude pose',
-      'topless with open jacket, breasts peeking out',
+      // === TENUES TRÈS COURTES ===
+      'wearing micro mini-skirt so short pussy is visible, no panties, bending over',
+      'wearing tight crop top with no bra, nipples poking through, tiny shorts riding up',
+      'wearing slutty schoolgirl outfit, skirt flipped up showing bare ass and pussy',
+      'wearing tiny bikini top struggling to contain breasts, string bottom barely covering',
+      'wearing wet white t-shirt clinging to body, nipples clearly visible, no bra',
       
-      // Nue complète
-      'completely nude, full frontal nudity, nothing hidden',
-      'fully naked, artistic nudity showing entire body',
-      'nude except for high heels, elegant naked pose',
-      'completely naked lying on silk sheets, exposed',
-      'fully nude with only jewelry, sensual naked',
+      // === BONDAGE LÉGER ===
+      'wearing only leather harness around body, breasts and pussy framed by straps',
+      'wearing collar and chain, otherwise completely nude and submissive',
+      'wearing rope bondage on breasts making them bulge, nipples hard',
       
-      // Tenues spéciales sexy
-      'wearing only stockings and heels, otherwise nude',
-      'wearing wet white t-shirt, nipples visible through',
-      'wearing string bikini barely covering, very revealing',
-      'wearing body chain jewelry only, nude underneath',
-      'wearing sexy maid outfit, very short and revealing',
-      'wearing school girl outfit, very short skirt, cleavage',
-      'wearing nurse costume, very short and tight',
+      // === COSTUMES SEXY ===
+      'wearing slutty nurse outfit, breasts spilling out, skirt too short',
+      'wearing sexy maid costume, bending over showing no panties underneath',
+      'wearing naughty secretary outfit, blouse open showing bra, skirt hiked up',
     ];
     
-    // v5.3.77 - POSITIONS NSFW ULTRA-VARIÉES ET EXPLICITES
+    // v5.4.3 - POSITIONS NSFW ULTRA-EXPLICITES ET SUGGESTIVES
     this.nsfwPoses = [
-      // Allongée sur lit
-      'lying on bed on back, legs spread invitingly, breasts visible',
-      'lying on stomach on bed, butt raised high, looking back seductively',
-      'lying on side propped on elbow, curves emphasized, sensual gaze',
-      'sprawled on bed, legs open, inviting pose, fully exposed',
+      // === ALLONGÉE - TRÈS EXPLICITE ===
+      'lying on back with legs spread wide open, pussy fully exposed and inviting, breasts heaving',
+      'lying on bed legs up in the air spread in V shape, pussy and ass exposed, hands on inner thighs',
+      'sprawled on silk sheets, one hand between spread legs touching pussy, moaning expression',
+      'lying on side showing curves, one leg raised high, pussy peeking between thighs',
+      'lying on back arching spine, breasts thrust upward, legs spread waiting',
       
-      // À genoux
-      'kneeling on bed, sitting back on heels, breasts prominent',
-      'kneeling upright, hands on thighs, looking up submissively',
-      'on knees looking up with bedroom eyes, submissive pose',
-      'kneeling with back arched, presenting body',
+      // === À GENOUX - SOUMISE ===
+      'kneeling submissively, looking up with mouth slightly open, breasts pushed forward',
+      'on knees with legs spread, hands behind head, presenting body obediently',
+      'kneeling bent forward, ass raised high, pussy visible from behind, face on pillow',
+      'kneeling upright, hands cupping and squeezing own breasts, pinching nipples',
+      'on knees begging pose, breasts dangling, looking up with lustful eyes',
       
-      // Mains sur les seins
-      'hands cupping breasts, squeezing them together, seductive',
-      'hands pressing breasts together creating deep cleavage',
-      'one hand on breast, pinching nipple, pleasure expression',
-      'arms pushing breasts together, enhancing cleavage, sexy',
+      // === À QUATRE PATTES - PROVOCANTE ===
+      'on all fours with back arched deeply, ass raised high presenting pussy and ass',
+      'doggy style position, face down ass up, looking back over shoulder seductively',
+      'crawling forward on bed, breasts swinging, predatory hungry look, ass up',
+      'on hands and knees, spreading ass cheeks with hands, fully exposed from behind',
+      'on all fours, one hand reaching back between legs touching pussy',
       
-      // Penchée en avant - décolleté exposé
-      'bending forward, breasts hanging, deep cleavage exposed',
-      'leaning forward showing full cleavage, provocative stance',
-      'bent over vanity, breasts visible in mirror, rear view',
-      'bending at waist, cleavage and rear both visible',
+      // === PENCHÉE EN AVANT ===
+      'bending over deeply, breasts hanging and swinging, ass pushed out invitingly',
+      'bent over table, skirt flipped up, bare ass and pussy on display',
+      'leaning forward with hands on knees, massive cleavage on display, licking lips',
+      'bending at waist touching toes, ass and pussy visible from behind',
       
-      // À quatre pattes
-      'on all fours on bed, back arched, butt raised high',
-      'crawling on bed on hands and knees, predatory sexy look',
-      'on all fours looking back over shoulder, rear prominent',
+      // === MAINS SUR LE CORPS ===
+      'hands squeezing and pressing breasts together, tongue licking own nipple',
+      'one hand groping breast while other hand slides between parted thighs',
+      'pinching own nipples hard, mouth open in pleasure, eyes closed',
+      'hands sliding down body toward pussy, teasing self-touch',
+      'cupping breasts, pushing them up, nipples between fingers',
       
-      // Debout sexy
-      'standing nude, one leg raised, confident sexy pose',
-      'standing against wall, body arched, curves emphasized',
-      'standing by window, silhouette pose, natural nude',
+      // === DEBOUT SEXY ===
+      'standing with one leg raised on chair, pussy exposed, confident dominant pose',
+      'standing against wall with back arched, ass pushed out, looking over shoulder',
+      'standing legs wide apart, hands on hips, fully nude and confident',
+      'leaning against doorframe, one hand between legs, inviting look',
       
-      // Positions spéciales
-      'legs spread wide lying on bed, fully exposed intimate view',
-      'straddling position, dominant sexy pose, looking down',
-      'yoga-like pose, legs behind head, very flexible exposed',
-      'touching self sensually, hand between thighs, aroused',
-      'pulling down panties, teasing reveal, playful',
-      'undressing, dress falling off shoulders, mid-strip',
+      // === POSITIONS TRÈS EXPLICITES ===
+      'sitting with legs spread extremely wide, leaning back, pussy fully open and exposed',
+      'straddling chair backwards, ass prominent, looking back over shoulder licking lips',
+      'lying with legs pulled back to chest, pussy and ass completely exposed and open',
+      'squatting with legs spread, pussy at eye level, balancing on heels',
+      'missionary position ready, legs spread wide in the air, waiting to be taken',
+      'riding position, as if on top, bouncing motion, breasts jiggling',
+      
+      // === AUTO-PLAISIR ===
+      'fingers spreading pussy lips apart, showing pink inside, aroused expression',
+      'masturbating with fingers inside, eyes closed in ecstasy, free hand on breast',
+      'rubbing clit with one hand, squeezing breast with other, orgasmic face',
+      'inserting fingers, back arched in pleasure, mouth open moaning',
     ];
   }
   
@@ -3570,145 +3582,111 @@ class ImageGenerationService {
       prompt += `, ${randomAngle}`;
       console.log(`📷 ANGLE: ${randomAngle.substring(0, 50)}...`);
       
-      // === v5.3.77 - POSITIONS NSFW ULTRA-VARIÉES ET EXPLICITES ===
+      // === v5.4.3 - POSITIONS NSFW ULTRA-EXPLICITES ET SUGGESTIVES ===
       const nsfwPositions = [
-        // Debout - sexy
-        'standing nude, confident sexy pose, hand on hip, full body view, legs apart',
-        'standing by window, nude silhouette, natural light, elegant pose, curves visible',
-        'standing leaning against wall, one leg bent, provocative stance, body arched',
-        'standing with back arched, breasts thrust forward, sexy confident pose',
+        // === ALLONGÉE - TRÈS EXPLICITE ===
+        'lying on back with legs spread WIDE OPEN showing pussy, breasts heaving, arms above head, exposed and waiting',
+        'lying on bed legs up in V shape spread apart, pussy and ass fully exposed, hands pulling thighs open',
+        'sprawled on silk sheets, one hand between spread legs touching wet pussy, other hand squeezing breast, moaning',
+        'lying on side with leg raised high, pussy visible between thighs, finger tracing down body seductively',
+        'lying face up arching back in pleasure, legs wide open, breasts thrust upward, pussy glistening',
         
-        // Allongée sur lit - variée
-        'lying on bed on back, legs spread wide open, inviting pose, breasts and pussy visible',
-        'lying on stomach on silk sheets, butt raised high, looking back seductively',
-        'lying on side, propped on elbow, one leg raised, curves emphasized, sensual',
-        'sprawled on bed, legs open, relaxed nude pose, carefree and very sexy',
-        'lying with legs up in air, fully exposed, vulnerable sexy pose',
+        // === À GENOUX - SOUMISE ===
+        'kneeling submissively with thighs spread, hands behind back, breasts pushed forward, looking up mouth open',
+        'on knees with legs spread wide showing pussy, hands cupping and offering breasts, begging eyes',
+        'kneeling bent forward face on pillow, ass raised high in air, pussy and asshole exposed from behind, presenting',
+        'kneeling upright squeezing and pinching own nipples, head thrown back, moaning expression',
+        'on knees obediently, tongue out ready, hands on spread thighs, submissive waiting pose',
         
-        // À genoux - diverses
-        'kneeling on bed, sitting back on heels, breasts prominent, hands on thighs, sensual gaze',
-        'kneeling upright, hands behind head, breasts thrust forward, submissive pose',
-        'kneeling from behind, looking over shoulder, butt emphasized, back arched',
-        'on knees looking up seductively with open mouth, submissive begging pose',
-        'kneeling with legs spread, hands on knees, fully exposed, inviting',
+        // === À QUATRE PATTES - PROVOCANTE ===
+        'on all fours with back arched deeply, ass raised presenting pussy and asshole, looking back hungrily',
+        'doggy position face down ass up, reaching back to spread cheeks, fully exposed and ready',
+        'crawling forward seductively, breasts swinging heavily, predatory lustful eyes, ass up',
+        'on hands and knees spreading ass cheeks wide with both hands, pussy dripping, shameless exposure',
+        'on all fours, one hand reaching back between legs to touch pussy, moaning expression',
         
-        // À quatre pattes - diverses
-        'on all fours on bed, rear view, back deeply arched, butt raised high and prominent',
-        'on all fours looking back over shoulder, presenting pose, butt and pussy visible',
-        'crawling on bed on all fours, predatory sexy pose, breasts hanging',
-        'doggy style position, face down butt up, fully exposed rear view',
+        // === PENCHÉE - OFFERTE ===
+        'bending over completely, breasts hanging and swaying, ass pushed back, pussy visible between legs',
+        'bent over table with skirt flipped up, bare ass and pussy on display, looking back begging',
+        'leaning forward deeply showing massive cleavage, tongue out licking lips, hungry expression',
+        'bent at waist touching ankles, ass and pussy fully exposed from behind, spread and waiting',
         
-        // Mains sur les seins - explicite
-        'hands cupping breasts, squeezing them together creating deep cleavage',
-        'hands pressing breasts together, pushing up, enhancing cleavage, sexy look',
-        'one hand squeezing breast, other hand on hip, confident sensual pose',
-        'pinching own nipples, pleasure expression, self-touching pose',
-        'arms crossed under breasts, pushing them up and together, showing off',
+        // === MAINS SUR LE CORPS ===
+        'hands aggressively squeezing breasts together, nipples between fingers, tongue licking own nipple',
+        'one hand groping breast hard, other hand with fingers inside spread pussy, eyes closed in ecstasy',
+        'pinching both nipples hard pulling them, mouth open moaning, back arched in pleasure',
+        'hands sliding down body to spread pussy lips apart, showing pink wet inside, aroused',
+        'fingers buried in pussy, other hand squeezing breast, head thrown back orgasming',
         
-        // Penchée en avant - décolleté exposé
-        'bending forward deeply, breasts hanging fully exposed, deep cleavage visible',
-        'leaning forward showing full cleavage, breasts almost falling out, provocative',
-        'bent over vanity, breasts hanging, looking in mirror, rear also visible',
-        'bending at waist, hands on knees, cleavage and rear both exposed',
-        'leaning forward on table, breasts resting on surface, seductive pose',
+        // === DEBOUT EXPLICITE ===
+        'standing with one leg raised on chair, pussy fully exposed and spread open with fingers, confident',
+        'standing against wall ass pushed out, reaching back to spread cheeks, looking over shoulder',
+        'standing legs wide apart, both hands spreading pussy lips open, displaying, proud slutty pose',
+        'leaning in doorway, one hand fingering self, inviting look, wet thighs',
         
-        // Montrant les fesses - explicite
-        'rear view standing, looking over shoulder, butt and pussy fully visible from behind',
-        'lying on stomach, butt raised very high, thighs spread, rear fully visible',
-        'on all fours, rear emphasized, spreading cheeks, very explicit pose',
-        'bending over showing butt, no panties, cheeks spread, seductive',
-        'standing bent over, touching toes, rear and pussy visible from behind',
+        // === POSITIONS TRÈS EXPLICITES ===
+        'sitting with legs spread EXTREMELY wide pulled back to chest, pussy gaping open, fully accessible',
+        'squatting with legs spread, pussy at eye level lowering onto invisible object, bouncing motion',
+        'lying with both legs pulled all the way back behind head, pussy and ass completely exposed and open',
+        'riding cowgirl position, bouncing up and down, breasts jiggling wildly, ecstatic expression',
+        'missionary position ready, legs wrapped around air, pussy open and waiting, begging eyes',
         
-        // Montrant les seins - explicite
-        'frontal nude pose, breasts fully visible, hands framing them, confident',
-        'cupping breasts with hands, lifting them up, provocative pose, nipples between fingers',
-        'arms raised above head stretching, breasts prominent, nipples erect, sensual stretch',
-        'lying on back, breasts visible, hands on stomach, inviting open pose',
-        'jiggling breasts with hands, playful bouncy pose, fun sexy',
-        
-        // Doigts et bouche - sensuel
-        'finger on lips, seductive gaze, teasing innocent pose',
-        'finger in mouth, sucking seductively, innocent but naughty expression',
-        'biting lip seductively, bedroom eyes, playful naughty look',
-        'licking finger suggestively, tongue visible, very erotic pose',
-        'two fingers in mouth, sucking, very suggestive erotic pose',
-        
-        // Positions assises - sexy
-        'sitting on edge of bed, legs spread wide, fully exposed, inviting',
-        'sitting cross-legged on floor, nude, leaning forward, artistic sensual',
-        'sitting in chair, legs draped over armrests, spread open, provocative',
-        'straddling chair backwards, butt visible, looking back, dominant',
-        'sitting with knees up, legs apart, fully exposed, vulnerable pose',
-        
-        // Positions spéciales - très sexy
-        'stretching like just woke up, arms up, back arched, natural nude beauty',
-        'getting out of shower, wet body glistening, toweling off sensually',
-        'in bathtub, wet skin glistening, one leg raised, sensual',
-        'undressing, dress falling off shoulders revealing breasts, mid-strip tease',
-        'pulling down panties slowly, bending over, teasing reveal',
-        'legs spread extremely wide lying on bed, fully exposed intimate view, inviting',
-        'touching self between legs, eyes closed in pleasure, masturbation pose',
+        // === AUTO-PLAISIR EXPLICITE ===
+        'spreading pussy lips apart showing wet pink inside, aroused clit visible, shameless exposure',
+        'masturbating vigorously, multiple fingers deep inside, other hand rubbing clit, approaching orgasm',
+        'rubbing swollen clit fast with one hand, fingers of other hand inside pussy, cumming expression',
+        'inserting large object, back arched in intense pleasure, mouth open in silent scream, orgasming',
+        'fingering ass while rubbing clit, extremely aroused, juices running down thighs',
       ];
       const randomPosition = nsfwPositions[Math.floor(Math.random() * nsfwPositions.length)];
       prompt += `, ${randomPosition}`;
-      console.log(`🎭 POSITION: ${randomPosition.substring(0, 50)}...`);
+      console.log(`🎭 POSITION EXPLICITE: ${randomPosition.substring(0, 60)}...`);
       
-      // === v5.3.77 - TENUES NSFW ULTRA-VARIÉES ET EXPLICITES ===
+      // === v5.4.3 - TENUES NSFW ULTRA-EXPLICITES ET SUGGESTIVES ===
       const nsfwOutfits = [
-        // Nuisettes sexy
-        'wearing sheer babydoll nightgown, see-through fabric, body visible, lace trim',
-        'wearing silk slip nightgown, barely covers body, elegant sexy, riding up',
-        'wearing transparent negligee, nothing hidden underneath, nipples visible',
-        'wearing sexy satin camisole, riding up to show panties, cleavage',
+        // === LINGERIE TRÈS RÉVÉLATRICE ===
+        'wearing tiny slutty red lace thong and push-up bra, nipples almost escaping, cleavage overflowing',
+        'wearing black crotchless panties and cupless bra, nipples and pussy completely exposed and accessible',
+        'wearing see-through mesh lingerie, nipples clearly hard through fabric, wet spot on panties',
+        'wearing string g-string disappearing between ass cheeks, bra pulled down exposing nipples',
+        'wearing tight corset making breasts overflow on top, nipples visible, crotchless panties',
+        'wearing open-crotch slutty bodysuit, dripping wet pussy fully exposed, breasts squeezed',
         
-        // Lingerie variée
-        'wearing sexy red lace lingerie set, push-up bra creating deep cleavage, thong',
-        'wearing black satin lingerie, garter belt, stockings, very sexy',
-        'wearing white lace bra and matching panties, innocent but sexy',
-        'wearing sheer mesh bodysuit, body completely visible through fabric',
-        'wearing sexy corset pushing breasts up high, matching thong panties',
-        'wearing cupless bra, nipples exposed, crotchless panties',
-        'wearing sexy teddy lingerie, open at crotch, very revealing',
+        // === NUISETTES TRANSPARENTES ===
+        'wearing completely see-through nightgown, hard nipples and wet pussy clearly visible through fabric',
+        'wearing sheer micro slip riding up past waist, no panties, bare ass and pussy showing',
+        'wearing transparent negligee falling open, breasts and pussy fully exposed, nothing hidden',
+        'wearing slutty babydoll so short pussy is visible when standing, nipples poking through',
         
-        // Déshabillés transparents
-        'wearing completely see-through robe, body fully visible, nothing hidden',
-        'wearing transparent kimono robe, open front, body exposed, sexy',
-        'wearing sheer mesh dress, nipples and body visible through fabric',
-        'wearing transparent lace dress with nothing underneath, fully exposed',
+        // === TOPLESS EXPLICITE ===
+        'topless with big bare bouncing breasts, hard nipples, wearing only wet tiny thong',
+        'topless breasts out and proud, squeezing them together, only crotchless panties',
+        'topless and sweaty, heavy breasts glistening, only g-string stuck between wet pussy lips',
+        'topless with shirt ripped open, breasts spilling out, skirt hiked up no panties',
         
-        // Mini-jupes très courtes
-        'wearing micro mini-skirt barely covering, no panties, bent over',
-        'wearing pleated schoolgirl skirt lifted up showing bare bottom',
-        'wearing tight leather mini-skirt, riding up to show thighs',
-        'wearing short skirt with no panties, upskirt view visible',
+        // === COMPLÈTEMENT NUE ===
+        'completely nude full frontal, big bouncing breasts with hard nipples, shaved dripping wet pussy spread open',
+        'fully naked legs spread wide, fingers spreading pussy lips showing pink inside, breasts heaving',
+        'totally nude on all fours ass up, pussy and asshole fully exposed from behind, looking back',
+        'naked except high heels, standing legs apart, one hand spreading pussy, proud display',
+        'nude and oiled up, body glistening, breasts shiny, wet between spread thighs',
+        'completely naked masturbating, fingers inside wet pussy, other hand on breast, ecstasy face',
         
-        // Robes moulantes très sexy
-        'wearing skin-tight bodycon dress showing every curve of body',
-        'wearing deep V-neck dress, cleavage fully exposed to navel',
-        'wearing backless dress with no bra, side boob visible',
-        'wearing dress with high slit showing leg to hip, no panties',
+        // === TENUES TRÈS COURTES ===
+        'wearing micro mini-skirt pulled up showing bare ass and pussy, no panties, bent over',
+        'wearing slutty schoolgirl outfit, skirt flipped up showing pussy, shirt unbuttoned showing tits',
+        'wearing tiny crop top no bra nipples visible, shorts so short pussy lips peeking out',
+        'wearing bikini top too small, nipples escaping, bottoms pulled aside showing pussy',
         
-        // Topless variées
-        'topless, bare breasts fully exposed, wearing only tiny thong',
-        'topless with unbuttoned shirt, breasts visible between fabric',
-        'topless in short shorts, casual but very sexy, nipples visible',
-        'topless wearing only apron from behind, back and butt visible',
+        // === BONDAGE LÉGER ===
+        'wearing only leather bondage harness framing breasts and pussy, otherwise nude, collared',
+        'wearing rope bondage tight around breasts making them bulge purple, pussy exposed between ropes',
+        'wearing collar leash and nothing else, kneeling submissively, everything exposed',
         
-        // Nue complète - variée
-        'completely nude, nothing on, full frontal exposure, confident',
-        'fully naked lying on bed, legs spread, inviting pose',
-        'nude except for high heels and jewelry, elegant naked',
-        'nude with only stockings, garter belt, sophisticated naked',
-        'completely naked on all fours, presenting rear view',
-        'nude in shower, wet body glistening, steam around',
-        
-        // Tenues spéciales très sexy
-        'wearing only body chain jewelry, otherwise completely nude',
-        'wearing wet white t-shirt, nipples clearly visible through',
-        'wearing tiny string bikini barely covering nipples and crotch',
-        'wearing sexy French maid outfit, very short, cleavage exposed',
-        'wearing naughty nurse costume, extremely short and tight',
-        'wearing bunny costume, revealing corset and tiny bottom',
+        // === COSTUMES SEXY EXPLICITES ===
+        'wearing slutty maid costume, tits falling out, bending over with no panties showing pussy',
+        'wearing naughty nurse outfit ripped open, breasts exposed, skirt hiked up showing wet pussy',
+        'wearing sexy secretary outfit, blouse torn open showing bra-less tits, bent over desk no panties',
       ];
       // v5.3.76 - Sélection aléatoire de tenue pour TOUS les niveaux NSFW (>=2)
       // IGNORER la tenue par défaut du personnage, utiliser tenues sexy
@@ -4641,7 +4619,7 @@ class ImageGenerationService {
    * v5.3.75 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
    */
   physicalProfileCache = {};
-  cacheVersion = '5.4.2'; // Incrémenter pour invalider le cache
+  cacheVersion = '5.4.3'; // Incrémenter pour invalider le cache
   
   /**
    * v5.3.75 - Génère une clé unique pour un personnage basée sur ses attributs physiques

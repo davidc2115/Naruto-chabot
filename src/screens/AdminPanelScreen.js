@@ -71,55 +71,58 @@ export default function AdminPanelScreen() {
   // Fonction interne de chargement
   const loadUsersInternal = async () => {
     const currentUser = AuthService.getCurrentUser();
-    console.log('👤 Admin email:', currentUser?.email);
+    const adminEmail = currentUser?.email || '';
+    const isAdminCheck = AuthService.isAdmin();
+    
+    console.log('👤 Email actuel:', adminEmail);
+    console.log('👑 isAdmin():', isAdminCheck);
     
     let usersData = null;
     let lastError = null;
     
-    // Liste des endpoints à essayer
-    const endpoints = [
-      '/admin/users',
-      '/api/users/all', 
-      '/api/users',
-      '/users'
-    ];
-    
-    for (const endpoint of endpoints) {
-      if (usersData) break;
+    // Endpoint principal - /admin/users
+    try {
+      console.log(`🔗 Appel: /admin/users avec X-Admin-Email: ${adminEmail}`);
       
-      try {
-        console.log(`🔗 Essai: ${endpoint}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const response = await fetch(`${FREEBOX_URL}/admin/users`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Email': adminEmail,
+          'Authorization': `Bearer ${currentUser?.token || ''}`
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      console.log(`📥 /admin/users: status ${response.status}`);
+      
+      const data = await response.json();
+      console.log('📦 Réponse serveur:', JSON.stringify(data).substring(0, 200));
+      
+      if (response.ok && data.success !== false) {
+        usersData = Array.isArray(data) ? data : (data.users || data.data || []);
+        setServerStatus('online');
+        console.log(`✅ ${usersData.length} utilisateurs chargés`);
+      } else {
+        // Erreur du serveur - afficher le message exact
+        lastError = data.error || data.message || `Erreur ${response.status}`;
+        console.log(`❌ Erreur serveur: ${lastError}`);
         
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-        
-        const response = await fetch(`${FREEBOX_URL}${endpoint}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Admin-Email': currentUser?.email || '',
-            'Authorization': `Bearer ${currentUser?.token || ''}`
-          },
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        console.log(`📥 ${endpoint}: status ${response.status}`);
-        
-        if (response.ok) {
-          const data = await response.json();
-          usersData = Array.isArray(data) ? data : (data.users || data.data || []);
-          setServerStatus('online');
-          console.log(`✅ ${endpoint}: ${usersData.length} utilisateurs`);
-          break;
-        } else {
-          lastError = `Erreur ${response.status}`;
+        // Si accès refusé, afficher un message plus clair
+        if (response.status === 403 || lastError.includes('admin')) {
+          lastError = `Accès refusé pour ${adminEmail}.\n\nVérifiez que vous êtes connecté avec le compte admin (douvdouv21@gmail.com) ou que votre compte a les droits admin.`;
         }
-      } catch (e) {
-        console.log(`❌ ${endpoint}: ${e.message}`);
-        lastError = e.message;
+        setServerStatus('online'); // Serveur en ligne mais accès refusé
       }
+    } catch (e) {
+      console.log(`❌ Erreur réseau: ${e.message}`);
+      lastError = e.message;
+      setServerStatus('offline');
     }
     
     // Résultat
