@@ -9,6 +9,9 @@ import {
   Alert,
   Linking,
   ActivityIndicator,
+  SafeAreaView,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '../services/AuthService';
@@ -517,11 +520,24 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
     }
   };
 
+  // v5.3.71 - Afficher le chargement
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={styles.loadingText}>Chargement...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>⚙️ Paramètres</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>⚙️ Paramètres</Text>
+        </View>
 
       {/* PROFIL */}
       <View style={styles.section}>
@@ -925,19 +941,36 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         )}
       </View>
 
-      <View style={{ height: 50 }} />
-    </ScrollView>
+        <View style={{ height: 50 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#6366f1',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#6b7280',
+  },
   header: {
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 15,
     backgroundColor: '#6366f1',
   },
   title: {

@@ -1229,7 +1229,7 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 15,
     backgroundColor: '#6366f1',
   },
   title: {
