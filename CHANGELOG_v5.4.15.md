@@ -10,9 +10,13 @@ Les personnages duo/trio (deux femmes, deux hommes, ou couple) n'affichaient qu'
 ### Problème 2: Erreur "Impossible de générer d'images" sur la fiche duo
 La page de profil (fiche) des personnages duo générait une erreur car le code tentait de traiter les duos comme des personnages solo.
 
+### Problème 3 (CRITIQUE): Méthode generateImageWithPollinations inexistante
+Le code appelait `this.generateImageWithPollinations()` qui n'existait pas, causant l'erreur "Impossible de générer".
+
 ## Cause Racine
 1. Les prompts de génération d'images contenaient des instructions explicites "single person", "one person", "solo"
 2. La fonction generateCharacterImage() n'avait pas de chemin dédié pour les duos
+3. **La méthode `generateImageWithPollinations` n'existait pas** - il fallait utiliser `this.generateImage()`
 
 ## Corrections Apportées
 
@@ -45,6 +49,11 @@ Génère des prompts spécifiques pour les duos selon le niveau :
 - Poses SFW duo : "standing together", "sitting together", etc.
 - Prompt anatomique duo + qualité adaptée
 - Suppression du code mort (vérifications duo après le retour anticipé)
+
+### 6. FIX CRITIQUE - Méthode de génération correcte
+- **Remplacement de `generateImageWithPollinations()` par `generateImage()`**
+- Cette méthode n'existait pas, causant l'erreur "Impossible de générer"
+- Appliqué à generateCharacterImage() ET generateSceneImage() pour les duos
 
 ## Personnages Affectés
 Tous les personnages avec :
