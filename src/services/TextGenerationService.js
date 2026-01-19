@@ -1880,15 +1880,39 @@ class TextGenerationService {
   }
 
   /**
-   * v5.4.6 - Génère les instructions de limites sexuelles du personnage
+   * v5.4.10 - Génère les instructions de limites sexuelles du personnage
    * Chaque personnage a des limites, préférences et peut refuser certains actes
+   * AMÉLIORÉ: Génère des limites par défaut basées sur le tempérament si non définies
    */
   getCharacterSexualLimits(character) {
     const sexuality = character.sexuality || {};
-    const limits = sexuality.limits || [];
-    const preferences = sexuality.preferences || [];
-    const only = sexuality.only || null; // Ce que le personnage veut exclusivement
-    const refuses = sexuality.refuses || [];
+    let limits = sexuality.limits || [];
+    let preferences = sexuality.preferences || [];
+    const only = sexuality.only || null;
+    let refuses = sexuality.refuses || [];
+    
+    // === v5.4.10 - LIMITES PAR DÉFAUT selon tempérament ===
+    const temperament = character.temperament || 'amical';
+    const age = character.age || 25;
+    
+    // Si aucune limite définie, générer des limites réalistes
+    if (limits.length === 0 && refuses.length === 0) {
+      // Les personnages timides ont plus de limites
+      if (temperament === 'timide') {
+        refuses = ['brutalité', 'humiliation', 'exhibitionnisme'];
+        preferences = ['douceur', 'tendresse', 'patience'];
+      }
+      // Les personnages romantiques veulent des connexions émotionnelles
+      else if (temperament === 'gentle' || temperament === 'romantique') {
+        refuses = ['sexe brutal', 'one night stand', 'pratiques extrêmes'];
+        preferences = ['faire l\'amour', 'tendresse', 'mots doux'];
+      }
+      // Les jeunes (18-20) peuvent avoir plus de réserves
+      else if (age <= 20) {
+        refuses = ['pratiques extrêmes', 'domination forte'];
+        preferences = ['découverte', 'douceur'];
+      }
+    }
     
     let instructions = '';
     
@@ -1898,34 +1922,55 @@ class TextGenerationService {
       [...limits, ...refuses].forEach(limit => {
         instructions += `- ${limit}: Tu dis NON fermement, tu expliques pourquoi\n`;
       });
-      instructions += `→ Si on insiste, tu te fâches ou tu pars!\n`;
+      instructions += `→ Si l'utilisateur insiste: "Non, j'ai dit non. Je ne suis pas à l'aise avec ça."\n`;
+      instructions += `→ Si ça continue: Tu te fâches, tu pars ou tu mets fin à l'échange!\n`;
     }
     
     // Préférences (ce que le personnage aime)
     if (preferences.length > 0) {
-      instructions += `\n💕 TES PRÉFÉRENCES (ce que tu aimes):\n`;
+      instructions += `\n💕 TES PRÉFÉRENCES (ce que tu aimes et demandes):\n`;
       preferences.forEach(pref => {
         instructions += `- ${pref}\n`;
       });
+      instructions += `→ N'hésite pas à DIRE ce que tu veux: "J'aimerais que tu..." "Je préfère quand..."\n`;
     }
     
     // Ce que le personnage veut EXCLUSIVEMENT
     if (only) {
       instructions += `\n⚠️ TU VEUX SEULEMENT: ${only}\n`;
-      instructions += `→ Tu n'acceptes QUE ça, rien d'autre. Si on propose autre chose, tu refuses poliment mais fermement.\n`;
+      instructions += `→ Tu n'acceptes QUE ça, rien d'autre.\n`;
+      instructions += `→ Si on propose autre chose: "Non, moi c'est seulement ${only}. C'est ça ou rien."\n`;
     }
     
     return instructions;
   }
   
   /**
-   * v5.4.6 - Génère les instructions de virginité du personnage
+   * v5.4.10 - Génère les instructions de virginité du personnage
    * Gère les différents types de virginité et premières fois
+   * AMÉLIORÉ: Suggère une virginité probable pour les très jeunes personnages
    */
   getCharacterVirginityStatus(character) {
     const sexuality = character.sexuality || {};
-    const virginity = sexuality.virginity || {};
+    let virginity = sexuality.virginity || {};
     const charName = character.name || 'le personnage';
+    const age = character.age || 25;
+    const temperament = character.temperament || 'amical';
+    
+    // === v5.4.10 - VIRGINITÉ PAR DÉFAUT pour jeunes personnages ===
+    // Si pas de virginité définie et personnage très jeune
+    if (Object.keys(virginity).length === 0) {
+      if (age === 18) {
+        // 18 ans: forte probabilité vierge ou peu expérimenté
+        virginity = { complete: true, anal: true, oral: true, relationship: true };
+      } else if (age === 19) {
+        // 19 ans: possiblement vierge anal
+        virginity = { anal: true, relationship: false };
+      } else if (age <= 21 && temperament === 'timide') {
+        // Jeune et timide: moins d'expérience
+        virginity = { anal: true };
+      }
+    }
     
     let instructions = '';
     
@@ -1936,21 +1981,28 @@ class TextGenerationService {
       instructions += `→ Tu ne sais pas comment faire, tu demandes d'être guidé(e)\n`;
       instructions += `→ C'est ta PREMIÈRE FOIS, c'est spécial et émotionnel pour toi\n`;
       instructions += `→ Tu peux avoir mal au début, sois réaliste\n`;
+      instructions += `→ Phrases typiques:\n`;
+      instructions += `   "Je... je n'ai jamais fait ça avant..."\n`;
+      instructions += `   "Tu veux bien me montrer? J'ai un peu peur..."\n`;
+      instructions += `   "Est-ce que ça va faire mal?"\n`;
     }
     
     // Jamais fait d'anal
-    if (virginity.anal) {
+    if (virginity.anal && !virginity.complete) {
       instructions += `\n🍑 Tu n'as JAMAIS essayé l'anal!\n`;
       instructions += `→ Tu as peur, tu es curieux/curieuse mais hésitant(e)\n`;
-      instructions += `→ Si on te le propose, tu peux refuser ou demander d'y aller très doucement\n`;
-      instructions += `→ "Je n'ai jamais fait ça... J'ai un peu peur..."\n`;
+      instructions += `→ Si on te le propose, tu peux:\n`;
+      instructions += `   - Refuser: "Non, ça me fait peur, pas par là..."\n`;
+      instructions += `   - Hésiter: "Je... je sais pas... ça fait mal non?"\n`;
+      instructions += `   - Accepter doucement: "D'accord mais vraiment doucement alors..."\n`;
     }
     
     // Jamais fait de fellation/cunnilingus
-    if (virginity.oral) {
+    if (virginity.oral && !virginity.complete) {
       instructions += `\n👄 Tu n'as JAMAIS fait de sexe oral!\n`;
       instructions += `→ Tu ne sais pas comment faire, tu demandes des conseils\n`;
       instructions += `→ Tu peux être maladroit(e) au début\n`;
+      instructions += `→ "Je ne sais pas trop comment faire... Tu me guides?"\n`;
     }
     
     // Première relation
@@ -1958,76 +2010,102 @@ class TextGenerationService {
       instructions += `\n💕 C'est ta PREMIÈRE relation!\n`;
       instructions += `→ Tu ne connais pas les codes, tu es naïf/naïve\n`;
       instructions += `→ Tout est nouveau et excitant pour toi\n`;
+      instructions += `→ Tu poses beaucoup de questions\n`;
     }
     
     return instructions;
   }
   
   /**
-   * v5.4.6 - Détermine la vitesse de progression NSFW du personnage
+   * v5.4.10 - Détermine la vitesse de progression NSFW du personnage
    * Certains personnages sont plus rapides ou plus lents
+   * AMÉLIORÉ: Meilleure prise en compte du tempérament et de l'âge
    */
   getNSFWProgressionSpeed(character) {
     const sexuality = character.sexuality || {};
-    const speed = sexuality.nsfwSpeed || 'normal'; // very_slow, slow, normal, fast, very_fast, immediate
+    const speed = sexuality.nsfwSpeed || null; // Peut être undefined
     const temperament = character.temperament || 'amical';
+    const age = character.age || 25;
     
     const speedInstructions = {
       'very_slow': {
         description: 'TRÈS LENT - Tu prends énormément de temps',
         behavior: `Tu as besoin de BEAUCOUP de temps avant d'accepter quoi que ce soit de sexuel.
-→ Tu changes de sujet si ça va trop vite
+→ Tu changes de sujet si ça va trop vite: "Hé, on se connaît à peine!"
 → Tu demandes de mieux te connaître d'abord
-→ Tu rougis et refuses les avances directes
+→ Tu rougis et refuses les avances directes: "Je ne suis pas comme ça..."
 → Il faut au minimum 10-15 messages avant d'accepter un premier baiser
-→ Le sexe n'arrive qu'après une vraie connexion émotionnelle`,
+→ Le sexe n'arrive qu'après une vraie connexion émotionnelle
+→ Si l'utilisateur va trop vite: "Doucement... Je ne te connais pas encore assez"`,
       },
       'slow': {
         description: 'LENT - Tu as besoin de temps',
         behavior: `Tu prends ton temps avant de passer aux choses sérieuses.
-→ Tu flirtes mais tu freines si ça va trop vite
+→ Tu flirtes mais tu freines si ça va trop vite: "On a le temps non?"
 → Tu veux une connexion avant l'intimité
 → Tu refuses les avances trop directes au début
-→ Il faut 5-10 messages avant d'accepter des gestes intimes`,
+→ Il faut 5-10 messages avant d'accepter des gestes intimes
+→ Tu peux accélérer si tu sens une vraie connexion`,
       },
       'normal': {
         description: 'NORMAL - Tu suis le rythme naturel',
         behavior: `Tu progresses naturellement selon la conversation.
 → Tu réponds aux avances si l'ambiance est bonne
 → Tu peux initier si le feeling est là
-→ Tu acceptes l'escalade progressive`,
+→ Tu acceptes l'escalade progressive
+→ Tu peux dire "plus tard" si tu n'es pas d'humeur`,
       },
       'fast': {
         description: 'RAPIDE - Tu vas assez vite',
         behavior: `Tu es assez direct(e) et tu acceptes facilement les avances.
 → Tu flirtes ouvertement dès le début
 → Tu proposes des choses suggestives rapidement
-→ Tu n'as pas besoin de longue introduction`,
+→ Tu n'as pas besoin de longue introduction
+→ Tu peux initier toi-même les moments intimes`,
       },
       'very_fast': {
         description: 'TRÈS RAPIDE - Tu vas très vite',
         behavior: `Tu es très direct(e) et sexuel(le) rapidement.
 → Tu fais des sous-entendus dès le premier message
 → Tu proposes des choses explicites rapidement
-→ Tu n'as pas de temps à perdre en bavardages`,
+→ Tu n'as pas de temps à perdre en bavardages
+→ Tu INITIES souvent les moments sexuels toi-même`,
       },
       'immediate': {
         description: 'IMMÉDIAT - Tu veux du sexe maintenant',
         behavior: `Tu veux du sexe immédiatement, sans préambule.
 → Tu es explicite dès le départ
 → Tu proposes directement de baiser
-→ Les discussions ne t'intéressent pas, que l'action`,
+→ Les discussions ne t'intéressent pas, que l'action
+→ Tu es insatiable et tu relances constamment`,
       }
     };
     
-    // Ajuster la vitesse selon le tempérament si non spécifié
+    // === v5.4.10 - VITESSE PAR DÉFAUT selon tempérament et âge ===
     let effectiveSpeed = speed;
-    if (speed === 'normal') {
+    
+    if (!effectiveSpeed) {
+      // Déterminer la vitesse par défaut selon le tempérament
       if (temperament === 'timide') effectiveSpeed = 'slow';
-      if (temperament === 'séducteur') effectiveSpeed = 'fast';
-      if (temperament === 'passionné') effectiveSpeed = 'fast';
-      if (temperament === 'dominant') effectiveSpeed = 'fast';
-      if (temperament === 'soumis') effectiveSpeed = 'normal';
+      else if (temperament === 'gentle' || temperament === 'romantique') effectiveSpeed = 'slow';
+      else if (temperament === 'séducteur') effectiveSpeed = 'fast';
+      else if (temperament === 'passionné') effectiveSpeed = 'fast';
+      else if (temperament === 'dominant') effectiveSpeed = 'fast';
+      else if (temperament === 'soumis') effectiveSpeed = 'normal';
+      else if (temperament === 'direct') effectiveSpeed = 'fast';
+      else effectiveSpeed = 'normal';
+      
+      // Les très jeunes (18) sont généralement plus lents
+      if (age === 18 && effectiveSpeed !== 'very_slow') {
+        effectiveSpeed = 'very_slow';
+      } else if (age <= 20 && effectiveSpeed === 'fast') {
+        effectiveSpeed = 'normal';
+      }
+      
+      // Les MILFs et personnages expérimentés peuvent être plus rapides
+      if (age >= 35 && effectiveSpeed === 'slow') {
+        effectiveSpeed = 'normal';
+      }
     }
     
     return speedInstructions[effectiveSpeed] || speedInstructions['normal'];
