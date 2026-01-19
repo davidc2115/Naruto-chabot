@@ -56,15 +56,33 @@ class ImageGenerationService {
       'correct breast shape and size if female, natural nipple placement, ' +
       'symmetrical body, balanced pose, stable stance';
     
-    // v5.4.15 - PROMPT ANATOMIQUE POUR DUOS/TRIOS
+    // v5.4.15 - PROMPT ANATOMIQUE POUR DUOS/TRIOS - ULTRA-DÉTAILLÉ
     this.anatomyDuoPrompt = 
       'ANATOMICALLY PERFECT TWO PEOPLE: ' +
-      'exactly TWO distinct persons shown together, both with proper anatomy, ' +
-      'each person has TWO arms, TWO legs, TWO hands with FIVE fingers each, ' +
-      'each person has ONE head, ONE face, TWO eyes, ONE nose, ONE mouth, ' +
-      'two distinct bodies, not merged, clearly separated individuals, ' +
-      'both persons fully visible, interacting naturally, ' +
-      'proper proportions for both, natural poses together';
+      'exactly TWO distinct persons shown together, both with perfect anatomy, ' +
+      'each person has exactly TWO arms attached to shoulders, exactly TWO legs attached to hips, ' +
+      'each person has exactly TWO hands with FIVE fingers each, exactly TWO feet with five toes each, ' +
+      'each person has ONE head, ONE face, TWO symmetrical eyes, ONE nose centered, ONE mouth with lips, TWO ears, ' +
+      'two completely separate bodies, NOT merged, NOT fused, clearly distinct individuals, ' +
+      'both persons fully visible from head to feet, natural interaction, ' +
+      'perfect proportions for both, realistic human anatomy, ' +
+      'correct breast shape with visible nipples if topless female, natural body curves, ' +
+      'beautiful faces, expressive eyes, full lips, detailed skin texture';
+    
+    // v5.4.16 - NEGATIVE PROMPT SPÉCIAL DUOS (évite les fusions)
+    this.negativeDuoPrompt = 
+      'three people, four people, crowd, group of more than two, ' +
+      'merged bodies, fused bodies, conjoined, siamese, overlapping bodies, ' +
+      'extra arms, three arms, four arms, six arms, extra legs, three legs, four legs, ' +
+      'extra hands, three hands, extra fingers, six fingers, seven fingers, missing fingers, ' +
+      'extra heads, three heads, two faces on one head, ' +
+      'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, ' +
+      'malformed hands, twisted hands, backwards hands, clawed hands, ' +
+      'malformed face, asymmetrical face, cross-eyed, misaligned eyes, ' +
+      'missing nipples, no nipples, flat chest when should have breasts, ' +
+      'missing lips, no mouth, deformed mouth, missing eyes, ' +
+      'blurry, low quality, pixelated, watermark, signature, text, ' +
+      'ugly, grotesque, horror, creepy, nightmare';
     
     // NEGATIVE PROMPT ULTRA-COMPLET (pour SD local et Pollinations)
     // Base - sera augmenté dynamiquement selon le body type
@@ -1042,32 +1060,48 @@ class ImageGenerationService {
       prompt += character.physicalDescription + ', ';
     }
     
-    // Tenues pour duos selon niveau
+    // v5.4.16 - TENUES NSFW ULTRA-DÉTAILLÉES POUR DUOS
     if (isNSFW) {
       const duoOutfits = {
-        2: [ // Provocant
-          'both wearing provocative matching lingerie, sensual couple',
-          'both in sexy evening wear, elegant seductive',
-          'both in form-fitting dresses showing curves',
-          'matching underwear, intimate couple pose',
+        2: [ // Provocant - Sexy mais habillé
+          'both wearing matching black lace lingerie sets, push-up bras showing cleavage, thong panties, garter belts with stockings',
+          'both in tight mini dresses showing curves, deep cleavage visible, short skirts revealing thighs',
+          'both wearing sheer negligees, see-through fabric showing bodies underneath, silk and lace',
+          'matching red satin corsets pushing up breasts, tiny panties, high heels',
+          'both in sexy clubwear, crop tops showing midriffs, tight shorts, curves emphasized',
+          'matching leather lingerie, strappy details, dominant sexy look',
+          'both wearing open silk robes over lace bras and panties, curves visible',
+          'sexy secretary outfits, tight blouses unbuttoned showing bras, mini skirts',
         ],
-        3: [ // Lingerie
-          'both in lace lingerie, intimate boudoir setting',
-          'matching black lingerie, sensual pose together',
-          'both in sheer negligees, bedroom intimate',
-          'both in corsets and stockings, seductive',
+        3: [ // Lingerie explicite
+          'both in black lace bodysuits, sheer panels showing skin, nipples visible through fabric',
+          'matching crotchless panties and cupless bras, breasts and intimate areas exposed',
+          'both wearing only garter belts, stockings and high heels, breasts fully exposed',
+          'sheer mesh bodysuits completely see-through, nipples and bodies visible',
+          'both in open-cup corsets, breasts pushed up and fully exposed, tiny thongs',
+          'matching fishnet bodystockings, everything visible through mesh',
+          'both topless wearing only thong panties and heels, breasts exposed',
+          'lace garters and stockings only, both bare-breasted, seductive',
         ],
-        4: [ // Topless
-          'both topless, covering each other, intimate embrace',
-          'both partially nude, artistic sensual pose together',
-          'both topless in bed, passionate intimate moment',
-          'both bare chested, romantic sensual scene',
+        4: [ // Topless - Seins nus
+          'both completely topless, ((large breasts exposed)), ((visible nipples)), only tiny panties',
+          'both bare-chested showing ((full breasts with nipples)), wearing only thongs',
+          'topless embrace, ((breasts pressed together)), ((nipples touching)), intimate',
+          'both nude from waist up, ((beautiful exposed breasts)), hands caressing each other',
+          'topless on silk sheets, ((breasts fully visible)), ((erect nipples)), sensual pose',
+          'both with ((exposed breasts)), ((pink nipples visible)), only stockings remaining',
+          'bare breasted beauties, ((large natural breasts)), ((prominent nipples)), passionate',
+          'topless lovers, ((breasts exposed)), ((nipples erect)), bodies intertwined',
         ],
-        5: [ // Nu
-          'both nude together, artistic intimate embrace',
-          'both naked, passionate sensual pose',
-          'both fully nude in bed, intimate lovers scene',
-          'both nude in embrace, romantic passionate',
+        5: [ // Complètement nu
+          'both ((completely nude)), ((full frontal)), ((breasts and intimate areas visible)), passionate embrace',
+          'both ((fully naked)), ((exposed bodies)), ((visible nipples)), ((smooth skin)), intimate lovers',
+          '((nude bodies)) intertwined, ((breasts pressed together)), ((skin on skin)), passionate',
+          'both ((naked in bed)), ((exposed breasts)), ((nude bodies)), sheets barely covering',
+          '((completely undressed)), ((full nudity)), ((beautiful naked bodies)), intimate moment',
+          'both ((bare naked)), ((exposed from head to toe)), ((breasts and curves visible)), sensual',
+          '((nude embrace)), ((naked lovers)), ((breasts touching)), ((bodies pressed together))',
+          '((fully exposed bodies)), ((complete nudity)), ((natural beauty)), passionate love scene',
         ],
       };
       
@@ -1075,12 +1109,40 @@ class ImageGenerationService {
       const selectedOutfit = levelOutfits[Math.floor(Math.random() * levelOutfits.length)];
       prompt += selectedOutfit + ', ';
       
-      // Poses duo NSFW
+      // v5.4.16 - POSES NSFW ULTRA-DÉTAILLÉES POUR DUOS
       const duoPoses = {
-        2: ['close together, flirtatious pose', 'arms around each other, seductive look', 'sitting together intimately'],
-        3: ['embracing in lingerie', 'on bed together sensual', 'intimate couple pose'],
-        4: ['passionate embrace topless', 'sensual touch, bare skin', 'intimate moment together'],
-        5: ['nude embrace lovers', 'passionate nude scene', 'intimate lovers in bed'],
+        2: [ // Sexy provocant
+          'bodies close together, hands on each others hips, seductive eye contact',
+          'one behind the other, hands on waist, sensual pose',
+          'sitting on bed together, legs intertwined, flirtatious',
+          'standing face to face, almost kissing, hands exploring',
+          'one kneeling, other standing, suggestive pose',
+          'both leaning forward showing cleavage, inviting look',
+        ],
+        3: [ // Lingerie intime
+          'lying on bed together, bodies intertwined, intimate caress',
+          'one on top of the other, sensual embrace',
+          'spooning position, hands wandering, intimate',
+          'face to face on silk sheets, legs wrapped together',
+          'kneeling facing each other, hands on breasts',
+          'both on all fours side by side, looking back seductively',
+        ],
+        4: [ // Topless passionné
+          'topless embrace, ((breasts pressed together)), passionate kiss',
+          'one sucking others nipple, ((intimate breast play))',
+          'hands cupping each others ((exposed breasts)), sensual',
+          'lying together topless, ((nipples touching)), intimate',
+          'one massaging others ((bare breasts)), erotic',
+          'face between breasts, ((motorboating)), playful sensual',
+        ],
+        5: [ // Nu explicite
+          '((nude bodies)) intertwined in bed, ((passionate love making))',
+          '((naked)) 69 position, ((intimate oral))',
+          'one on top ((riding)), ((nude lovers)), passionate',
+          '((naked spooning)), ((intimate from behind))',
+          '((nude)) scissoring position, ((bodies pressed together))',
+          'both ((naked)) in shower, ((wet bodies)), sensual',
+        ],
       };
       const levelPoses = duoPoses[Math.min(level, 5)] || duoPoses[2];
       const selectedPose = levelPoses[Math.floor(Math.random() * levelPoses.length)];
@@ -1090,25 +1152,61 @@ class ImageGenerationService {
       prompt += 'both dressed elegantly, friendly pose together, ';
     }
     
-    // Localisation
+    // v5.4.16 - LOCALISATIONS NSFW DÉTAILLÉES
     const duoLocations = isNSFW ? [
-      'luxury bedroom setting',
-      'romantic hotel room',
-      'intimate boudoir',
-      'silk sheets bed',
-      'fireplace romantic lighting',
+      'luxury bedroom with silk sheets, romantic candles, warm lighting',
+      'five star hotel suite, king size bed, elegant decor',
+      'intimate boudoir, velvet curtains, soft mood lighting',
+      'penthouse bedroom, city lights through window, romantic atmosphere',
+      'private spa, steam room, wet sensual setting',
+      'romantic cabin, fireplace glow, fur rug',
+      'yacht master bedroom, ocean view, luxury setting',
+      'honeymoon suite, rose petals on bed, champagne',
+      'private pool area, lounge chairs, tropical night',
+      'mirror room, multiple reflections, erotic setting',
     ] : [
-      'elegant living room',
-      'beautiful outdoor setting',
-      'modern stylish interior',
+      'elegant living room, sophisticated decor',
+      'beautiful outdoor garden, natural lighting',
+      'modern stylish interior, clean aesthetic',
     ];
     prompt += duoLocations[Math.floor(Math.random() * duoLocations.length)] + ', ';
     
-    // Style et qualité
+    // v5.4.16 - AMBIANCE ET ÉCLAIRAGE NSFW
+    if (isNSFW) {
+      const duoMoods = [
+        'soft romantic lighting, warm golden glow, intimate atmosphere',
+        'candlelight ambiance, shadows and highlights on bodies',
+        'neon mood lighting, pink and purple tones, sensual',
+        'natural sunlight through curtains, morning after feel',
+        'dramatic lighting, artistic shadows, erotic mood',
+        'soft focus background, sharp focus on bodies, professional',
+      ];
+      prompt += duoMoods[Math.floor(Math.random() * duoMoods.length)] + ', ';
+      
+      // Expressions sensuelles
+      const duoExpressions = [
+        'both with seductive expressions, bedroom eyes, parted lips',
+        'passionate looks, desire in eyes, sensual smiles',
+        'lustful gazes, biting lip, aroused expressions',
+        'intimate eye contact, loving sensual expressions',
+        'ecstatic expressions, pleasure visible, passionate',
+      ];
+      prompt += duoExpressions[Math.floor(Math.random() * duoExpressions.length)] + ', ';
+    }
+    
+    // v5.4.16 - QUALITÉ ET ANATOMIE PARFAITE
+    prompt += this.anatomyDuoPrompt + ', ';
+    
+    // Style et qualité finale
     if (isRealistic) {
-      prompt += 'professional photography, 8K ultra HD, two people shot, NOT merged, both faces visible';
+      prompt += 'ultra realistic photograph, 8K resolution, professional erotic photography, ';
+      prompt += 'perfect skin texture, detailed pores, realistic lighting, ';
+      prompt += 'sharp focus on both subjects, bokeh background, magazine quality, ';
+      prompt += 'two distinct people clearly visible, NOT merged, both faces detailed';
     } else {
-      prompt += 'masterpiece anime art, best quality, two characters, both distinct, both visible';
+      prompt += 'masterpiece anime art, best quality ecchi illustration, highly detailed, ';
+      prompt += 'beautiful anime style, vibrant colors, clean lines, ';
+      prompt += 'both characters distinct, detailed faces, expressive eyes';
     }
     
     return prompt;
@@ -3706,30 +3804,20 @@ class ImageGenerationService {
     // === GÉNÉRER LES ÉLÉMENTS VARIÉS ===
     const sceneElements = this.generateVariedSceneElements();
     
-    // v5.4.15 - GÉNÉRATION SPÉCIALE POUR DUOS
+    // v5.4.16 - GÉNÉRATION SPÉCIALE POUR DUOS avec NSFW amélioré
     if (duoInfo.isDuo) {
+      // buildDuoPrompt inclut maintenant tenues, poses, locations, mood, et anatomie
       const duoPrompt = this.buildDuoPrompt(character, level, isRealistic);
-      console.log(`👯 Prompt DUO généré: ${duoPrompt.substring(0, 200)}...`);
       
-      // Construire le prompt final pour duo
-      let finalDuoPrompt = style + ', ' + duoPrompt;
-      finalDuoPrompt += ', ' + this.anatomyDuoPrompt;
+      // Construire le prompt final - le style est déjà dans duoPrompt
+      let finalDuoPrompt = duoPrompt;
       
-      // Ajouter le lieu varié
-      if (sceneElements.location) {
-        finalDuoPrompt += ', ' + sceneElements.location;
-      }
+      // Ajouter le marker de niveau NSFW pour la détection
+      finalDuoPrompt = `[NSFW_LEVEL_${level}] ` + finalDuoPrompt;
       
-      // Lighting et mood
-      if (sceneElements.lighting) {
-        finalDuoPrompt += ', ' + sceneElements.lighting;
-      }
-      if (sceneElements.mood) {
-        finalDuoPrompt += ', ' + sceneElements.mood;
-      }
+      console.log(`👯 Génération IMAGE DUO NSFW: ${character.name} - Niveau ${level}`);
+      console.log(`👯 Prompt DUO (${finalDuoPrompt.length} chars): ${finalDuoPrompt.substring(0, 400)}...`);
       
-      console.log(`👯 Génération IMAGE DUO: ${character.name}`);
-      console.log(`👯 Prompt DUO SCÈNE: ${finalDuoPrompt.substring(0, 300)}...`);
       // Utiliser la même méthode que les personnages solo
       return await this.generateImage(finalDuoPrompt, character);
     }
@@ -4847,8 +4935,9 @@ class ImageGenerationService {
     const shortPrompt = finalPrompt.substring(0, 1800);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // Ratio 9:16
-    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
+    // v5.4.16 - Ratio 9:16 avec mode NSFW activé
+    // safe=false permet le contenu NSFW, enhance=true améliore la qualité
+    const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true&safe=false&nofeed=true`;
     
     console.log(`🔗 URL Pollinations (seed: ${seed}, NSFW: ${nsfwLevel})`);
     console.log(`📝 Prompt FINAL (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
@@ -5944,7 +6033,8 @@ class ImageGenerationService {
     
     const antiCache = Date.now();
     // v5.3.52 - Ratio 9:16 pour smartphones
-    const url = `https://image.pollinations.ai/prompt/${encoded}?width=576&height=1024&seed=${seed}&nologo=true&nofeed=true&model=flux&t=${antiCache}`;
+    // v5.4.16 - URL avec mode NSFW activé (safe=false)
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=576&height=1024&seed=${seed}&nologo=true&nofeed=true&model=flux&safe=false&enhance=true&t=${antiCache}`;
     
     console.log(`🌐 Fallback API (attente anti-rate-limit)`);
     return url;
