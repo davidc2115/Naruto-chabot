@@ -564,26 +564,28 @@ export default function SettingsScreen({ navigation, onLogout }) {
     setGroqApiKeys(newKeys);
   };
 
+  // v5.3.72 - Gestion robuste du chargement et des erreurs
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
+      <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 40 }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8f9fa' }}>
           <ActivityIndicator size="large" color="#6366f1" />
-          <Text style={styles.loadingText}>Chargement des paramètres...</Text>
+          <Text style={{ marginTop: 10, fontSize: 16, color: '#6b7280' }}>Chargement des paramètres...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
+  // v5.3.72 - Rendu avec try-catch implicite via structure simple
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>⚙️ Paramètres</Text>
+    <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+      <ScrollView style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
+        <View style={{ padding: 20, paddingTop: 15, backgroundColor: '#6366f1' }}>
+          <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#fff' }}>⚙️ Paramètres</Text>
         </View>
 
-      {/* PROFIL */}
-      <View style={styles.section}>
+        {/* PROFIL */}
+        <View style={styles.section}>
         <Text style={styles.sectionTitle}>👤 Mon Profil</Text>
         <TouchableOpacity
           style={styles.profileButton}
@@ -620,10 +622,10 @@ export default function SettingsScreen({ navigation, onLogout }) {
           </View>
           <Text style={styles.premiumChatArrow}>→</Text>
         </TouchableOpacity>
-      </View>
+        </View>
 
-      {/* === GÉNÉRATION DE TEXTE v5.3.33 - Multi-API === */}
-      <View style={styles.section}>
+        {/* === GÉNÉRATION DE TEXTE v5.3.33 - Multi-API === */}
+        <View style={styles.section}>
         <Text style={styles.sectionTitle}>🤖 Génération de Texte</Text>
         <Text style={styles.sectionDescription}>
           Sélectionnez l'API pour les réponses des personnages.{'\n'}
@@ -1202,7 +1204,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
 
         <View style={{ height: 50 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

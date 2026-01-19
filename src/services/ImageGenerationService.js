@@ -669,6 +669,30 @@ class ImageGenerationService {
   }
 
   /**
+   * v5.3.72 - Retourne une emphase supplémentaire pour la taille de bonnet
+   * Pour renforcer la poitrine dans les prompts
+   */
+  getBustEmphasis(bustSize) {
+    if (!bustSize) return '';
+    const size = bustSize.toUpperCase().trim();
+    
+    const emphasisMap = {
+      'A': 'VERY SMALL A-CUP, nearly flat chest, petite bust',
+      'B': 'SMALL B-CUP breasts, modest petite bust',
+      'C': 'MEDIUM C-CUP breasts, average sized bust',
+      'D': 'LARGE D-CUP breasts, big full bust, visible cleavage',
+      'DD': 'VERY LARGE DD-CUP breasts, heavy big bust, deep cleavage',
+      'E': 'HUGE E-CUP breasts, very big heavy bust, massive cleavage',
+      'F': 'HUGE F-CUP breasts, enormous bust, gigantic cleavage',
+      'G': 'GIGANTIC G-CUP breasts, extremely large bust, massive',
+      'H': 'MASSIVE H-CUP breasts, colossal bust, giant heavy breasts',
+      'I': 'COLOSSAL I-CUP breasts, impossibly huge bust, enormous heavy'
+    };
+    
+    return emphasisMap[size] || '';
+  }
+
+  /**
    * Extrait une version courte du body type pour le renforcement
    */
   getShortBodyType(bodyType) {
@@ -4342,12 +4366,26 @@ class ImageGenerationService {
       parts.push('androgynous person, non-binary');
     }
     
-    // === 2. ÂGE ===
+    // === v5.3.72 - POITRINE EN PRIORITÉ #2 (femmes) ===
+    // La poitrine est maintenant AVANT la morphologie pour emphase maximale
+    if (physicalDetails.bust && physicalDetails.gender === 'female') {
+      parts.push(physicalDetails.bust);
+      // Répéter la taille de bonnet pour emphase
+      if (character.bust) {
+        const bustEmphasis = this.getBustEmphasis(character.bust);
+        if (bustEmphasis) {
+          parts.push(bustEmphasis);
+        }
+      }
+      console.log(`👙 POITRINE PRIORITAIRE: ${physicalDetails.bust}`);
+    }
+    
+    // === 3. ÂGE ===
     if (physicalDetails.age) {
       parts.push(`${physicalDetails.age} years old`);
     }
     
-    // === 3. MORPHOLOGIE / CORPS (TRÈS HAUTE PRIORITÉ) ===
+    // === 4. MORPHOLOGIE / CORPS ===
     if (physicalDetails.bodyType) {
       parts.push(physicalDetails.bodyType);
       // Répéter pour emphase
@@ -4360,11 +4398,6 @@ class ImageGenerationService {
           parts.push('curvy hourglass, FLAT STOMACH, slim waist');
         }
       }
-    }
-    
-    // === 4. POITRINE (femmes) ===
-    if (physicalDetails.bust && physicalDetails.gender === 'female') {
-      parts.push(physicalDetails.bust);
     }
     
     // === 5. PÉNIS (hommes, NSFW) ===
