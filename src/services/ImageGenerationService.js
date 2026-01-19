@@ -4619,7 +4619,7 @@ class ImageGenerationService {
    * v5.3.75 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
    */
   physicalProfileCache = {};
-  cacheVersion = '5.4.3'; // Incrémenter pour invalider le cache
+  cacheVersion = '5.4.4'; // Incrémenter pour invalider le cache
   
   /**
    * v5.3.75 - Génère une clé unique pour un personnage basée sur ses attributs physiques

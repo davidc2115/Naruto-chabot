@@ -374,25 +374,40 @@ class StorageService {
       const userId = await this.getCurrentUserId();
       const charIdStr = String(characterId);
       
-      console.log(`🗑️ Suppression TOTALE conversation: ${characterId}`);
+      console.log(`🗑️ Suppression conversation: ${characterId} (CONSERVATION des images galerie)`);
       
       // 1. Récupérer TOUTES les clés
       const allKeys = await AsyncStorage.getAllKeys();
       
-      // 2. Trouver toutes les clés liées à ce characterId
+      // 2. Trouver les clés de CONVERSATION liées à ce characterId
+      // v5.4.4 - NE PAS supprimer les clés de galerie (gallery_*)
       const keysToDelete = allKeys.filter(key => {
-        // Clés de conversation
-        if (key.includes(charIdStr)) return true;
-        if (key.includes(`_${characterId}`)) return true;
-        // Format conv_userId_characterId
-        if (key.startsWith('conv_') && key.endsWith(`_${characterId}`)) return true;
-        if (key.startsWith('conv_') && key.endsWith(`_${charIdStr}`)) return true;
+        // EXCLURE les clés de galerie - NE JAMAIS supprimer les images!
+        if (key.startsWith('gallery_')) return false;
+        if (key.includes('_gallery_')) return false;
+        if (key.includes('gallery')) return false;
+        
+        // EXCLURE les clés d'images générées
+        if (key.includes('generated_images')) return false;
+        if (key.includes('image_cache')) return false;
+        
+        // Supprimer uniquement les clés de conversation
+        // Format conv_userId_characterId ou conversation_*
+        if (key.startsWith('conv_') && (key.endsWith(`_${characterId}`) || key.endsWith(`_${charIdStr}`))) return true;
+        if (key.startsWith('conversation_') && key.includes(charIdStr)) return true;
+        
+        // Clés de niveau/relation mais PAS les images
+        if (key.startsWith('level_') && key.includes(charIdStr)) return true;
+        if (key.startsWith('relation_') && key.includes(charIdStr)) return true;
+        if (key.startsWith('messages_') && key.includes(charIdStr)) return true;
+        
         return false;
       });
       
-      console.log(`🔍 Clés à supprimer: ${keysToDelete.length}`, keysToDelete);
+      console.log(`🔍 Clés conversation à supprimer: ${keysToDelete.length}`);
+      console.log(`📷 Les images de galerie seront CONSERVÉES`);
       
-      // 3. Supprimer TOUTES ces clés
+      // 3. Supprimer SEULEMENT les clés de conversation
       for (const key of keysToDelete) {
         try {
           await AsyncStorage.removeItem(key);
@@ -426,7 +441,7 @@ class StorageService {
         }
       } catch (e) {}
       
-      console.log(`✅ Conversation ${characterId} supprimée COMPLÈTEMENT`);
+      console.log(`✅ Conversation ${characterId} supprimée (images galerie conservées)`);
       return true;
     } catch (error) {
       console.error('❌ Error deleting conversation:', error);
