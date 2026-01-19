@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,196 +11,171 @@ import {
   RefreshControl,
   Platform,
   StatusBar,
+  ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import AuthService from '../services/AuthService';
 
 const FREEBOX_URL = 'http://88.174.155.230:33437';
 
+/**
+ * v5.4.0 - AdminPanelScreen COMPLÈTEMENT RÉÉCRIT
+ * - Gestion d'erreurs robuste
+ * - Affichage même si serveur indisponible
+ * - Interface claire pour gérer utilisateurs
+ */
 export default function AdminPanelScreen() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState(null);
+  const [serverStatus, setServerStatus] = useState('checking'); // checking, online, offline
 
+  // Charger les utilisateurs au démarrage
   useEffect(() => {
-    // v5.3.77 - Chargement avec gestion d'erreurs améliorée
-    const initLoad = async () => {
-      try {
-        console.log('🚀 AdminPanelScreen: Initialisation...');
-        await loadUsers();
-      } catch (error) {
-        console.error('❌ AdminPanelScreen: Erreur init:', error.message);
-        setLoading(false);
-      }
-    };
-    initLoad();
+    console.log('🚀 AdminPanelScreen: Initialisation v5.4.0...');
+    loadUsers();
   }, []);
 
-  const loadUsers = async () => {
+  // Fonction de chargement des utilisateurs
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      const currentUser = AuthService.getCurrentUser();
       console.log('📋 Chargement des utilisateurs...');
-      console.log('🔗 URL:', `${FREEBOX_URL}/admin/users`);
-      console.log('👤 Admin email:', AuthService.getCurrentUser()?.email);
+      console.log('👤 Admin email:', currentUser?.email);
       
-      const response = await fetch(`${FREEBOX_URL}/admin/users`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
-        }
-      });
+      // Essayer plusieurs endpoints
+      let usersData = null;
       
-      console.log('📥 Response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Utilisateurs récupérés:', data.users?.length || 0);
-        // Vérifier les IDs des utilisateurs
-        if (data.users?.length > 0) {
-          console.log('📋 Premier utilisateur:', JSON.stringify(data.users[0], null, 2));
-          const usersWithoutId = data.users.filter(u => !u.id);
-          if (usersWithoutId.length > 0) {
-            console.warn('⚠️ Utilisateurs sans ID:', usersWithoutId.length);
-          }
-        }
-        setUsers(data.users || []);
-      } else {
-        const errorText = await response.text();
-        console.error('❌ Erreur chargement utilisateurs:', response.status, errorText);
+      // 1. Essayer /admin/users
+      try {
+        console.log('🔗 Tentative: /admin/users');
+        const response = await fetch(`${FREEBOX_URL}/admin/users`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Email': currentUser?.email || ''
+          },
+          timeout: 10000
+        });
         
-        // Essayer un fallback avec l'endpoint /api/users/all
-        console.log('🔄 Tentative fallback /api/users/all...');
-        await loadUsersFromFallback();
+        console.log('📥 Status /admin/users:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          usersData = data.users || data || [];
+          setServerStatus('online');
+          console.log('✅ /admin/users: ', usersData.length, 'utilisateurs');
+        }
+      } catch (e) {
+        console.log('❌ /admin/users failed:', e.message);
       }
+      
+      // 2. Fallback: /api/users/all
+      if (!usersData) {
+        try {
+          console.log('🔗 Fallback: /api/users/all');
+          const response = await fetch(`${FREEBOX_URL}/api/users/all`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Admin-Email': currentUser?.email || ''
+            },
+            timeout: 10000
+          });
+          
+          console.log('📥 Status /api/users/all:', response.status);
+          
+          if (response.ok) {
+            const data = await response.json();
+            usersData = data.users || data || [];
+            setServerStatus('online');
+            console.log('✅ /api/users/all:', usersData.length, 'utilisateurs');
+          }
+        } catch (e) {
+          console.log('❌ /api/users/all failed:', e.message);
+        }
+      }
+      
+      // 3. Fallback: /api/users
+      if (!usersData) {
+        try {
+          console.log('🔗 Fallback: /api/users');
+          const response = await fetch(`${FREEBOX_URL}/api/users`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Admin-Email': currentUser?.email || ''
+            },
+            timeout: 10000
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            usersData = data.users || data || [];
+            setServerStatus('online');
+            console.log('✅ /api/users:', usersData.length, 'utilisateurs');
+          }
+        } catch (e) {
+          console.log('❌ /api/users failed:', e.message);
+        }
+      }
+      
+      // Résultat
+      if (usersData && usersData.length > 0) {
+        setUsers(usersData);
+        setError(null);
+        console.log('✅ Total utilisateurs chargés:', usersData.length);
+      } else if (usersData) {
+        setUsers([]);
+        setError('Aucun utilisateur trouvé sur le serveur.');
+        setServerStatus('online');
+      } else {
+        setUsers([]);
+        setError('Impossible de contacter le serveur. Vérifiez votre connexion.');
+        setServerStatus('offline');
+      }
+      
     } catch (error) {
-      console.error('❌ Erreur réseau:', error.message);
-      // Essayer le fallback
-      await loadUsersFromFallback();
+      console.error('❌ Erreur globale:', error.message);
+      setError(`Erreur: ${error.message}`);
+      setServerStatus('offline');
+      setUsers([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
-  
-  const loadUsersFromFallback = async () => {
-    try {
-      console.log('🔄 Fallback: chargement via /api/users/all');
-      const response = await fetch(`${FREEBOX_URL}/api/users/all`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Fallback réussi:', data.users?.length || data.length || 0, 'utilisateurs');
-        // Gérer les deux formats de réponse possibles
-        const userList = data.users || data || [];
-        setUsers(userList);
-      } else {
-        console.error('❌ Fallback échoué:', response.status);
-      }
-    } catch (error) {
-      console.error('❌ Erreur fallback:', error.message);
-    }
-  };
+  }, []);
 
-  const handleRefresh = () => {
+  // Pull to refresh
+  const handleRefresh = useCallback(() => {
     setRefreshing(true);
     loadUsers();
-  };
+  }, [loadUsers]);
 
-  // Diagnostic et correction des utilisateurs
-  const runDiagnostic = async () => {
-    try {
-      console.log('🔧 Lancement du diagnostic...');
-      
-      const response = await fetch(`${FREEBOX_URL}/admin/diagnostic`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        let message = `📊 Diagnostic du serveur\n\n`;
-        message += `👥 Total utilisateurs: ${data.diagnostic?.total_users || 0}\n`;
-        message += `⚠️ Sans ID (avant): ${data.diagnostic?.users_without_id_before || 0}\n`;
-        message += `✅ Corrigés: ${data.diagnostic?.users_fixed || 0}\n`;
-        message += `👑 Admin email: ${data.diagnostic?.admin_email || 'N/A'}\n\n`;
-        
-        if (data.users) {
-          message += `📋 Utilisateurs:\n`;
-          data.users.forEach(u => {
-            message += `• ${u.email}\n  ID: ${u.id || 'MANQUANT'}\n`;
-          });
-        }
-        
-        Alert.alert('🔧 Diagnostic', message, [
-          { text: 'Fermer' },
-          { 
-            text: 'Recharger', 
-            onPress: () => loadUsers() 
-          }
-        ]);
-      } else {
-        const error = await response.json().catch(() => ({}));
-        Alert.alert('❌ Erreur', error.error || `Erreur ${response.status}`);
-      }
-    } catch (error) {
-      Alert.alert('❌ Erreur', `Erreur connexion: ${error.message}`);
-    }
-  };
-
-  // Corriger tous les utilisateurs
-  const fixAllUsers = async () => {
-    try {
-      const response = await fetch(`${FREEBOX_URL}/admin/fix-users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        Alert.alert('✅ Correction terminée', `${data.fixed} utilisateur(s) corrigé(s)`);
-        loadUsers();
-      } else {
-        const error = await response.json().catch(() => ({}));
-        Alert.alert('❌ Erreur', error.error || 'Erreur lors de la correction');
-      }
-    } catch (error) {
-      Alert.alert('❌ Erreur', `Erreur connexion: ${error.message}`);
-    }
-  };
-
-  const toggleAdminStatus = async (userId, currentStatus) => {
+  // Modifier le statut admin
+  const toggleAdminStatus = useCallback(async (userId, currentStatus, email) => {
     if (!userId) {
       Alert.alert('❌ Erreur', 'ID utilisateur manquant');
-      console.error('❌ toggleAdminStatus: userId est undefined/null');
       return;
     }
     
     const action = currentStatus ? 'retirer les droits admin' : 'donner les droits admin';
+    
     Alert.alert(
-      '👑 Modifier les droits',
-      `Voulez-vous ${action} à cet utilisateur ?`,
+      '👑 Modifier les droits Admin',
+      `Voulez-vous ${action} à ${email} ?`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'Confirmer',
           onPress: async () => {
             try {
-              console.log(`👑 Modification admin pour userId=${userId}, nouveau statut=${!currentStatus}`);
-              const url = `${FREEBOX_URL}/admin/users/${userId}/role`;
-              console.log('🔗 URL:', url);
-              
-              const response = await fetch(url, {
+              const response = await fetch(`${FREEBOX_URL}/admin/users/${userId}/role`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
@@ -209,48 +184,41 @@ export default function AdminPanelScreen() {
                 body: JSON.stringify({ is_admin: !currentStatus })
               });
               
-              console.log('📥 Response status:', response.status);
-              const responseData = await response.json().catch(() => ({}));
-              console.log('📥 Response data:', responseData);
-              
-              if (response.ok && responseData.success !== false) {
-                Alert.alert('✅ Succès', 'Les droits ont été modifiés');
+              if (response.ok) {
+                Alert.alert('✅ Succès', `Droits admin ${currentStatus ? 'retirés' : 'accordés'}`);
                 loadUsers();
               } else {
-                Alert.alert('❌ Erreur', responseData.error || 'Impossible de modifier les droits');
+                const errorData = await response.json().catch(() => ({}));
+                Alert.alert('❌ Erreur', errorData.error || 'Impossible de modifier les droits');
               }
             } catch (error) {
-              console.error('❌ Erreur toggleAdminStatus:', error);
               Alert.alert('❌ Erreur', `Erreur de connexion: ${error.message}`);
             }
           }
         }
       ]
     );
-  };
+  }, [loadUsers]);
 
-  const togglePremiumStatus = async (userId, currentStatus) => {
+  // Modifier le statut premium
+  const togglePremiumStatus = useCallback(async (userId, currentStatus, email) => {
     if (!userId) {
       Alert.alert('❌ Erreur', 'ID utilisateur manquant');
-      console.error('❌ togglePremiumStatus: userId est undefined/null');
       return;
     }
     
     const action = currentStatus ? 'retirer le statut premium' : 'donner le statut premium';
+    
     Alert.alert(
-      '⭐ Modifier le statut premium',
-      `Voulez-vous ${action} à cet utilisateur ?`,
+      '⭐ Modifier le statut Premium',
+      `Voulez-vous ${action} à ${email} ?`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'Confirmer',
           onPress: async () => {
             try {
-              console.log(`⭐ Modification premium pour userId=${userId}, nouveau statut=${!currentStatus}`);
-              const url = `${FREEBOX_URL}/admin/users/${userId}/premium`;
-              console.log('🔗 URL:', url);
-              
-              const response = await fetch(url, {
+              const response = await fetch(`${FREEBOX_URL}/admin/users/${userId}/premium`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/json',
@@ -259,30 +227,32 @@ export default function AdminPanelScreen() {
                 body: JSON.stringify({ is_premium: !currentStatus })
               });
               
-              console.log('📥 Response status:', response.status);
-              const responseData = await response.json().catch(() => ({}));
-              console.log('📥 Response data:', responseData);
-              
-              if (response.ok && responseData.success !== false) {
-                Alert.alert('✅ Succès', 'Le statut premium a été modifié');
+              if (response.ok) {
+                Alert.alert('✅ Succès', `Statut premium ${currentStatus ? 'retiré' : 'accordé'}`);
                 loadUsers();
               } else {
-                Alert.alert('❌ Erreur', responseData.error || 'Impossible de modifier le statut');
+                const errorData = await response.json().catch(() => ({}));
+                Alert.alert('❌ Erreur', errorData.error || 'Impossible de modifier le statut');
               }
             } catch (error) {
-              console.error('❌ Erreur togglePremiumStatus:', error);
               Alert.alert('❌ Erreur', `Erreur de connexion: ${error.message}`);
             }
           }
         }
       ]
     );
-  };
+  }, [loadUsers]);
 
-  const deleteUser = async (userId, email) => {
+  // Supprimer un utilisateur
+  const deleteUser = useCallback(async (userId, email) => {
+    if (!userId) {
+      Alert.alert('❌ Erreur', 'ID utilisateur manquant');
+      return;
+    }
+    
     Alert.alert(
       '🗑️ Supprimer l\'utilisateur',
-      `Êtes-vous sûr de vouloir supprimer le compte de ${email} ? Cette action est irréversible.`,
+      `Êtes-vous sûr de vouloir supprimer le compte de ${email} ?\n\nCette action est IRRÉVERSIBLE.`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
@@ -305,20 +275,18 @@ export default function AdminPanelScreen() {
                 Alert.alert('❌ Erreur', 'Impossible de supprimer l\'utilisateur');
               }
             } catch (error) {
-              Alert.alert('❌ Erreur', 'Erreur de connexion au serveur');
+              Alert.alert('❌ Erreur', `Erreur de connexion: ${error.message}`);
             }
           }
         }
       ]
     );
-  };
+  }, [loadUsers]);
 
-  // Afficher le profil complet d'un utilisateur
-  const viewUserProfile = (user) => {
-    // Récupérer le profil de plusieurs sources possibles
+  // Voir le profil complet d'un utilisateur
+  const viewUserProfile = useCallback((user) => {
     const profile = user.full_profile || user.profile || {};
     
-    // Récupérer les données avec fallback sur les champs directs
     const username = profile.username || user.username || 'Non défini';
     const age = profile.age || user.age || 'Non défini';
     const genderRaw = (profile.gender || user.gender || '').toLowerCase();
@@ -326,275 +294,245 @@ export default function AdminPanelScreen() {
     const bust = profile.bust || user.bust || '';
     const penis = profile.penis || user.penis || '';
     
-    // Normaliser le genre (français et anglais)
-    const isMale = genderRaw === 'male' || genderRaw === 'homme' || genderRaw === 'masculin';
-    const isFemale = genderRaw === 'female' || genderRaw === 'femme' || genderRaw === 'féminin';
-    const isNonBinary = genderRaw === 'non-binary' || genderRaw === 'non-binaire' || genderRaw === 'autre';
+    const isMale = genderRaw === 'male' || genderRaw === 'homme';
+    const isFemale = genderRaw === 'female' || genderRaw === 'femme';
     
     let genderText = 'Non défini';
     if (isMale) genderText = '👨 Homme';
     else if (isFemale) genderText = '👩 Femme';
-    else if (isNonBinary) genderText = '🧑 Non-binaire';
-    else if (genderRaw) genderText = genderRaw;
+    else if (genderRaw) genderText = `🧑 ${genderRaw}`;
     
-    let profileDetails = `📧 Email: ${user.email || 'N/A'}\n`;
-    profileDetails += `👤 Pseudo: ${username}\n`;
-    profileDetails += `🎂 Âge: ${age}\n`;
-    profileDetails += `⚧️ Genre: ${genderText}\n`;
+    let details = `📧 Email: ${user.email || 'N/A'}\n`;
+    details += `👤 Pseudo: ${username}\n`;
+    details += `🎂 Âge: ${age}\n`;
+    details += `⚧️ Genre: ${genderText}\n`;
     
-    // Attributs physiques - afficher selon le genre
-    if (isFemale && bust) {
-      profileDetails += `👙 Bonnet: ${bust}\n`;
-    }
-    if (isMale && penis) {
-      profileDetails += `📏 Taille: ${penis} cm\n`;
-    }
-    // Si non-binaire ou genre non défini, afficher les deux s'ils existent
+    if (isFemale && bust) details += `👙 Bonnet: ${bust}\n`;
+    if (isMale && penis) details += `📏 Pénis: ${penis} cm\n`;
     if (!isMale && !isFemale) {
-      if (bust) profileDetails += `👙 Bonnet: ${bust}\n`;
-      if (penis) profileDetails += `📏 Taille: ${penis} cm\n`;
+      if (bust) details += `👙 Bonnet: ${bust}\n`;
+      if (penis) details += `📏 Pénis: ${penis} cm\n`;
     }
     
-    profileDetails += `\n📊 Statuts:\n`;
-    profileDetails += `   👑 Admin: ${user.is_admin ? 'Oui' : 'Non'}\n`;
-    profileDetails += `   ⭐ Premium: ${user.is_premium ? 'Oui' : 'Non'}\n`;
-    profileDetails += `   🔞 NSFW: ${nsfwMode ? 'Activé' : 'Désactivé'}\n`;
+    details += `\n📊 STATUTS:\n`;
+    details += `   👑 Admin: ${user.is_admin ? '✅ OUI' : '❌ Non'}\n`;
+    details += `   ⭐ Premium: ${user.is_premium ? '✅ OUI' : '❌ Non'}\n`;
+    details += `   🔞 NSFW: ${nsfwMode ? '✅ Activé' : '❌ Désactivé'}\n`;
     
     const createdAt = user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : 'N/A';
-    profileDetails += `\n📅 Inscrit le: ${createdAt}\n`;
-    profileDetails += `🆔 ID: ${user.id || 'MANQUANT'}`;
-    
-    // Debug: afficher les données brutes
-    console.log('📋 Profil utilisateur:', JSON.stringify(user, null, 2));
-    console.log('📋 Genre raw:', genderRaw, 'isMale:', isMale, 'isFemale:', isFemale);
-    console.log('📋 Attributs - bust:', bust, 'penis:', penis);
+    details += `\n📅 Inscrit le: ${createdAt}\n`;
+    details += `🆔 ID: ${user.id || 'MANQUANT'}`;
 
-    Alert.alert(
-      `👤 Profil de ${username}`,
-      profileDetails,
-      [{ text: 'Fermer', style: 'cancel' }]
-    );
-  };
+    Alert.alert(`👤 Profil de ${username}`, details, [{ text: 'Fermer' }]);
+  }, []);
 
+  // Filtrer les utilisateurs
   const filteredUsers = users.filter(user => 
-    user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.username?.toLowerCase().includes(searchQuery.toLowerCase())
+    (user.email?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+    (user.username?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
 
-  const renderUser = ({ item }) => {
+  // Rendu d'un utilisateur
+  const renderUser = useCallback(({ item }) => {
     const isCurrentUser = item.email === AuthService.getCurrentUser()?.email;
+    const username = item.username || item.email?.split('@')[0] || 'Sans pseudo';
     
     return (
       <View style={[styles.userCard, isCurrentUser && styles.currentUserCard]}>
-        <View style={styles.userInfo}>
-          <View style={styles.userHeader}>
-            <Text style={styles.userName}>
-              {item.username || 'Sans pseudo'}
-            </Text>
-            <View style={styles.badges}>
-              {item.is_admin && (
-                <View style={[styles.adminBadge, styles.badge]}>
-                  <Text style={styles.badgeText}>👑 Admin</Text>
-                </View>
-              )}
-              {item.is_premium && (
-                <View style={[styles.premiumBadge, styles.badge]}>
-                  <Text style={styles.badgeText}>⭐ Premium</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          <Text style={styles.userEmail}>{item.email}</Text>
-          <Text style={styles.userId}>🆔 {item.id || '⚠️ ID MANQUANT'}</Text>
-          <View style={styles.userDetails}>
-            <Text style={[styles.detailText, styles.detailItem]}>
-              📅 Inscrit: {new Date(item.created_at).toLocaleDateString('fr-FR')}
-            </Text>
-            {item.age && (
-              <Text style={[styles.detailText, styles.detailItem]}>🎂 {item.age} ans</Text>
+        {/* En-tête avec nom et badges */}
+        <View style={styles.userHeader}>
+          <Text style={styles.userName} numberOfLines={1}>{username}</Text>
+          <View style={styles.badges}>
+            {item.is_admin && (
+              <View style={styles.adminBadge}>
+                <Text style={styles.badgeText}>👑 Admin</Text>
+              </View>
             )}
-            {item.gender && (
-              <Text style={[styles.detailText, styles.detailItem]}>
-                {item.gender === 'male' ? '👨' : item.gender === 'female' ? '👩' : '🧑'} {item.gender}
-              </Text>
-            )}
-            {item.nsfw_enabled && (
-              <Text style={[styles.detailText, styles.detailItem]}>🔞 NSFW</Text>
+            {item.is_premium && (
+              <View style={styles.premiumBadge}>
+                <Text style={styles.badgeText}>⭐ Premium</Text>
+              </View>
             )}
           </View>
         </View>
         
-        {/* Bouton voir profil - pour tous les utilisateurs */}
+        {/* Email et ID */}
+        <Text style={styles.userEmail}>{item.email}</Text>
+        <Text style={styles.userId}>ID: {item.id || '⚠️ MANQUANT'}</Text>
+        
+        {/* Détails */}
+        <View style={styles.userDetails}>
+          {item.age && <Text style={styles.detailChip}>🎂 {item.age} ans</Text>}
+          {item.gender && (
+            <Text style={styles.detailChip}>
+              {item.gender === 'male' ? '👨' : item.gender === 'female' ? '👩' : '🧑'} {item.gender}
+            </Text>
+          )}
+          {(item.nsfw_enabled || item.profile?.nsfwMode) && (
+            <Text style={[styles.detailChip, styles.nsfwChip]}>🔞 NSFW</Text>
+          )}
+        </View>
+        
+        {/* Bouton voir profil */}
         <TouchableOpacity 
-          style={styles.viewProfileButton}
+          style={styles.viewProfileBtn}
           onPress={() => viewUserProfile(item)}
         >
-          <Text style={styles.viewProfileButtonText}>👁️ Voir le profil complet</Text>
+          <Text style={styles.viewProfileBtnText}>👁️ Voir le profil complet</Text>
         </TouchableOpacity>
         
-        {!isCurrentUser && (
+        {/* Actions (sauf pour l'utilisateur actuel) */}
+        {!isCurrentUser ? (
           <View style={styles.actions}>
             <TouchableOpacity 
-              style={[styles.actionButton, item.is_admin ? styles.removeButton : styles.adminButton, styles.actionItem]}
-              onPress={() => toggleAdminStatus(item.id, item.is_admin)}
+              style={[styles.actionBtn, item.is_admin ? styles.removeBtn : styles.addAdminBtn]}
+              onPress={() => toggleAdminStatus(item.id, item.is_admin, item.email)}
             >
-              <Text style={styles.actionButtonText}>
+              <Text style={styles.actionBtnText}>
                 {item.is_admin ? '➖ Admin' : '➕ Admin'}
               </Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={[styles.actionButton, item.is_premium ? styles.removeButton : styles.premiumButton, styles.actionItem]}
-              onPress={() => togglePremiumStatus(item.id, item.is_premium)}
+              style={[styles.actionBtn, item.is_premium ? styles.removeBtn : styles.addPremiumBtn]}
+              onPress={() => togglePremiumStatus(item.id, item.is_premium, item.email)}
             >
-              <Text style={styles.actionButtonText}>
+              <Text style={styles.actionBtnText}>
                 {item.is_premium ? '➖ Premium' : '➕ Premium'}
               </Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={[styles.actionButton, styles.deleteButton]}
+              style={[styles.actionBtn, styles.deleteBtn]}
               onPress={() => deleteUser(item.id, item.email)}
             >
-              <Text style={styles.actionButtonText}>🗑️</Text>
+              <Text style={styles.deleteBtnText}>🗑️</Text>
             </TouchableOpacity>
           </View>
-        )}
-        
-        {isCurrentUser && (
-          <View style={styles.currentUserLabel}>
-            <Text style={styles.currentUserText}>Vous</Text>
+        ) : (
+          <View style={styles.youLabel}>
+            <Text style={styles.youLabelText}>👤 C'est vous</Text>
           </View>
         )}
       </View>
     );
-  };
+  }, [toggleAdminStatus, togglePremiumStatus, deleteUser, viewUserProfile]);
 
-  // v5.3.76 - Écran de chargement
-  if (loading && !refreshing) {
-    return (
-      <View style={styles.rootContainer}>
+  // === RENDU PRINCIPAL ===
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>👑 Panel Admin</Text>
-          <Text style={styles.subtitle}>Gestion des membres</Text>
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#6366f1" />
-          <Text style={styles.loadingText}>Chargement des utilisateurs...</Text>
-        </View>
-      </View>
-    );
-  }
-
-  // v5.3.76 - Rendu principal avec structure claire
-  return (
-    <View style={styles.rootContainer}>
-      {/* Header violet */}
-      <View style={styles.header}>
-        <Text style={styles.title}>👑 Panel Admin</Text>
-        <Text style={styles.subtitle}>Gestion des membres</Text>
-      </View>
-      
-      {/* Contenu avec fond clair */}
-      <View style={styles.contentContainer}>
-        {/* Stats */}
-        <View style={styles.statsBar}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{users.length}</Text>
-            <Text style={styles.statLabel}>Membres</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{users.filter(u => u.is_admin).length}</Text>
-            <Text style={styles.statLabel}>Admins</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{users.filter(u => u.is_premium).length}</Text>
-            <Text style={styles.statLabel}>Premium</Text>
+          <Text style={styles.subtitle}>Gestion des utilisateurs</Text>
+          <View style={styles.serverStatus}>
+            <View style={[
+              styles.statusDot, 
+              serverStatus === 'online' ? styles.statusOnline : 
+              serverStatus === 'offline' ? styles.statusOffline : 
+              styles.statusChecking
+            ]} />
+            <Text style={styles.statusText}>
+              {serverStatus === 'online' ? 'Serveur connecté' : 
+               serverStatus === 'offline' ? 'Serveur hors ligne' : 
+               'Vérification...'}
+            </Text>
           </View>
         </View>
         
-        {/* Recherche */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="🔍 Rechercher un membre..."
-            placeholderTextColor="#9ca3af"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-        
-        {/* Boutons de diagnostic */}
-        <View style={styles.diagnosticBar}>
-          <TouchableOpacity style={styles.diagnosticButton} onPress={runDiagnostic}>
-            <Text style={styles.diagnosticButtonText}>🔧 Diagnostic</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.fixButton} onPress={fixAllUsers}>
-            <Text style={styles.fixButtonText}>🔄 Corriger IDs</Text>
-          </TouchableOpacity>
-        </View>
-        
-        {/* Liste des utilisateurs */}
-        <FlatList
-          data={filteredUsers}
-          renderItem={renderUser}
-          keyExtractor={item => item.id?.toString() || item.email || Math.random().toString()}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          style={styles.flatList}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor="#6366f1"
-            />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyEmoji}>👥</Text>
-              <Text style={styles.emptyText}>Aucun utilisateur trouvé</Text>
-              <Text style={styles.emptySubtext}>Vérifiez la connexion au serveur</Text>
+        {/* Contenu principal */}
+        <View style={styles.content}>
+          {/* Stats */}
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{users.length}</Text>
+              <Text style={styles.statLabel}>Membres</Text>
             </View>
-          }
-        />
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{users.filter(u => u.is_admin).length}</Text>
+              <Text style={styles.statLabel}>Admins</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>{users.filter(u => u.is_premium).length}</Text>
+              <Text style={styles.statLabel}>Premium</Text>
+            </View>
+          </View>
+          
+          {/* Recherche */}
+          <View style={styles.searchBox}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="🔍 Rechercher un membre..."
+              placeholderTextColor="#9ca3af"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          
+          {/* État de chargement */}
+          {loading && !refreshing ? (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator size="large" color="#6366f1" />
+              <Text style={styles.loadingText}>Chargement des utilisateurs...</Text>
+            </View>
+          ) : error ? (
+            /* Affichage erreur */
+            <View style={styles.errorBox}>
+              <Text style={styles.errorEmoji}>⚠️</Text>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={loadUsers}>
+                <Text style={styles.retryBtnText}>🔄 Réessayer</Text>
+              </TouchableOpacity>
+            </View>
+          ) : filteredUsers.length === 0 ? (
+            /* Liste vide */
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyEmoji}>👥</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery ? 'Aucun résultat pour cette recherche' : 'Aucun utilisateur trouvé'}
+              </Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={loadUsers}>
+                <Text style={styles.retryBtnText}>🔄 Recharger</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            /* Liste des utilisateurs */
+            <FlatList
+              data={filteredUsers}
+              renderItem={renderUser}
+              keyExtractor={item => item.id?.toString() || item.email || Math.random().toString()}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  colors={['#6366f1']}
+                  tintColor="#6366f1"
+                />
+              }
+            />
+          )}
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  // v5.3.76 - Structure racine claire
-  rootContainer: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#6366f1',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  contentContainer: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-  },
-  loadingText: {
-    marginTop: 15,
-    fontSize: 16,
-    color: '#6b7280',
+    backgroundColor: '#6366f1',
   },
   header: {
     padding: 20,
-    paddingTop: 15,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 10,
     backgroundColor: '#6366f1',
-  },
-  flatList: {
-    flex: 1,
   },
   title: {
     fontSize: 28,
@@ -606,14 +544,44 @@ const styles = StyleSheet.create({
     color: '#e0e7ff',
     marginTop: 4,
   },
-  statsBar: {
+  serverStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  statusOnline: {
+    backgroundColor: '#10b981',
+  },
+  statusOffline: {
+    backgroundColor: '#ef4444',
+  },
+  statusChecking: {
+    backgroundColor: '#f59e0b',
+  },
+  statusText: {
+    fontSize: 12,
+    color: '#e0e7ff',
+  },
+  content: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  statsRow: {
     flexDirection: 'row',
     backgroundColor: '#fff',
     paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
-  statItem: {
+  statBox: {
     flex: 1,
     alignItems: 'center',
   },
@@ -627,51 +595,75 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 2,
   },
-  searchContainer: {
+  searchBox: {
     padding: 15,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
   },
   searchInput: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 10,
     paddingHorizontal: 15,
-    paddingVertical: 12,
+    paddingVertical: 10,
     fontSize: 14,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    color: '#111827',
   },
-  diagnosticBar: {
-    flexDirection: 'row',
-    paddingHorizontal: 15,
-    paddingBottom: 10,
-    gap: 10,
-  },
-  diagnosticButton: {
+  loadingBox: {
     flex: 1,
-    backgroundColor: '#f59e0b',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  errorBox: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  errorEmoji: {
+    fontSize: 50,
+    marginBottom: 15,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryBtn: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
-    alignItems: 'center',
   },
-  diagnosticButtonText: {
+  retryBtnText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 14,
   },
-  fixButton: {
+  emptyBox: {
     flex: 1,
-    backgroundColor: '#10b981',
-    paddingVertical: 10,
-    borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
+    padding: 40,
   },
-  fixButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
+  emptyEmoji: {
+    fontSize: 50,
+    marginBottom: 15,
   },
-  list: {
+  emptyText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  listContent: {
     padding: 15,
-    paddingTop: 0,
   },
   userCard: {
     backgroundColor: '#fff',
@@ -688,14 +680,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#6366f1',
   },
-  userInfo: {
-    marginBottom: 12,
-  },
   userHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   userName: {
     fontSize: 16,
@@ -706,119 +695,103 @@ const styles = StyleSheet.create({
   badges: {
     flexDirection: 'row',
   },
-  badge: {
-    marginRight: 6,
-  },
   adminBadge: {
     backgroundColor: '#fef3c7',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: 6,
+    marginLeft: 6,
   },
   premiumBadge: {
     backgroundColor: '#dbeafe',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8,
+    borderRadius: 6,
+    marginLeft: 6,
   },
   badgeText: {
     fontSize: 10,
     fontWeight: '600',
   },
   userEmail: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6b7280',
-    marginBottom: 4,
   },
   userId: {
     fontSize: 11,
     color: '#9ca3af',
-    marginBottom: 8,
-    fontFamily: 'monospace',
+    marginTop: 2,
   },
   userDetails: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    marginTop: 8,
+    gap: 6,
   },
-  detailItem: {
-    marginRight: 10,
-    marginBottom: 4,
+  detailChip: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    fontSize: 11,
+    color: '#6b7280',
   },
-  detailText: {
-    fontSize: 12,
-    color: '#9ca3af',
+  nsfwChip: {
+    backgroundColor: '#fef2f2',
+    color: '#dc2626',
   },
-  viewProfileButton: {
+  viewProfileBtn: {
     backgroundColor: '#e0e7ff',
     paddingVertical: 10,
-    paddingHorizontal: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 10,
+    marginTop: 12,
   },
-  viewProfileButtonText: {
-    fontSize: 14,
+  viewProfileBtnText: {
+    fontSize: 13,
     fontWeight: '600',
     color: '#4338ca',
   },
   actions: {
     flexDirection: 'row',
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-    paddingTop: 12,
+    marginTop: 12,
+    gap: 8,
   },
-  actionItem: {
-    marginRight: 8,
-  },
-  actionButton: {
+  actionBtn: {
     flex: 1,
     paddingVertical: 8,
     borderRadius: 8,
     alignItems: 'center',
   },
-  adminButton: {
+  addAdminBtn: {
     backgroundColor: '#fef3c7',
   },
-  premiumButton: {
+  addPremiumBtn: {
     backgroundColor: '#dbeafe',
   },
-  removeButton: {
+  removeBtn: {
     backgroundColor: '#fee2e2',
   },
-  deleteButton: {
+  deleteBtn: {
     backgroundColor: '#ef4444',
     flex: 0,
     paddingHorizontal: 12,
   },
-  actionButtonText: {
-    fontSize: 12,
+  actionBtnText: {
+    fontSize: 11,
     fontWeight: '600',
     color: '#111827',
   },
-  currentUserLabel: {
-    alignItems: 'center',
-    paddingTop: 8,
+  deleteBtnText: {
+    fontSize: 14,
   },
-  currentUserText: {
+  youLabel: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  youLabelText: {
     fontSize: 12,
     color: '#6366f1',
     fontWeight: '600',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyEmoji: {
-    fontSize: 60,
-    marginBottom: 15,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#9ca3af',
-    marginTop: 8,
   },
 });

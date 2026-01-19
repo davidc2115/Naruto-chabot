@@ -1030,14 +1030,20 @@ class ImageGenerationService {
   /**
    * Construit une description physique ULTRA-DÉTAILLÉE pour les prompts d'image
    * Inclut: visage, cheveux (couleur, longueur, type), corps, peau, attributs
+   * v5.4.0 - Option ignoreOutfit pour ne pas utiliser la tenue en NSFW
+   * @param {Object} character - Personnage
+   * @param {boolean} isRealistic - Style réaliste ou anime
+   * @param {boolean} ignoreOutfit - Si true, ignore les infos de tenue (pour NSFW)
    */
-  buildUltraDetailedPhysicalPrompt(character, isRealistic = false) {
+  buildUltraDetailedPhysicalPrompt(character, isRealistic = false, ignoreOutfit = false) {
     const parts = [];
+    
+    // v5.4.0 - En NSFW, ne pas inclure imagePrompt qui contient souvent la tenue
     const appearance = (
       (character.appearance || '') + ' ' + 
       (character.physicalDescription || '') + ' ' +
       (character.bodyType || '') + ' ' +
-      (character.imagePrompt || '')
+      (ignoreOutfit ? '' : (character.imagePrompt || '')) // Ignorer imagePrompt en NSFW
     ).toLowerCase();
     
     // === 1. GENRE ===
@@ -3094,22 +3100,28 @@ class ImageGenerationService {
   /**
    * Construit un prompt ULTRA-DÉTAILLÉ basé sur TOUS les attributs du personnage
    * Inclut: visage, cheveux, corps, morphologie, poitrine/pénis, fesses, hanches, peau, etc.
-   * v5.3.3 - MORPHOLOGIE EN PRIORITÉ MAXIMALE
+   * v5.4.0 - MORPHOLOGIE EN PRIORITÉ MAXIMALE + Option ignoreOutfit pour NSFW
+   * @param {Object} character - Personnage
+   * @param {boolean} isRealistic - Style réaliste ou anime
+   * @param {boolean} ignoreOutfit - Si true, ignore la tenue du personnage (pour NSFW)
    */
-  buildUltraDetailedPrompt(character, isRealistic = false) {
+  buildUltraDetailedPrompt(character, isRealistic = false, ignoreOutfit = false) {
     const parts = [];
     
-    // PRIORITÉ 1: Si le personnage a un imagePrompt personnalisé (format Bagbot), l'utiliser en premier
-    if (character.imagePrompt && character.imagePrompt.length > 50) {
-      // Utiliser directement le prompt optimisé du personnage
-      console.log('🎨 Utilisation imagePrompt Bagbot:', character.imagePrompt.substring(0, 100) + '...');
+    // v5.4.0 - En mode NSFW (ignoreOutfit), ne PAS utiliser imagePrompt car il contient souvent la tenue
+    if (character.imagePrompt && character.imagePrompt.length > 50 && !ignoreOutfit) {
+      // Utiliser directement le prompt optimisé du personnage (MODE SFW SEULEMENT)
+      console.log('🎨 Mode SFW: Utilisation imagePrompt Bagbot:', character.imagePrompt.substring(0, 100) + '...');
       return character.imagePrompt;
+    } else if (ignoreOutfit) {
+      console.log('🔞 Mode NSFW: imagePrompt IGNORÉ pour utiliser tenues NSFW');
     }
     
     // Parser le descriptif physique avec la nouvelle fonction
     const physicalDetails = this.parsePhysicalDescription(character);
     
-    // Collecter TOUTES les données pour analyse - PRIORITÉ physicalDescription
+    // v5.4.0 - NE PAS inclure outfit si ignoreOutfit est true
+    // Collecter TOUTES les données PHYSIQUES pour analyse (PAS LA TENUE en NSFW)
     const allData = [
       character.physicalDescription || '', // Priorité haute (nouveau format Bagbot)
       character.appearance || '',
@@ -3118,7 +3130,7 @@ class ImageGenerationService {
       character.hairColor || '',
       character.hairLength || '',
       character.eyeColor || '',
-      character.outfit || ''
+      ignoreOutfit ? '' : (character.outfit || '') // v5.4.0 - Ignorer tenue en NSFW
     ].join(' ').toLowerCase();
     
     // === UTILISER LES DÉTAILS PARSÉS ===
@@ -3245,10 +3257,14 @@ class ImageGenerationService {
       parts.push(physicalDetails.special.join(', '));
     }
     
-    // === 15. imagePrompt DU PERSONNAGE (toujours ajouter si existe) ===
-    if (character.imagePrompt) {
+    // === 15. imagePrompt DU PERSONNAGE (SEULEMENT en mode SFW) ===
+    // v5.4.0 - NE PAS ajouter en mode NSFW car il contient la tenue du personnage
+    if (character.imagePrompt && !ignoreOutfit) {
       // Ajouter le imagePrompt personnalisé qui contient souvent des détails précis
       parts.push(character.imagePrompt);
+      console.log('✅ Mode SFW: imagePrompt ajouté au prompt');
+    } else if (character.imagePrompt && ignoreOutfit) {
+      console.log('🔞 Mode NSFW: imagePrompt NON ajouté (utilisation tenues NSFW)');
     }
     
     // === 16. QUALITÉ ===
@@ -3431,13 +3447,36 @@ class ImageGenerationService {
     }
     
     // === DESCRIPTION PHYSIQUE ULTRA-DÉTAILLÉE (reste) ===
-    prompt += ', ' + this.buildUltraDetailedPhysicalPrompt(character, isRealistic);
+    // v5.4.0 - En mode NSFW, ignorer la tenue du personnage pour utiliser les tenues NSFW aléatoires
+    prompt += ', ' + this.buildUltraDetailedPhysicalPrompt(character, isRealistic, isNSFW);
     
-    // === UTILISER imagePrompt si disponible ===
-    if (character.imagePrompt) {
-      // Nettoyer et ajouter l'imagePrompt du personnage
+    // === v5.4.0 - UTILISER imagePrompt SEULEMENT EN MODE SFW ===
+    // En mode NSFW, on ne veut PAS utiliser la tenue du personnage car on utilise des tenues NSFW aléatoires
+    if (character.imagePrompt && !isNSFW) {
+      // Mode SFW: Nettoyer et ajouter l'imagePrompt du personnage
       const cleanImagePrompt = character.imagePrompt.replace(/\n/g, ' ').trim();
       prompt += ', ' + cleanImagePrompt;
+      console.log('✅ Mode SFW: imagePrompt utilisé');
+    } else if (character.imagePrompt && isNSFW) {
+      // Mode NSFW: Extraire SEULEMENT les détails physiques (sans la tenue)
+      const cleanImagePrompt = character.imagePrompt.replace(/\n/g, ' ').trim().toLowerCase();
+      
+      // Filtrer pour garder seulement les caractéristiques physiques, pas les vêtements
+      const clothingKeywords = ['wearing', 'dressed', 'outfit', 'clothes', 'clothing', 'robe', 'chemise', 
+        'pantalon', 'jupe', 'dress', 'shirt', 'pants', 'skirt', 'jacket', 'veste', 'tenue', 'habill',
+        'lingerie', 'bra', 'panties', 'underwear', 'bikini', 'maillot', 't-shirt', 'top', 'jean',
+        'uniforme', 'costume', 'suit', 'blouse', 'sweater', 'pull', 'coat', 'manteau'];
+      
+      // Si le imagePrompt contient des mots de vêtements, ne pas l'utiliser
+      const hasClothing = clothingKeywords.some(kw => cleanImagePrompt.includes(kw));
+      
+      if (!hasClothing) {
+        // Pas de vêtements mentionnés, utiliser le prompt physique
+        prompt += ', ' + character.imagePrompt.replace(/\n/g, ' ').trim();
+        console.log('✅ Mode NSFW: imagePrompt physique utilisé (pas de vêtements)');
+      } else {
+        console.log('🔞 Mode NSFW: imagePrompt IGNORÉ (contient tenue de personnage)');
+      }
     }
     
     // === APPLIQUER LE CONTEXTE DE CONVERSATION ===
@@ -4289,12 +4328,13 @@ class ImageGenerationService {
     const isAnime = lowerPrompt.includes('anime') || lowerPrompt.includes('manga');
     const isRealistic = lowerPrompt.includes('realistic') || lowerPrompt.includes('photo');
     
-    // === v5.3.62 - UTILISER imagePrompt EN PRIORITÉ (contient les meilleures descriptions) ===
+    // === v5.4.0 - UTILISER imagePrompt SEULEMENT EN MODE SFW ===
+    // En mode NSFW, ne PAS utiliser imagePrompt car il contient la tenue du personnage
     let finalPrompt = '';
     
-    // Si character.imagePrompt existe, l'utiliser EN PREMIER (le plus précis)
-    if (character && character.imagePrompt) {
-      console.log('🎯 UTILISATION imagePrompt DIRECT (priorité max)');
+    // Si character.imagePrompt existe ET qu'on est en mode SFW, l'utiliser
+    if (character && character.imagePrompt && !isNSFW) {
+      console.log('🎯 Mode SFW: UTILISATION imagePrompt DIRECT (priorité max)');
       finalPrompt = 'FULL BODY SHOT from head to feet, complete figure visible, ' + character.imagePrompt;
       
       // Vérifier si c'est un personnage rond/curvy et renforcer
@@ -4578,7 +4618,7 @@ class ImageGenerationService {
    * v5.3.75 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
    */
   physicalProfileCache = {};
-  cacheVersion = '5.4.0'; // Incrémenter pour invalider le cache
+  cacheVersion = '5.4.1'; // Incrémenter pour invalider le cache
   
   /**
    * v5.3.75 - Génère une clé unique pour un personnage basée sur ses attributs physiques
