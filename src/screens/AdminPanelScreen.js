@@ -460,10 +460,14 @@ export default function AdminPanelScreen() {
     );
   };
 
-  // v5.3.73 - Écran de chargement avec status bar padding
+  // v5.3.76 - Écran de chargement
   if (loading && !refreshing) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+      <View style={styles.rootContainer}>
+        <View style={styles.header}>
+          <Text style={styles.title}>👑 Panel Admin</Text>
+          <Text style={styles.subtitle}>Gestion des membres</Text>
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#6366f1" />
           <Text style={styles.loadingText}>Chargement des utilisateurs...</Text>
@@ -472,74 +476,93 @@ export default function AdminPanelScreen() {
     );
   }
 
-  // v5.3.73 - Rendu principal avec structure robuste
+  // v5.3.76 - Rendu principal avec structure claire
   return (
-    <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+    <View style={styles.rootContainer}>
+      {/* Header violet */}
       <View style={styles.header}>
         <Text style={styles.title}>👑 Panel Admin</Text>
         <Text style={styles.subtitle}>Gestion des membres</Text>
       </View>
       
-      <View style={styles.statsBar}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{users.length}</Text>
-          <Text style={styles.statLabel}>Membres</Text>
+      {/* Contenu avec fond clair */}
+      <View style={styles.contentContainer}>
+        {/* Stats */}
+        <View style={styles.statsBar}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{users.length}</Text>
+            <Text style={styles.statLabel}>Membres</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{users.filter(u => u.is_admin).length}</Text>
+            <Text style={styles.statLabel}>Admins</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{users.filter(u => u.is_premium).length}</Text>
+            <Text style={styles.statLabel}>Premium</Text>
+          </View>
         </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{users.filter(u => u.is_admin).length}</Text>
-          <Text style={styles.statLabel}>Admins</Text>
+        
+        {/* Recherche */}
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="🔍 Rechercher un membre..."
+            placeholderTextColor="#9ca3af"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{users.filter(u => u.is_premium).length}</Text>
-          <Text style={styles.statLabel}>Premium</Text>
+        
+        {/* Boutons de diagnostic */}
+        <View style={styles.diagnosticBar}>
+          <TouchableOpacity style={styles.diagnosticButton} onPress={runDiagnostic}>
+            <Text style={styles.diagnosticButtonText}>🔧 Diagnostic</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.fixButton} onPress={fixAllUsers}>
+            <Text style={styles.fixButtonText}>🔄 Corriger IDs</Text>
+          </TouchableOpacity>
         </View>
-      </View>
-      
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="🔍 Rechercher un membre..."
-          placeholderTextColor="#9ca3af"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
+        
+        {/* Liste des utilisateurs */}
+        <FlatList
+          data={filteredUsers}
+          renderItem={renderUser}
+          keyExtractor={item => item.id?.toString() || item.email || Math.random().toString()}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          style={styles.flatList}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#6366f1"
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyEmoji}>👥</Text>
+              <Text style={styles.emptyText}>Aucun utilisateur trouvé</Text>
+              <Text style={styles.emptySubtext}>Vérifiez la connexion au serveur</Text>
+            </View>
+          }
         />
       </View>
-      
-      {/* Boutons de diagnostic */}
-      <View style={styles.diagnosticBar}>
-        <TouchableOpacity style={styles.diagnosticButton} onPress={runDiagnostic}>
-          <Text style={styles.diagnosticButtonText}>🔧 Diagnostic</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.fixButton} onPress={fixAllUsers}>
-          <Text style={styles.fixButtonText}>🔄 Corriger IDs</Text>
-        </TouchableOpacity>
-      </View>
-      
-      <FlatList
-        data={filteredUsers}
-        renderItem={renderUser}
-        keyExtractor={item => item.id?.toString() || item.email}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#6366f1"
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyEmoji}>👥</Text>
-            <Text style={styles.emptyText}>Aucun utilisateur trouvé</Text>
-          </View>
-        }
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // v5.3.76 - Structure racine claire
+  rootContainer: {
+    flex: 1,
+    backgroundColor: '#6366f1',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  contentContainer: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
@@ -557,8 +580,11 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 15,
     backgroundColor: '#6366f1',
+  },
+  flatList: {
+    flex: 1,
   },
   title: {
     fontSize: 28,
@@ -779,5 +805,10 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#6b7280',
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    marginTop: 8,
   },
 });

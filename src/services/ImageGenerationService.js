@@ -2255,10 +2255,13 @@ class ImageGenerationService {
    * v5.3.3 - Morphologie renforcée avec exclusions
    */
   /**
-   * v5.3.59 - Génération image PROFIL comme v5.3.34
-   * MORPHOLOGIE EN PREMIER pour emphase maximale
+   * v5.3.76 - Génération image PROFIL avec support NSFW optionnel
+   * MORPHOLOGIE et POITRINE EN PREMIER pour emphase maximale
+   * @param {Object} character - Personnage à générer
+   * @param {Object} userProfile - Profil utilisateur (optionnel)
+   * @param {boolean} isNSFW - Mode NSFW pour tenues sexy (optionnel, default false)
    */
-  async generateCharacterImage(character, userProfile = null) {
+  async generateCharacterImage(character, userProfile = null, isNSFW = false) {
     // Parser l'âge correctement (gère "300 ans (apparence 25)")
     const charAge = this.parseCharacterAge(character.age);
     if (charAge < 18) {
@@ -2401,28 +2404,63 @@ class ImageGenerationService {
       }
     }
     
-    // === TENUES SFW ÉLÉGANTES POUR PROFIL ===
-    const sfwOutfits = [
-      'wearing elegant casual outfit, fashionable',
-      'wearing beautiful dress, classy',
-      'wearing smart casual clothes, stylish',
-      'wearing trendy modern outfit, chic',
-      'wearing stylish blouse, elegant',
-    ];
-    prompt += `, ${sfwOutfits[Math.floor(Math.random() * sfwOutfits.length)]}`;
-    
-    // === POSES SFW NATURELLES ===
-    const sfwPoses = [
-      'natural confident pose, warm smile',
-      'elegant standing pose, friendly expression',
-      'relaxed casual pose, inviting look',
-      'charming pose, attractive smile',
-    ];
-    prompt += `, ${sfwPoses[Math.floor(Math.random() * sfwPoses.length)]}`;
-    
-    // Qualités positives SFW
-    prompt += ', beautiful, attractive, charming';
-    prompt += ', tasteful, classy, SFW';
+    // === v5.3.76 - TENUES ET POSES SELON LE MODE ===
+    if (isNSFW) {
+      // TENUES SEXY/PROVOCANTES pour profil NSFW
+      const nsfwProfileOutfits = [
+        'wearing sexy lingerie, lace bra and panties, seductive',
+        'wearing sheer silk robe, open front, revealing',
+        'wearing tight low-cut dress, deep cleavage visible',
+        'wearing sexy corset, breasts pushed up, provocative',
+        'wearing see-through nightgown, body visible',
+        'wearing bikini, showing off curves, sexy',
+        'topless, wearing only panties, sensual',
+        'wearing sexy bodysuit, curves emphasized',
+        'wearing garter belt and stockings, seductive lingerie',
+        'wearing crop top and short skirt, sexy casual',
+      ];
+      prompt += `, ${nsfwProfileOutfits[Math.floor(Math.random() * nsfwProfileOutfits.length)]}`;
+      
+      // POSES SEXY pour profil NSFW
+      const nsfwProfilePoses = [
+        'seductive pose, bedroom eyes, inviting',
+        'sexy confident pose, hand on hip, sultry look',
+        'provocative pose, showing off body, flirtatious',
+        'sensual pose, touching body, teasing',
+        'alluring pose, emphasizing curves, sexy expression',
+        'lying on bed, inviting pose, sensual',
+        'kneeling, looking up seductively, submissive',
+        'bending forward, showing cleavage, playful',
+      ];
+      prompt += `, ${nsfwProfilePoses[Math.floor(Math.random() * nsfwProfilePoses.length)]}`;
+      
+      // Qualités NSFW
+      prompt += ', sexy, seductive, sensual, attractive, NSFW';
+      console.log('🔞 Mode PROFIL NSFW activé');
+    } else {
+      // TENUES SFW ÉLÉGANTES POUR PROFIL
+      const sfwOutfits = [
+        'wearing elegant casual outfit, fashionable',
+        'wearing beautiful dress, classy',
+        'wearing smart casual clothes, stylish',
+        'wearing trendy modern outfit, chic',
+        'wearing stylish blouse, elegant',
+      ];
+      prompt += `, ${sfwOutfits[Math.floor(Math.random() * sfwOutfits.length)]}`;
+      
+      // POSES SFW NATURELLES
+      const sfwPoses = [
+        'natural confident pose, warm smile',
+        'elegant standing pose, friendly expression',
+        'relaxed casual pose, inviting look',
+        'charming pose, attractive smile',
+      ];
+      prompt += `, ${sfwPoses[Math.floor(Math.random() * sfwPoses.length)]}`;
+      
+      // Qualités positives SFW
+      prompt += ', beautiful, attractive, charming';
+      prompt += ', tasteful, classy, SFW';
+    }
     
     // ANATOMIE STRICTE
     prompt += ', ' + this.anatomyStrictPrompt;
@@ -2479,7 +2517,17 @@ class ImageGenerationService {
       console.log('🟢 RENFORCEMENT PROFIL: CURVY SANS VENTRE');
     }
 
-    console.log(`🖼️ Génération image profil SFW (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
+    // === v5.3.76 - RENFORCEMENT FINAL DE LA POITRINE ===
+    // Répéter la taille de bonnet à la fin pour emphase maximale
+    if (character.gender === 'female' && character.bust) {
+      const bustFinal = this.getBustUltraPriority(character.bust, 'female');
+      if (bustFinal) {
+        prompt += `, ${bustFinal}`;
+        console.log(`👙 RENFORCEMENT FINAL POITRINE: ${character.bust} -> ${bustFinal.substring(0, 50)}...`);
+      }
+    }
+
+    console.log(`🖼️ Génération image profil ${isNSFW ? 'NSFW' : 'SFW'} (${isRealistic ? 'RÉALISTE' : 'ANIME'})...`);
     console.log(`📝 Prompt final: ${prompt.substring(0, 400)}...`);
     // v5.3.59 - Passer le character pour les détails physiques directs
     return await this.generateImage(prompt, character);
@@ -3457,11 +3505,24 @@ class ImageGenerationService {
         'nude except for jewelry, elegant naked',
         'nude with strategically placed hands, teasing',
       ];
-      // Sélection aléatoire de tenue basée sur le niveau
-      if (level >= 5) {
-        const selectedOutfit = nsfwOutfits[Math.floor(Math.random() * nsfwOutfits.length)];
+      // v5.3.76 - Sélection aléatoire de tenue pour TOUS les niveaux NSFW (>=2)
+      // IGNORER la tenue par défaut du personnage, utiliser tenues sexy
+      if (level >= 2) {
+        // Filtrer les tenues selon le niveau
+        let availableOutfits;
+        if (level <= 3) {
+          // Niveau 2-3: lingerie, nuisettes (pas complètement nue)
+          availableOutfits = nsfwOutfits.filter(o => !o.includes('completely nude') && !o.includes('nude except'));
+        } else if (level <= 5) {
+          // Niveau 4-5: tout sauf nue complète
+          availableOutfits = nsfwOutfits.filter(o => !o.includes('completely nude'));
+        } else {
+          // Niveau 6+: toutes les tenues y compris nue
+          availableOutfits = nsfwOutfits;
+        }
+        const selectedOutfit = availableOutfits[Math.floor(Math.random() * availableOutfits.length)];
         prompt += `, ${selectedOutfit}`;
-        console.log(`👗 TENUE NSFW: ${selectedOutfit.substring(0, 50)}...`);
+        console.log(`👗 TENUE NSFW niveau ${level}: ${selectedOutfit.substring(0, 50)}...`);
       }
       
       // === v5.3.52 - VUES/ANGLES VARIÉS ===
@@ -3661,14 +3722,23 @@ class ImageGenerationService {
       }
     }
     
-    // Renforcement poitrine
-    if (character.gender === 'female' && physicalDetails.bust.size) {
+    // === v5.3.76 - RENFORCEMENT FINAL POITRINE ULTRA-PRIORITAIRE ===
+    if (character.gender === 'female' && character.bust) {
+      const bustFinal = this.getBustUltraPriority(character.bust, 'female');
+      if (bustFinal) {
+        prompt += `, ${bustFinal}`;
+        console.log(`👙 RENFORCEMENT FINAL POITRINE SCÈNE: ${character.bust} -> ${bustFinal.substring(0, 50)}...`);
+      }
+    } else if (character.gender === 'female' && physicalDetails.bust.size) {
+      // Fallback: utiliser la taille détectée
       const bustSize = physicalDetails.bust.size.toLowerCase();
-      if (bustSize.includes('d') || bustSize.includes('e') || bustSize.includes('f') || 
+      if (bustSize.includes('dd') || bustSize.includes('e') || bustSize.includes('f') || 
           bustSize.includes('g') || bustSize.includes('h') || bustSize === 'large' || bustSize === 'huge') {
-        prompt += ', big breasts, large bust';
+        prompt += ', ((VERY LARGE breasts)), ((big heavy bust)), deep cleavage, large boobs';
+      } else if (bustSize.includes('d')) {
+        prompt += ', ((LARGE D-CUP breasts)), big full bust, visible cleavage, big boobs';
       } else if (bustSize.includes('a') || bustSize === 'small') {
-        prompt += ', small breasts, flat chest';
+        prompt += ', small breasts, flat chest, petite bust';
       }
     }
 
@@ -4349,7 +4419,7 @@ class ImageGenerationService {
    * v5.3.75 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
    */
   physicalProfileCache = {};
-  cacheVersion = '5.3.75'; // Incrémenter pour invalider le cache
+  cacheVersion = '5.3.76'; // Incrémenter pour invalider le cache
   
   /**
    * v5.3.75 - Génère une clé unique pour un personnage basée sur ses attributs physiques
