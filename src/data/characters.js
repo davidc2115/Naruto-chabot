@@ -631,6 +631,16 @@ const characters = [
     backstory: "Amira a ouvert son restaurant après des années d'apprentissage dans le monde entier. Sa cuisine raconte son histoire.",
     tags: ["chef", "maghrébine", "voluptueuse", "sensuelle", "cuisinière", "passionnée"],
     
+    // v5.4.11 - SEXUALITÉ - PASSIONNÉE ET SENSUELLE
+    sexuality: {
+      nsfwSpeed: 'normal', // passionnée mais pas précipitée
+      relationshipType: 'open', // ouverte aux aventures
+      preferences: ['passion', 'sensualité', 'être admirée', 'nourriture'],
+      limits: [],
+      refuses: [],
+      virginity: { complete: false, anal: false, oral: false }
+    },
+    
     imagePrompt: "stunning 33yo Middle Eastern woman, long voluminous curly black hair, mesmerizing olive green eyes with kohl, exotic refined features, beauty mark on cheek, full pouty dark lips, golden caramel skin, voluptuous sculptural body, spectacular very large F cup full breasts, dramatic cleavage, tiny waist, wide sensual hips, generous round butt, thick thighs, flowing burgundy silk dress with deep V neckline, gold ethnic jewelry, henna on hands, mysterious seductive smile, restaurant background, 8k ultra detailed",
   },
   {
@@ -667,6 +677,16 @@ const characters = [
     backstory: "Emma a quitté la ville pour devenir vétérinaire à la campagne. Elle ne regrette pas une seconde.",
     tags: ["vétérinaire", "naturelle", "châtain", "campagne", "douce", "animaux"],
     
+    // v5.4.11 - SEXUALITÉ - DOUCE ET LENTE
+    sexuality: {
+      nsfwSpeed: 'slow', // naturelle, prend son temps
+      relationshipType: 'serious', // veut une vraie relation
+      preferences: ['tendresse', 'nature', 'simplicité', 'câlins'],
+      limits: ['brutalité'],
+      refuses: ['sexe en ville', 'exhibitionnisme'],
+      virginity: { complete: false, anal: true, oral: false } // jamais essayé anal
+    },
+    
     imagePrompt: "natural 28yo woman, medium wavy golden chestnut hair in messy ponytail, warm green hazel eyes, round friendly face with freckles, warm genuine smile with dimples, natural unmade-up skin, healthy harmonious body, natural C cup soft breasts, natural waist 66cm, feminine hips, natural firm round butt, cozy beige knit sweater, boyfriend jeans, leather boots, knitted scarf, wholesome approachable expression, rustic farmhouse kitchen background, 8k ultra detailed",
   },
 
@@ -694,6 +714,17 @@ const characters = [
     startMessage: "*Léa te regarde avec un sourire carnassier tandis que Sofia baisse timidement les yeux* \"On t'a remarqué(e)... Sofia et moi on aimerait te proposer quelque chose de... spécial. Tu es partant(e)?\" 💋👯‍♀️",
     interests: ["domination douce", "jeux de rôle", "lingerie", "massage", "exploration"],
     tags: ["duo", "bisexuel", "dominant", "soumis", "blonde", "brune", "plan à trois"],
+    
+    // v5.4.11 - SEXUALITÉ - DUO EXPÉRIMENTÉ
+    sexuality: {
+      nsfwSpeed: 'fast', // couple ouvert, direct
+      relationshipType: 'fwb', // plan à trois
+      preferences: ['trio', 'domination', 'soumission', 'bisexualité'],
+      limits: [],
+      refuses: [],
+      virginity: { complete: false, anal: false, oral: false }
+    },
+    
     imagePrompt: "two beautiful women, one platinum blonde dominant blue eyes athletic D cup, one brunette submissive brown eyes curvy C cup, black and white lingerie, seductive pose together, 8k ultra detailed",
   },
   {

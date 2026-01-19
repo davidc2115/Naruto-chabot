@@ -13,18 +13,24 @@ class ImageGenerationService {
     this.maxRetries = 3;
     
     // STYLES SÉPARÉS - Anime vs Réaliste
+    // v5.4.11 - STYLES ANIME AMÉLIORÉS avec NSFW et corps entier
     this.animeStyles = [
-      'anime style, anime art, manga illustration, clean lineart, vibrant colors',
-      'anime artwork, japanese animation style, cel shading, detailed anime',
-      'manga style illustration, anime character design, 2D anime art',
-      'high quality anime, beautiful anime art, studio ghibli style',
+      'anime style full body illustration, anime art, clean lineart, vibrant colors, entire figure visible',
+      'anime artwork, japanese animation style, cel shading, detailed anime, complete character head to feet',
+      'manga style illustration full body, anime character design, 2D anime art, full figure',
+      'high quality anime illustration, beautiful anime art, detailed background, entire body visible',
+      'ecchi anime style, sensual anime art, detailed body, full figure illustration, soft shading',
+      'hentai art style, explicit anime illustration, detailed anatomy, full body visible, uncensored',
     ];
     
+    // v5.4.11 - STYLES SANS "PORTRAIT" pour éviter les close-ups
     this.realisticStyles = [
-      'photorealistic portrait photography, professional DSLR photo, 85mm lens',
-      'hyper-realistic photograph, studio lighting, high-end fashion photography',
-      'ultra-realistic photo, natural lighting, professional portrait',
-      'cinematic photography, movie still quality, professional photoshoot',
+      'photorealistic full body photography, professional DSLR photo, 50mm lens, entire figure visible',
+      'hyper-realistic photograph, studio lighting, high-end boudoir photography, full body shot',
+      'ultra-realistic photo, natural lighting, professional full figure photography',
+      'cinematic photography, movie still quality, professional photoshoot, complete figure head to feet',
+      'glamour photography style, sensual lighting, full body visible, magazine quality',
+      'intimate boudoir photoshoot, soft lighting, entire body from head to toes',
     ];
     
     // PROMPTS DE QUALITÉ ANATOMIQUE RENFORCÉS
@@ -152,50 +158,52 @@ class ImageGenerationService {
       ],
     };
     
-    // === GRANDE VARIÉTÉ DE LIEUX ===
+    // === v5.4.11 - LIEUX NSFW TRÈS DÉTAILLÉS ===
     this.locations = {
       bedroom: [
-        'in luxurious master bedroom, silk sheets, romantic atmosphere',
-        'on king-size bed with satin pillows, intimate setting',
-        'bedroom with fairy lights, dreamy ambiance',
-        'modern minimalist bedroom, clean aesthetic',
-        'vintage boudoir room, antique furniture, elegant',
+        'in luxurious master bedroom with silk red sheets, romantic candles, intimate boudoir atmosphere, detailed room visible',
+        'on king-size bed with satin pillows scattered, messy sheets after passion, intimate bedroom setting',
+        'bedroom with fairy lights and roses, dreamy romantic ambiance, soft bed visible',
+        'modern minimalist bedroom with city view at night, floor-to-ceiling windows, sexy atmosphere',
+        'vintage boudoir room with antique vanity mirror, velvet curtains, erotic elegant setting',
+        'hotel suite bedroom, champagne on nightstand, romantic getaway atmosphere',
       ],
       bathroom: [
-        'in marble bathroom, steam from hot water',
-        'near clawfoot bathtub, vintage elegant',
-        'in modern shower, glass walls, water streaming',
-        'by bathroom mirror, steamy atmosphere',
-        'in jacuzzi with bubbles, relaxing',
+        'in marble bathroom with steamy mirrors, wet tiles, sensual spa atmosphere',
+        'near clawfoot bathtub filled with bubbles, vintage elegant bathroom, rose petals floating',
+        'in modern shower with glass walls, water streaming on body, steam everywhere',
+        'by bathroom mirror after shower, towels on floor, steamy intimate atmosphere',
+        'in jacuzzi with bubbles and champagne, relaxing sensual, jets bubbling',
       ],
       pool: [
-        'by infinity pool, sunset background',
-        'in swimming pool, wet body glistening',
-        'poolside on lounger, tropical setting',
-        'near waterfall pool feature, exotic',
+        'by infinity pool at sunset, wet glistening body, tropical paradise background',
+        'in swimming pool water, breasts above water, wet hair, sensual',
+        'poolside on luxury lounger, tropical palm trees, bikini tan lines visible',
+        'near waterfall pool in exotic jungle, wet paradise, natural beauty',
       ],
       nature: [
-        'on private beach, waves in background',
-        'in forest clearing, natural sunlight',
-        'near lake at sunset, golden hour',
-        'in flower field, romantic natural setting',
-        'on balcony overlooking ocean',
+        'on secluded private beach, waves crashing behind, sunset golden light, nude beach atmosphere',
+        'in forest clearing with sunbeams through trees, natural goddess, earthy setting',
+        'near crystal lake at sunset, golden hour glow on skin, romantic nature',
+        'in lavender flower field, purple blooms surrounding, ethereal natural beauty',
+        'on luxury balcony overlooking ocean, salty breeze, panoramic view background',
       ],
       interior: [
-        'in penthouse with city view at night',
-        'by fireplace, warm flickering light',
-        'on leather couch in living room',
-        'in artist studio with natural light',
-        'in front of large window, silhouette',
-        'on fur rug near fireplace',
-        'in walk-in closet, mirror reflection',
+        'in penthouse with panoramic city view at night, city lights twinkling behind, luxury atmosphere',
+        'by roaring fireplace on fur rug, warm flickering orange glow, cozy intimate',
+        'on leather sofa in upscale living room, whiskey on table, sophisticated sexy',
+        'in artist studio with large windows and natural light, canvas and paint visible, creative',
+        'in front of large bay window with city skyline, silhouette lighting, mysterious',
+        'on soft white fur rug near crackling fireplace, wine glasses nearby, romantic',
+        'in walk-in closet with designer clothes, full mirror reflection, getting dressed/undressed',
       ],
       special: [
-        'hotel room with rose petals on bed',
-        'yacht deck at sunset, luxury atmosphere',
-        'private sauna, steamy hot atmosphere',
-        'backstage dressing room, glamorous',
-        'photo studio with professional lighting',
+        'hotel room with rose petals on bed and champagne, honeymoon suite, romantic',
+        'yacht deck at sunset on calm ocean, luxury pillows, glamorous atmosphere',
+        'private Finnish sauna with wooden benches, steam rising, hot naked atmosphere',
+        'backstage dressing room with makeup lights, costume rack visible, glamorous',
+        'professional photo studio with softbox lighting, white backdrop, boudoir shoot',
+        'strip club VIP room with velvet couches, purple lighting, naughty atmosphere',
       ],
     };
     
@@ -239,18 +247,22 @@ class ImageGenerationService {
       'soft diffused light, dreamy atmosphere',
     ];
     
-    // === VARIÉTÉ D'AMBIANCES ===
+    // === v5.4.11 - AMBIANCES NSFW TRÈS SENSUELLES ===
     this.moods = [
-      'romantic passionate atmosphere, desire in the air',
-      'playful teasing mood, mischievous smile',
-      'elegant sophisticated, classy sensuality',
-      'wild untamed energy, passionate intensity',
-      'soft tender intimate, loving gaze',
-      'mysterious seductive, enigmatic allure',
-      'confident powerful, dominant presence',
-      'innocent sweet, subtle sensuality',
-      'hot steamy, intense desire',
-      'relaxed comfortable, natural beauty',
+      'romantic passionate atmosphere, burning desire in eyes, hungry for love',
+      'playful teasing mood, mischievous naughty smile, come-hither look',
+      'elegant sophisticated sensuality, classy but dirty, secret desires',
+      'wild untamed raw energy, passionate animalistic intensity, primal lust',
+      'soft tender intimate connection, loving lustful gaze, deep emotional desire',
+      'mysterious seductive femme fatale, enigmatic erotic allure, dangerously sexy',
+      'confident dominant powerful presence, commanding sexual energy, in control',
+      'innocent sweet appearance hiding naughty thoughts, subtle corruption',
+      'hot steamy unbearable desire, dripping with lust, desperate need',
+      'post-orgasmic bliss, satisfied glow, relaxed after passion, messy hair',
+      'voyeuristic caught in the act, surprised but aroused, naughty secret',
+      'submissive willing pose, eager to please, obedient sensuality',
+      'dominant commanding gaze, about to take what they want, powerful sexy',
+      'aroused excited state, flushed cheeks, heavy breathing, obvious desire',
     ];
     
     // v5.4.3 - TENUES NSFW ULTRA-EXPLICITES ET SUGGESTIVES
@@ -3637,11 +3649,22 @@ class ImageGenerationService {
         console.log(`💪 CORPS NSFW: ${bodyFeaturesNSFW.substring(0, 80)}...`);
       }
       
-      // === v5.4.6 - TENUE BASÉE SUR LE NIVEAU DE RELATION AVEC LE PERSONNAGE ===
+      // === v5.4.11 - TENUE BASÉE SUR LE NIVEAU DE RELATION AVEC LE PERSONNAGE ===
       // Le level passé est le niveau de relation avec CE personnage (pas un niveau global!)
       const levelOutfit = this.getOutfitByLevel(level);
       prompt += `, ${levelOutfit}`;
       console.log(`👗 TENUE niveau RELATION ${level}: ${levelOutfit.substring(0, 60)}...`);
+      
+      // v5.4.11 - RENFORCEMENT DE LA TENUE SELON LE NIVEAU
+      if (level >= 4) {
+        prompt += ', bare breasts fully visible, topless, nipples showing';
+      }
+      if (level >= 5) {
+        prompt += ', completely nude naked, full frontal nudity, nothing covering body';
+      }
+      if (level >= 6) {
+        prompt += ', explicit nude, pussy visible, legs spread, erotic exposure';
+      }
       
       // Ambiance sensuelle
       prompt += `, ${sceneElements.mood}`;
@@ -3649,61 +3672,70 @@ class ImageGenerationService {
       // Prompt NSFW explicite RENFORCÉ SELON LE NIVEAU
       prompt += this.buildNSFWPrompt(character, isRealistic);
       
-      // Forcer le contenu NSFW selon le niveau - CHAQUE NIVEAU A SON STYLE
+      // v5.4.11 - RENFORCEMENT NSFW ULTRA-EXPLICITE selon le niveau
+      // Ces termes sont ajoutés EN PLUS de la tenue et pose par niveau
       if (level === 2) {
-        // Niveau 2: Provocante
-        prompt += ', NSFW, sexy, seductive, provocative outfit';
-        prompt += ', revealing clothes, cleavage visible, short skirt, tight dress';
-        prompt += ', sexy pose, flirtatious, adult content';
+        // Niveau 2: Provocante - Tenue sexy mais habillée
+        prompt += ', ((NSFW)), ((sexy provocative)), seductive outfit showing curves';
+        prompt += ', deep cleavage visible, short tight dress, high heels, stockings';
+        prompt += ', sexy confident pose, bedroom eyes, flirtatious, ((sensual atmosphere))';
+        prompt += ', detailed bedroom background visible, romantic lighting';
         console.log('📸 Mode NIVEAU 2: Provocante');
       } else if (level === 3) {
-        // Niveau 3: Lingerie
-        prompt += ', NSFW, sexy lingerie, bra and panties, lace underwear';
-        prompt += ', in underwear, revealing lingerie, seductive pose';
-        prompt += ', adult content, erotic, sensual';
+        // Niveau 3: Lingerie - Sous-vêtements sexy
+        prompt += ', ((NSFW)), ((sexy lingerie)), lace bra and panties only';
+        prompt += ', underwear only, nipples showing through sheer fabric, garter belt stockings';
+        prompt += ', seductive lingerie pose on bed, ((erotic sensual)), bedroom setting';
+        prompt += ', silk sheets visible, intimate boudoir atmosphere';
         console.log('📸 Mode NIVEAU 3: Lingerie');
       } else if (level === 4) {
-        // Niveau 4: Topless
-        prompt += ', NSFW, topless, bare breasts, nipples visible';
-        prompt += ', naked from waist up, exposed chest, sensual nude';
-        prompt += ', adult content, erotic, intimate';
-        console.log('📸 Mode NIVEAU 4: Topless');
+        // Niveau 4: TOPLESS - Seins nus
+        prompt += ', ((NSFW)), ((topless)), ((bare breasts fully visible)), ((nipples exposed))';
+        prompt += ', naked from waist up, wearing only panties, breasts out';
+        prompt += ', ((sensual nude)), confident topless pose, hands on body';
+        prompt += ', bedroom with soft lighting, intimate setting, sheets visible';
+        console.log('📸 Mode NIVEAU 4: TOPLESS');
       } else if (level === 5) {
-        // Niveau 5: Nu artistique
-        prompt += ', NSFW, fully nude, completely naked, artistic nudity';
-        prompt += ', naked body fully exposed, nipples visible, sensual pose';
-        prompt += ', erotic, intimate, adult only';
+        // Niveau 5: Nu artistique - Complètement nue
+        prompt += ', ((NSFW)), ((fully nude)), ((completely naked)), ((artistic nudity))';
+        prompt += ', ((naked body fully exposed)), ((nipples visible)), ((nude pose))';
+        prompt += ', nothing covering body, natural beautiful nude, elegant exposure';
+        prompt += ', boudoir setting, soft romantic lighting, luxurious bedroom';
         console.log('📸 Mode NIVEAU 5: Nu artistique');
       } else if (level === 6) {
-        // Niveau 6: Nu sensuel
-        prompt += ', NSFW, nude sensual pose, naked body glistening';
-        prompt += ', legs slightly parted, hands exploring body, erotic';
-        prompt += ', explicit adult content, passionate, intimate exposure';
+        // Niveau 6: Nu sensuel - Pose suggestive
+        prompt += ', ((NSFW)), ((nude sensual pose)), ((naked body glistening with oil))';
+        prompt += ', ((legs slightly parted)), hands exploring own body, ((erotic))';
+        prompt += ', explicit adult content, passionate expression, intimate exposure';
+        prompt += ', on silk bed, candles, romantic erotic atmosphere';
         console.log('📸 Mode NIVEAU 6: Nu sensuel');
       } else if (level === 7) {
-        // Niveau 7: Nu érotique
-        prompt += ', NSFW, erotic nude pose, legs spread invitingly';
-        prompt += ', naked on bed, hand between thighs, provocative';
-        prompt += ', explicit, sexual pose, adult only, uncensored';
+        // Niveau 7: Nu érotique - Jambes écartées
+        prompt += ', ((NSFW)), ((erotic nude)), ((legs spread invitingly))';
+        prompt += ', ((naked on bed)), hand between thighs, provocative explicit';
+        prompt += ', ((sexual pose)), pussy visible, adult only, uncensored';
+        prompt += ', messy bed, passionate atmosphere, explicit bedroom';
         console.log('📸 Mode NIVEAU 7: Nu érotique');
       } else if (level === 8) {
         // Niveau 8: Très explicite
-        prompt += ', NSFW, very explicit nude, legs wide open';
-        prompt += ', touching intimately, naked spread on bed, nothing hidden';
-        prompt += ', extreme explicit, masturbation pose, adult content';
+        prompt += ', ((NSFW)), ((very explicit nude)), ((legs wide spread open))';
+        prompt += ', ((touching pussy intimately)), naked spread on bed, nothing hidden';
+        prompt += ', extreme explicit, masturbation pose, fingers near pussy';
+        prompt += ', completely exposed, maximum nudity, uncensored adult';
         console.log('📸 Mode NIVEAU 8: Très explicite');
       } else if (level === 9) {
         // Niveau 9: Ultra explicite
-        prompt += ', NSFW, ultra explicit nude, maximum exposure';
-        prompt += ', fingers inside, orgasmic expression, most intimate pose';
-        prompt += ', extreme sexual content, explicit masturbation, uncensored';
+        prompt += ', ((NSFW)), ((ultra explicit nude)), ((maximum sexual exposure))';
+        prompt += ', ((fingers inside pussy)), orgasmic expression, most intimate pose';
+        prompt += ', extreme sexual content, explicit masturbation, ((uncensored))';
+        prompt += ', pussy spread open, juices visible, climax moment';
         console.log('📸 Mode NIVEAU 9: Ultra explicite');
       } else if (level >= 10) {
         // Niveau 10+: Maximum explicite
-        prompt += ', NSFW, maximum explicit nude, ultimate erotic exposure';
-        prompt += ', most provocative pose possible, extreme intimacy';
-        prompt += ', explicit self-pleasure, toy penetration visible, orgasm';
-        prompt += ', absolute maximum adult content, nothing censored';
+        prompt += ', ((NSFW)), ((maximum explicit nude)), ultimate erotic exposure';
+        prompt += ', most provocative pose possible, extreme intimacy, everything visible';
+        prompt += ', explicit self-pleasure, toy insertion visible, intense orgasm';
+        prompt += ', absolute maximum adult content, nothing censored, XXX rated';
         console.log('📸 Mode NIVEAU 10+: Maximum explicite');
       }
       
@@ -3756,14 +3788,23 @@ class ImageGenerationService {
     // ANATOMIE STRICTE (pour éviter les défauts)
     prompt += ', ' + this.anatomyStrictPrompt;
     
-    // QUALITÉ
+    // QUALITÉ - v5.4.11 - PAS DE "PORTRAIT" qui force les close-ups!
     if (isRealistic) {
       prompt += ', ' + this.buildRealisticQualityPrompts();
-      prompt += ', ultra-detailed photo, 8K, professional quality';
-      prompt += ', single person, solo portrait';
+      prompt += ', ultra-detailed photograph, 8K, professional quality';
+      prompt += ', single person, full body visible from head to feet';
+      if (isNSFW) {
+        prompt += ', sensual erotic photography, intimate boudoir style';
+        prompt += ', detailed background visible, NOT cropped, NOT close-up, NOT headshot';
+      }
     } else {
-      prompt += ', masterpiece, best quality, highly detailed anime';
-      prompt += ', single character, solo';
+      // ANIME NSFW - v5.4.11
+      prompt += ', masterpiece, best quality, highly detailed anime illustration';
+      prompt += ', single character, full body from head to feet';
+      if (isNSFW) {
+        prompt += ', ecchi hentai style, sensual anime, provocative pose';
+        prompt += ', detailed background, NOT cropped, NOT portrait, NOT headshot';
+      }
     }
 
     // === RENFORCEMENT FINAL DE LA MORPHOLOGIE POUR SCÈNE ===
