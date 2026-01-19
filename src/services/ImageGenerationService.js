@@ -253,28 +253,101 @@ class ImageGenerationService {
       'relaxed comfortable, natural beauty',
     ];
     
-    // TENUES NSFW ALÉATOIRES - TRÈS VARIÉES
+    // v5.3.77 - TENUES NSFW ULTRA-VARIÉES - SEXY/PROVOCANTES/EXPLICITES
     this.nsfwOutfits = [
-      'wearing sexy lingerie, lace underwear',
-      'wearing silk robe, partially open',
-      'topless, bare chest visible',
-      'wearing only towel',
-      'completely nude, artistic nudity',
-      'wearing see-through clothing',
-      'wearing bikini, swimsuit',
-      'lingerie visible under clothing',
+      // Lingerie sexy
+      'wearing sexy red lace lingerie set, push-up bra and thong',
+      'wearing black satin lingerie, garter belt and stockings',
+      'wearing sheer white lace bra and panties, barely covering',
+      'wearing matching lingerie set, sexy and seductive',
+      'wearing sexy corset pushing breasts up, matching panties',
+      
+      // Nuisettes et déshabillés
+      'wearing sheer babydoll nightgown, body visible through fabric',
+      'wearing silk negligee barely covering body, elegant sexy',
+      'wearing transparent nightie, nothing hidden underneath',
+      'wearing sexy short satin slip, riding up to show thighs',
+      'wearing open robe over lingerie, loosely tied',
+      
+      // Déshabillés transparents
+      'wearing completely see-through robe, body fully visible',
+      'wearing sheer mesh dress, curves visible through fabric',
+      'wearing transparent kimono, open front, body exposed',
+      'wearing sheer lace dress with nothing underneath',
+      
+      // Mini-jupes et robes moulantes
+      'wearing tight micro mini-skirt barely covering, no panties',
+      'wearing skin-tight bodycon dress showing every curve',
+      'wearing backless dress with no bra, side boob visible',
+      'wearing deep V-neck dress, cleavage fully exposed',
+      'wearing slit dress showing leg up to hip, no panties',
+      
+      // Topless
+      'topless, bare breasts fully exposed, wearing only panties',
+      'topless in unbuttoned shirt, breasts visible between fabric',
+      'topless wearing only shorts, confident nude pose',
+      'topless with open jacket, breasts peeking out',
+      
+      // Nue complète
+      'completely nude, full frontal nudity, nothing hidden',
+      'fully naked, artistic nudity showing entire body',
+      'nude except for high heels, elegant naked pose',
+      'completely naked lying on silk sheets, exposed',
+      'fully nude with only jewelry, sensual naked',
+      
+      // Tenues spéciales sexy
+      'wearing only stockings and heels, otherwise nude',
+      'wearing wet white t-shirt, nipples visible through',
+      'wearing string bikini barely covering, very revealing',
+      'wearing body chain jewelry only, nude underneath',
+      'wearing sexy maid outfit, very short and revealing',
+      'wearing school girl outfit, very short skirt, cleavage',
+      'wearing nurse costume, very short and tight',
     ];
     
-    // POSTURES NSFW ALÉATOIRES
+    // v5.3.77 - POSITIONS NSFW ULTRA-VARIÉES ET EXPLICITES
     this.nsfwPoses = [
-      'lying on bed, seductive pose',
-      'sitting elegantly, legs crossed',
-      'standing gracefully, hand on hip',
-      'kneeling, looking up',
-      'arching back, sensual pose',
-      'leaning against wall, alluring',
-      'reclining on couch, relaxed',
-      'stretching, body exposed',
+      // Allongée sur lit
+      'lying on bed on back, legs spread invitingly, breasts visible',
+      'lying on stomach on bed, butt raised high, looking back seductively',
+      'lying on side propped on elbow, curves emphasized, sensual gaze',
+      'sprawled on bed, legs open, inviting pose, fully exposed',
+      
+      // À genoux
+      'kneeling on bed, sitting back on heels, breasts prominent',
+      'kneeling upright, hands on thighs, looking up submissively',
+      'on knees looking up with bedroom eyes, submissive pose',
+      'kneeling with back arched, presenting body',
+      
+      // Mains sur les seins
+      'hands cupping breasts, squeezing them together, seductive',
+      'hands pressing breasts together creating deep cleavage',
+      'one hand on breast, pinching nipple, pleasure expression',
+      'arms pushing breasts together, enhancing cleavage, sexy',
+      
+      // Penchée en avant - décolleté exposé
+      'bending forward, breasts hanging, deep cleavage exposed',
+      'leaning forward showing full cleavage, provocative stance',
+      'bent over vanity, breasts visible in mirror, rear view',
+      'bending at waist, cleavage and rear both visible',
+      
+      // À quatre pattes
+      'on all fours on bed, back arched, butt raised high',
+      'crawling on bed on hands and knees, predatory sexy look',
+      'on all fours looking back over shoulder, rear prominent',
+      
+      // Debout sexy
+      'standing nude, one leg raised, confident sexy pose',
+      'standing against wall, body arched, curves emphasized',
+      'standing by window, silhouette pose, natural nude',
+      
+      // Positions spéciales
+      'legs spread wide lying on bed, fully exposed intimate view',
+      'straddling position, dominant sexy pose, looking down',
+      'yoga-like pose, legs behind head, very flexible exposed',
+      'touching self sensually, hand between thighs, aroused',
+      'pulling down panties, teasing reveal, playful',
+      'undressing, dress falling off shoulders, mid-strip',
     ];
   }
   
@@ -672,47 +745,52 @@ class ImageGenerationService {
    * v5.3.75 - Retourne une emphase TRIPLE pour la taille de bonnet
    * Répétition maximale pour forcer le modèle à respecter la taille
    */
+  /**
+   * v5.3.77 - Emphase ULTRA-DÉTAILLÉE pour la poitrine
+   * Descriptions réalistes et visuellement précises par taille de bonnet
+   */
   getBustEmphasis(bustSize) {
     if (!bustSize) return '';
     const size = bustSize.toUpperCase().trim();
     
-    // v5.3.75 - Emphase TRIPLE avec descriptions ultra-détaillées
+    // v5.3.77 - Descriptions ULTRA-RÉALISTES avec emphase visuelle
     const emphasisMap = {
-      'A': 'VERY SMALL A-CUP breasts (A-cup), nearly flat chest, tiny petite bust, small nipples, minimal cleavage, flat-chested appearance',
-      'B': 'SMALL B-CUP breasts (B-cup), modest petite bust, small perky breasts, subtle cleavage, youthful small chest',
-      'C': 'MEDIUM C-CUP breasts (C-cup), average sized bust, natural round breasts, normal cleavage, proportionate chest',
-      'D': 'LARGE D-CUP breasts (D-cup), BIG FULL ROUND BREASTS, visible cleavage, heavy bouncy bust, large chest, big boobs',
-      'DD': 'VERY LARGE DD-CUP breasts (DD-cup), BIG HEAVY BOUNCY BREASTS, DEEP PROMINENT CLEAVAGE, voluptuous bust, large heavy boobs, DD cup size breasts',
-      'E': 'HUGE E-CUP breasts (E-cup), VERY BIG HEAVY BOUNCY BREASTS, MASSIVE DEEP CLEAVAGE, extremely busty, huge boobs, E cup huge chest',
-      'F': 'HUGE F-CUP breasts (F-cup), ENORMOUS HEAVY BREASTS, GIGANTIC CLEAVAGE, extremely busty woman, massive boobs, F cup enormous bust',
-      'G': 'GIGANTIC G-CUP breasts (G-cup), EXTREMELY LARGE HEAVY BREASTS, MASSIVE BUST, giant boobs, G cup gigantic chest, huge heavy bouncy breasts',
-      'H': 'MASSIVE H-CUP breasts (H-cup), COLOSSAL HEAVY BREASTS, GIANT BUST, enormous boobs, H cup massive chest, impossibly large breasts',
-      'I': 'COLOSSAL I-CUP breasts (I-cup), IMPOSSIBLY HUGE HEAVY BREASTS, GIGANTIC BUST, I cup colossal chest, extremely massive boobs'
+      'A': 'VERY SMALL A-CUP breasts (A-cup), nearly FLAT CHEST, very petite tiny bust, small pointed nipples, barely any cleavage, flat-chested slim appearance, small perky chest',
+      'B': 'SMALL B-CUP breasts (B-cup), MODEST PETITE bust, small perky round breasts, subtle natural cleavage, youthful small chest, cute small boobs',
+      'C': 'MEDIUM C-CUP breasts (C-cup), AVERAGE SIZED bust, natural round breasts, nice cleavage, proportionate chest, medium sized boobs, balanced figure',
+      'D': 'LARGE D-CUP breasts (D-cup), BIG FULL ROUND HEAVY BREASTS, visible prominent cleavage, heavy bouncy bust, LARGE CHEST, big natural boobs, impressive size',
+      'DD': 'VERY LARGE DD-CUP breasts (DD-cup), BIG HEAVY BOUNCY ROUND BREASTS, DEEP PROMINENT CLEAVAGE, voluptuous heavy bust, VERY LARGE heavy boobs, DD cup SIZE, extremely busty, overflowing cleavage',
+      'E': 'HUGE E-CUP breasts (E-cup), VERY BIG HEAVY BOUNCY ROUND BREASTS, MASSIVE DEEP CLEAVAGE, extremely busty woman, HUGE heavy boobs, E cup HUGE chest, overflowing bust, jiggly bouncy breasts',
+      'F': 'HUGE F-CUP breasts (F-cup), ENORMOUS HEAVY ROUND BREASTS, GIGANTIC DEEP CLEAVAGE, extremely busty woman, MASSIVE heavy boobs, F cup ENORMOUS bust, breast-heavy figure, huge jiggly boobs',
+      'G': 'GIGANTIC G-CUP breasts (G-cup), EXTREMELY LARGE HEAVY ROUND BREASTS, MASSIVE ENORMOUS BUST, GIANT heavy boobs, G cup GIGANTIC chest, colossal bouncy breasts, incredibly busty',
+      'H': 'MASSIVE H-CUP breasts (H-cup), COLOSSAL HEAVY ROUND BREASTS, GIANT ENORMOUS BUST, impossibly large heavy boobs, H cup MASSIVE chest, extremely oversized breasts, huge hanging breasts',
+      'I': 'COLOSSAL I-CUP breasts (I-cup), IMPOSSIBLY HUGE HEAVY ROUND BREASTS, GIGANTIC ENORMOUS BUST, I cup COLOSSAL chest, extremely massive oversized boobs, gigantic hanging breasts'
     };
     
     return emphasisMap[size] || '';
   }
   
   /**
-   * v5.3.75 - Retourne un prompt ULTRA-PRIORITAIRE pour la poitrine
-   * Répété 3 fois avec variations pour forcer la génération correcte
+   * v5.3.77 - Retourne un prompt ULTRA-PRIORITAIRE pour la poitrine
+   * Avec emphase visuelle forte pour forcer la taille correcte
+   * RÉALISTE: Les grandes poitrines doivent être visuellement grandes!
    */
   getBustUltraPriority(bustSize, gender) {
     if (!bustSize || gender !== 'female') return '';
     const size = bustSize.toUpperCase().trim();
     
-    // Mapping avec descriptions ULTRA détaillées et répétées
+    // v5.3.77 - Mapping ULTRA-RÉALISTE avec emphase visuelle maximale
     const bustPrompts = {
-      'A': 'A-CUP BREASTS, small flat chest, petite bust, tiny breasts',
-      'B': 'B-CUP BREASTS, small perky breasts, modest bust, small chest',
-      'C': 'C-CUP BREASTS, medium breasts, average bust, normal chest size',
-      'D': 'D-CUP BREASTS, LARGE breasts, BIG BUST, full round chest, big boobs',
-      'DD': '((DD-CUP BREASTS)), ((VERY LARGE BREASTS)), ((BIG HEAVY BUST)), deep cleavage, DD cup big boobs, large bouncy breasts',
-      'E': '((E-CUP BREASTS)), ((HUGE BREASTS)), ((VERY BIG BUST)), massive cleavage, E cup huge boobs, very large heavy breasts',
-      'F': '((F-CUP BREASTS)), ((ENORMOUS BREASTS)), ((HUGE BUST)), gigantic cleavage, F cup enormous boobs, extremely large breasts',
-      'G': '((G-CUP BREASTS)), ((GIGANTIC BREASTS)), ((MASSIVE BUST)), G cup giant boobs, extremely huge heavy breasts',
-      'H': '((H-CUP BREASTS)), ((MASSIVE BREASTS)), ((COLOSSAL BUST)), H cup massive boobs, impossibly large breasts',
-      'I': '((I-CUP BREASTS)), ((COLOSSAL BREASTS)), ((GIGANTIC BUST)), I cup colossal boobs, extremely massive breasts'
+      'A': 'A-CUP BREASTS, small flat chest, petite bust, tiny breasts, nearly flat, minimal curves',
+      'B': 'B-CUP BREASTS, small perky breasts, modest bust, small chest, petite boobs',
+      'C': 'C-CUP BREASTS, medium round breasts, average bust, normal chest size, nice cleavage',
+      'D': '((D-CUP BREASTS)), ((LARGE BREASTS)), ((BIG BUST)), full round chest, big boobs, heavy breasts, visible cleavage',
+      'DD': '(((DD-CUP BREASTS))), (((VERY LARGE BREASTS))), (((BIG HEAVY BUST))), deep prominent cleavage, DD cup big heavy boobs, large bouncy round breasts, extremely busty',
+      'E': '(((E-CUP BREASTS))), (((HUGE BREASTS))), (((VERY BIG HEAVY BUST))), massive deep cleavage, E cup HUGE heavy boobs, very large bouncy round breasts, extremely busty figure',
+      'F': '(((F-CUP BREASTS))), (((ENORMOUS BREASTS))), (((HUGE HEAVY BUST))), gigantic deep cleavage, F cup ENORMOUS heavy boobs, extremely large bouncy round breasts, breast-dominant figure',
+      'G': '(((G-CUP BREASTS))), (((GIGANTIC BREASTS))), (((MASSIVE HEAVY BUST))), G cup GIANT heavy boobs, colossal bouncy round breasts, extremely oversized bust, incredibly busty',
+      'H': '(((H-CUP BREASTS))), (((MASSIVE BREASTS))), (((COLOSSAL HEAVY BUST))), H cup MASSIVE heavy boobs, impossibly large round breasts, enormous hanging bust',
+      'I': '(((I-CUP BREASTS))), (((COLOSSAL BREASTS))), (((GIGANTIC HEAVY BUST))), I cup COLOSSAL heavy boobs, extremely massive round breasts, impossibly huge bust'
     };
     
     return bustPrompts[size] || '';
@@ -3239,6 +3317,12 @@ class ImageGenerationService {
     const isNSFW = level >= 2; // NSFW seulement à partir du niveau 2
     
     console.log(`🖼️ Génération image niveau ${level} - ${isNSFW ? '🔞 NSFW' : '✨ SFW'}`);
+    
+    // v5.3.77 - Extraire les informations du profil utilisateur
+    const userProfileInfo = this.extractUserProfileForImage(userProfile, isNSFW);
+    if (userProfileInfo) {
+      console.log(`👤 Profil utilisateur intégré: ${userProfileInfo.username || 'Anonyme'}, genre=${userProfileInfo.gender}, age=${userProfileInfo.age}`);
+    }
 
     // v5.3.67 - Obtenir le profil physique prioritaire (PERSISTANT)
     const priorityPhysicalPrompt = this.buildPriorityPhysicalPrompt(character);
@@ -3392,118 +3476,145 @@ class ImageGenerationService {
       prompt += `, ${randomAngle}`;
       console.log(`📷 ANGLE: ${randomAngle.substring(0, 50)}...`);
       
-      // === v5.3.52 - POSITIONS NSFW TRÈS VARIÉES ===
+      // === v5.3.77 - POSITIONS NSFW ULTRA-VARIÉES ET EXPLICITES ===
       const nsfwPositions = [
-        // Debout
-        'standing nude, confident sexy pose, hand on hip, full body view',
-        'standing by window, nude silhouette, natural light, elegant pose',
-        'standing leaning against wall, one leg bent, provocative stance',
+        // Debout - sexy
+        'standing nude, confident sexy pose, hand on hip, full body view, legs apart',
+        'standing by window, nude silhouette, natural light, elegant pose, curves visible',
+        'standing leaning against wall, one leg bent, provocative stance, body arched',
+        'standing with back arched, breasts thrust forward, sexy confident pose',
         
-        // Allongée sur lit
-        'lying on bed on back, legs slightly spread, inviting pose, breasts visible',
-        'lying on stomach on silk sheets, butt raised, looking back seductively',
-        'lying on side, propped on elbow, curves emphasized, sensual',
-        'sprawled on bed, relaxed nude pose, carefree and sexy',
+        // Allongée sur lit - variée
+        'lying on bed on back, legs spread wide open, inviting pose, breasts and pussy visible',
+        'lying on stomach on silk sheets, butt raised high, looking back seductively',
+        'lying on side, propped on elbow, one leg raised, curves emphasized, sensual',
+        'sprawled on bed, legs open, relaxed nude pose, carefree and very sexy',
+        'lying with legs up in air, fully exposed, vulnerable sexy pose',
         
-        // À genoux
-        'kneeling on bed, sitting back on heels, breasts prominent, sensual gaze',
-        'kneeling upright, hands on thighs, submissive pose, looking up',
-        'kneeling from behind, looking over shoulder, butt emphasized',
-        'on knees looking up seductively, submissive sexy pose',
+        // À genoux - diverses
+        'kneeling on bed, sitting back on heels, breasts prominent, hands on thighs, sensual gaze',
+        'kneeling upright, hands behind head, breasts thrust forward, submissive pose',
+        'kneeling from behind, looking over shoulder, butt emphasized, back arched',
+        'on knees looking up seductively with open mouth, submissive begging pose',
+        'kneeling with legs spread, hands on knees, fully exposed, inviting',
         
-        // À quatre pattes
-        'on all fours on bed, rear view, arched back, butt prominent',
-        'on all fours looking back over shoulder, provocative pose',
-        'crawling on bed on all fours, predatory sexy pose',
+        // À quatre pattes - diverses
+        'on all fours on bed, rear view, back deeply arched, butt raised high and prominent',
+        'on all fours looking back over shoulder, presenting pose, butt and pussy visible',
+        'crawling on bed on all fours, predatory sexy pose, breasts hanging',
+        'doggy style position, face down butt up, fully exposed rear view',
         
-        // Penchée en avant
-        'bending forward, showing cleavage, provocative stance',
-        'bent over vanity, looking in mirror, rear view emphasized',
-        'leaning forward on hands, breasts hanging, seductive',
-        'bending over, rear fully visible, looking back',
+        // Mains sur les seins - explicite
+        'hands cupping breasts, squeezing them together creating deep cleavage',
+        'hands pressing breasts together, pushing up, enhancing cleavage, sexy look',
+        'one hand squeezing breast, other hand on hip, confident sensual pose',
+        'pinching own nipples, pleasure expression, self-touching pose',
+        'arms crossed under breasts, pushing them up and together, showing off',
         
-        // Montrant les fesses
-        'rear view standing, looking over shoulder, butt fully visible',
-        'lying on stomach, butt raised high, provocative',
-        'on all fours, rear emphasized, sexy arch in back',
-        'bending over showing butt, thong visible, seductive',
+        // Penchée en avant - décolleté exposé
+        'bending forward deeply, breasts hanging fully exposed, deep cleavage visible',
+        'leaning forward showing full cleavage, breasts almost falling out, provocative',
+        'bent over vanity, breasts hanging, looking in mirror, rear also visible',
+        'bending at waist, hands on knees, cleavage and rear both exposed',
+        'leaning forward on table, breasts resting on surface, seductive pose',
         
-        // Montrant les seins
-        'frontal nude pose, breasts fully visible, confident',
-        'cupping breasts with hands, provocative pose',
-        'arms raised above head, breasts prominent, sensual stretch',
-        'lying on back, breasts visible, inviting pose',
+        // Montrant les fesses - explicite
+        'rear view standing, looking over shoulder, butt and pussy fully visible from behind',
+        'lying on stomach, butt raised very high, thighs spread, rear fully visible',
+        'on all fours, rear emphasized, spreading cheeks, very explicit pose',
+        'bending over showing butt, no panties, cheeks spread, seductive',
+        'standing bent over, touching toes, rear and pussy visible from behind',
         
-        // Doigts dans la bouche
-        'finger on lips, seductive gaze, teasing pose',
-        'finger in mouth, innocent but sexy expression',
-        'biting finger seductively, playful naughty look',
-        'sucking finger suggestively, erotic pose',
+        // Montrant les seins - explicite
+        'frontal nude pose, breasts fully visible, hands framing them, confident',
+        'cupping breasts with hands, lifting them up, provocative pose, nipples between fingers',
+        'arms raised above head stretching, breasts prominent, nipples erect, sensual stretch',
+        'lying on back, breasts visible, hands on stomach, inviting open pose',
+        'jiggling breasts with hands, playful bouncy pose, fun sexy',
         
-        // Positions assises
-        'sitting on edge of bed, legs parted, inviting',
-        'sitting cross-legged on floor, nude, artistic',
-        'sitting in chair, legs spread, provocative',
-        'straddling chair backwards, butt visible',
+        // Doigts et bouche - sensuel
+        'finger on lips, seductive gaze, teasing innocent pose',
+        'finger in mouth, sucking seductively, innocent but naughty expression',
+        'biting lip seductively, bedroom eyes, playful naughty look',
+        'licking finger suggestively, tongue visible, very erotic pose',
+        'two fingers in mouth, sucking, very suggestive erotic pose',
         
-        // Positions spéciales
-        'stretching like just woke up, natural nude beauty',
-        'getting out of shower, water droplets on skin',
-        'in bathtub, wet skin glistening, sensual',
-        'undressing, dress halfway off, teasing',
-        'pulling down panties, revealing pose',
-        'legs wide open lying on bed, intimate view',
+        // Positions assises - sexy
+        'sitting on edge of bed, legs spread wide, fully exposed, inviting',
+        'sitting cross-legged on floor, nude, leaning forward, artistic sensual',
+        'sitting in chair, legs draped over armrests, spread open, provocative',
+        'straddling chair backwards, butt visible, looking back, dominant',
+        'sitting with knees up, legs apart, fully exposed, vulnerable pose',
+        
+        // Positions spéciales - très sexy
+        'stretching like just woke up, arms up, back arched, natural nude beauty',
+        'getting out of shower, wet body glistening, toweling off sensually',
+        'in bathtub, wet skin glistening, one leg raised, sensual',
+        'undressing, dress falling off shoulders revealing breasts, mid-strip tease',
+        'pulling down panties slowly, bending over, teasing reveal',
+        'legs spread extremely wide lying on bed, fully exposed intimate view, inviting',
+        'touching self between legs, eyes closed in pleasure, masturbation pose',
       ];
       const randomPosition = nsfwPositions[Math.floor(Math.random() * nsfwPositions.length)];
       prompt += `, ${randomPosition}`;
       console.log(`🎭 POSITION: ${randomPosition.substring(0, 50)}...`);
       
-      // === v5.3.52 - TENUES NSFW TRÈS VARIÉES ===
+      // === v5.3.77 - TENUES NSFW ULTRA-VARIÉES ET EXPLICITES ===
       const nsfwOutfits = [
-        // Nuisettes
-        'wearing sheer babydoll nightgown, see-through, lace trim',
-        'wearing silk slip nightgown, barely covers body, elegant sexy',
-        'wearing transparent negligee, nothing hidden underneath',
+        // Nuisettes sexy
+        'wearing sheer babydoll nightgown, see-through fabric, body visible, lace trim',
+        'wearing silk slip nightgown, barely covers body, elegant sexy, riding up',
+        'wearing transparent negligee, nothing hidden underneath, nipples visible',
+        'wearing sexy satin camisole, riding up to show panties, cleavage',
         
-        // Lingerie
-        'wearing sexy lace lingerie set, matching bra and panties',
-        'wearing red lace thong and push-up bra, seductive',
-        'wearing black mesh bodysuit, sheer, revealing',
-        'wearing garter belt with stockings, classic sexy',
+        // Lingerie variée
+        'wearing sexy red lace lingerie set, push-up bra creating deep cleavage, thong',
+        'wearing black satin lingerie, garter belt, stockings, very sexy',
+        'wearing white lace bra and matching panties, innocent but sexy',
+        'wearing sheer mesh bodysuit, body completely visible through fabric',
+        'wearing sexy corset pushing breasts up high, matching thong panties',
+        'wearing cupless bra, nipples exposed, crotchless panties',
+        'wearing sexy teddy lingerie, open at crotch, very revealing',
         
-        // Déshabillé transparent
-        'wearing sheer robe, open front, nothing underneath',
-        'wearing transparent kimono robe, body visible through',
-        'wearing see-through dress, completely visible underneath',
+        // Déshabillés transparents
+        'wearing completely see-through robe, body fully visible, nothing hidden',
+        'wearing transparent kimono robe, open front, body exposed, sexy',
+        'wearing sheer mesh dress, nipples and body visible through fabric',
+        'wearing transparent lace dress with nothing underneath, fully exposed',
         
-        // Jupes courtes
-        'wearing micro miniskirt, barely covering, no panties',
-        'wearing pleated schoolgirl skirt, lifted to show',
-        'wearing tight pencil skirt, riding up, revealing',
+        // Mini-jupes très courtes
+        'wearing micro mini-skirt barely covering, no panties, bent over',
+        'wearing pleated schoolgirl skirt lifted up showing bare bottom',
+        'wearing tight leather mini-skirt, riding up to show thighs',
+        'wearing short skirt with no panties, upskirt view visible',
         
-        // Robes moulantes
-        'wearing skin-tight dress, every curve visible',
-        'wearing backless dress, no bra, elegant sexy',
-        'wearing side-slit dress, leg fully exposed',
+        // Robes moulantes très sexy
+        'wearing skin-tight bodycon dress showing every curve of body',
+        'wearing deep V-neck dress, cleavage fully exposed to navel',
+        'wearing backless dress with no bra, side boob visible',
+        'wearing dress with high slit showing leg to hip, no panties',
         
-        // Topless
-        'topless, bare breasts exposed, wearing only panties',
-        'topless in jeans, casual but very sexy',
-        'topless with open shirt, teasing reveal',
+        // Topless variées
+        'topless, bare breasts fully exposed, wearing only tiny thong',
+        'topless with unbuttoned shirt, breasts visible between fabric',
+        'topless in short shorts, casual but very sexy, nipples visible',
+        'topless wearing only apron from behind, back and butt visible',
         
-        // Collants et leggings
-        'wearing only sheer pantyhose, nothing else, body visible',
-        'wearing yoga leggings only, topless, athletic sexy',
-        'wearing fishnet stockings, garter belt, seductive',
+        // Nue complète - variée
+        'completely nude, nothing on, full frontal exposure, confident',
+        'fully naked lying on bed, legs spread, inviting pose',
+        'nude except for high heels and jewelry, elegant naked',
+        'nude with only stockings, garter belt, sophisticated naked',
+        'completely naked on all fours, presenting rear view',
+        'nude in shower, wet body glistening, steam around',
         
-        // Talons
-        'wearing only high heels, completely nude otherwise',
-        'in stilettos and lingerie, legs emphasized',
-        
-        // Nue
-        'completely nude, nothing on, full exposure',
-        'nude except for jewelry, elegant naked',
-        'nude with strategically placed hands, teasing',
+        // Tenues spéciales très sexy
+        'wearing only body chain jewelry, otherwise completely nude',
+        'wearing wet white t-shirt, nipples clearly visible through',
+        'wearing tiny string bikini barely covering nipples and crotch',
+        'wearing sexy French maid outfit, very short, cleavage exposed',
+        'wearing naughty nurse costume, extremely short and tight',
+        'wearing bunny costume, revealing corset and tiny bottom',
       ];
       // v5.3.76 - Sélection aléatoire de tenue pour TOUS les niveaux NSFW (>=2)
       // IGNORER la tenue par défaut du personnage, utiliser tenues sexy
@@ -3739,6 +3850,15 @@ class ImageGenerationService {
         prompt += ', ((LARGE D-CUP breasts)), big full bust, visible cleavage, big boobs';
       } else if (bustSize.includes('a') || bustSize === 'small') {
         prompt += ', small breasts, flat chest, petite bust';
+      }
+    }
+
+    // v5.3.77 - Ajouter le contexte du profil utilisateur pour plus d'immersion
+    if (isNSFW && userProfileInfo) {
+      const userContextPrompt = this.buildUserProfilePromptForScene(userProfile, isNSFW);
+      if (userContextPrompt) {
+        prompt += `, ${userContextPrompt}`;
+        console.log(`👤 Contexte utilisateur ajouté: ${userContextPrompt}`);
       }
     }
 
@@ -4419,7 +4539,7 @@ class ImageGenerationService {
    * v5.3.75 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
    */
   physicalProfileCache = {};
-  cacheVersion = '5.3.76'; // Incrémenter pour invalider le cache
+  cacheVersion = '5.3.77'; // Incrémenter pour invalider le cache
   
   /**
    * v5.3.75 - Génère une clé unique pour un personnage basée sur ses attributs physiques
@@ -5104,6 +5224,144 @@ class ImageGenerationService {
     console.log(`📋 DÉTAILS PHYSIQUES COMPLETS: genre=${details.gender}, age=${details.age}, morpho=${details.bodyCategory}, cheveux=${details.hairColor}/${details.hairLength}, yeux=${details.eyeColor}, peau=${details.skinTone}`);
     
     return details;
+  }
+
+  /**
+   * v5.3.77 - Extrait et formate les informations du profil utilisateur pour la génération d'images
+   * Inclut: pseudo, genre, âge, taille bonnet (femmes), taille pénis (hommes)
+   * Ces informations peuvent être utilisées pour personnaliser les images selon les préférences
+   * @param {Object} userProfile - Profil utilisateur
+   * @param {boolean} isNSFW - Mode NSFW activé
+   * @returns {Object} Informations formatées pour l'image
+   */
+  extractUserProfileForImage(userProfile, isNSFW = false) {
+    if (!userProfile) return null;
+    
+    const profileInfo = {
+      username: null,
+      gender: null,
+      genderPrompt: null,
+      age: null,
+      agePrompt: null,
+      bust: null,
+      bustPrompt: null,
+      penis: null,
+      penisPrompt: null,
+      isAdult: false,
+    };
+    
+    // === PSEUDO ===
+    profileInfo.username = userProfile.username || userProfile.pseudo || null;
+    
+    // === GENRE ===
+    const gender = (userProfile.gender || '').toLowerCase();
+    if (gender === 'male' || gender === 'homme' || gender === 'masculin') {
+      profileInfo.gender = 'male';
+      profileInfo.genderPrompt = 'male partner, man';
+    } else if (gender === 'female' || gender === 'femme' || gender === 'féminin') {
+      profileInfo.gender = 'female';
+      profileInfo.genderPrompt = 'female partner, woman';
+    } else if (gender === 'non-binary' || gender === 'non-binaire' || gender === 'autre') {
+      profileInfo.gender = 'non-binary';
+      profileInfo.genderPrompt = 'non-binary partner, androgynous';
+    }
+    
+    // === ÂGE ===
+    const age = parseInt(userProfile.age);
+    if (!isNaN(age) && age >= 18) {
+      profileInfo.age = age;
+      profileInfo.isAdult = true;
+      
+      // Descriptions d'âge pour plus de réalisme
+      if (age < 25) {
+        profileInfo.agePrompt = 'young adult';
+      } else if (age < 35) {
+        profileInfo.agePrompt = 'adult';
+      } else if (age < 45) {
+        profileInfo.agePrompt = 'mature adult';
+      } else if (age < 55) {
+        profileInfo.agePrompt = 'mature';
+      } else {
+        profileInfo.agePrompt = 'older mature';
+      }
+    }
+    
+    // === TAILLE DE BONNET (femmes) - NSFW UNIQUEMENT ===
+    if (isNSFW && profileInfo.gender === 'female' && userProfile.bust) {
+      const bust = userProfile.bust.toUpperCase().trim();
+      profileInfo.bust = bust;
+      
+      const bustDescriptions = {
+        'A': 'small A-cup breasts, petite chest',
+        'B': 'small B-cup breasts, modest bust',
+        'C': 'medium C-cup breasts, average bust',
+        'D': 'large D-cup breasts, big bust',
+        'DD': 'very large DD-cup breasts, heavy bust',
+        'E': 'huge E-cup breasts, very large bust',
+        'F': 'enormous F-cup breasts, massive bust',
+        'G': 'gigantic G-cup breasts, extremely large bust',
+        'H': 'massive H-cup breasts, huge bust',
+        'I': 'colossal I-cup breasts, enormous bust',
+      };
+      profileInfo.bustPrompt = bustDescriptions[bust] || null;
+      console.log(`👤 USER PROFILE: Femme avec bonnet ${bust}`);
+    }
+    
+    // === TAILLE DE PÉNIS (hommes) - NSFW UNIQUEMENT ===
+    if (isNSFW && profileInfo.gender === 'male' && userProfile.penis) {
+      const penisSize = parseInt(userProfile.penis);
+      if (!isNaN(penisSize)) {
+        profileInfo.penis = penisSize;
+        
+        if (penisSize < 12) {
+          profileInfo.penisPrompt = 'small penis';
+        } else if (penisSize < 15) {
+          profileInfo.penisPrompt = 'average penis';
+        } else if (penisSize < 18) {
+          profileInfo.penisPrompt = 'big penis, large';
+        } else if (penisSize < 22) {
+          profileInfo.penisPrompt = 'huge penis, very large';
+        } else {
+          profileInfo.penisPrompt = 'enormous penis, massive';
+        }
+        console.log(`👤 USER PROFILE: Homme avec pénis ${penisSize}cm`);
+      }
+    }
+    
+    console.log(`👤 USER PROFILE: ${profileInfo.username || 'Anonyme'}, ${profileInfo.gender || 'genre inconnu'}, ${profileInfo.age || '?'} ans, adult=${profileInfo.isAdult}`);
+    
+    return profileInfo;
+  }
+
+  /**
+   * v5.3.77 - Génère un prompt basé sur le profil utilisateur pour les images de scène
+   * Utile pour personnaliser les images selon qui regarde (le "point de vue")
+   * @param {Object} userProfile - Profil utilisateur
+   * @param {boolean} isNSFW - Mode NSFW
+   * @returns {string} Prompt additionnel basé sur le profil
+   */
+  buildUserProfilePromptForScene(userProfile, isNSFW = false) {
+    const profileInfo = this.extractUserProfileForImage(userProfile, isNSFW);
+    if (!profileInfo) return '';
+    
+    const parts = [];
+    
+    // En mode NSFW, le personnage peut interagir avec le "viewer" (utilisateur)
+    if (isNSFW && profileInfo.isAdult) {
+      // Ajouter un contexte de POV (point of view)
+      if (profileInfo.gender === 'male') {
+        parts.push('POV from male viewer perspective');
+      } else if (profileInfo.gender === 'female') {
+        parts.push('POV from female viewer perspective');
+      }
+      
+      // Ajouter l'âge du viewer pour le contexte
+      if (profileInfo.agePrompt) {
+        parts.push(`viewer is ${profileInfo.agePrompt}`);
+      }
+    }
+    
+    return parts.length > 0 ? parts.join(', ') : '';
   }
 
   /**

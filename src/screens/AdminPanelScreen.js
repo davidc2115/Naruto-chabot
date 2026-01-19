@@ -23,7 +23,17 @@ export default function AdminPanelScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    loadUsers();
+    // v5.3.77 - Chargement avec gestion d'erreurs améliorée
+    const initLoad = async () => {
+      try {
+        console.log('🚀 AdminPanelScreen: Initialisation...');
+        await loadUsers();
+      } catch (error) {
+        console.error('❌ AdminPanelScreen: Erreur init:', error.message);
+        setLoading(false);
+      }
+    };
+    initLoad();
   }, []);
 
   const loadUsers = async () => {
