@@ -2442,8 +2442,8 @@ class TextGenerationService {
   }
 
   /**
-   * v5.4.0 - Instruction finale avec MÉMOIRE COMPLÈTE DE L'ÉTAT DE NUDITÉ
-   * Évite les incohérences (déshabiller quelqu'un déjà nu)
+   * v5.4.12 - Instruction finale avec MÉMOIRE COMPLÈTE
+   * Inclut: état de nudité, activité sexuelle en cours, cohérence physique
    */
   buildShortFinalInstruction(character, userProfile, context, recentMessages) {
     const charName = character.name || 'Personnage';
@@ -2458,9 +2458,39 @@ class TextGenerationService {
     // Détecter si l'utilisateur demande du sexe MAINTENANT
     const wantsSexNow = /baise|suce|prends|viens|continue|oui|encore|plus|fort|déshabille|touche|caresse/i.test(lastContent);
     
+    // === v5.4.12 - EXTRAIRE L'ACTIVITÉ SEXUELLE EN COURS ===
+    const currentActivity = this.extractCurrentSexualActivity(recentMessages, charName, userName);
+    
     // v5.4.0 - Instruction claire et flexible
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
     instruction += `\n👉 RÉPONDS À CE MESSAGE. Suis la direction de ${userName}!\n`;
+    
+    // === v5.4.12 - COHÉRENCE DE L'ACTIVITÉ EN COURS ===
+    if (currentActivity.hasActivity) {
+      instruction += `\n\n🎯🎯🎯 ACTIVITÉ EN COURS - TRÈS IMPORTANT! 🎯🎯🎯`;
+      if (currentActivity.characterHolding) {
+        instruction += `\n✋ ${charName} TIENT ACTUELLEMENT: ${currentActivity.characterHolding}`;
+        instruction += `\n→ CONTINUE cette action! Ne lâche pas soudainement!`;
+      }
+      if (currentActivity.characterTouching) {
+        instruction += `\n👆 ${charName} TOUCHE: ${currentActivity.characterTouching}`;
+      }
+      if (currentActivity.userTouching) {
+        instruction += `\n👆 ${userName} TOUCHE: ${currentActivity.userTouching}`;
+      }
+      if (currentActivity.currentAction) {
+        instruction += `\n🔥 ACTION EN COURS: ${currentActivity.currentAction}`;
+        instruction += `\n→ POURSUIS cette action ou fais-la progresser naturellement!`;
+      }
+      if (currentActivity.position) {
+        instruction += `\n🛏️ POSITION ACTUELLE: ${currentActivity.position}`;
+      }
+      instruction += `\n\n⚠️ COHÉRENCE OBLIGATOIRE:`;
+      instruction += `\n- Si tu tenais sa bite, continue de la caresser/sucer/branler`;
+      instruction += `\n- Si tu étais en train de le/la sucer, continue ou avale`;
+      instruction += `\n- Ne change PAS brusquement d'action sans raison`;
+      instruction += `\n- Tes mains restent là où elles étaient!`;
+    }
     
     // === v5.4.0 - ÉTAT DE NUDITÉ PRIORITAIRE (TRÈS IMPORTANT) ===
     if (nudityState.isCompletelyNude) {
@@ -2527,6 +2557,114 @@ class TextGenerationService {
     instruction += `\n\nRÉPONDS MAINTENANT en tant que ${charName}:`;
     
     return instruction;
+  }
+  
+  /**
+   * v5.4.12 - Extrait l'activité sexuelle EN COURS pour maintenir la cohérence
+   * Analyse les derniers messages pour savoir ce que le personnage fait actuellement
+   */
+  extractCurrentSexualActivity(recentMessages, charName, userName) {
+    const result = {
+      hasActivity: false,
+      characterHolding: null,    // Ce que le personnage tient en main
+      characterTouching: null,   // Ce que le personnage touche
+      userTouching: null,        // Ce que l'utilisateur touche
+      currentAction: null,       // L'action sexuelle en cours
+      position: null,            // Position actuelle (debout, allongé, à genoux...)
+    };
+    
+    if (!recentMessages || recentMessages.length === 0) return result;
+    
+    // Analyser les 5 derniers messages (pour avoir le contexte récent)
+    const lastMessages = recentMessages.slice(-5);
+    const allContent = lastMessages.map(m => m.content || '').join(' ').toLowerCase();
+    
+    // === DÉTECTER CE QUE LE PERSONNAGE TIENT/TOUCHE ===
+    // Patterns pour "prend en main", "tient", "saisit", etc.
+    const holdingPatterns = [
+      /(?:je\s+)?(?:prends?|tiens?|saisis?|empoigne|attrape|agrippe)\s+(?:ta|sa|la|ton|son)?\s*(bite|queue|sexe|pénis|verge|membre)/i,
+      /(?:ma\s+)?main\s+(?:sur|autour\s+de)\s+(?:ta|sa|la|ton|son)?\s*(bite|queue|sexe|pénis|verge|membre)/i,
+      /(?:je\s+)?(?:branle|masturbe|caresse)\s+(?:ta|sa|la|ton|son)?\s*(bite|queue|sexe|pénis|verge)/i,
+    ];
+    
+    for (const pattern of holdingPatterns) {
+      if (pattern.test(allContent)) {
+        result.characterHolding = 'ta bite/ton sexe';
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    // Patterns pour tenir les seins
+    const breastPatterns = [
+      /(?:je\s+)?(?:prends?|tiens?|saisis?|empoigne|attrape|pétris|malaxe)\s+(?:tes|ses|les)?\s*(seins?|poitrine|nichons?|tétons?)/i,
+      /(?:ma|mes)\s+mains?\s+sur\s+(?:tes|ses|les)?\s*(seins?|poitrine)/i,
+    ];
+    
+    for (const pattern of breastPatterns) {
+      if (pattern.test(allContent)) {
+        result.characterTouching = (result.characterTouching || '') + ' tes seins';
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    // === DÉTECTER L'ACTION SEXUELLE EN COURS ===
+    const actionPatterns = [
+      { pattern: /(?:je\s+)?(?:suce|tète|lèche)\s+(?:ta|sa|la)?\s*(?:bite|queue|sexe|gland)/i, action: 'fellation' },
+      { pattern: /(?:je\s+)?(?:branle|masturbe)\s+(?:ta|sa)?\s*(?:bite|queue)/i, action: 'branlette' },
+      { pattern: /(?:tu\s+)?(?:me\s+)?(?:pénètre|baise|prends|enfonce)/i, action: 'pénétration' },
+      { pattern: /(?:je\s+)?(?:chevauche|monte|suis\s+sur\s+toi)/i, action: 'chevauchée' },
+      { pattern: /(?:tu\s+)?(?:me\s+)?(?:lèches?|suces?)\s+(?:ma|la)?\s*(?:chatte|vulve|clitoris)/i, action: 'cunnilingus' },
+      { pattern: /(?:je\s+)?(?:doigte|caresse)\s+(?:ta|sa|ma)?\s*(?:chatte|vulve)/i, action: 'doigté' },
+      { pattern: /(?:je\s+)?(?:embrasse|lèche)\s+(?:ton|son)?\s*(?:torse|corps|cou)/i, action: 'caresses' },
+      { pattern: /(?:à\s+)?(?:quatre\s+pattes|doggy|levrette)/i, action: 'levrette' },
+      { pattern: /(?:69|soixante-neuf)/i, action: '69' },
+    ];
+    
+    for (const { pattern, action } of actionPatterns) {
+      if (pattern.test(allContent)) {
+        result.currentAction = action;
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    // === DÉTECTER LA POSITION ===
+    const positionPatterns = [
+      { pattern: /(?:je\s+suis\s+)?(?:à\s+genoux|agenouillée?)/i, position: 'à genoux' },
+      { pattern: /(?:allongée?|couchée?|étendue?)\s+(?:sur|dans)/i, position: 'allongé(e)' },
+      { pattern: /(?:debout|contre\s+le\s+mur)/i, position: 'debout' },
+      { pattern: /(?:assise?|sur\s+toi|je\s+te\s+chevauche)/i, position: 'assise sur toi' },
+      { pattern: /(?:quatre\s+pattes|à\s+quatre\s+pattes)/i, position: 'à quatre pattes' },
+      { pattern: /(?:penchée?|courbée?)/i, position: 'penchée en avant' },
+    ];
+    
+    for (const { pattern, position } of positionPatterns) {
+      if (pattern.test(allContent)) {
+        result.position = position;
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    // === DÉTECTER CE QUE L'UTILISATEUR TOUCHE ===
+    const userTouchingPatterns = [
+      { pattern: /(?:tu\s+)?(?:touches?|caresses?|prends?|tiens?)\s+(?:mes|ma)?\s*(seins?|poitrine)/i, touching: 'mes seins' },
+      { pattern: /(?:tu\s+)?(?:touches?|caresses?|doigtes?)\s+(?:ma)?\s*(chatte|vulve)/i, touching: 'ma chatte' },
+      { pattern: /(?:tu\s+)?(?:touches?|caresses?|pétris?)\s+(?:mes|mon)?\s*(fesses?|cul)/i, touching: 'mes fesses' },
+      { pattern: /(?:ta\s+)?main\s+(?:sur|entre)\s+(?:mes)?\s*(cuisses?|jambes?)/i, touching: 'mes cuisses' },
+    ];
+    
+    for (const { pattern, touching } of userTouchingPatterns) {
+      if (pattern.test(allContent)) {
+        result.userTouching = touching;
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    return result;
   }
   
   /**
