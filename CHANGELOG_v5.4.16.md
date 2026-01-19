@@ -90,11 +90,26 @@ Paramètres:
 - nofeed=true (pas de publication)
 ```
 
+## Clarification: "Freebox" = Pollinations AI
+
+L'option "Freebox" dans les paramètres utilise en réalité **Pollinations AI** (cloud).
+Le nom était historique et a été clarifié dans l'interface utilisateur.
+
+**Paramètres Pollinations AI utilisés:**
+- `model=flux` - Meilleur modèle pour la qualité
+- `safe=false` - Mode NSFW activé
+- `enhance=true` - Amélioration de qualité
+- `nofeed=true` - Images privées
+
 ## Fichiers Modifiés
 - `src/services/ImageGenerationService.js`:
   - `buildDuoPrompt()` - Tenues et poses NSFW ultra-détaillées
   - `anatomyDuoPrompt` - Instructions anatomiques améliorées
   - `negativeDuoPrompt` - Nouveau negative prompt pour duos
-  - URLs Pollinations avec `safe=false`
+  - Toutes les URLs Pollinations avec `safe=false`
+  - Commentaires clarifiés: generateWithFreebox = Pollinations AI
+- `src/screens/SettingsScreen.js`:
+  - Renommé "Freebox" → "Pollinations AI (Recommandé)"
+  - Description mise à jour avec paramètres NSFW
 - `app.json` - Version 5.4.16, versionCode 156
 - `package.json` - Version 5.4.16

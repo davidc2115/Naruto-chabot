@@ -4642,8 +4642,14 @@ class ImageGenerationService {
    * v5.3.58 - RÉÉCRITURE COMPLÈTE avec données CHARACTER DIRECTES
    * Accepte maintenant un objet character optionnel pour les détails physiques directs
    */
+  /**
+   * v5.4.16 - Génère une image avec POLLINATIONS AI (pas Freebox!)
+   * Note: Le nom "Freebox" est historique, cette fonction utilise Pollinations AI
+   * URL: https://image.pollinations.ai/prompt/
+   * Paramètres: model=flux, safe=false (NSFW), enhance=true
+   */
   async generateWithFreebox(prompt, character = null) {
-    console.log('🖼️ v5.3.58 - Génération image avec DONNÉES CHARACTER DIRECTES...');
+    console.log('🖼️ Génération via POLLINATIONS AI (model=flux, safe=false)...');
     
     await this.waitForRateLimit();
     
@@ -4708,8 +4714,9 @@ class ImageGenerationService {
       // Encoder et retourner
       const shortPrompt = finalPrompt.substring(0, 1900);
       const encodedPrompt = encodeURIComponent(shortPrompt);
-      const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
-      console.log(`📝 Prompt FINAL avec imagePrompt (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
+      // v5.4.16 - Ajout safe=false pour NSFW et nofeed=true
+      const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true&safe=false&nofeed=true`;
+      console.log(`📝 Prompt FINAL via POLLINATIONS AI (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
       return imageUrl;
     }
     
@@ -4939,8 +4946,8 @@ class ImageGenerationService {
     // safe=false permet le contenu NSFW, enhance=true améliore la qualité
     const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true&safe=false&nofeed=true`;
     
-    console.log(`🔗 URL Pollinations (seed: ${seed}, NSFW: ${nsfwLevel})`);
-    console.log(`📝 Prompt FINAL (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
+    console.log(`🔗 URL POLLINATIONS AI (seed: ${seed}, NSFW: ${nsfwLevel}, safe=false)`);
+    console.log(`📝 Prompt FINAL via POLLINATIONS (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
     
     return imageUrl;
   }

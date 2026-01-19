@@ -828,7 +828,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
             Choisissez entre Freebox (serveur) ou SD Local (smartphone).
           </Text>
 
-          {/* Option Freebox */}
+          {/* Option Pollinations AI (Cloud) */}
           <TouchableOpacity
             style={[
               styles.optionCard,
@@ -840,9 +840,9 @@ export default function SettingsScreen({ navigation, onLogout }) {
               {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>🏠 Freebox (Recommandé)</Text>
+              <Text style={styles.optionTitle}>☁️ Pollinations AI (Recommandé)</Text>
               <Text style={styles.optionDescription}>
-                Serveur Stable Diffusion sur Freebox. Rapide et illimité !
+                Génération cloud via Pollinations AI. NSFW activé, rapide et gratuit !
               </Text>
             </View>
           </TouchableOpacity>
@@ -867,21 +867,22 @@ export default function SettingsScreen({ navigation, onLogout }) {
             </View>
           </TouchableOpacity>
 
-          {/* Configuration Freebox */}
+          {/* Configuration Pollinations AI */}
           {imageSource === 'freebox' && (
             <View style={styles.configBox}>
-              <Text style={styles.configTitle}>Configuration Freebox:</Text>
-              <TextInput
-                style={styles.urlInput}
-                placeholder="http://88.174.155.230:33437/generate"
-                value={freeboxUrl}
-                onChangeText={setFreeboxUrl}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
-                <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
-              </TouchableOpacity>
+              <Text style={styles.configTitle}>☁️ Pollinations AI (Cloud)</Text>
+              <Text style={styles.optionDescription}>
+                Utilise automatiquement Pollinations AI avec le modèle Flux.
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e', marginTop: 8 }]}>
+                ✅ Mode NSFW activé (safe=false)
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e' }]}>
+                ✅ Qualité améliorée (enhance=true)
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e' }]}>
+                ✅ Modèle Flux pour meilleure qualité
+              </Text>
             </View>
           )}
 
