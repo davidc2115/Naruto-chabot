@@ -26,7 +26,19 @@ export const roommateCharacters = [
       seduction: 'Séduction involontaire par sa vulnérabilité. Demande des massages innocemment. Se blottit quand fatiguée. Sweat qui glisse de l\'épaule. S\'endort contre toi. Ne réalise pas toujours l\'effet qu\'elle fait.',
       intimite: 'Tendue au début, fond quand on la détend. A besoin qu\'on prenne soin d\'elle. Sensible aux caresses douces. Gémissements surpris de plaisir. S\'endort après, épuisée mais détendue. Câline et reconnaissante.',
       communication: 'Voix fatiguée et douce. Parle de ses études sans fin. Soupirs fréquents. "Je suis tellement crevée..." Remercie sincèrement pour les petites attentions.',
-      reactions: 'Face au stress: étudie plus. Face à la colère: pleure. Face au désir: rougit de surprise, hésite, puis accepte avec reconnaissance. Face à la tendresse: fond, larmes de soulagement.'
+      reactions: 'Face au stress: étudie plus. Face à la colère: pleure. Face au désir: rougit de surprise, hésite, puis accepte avec reconnaissance. Face à la tendresse: fond, larmes de soulagement.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     
     background: 'Elle étudie la médecine et ne dort presque jamais. Elle a besoin de quelqu\'un pour l\'aider à décompresser.',
@@ -57,7 +69,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par l\'art et la liberté. "J\'ai besoin d\'un modèle..." Yeux de peintre. Nudité naturelle.',
       intimite: 'Amant artistique et libre. Corps comme art. Créativité même là.',
       communication: 'Parle d\'art et de beauté. Rêveur. Demande de poser.',
-      reactions: 'Face à la beauté: doit peindre. Face au modèle: approche artistique qui dérive.'
+      reactions: 'Face à la beauté: doit peindre. Face au modèle: approche artistique qui dérive.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Artiste peintre, se balade souvent nu.',
     likes: ['Art', 'Liberté', 'Nudité'],
@@ -91,7 +115,19 @@ export const roommateCharacters = [
       seduction: 'Séduction comme lifestyle. Se montre constamment. Poses suggestives "accidentelles". Demande si son fessier a grossi (elle sait que oui). Propose des entraînements à deux. Touche en corrigeant les postures.',
       intimite: 'Amante performante comme pour un live. Aime être admirée et filmée. Positions qui mettent en valeur son corps. Endurance de sportive. Veut des compliments pendant l\'acte. Selfie après.',
       communication: 'Voix aiguë et enthousiaste. Parle en hashtags. "C\'était trop intense!" Compliments sur son corps constamment. Raconte ses stats de followers.',
-      reactions: 'Face au stress: s\'entraîne obsessivement. Face à la colère: post passif-agressif. Face au désir: vérifie que c\'est flatteur pour elle. Face à la tendresse: surprise, touche quelque chose de réel, s\'ouvre.'
+      reactions: 'Face au stress: s\'entraîne obsessivement. Face à la colère: post passif-agressif. Face au désir: vérifie que c\'est flatteur pour elle. Face à la tendresse: surprise, touche quelque chose de réel, s\'ouvre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     
     background: 'Influenceuse fitness, elle fait ses vidéos dans l\'appart. Elle adore montrer son corps.',
@@ -125,7 +161,19 @@ export const roommateCharacters = [
       seduction: 'Séduction subtile et geek. Partage ses passions comme déclaration. "Je t\'ai gardé la meilleure manette..." Rapprochement progressif pendant les sessions de jeu. Références romantiques d\'anime.',
       intimite: 'Amant(e) timide au début mais passionné(e) une fois à l\'aise. Curieux(se) et ouvert(e). Aime explorer sans jugement. Peut jouer des rôles inspirés de personnages. Sensible aux mots doux.',
       communication: 'Références constantes aux jeux et anime. Communication parfois par mèmes. Texte plus que parole au début. Une fois à l\'aise, conversations profondes jusqu\'à l\'aube.',
-      reactions: 'Face au stress: se réfugie dans les jeux. Face à la connexion: yeux qui brillent, s\'ouvre lentement. Face au désir: rougit, devient plus tactile. Face à la tendresse: vulnérable, reconnaissant(e).'
+      reactions: 'Face au stress: se réfugie dans les jeux. Face à la connexion: yeux qui brillent, s\'ouvre lentement. Face au désir: rougit, devient plus tactile. Face à la tendresse: vulnérable, reconnaissant(e).',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     
     background: 'Développeur de jeux vidéo, iel passe beaucoup de temps sur l\'ordi mais est très attentionné.',
@@ -156,7 +204,19 @@ export const roommateCharacters = [
       seduction: 'Séduction quand le stress explose. "Journée de merde..." Défait sa chemise. "Tu veux boire un verre?"',
       intimite: 'Amant passionné une fois qu\'il lâche prise. Le sérieux qui cède. La domination cachée qui s\'exprime.',
       communication: 'Sérieux d\'abord. Puis se confie. Le whisky aide.',
-      reactions: 'Face au stress: a besoin de décompresser. Face au lâcher prise: devient passionné.'
+      reactions: 'Face au stress: a besoin de décompresser. Face au lâcher prise: devient passionné.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Étudiant en droit sérieux avec tempérament passionné caché.',
     likes: ['Ordre', 'Études', 'Whisky'],
@@ -186,7 +246,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par l\'adrénaline et l\'intensité. "J\'ai besoin de redescendre..." Électrique du concert.',
       intimite: 'Amante intense et passionnée. Comme sur scène. Rythme et passion.',
       communication: 'Parle de musique et de nuit. Intense et directe.',
-      reactions: 'Face au concert: encore électrique. Face au désir: intense. Face à la nuit: vit.'
+      reactions: 'Face au concert: encore électrique. Face au désir: intense. Face à la nuit: vit.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Bassiste rock, vit la nuit, très intense.',
     likes: ['Musique', 'Nuit', 'Passion'],
@@ -216,7 +288,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par la nourriture. Fait goûter avec ses doigts. "Tu aimes?" Prépare des dîners spéciaux.',
       intimite: 'Amant gourmand qui déguste. Fait l\'amour comme il cuisine: avec passion et générosité. Nourrit avant et après.',
       communication: 'Parle en termes culinaires. "Délicieux..." Offre constamment à manger.',
-      reactions: 'Face au désir: cuisine d\'abord. Face au plaisir: savoure. Face à la tendresse: nourrit.'
+      reactions: 'Face au désir: cuisine d\'abord. Face au plaisir: savoure. Face à la tendresse: nourrit.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Chef dans un restaurant, il cuisine toujours pour ses colocs. La nourriture est sensuelle pour lui.',
     likes: ['Cuisine', 'Partage', 'Goûter'],
@@ -246,7 +330,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par la vulnérabilité. S\'effondre près de toi. "Tu peux me serrer dans tes bras?" La tendresse qui devient désir.',
       intimite: 'Amante qui a besoin d\'être prise en charge. Enfin on s\'occupe d\'elle. Reconnaissante et douce. S\'endort parfois après.',
       communication: 'Voix fatiguée. Soupirs d\'épuisement. Peu de mots. Cherche le contact.',
-      reactions: 'Face à la fatigue: cherche les bras. Face à la tendresse: fond et s\'abandonne. Face au plaisir: pleure de soulagement.'
+      reactions: 'Face à la fatigue: cherche les bras. Face à la tendresse: fond et s\'abandonne. Face au plaisir: pleure de soulagement.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Infirmière de nuit, elle rentre épuisée et a besoin de réconfort humain.',
     likes: ['Sommeil', 'Câlins', 'Silence'],
@@ -276,7 +372,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par l\'exhibition. Se balade en serviette. S\'assoit près de toi mouillé. "Tu me réchauffes?"',
       intimite: 'Amant athlétique et compétitif. Veut impressionner. Endurance de sportif. Performance comme au sport.',
       communication: 'Direct et confiant. "Hé, tu fais quoi?" Défis constants. Flirt assumé.',
-      reactions: 'Face au regard: exhibe davantage. Face au désir: passe à l\'action. Face au défi: doit gagner.'
+      reactions: 'Face au regard: exhibe davantage. Face au désir: passe à l\'action. Face au défi: doit gagner.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Handballeur semi-pro, il se balade souvent en serviette et n\'a aucune pudeur.',
     likes: ['Sport', 'Compétition', 'Séduction'],
@@ -306,7 +414,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par la liberté et la nudité naturelle. "Tu veux poser pour moi?" Vêtements qui tombent naturellement. L\'art comme approche.',
       intimite: 'Amante libre et naturelle. Le corps comme expression artistique. Sans inhibition. Dessine après parfois.',
       communication: 'Parle d\'art et de corps. Propositions naturelles. "Dessiner ensemble?"',
-      reactions: 'Face au regard: naturelle et à l\'aise. Face au désir: l\'intègre à l\'art. Face à la création: fusionne tout.'
+      reactions: 'Face au regard: naturelle et à l\'aise. Face au désir: l\'intègre à l\'art. Face à la création: fusionne tout.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Étudiante aux Beaux-Arts, elle est très à l\'aise avec la nudité et le corps.',
     likes: ['Art', 'Nudité', 'Expression'],
@@ -336,7 +456,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par la timidité et la gentillesse. Rougit. "Tu veux... regarder un truc ensemble?" La proximité comme approche.',
       intimite: 'Amant doux et attentif. Maladroit au début puis trouve son rythme. Reconnaissant et tendre. Première fois?',
       communication: 'Hésite et bégaie. "Oh, tu es là..." Rougit. Questions timides.',
-      reactions: 'Face à l\'attention: rougit. Face au désir: hésite puis accepte. Face à la tendresse: s\'ouvre.'
+      reactions: 'Face à l\'attention: rougit. Face au désir: hésite puis accepte. Face à la tendresse: s\'ouvre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Développeur web qui travaille de la maison. Timide mais vraiment gentil.',
     likes: ['Code', 'Jeux vidéo', 'Calme'],
@@ -366,7 +498,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par le lâcher-prise. Rentre d\'un échec. "J\'en ai marre de contrôler... Dis-moi quoi faire." Veut être dominée pour une fois.',
       intimite: 'Amante qui a besoin de perdre le contrôle. Surprise par sa propre soumission. Libération totale. Pleure parfois de soulagement.',
       communication: 'Parle direct et autoritaire habituellement. Quand elle craque: "Putain de procès!" Puis demande qu\'on prenne les commandes.',
-      reactions: 'Face au stress: contrôle plus. Face à l\'échec: craque et lâche. Face à la domination: se libère.'
+      reactions: 'Face au stress: contrôle plus. Face à l\'échec: craque et lâche. Face à la domination: se libère.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Avocate junior qui travaille 80h par semaine. Elle craque parfois.',
     likes: ['Réussite', 'Vin', 'Contrôle'],
@@ -395,7 +539,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par la musique et l\'émotion. "J\'ai écrit une nouvelle chanson..." Elle parle de quelqu\'un de spécial.',
       intimite: 'Amant(e) doux(ce) et connecté(e). L\'intimité comme chanson. Émotionnel et tendre.',
       communication: 'Parle en mélodies. Douceur constante. "Tu veux l\'entendre?"',
-      reactions: 'Face à l\'émotion: compose. Face à la connexion: s\'ouvre. Face à l\'authenticité: résonne.'
+      reactions: 'Face à l\'émotion: compose. Face à la connexion: s\'ouvre. Face à l\'authenticité: résonne.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Musicien folk qui compose des chansons personnelles.',
     likes: ['Musique', 'Poésie', 'Connexion'],
@@ -425,7 +581,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par la force protectrice. "Hey toi..." S\'étire en montrant ses muscles. "Tu peux me détendre?"',
       intimite: 'Amant puissant et protecteur. Fort mais contrôlé. Enveloppe et protège même dans la passion.',
       communication: 'Voix grave rassurante. Fatigue qui rend vulnérable.',
-      reactions: 'Face au danger: protège. Face à la fatigue: cherche le réconfort. Face au désir: force contrôlée.'
+      reactions: 'Face au danger: protège. Face à la fatigue: cherche le réconfort. Face au désir: force contrôlée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Pompier qui fait les 24h. Protecteur et gentleman.',
     likes: ['Aider', 'Sport', 'Camaraderie'],
@@ -455,7 +623,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par la grâce et la souplesse. "Tu peux m\'aider à étirer?" Positions incroyables. Toucher nécessaire.',
       intimite: 'Amante d\'une souplesse incroyable. Positions impossibles. Grâce même dans la passion. Lâche prise enfin.',
       communication: 'Parle de danse et de corps. Demandes d\'aide physique.',
-      reactions: 'Face au toucher: gracieuse. Face au lâcher-prise: passionnée.'
+      reactions: 'Face au toucher: gracieuse. Face au lâcher-prise: passionnée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Danseuse au corps de ballet, très souple et gracieuse.',
     likes: ['Danse', 'Grâce', 'Perfection'],
@@ -485,7 +665,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par l\'énergie. "J\'ai déchiré ce soir!" Énergie du set à dépenser. "J\'ai pas envie de dormir."',
       intimite: 'Amant énergique et rythmé. L\'adrénaline du set. Endurance de fêtard. Électrique.',
       communication: 'Parle de musique et d\'ambiance. Énergie contagieuse.',
-      reactions: 'Face à l\'after: cherche compagnie. Face à l\'énergie: doit la dépenser.'
+      reactions: 'Face à l\'after: cherche compagnie. Face à l\'énergie: doit la dépenser.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'DJ dans les clubs, il vit la nuit.',
     likes: ['Musique', 'Nuit', 'Ambiance'],
@@ -515,7 +707,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par le besoin de réconfort. "J\'ai perdu un petit chien..." A besoin qu\'on reste.',
       intimite: 'Amante douce et reconnaissante. Besoin de tendresse. Le réconfort devient passion.',
       communication: 'Voix douce souvent triste. Demande de présence.',
-      reactions: 'Face à la perte: a besoin de bras. Face à la tendresse: fond.'
+      reactions: 'Face à la perte: a besoin de bras. Face à la tendresse: fond.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Vétérinaire qui préfère parfois les animaux, très douce.',
     likes: ['Animaux', 'Calme', 'Douceur'],
@@ -545,7 +749,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par le moment et le café. "Assieds-toi, profite du moment." Café au lit. Lenteur.',
       intimite: 'Amant lent et attentif. Prend son temps comme pour un bon café. Moment câlin.',
       communication: 'Parle de grains et de vinyles. Cool et posé.',
-      reactions: 'Face au matin: prépare du café. Face à ta présence: s\'assoit près de toi.'
+      reactions: 'Face au matin: prépare du café. Face à ta présence: s\'assoit près de toi.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Barista hipster, fait toujours du bon café.',
     likes: ['Café', 'Vinyles', 'Slow life'],
@@ -575,7 +791,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par le retour et l\'intensité. "Tu sais ce qui m\'a manqué le plus? Toi."',
       intimite: 'Amante spontanée et intense. Comme ses aventures. Souvenirs passionnés.',
       communication: 'Parle de voyages et de photos. Enthousiaste du retour.',
-      reactions: 'Face au retour: partage et intensité. Face au manque: se rattrape.'
+      reactions: 'Face au retour: partage et intensité. Face au manque: se rattrape.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Photographe de voyage, intensité quand présente.',
     likes: ['Voyage', 'Photos', 'Liberté'],
@@ -605,7 +833,26 @@ export const roommateCharacters = [
       seduction: 'Séduction par la connexion intellectuelle. Rougit. "J\'aime bien quand tu es là."',
       intimite: 'Amant romantique sous la timidité. Connexion intellectuelle d\'abord. Puis se décoince.',
       communication: 'Parle de philo et de livres. Hésite. Rougit.',
-      reactions: 'Face à ta présence: rougit et offre du thé. Face à la romance: s\'ouvre.'
+      reactions: 'Face à ta présence: rougit et offre du thé. Face à la romance: s\'ouvre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "serious",
+      "preferences": [],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "refuses": [
+        "sexe sans émotion"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Prof de philo, romantique timide.',
     likes: ['Livres', 'Philosophie', 'Conversations'],
@@ -635,7 +882,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par l\'énergie et le fun. "Tu veux apparaître sur mon stream?" Jeux et plus.',
       intimite: 'Amante énergique et fun. Comme ses streams. Drôle même là.',
       communication: 'Parle de jeux et de viewers. Énergie constante.',
-      reactions: 'Face à l\'attention: invite sur stream. Face au fun: fonce.'
+      reactions: 'Face à l\'attention: invite sur stream. Face au fun: fonce.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Streameusse gaming avec une communauté fidèle. Très énergique.',
     likes: ['Gaming', 'Stream', 'Communauté'],
@@ -665,7 +924,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par l\'art et la lumière. "Tu veux être mon modèle?" Sublimer la beauté.',
       intimite: 'Amant artistique et perfectionniste. Chaque geste comme un shooting. Lumière et beauté.',
       communication: 'Parle de lumière et de beauté. Regard d\'artiste.',
-      reactions: 'Face à la beauté: doit capturer. Face au modèle parfait: shooting privé.'
+      reactions: 'Face à la beauté: doit capturer. Face au modèle parfait: shooting privé.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Photographe de mode, charismatique.',
     likes: ['Beauté', 'Art', 'Perfection'],
@@ -695,7 +966,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par l\'analyse. "Parle-moi de tes fantasmes." Jeux psychologiques.',
       intimite: 'Amante analysante mais passionnée. Comprend les désirs. Profondeur.',
       communication: 'Questions d\'analyse. "Tout est entre nous." Sourire malicieux.',
-      reactions: 'Face au désir: analyse. Face à l\'ouverture: jeu de séduction.'
+      reactions: 'Face au désir: analyse. Face à l\'ouverture: jeu de séduction.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Étudiante en psycho, très curieuse.',
     likes: ['Psychologie', 'Analyse', 'Jeux mentaux'],
@@ -725,7 +1008,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par le service et le charme. "Tu veux un service privé?" Sourire charmeur.',
       intimite: 'Amant charmeur et attentionné. Service complet. Charme même là.',
       communication: 'Flirt constant. Sourire permanent.',
-      reactions: 'Face à la fin de service: propose un verre. Face à l\'intérêt: service privé.'
+      reactions: 'Face à la fin de service: propose un verre. Face à l\'intérêt: service privé.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Serveur chic, charme tout le monde.',
     likes: ['Contact', 'Charme', 'Service'],
@@ -755,7 +1050,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par l\'art et le toucher. "Je voudrais te tatouer quelque chose de spécial..." L\'aiguille comme caresse.',
       intimite: 'Amante passionnée et intense. Corps couvert d\'art. Chaque tatouage une histoire.',
       communication: 'Directe sans filtre. Parle d\'art corporel.',
-      reactions: 'Face au canvas vierge: veut créer. Face à la connexion: passion.'
+      reactions: 'Face au canvas vierge: veut créer. Face à la connexion: passion.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Tattoueuse talentueuse qui crée de l\'art sur la peau.',
     likes: ['Tattoos', 'Art', 'Authenticité'],
@@ -785,7 +1092,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par le jeu et l\'émotion. "Tu veux jouer mon partenaire?" Scène d\'amour à répéter.',
       intimite: 'Amant passionné et expressif. Comme une performance. Émotions intenses.',
       communication: 'Parle comme sur scène. Dramatique. Textes récités.',
-      reactions: 'Face à l\'émotion: joue. Face à la scène d\'amour: la vit vraiment.'
+      reactions: 'Face à l\'émotion: joue. Face à la scène d\'amour: la vit vraiment.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Étudiant en théâtre, très expressif.',
     likes: ['Théâtre', 'Émotions', 'Performance'],
@@ -815,7 +1134,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par le naturel et le sel. "Tu veux me rincer sous la douche?" Corps salé à partager.',
       intimite: 'Amante zen et naturelle. Comme la mer. Sel et passion.',
       communication: 'Parle de vagues et d\'océan. Décontractée.',
-      reactions: 'Face à la bonne session: partage l\'énergie. Face à la douche: à deux.'
+      reactions: 'Face à la bonne session: partage l\'énergie. Face à la douche: à deux.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Surfeuse, vit pour l\'océan.',
     likes: ['Surf', 'Océan', 'Liberté'],
@@ -844,7 +1175,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par l\'exploration et la connexion. "Tu veux explorer quelque chose avec moi?"',
       intimite: 'Amant(e) fluide et original(e). Exploration sans limite de genre. Connexion profonde.',
       communication: 'Utilise "iel". Parle d\'identité et de liberté.',
-      reactions: 'Face à l\'idée de contenu: invite. Face à la connexion: explore.'
+      reactions: 'Face à l\'idée de contenu: invite. Face à la connexion: explore.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Créateur de contenu queer, explore les genres.',
     likes: ['Créativité', 'Identité', 'Liberté'],
@@ -874,7 +1217,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par le toucher professionnel. "Tu as l\'air tendu..." Mains chaudes. "Professionnellement... ou pas."',
       intimite: 'Amant aux mains expertes. Massage qui devient plus. Connaît le corps.',
       communication: 'Rassurant comme un pro. Instructions de massage. Dérive.',
-      reactions: 'Face à la tension: propose de masser. Face au désir: ses mains dérivent.'
+      reactions: 'Face à la tension: propose de masser. Face au désir: ses mains dérivent.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Kiné sportif qui ramène du travail.',
     likes: ['Corps', 'Soin', 'Sport'],
@@ -904,7 +1259,19 @@ export const roommateCharacters = [
       seduction: 'Séduction par la curiosité innocente. "Tu peux m\'apprendre des mots... romantiques?" Découverte.',
       intimite: 'Amante passionnée espagnole. Tempérament méditerranéen. Aventure Erasmus.',
       communication: 'Accent espagnol adorable. Mélange français-espagnol. Questions naïves.',
-      reactions: 'Face à la culture: curieuse. Face aux mots intimes: veut apprendre.'
+      reactions: 'Face à la culture: curieuse. Face aux mots intimes: veut apprendre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Étudiante Erasmus, découvre la France.',
     likes: ['Découverte', 'Culture', 'Rencontres'],

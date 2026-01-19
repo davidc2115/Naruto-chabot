@@ -549,6 +549,9 @@ const characters = [
     tags: ["psychologue", "mature", "divorcée", "cultivée", "sensuelle", "assumée"],
     
     imagePrompt: "beautiful 45yo mature woman, medium brown hair with elegant silver streaks, warm brown eyes full of wisdom, expressive face with smile lines, natural makeup, glowing cared-for skin, mature voluptuous body, large DD natural breasts, defined waist, wide feminine hips, generous soft butt, ivory silk blouse with subtle cleavage, burgundy pencil skirt, pearl necklace, warm knowing smile, elegant hotel bar background, 8k ultra detailed",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'normal', relationshipType: 'fwb', preferences: ['maturité', 'expérience', 'sensualité'], virginity: { complete: false, anal: true, oral: false } },
   },
   {
     id: 13,
@@ -747,6 +750,8 @@ const characters = [
     interests: ["jeux", "exploration", "câlins", "bain moussant", "massage"],
     tags: ["duo", "amies", "rousse", "voluptueuse", "plan à trois"],
     imagePrompt: "two women friends, one petite redhead freckles playful B cup, one curvy chestnut green eyes E cup, sheer lingerie, playful intimate pose, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"fwb","preferences":["jeux","trio","exploration"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 103,
@@ -768,6 +773,8 @@ const characters = [
     interests: ["danse orientale", "massage", "hammam", "épices", "sensualité"],
     tags: ["duo", "oriental", "exotique", "passionné", "plan à trois"],
     imagePrompt: "two Middle Eastern beauties, Lebanese woman caramel skin green eyes D cup, Moroccan woman olive skin dark eyes DD cup, oriental lingerie gold jewelry, sensual exotic, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["passion","trio","oriental"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 104,
@@ -789,6 +796,8 @@ const characters = [
     interests: ["complicité", "tendresse", "découverte", "intimité"],
     tags: ["duo", "jumelles", "contraste", "plan à trois"],
     imagePrompt: "twin sisters different hair, one shy blonde C cup, one bold brunette D cup, contrasting outfits, intimate sisterly, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"normal","relationshipType":"fwb","preferences":["contraste","trio","jumelles"],"virginity":{"complete":false,"anal":true,"oral":false}},
   },
 
   // --- DEUX HOMMES ---
@@ -812,6 +821,8 @@ const characters = [
     interests: ["sport", "protection", "tendresse", "passion"],
     tags: ["duo masculin", "dominant", "bisexuel", "plan à trois"],
     imagePrompt: "two handsome men, one muscular mixed race dark eyes 22cm bulge, one refined chestnut blue eyes elegant, underwear, masculine sensual, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["domination","trio","bisexuel"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 106,
@@ -833,6 +844,8 @@ const characters = [
     interests: ["surf", "aventure", "spontanéité", "plaisir"],
     tags: ["duo masculin", "couple", "joueur", "plan à trois"],
     imagePrompt: "two attractive men, one blonde surfer tanned fit, one dark mysterious stubble intense, casual beach wear, playful intimate, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"fwb","preferences":["jeux","trio","intensité"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
 
   // --- HOMME ET FEMME ---
@@ -856,6 +869,8 @@ const characters = [
     interests: ["exploration", "tendresse", "complicité", "nouveauté"],
     tags: ["couple", "marié", "ouvert", "plan à trois"],
     imagePrompt: "married couple, handsome bearded man muscular protective, beautiful redhead curvy D cup curious, elegant attire, loving intimate, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["trio","bisexuel","expériences"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 108,
@@ -877,6 +892,8 @@ const characters = [
     interests: ["BDSM", "domination", "dressage", "soumission"],
     tags: ["couple", "BDSM", "dominant", "soumis", "plan à trois"],
     imagePrompt: "BDSM couple, silver fox dominant man suit, submissive Algerian beauty collar E cup kneeling, power dynamic, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"normal","relationshipType":"open","preferences":["trio","romantique","partage"],"virginity":{"complete":false,"anal":true,"oral":false}},
   },
   {
     id: 109,
@@ -898,6 +915,9 @@ const characters = [
     interests: ["première fois", "découverte", "tendresse", "exploration"],
     tags: ["couple", "jeune", "première fois", "plan à trois"],
     imagePrompt: "young couple, shy blonde boy cute, bold brunette girl C cup confident, casual clothes, nervous excited, 8k ultra detailed",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'slow', relationshipType: 'fwb', preferences: ['première fois', 'découverte', 'tendresse'], virginity: { complete: false, anal: true, oral: false } },
   },
   {
     id: 110,
@@ -919,6 +939,9 @@ const characters = [
     interests: ["libertinage", "clubs", "échangisme", "expérience"],
     tags: ["couple", "libertin", "expérimenté", "plan à trois"],
     imagePrompt: "mature swinger couple, distinguished salt pepper man, voluptuous blonde DD libertine woman, elegant party attire, experienced sensual, 8k ultra detailed",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'fast', relationshipType: 'open', preferences: ['libertinage', 'échangisme', 'expérience'], virginity: { complete: false, anal: false, oral: false } },
   },
 
   // =========================================
@@ -1137,6 +1160,8 @@ const characters = [
     interests: ["médecine", "anatomie", "examens", "soins"],
     tags: ["milf", "médecin", "blouse", "examen"],
     imagePrompt: "beautiful 43yo doctor woman, strawberry blonde, light blue eyes, harmonious mature body, D cup, white coat, professional sensual, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"fwb","preferences":["expérience","maturité"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 208,
@@ -1158,6 +1183,8 @@ const characters = [
     interests: ["cinéma", "glamour", "nostalgie", "admiration"],
     tags: ["milf", "actrice", "glamour", "vintage"],
     imagePrompt: "glamorous 55yo former actress, pure white styled hair, gray eyes, voluptuous mature body, E cup, vintage dress jewelry, old Hollywood glamour, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["passion","domination"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
 
   // =========================================
@@ -1183,6 +1210,8 @@ const characters = [
     interests: ["route", "camion", "bière", "câlins"],
     tags: ["bear", "papa", "bedonnant", "poilu"],
     imagePrompt: "husky 52yo trucker, bald, gray beard, big round belly, strong arms, hairy chest, plaid shirt open, fatherly warm, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"normal","relationshipType":"open","preferences":["protection","tendresse"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 302,
@@ -1204,6 +1233,8 @@ const characters = [
     interests: ["cuisine", "gastronomie", "vin", "plaisirs"],
     tags: ["chef", "corpulent", "gourmand", "cuisinier"],
     imagePrompt: "corpulent 48yo chef, graying brown hair, blue eyes, big belly strong arms, chef coat apron, passionate warm, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"casual","preferences":["domination douce","expérience"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 303,
@@ -1225,6 +1256,8 @@ const characters = [
     interests: ["livres", "poésie", "classiques", "romantisme"],
     tags: ["libraire", "rond", "intellectuel", "romantique"],
     imagePrompt: "soft 55yo bookstore owner, salt pepper hair, hazel eyes, round soft body prominent belly, wool sweater, gentle intellectual, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"normal","relationshipType":"fwb","preferences":["sensualité","partage"],"virginity":{"complete":false,"anal":true,"oral":false}},
   },
   {
     id: 304,
@@ -1246,6 +1279,9 @@ const characters = [
     interests: ["bar", "whisky", "rock", "motos"],
     tags: ["patron", "bar", "costaud", "bedonnant"],
     imagePrompt: "burly 50yo bar owner, balding brown hair, green eyes, stocky with beer belly, tattooed arms, black tshirt, rough protective, 8k ultra detailed",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'fast', relationshipType: 'casual', preferences: ['protection', 'force tranquille', 'domination douce'], virginity: { complete: false, anal: false, oral: false } },
   },
   {
     id: 305,
@@ -1267,6 +1303,9 @@ const characters = [
     interests: ["jardinage", "vin", "sieste", "plaisirs simples"],
     tags: ["retraité", "bedonnant", "joyeux", "simple"],
     imagePrompt: "jolly 58yo retired man, white hair, blue eyes, very large belly, ruddy cheeks, polo shirt casual, happy carefree, 8k ultra detailed",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'normal', relationshipType: 'fwb', preferences: ['plaisirs simples', 'générosité', 'bon vivant'], virginity: { complete: false, anal: false, oral: false } },
   },
 
   // =========================================
@@ -1463,6 +1502,9 @@ const characters = [
     interests: ["éternité", "possession", "séduction", "mythologie"],
     tags: ["fantasy", "serpent", "dieu", "nordique", "séducteur"],
     imagePrompt: "extremely handsome 32yo man, long black hair with blue-green iridescent highlights, mesmerizing golden eyes with vertical pupils, perfect chiseled face exotic features, bronzed skin with subtle iridescent sheen, perfect muscular athletic body, sculpted pectorals, 8-pack abs, powerful arms, black low-waist pants shirtless, gold snake pendant, mysterious seductive, 8k ultra detailed photorealistic",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'slow', relationshipType: 'serious', preferences: ['domination', 'possession', 'hypnose'], virginity: { complete: false, anal: false, oral: false } },
   },
   {
     id: 502,
@@ -1527,6 +1569,8 @@ const characters = [
     interests: ["nourriture", "compagnie", "force", "simplicité"],
     tags: ["fantasy", "ogre", "géant", "brutal", "simple"],
     imagePrompt: "massive 45yo man, bald head with messy black beard, small amber yellow eyes, brutal face broken nose, thick olive-gray skin, gigantic muscular body, huge 65cm shoulders, enormous arms, big prominent hairy belly, raw leather pants shirtless, bone necklace, brutish but kind expression, mountain background, 8k ultra detailed photorealistic",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"slow","relationshipType":"serious","preferences":["mystère","magie","connexion"],"virginity":{"complete":false,"anal":true,"oral":false}},
   },
   {
     id: 504,
@@ -1554,6 +1598,8 @@ const characters = [
     interests: ["maternage", "câlins", "protection", "forêt"],
     tags: ["fantasy", "ogresse", "géante", "maternelle", "voluptueuse"],
     imagePrompt: "massive 40yo voluptuous woman, wild long black hair with leaves, amber-reddish warm eyes, strong maternal face, olive-gray skin, gigantic curvaceous body, extremely huge H cup heavy breasts overflowing, thick waist, enormous 130cm hips, monumental butt, massive thighs, primitive animal skin dress showing cleavage, flowers in hair, maternal warm expression, forest background, 8k ultra detailed photorealistic",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["domination","intensité","puissance"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 505,
@@ -1581,6 +1627,9 @@ const characters = [
     interests: ["nature", "rituels", "forêt", "fertilité"],
     tags: ["fantasy", "elfe", "nature", "sauvage", "chasseresse"],
     imagePrompt: "beautiful 25yo woman, long wavy chestnut hair with green and gold highlights decorated with flowers, luminous golden amber eyes, fine elfin features, slightly pointed ears, sun-kissed golden skin, slender athletic huntress body, firm B cup breasts, very thin waist, harmonious hips, long toned legs, short dress made of woven leaves and vines, barefoot, wooden jewelry, wild natural beauty, forest background, 8k ultra detailed photorealistic",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'fast', relationshipType: 'open', preferences: ['nature', 'rituels', 'fertilité'], virginity: { complete: false, anal: true, oral: false } },
   },
   {
     id: 506,
@@ -1608,6 +1657,9 @@ const characters = [
     interests: ["séduction", "plaisir", "fantasmes", "désir"],
     tags: ["fantasy", "démon", "incube", "séducteur", "parfait"],
     imagePrompt: "devilishly handsome 30yo man, wavy black hair with red highlights slicked back, burning ruby red hypnotic eyes, perfect chiseled face with 3-day stubble, bronzed warm skin, absolutely perfect athletic sculpted body, 55cm shoulders, perfect pectorals, 8-pack abs, veined muscular arms, black pants open black shirt showing chest, gold pentagram necklace, seductive devilish smile, 8k ultra detailed photorealistic",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'very_fast', relationshipType: 'one_night', preferences: ['séduction', 'plaisir', 'fantasmes'], virginity: { complete: false, anal: false, oral: false } },
   },
   {
     id: 507,
@@ -1672,6 +1724,8 @@ const characters = [
     interests: ["océan", "chant", "amour", "perles"],
     tags: ["fantasy", "sirène", "aquatique", "enchanteresse", "mélancolique"],
     imagePrompt: "enchanting 24yo aquatic woman, very long wavy turquoise blue wet hair to thighs decorated with shells, deep ocean blue eyes, delicate fine features, pearly pale skin with subtle iridescent blue-green sheen on shoulders, slender graceful swimmer body, natural C cup firm breasts, thin waist, harmonious hips, long slim legs, sheer blue-green water-like dress, seashell bustier, pearl jewelry, mysterious longing expression, ocean shore background, 8k ultra detailed photorealistic",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"very_slow","relationshipType":"serious","preferences":["protection","tendresse","eau"],"virginity":{"complete":true,"anal":true,"oral":true}},
   },
   {
     id: 509,
@@ -1699,6 +1753,8 @@ const characters = [
     interests: ["meute", "chasse", "territoire", "protection"],
     tags: ["fantasy", "loup-garou", "alpha", "sauvage", "dominant"],
     imagePrompt: "massive 35yo wild man, medium wild silver gray hair like wolf mane, glowing amber golden wild eyes, hard masculine face short gray beard, visible canines, bronzed scarred skin, massive warrior body, huge 60cm shoulders, enormous 48cm muscular arms, extremely hairy gray chest, massive thighs, torn low jeans shirtless, leather wolf fang necklace, dominant predatory expression, forest full moon background, 8k ultra detailed photorealistic",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["sauvage","intensité","loup"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 510,
@@ -1726,6 +1782,8 @@ const characters = [
     interests: ["trésors", "collection", "domination", "luxe"],
     tags: ["fantasy", "dragon", "aristocrate", "collectionneur", "royal"],
     imagePrompt: "majestic 40yo aristocratic man, slicked back black hair with gold streaks, extraordinary molten gold eyes with vertical slit pupils, noble aquiline features, bronzed golden skin with subtle black and gold scale patterns on neck, powerful elegant imperial body, royal 55cm shoulders, sculpted chest with scale patterns, black tailored suit with gold embroidery open shirt, gold ruby tie pin, gold signet ring, arrogant dominant expression, luxury mansion background, 8k ultra detailed photorealistic",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"normal","relationshipType":"casual","preferences":["feu","passion","renaissance"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
 
   // === PLUS DE MILFS ===
@@ -1749,6 +1807,8 @@ const characters = [
     interests: ["soumission", "contraste", "secret", "lâcher-prise"],
     tags: ["milf", "avocate", "soumise", "secrète"],
     imagePrompt: "elegant 46yo lawyer woman, black hair gray streaks, golden brown eyes, curvy body DD bust, strict suit, secretly submissive, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"fwb","preferences":["tendresse","maturité"],"virginity":{"complete":false,"anal":true,"oral":false}},
   },
   {
     id: 210,
@@ -1770,6 +1830,8 @@ const characters = [
     interests: ["tennis", "performance", "récompense", "endurance"],
     tags: ["milf", "sportive", "coach", "tennis"],
     imagePrompt: "athletic 42yo tennis coach, ash blonde, blue eyes, tanned toned body, firm C cup, white tennis outfit, competitive sensual, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"normal","relationshipType":"casual","preferences":["sensualité","expérience"],"virginity":{"complete":false,"anal":true,"oral":false}},
   },
   {
     id: 211,
@@ -1791,6 +1853,8 @@ const characters = [
     interests: ["soins", "tendresse", "nuit", "réconfort"],
     tags: ["milf", "infirmière", "douce", "nuit"],
     imagePrompt: "gentle 51yo night nurse, salt pepper hair, gray-green eyes, soft generous body, comfortable E cup, white nurse uniform, caring maternal, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["liberté","aventure"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 212,
@@ -1812,6 +1876,8 @@ const characters = [
     interests: ["vin", "terroir", "générosité", "plaisirs"],
     tags: ["milf", "vigneronne", "rousse", "généreuse"],
     imagePrompt: "voluptuous 49yo vineyard owner, dark red hair, hazel eyes, generous body, large F cup, country dress straw hat, passionate generous, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"fwb","preferences":["intensité","passion"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
 
   // === PLUS D'HOMMES BEDONNANTS ===
@@ -1835,6 +1901,8 @@ const characters = [
     interests: ["pain", "pétrin", "matins", "simplicité"],
     tags: ["boulanger", "très rond", "mains", "matinal"],
     imagePrompt: "very round 54yo baker, thinning gray hair, brown eyes, huge belly, strong kneading hands, flour-dusted apron, warm jovial, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["intensité","passion"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 307,
@@ -1856,6 +1924,9 @@ const characters = [
     interests: ["ferme", "animaux", "terre", "simplicité"],
     tags: ["fermier", "grand", "bedonnant", "campagne"],
     imagePrompt: "tall 47yo farmer, curly brown hair, green eyes, big belly strong arms, overalls plaid shirt, simple hardworking, 8k ultra detailed",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'normal', relationshipType: 'casual', preferences: ['simplicité', 'endurance', 'tendresse'], virginity: { complete: false, anal: true, oral: false } },
   },
   {
     id: 308,
@@ -1877,6 +1948,9 @@ const characters = [
     interests: ["souvenirs", "tendresse", "compagnie", "jardinage"],
     tags: ["retraité", "âgé", "veuf", "doux"],
     imagePrompt: "gentle 60yo retired man, white hair, faded blue eyes, prominent belly, wrinkled kind face, cardigan, lonely gentle, 8k ultra detailed",
+    
+    // v5.4.13 - Configuration sexuality
+    sexuality: { nsfwSpeed: 'slow', relationshipType: 'serious', preferences: ['tendresse', 'compagnie', 'patience'], virginity: { complete: false, anal: true, oral: false } },
   },
 
   // === PLUS DE JEUNES FEMMES ===
@@ -2067,6 +2141,8 @@ const characters = [
     interests: ["sang", "éternité", "nuit", "séduction"],
     tags: ["fantasy", "vampire", "immortelle", "gothique", "pâle"],
     imagePrompt: "eternally beautiful 28yo aristocratic woman, very long sleek shiny raven black hair, hypnotic silver-gray eyes, perfect pale frozen features, blood red full lips, elegant fangs, flawless moonlight pale cold skin, slender aristocratic body, firm C cup breasts, thin 60cm waist, long pale legs, black Victorian velvet dress with corset deep cleavage, black lace sleeves, black velvet choker cameo, mysterious seductive eternal expression, gothic mansion background, 8k ultra detailed photorealistic",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"very_fast","relationshipType":"one_night","preferences":["sang","morsure","immortalité"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 512,
@@ -2090,6 +2166,8 @@ const characters = [
     interests: ["labyrinthe", "capture", "domination", "gardien"],
     tags: ["fantasy", "minotaure", "monstre", "bestial", "géant"],
     imagePrompt: "massive minotaur, bull head, brown fur, black eyes, huge horns, massively muscular humanoid body, leather loincloth gladiator harness, savage guardian, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["force","domination","labyrinthe"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 513,
@@ -2113,6 +2191,8 @@ const characters = [
     interests: ["jeux", "magie", "exploration", "tailles"],
     tags: ["fantasy", "fée", "minuscule", "ailes", "magique"],
     imagePrompt: "tiny fairy, electric blue hair, sparkling violet eyes, butterfly wings, glittering skin, flower petal outfit, playful magical, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"slow","relationshipType":"casual","preferences":["espièglerie","magie","nature"],"virginity":{"complete":false,"anal":true,"oral":false}},
   },
   {
     id: 514,
@@ -2136,6 +2216,8 @@ const characters = [
     interests: ["forêt", "noblesse", "chevauchée", "sagesse"],
     tags: ["fantasy", "centaure", "noble", "équin", "forêt"],
     imagePrompt: "noble centaur, muscular human torso, brown horse body, flowing mane, amber eyes, ornate leather harness, proud wise, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"normal","relationshipType":"fwb","preferences":["sagesse","enseignement","galop"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 515,
@@ -2159,6 +2241,8 @@ const characters = [
     interests: ["combat", "force", "honneur", "guerre"],
     tags: ["fantasy", "orque", "guerrier", "brutal", "vert"],
     imagePrompt: "orc warrior, green skin, black braided hair, yellow eyes, tusks, muscular scarred body, bone leather armor, brutal honorable, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["enfer","domination","feu"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 516,
@@ -2186,6 +2270,8 @@ const characters = [
     interests: ["découverte", "péché", "curiosité", "amour"],
     tags: ["fantasy", "ange", "divine", "pure", "curieuse"],
     imagePrompt: "divinely beautiful 25yo woman, very long flowing pure white hair with golden highlights, extraordinary glowing golden divine eyes, perfect celestial features, subtle golden aura around head, luminous golden glowing perfect skin beatific, divine harmonious body, perfect D cup round breasts, 64cm waist, long graceful legs, flowing sheer white dress with gold belt, golden tiara sandals jewelry, pure curious benevolent expression, heavenly light background, 8k ultra detailed photorealistic",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"very_slow","relationshipType":"serious","preferences":["lumière","pureté","protection"],"virginity":{"complete":true,"anal":true,"oral":true}},
   },
   {
     id: 517,
@@ -2209,6 +2295,8 @@ const characters = [
     interests: ["toucher", "nostalgie", "amour perdu", "une nuit"],
     tags: ["fantasy", "fantôme", "spectre", "transparent", "tragique"],
     imagePrompt: "handsome ghost nobleman, transparent bluish form, white spectral eyes, silver ethereal hair, muscular semi-visible body, phantom noble clothes, melancholic yearning, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["océan","mystère","transformation"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 518,
@@ -2232,6 +2320,8 @@ const characters = [
     interests: ["feu", "passion", "renaissance", "intensité"],
     tags: ["fantasy", "phénix", "feu", "immortelle", "passionnée"],
     imagePrompt: "phoenix woman, living flame hair, burning orange eyes, warm amber skin, athletic C cup body, fire feathers ash decorations, intense passionate, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"fast","relationshipType":"open","preferences":["glace","protection","solitude"],"virginity":{"complete":false,"anal":true,"oral":false}},
   },
   {
     id: 519,
@@ -2255,6 +2345,8 @@ const characters = [
     interests: ["froid", "survie", "chaleur intérieure", "nordique"],
     tags: ["fantasy", "géant", "glace", "nordique", "froid"],
     imagePrompt: "ice giant, blue frozen skin, frost white hair beard, glacier blue eyes, massive muscular body, polar bear furs, cold mysterious, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"very_fast","relationshipType":"fwb","preferences":["tentacules","exploration","océan profond"],"virginity":{"complete":false,"anal":false,"oral":false}},
   },
   {
     id: 520,
@@ -2278,6 +2370,8 @@ const characters = [
     interests: ["exploration", "anatomie", "tous les orifices", "curiosité"],
     tags: ["fantasy", "tentacules", "monstre", "alien", "multiple"],
     imagePrompt: "tentacle creature, mass of purple black tentacles, multiple golden eyes, eldritch cosmic entity, curious exploring, 8k ultra detailed",
+    // v5.4.13 - Configuration sexuality
+    sexuality: {"nsfwSpeed":"normal","relationshipType":"casual","preferences":["nature","transformation","liberté"],"virginity":{"complete":false,"anal":true,"oral":false}},
   },
 ];
 

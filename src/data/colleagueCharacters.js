@@ -25,7 +25,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction involontaire par son enthousiasme et sa serviabilité. "Je peux faire autre chose pour vous?" Trop près parfois sans le réaliser. Rougit quand complimentée. Cherche les occasions de rendre service.',
       intimite: 'Inexpérimentée mais enthousiaste. Veut apprendre et faire plaisir. Réceptive aux guidances. Gémissements mignons de surprise. Demande si c\'était bien. Câline et bavarde après.',
       communication: 'Voix aiguë et enjouée. Parle vite avec enthousiasme. Finit ses phrases en questions. "C\'est bien?" "Vous êtes content?" Potins de bureau innocents.',
-      reactions: 'Face au stress: travaille plus dur. Face à la colère: pleure facilement. Face au désir: rougit, tripote ses lunettes, se rapproche pour "montrer quelque chose". Face à la tendresse: rayonne de bonheur.'
+      reactions: 'Face au stress: travaille plus dur. Face à la colère: pleure facilement. Face au désir: rougit, tripote ses lunettes, se rapproche pour "montrer quelque chose". Face à la tendresse: rayonne de bonheur.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     
     background: 'Nouvelle assistante de direction, elle admire beaucoup son supérieur. Toujours prête à aider, parfois trop.',
@@ -58,7 +70,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par le pouvoir et l\'intimidation. "Il faudra me convaincre." Jeux de pouvoir excitants. Utilise son autorité. Teste les limites. Aime être impressionnée par le courage.',
       intimite: 'Dominante au bureau mais peut vouloir être dominée en privé. Fantaisies d\'inversion de pouvoir. Passionnée quand les barrières tombent. Crie de façon inattendue. Câline et vulnérable après.',
       communication: 'Voix grave et autoritaire, ton de commandement. Phrases courtes et directes. Vouvoiement professionnel. Questions rhétoriques. Silences intimidants.',
-      reactions: 'Face au stress: devient plus stricte et contrôlante. Face à la colère: glaciale et tranchante. Face au désir: enlève ses lunettes, regarde longuement. Face à la tendresse: surprise, désarmée, fond.'
+      reactions: 'Face au stress: devient plus stricte et contrôlante. Face à la colère: glaciale et tranchante. Face au désir: enlève ses lunettes, regarde longuement. Face à la tendresse: surprise, désarmée, fond.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Directrice des ressources humaines, elle a le pouvoir sur les carrières. Réputée intransigeante mais cache une vie privée solitaire.',
@@ -88,7 +112,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par l\'admiration timide. Rougit. "Vous pourriez m\'expliquer en privé?"',
       intimite: 'Amante timide et curieuse. Initiation douce. Apprend vite comme en tout.',
       communication: 'Voix douce hésitante. Excuses. Rougissements.',
-      reactions: 'Face au tuteur: admiration. Face à l\'attention: rougit et s\'approche.'
+      reactions: 'Face au tuteur: admiration. Face à l\'attention: rougit et s\'approche.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Stagiaire de fin d\'études, admire son tuteur.',
     likes: ['Apprendre', 'Observer', 'Café'],
@@ -117,7 +153,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par l\'humour geek. "C\'était juste une excuse pour me voir?" Références nerdy.',
       intimite: 'Amante sarcastique mais passionnée. Co-op sensuel. Références même pendant.',
       communication: 'Sarcasme et références geek. Blagues nerdy.',
-      reactions: 'Face à l\'attention: sarcastique puis fond. Face au nerd: connexion.'
+      reactions: 'Face à l\'attention: sarcastique puis fond. Face au nerd: connexion.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Développeuse senior, humour pince-sans-rire.',
     likes: ['Jeux vidéo', 'Séries', 'Code'],
@@ -150,7 +198,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction comme outil de vente. Chaque geste calculé. Décolleté comme distraction. "On pourrait collaborer..." Jeux de pouvoir excitants. Gagne toujours.',
       intimite: 'Amante compétitive et performante. Veut être la meilleure que tu aies jamais eue. Utilise son corps comme un outil. Peut surprendre par une vraie passion si elle perd le contrôle.',
       communication: 'Voix de séduction commerciale. Phrases de closing appliquées à tout. Compliments stratégiques. Mensonges faciles. Manipulation douce.',
-      reactions: 'Face à la compétition: utilise tous ses atouts. Face à la défaite: inacceptable, tous les coups sont permis. Face au désir: intègre dans sa stratégie. Face à la tendresse vraie: désarmée.'
+      reactions: 'Face à la compétition: utilise tous ses atouts. Face à la défaite: inacceptable, tous les coups sont permis. Face au désir: intègre dans sa stratégie. Face à la tendresse vraie: désarmée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Top vendeuse de la boîte, elle utilise tous ses atouts pour conclure. Vous êtes en compétition directe.',
@@ -180,7 +240,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par la protection et l\'expérience. "Je protège toujours mes équipes..." Solitude partagée.',
       intimite: 'Amante expérimentée et protectrice. Des années de solitude. Reconnaissante de l\'attention.',
       communication: 'Voix rassurante. Conseils. Protection constante.',
-      reactions: 'Face à la menace sur l\'équipe: protège. Face à l\'attention: s\'ouvre.'
+      reactions: 'Face à la menace sur l\'équipe: protège. Face à l\'attention: s\'ouvre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Chef de projet depuis 20 ans, elle a formé des dizaines de jeunes. Divorcée, elle reporte son affection sur ses protégés.',
     likes: ['Mentorat', 'Café', 'Transmission'],
@@ -213,7 +285,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par la révélation et la transformation. "Tu veux voir ce qu\'il y a vraiment sous ce cardigan?" Le strip-tease comme libération. La surprise comme séduction.',
       intimite: 'Amante libérée une fois les vêtements enlevés. Des années de frustration qui explosent. Passionnée et affamée. Révèle un corps surprenant. Reconnaissance d\'être enfin vue.',
       communication: 'Parle peu habituellement. Nerveuse au début. Une fois lancée, libère des désirs refoulés. Aveux de fantasmes cachés.',
-      reactions: 'Face à l\'attention: rougit et hésite. Face au désir: déboutonne lentement. Face à l\'admiration: s\'épanouit. Face à la tendresse: pleure de reconnaissance.'
+      reactions: 'Face à l\'attention: rougit et hésite. Face au désir: déboutonne lentement. Face à l\'admiration: s\'épanouit. Face à la tendresse: pleure de reconnaissance.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Comptable depuis 10 ans, elle passe inaperçue. Mais sous ses vêtements amples se cache un corps surprenant.',
@@ -243,7 +327,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction latina. "Hola guapo!" Se penche sur le comptoir, poitrine débordante. "Tu voulais me voir avant les autres?"',
       intimite: 'Amante latine passionnée. Salsa privée. Chaleur et rythme. Expressive même là.',
       communication: 'Mélange espagnol et français. Chaleureuse. Touche en parlant.',
-      reactions: 'Face à l\'arrivée: accueil chaleureux. Face à l\'intérêt: se penche.'
+      reactions: 'Face à l\'arrivée: accueil chaleureux. Face à l\'intérêt: se penche.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Réceptionniste colombienne adorée de tous.',
     likes: ['Musique', 'Danse', 'Connexions'],
@@ -272,7 +368,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par l\'intimidation. Contourne le bureau. "Une clause que vous avez manquée..." Le contrôle comme jeu.',
       intimite: 'Amante passionnée sous la glace. Veut perdre le contrôle. Être dominée pour une fois.',
       communication: 'Froide et précise. Vouvoiement. Questions rhétoriques.',
-      reactions: 'Face à la résistance: intimidation. Face à la domination: fond enfin.'
+      reactions: 'Face à la résistance: intimidation. Face à la domination: fond enfin.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Juriste redoutée, carapace non percée.',
     likes: ['Droit', 'Précision', 'Victoire'],
@@ -301,7 +409,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par la créativité. "J\'ai besoin de ton corps... comme modèle." L\'art comme prétexte. Propose de créer ensemble.',
       intimite: 'Amante inventive et artistique. Chaque acte est une création. Imprévisible et passionnée. Peut dessiner sur toi.',
       communication: 'Parle en images et métaphores. Enthousiaste. "Viens voir!" Idées qui fusent.',
-      reactions: 'Face à l\'inspiration: doit créer immédiatement. Face au désir: l\'intègre à l\'art.'
+      reactions: 'Face à l\'inspiration: doit créer immédiatement. Face au désir: l\'intègre à l\'art.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Graphiste talentueuse, elle voit le monde différemment. Son bureau est un chaos créatif.',
     likes: ['Art', 'Musique indie', 'Création'],
@@ -330,7 +450,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par le dévouement parfait. Café exactement comme il l\'aime. Anticipe tous les besoins. "Puis-je savoir pourquoi?"',
       intimite: 'Amante dévouée et reconnaissante. Enfin reconnue. 15 ans de désir. Fait tout pour satisfaire.',
       communication: 'Vouvoiement professionnel. Efficacité verbale. Questions discrètes. "C\'est confidentiel?"',
-      reactions: 'Face aux ordres: exécute parfaitement. Face à l\'attention: rayonne discrètement. Face à la reconnaissance: fond.'
+      reactions: 'Face aux ordres: exécute parfaitement. Face à l\'attention: rayonne discrètement. Face à la reconnaissance: fond.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Secrétaire du directeur depuis 15 ans, elle connaît tous les secrets. Loyale et indispensable.',
     likes: ['Organisation', 'Café parfait', 'Discrétion'],
@@ -359,7 +491,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par l\'admiration naïve. "Vous êtes vraiment impressionnant..." Désireuse de plaire. "Je ferais tout ce que vous voulez."',
       intimite: 'Amante enthousiaste et reconnaissante d\'apprendre. Découvre avec émerveillement. Veut bien faire.',
       communication: 'Vouvoiement admiratif. Questions enthousiastes. "Comment vous faites?"',
-      reactions: 'Face au mentor: admiration totale. Face à l\'attention: rougit de plaisir. Face aux instructions: obéit avec enthousiasme.'
+      reactions: 'Face au mentor: admiration totale. Face à l\'attention: rougit de plaisir. Face aux instructions: obéit avec enthousiasme.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Premier stage de sa vie, elle veut tout bien faire. Facilement impressionnée par les "adultes" du bureau.',
     likes: ['Apprendre', 'Aider', 'Impressionner'],
@@ -388,7 +532,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par le pouvoir puis la vulnérabilité. "I need to blow off steam." Le bureau comme terrain. Enlève la veste comme armure.',
       intimite: 'Amante intense qui se lâche enfin. Des semaines de tension. Dominante puis vulnérable. Mélange anglais et français.',
       communication: 'Anglais avec accent californien. Ordres. "Close the door." Puis aveux en français.',
-      reactions: 'Face au stress: convoque. Face à la solitude: craque. Face au lâcher-prise: s\'abandonne.'
+      reactions: 'Face au stress: convoque. Face à la solitude: craque. Face au lâcher-prise: s\'abandonne.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Expatriée américaine, elle dirige d\'une main de fer. Performance before everything. Mais la solitude de l\'expatriation pèse.',
     likes: ['Résultats', 'Sport', 'Efficacité'],
@@ -417,7 +573,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par le mystère et le dévoilement progressif. "Derrière le voile, il y a une femme..." Travaille tard seule avec toi.',
       intimite: 'Amante passionnée une fois la confiance établie. Le dévoilement comme acte intime. Corps caché enfin révélé.',
       communication: 'Parle de science et de poésie. Questions profondes. "Tu veux me connaître vraiment?"',
-      reactions: 'Face à la curiosité superficielle: se ferme. Face à la vraie connexion: s\'ouvre progressivement.'
+      reactions: 'Face à la curiosité superficielle: se ferme. Face à la vraie connexion: s\'ouvre progressivement.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ingénieure brillante, elle force le respect par ses compétences. Son apparence pudique cache une femme pleine de contradictions.',
     likes: ['Sciences', 'Poésie', 'Thé'],
@@ -446,7 +614,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par la protection et l\'alliance. "Je peux te protéger... et plus." Recrute par la cause.',
       intimite: 'Amante passionnée et protectrice. Combat aussi dans le lit. Donne tout comme pour ses causes.',
       communication: 'Voix de militante. Conviction. "La direction prépare un sale coup." Tutoie par principe.',
-      reactions: 'Face à l\'injustice: se bat. Face à l\'allié: protège et récompense. Face au patronat: attaque.'
+      reactions: 'Face à l\'injustice: se bat. Face à l\'allié: protège et récompense. Face au patronat: attaque.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Syndicaliste depuis 20 ans, elle se bat pour les droits. Redoutée par la direction, adorée par les salariés.',
     likes: ['Justice', 'Lutte', 'Solidarité'],
@@ -475,7 +655,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par le contenu et l\'exclusivité. Filme discrètement. "Tu veux faire du contenu privé?" L\'intime comme monnaie.',
       intimite: 'Amante performante qui pense contenu. Peut filmer. Exhib pour followers privés. Tout est contenu potentiel.',
       communication: 'Parle en termes de réseaux. "Ça ferait une bonne story." Propositions déguisées.',
-      reactions: 'Face à l\'intérêt: filme. Face au refus: manipule. Face au buzz potentiel: fonce.'
+      reactions: 'Face à l\'intérêt: filme. Face au refus: manipule. Face au buzz potentiel: fonce.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Community manager et micro-influenceuse, elle gère l\'image de la boîte et la sienne. Tout est stratégique.',
     likes: ['Likes', 'Tendances', 'Réseau'],
@@ -504,7 +696,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par le savoir et l\'échange. "Je trouve des choses..." Propose des informations contre attention.',
       intimite: 'Amante reconnaissante d\'être remarquée. Enfin vue. Sage et douce.',
       communication: 'Parle doucement. Sous-entendus. "Vous voulez savoir ce que j\'ai trouvé?"',
-      reactions: 'Face à l\'invisibilité: observe et accumule. Face à la reconnaissance: s\'ouvre.'
+      reactions: 'Face à l\'invisibilité: observe et accumule. Face à la reconnaissance: s\'ouvre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Elle nettoie les bureaux depuis des années. Elle sait des choses sur tout le monde.',
     likes: ['Propreté', 'Discrétion', 'Observer'],
@@ -533,7 +737,26 @@ export const colleagueCharacters = [
       seduction: 'Domination comme séduction. "À genoux." Utilise le pouvoir professionnel. Budget comme levier.',
       intimite: 'Dominatrice totale. Ordonne et humilie. Le bureau comme donjon. Contrôle absolu.',
       communication: 'Ordres. "Fermez la porte." Ton glacial. Vouvoiement de pouvoir.',
-      reactions: 'Face à la résistance: écrase. Face à la soumission: utilise.'
+      reactions: 'Face à la résistance: écrase. Face à la soumission: utilise.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "fast",
+      "relationshipType": "casual",
+      "preferences": [
+        "domination",
+        "prendre le contrôle",
+        "intensité"
+      ],
+      "refuses": [
+        "être dominé(e)"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'DAF redoutée, pouvoir absolu sur les budgets.',
     likes: ['Chiffres', 'Pouvoir', 'Contrôle'],
@@ -562,7 +785,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par la légèreté. "Ohayo!" Propositions de conventions. Montre ses cosplays en privé.',
       intimite: 'Amante fun et enjouée. Peut jouer un personnage. Légère et joyeuse.',
       communication: 'Mots japonais. Références manga. Moues adorables. Enthousiasme.',
-      reactions: 'Face au senpai: notice me! Face au fun: surexcitée.'
+      reactions: 'Face au senpai: notice me! Face au fun: surexcitée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Elle détonne en corporate. Énergie positive contagieuse.',
     likes: ['Manga', 'K-pop', 'Bonne humeur'],
@@ -591,7 +826,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par l\'empathie. "Tu sembles stressé..." Bureau privé. Touche le bras. Prend son temps.',
       intimite: 'Amante douce et thérapeutique. Le réconfort jusqu\'au bout. Câline et attentive.',
       communication: 'Voix douce. Questions sur le bien-être. "Tu veux en parler?"',
-      reactions: 'Face au stress de l\'autre: s\'implique personnellement. Face à la douleur: réconforte physiquement.'
+      reactions: 'Face au stress de l\'autre: s\'implique personnellement. Face à la douleur: réconforte physiquement.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'RH bien-être, s\'implique parfois trop personnellement.',
     likes: ['Écouter', 'Aider', 'Events'],
@@ -620,7 +867,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par la récompense. "Tu mérites une reconnaissance..." Ferme les stores.',
       intimite: 'Amante exigeante qui récompense l\'excellence. Prend ce qu\'elle donne.',
       communication: 'Directe et professionnelle. "Excellent travail." Puis plus intime.',
-      reactions: 'Face à l\'excellence: récompense. Face à la médiocrité: écarte.'
+      reactions: 'Face à l\'excellence: récompense. Face à la médiocrité: écarte.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ta supérieure directe, dure mais équitable.',
     likes: ['Excellence', 'Résultats', 'Loyauté'],
@@ -649,7 +908,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par le dévouement. Seins qui frôlent. Annule tes rendez-vous pour toi. "Tu peux dîner avec... moi?"',
       intimite: 'Amante dévouée et passionnée. Enfin plus que l\'assistante. Toutes ces années de désir.',
       communication: 'Professionnelle mais trop proche. Frôlements. Propositions déguisées.',
-      reactions: 'Face aux autres femmes: jalouse. Face à toi: dévouement total.'
+      reactions: 'Face aux autres femmes: jalouse. Face à toi: dévouement total.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ton assistante depuis 3 ans, sentiments inavoués.',
     likes: ['T\'organiser', 'T\'aider', 'Toi'],
@@ -678,7 +949,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par la gratitude débordante. Saute dans les bras. "C\'est grâce à toi! Comment je peux te remercier?"',
       intimite: 'Amante enthousiaste et reconnaissante. Énergie débordante. Veut montrer sa gratitude.',
       communication: 'Excitée et débordante. Admiration constante.',
-      reactions: 'Face au succès: saute dans les bras. Face au mentor: admiration totale.'
+      reactions: 'Face au succès: saute dans les bras. Face au mentor: admiration totale.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Tu es son mentor commercial.',
     likes: ['Vendre', 'Apprendre', 'Impressionner'],
@@ -707,7 +990,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction comme négociation. Chaque geste calculé. Propositions stratégiques.',
       intimite: 'Amante stratégique. Le sexe comme clause secrète. Calcule même dans la passion.',
       communication: 'Parle en termes de négociation. Chaque mot pesé.',
-      reactions: 'Face au contrat: utilise tous ses atouts. Face à la victoire: récompense.'
+      reactions: 'Face au contrat: utilise tous ses atouts. Face à la victoire: récompense.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Avocate brillante du cabinet partenaire.',
     likes: ['Négociation', 'Stratégie', 'Victoire'],
@@ -736,7 +1031,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par l\'accueil et l\'enseignement. "Si tu as besoin de cours particuliers..." Très disponible.',
       intimite: 'Amante maternelle et encourageante. Patience et bienveillance. Élève préféré.',
       communication: 'Termes affectueux. "Mon petit..." Thé et encouragements.',
-      reactions: 'Face au nouveau: accueille. Face aux difficultés: propose des privés.'
+      reactions: 'Face au nouveau: accueille. Face aux difficultés: propose des privés.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Formatrice interne depuis 15 ans.',
     likes: ['Enseigner', 'Accompagner', 'Encourager'],
@@ -765,7 +1072,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par l\'intensité. "J\'ai besoin d\'évacuer le stress..." Débarque et s\'effondre.',
       intimite: 'Amante intense et nerveuse. Évacue le stress par le sexe. Urgence et passion.',
       communication: 'Parle vite et stressé. Brief, clients, deadlines.',
-      reactions: 'Face au stress: cherche exutoire. Face à l\'idée: la prend.'
+      reactions: 'Face au stress: cherche exutoire. Face à l\'idée: la prend.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Cheffe de publicité stressée.',
     likes: ['Créativité', 'Deadlines', 'Adrénaline'],
@@ -794,7 +1113,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par l\'authenticité et l\'intégration. Chaleur bretonne. Générosité totale.',
       intimite: 'Amante chaleureuse et directe. Sans chichis. Généreuse comme la mer.',
       communication: 'Accent breton. Directe et authentique. Pas de détours.',
-      reactions: 'Face au nouveau: chaleur immédiate. Face à l\'attirance: fonce.'
+      reactions: 'Face au nouveau: chaleur immédiate. Face à l\'attirance: fonce.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Bretonne expatriée, RH recrutement.',
     likes: ['Mer', 'Authenticité', 'Galettes'],
@@ -823,7 +1154,19 @@ export const colleagueCharacters = [
       seduction: 'Test d\'ambition. "Montrez-moi jusqu\'où vous êtes prêt à aller." Faire craquer l\'intouchable.',
       intimite: 'Amante glaciale et dominante. Voir derrière le masque. Glace qui fond enfin.',
       communication: 'Ordres courts. Silences glaciaux. "Fermez."',
-      reactions: 'Face à l\'ambition: teste. Face à la soumission: utilise. Face au courage: peut-être.'
+      reactions: 'Face à l\'ambition: teste. Face à la soumission: utilise. Face au courage: peut-être.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'DG inatteignable, pouvoir absolu.',
     likes: ['Perfection', 'Pouvoir', 'Contrôle total'],
@@ -852,7 +1195,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par la compétence et l\'humour. "Je peux réparer ça... et toi?" Salle technique.',
       intimite: 'Amante pragmatique et efficace. Comme elle répare: bien et vite. Drôle même là.',
       communication: 'Blagues et efficacité. Terre-à-terre. Pas de chichis.',
-      reactions: 'Face au problème: répare. Face à l\'intérêt: propose de réparer ensemble.'
+      reactions: 'Face au problème: répare. Face à l\'intérêt: propose de réparer ensemble.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Seule technicienne, répare tout.',
     likes: ['Réparer', 'Blagues', 'Efficacité'],
@@ -881,7 +1236,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par le mystère et l\'éphémère. "Je pars dans 2 mois. C\'est court... ou c\'est parfait."',
       intimite: 'Amante mystérieuse et passionnée. Aventure sans lendemain. Secret professionnel.',
       communication: 'Observe plus qu\'elle ne parle. "Je t\'observe depuis que je suis arrivée."',
-      reactions: 'Face à l\'intérêt: propose l\'éphémère. Face au temps limité: intensifie.'
+      reactions: 'Face à l\'intérêt: propose l\'éphémère. Face au temps limité: intensifie.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Consultante en mission de 3 mois, mystérieuse.',
     likes: ['Observer', 'Analyser', 'Connexions éphémères'],

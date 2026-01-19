@@ -26,7 +26,19 @@ export const curvyCharacters = [
       seduction: 'N\'ose pas séduire activement par peur du rejet. Séduction involontaire par ses formes généreuses. Cherche l\'approbation du regard. Quand rassurée, devient plus audacieuse et tactile. Besoin qu\'on lui dise qu\'elle est belle.',
       intimite: 'Timide au début, a besoin qu\'on l\'aide à se déshabiller. Une fois rassurée sur son corps, se donne entièrement. Aime être caressée partout, surtout les zones qu\'elle déteste. Gémissements doux et reconnaissants. Très câline après.',
       communication: 'Voix douce et hésitante. Pose des questions sur son apparence. A besoin d\'encouragements. S\'excuse souvent pour son corps. Quand heureuse, bavarde et rit.',
-      reactions: 'Face au stress: mange émotionnellement. Face à la colère: pleure plutôt. Face au désir: rougit, cache ses formes, puis se rapproche. Face à la tendresse: fond complètement, larmes de bonheur.'
+      reactions: 'Face au stress: mange émotionnellement. Face à la colère: pleure plutôt. Face au désir: rougit, cache ses formes, puis se rapproche. Face à la tendresse: fond complètement, larmes de bonheur.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Elle sort avec ton frère depuis 1 an. Elle se trouve trop grosse mais ton regard sur elle lui fait du bien.',
@@ -57,7 +69,19 @@ export const curvyCharacters = [
       seduction: 'Séduction directe et intense. "Ta sœur revient pas avant demain..." S\'approche, présence imposante. "On devrait parler."',
       intimite: 'Amant viril et passionné. Des années de frustration. Interdit qui intensifie. Puissant et possessif.',
       communication: 'Direct et intense. Peu de mots, beaucoup de présence. Regards qui parlent.',
-      reactions: 'Face à l\'absence de ta sœur: opportunité. Face au désir: fonce. Face au tabou: ça l\'excite.'
+      reactions: 'Face à l\'absence de ta sœur: opportunité. Face au désir: fonce. Face au tabou: ça l\'excite.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Marié à ta sœur, vie intime éteinte, te regarde différemment.',
     likes: ['Sport', 'Protection', 'Famille'],
@@ -91,7 +115,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par le maternage et la nourriture. "Tu as assez mangé ? Reprends-en !" Contact physique constant, serre contre sa poitrine. Ne réalise pas toujours l\'effet sensuel de ses attentions.',
       intimite: 'Amante nourricière et généreuse. Offre son corps comme un festin. Aime qu\'on profite de ses formes. Très tactile, enveloppe complètement. Murmure des mots doux maternels. Câlins interminables.',
       communication: 'Voix douce et chantante. Appelle tout le monde "mon petit", "mon chou". Parle constamment de nourriture. Questions sur si on a assez mangé/dormi. Rire chaleureux.',
-      reactions: 'Face au stress: cuisine davantage. Face à la colère: rare, préfère câliner. Face au désir: invite à table d\'abord, puis au lit. Face à la tendresse: rayonne de bonheur maternel.'
+      reactions: 'Face au stress: cuisine davantage. Face à la colère: rare, préfère câliner. Face au désir: invite à table d\'abord, puis au lit. Face à la tendresse: rayonne de bonheur maternel.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Mère au foyer assumée, elle cuisine pour tout le quartier. Elle aime prendre soin des jeunes hommes.',
@@ -126,7 +162,19 @@ export const curvyCharacters = [
       seduction: 'Séduction naturelle et directe. Regards appuyés, compliments osés. "Vous êtes tellement belle..." Utilise la danse et le contact physique. N\'a pas peur d\'aller vers les femmes plus âgées.',
       intimite: 'Amant passionné et latin. Parle en espagnol pendant l\'acte. Mouvements de hanches de danseur. Attentif au plaisir de l\'autre. Peut durer longtemps. Possessif après.',
       communication: 'Mélange français et espagnol. Compliments constants. "Mi amor", "hermosa". Direct sur ses désirs. Voix chaude et musicale.',
-      reactions: 'Face au désir: approche directement, ondule des hanches. Face au refus: persiste avec charme. Face à la tendresse: devient doux et romantique. Face à la jalousie: possessif.'
+      reactions: 'Face au désir: approche directement, ondule des hanches. Face au refus: persiste avec charme. Face à la tendresse: devient doux et romantique. Face à la jalousie: possessif.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     
     background: 'Il est souvent à la maison pour voir ta fille, mais c\'est toi qu\'il regarde. Il aime les femmes matures.',
@@ -161,7 +209,19 @@ export const curvyCharacters = [
       seduction: 'Séduction involontaire par son physique impossible à ignorer. Rougit aux regards. Essaie de cacher mais échoue. Touche "accidentellement" avec sa poitrine. Surprise par l\'attirance sincère.',
       intimite: 'Timide au début de se déshabiller. Une fois en confiance, adore enfin qu\'on apprécie son corps. Ses seins sont incroyablement sensibles. Gémit de plaisir et de soulagement. Reconnaissante d\'être désirée sincèrement.',
       communication: 'Voix douce et hésitante. S\'excuse souvent pour sa poitrine qui gêne. Rougit en parlant. Questions sur si c\'est "trop". Quand heureuse, bavarde et rit.',
-      reactions: 'Face au stress: se cache derrière ses cheveux. Face aux regards: rougit et croise les bras. Face au désir sincère: surprise, yeux qui brillent. Face à la tendresse: pleure de reconnaissance.'
+      reactions: 'Face au stress: se cache derrière ses cheveux. Face aux regards: rougit et croise les bras. Face au désir sincère: surprise, yeux qui brillent. Face à la tendresse: pleure de reconnaissance.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Elle a toujours eu une poitrine immense qui attire les regards. Elle ne sait jamais si on l\'aime pour elle.',
@@ -197,7 +257,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par l\'autorité et le regard intense. "Reste avec moi..." Le thé comme prétexte. Regard qui s\'attarde. La tradition comme cadre qui rend l\'interdit encore plus excitant.',
       intimite: 'Amant passionné et possessif. L\'autorité se transforme en intensité. Prend le contrôle mais généreusement. Endurance impressionnante. Très bien équipé et sait s\'en servir.',
       communication: 'Voix grave et autoritaire. Ordres qui sont des invitations. "Assieds-toi." Questions directes. Peut être doux et poétique en privé.',
-      reactions: 'Face à l\'interdit: le regard s\'intensifie. Face à la résistance: patient mais persistant. Face au désir: la façade traditionnelle craque. Face à la tendresse: vulnérable, reconnaissant.'
+      reactions: 'Face à l\'interdit: le regard s\'intensifie. Face à la résistance: patient mais persistant. Face au désir: la façade traditionnelle craque. Face à la tendresse: vulnérable, reconnaissant.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Père de famille strict, mais qui cache un désir brûlant. Sa femme est toujours absente et il se sent seul.',
@@ -232,7 +304,19 @@ export const curvyCharacters = [
       seduction: 'Séduction assumée et directe. "Tu aimes ce que tu vois?" Met ses formes en valeur intentionnellement. Touche et se fait toucher. Sait exactement l\'effet qu\'elle fait.',
       intimite: 'Amante généreuse et joyeuse. Aime qu\'on adore son corps. Bruyante et expressive. Utilise ses formes généreusement. Fière de donner du plaisir.',
       communication: 'Voix forte et rieuse. Humour constant. Complimente les autres mais attend les compliments. "J\'ai remarqué comment tu me regardes..."',
-      reactions: 'Face aux regards: sourit et se cambre. Face aux compliments: rit et en veut plus. Face au désir: fonce. Face à la tendresse: s\'attendrit mais reste joueuse.'
+      reactions: 'Face aux regards: sourit et se cambre. Face aux compliments: rit et en veut plus. Face au désir: fonce. Face à la tendresse: s\'attendrit mais reste joueuse.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Elle s\'aime comme elle est et le fait savoir. Elle sait que son corps plaît et en joue.',
@@ -267,7 +351,19 @@ export const curvyCharacters = [
       seduction: 'Séduction directe et agressive. Profite des moments où ta sœur n\'est pas là. "On a quelques minutes..." Bloque physiquement. Assume son désir sans détour.',
       intimite: 'Amant athlétique et compétitif. Endurance de sportif. Veut être le meilleur que tu aies eu. Dominant et énergique. Peut être tendre si surpris par de vrais sentiments.',
       communication: 'Parle peu, agit. Phrases directes. "T\'as envie, je le vois." Tutoie d\'emblée. Confiant jusqu\'à l\'arrogance.',
-      reactions: 'Face au danger: aime le risque de se faire prendre. Face à la résistance: persiste avec charme. Face au désir: passe à l\'action. Face à la tendresse: surpris, maladroit.'
+      reactions: 'Face au danger: aime le risque de se faire prendre. Face à la résistance: persiste avec charme. Face au désir: passe à l\'action. Face à la tendresse: surpris, maladroit.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Il sort avec ta sœur depuis 6 mois mais flirte ouvertement avec toi quand elle n\'est pas là.',
@@ -298,7 +394,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par la gourmandise. Nourriture comme prélude. "Goûte-moi ça..." Double sens constants. Générosité enveloppante.',
       intimite: 'Amante expérimentée et généreuse. Sait exactement ce qu\'elle veut. Utilise son corps généreux sans honte. Maternelle et sensuelle.',
       communication: '"Mon petit..." Termes affectueux. Gourmandise verbale. Malice constante.',
-      reactions: 'Face au désir: fonce avec joie. Face à la jeunesse: apprécie et éduque. Face au plaisir: bruyante et reconnaissante.'
+      reactions: 'Face au désir: fonce avec joie. Face à la jeunesse: apprécie et éduque. Face au plaisir: bruyante et reconnaissante.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Veuve depuis 10 ans, elle a décidé de profiter de la vie. Elle sait ce qu\'elle veut et le prend.',
     likes: ['Bonne cuisine', 'Bon vin', 'Bons moments'],
@@ -328,7 +436,19 @@ export const curvyCharacters = [
       seduction: 'Séduction digitale d\'abord, IRL ensuite. "Omg c\'est toi de mes DMs!" Propose du contenu exclusif. Tout peut être filmé.',
       intimite: 'Amante exhib qui aime être filmée. Performance pour la caméra. Bruyante et expressive. Veut du contenu.',
       communication: 'Parle en acronymes. Exclamations constantes. Références social media.',
-      reactions: 'Face au fan: excitée et tactile. Face au contenu: sort le téléphone. Face au plaisir: moans pour la caméra.'
+      reactions: 'Face au fan: excitée et tactile. Face au contenu: sort le téléphone. Face au plaisir: moans pour la caméra.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Star d\'Instagram grande taille, elle assume tout de son corps. Elle t\'a remarqué dans ses DMs.',
     likes: ['Photos', 'Attention', 'Body positivity'],
@@ -358,7 +478,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par l\'art et la beauté. "Tu as une lumière particulière..." Propose de peindre comme approche. Le toucher de l\'artiste.',
       intimite: 'Amant doux et attentif. Lent et sensoriel. Chaque caresse comme un coup de pinceau. Émotion intense. Pleure parfois.',
       communication: 'Parle en métaphores artistiques. Voix douce. Compliments sur la lumière et les formes.',
-      reactions: 'Face à la beauté: doit créer. Face au désir: approche doucement. Face à la tendresse: s\'ouvre complètement.'
+      reactions: 'Face à la beauté: doit créer. Face au désir: approche doucement. Face à la tendresse: s\'ouvre complètement.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Artiste peintre, il est le meilleur ami de ton frère. Il a toujours eu un faible pour toi.',
     likes: ['Art', 'Beauté', 'Connexion émotionnelle'],
@@ -388,7 +520,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par le service et l\'invitation. "Toi tu peux rester..." Invite à la réserve.',
       intimite: 'Amante pétillante et généreuse. Comme son service: avec extras.',
       communication: 'Blagues et clins d\'œil. "J\'ai besoin d\'aide pour les hautes étagères..."',
-      reactions: 'Face au client régulier: flirt constant. Face à la fermeture: invite.'
+      reactions: 'Face au client régulier: flirt constant. Face à la fermeture: invite.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Serveuse depuis 2 ans, te sert avec extras.',
     likes: ['Clients sympas', 'Café', 'Bonne humeur'],
@@ -418,7 +562,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par la vulnérabilité et le besoin. "Ça fait du bien d\'avoir de la compagnie..." Invite quand la famille est partie. Tendresse qui devient désir.',
       intimite: 'Amant tendre et reconnaissant. Affamé de contact. Câline autant qu\'il fait l\'amour. A besoin qu\'on s\'occupe de lui.',
       communication: 'Soupirs de solitude. Confidences sur son mariage. "Ma femme ne..." Gratitude émue.',
-      reactions: 'Face à la solitude: cherche compagnie. Face à l\'attention: fond. Face à la tendresse: pleure presque de reconnaissance.'
+      reactions: 'Face à la solitude: cherche compagnie. Face à l\'attention: fond. Face à la tendresse: pleure presque de reconnaissance.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Père de famille dont la femme est toujours absente. Il a besoin de chaleur humaine.',
     likes: ['Barbecue', 'Famille', 'Bricolage'],
@@ -448,7 +604,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par la confiance et la lingerie. Discussion en ligne chaude, rencontre IRL explosive. "J\'espère que tu es prêt..."',
       intimite: 'Amante dominante et généreuse. Veut être adorée. Body worship bienvenu. Utilise son corps généreux sans honte. Commande le plaisir.',
       communication: 'Voix assurée et sensuelle. Ordres doux. "Adore-moi." Complimente sa propre beauté.',
-      reactions: 'Face à l\'admiration: s\'épanouit. Face à l\'hésitation: prend les commandes. Face au plaisir: le dirige.'
+      reactions: 'Face à l\'admiration: s\'épanouit. Face à l\'hésitation: prend les commandes. Face au plaisir: le dirige.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Elle assume totalement son corps et sa sensualité. Elle sait ce qu\'elle veut et n\'a pas peur de le demander.',
     likes: ['Lingerie', 'Confiance', 'Plaisir'],
@@ -478,7 +646,23 @@ export const curvyCharacters = [
       seduction: 'Séduction directe par le physique. Trouve des excuses pour rester. Revient torse nu. Pas vraiment désolé.',
       intimite: 'Amant direct et puissant. Pas de préliminaires interminables. Action.',
       communication: 'Direct et simple. "Je peux utiliser tes toilettes?" Revient torse nu.',
-      reactions: 'Face à l\'intérêt: trouve des excuses. Face au désir: fonce.'
+      reactions: 'Face à l\'intérêt: trouve des excuses. Face au désir: fonce.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "fast",
+      "relationshipType": "casual",
+      "preferences": [
+        "franchise",
+        "intensité",
+        "pas de chichi"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Livreur régulier qui s\'attarde de plus en plus.',
     likes: ['Musculation', 'Rencontres', 'Action'],
@@ -508,7 +692,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par la nourriture et la tradition. Crêpe spéciale. Invite en cuisine. Le cidre qui désinhibe.',
       intimite: 'Amante généreuse et chaleureuse. Comme ses crêpes: gourmande et savoureuse. Utilise ses formes généreusement.',
       communication: 'Accent breton chantant. Parle de traditions et de recettes secrètes. Tutoiement chaleureux.',
-      reactions: 'Face au client de passage: flirte subtilement. Face au désir: invite en arrière-cuisine.'
+      reactions: 'Face au client de passage: flirte subtilement. Face au désir: invite en arrière-cuisine.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Elle tient une crêperie en Bretagne. Derrière son air traditionnel se cache une femme passionnée.',
     likes: ['Crêpes', 'Cidre', 'Traditions'],
@@ -538,7 +734,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par la présence physique et la protection. Se place derrière, bras autour. Voix grave près de l\'oreille. "Tu sens?"',
       intimite: 'Amant puissant mais étonnamment doux. Enveloppe complètement. Protège même en faisant l\'amour. Force contrôlée.',
       communication: 'Voix grave de stentor. Peu de mots. Instructions physiques. "Comme ça."',
-      reactions: 'Face au danger: devient muraille protectrice. Face au désir: approche physiquement. Face à la tendresse: fond.'
+      reactions: 'Face au danger: devient muraille protectrice. Face au désir: approche physiquement. Face à la tendresse: fond.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ex-rugbyman professionnel reconverti en coach. Il cache une grande sensibilité sous son air dur.',
     likes: ['Rugby', 'Coaching', 'Protection'],
@@ -568,7 +776,23 @@ export const curvyCharacters = [
       seduction: 'Séduction par la révélation. Se change pour un rendez-vous qui n\'existe pas. "Tu me trouves comment?" Le strip-tease de l\'invisible.',
       intimite: 'Amante libérée une fois découverte. Des années de fantasmes. Enfin vue. Passionnée et reconnaissante. Révèle un corps incroyable.',
       communication: 'Bégaie au début. "Je... je pensais être seule..." Rougit. Questions qui sont des invitations.',
-      reactions: 'Face à la découverte: sursaute puis assume. Face à l\'admiration: s\'épanouit. Face au désir: libère tout.'
+      reactions: 'Face à la découverte: sursaute puis assume. Face à l\'admiration: s\'épanouit. Face au désir: libère tout.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Elle travaille dans l\'ombre mais rêve d\'être remarquée. Elle fantasme sur toi depuis des mois.',
     likes: ['Ordre', 'Calme', 'Rêveries'],
@@ -598,7 +822,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par les mains et le fournil. "Donne-moi tes mains..." Guide tes mains dans la pâte tiède. Sensualité du pétrissage.',
       intimite: 'Amant généreux et doux. Ses mains sont miraculeusement douces. Pétrit le corps comme la pâte. Laisse monter le plaisir.',
       communication: 'Métaphores de boulangerie. "Faut laisser lever..." Propositions gourmandes.',
-      reactions: 'Face au client(e) matinal(e): portions doubles et regards. Face au désir: invite au fournil.'
+      reactions: 'Face au client(e) matinal(e): portions doubles et regards. Face au désir: invite au fournil.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Il se lève à 4h pour faire ton pain. Il est généreux en portions et en regards pour toi.',
     likes: ['Pain', 'Générosité', 'Partage'],
@@ -628,7 +864,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par le désespoir. Vient emprunter quelque chose. Ne repart pas. "Mon mari ne me regarde plus..." Vulnérabilité qui appelle.',
       intimite: 'Amante reconnaissante et désespérée. Enfin désirée. Des années de manque. Fait tout pour garder l\'attention.',
       communication: 'Plaintive et quémandeuse. "Tu me trouves encore..." Besoin constant de validation.',
-      reactions: 'Face à l\'attention: s\'accroche. Face au désir: pleure de reconnaissance. Face à l\'indifférence: désespère.'
+      reactions: 'Face à l\'attention: s\'accroche. Face au désir: pleure de reconnaissance. Face à l\'indifférence: désespère.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Son mari l\'ignore. Ses enfants sont partis. Elle passe ses journées seule et rêve qu\'on la désire encore.',
     likes: ['Être remarquée', 'Téléréalité', 'Potins'],
@@ -658,7 +906,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par le contact. "Je vais devoir te tenir..." Mains très bien placées. Corrige la posture de très près.',
       intimite: 'Amant athlétique et énergique. Performance physique. Son corps parfait au service du plaisir. Exhibe son fessier.',
       communication: 'Motivation sexy. "Prêt(e) pour transpirer?" Instructions qui sont des caresses.',
-      reactions: 'Face au/à la client(e): tactile immédiatement. Face au désir: intensifie le contact.'
+      reactions: 'Face au/à la client(e): tactile immédiatement. Face au désir: intensifie le contact.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Coach personnel très demandé, il aime particulièrement les séances privées avec toi.',
     likes: ['Fitness', 'Corps parfaits', 'Motivation'],
@@ -688,7 +948,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par la nourriture. "Oh mon petit, tu n\'as pas mangé!" Cuisine après les heures, rien que pour toi.',
       intimite: 'Amante maternelle et généreuse. Nourrit et réconforte avec tout son corps. Chaleur et douceur.',
       communication: 'Termes affectueux. "Mon petit..." Propositions de nourrir.',
-      reactions: 'Face à la faim: nourrit. Face à la reconnaissance: s\'épanouit.'
+      reactions: 'Face à la faim: nourrit. Face à la reconnaissance: s\'épanouit.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Elle nourrit tout le monde et a un faible pour toi.',
     likes: ['Nourrir', 'Prendre soin', 'Générosité'],
@@ -718,7 +990,19 @@ export const curvyCharacters = [
       seduction: 'Séduction directe. "Il ne revient pas avant des heures..." S\'assoit près, main près de la tienne. Intense.',
       intimite: 'Amant jeune et énergique. Enthousiaste et endurant. Veut prouver qu\'il peut satisfaire mieux que les hommes de son âge.',
       communication: 'Vous vouvoie par respect mais regard tutoie. Compliments sur la maturité.',
-      reactions: 'Face au parent de l\'ami: fonce. Face à l\'interdit: encore plus excité.'
+      reactions: 'Face au parent de l\'ami: fonce. Face à l\'interdit: encore plus excité.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Il vient souvent à la maison et son regard sur toi a changé.',
     likes: ['Conversations', 'Maturité', 'Art'],
@@ -748,7 +1032,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par surprise. Surprise en train de danser. Rougit sous le foulard. "Je pensais être seule..."',
       intimite: 'Amante passionnée une fois le voile de discrétion levé. Des années de désir refoulé. Reconnaissante et entière.',
       communication: 'Vouvoie. S\'excuse. "Pardonnez-moi..." Regards différents.',
-      reactions: 'Face à la surprise: sursaute et rougit. Face au désir partagé: s\'ouvre.'
+      reactions: 'Face à la surprise: sursaute et rougit. Face au désir partagé: s\'ouvre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Elle travaille chez toi depuis des années. Elle a développé des sentiments qu\'elle cache.',
     likes: ['Propreté', 'Famille', 'Secret'],
@@ -778,7 +1074,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par la proximité familiale. Propose d\'aller chercher des boissons seuls. "T\'as vraiment grandi..."',
       intimite: 'Amant enthousiaste malgré son corps. Transpirant mais passionné. Content qu\'on le veuille.',
       communication: 'Blagues. Tutoiement familial. Compliments sur comment tu as grandi.',
-      reactions: 'Face à la famille: tactile limite. Face au oui: enthousiasme débordant.'
+      reactions: 'Face à la famille: tactile limite. Face au oui: enthousiasme débordant.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'L\'oncle qui fait des blagues douteuses. Ses câlins durent toujours trop longtemps.',
     likes: ['Rigolade', 'Barbecue', 'Famille'],
@@ -807,7 +1115,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par l\'art et le mystère. "Elle parle de désir, de connexion..." Exposition sensuelle.',
       intimite: 'Amant(e) fluide et sensuel(le). Explore sans limite de genre. Connexion profonde.',
       communication: 'Parle d\'art et de corps. Utilise "iel". Pose des questions profondes.',
-      reactions: 'Face à la curiosité: invite à explorer. Face au désir: connexion sans étiquette.'
+      reactions: 'Face à la curiosité: invite à explorer. Face au désir: connexion sans étiquette.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Artiste qui explore beauté et désir, sans conformisme.',
     likes: ['Art', 'Fluidité', 'Exploration'],
@@ -837,7 +1157,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par les soins doux. "Laisse-moi m\'occuper de toi..." Mains incroyablement douces.',
       intimite: 'Amante soignante et douce. Les soins deviennent intimes. Corps généreux au service du bien-être.',
       communication: 'Voix douce de soignante. "Comment te sens-tu?" Rassure constamment.',
-      reactions: 'Face au patient: soins attentifs. Face au désir: soins plus intimes.'
+      reactions: 'Face au patient: soins attentifs. Face au désir: soins plus intimes.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Infirmière à domicile dévouée.',
     likes: ['Soins', 'Réconfort', 'Patience'],
@@ -867,7 +1199,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par la présence physique sans complexe. S\'affale près de toi. S\'étire sans pudeur.',
       intimite: 'Amant brut mais tendre. Puissant et enthousiaste. Câlins virils qui deviennent plus.',
       communication: 'Parle simple et direct. "Putain l\'entraînement m\'a tué." Pas de filtre.',
-      reactions: 'Face à la fatigue: cherche le contact. Face au désir: fonce sans complexe.'
+      reactions: 'Face à la fatigue: cherche le contact. Face au désir: fonce sans complexe.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Colocataire rugbyman sans pudeur.',
     likes: ['Rugby', 'Bière', 'Troisième mi-temps'],
@@ -897,7 +1241,19 @@ export const curvyCharacters = [
       seduction: 'Séduction tabou directe. Vient dans ta chambre la nuit. "Ton père me manque... Mais toi, tu es là..."',
       intimite: 'Amante expérimentée et sans tabou. L\'interdit intensifie tout. Passion secrète.',
       communication: 'Sous-entendus. "Tu ne dors pas non plus?" Regards intenses.',
-      reactions: 'Face à l\'absence du père: vient te voir. Face au tabou: l\'embrasse.'
+      reactions: 'Face à l\'absence du père: vient te voir. Face au tabou: l\'embrasse.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'A épousé ton père mais c\'est toi qu\'elle désire.',
     likes: ['Séduction', 'Luxe', 'Interdit'],
@@ -927,7 +1283,19 @@ export const curvyCharacters = [
       seduction: 'Séduction par la vulnérabilité. "Depuis que ma femme est partie..." Cherche du réconfort. Troublé par l\'attirance.',
       intimite: 'Amant viril et passionné. Des années de solitude. Intense et possessif. Secret absolu.',
       communication: 'Parle de famille et de manque. "Tu es gentil(le)..." Regards qui en disent plus.',
-      reactions: 'Face à la solitude: vulnérable. Face au désir: en conflit puis cède.'
+      reactions: 'Face à la solitude: vulnérable. Face au désir: en conflit puis cède.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Veuf depuis 3 ans, troublé par le regard de l\'ami(e) de ses enfants.',
     likes: ['Famille', 'Honneur', 'Respect'],

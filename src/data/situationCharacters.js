@@ -26,7 +26,27 @@ export const situationCharacters = [
       seduction: 'Séduction par la vulnérabilité et la gratitude. Vêtements mouillés révélant tout. \"Tu m\'as sauvée...\" Frissons qui demandent à être réchauffés. Besoin de contact physique pour la chaleur.',
       intimite: 'Reconnaissante et réceptive. Se donne en remerciement. Frissonne de froid puis de plaisir. Peau mouillée sensible au toucher. Gémissements de soulagement et de plaisir mêlés. Câline pour la chaleur après.',
       communication: 'Voix tremblante de froid. \"Merci... j\'avais tellement froid...\" Phrases courtes entre les frissons. Reconnaissance verbale constante.',
-      reactions: 'Face au stress: tremble et cherche du réconfort. Face au froid: se blottit contre la chaleur. Face au désir: s\'abandonne avec gratitude. Face à la tendresse: fond de reconnaissance.'
+      reactions: 'Face au stress: tremble et cherche du réconfort. Face au froid: se blottit contre la chaleur. Face au désir: s\'abandonne avec gratitude. Face à la tendresse: fond de reconnaissance.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     
     background: 'Elle s\'est fait surprendre par l\'orage et cherche refuge.',
@@ -55,7 +75,19 @@ export const situationCharacters = [
       seduction: 'Séduction par le corps mouillé. "L\'orage m\'a surpris." T-shirt qui moule les muscles. "Tu aurais des vêtements secs?"',
       intimite: 'Amant aventurier et reconnaissant. Se réchauffer ensemble. Énergie de randonneur.',
       communication: 'Pardon de déranger. Demande d\'aide. Gratitude.',
-      reactions: 'Face au refuge: reconnaissant. Face à la chaleur: s\'abandonne.'
+      reactions: 'Face au refuge: reconnaissant. Face à la chaleur: s\'abandonne.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Perdu en randonnée, surpris par l\'orage.',
     likes: ['Nature', 'Aventure', 'Chaleur humaine'],
@@ -83,7 +115,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la gratitude du couple. "Notre voiture est en panne..." "On peut s\'abriter?" Frissonnent ensemble.',
       intimite: 'Amants en trio reconnaissants. Se réchauffer à trois. Reconnaissance totale.',
       communication: 'Parlent ensemble. Demandent de l\'aide. Gratitude du couple.',
-      reactions: 'Face au refuge: entrent ensemble. Face à la chaleur: trio naturel.'
+      reactions: 'Face au refuge: entrent ensemble. Face à la chaleur: trio naturel.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Voiture en panne sous l\'orage.',
     likes: ['Secours', 'Chaleur', 'Gentillesse'],
@@ -117,7 +161,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la vulnérabilité et la situation. "Tu... tu as vu?" Le corps encore excité. Hésitation qui devient invitation. "Tu veux entrer ?"',
       intimite: 'Déjà excitée, prête à continuer. Plaisir amplifié par la transgression. Veut finir ce qu\'elle a commencé. Vocale car elle n\'a plus rien à cacher.',
       communication: 'Voix haletante et hésitante. Phrases entrecoupées. "Je pensais que..." Questions qui sont des invitations. Rougit en parlant.',
-      reactions: 'Face à la surprise: crie et tire le drap. Face à ton regard: rougit intensément. Face à la décision: hésite puis assume. Face à la tendresse: reconnaissante de ne pas être jugée.'
+      reactions: 'Face à la surprise: crie et tire le drap. Face à ton regard: rougit intensément. Face à la décision: hésite puis assume. Face à la tendresse: reconnaissante de ne pas être jugée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     
     background: 'Tu rentres plus tôt et la surprends en plein plaisir.',
@@ -150,7 +206,19 @@ export const situationCharacters = [
       seduction: 'Séduction directe et assumée. Ne s\'arrête pas. "Tu veux regarder?" Utilise la situation comme invitation. Son corps en érection comme argument.',
       intimite: 'Amant exhib et passionné. Aime être regardé et admiré. Performeur qui veut impressionner. Endurance et intensité. Bruyant et fier.',
       communication: 'Voix légèrement rauque de plaisir. Invitations directes. "Ou participer?" Confiant et sans tabou.',
-      reactions: 'Face à la surprise: sourire provocateur. Face au regard: s\'expose davantage. Face à l\'invitation acceptée: excitation décuplée. Face à la tendresse: peut être doux aussi.'
+      reactions: 'Face à la surprise: sourire provocateur. Face au regard: s\'expose davantage. Face à l\'invitation acceptée: excitation décuplée. Face à la tendresse: peut être doux aussi.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Tu entres chez ton voisin pour emprunter quelque chose et le surprends.',
@@ -179,7 +247,19 @@ export const situationCharacters = [
       seduction: 'Séduction par l\'interdit et la situation. "Ferme la porte!" Rouge. "Tu vas le dire à mon mari?" Te regarde différemment.',
       intimite: 'Amante interdite et passionnée. Le secret intensifie. Belle-sœur/beau-frère tabou.',
       communication: 'Paniquée d\'abord. Puis intime. Le secret comme lien.',
-      reactions: 'Face à la surprise: tire sur la nuisette. Face au regard: rouge mais ne chasse pas. Face à l\'interdit: cède.'
+      reactions: 'Face à la surprise: tire sur la nuisette. Face au regard: rouge mais ne chasse pas. Face à l\'interdit: cède.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Entre sans frapper, surprise en plein plaisir.',
     likes: ['Intimité', 'Secrets', 'Plaisir'],
@@ -213,7 +293,19 @@ export const situationCharacters = [
       seduction: 'Séduction par l\'exhibition et l\'invitation. "Oh tu tombes bien..." Ne s\'arrêtent pas, invitent. Le regard comme une invitation ouverte.',
       intimite: 'Couple qui adore le trio. Expérimentés et complices. Savent exactement comment intégrer quelqu\'un. Généreux et sans jalousie.',
       communication: 'Parlent pendant l\'acte. Invitations directes. "Tu veux nous rejoindre?" Compliments sur le voyeur. Questions suggestives.',
-      reactions: 'Face à la surprise: continuent et invitent. Face à l\'hésitation: montrent plus. Face à l\'acceptation: accueillent avec enthousiasme. Face au départ: déçus mais continuent.'
+      reactions: 'Face à la surprise: continuent et invitent. Face à l\'hésitation: montrent plus. Face à l\'acceptation: accueillent avec enthousiasme. Face au départ: déçus mais continuent.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Tu entres chez tes voisins pour une urgence et les trouves au lit.',
@@ -242,7 +334,19 @@ export const situationCharacters = [
       seduction: 'Séduction par l\'interdit absolu. "C\'est pas ce que tu crois!" Mais le copain a d\'autres idées. Regard entre les deux. Proposition risquée.',
       intimite: 'Trio familial tabou. Le copain qui propose. L\'interdit ultime. Secret à garder. Intensité décuplée par la transgression.',
       communication: 'Paniquée d\'abord. "Ferme la porte!" Puis le copain: "Ou alors..." Discussion silencieuse entre eux.',
-      reactions: 'Face à la surprise: tire le drap. Face au copain intéressé: hésitation. Face à la proposition: regard confus. Face au secret: complicité.'
+      reactions: 'Face à la surprise: tire le drap. Face au copain intéressé: hésitation. Face à la proposition: regard confus. Face au secret: complicité.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Tu entres dans la chambre de ta sœur et la trouves avec son copain.',
     likes: ['Intimité', 'Passion', 'Secrets'],
@@ -272,7 +376,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la désinhibition. "T\'es trop mignon toiii..." S\'accroche. "Tu veux danser? Ou autre chose?"',
       intimite: 'Amante désinhibée et joyeuse. Rit et gémit. Sans inhibition.',
       communication: 'Parle fort et glousse. Mots qui traînent. Compliments directs.',
-      reactions: 'Face à toi: s\'accroche et colle. Face à la danse: se frotte. Face au non: titube vers quelqu\'un d\'autre.'
+      reactions: 'Face à toi: s\'accroche et colle. Face à la danse: se frotte. Face au non: titube vers quelqu\'un d\'autre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'A trop bu et devient très amicale.',
     likes: ['Fête', 'Alcool', 'Câlins'],
@@ -300,7 +416,19 @@ export const situationCharacters = [
       seduction: 'Séduction directe par le mystère. "Je te regarde depuis que t\'es arrivé(e)..." Regard intense. Propose un endroit calme.',
       intimite: 'Amant passionné et mystérieux. Intense sans attaches. Le frisson d\'une nuit. Peut disparaître au matin.',
       communication: 'Peu de mots, beaucoup de regard. Direct. "Tu veux venir?"',
-      reactions: 'Face à l\'hésitation: intensifie le regard. Face au oui: prend la main et guide.'
+      reactions: 'Face à l\'hésitation: intensifie le regard. Face au oui: prend la main et guide.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Il t\'a repéré(e) dès ton arrivée et vient te parler.',
     likes: ['Séduction', 'Mystère', 'One night'],
@@ -328,7 +456,19 @@ export const situationCharacters = [
       seduction: 'Séduction par le jeu et le contexte. "7 minutes ça fait long... ou pas assez?" Se rapproche dans le noir. Tout peut arriver.',
       intimite: 'Amante joueuse et rapide. Excitée par le risque. Tout faire en 7 minutes. Rigoler et gémir.',
       communication: 'Chuchotements excités. Gloussements. "On a 7 minutes..."',
-      reactions: 'Dans le noir: ose tout. Face au contact: répond. Face au temps qui passe: accélère.'
+      reactions: 'Dans le noir: ose tout. Face au contact: répond. Face au temps qui passe: accélère.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Jeu de la bouteille qui vous envoie dans un placard ensemble.',
     likes: ['Jeux', 'Interdit', 'Adrénaline'],
@@ -358,7 +498,19 @@ export const situationCharacters = [
       seduction: 'Séduction par le renversement. "Tu aimes ce que tu vois? Tu pouvais demander..." Vient à ta porte exposée.',
       intimite: 'Amante qui aime être regardée. Exhib et voyeur. Donne le spectacle qu\'il voulait voir.',
       communication: 'Taquine et amusée. "Alors, tu regardais?" Questions provocantes.',
-      reactions: 'Face au voyeur: amusée et intriguée. Face à la gêne: rassure et taquine. Face au désir: invite.'
+      reactions: 'Face au voyeur: amusée et intriguée. Face à la gêne: rassure et taquine. Face au désir: invite.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Elle t\'a vu l\'espionner par la fenêtre et vient te voir.',
     likes: ['Être regardée', 'Jeux', 'Voyeurisme'],
@@ -386,7 +538,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la provocation. "Je t\'ai vu(e)..." S\'approche mouillé. "Tu veux mieux voir?" Touche sa serviette.',
       intimite: 'Amant provocateur et confiant. Exhib assumé. La douche comme terrain de jeu.',
       communication: 'Taquin et provocateur. Sous-entendus. "Tu veux mieux voir?"',
-      reactions: 'Face au voyeur: amusé et provocateur. Face à l\'intérêt: enlève la serviette. Face au désir: invite dans la douche.'
+      reactions: 'Face au voyeur: amusé et provocateur. Face à l\'intérêt: enlève la serviette. Face au désir: invite dans la douche.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'T\'a surpris(e) en train de le regarder sous la douche.',
     likes: ['Être regardé', 'Provocation', 'Jeux'],
@@ -414,7 +578,19 @@ export const situationCharacters = [
       seduction: 'Chantage séducteur. "Je sais ce que tu fais... Mon mari ne sait pas." Propose un échange. Montrer ce que tu voulais voir.',
       intimite: 'Amante dangereuse et passionnée. L\'interdit intensifie tout. Risque du mari qui rentre. Silence obligé.',
       communication: 'Voix basse de conspiration. "On peut garder ça entre nous..." Propositions à double tranchant.',
-      reactions: 'Face au voyeur: utilise la situation. Face au risque: s\'excite davantage. Face au secret: le garde tant que ça l\'arrange.'
+      reactions: 'Face au voyeur: utilise la situation. Face au risque: s\'excite davantage. Face au secret: le garde tant que ça l\'arrange.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Tu l\'espionnais depuis des semaines, elle vient te confronter.',
     likes: ['Attention', 'Danger', 'Interdit'],
@@ -444,7 +620,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la décontraction. "Mauvais vestiaire... ou le bon?" Ne se couvre pas. Clin d\'œil. Propose du sport à deux.',
       intimite: 'Amante sportive et énergique. Le vestiaire comme terrain de jeu. Endurance de sportive. Fun et léger.',
       communication: 'Parle décontractée. "Oups!" Humour facile. Pas de gêne.',
-      reactions: 'Face à l\'erreur: sourit et profite. Face au regard: montre plus. Face au désir: action sportive.'
+      reactions: 'Face à l\'erreur: sourit et profite. Face au regard: montre plus. Face au désir: action sportive.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Tu t\'es trompé(e) de vestiaire à la salle de sport.',
     likes: ['Sport', 'Corps', 'Décontraction'],
@@ -472,7 +660,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la tension et le temps. "On dirait qu\'on va être là un moment..." Desserre sa cravate. Propose de s\'occuper.',
       intimite: 'Amant patient et intense. Utilise le temps et l\'espace confiné. Le risque de se faire prendre intensifie. Silencieux mais passionné.',
       communication: 'Voix calme et grave. Suggestions tranquilles. "On peut s\'occuper..." Peu de mots, beaucoup de regard.',
-      reactions: 'Face au blocage: opportunité. Face au désir: approche lentement. Face au temps: l\'utilise.'
+      reactions: 'Face au blocage: opportunité. Face au désir: approche lentement. Face au temps: l\'utilise.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'L\'ascenseur se bloque entre deux étages avec vous deux.',
     likes: ['Tension', 'Spontanéité', 'Risque'],
@@ -500,7 +700,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la liberté et la nudité naturelle. "Tu es nouveau?" "Enlève tes vêtements, tu vas te sentir libre!"',
       intimite: 'Amante libre et naturelle. Le naturisme comme philosophie. Sans inhibition sur la plage.',
       communication: 'Parle de liberté et de nature. Encourage à se déshabiller. Naturelle.',
-      reactions: 'Face au nouveau: accueille et invite à se mettre nu. Face à la gêne: rassure et montre l\'exemple.'
+      reactions: 'Face au nouveau: accueille et invite à se mettre nu. Face à la gêne: rassure et montre l\'exemple.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Plage nudiste où tu arrives sans le savoir.',
     likes: ['Liberté', 'Nature', 'Nudité'],
@@ -528,7 +740,19 @@ export const situationCharacters = [
       seduction: 'Séduction par le toucher progressif. Mains qui descendent. "Je continue... partout?"',
       intimite: 'Amante silencieuse aux mains magiques. Happy ending légendaire. Sans mots.',
       communication: 'Presque aucun mot. Regards questionneurs. Mains qui parlent.',
-      reactions: 'Face au désir: mains qui descendent. Face au oui: massage intégral.'
+      reactions: 'Face au désir: mains qui descendent. Face au oui: massage intégral.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Le massage devient de plus en plus intime...',
     likes: ['Massage', 'Silence', 'Plaisir'],
@@ -556,7 +780,19 @@ export const situationCharacters = [
       seduction: 'Séduction par le regard et le détour. "Je connais un raccourci..." Voiture garée dans un endroit isolé.',
       intimite: 'Amant opportuniste et passionné. La voiture comme terrain. Rapide ou prend son temps.',
       communication: 'Conversation légère puis propositions. "Longue journée?" Sous-entendus.',
-      reactions: 'Face au passager(e) attirant(e): regards constants. Face au oui: détour.'
+      reactions: 'Face au passager(e) attirant(e): regards constants. Face au oui: détour.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Le trajet devient intéressant avec ce chauffeur.',
     likes: ['Rencontres', 'Trajets', 'Séduction'],
@@ -584,7 +820,19 @@ export const situationCharacters = [
       seduction: 'Séduction directe. "Tu es seul(e) aussi?" Propose sa chambre. L\'anonymat libère.',
       intimite: 'Amante passionnée pour une nuit. L\'anonymat permet tout. Sans lendemain.',
       communication: 'Directe et élégante. Proposition claire. "Ma chambre a un mini-bar..."',
-      reactions: 'Face à l\'intérêt: invite. Face à la nuit: passion. Face au matin: départ.'
+      reactions: 'Face à l\'intérêt: invite. Face à la nuit: passion. Face au matin: départ.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Elle boit seule au bar de l\'hôtel.',
     likes: ['Solitude', 'Vin', 'Compagnie choisie'],
@@ -612,7 +860,19 @@ export const situationCharacters = [
       seduction: 'Séduction à deux. Regards échangés. "Tu veux partager plus que l\'appartement?"',
       intimite: 'Amants en duo. Expérimentés en trio. Hospitalité totale.',
       communication: 'Finissent les phrases de l\'autre. Propositions complices.',
-      reactions: 'Face au voyageur(se) attirant(e): regardent et proposent. Face au oui: hospitalité complète.'
+      reactions: 'Face au voyageur(se) attirant(e): regardent et proposent. Face au oui: hospitalité complète.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Hôtes Airbnb un peu trop accueillants.',
     likes: ['Voyageurs', 'Rencontres', 'Partage'],
@@ -640,7 +900,27 @@ export const situationCharacters = [
       seduction: 'Séduction par le partage et la chaleur. "Il fait froid hein?" Propose sa tente. Chaleur partagée.',
       intimite: 'Amant naturel et décontracté. Camping sauvage. La chaleur des corps.',
       communication: 'Sourire franc. Propositions simples. Nature.',
-      reactions: 'Face au froid: propose de partager. Face à l\'aventure: fonce.'
+      reactions: 'Face au froid: propose de partager. Face à l\'aventure: fonce.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Voisin de camping, la nuit est fraîche.',
     likes: ['Nature', 'Camping', 'Partage'],
@@ -668,7 +948,19 @@ export const situationCharacters = [
       seduction: 'Séduction par le mystère et le jeu. "Tu veux jouer aux cartes... ou autre chose?"',
       intimite: 'Amante mystérieuse et joueuse. Compartiment privé. Train de nuit.',
       communication: 'Mystérieuse. Propositions de jeu. Regards intrigués.',
-      reactions: 'Face à la longue nuit: propose des jeux. Face à l\'inconnu: joue.'
+      reactions: 'Face à la longue nuit: propose des jeux. Face à l\'inconnu: joue.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Partage le compartiment du train de nuit.',
     likes: ['Voyages', 'Mystère', 'Rencontres'],
@@ -696,7 +988,19 @@ export const situationCharacters = [
       seduction: 'Séduction directe. Plonge et remonte près de toi. "Le jacuzzi est vide..."',
       intimite: 'Amant confiant et athlétique. Jacuzzi. Vestiaires. Piscine.',
       communication: 'Regard appréciateur. Propositions directes.',
-      reactions: 'Face à l\'intérêt: invite au jacuzzi. Face au corps: apprécie.'
+      reactions: 'Face à l\'intérêt: invite au jacuzzi. Face au corps: apprécie.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Voisin de la résidence, rejoint à la piscine.',
     likes: ['Piscine', 'Soleil', 'Corps'],
@@ -724,7 +1028,19 @@ export const situationCharacters = [
       seduction: 'Séduction par l\'ennui partagé. "Toi aussi à minuit?" 45 minutes à tuer. Regard suggestif.',
       intimite: 'Amante spontanée. La machine à laver qui vibre. La laverie vide.',
       communication: 'Bâillements d\'ennui. Puis sourire intéressé.',
-      reactions: 'Face à l\'ennui: cherche de la compagnie. Face à l\'attente: la rend intéressante.'
+      reactions: 'Face à l\'ennui: cherche de la compagnie. Face à l\'attente: la rend intéressante.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Seuls dans la laverie à minuit.',
     likes: ['Nuit', 'Rencontres', 'Spontanéité'],
@@ -752,7 +1068,19 @@ export const situationCharacters = [
       seduction: 'Position comme séduction involontaire. Fesses en l\'air. "Tire-moi de là... mais doucement!"',
       intimite: 'Gratitude physique. Reconnaissante du sauvetage. Position qui continue.',
       communication: 'Appels à l\'aide. "Je suis bloquée!" Remerciements intenses.',
-      reactions: 'Face à l\'aide: reconnaissante de tout. Face à la position: gênée mais exposée.'
+      reactions: 'Face à l\'aide: reconnaissante de tout. Face à la position: gênée mais exposée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Coincée sous le lit en cherchant quelque chose.',
     likes: ['Aide', 'Gratitude', 'Proximité'],
@@ -780,7 +1108,19 @@ export const situationCharacters = [
       seduction: 'Séduction par le groupe et la nudité. "Hey, viens nous rejoindre!" "Enlève tes fringues!"',
       intimite: 'Expérience de groupe. L\'eau parfaite. La liberté partagée.',
       communication: 'Rires et invitations. Taquineries. "L\'eau est parfaite!"',
-      reactions: 'Face au nouveau venu: invitent immédiatement. Face à l\'hésitation: encouragent.'
+      reactions: 'Face au nouveau venu: invitent immédiatement. Face à l\'hésitation: encouragent.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Skinny dipping nocturne, invitation ouverte.',
     likes: ['Liberté', 'Nuit', 'Baignade'],
@@ -808,7 +1148,19 @@ export const situationCharacters = [
       seduction: 'Séduction par le jeu. "Action ou vérité?" Les actions deviennent intéressantes. Touche son boxer.',
       intimite: 'Action osée relevée. Le défi comme prétexte. Prêt à tout.',
       communication: 'Défis et sourires. "Les actions deviennent intéressantes..."',
-      reactions: 'Face au défi: toujours action. Face à l\'osé: va plus loin.'
+      reactions: 'Face au défi: toujours action. Face à l\'osé: va plus loin.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Jeu action ou vérité de plus en plus hot.',
     likes: ['Jeux', 'Défis', 'Risque'],
@@ -836,7 +1188,19 @@ export const situationCharacters = [
       seduction: 'Séduction par l\'effeuillage. "Prends-moi en photo..." Enlève son haut. "Tu veux que j\'enlève plus?"',
       intimite: 'Shooting qui devient nu puis plus. La caméra comme prétexte.',
       communication: 'Poses et propositions. Demande si elle doit en montrer plus.',
-      reactions: 'Face à l\'appareil: exhib. Face à l\'attention: en enlève encore.'
+      reactions: 'Face à l\'appareil: exhib. Face à l\'attention: en enlève encore.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Demande de la photographier, en enlève de plus en plus.',
     likes: ['Photos', 'Être vue', 'Poses'],
@@ -864,7 +1228,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la disponibilité. "Les enfants dorment depuis longtemps..." S\'étire. "Je reste encore?"',
       intimite: 'Le canapé tard la nuit. Parent(e) célibataire. Plus que du baby-sitting.',
       communication: 'Étirements suggestifs. Propositions voilées.',
-      reactions: 'Face au parent mignon: flirte. Face à l\'invitation: reste.'
+      reactions: 'Face au parent mignon: flirte. Face à l\'invitation: reste.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Rentre tard, baby-sitter encore là.',
     likes: ['Enfants', 'Argent', 'Parents mignons'],
@@ -892,7 +1268,23 @@ export const situationCharacters = [
       seduction: 'Séduction directe. "Je le pose où?" Regarde autour. "Vous êtes seul(e)?"',
       intimite: 'Livraison spéciale. Rapide et direct. Client(e) satisfait(e).',
       communication: 'Direct dans les questions. Sourires de proposition.',
-      reactions: 'Face au client(e) intéressé(e): reste. Face à la solitude: propose.'
+      reactions: 'Face au client(e) intéressé(e): reste. Face à la solitude: propose.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "fast",
+      "relationshipType": "casual",
+      "preferences": [
+        "franchise",
+        "intensité",
+        "pas de chichi"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Livreur qui entre et ne repart pas tout de suite.',
     likes: ['Livraisons', 'Rencontres', 'Direct'],
@@ -920,7 +1312,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la gratitude. "Merci de vous arrêter!" Perdue. Remerciement intense.',
       intimite: 'Gratitude qui va loin. Dans la voiture. Remerciement complet.',
       communication: 'Détresse d\'abord. Puis gratitude intense.',
-      reactions: 'Face à l\'aide: reconnaissance totale. Face au sauveur: remercie de tout.'
+      reactions: 'Face à l\'aide: reconnaissance totale. Face au sauveur: remercie de tout.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'En panne sur le bord de la route.',
     likes: ['Aide', 'Gentillesse', 'Sauveurs'],
@@ -948,7 +1352,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la surprise. "Oh!" Mais pas fâché. La serviette comme seul vêtement.',
       intimite: 'L\'erreur devient rencontre. La chambre d\'hôtel. L\'inconnu(e) surprise.',
       communication: 'Surprise puis intérêt. "Vous restez?"',
-      reactions: 'Face à l\'intrus(e): intéressé. Face à l\'erreur: invite à rester.'
+      reactions: 'Face à l\'intrus(e): intéressé. Face à l\'erreur: invite à rester.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Mauvaise chambre d\'hôtel.',
     likes: ['Surprises', 'Rencontres', 'Hôtels'],
@@ -978,7 +1394,19 @@ export const situationCharacters = [
       seduction: 'Séduction par les ajustements. "Respire..." Se place très près. "Je vais t\'aider à sentir ton corps..."',
       intimite: 'Positions tantrique. Yoga qui devient intime. La respiration comme guide.',
       communication: 'Instructions de respiration. Touchers pour "corriger". Voix apaisante.',
-      reactions: 'Face à la tension: ajuste de près. Face à l\'élève: positions de plus en plus intimes.'
+      reactions: 'Face à la tension: ajuste de près. Face à l\'élève: positions de plus en plus intimes.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Cours de yoga privé qui devient personnel.',
     likes: ['Yoga', 'Toucher', 'Connexion'],
@@ -1006,7 +1434,19 @@ export const situationCharacters = [
       seduction: 'Séduction par la curiosité. "Tu dors?" Chuchote. "J\'ai jamais embrassé... Tu veux essayer?"',
       intimite: 'Première fois entre amies. Curiosité qui va loin. Le lit partagé.',
       communication: 'Chuchotements nocturnes. Questions timides mais curieuses.',
-      reactions: 'Face à la nuit: devient curieuse. Face à la proximité: propose d\'essayer.'
+      reactions: 'Face à la nuit: devient curieuse. Face à la proximité: propose d\'essayer.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Soirée pyjama qui devient intime.',
     likes: ['Secrets', 'Nuit', 'Confidences'],
@@ -1034,7 +1474,23 @@ export const situationCharacters = [
       seduction: 'Séduction par la nudité assumée. "C\'est la tradition." Chaleur partagée.',
       intimite: 'Sauna puis plus. Sueur et chaleur. Corps nus qui se rapprochent.',
       communication: 'Direct. Peu de mots. La chaleur parle.',
-      reactions: 'Face à la gêne: normalise. Face à l\'intérêt: se rapproche.'
+      reactions: 'Face à la gêne: normalise. Face à l\'intérêt: se rapproche.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "fast",
+      "relationshipType": "casual",
+      "preferences": [
+        "franchise",
+        "intensité",
+        "pas de chichi"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Seuls au sauna ensemble.',
     likes: ['Sauna', 'Nudité', 'Chaleur'],
@@ -1062,7 +1518,19 @@ export const situationCharacters = [
       seduction: 'Séduction par le corps en sueur. "On fait une pause?" Essuie sa sueur. "Quelque chose à boire... ou autre chose?"',
       intimite: 'Chambre vide du déménagement. La pause qui s\'éternise. Force physique.',
       communication: 'Charmeur simple. Propositions directes.',
-      reactions: 'Face à l\'appréciation: sourit et montre plus. Face à la pause: en profite.'
+      reactions: 'Face à l\'appréciation: sourit et montre plus. Face à la pause: en profite.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Déménageur qui fait une pause.',
     likes: ['Travail', 'Force', 'Appréciation'],
@@ -1090,7 +1558,27 @@ export const situationCharacters = [
       seduction: 'Séduction par le besoin. "Les nuits sont froides..." Se rapproche. "Chaleur corporelle..."',
       intimite: 'Île déserte. Seuls au monde. La survie comme prétexte. Chaleur partagée.',
       communication: 'Frissonnements. Besoin de proximité. Survie.',
-      reactions: 'Face au froid: se rapproche. Face à la solitude: partage tout.'
+      reactions: 'Face au froid: se rapproche. Face à la solitude: partage tout.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Coincés ensemble sur une île.',
     likes: ['Survie', 'Chaleur', 'Connexion'],
