@@ -746,54 +746,79 @@ class ImageGenerationService {
    * Répétition maximale pour forcer le modèle à respecter la taille
    */
   /**
-   * v5.3.77 - Emphase ULTRA-DÉTAILLÉE pour la poitrine
-   * Descriptions réalistes et visuellement précises par taille de bonnet
+   * v5.4.0 - Emphase ULTRA-MARQUÉE pour la poitrine
+   * Descriptions visuellement TRÈS FORTES pour que la taille soit ÉVIDENTE
    */
   getBustEmphasis(bustSize) {
     if (!bustSize) return '';
     const size = bustSize.toUpperCase().trim();
     
-    // v5.3.77 - Descriptions ULTRA-RÉALISTES avec emphase visuelle
+    // v5.4.0 - Descriptions ULTRA-MARQUÉES avec emphase visuelle MAXIMALE
     const emphasisMap = {
-      'A': 'VERY SMALL A-CUP breasts (A-cup), nearly FLAT CHEST, very petite tiny bust, small pointed nipples, barely any cleavage, flat-chested slim appearance, small perky chest',
-      'B': 'SMALL B-CUP breasts (B-cup), MODEST PETITE bust, small perky round breasts, subtle natural cleavage, youthful small chest, cute small boobs',
-      'C': 'MEDIUM C-CUP breasts (C-cup), AVERAGE SIZED bust, natural round breasts, nice cleavage, proportionate chest, medium sized boobs, balanced figure',
-      'D': 'LARGE D-CUP breasts (D-cup), BIG FULL ROUND HEAVY BREASTS, visible prominent cleavage, heavy bouncy bust, LARGE CHEST, big natural boobs, impressive size',
-      'DD': 'VERY LARGE DD-CUP breasts (DD-cup), BIG HEAVY BOUNCY ROUND BREASTS, DEEP PROMINENT CLEAVAGE, voluptuous heavy bust, VERY LARGE heavy boobs, DD cup SIZE, extremely busty, overflowing cleavage',
-      'E': 'HUGE E-CUP breasts (E-cup), VERY BIG HEAVY BOUNCY ROUND BREASTS, MASSIVE DEEP CLEAVAGE, extremely busty woman, HUGE heavy boobs, E cup HUGE chest, overflowing bust, jiggly bouncy breasts',
-      'F': 'HUGE F-CUP breasts (F-cup), ENORMOUS HEAVY ROUND BREASTS, GIGANTIC DEEP CLEAVAGE, extremely busty woman, MASSIVE heavy boobs, F cup ENORMOUS bust, breast-heavy figure, huge jiggly boobs',
-      'G': 'GIGANTIC G-CUP breasts (G-cup), EXTREMELY LARGE HEAVY ROUND BREASTS, MASSIVE ENORMOUS BUST, GIANT heavy boobs, G cup GIGANTIC chest, colossal bouncy breasts, incredibly busty',
-      'H': 'MASSIVE H-CUP breasts (H-cup), COLOSSAL HEAVY ROUND BREASTS, GIANT ENORMOUS BUST, impossibly large heavy boobs, H cup MASSIVE chest, extremely oversized breasts, huge hanging breasts',
-      'I': 'COLOSSAL I-CUP breasts (I-cup), IMPOSSIBLY HUGE HEAVY ROUND BREASTS, GIGANTIC ENORMOUS BUST, I cup COLOSSAL chest, extremely massive oversized boobs, gigantic hanging breasts'
+      'A': 'VERY SMALL A-CUP breasts, nearly FLAT CHEST, very petite tiny bust, small pointed nipples, barely any cleavage, flat-chested slim appearance',
+      'B': 'SMALL B-CUP breasts, MODEST PETITE bust, small perky round breasts, subtle cleavage, youthful small chest',
+      'C': 'MEDIUM C-CUP breasts, AVERAGE bust, natural round breasts, nice visible cleavage, proportionate chest',
+      'D': 'LARGE D-CUP BREASTS that are VISIBLY BIG, FULL ROUND HEAVY BREASTS clearly visible, PROMINENT cleavage, big bouncy bust, OBVIOUSLY LARGE CHEST, breasts that STAND OUT',
+      'DD': 'VERY LARGE DD-CUP BREASTS that are EXTREMELY NOTICEABLE, BIG HEAVY BOUNCY ROUND BREASTS dominating the chest, DEEP PROMINENT CLEAVAGE impossible to miss, voluptuous HUGE bust, VERY OBVIOUSLY LARGE heavy boobs, breasts that DEMAND ATTENTION',
+      'E': 'HUGE E-CUP BREASTS that DOMINATE the figure, VERY BIG HEAVY BOUNCY ROUND BREASTS impossible to ignore, MASSIVE DEEP CLEAVAGE, extremely busty woman with BREASTS THAT STAND OUT, HUGE heavy boobs that are THE FOCUS of attention, overflowing jiggly bouncy breasts',
+      'F': 'ENORMOUS F-CUP BREASTS that are THE DOMINANT feature, HUGE HEAVY ROUND BREASTS that cannot be missed, GIGANTIC DEEP CLEAVAGE, extremely busty with BREASTS LARGER THAN HER HEAD, MASSIVE heavy boobs that OVERFLOW any clothing, breast-heavy figure where BOOBS ARE THE MAIN FOCUS',
+      'G': 'GIGANTIC G-CUP BREASTS that are ABSURDLY LARGE, EXTREMELY LARGE HEAVY ROUND BREASTS that DOMINATE her entire torso, MASSIVE ENORMOUS BUST impossible to hide, GIANT heavy boobs BIGGER THAN MELONS, colossal bouncy breasts that BOUNCE WITH EVERY MOVEMENT',
+      'H': 'MASSIVE H-CUP BREASTS that are IMPOSSIBLY HUGE, COLOSSAL HEAVY ROUND BREASTS each BIGGER THAN HER HEAD, GIANT ENORMOUS BUST that WEIGHS HER DOWN, impossibly large heavy boobs that HANG HEAVILY, MASSIVE chest that IS HER DEFINING FEATURE',
+      'I': 'COLOSSAL I-CUP BREASTS that are CARTOONISHLY LARGE, IMPOSSIBLY HUGE HEAVY ROUND BREASTS that DEFY GRAVITY, GIGANTIC ENORMOUS BUST that DOMINATES HER ENTIRE BODY, I cup COLOSSAL chest that CANNOT BE CONTAINED, extremely massive oversized boobs BIGGER THAN BASKETBALLS'
     };
     
     return emphasisMap[size] || '';
   }
   
   /**
-   * v5.3.77 - Retourne un prompt ULTRA-PRIORITAIRE pour la poitrine
-   * Avec emphase visuelle forte pour forcer la taille correcte
-   * RÉALISTE: Les grandes poitrines doivent être visuellement grandes!
+   * v5.4.0 - Retourne un prompt ULTRA-PRIORITAIRE pour la poitrine
+   * Avec emphase visuelle EXTRÊME pour que la taille soit VRAIMENT VISIBLE
+   * RÉALISTE: Les grandes poitrines doivent être CLAIREMENT VISIBLES!
    */
   getBustUltraPriority(bustSize, gender) {
     if (!bustSize || gender !== 'female') return '';
     const size = bustSize.toUpperCase().trim();
     
-    // v5.3.77 - Mapping ULTRA-RÉALISTE avec emphase visuelle maximale
+    // v5.4.0 - Mapping ULTRA-VISIBLE avec emphase visuelle EXTRÊME
     const bustPrompts = {
-      'A': 'A-CUP BREASTS, small flat chest, petite bust, tiny breasts, nearly flat, minimal curves',
-      'B': 'B-CUP BREASTS, small perky breasts, modest bust, small chest, petite boobs',
-      'C': 'C-CUP BREASTS, medium round breasts, average bust, normal chest size, nice cleavage',
-      'D': '((D-CUP BREASTS)), ((LARGE BREASTS)), ((BIG BUST)), full round chest, big boobs, heavy breasts, visible cleavage',
-      'DD': '(((DD-CUP BREASTS))), (((VERY LARGE BREASTS))), (((BIG HEAVY BUST))), deep prominent cleavage, DD cup big heavy boobs, large bouncy round breasts, extremely busty',
-      'E': '(((E-CUP BREASTS))), (((HUGE BREASTS))), (((VERY BIG HEAVY BUST))), massive deep cleavage, E cup HUGE heavy boobs, very large bouncy round breasts, extremely busty figure',
-      'F': '(((F-CUP BREASTS))), (((ENORMOUS BREASTS))), (((HUGE HEAVY BUST))), gigantic deep cleavage, F cup ENORMOUS heavy boobs, extremely large bouncy round breasts, breast-dominant figure',
-      'G': '(((G-CUP BREASTS))), (((GIGANTIC BREASTS))), (((MASSIVE HEAVY BUST))), G cup GIANT heavy boobs, colossal bouncy round breasts, extremely oversized bust, incredibly busty',
-      'H': '(((H-CUP BREASTS))), (((MASSIVE BREASTS))), (((COLOSSAL HEAVY BUST))), H cup MASSIVE heavy boobs, impossibly large round breasts, enormous hanging bust',
-      'I': '(((I-CUP BREASTS))), (((COLOSSAL BREASTS))), (((GIGANTIC HEAVY BUST))), I cup COLOSSAL heavy boobs, extremely massive round breasts, impossibly huge bust'
+      'A': 'A-CUP BREASTS, small flat chest, petite bust, tiny breasts, nearly flat',
+      'B': 'B-CUP BREASTS, small perky breasts, modest bust, small chest',
+      'C': 'C-CUP BREASTS, medium round breasts, average bust, visible cleavage',
+      'D': '((D-CUP LARGE BREASTS)), ((BIG VISIBLE BUST)), full round chest clearly visible, big boobs that STAND OUT, heavy breasts with OBVIOUS cleavage',
+      'DD': '(((DD-CUP VERY LARGE BREASTS))), (((BIG HEAVY VISIBLE BUST))), (((PROMINENT DEEP CLEAVAGE))), DD cup big heavy boobs that DOMINATE the view, large bouncy round breasts CLEARLY VISIBLE, extremely busty with OBVIOUS LARGE CHEST',
+      'E': '(((E-CUP HUGE BREASTS))), (((VERY BIG HEAVY DOMINANT BUST))), (((MASSIVE VISIBLE CLEAVAGE))), E cup HUGE heavy boobs that are THE FOCUS, very large bouncy round breasts IMPOSSIBLE TO MISS, breasts LARGER THAN NORMAL that DEMAND ATTENTION',
+      'F': '(((F-CUP ENORMOUS BREASTS))), (((HUGE HEAVY DOMINANT BUST))), (((GIGANTIC VISIBLE CLEAVAGE))), F cup ENORMOUS heavy boobs DOMINATING the figure, extremely large bouncy round breasts BIGGER THAN HER HEAD, breast-dominant figure where BOOBS ARE THE MAIN FEATURE',
+      'G': '(((G-CUP GIGANTIC BREASTS))), (((MASSIVE HEAVY DOMINANT BUST))), G cup GIANT heavy boobs EACH BIGGER THAN A MELON, colossal bouncy round breasts that OVERWHELM her torso, extremely oversized bust IMPOSSIBLE TO IGNORE',
+      'H': '(((H-CUP MASSIVE BREASTS))), (((COLOSSAL HEAVY BUST))), H cup MASSIVE heavy boobs EACH BIGGER THAN HER HEAD, impossibly large round breasts that HANG HEAVILY, enormous bust that DEFINES HER SILHOUETTE',
+      'I': '(((I-CUP COLOSSAL BREASTS))), (((GIGANTIC HEAVY BUST))), I cup COLOSSAL heavy boobs BIGGER THAN BASKETBALLS, extremely massive round breasts that DOMINATE HER ENTIRE BODY, impossibly huge bust'
     };
     
     return bustPrompts[size] || '';
+  }
+  
+  /**
+   * v5.4.0 - Prompt de renforcement FINAL pour la poitrine
+   * Utilisé à la FIN du prompt pour emphase maximale (les IA favorisent la fin)
+   */
+  getBustFinalReinforcement(bustSize, gender) {
+    if (!bustSize || gender !== 'female') return '';
+    const size = bustSize.toUpperCase().trim();
+    
+    // Pour les grandes tailles, ajouter un renforcement final
+    const reinforcement = {
+      'A': '',
+      'B': '',
+      'C': '',
+      'D': 'IMPORTANT: breasts are LARGE and VISIBLE, D-cup size',
+      'DD': 'CRITICAL: breasts are VERY LARGE DD-cup, OBVIOUSLY BIG, DOMINANT FEATURE',
+      'E': 'CRITICAL: breasts are HUGE E-cup, EXTREMELY LARGE, IMPOSSIBLE TO MISS, DOMINATING THE IMAGE',
+      'F': 'CRITICAL: breasts are ENORMOUS F-cup, MASSIVE HEAVY, BIGGER THAN HER HEAD, THE MAIN FOCUS',
+      'G': 'CRITICAL: breasts are GIGANTIC G-cup, ABSURDLY LARGE, EACH BIGGER THAN A MELON, OVERWHELMING',
+      'H': 'CRITICAL: breasts are MASSIVE H-cup, IMPOSSIBLY HUGE, HANGING HEAVILY, DEFINING HER FIGURE',
+      'I': 'CRITICAL: breasts are COLOSSAL I-cup, CARTOONISHLY LARGE, BIGGER THAN BASKETBALLS, DOMINATING EVERYTHING',
+    };
+    
+    return reinforcement[size] || '';
   }
 
   /**
@@ -2595,13 +2620,20 @@ class ImageGenerationService {
       console.log('🟢 RENFORCEMENT PROFIL: CURVY SANS VENTRE');
     }
 
-    // === v5.3.76 - RENFORCEMENT FINAL DE LA POITRINE ===
+    // === v5.4.0 - RENFORCEMENT FINAL DE LA POITRINE ===
     // Répéter la taille de bonnet à la fin pour emphase maximale
     if (character.gender === 'female' && character.bust) {
       const bustFinal = this.getBustUltraPriority(character.bust, 'female');
       if (bustFinal) {
         prompt += `, ${bustFinal}`;
         console.log(`👙 RENFORCEMENT FINAL POITRINE: ${character.bust} -> ${bustFinal.substring(0, 50)}...`);
+      }
+      
+      // v5.4.0 - Ajouter le renforcement critique pour les grandes tailles (D+)
+      const bustReinforce = this.getBustFinalReinforcement(character.bust, 'female');
+      if (bustReinforce) {
+        prompt += `, ${bustReinforce}`;
+        console.log(`👙 RENFORCEMENT CRITIQUE: ${bustReinforce.substring(0, 60)}...`);
       }
     }
 
@@ -3833,19 +3865,26 @@ class ImageGenerationService {
       }
     }
     
-    // === v5.3.76 - RENFORCEMENT FINAL POITRINE ULTRA-PRIORITAIRE ===
+    // === v5.4.0 - RENFORCEMENT FINAL POITRINE ULTRA-PRIORITAIRE ===
     if (character.gender === 'female' && character.bust) {
       const bustFinal = this.getBustUltraPriority(character.bust, 'female');
       if (bustFinal) {
         prompt += `, ${bustFinal}`;
         console.log(`👙 RENFORCEMENT FINAL POITRINE SCÈNE: ${character.bust} -> ${bustFinal.substring(0, 50)}...`);
       }
+      
+      // v5.4.0 - Ajouter le renforcement final pour les grandes tailles (D+)
+      const bustReinforce = this.getBustFinalReinforcement(character.bust, 'female');
+      if (bustReinforce) {
+        prompt += `, ${bustReinforce}`;
+        console.log(`👙 RENFORCEMENT CRITIQUE POITRINE: ${bustReinforce.substring(0, 60)}...`);
+      }
     } else if (character.gender === 'female' && physicalDetails.bust.size) {
       // Fallback: utiliser la taille détectée
       const bustSize = physicalDetails.bust.size.toLowerCase();
       if (bustSize.includes('dd') || bustSize.includes('e') || bustSize.includes('f') || 
           bustSize.includes('g') || bustSize.includes('h') || bustSize === 'large' || bustSize === 'huge') {
-        prompt += ', ((VERY LARGE breasts)), ((big heavy bust)), deep cleavage, large boobs';
+        prompt += ', ((VERY LARGE breasts)), ((big heavy bust)), deep cleavage, large boobs, BREASTS THAT DOMINATE THE VIEW';
       } else if (bustSize.includes('d')) {
         prompt += ', ((LARGE D-CUP breasts)), big full bust, visible cleavage, big boobs';
       } else if (bustSize.includes('a') || bustSize === 'small') {
@@ -4539,7 +4578,7 @@ class ImageGenerationService {
    * v5.3.75 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
    */
   physicalProfileCache = {};
-  cacheVersion = '5.3.77'; // Incrémenter pour invalider le cache
+  cacheVersion = '5.4.0'; // Incrémenter pour invalider le cache
   
   /**
    * v5.3.75 - Génère une clé unique pour un personnage basée sur ses attributs physiques

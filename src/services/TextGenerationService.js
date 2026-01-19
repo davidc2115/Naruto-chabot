@@ -639,15 +639,26 @@ class TextGenerationService {
     else if (messageCount > 15) intensity = 3;
     else if (messageCount > 5) intensity = 2;
     
-    // === v5.3.69 - EXTRAIRE ÉLÉMENTS À NE PAS RÉPÉTER (MÉMOIRE ÉTENDUE) ===
+    // === v5.4.0 - EXTRAIRE ÉLÉMENTS À NE PAS RÉPÉTER (MÉMOIRE ULTRA-ÉTENDUE) ===
     const usedActions = [];
     const usedPhrases = [];
     const usedDescriptions = [];
-    const clothingActions = [];  // v5.3.69 - Actions sur les vêtements
-    const completedActions = []; // v5.3.69 - Actions terminées (déjà faites)
+    const clothingActions = [];  // Actions sur les vêtements
+    const completedActions = []; // Actions terminées (déjà faites)
     
-    // v5.3.69 - Analyser TOUS les messages récents (pas seulement assistant)
-    const allRecentMessages = recentMessages.slice(-30); // Plus de messages analysés
+    // v5.4.0 - Analyser TOUS les messages (pas seulement les 30 derniers)
+    // Cela garantit que l'état des vêtements est mémorisé sur toute la conversation
+    const allRecentMessages = recentMessages; // Analyser TOUS les messages
+    
+    // v5.4.0 - État de nudité global (plus précis)
+    let nudityState = {
+      isTopless: false,        // Seins exposés (femme)
+      isBottomless: false,     // Partie basse nue
+      isCompletelyNude: false, // Entièrement nu/nue
+      topClothingRemoved: [],  // Vêtements du haut retirés
+      bottomClothingRemoved: [], // Vêtements du bas retirés
+      underwearRemoved: [],    // Sous-vêtements retirés
+    };
     
     allRecentMessages.forEach(m => {
       const content = m.content || '';
@@ -663,43 +674,124 @@ class TextGenerationService {
         if (phraseMatch) phraseMatch.forEach(p => usedPhrases.push(p.replace(/"/g, '').toLowerCase().substring(0, 40)));
       }
       
-      // v5.3.69 - DÉTECTER LES ACTIONS SUR LES VÊTEMENTS (éviter répétitions)
+      // v5.4.0 - DÉTECTER LES ACTIONS SUR LES VÊTEMENTS (ULTRA-COMPLET)
       const clothingPatterns = [
-        { pattern: /retire.*pantalon|enlève.*pantalon|descends.*pantalon/gi, item: 'pantalon' },
-        { pattern: /retire.*chemise|enlève.*chemise|déboutonne.*chemise/gi, item: 'chemise' },
-        { pattern: /retire.*t-shirt|enlève.*t-shirt|soulève.*t-shirt/gi, item: 't-shirt' },
-        { pattern: /retire.*haut|enlève.*haut/gi, item: 'haut' },
-        { pattern: /retire.*soutien.*gorge|enlève.*soutien.*gorge|dégrafe/gi, item: 'soutien-gorge' },
-        { pattern: /retire.*culotte|enlève.*culotte|baisse.*culotte/gi, item: 'culotte' },
-        { pattern: /retire.*slip|enlève.*slip|baisse.*slip/gi, item: 'slip' },
-        { pattern: /retire.*boxer|enlève.*boxer/gi, item: 'boxer' },
-        { pattern: /retire.*jupe|enlève.*jupe|remonte.*jupe|soulève.*jupe/gi, item: 'jupe' },
-        { pattern: /retire.*robe|enlève.*robe/gi, item: 'robe' },
-        { pattern: /déshabille|se déshabille|ôte.*vêtements/gi, item: 'déshabillage' },
+        // VÊTEMENTS DU HAUT
+        { pattern: /retire.*chemise|enlève.*chemise|déboutonne.*chemise|ôte.*chemise/gi, item: 'chemise', type: 'top' },
+        { pattern: /retire.*t-shirt|enlève.*t-shirt|soulève.*t-shirt|ôte.*t-shirt/gi, item: 't-shirt', type: 'top' },
+        { pattern: /retire.*haut|enlève.*haut|ôte.*haut/gi, item: 'haut', type: 'top' },
+        { pattern: /retire.*pull|enlève.*pull|ôte.*pull/gi, item: 'pull', type: 'top' },
+        { pattern: /retire.*veste|enlève.*veste|ôte.*veste/gi, item: 'veste', type: 'top' },
+        { pattern: /retire.*manteau|enlève.*manteau/gi, item: 'manteau', type: 'top' },
+        { pattern: /retire.*robe|enlève.*robe|fait glisser.*robe|ôte.*robe/gi, item: 'robe', type: 'both' },
+        
+        // VÊTEMENTS DU BAS
+        { pattern: /retire.*pantalon|enlève.*pantalon|descends.*pantalon|baisse.*pantalon|ôte.*pantalon/gi, item: 'pantalon', type: 'bottom' },
+        { pattern: /retire.*jupe|enlève.*jupe|remonte.*jupe|soulève.*jupe|ôte.*jupe/gi, item: 'jupe', type: 'bottom' },
+        { pattern: /retire.*short|enlève.*short|baisse.*short/gi, item: 'short', type: 'bottom' },
+        { pattern: /retire.*jean|enlève.*jean|baisse.*jean/gi, item: 'jean', type: 'bottom' },
+        
+        // SOUS-VÊTEMENTS
+        { pattern: /retire.*soutien.*gorge|enlève.*soutien.*gorge|dégrafe.*soutien|ôte.*soutien/gi, item: 'soutien-gorge', type: 'underwear_top' },
+        { pattern: /retire.*culotte|enlève.*culotte|baisse.*culotte|glisse.*culotte|ôte.*culotte/gi, item: 'culotte', type: 'underwear_bottom' },
+        { pattern: /retire.*slip|enlève.*slip|baisse.*slip|ôte.*slip/gi, item: 'slip', type: 'underwear_bottom' },
+        { pattern: /retire.*boxer|enlève.*boxer|baisse.*boxer/gi, item: 'boxer', type: 'underwear_bottom' },
+        { pattern: /retire.*string|enlève.*string|baisse.*string/gi, item: 'string', type: 'underwear_bottom' },
+        { pattern: /retire.*caleçon|enlève.*caleçon|baisse.*caleçon/gi, item: 'caleçon', type: 'underwear_bottom' },
+        
+        // DÉSHABILLAGE COMPLET
+        { pattern: /déshabille.*complètement|entièrement.*nu|totalement.*nu/gi, item: 'tout', type: 'complete' },
+        { pattern: /déshabille|se déshabille|ôte.*vêtements|retire.*vêtements/gi, item: 'déshabillage', type: 'general' },
       ];
       
-      clothingPatterns.forEach(({ pattern, item }) => {
+      // v5.4.0 - DÉTECTER AUSSI LES ÉTATS DE NUDITÉ EXPLICITES
+      const nudityPatterns = [
+        { pattern: /\b(nue|nu)\b.*\b(devant|face)/gi, state: 'nude' },
+        { pattern: /\b(complètement|totalement|entièrement)\s+(nue|nu)\b/gi, state: 'completely_nude' },
+        { pattern: /\b(seins|poitrine)\s+(nu|exposé|visible|à l'air)/gi, state: 'topless' },
+        { pattern: /\bnu(e)?\s+de\s+la\s+tête\s+aux\s+pieds/gi, state: 'completely_nude' },
+        { pattern: /\bplus\s+rien\s+sur\s+(elle|lui|toi|moi)\b/gi, state: 'completely_nude' },
+        { pattern: /\bsans\s+(aucun\s+)?vêtement/gi, state: 'completely_nude' },
+        { pattern: /\btopless\b/gi, state: 'topless' },
+      ];
+      
+      clothingPatterns.forEach(({ pattern, item, type }) => {
         if (pattern.test(lowerContent)) {
           clothingActions.push(item);
           completedActions.push(`retire ${item}`);
-          console.log(`👕 Action vêtement détectée: ${item}`);
+          
+          // v5.4.0 - Mettre à jour l'état de nudité selon le type
+          if (type === 'top') {
+            nudityState.topClothingRemoved.push(item);
+          } else if (type === 'bottom') {
+            nudityState.bottomClothingRemoved.push(item);
+          } else if (type === 'underwear_top') {
+            nudityState.underwearRemoved.push(item);
+            nudityState.isTopless = true;
+          } else if (type === 'underwear_bottom') {
+            nudityState.underwearRemoved.push(item);
+            nudityState.isBottomless = true;
+          } else if (type === 'both') {
+            nudityState.topClothingRemoved.push(item);
+            nudityState.bottomClothingRemoved.push(item);
+          } else if (type === 'complete') {
+            nudityState.isCompletelyNude = true;
+            nudityState.isTopless = true;
+            nudityState.isBottomless = true;
+          }
+          
+          console.log(`👕 Action vêtement détectée: ${item} (${type})`);
+        }
+      });
+      
+      // v5.4.0 - Détecter les états de nudité explicites dans le texte
+      nudityPatterns.forEach(({ pattern, state }) => {
+        if (pattern.test(lowerContent)) {
+          if (state === 'completely_nude') {
+            nudityState.isCompletelyNude = true;
+            nudityState.isTopless = true;
+            nudityState.isBottomless = true;
+          } else if (state === 'topless') {
+            nudityState.isTopless = true;
+          } else if (state === 'nude') {
+            nudityState.isCompletelyNude = true;
+          }
+          console.log(`🔴 État de nudité détecté: ${state}`);
         }
       });
       
       // Parties du corps mentionnées (éviter répétition)
-      const bodyParts = ['seins', 'poitrine', 'fesses', 'lèvres', 'cou', 'cuisses', 'dos', 'ventre', 'bite', 'pénis', 'chatte', 'sexe'];
+      const bodyParts = ['seins', 'poitrine', 'fesses', 'lèvres', 'cou', 'cuisses', 'dos', 'ventre', 'bite', 'pénis', 'chatte', 'sexe', 'tétons', 'mamelons'];
       bodyParts.forEach(part => {
         if (lowerContent.includes(part)) usedDescriptions.push(part);
       });
     });
     
+    // v5.4.0 - Déduire l'état de nudité complet
+    // Si soutien-gorge + culotte/slip retirés = complètement nu
+    const hasNoTop = nudityState.underwearRemoved.includes('soutien-gorge') || nudityState.isTopless;
+    const hasNoBottom = nudityState.underwearRemoved.some(i => ['culotte', 'slip', 'boxer', 'string', 'caleçon'].includes(i)) || nudityState.isBottomless;
+    
+    if (hasNoTop && hasNoBottom) {
+      nudityState.isCompletelyNude = true;
+    }
+    
     // Dernier message de l'utilisateur
     const lastUserMessage = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
     
-    // v5.3.69 - Log des vêtements déjà retirés
+    // v5.4.0 - Log des vêtements déjà retirés avec état de nudité
     const uniqueClothingActions = [...new Set(clothingActions)];
     if (uniqueClothingActions.length > 0) {
       console.log(`👔 Vêtements DÉJÀ retirés: ${uniqueClothingActions.join(', ')}`);
+    }
+    
+    // v5.4.0 - Log de l'état de nudité
+    if (nudityState.isCompletelyNude) {
+      console.log(`🔴 ÉTAT: COMPLÈTEMENT NU(E) - Aucun vêtement restant!`);
+    } else if (nudityState.isTopless) {
+      console.log(`🟠 ÉTAT: TOPLESS - Poitrine exposée`);
+    } else if (nudityState.isBottomless) {
+      console.log(`🟠 ÉTAT: SANS BAS - Partie inférieure nue`);
     }
     
     console.log(`📊 Analyse: mode=${mode}, nsfwIntensity=${nsfwIntensity}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}`);
@@ -713,11 +805,12 @@ class TextGenerationService {
       suggestiveScore,
       explicitScore,
       veryExplicitScore,
-      usedActions: [...new Set(usedActions)].slice(-20),      // v5.3.69 - Plus d'actions mémorisées
-      usedPhrases: [...new Set(usedPhrases)].slice(-15),      // v5.3.69 - Plus de phrases
-      usedDescriptions: [...new Set(usedDescriptions)].slice(-10),
-      clothingRemoved: uniqueClothingActions,                  // v5.3.69 - NOUVEAU
-      completedActions: [...new Set(completedActions)],        // v5.3.69 - NOUVEAU
+      usedActions: [...new Set(usedActions)].slice(-30),      // v5.4.0 - Plus d'actions mémorisées
+      usedPhrases: [...new Set(usedPhrases)].slice(-20),      // v5.4.0 - Plus de phrases
+      usedDescriptions: [...new Set(usedDescriptions)].slice(-15),
+      clothingRemoved: uniqueClothingActions,                  // Vêtements retirés
+      completedActions: [...new Set(completedActions)],        // Actions terminées
+      nudityState,                                             // v5.4.0 - ÉTAT DE NUDITÉ COMPLET
       lastUserMessage,
       isLongConversation: messageCount > 20,
       isVeryLongConversation: messageCount > 50,
@@ -1544,9 +1637,21 @@ class TextGenerationService {
       instruction += `\n`;
     }
     
+    // v5.4.0 - État de nudité
+    const nudityState = context.nudityState || {};
+    if (nudityState.isCompletelyNude) {
+      instruction += `\n🔴 ÉTAT: ${character.name} EST NU(E) - Plus de vêtements à retirer!\n`;
+      instruction += `⛔ Ne mentionne aucun vêtement. Décris le corps nu, le contact peau contre peau.\n`;
+    } else if (nudityState.isTopless) {
+      instruction += `\n🟠 ÉTAT: Seins exposés - soutien-gorge déjà retiré!\n`;
+    }
+    
     // Mode NSFW
     if (isNSFW) {
       instruction += `\n🔞 NSFW: Sois explicite, sensuel, expressif.\n`;
+      if (nudityState.isCompletelyNude) {
+        instruction += `💋 Décris les sensations charnelles, le contact des corps nus.\n`;
+      }
     }
     
     // Format de réponse
@@ -1823,13 +1928,15 @@ class TextGenerationService {
   }
 
   /**
-   * v5.3.69 - Instruction finale FLEXIBLE + NSFW DIRECT + DIALOGUE OBLIGATOIRE + MÉMOIRE VÊTEMENTS
+   * v5.4.0 - Instruction finale avec MÉMOIRE COMPLÈTE DE L'ÉTAT DE NUDITÉ
+   * Évite les incohérences (déshabiller quelqu'un déjà nu)
    */
   buildShortFinalInstruction(character, userProfile, context, recentMessages) {
     const charName = character.name || 'Personnage';
     const userName = userProfile?.username || 'l\'utilisateur';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     const nsfwIntensity = context.nsfwIntensity || 0;
+    const nudityState = context.nudityState || {};
     
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
     const lastContent = lastUserMsg?.content?.substring(0, 250) || '';
@@ -1837,23 +1944,42 @@ class TextGenerationService {
     // Détecter si l'utilisateur demande du sexe MAINTENANT
     const wantsSexNow = /baise|suce|prends|viens|continue|oui|encore|plus|fort|déshabille|touche|caresse/i.test(lastContent);
     
-    // v5.3.69 - Instruction claire et flexible
+    // v5.4.0 - Instruction claire et flexible
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
     instruction += `\n👉 RÉPONDS À CE MESSAGE. Suis la direction de ${userName}!\n`;
     
-    // === v5.3.69 - MÉMOIRE DES ACTIONS DÉJÀ FAITES ===
-    if (context.clothingRemoved && context.clothingRemoved.length > 0) {
+    // === v5.4.0 - ÉTAT DE NUDITÉ PRIORITAIRE (TRÈS IMPORTANT) ===
+    if (nudityState.isCompletelyNude) {
+      instruction += `\n\n🔴🔴🔴 ÉTAT ACTUEL: ${charName} EST COMPLÈTEMENT NU(E)! 🔴🔴🔴`;
+      instruction += `\n⛔ IL N'Y A PLUS AUCUN VÊTEMENT À RETIRER!`;
+      instruction += `\n⛔ NE DIS JAMAIS: "je retire", "j'enlève", "je dégrafe", "sous son soutien-gorge", etc.`;
+      instruction += `\n⛔ NE MENTIONNE AUCUN VÊTEMENT car il n'y en a plus!`;
+      instruction += `\n✅ DÉCRIS: son corps nu, ses seins nus, sa peau nue, ses sensations, le contact peau contre peau`;
+      instruction += `\n✅ ACTIONS POSSIBLES: caresser, embrasser, lécher, toucher la peau nue, pénétrer, etc.`;
+    } else if (nudityState.isTopless) {
+      instruction += `\n\n🟠 ÉTAT ACTUEL: ${charName} est TOPLESS (seins exposés)`;
+      instruction += `\n⛔ NE PAS retirer le soutien-gorge (déjà fait!)`;
+      instruction += `\n⛔ Ses seins sont DÉJÀ nus et visibles!`;
+      instruction += `\n✅ DÉCRIS: ses seins nus, tétons, poitrine exposée`;
+    } else if (nudityState.isBottomless) {
+      instruction += `\n\n🟠 ÉTAT ACTUEL: ${charName} est sans bas (partie inférieure nue)`;
+      instruction += `\n⛔ NE PAS retirer culotte/slip (déjà fait!)`;
+      instruction += `\n✅ DÉCRIS: ses parties intimes exposées`;
+    }
+    
+    // === VÊTEMENTS SPÉCIFIQUES DÉJÀ RETIRÉS ===
+    if (context.clothingRemoved && context.clothingRemoved.length > 0 && !nudityState.isCompletelyNude) {
       instruction += `\n\n🧠 MÉMOIRE - VÊTEMENTS DÉJÀ RETIRÉS:`;
       context.clothingRemoved.forEach(item => {
         instruction += `\n❌ ${item} = DÉJÀ ENLEVÉ! Ne pas le retirer à nouveau!`;
       });
-      instruction += `\n⚠️ SI le ${context.clothingRemoved.join('/')} est déjà retiré, NE PAS dire "je retire ton ${context.clothingRemoved[0]}" à nouveau!`;
+      instruction += `\n⚠️ Ces vêtements n'existent plus! Ne pas les mentionner comme s'ils étaient encore là!`;
       instruction += `\n✅ PASSE À LA SUITE: toucher la peau, caresser, embrasser, etc.`;
     }
     
     if (context.completedActions && context.completedActions.length > 0) {
       instruction += `\n\n🚫 ACTIONS DÉJÀ FAITES (ne pas répéter):`;
-      instruction += `\n${context.completedActions.slice(-5).join(', ')}`;
+      instruction += `\n${context.completedActions.slice(-8).join(', ')}`;
     }
     
     // === NSFW DIRECT ===
@@ -1864,18 +1990,24 @@ class TextGenerationService {
         instruction += `\n→ Décris l'action sexuelle en détail.`;
         instruction += `\n→ Utilise des mots explicites (bite, chatte, seins, jouir...).`;
         instruction += `\n→ Pas de refus, pas d'hésitation.`;
+        if (nudityState.isCompletelyNude) {
+          instruction += `\n→ RAPPEL: ${charName} est déjà NU(E), décris le contact charnel direct!`;
+        }
       } else {
         instruction += `\n\n🔞 Mode explicite actif. Sois direct et sensuel.`;
       }
     }
     
-    // === v5.3.68 - FORMAT OBLIGATOIRE AVEC DIALOGUE + PENSÉE ===
+    // === FORMAT OBLIGATOIRE AVEC DIALOGUE + PENSÉE ===
     instruction += `\n\n⚠️ RÈGLE ABSOLUE - CHAQUE RÉPONSE DOIT CONTENIR:`;
     instruction += `\n1. *action* entre astérisques (geste physique NOUVEAU)`;
     instruction += `\n2. "parole" entre guillemets (ce que tu DIS à ${userName})`;
     instruction += `\n3. (pensée) entre parenthèses (ce que tu PENSES)`;
     instruction += `\n\n❌ INTERDIT: Répondre avec SEULEMENT une action!`;
     instruction += `\n❌ INTERDIT: Répéter une action déjà faite!`;
+    if (nudityState.isCompletelyNude) {
+      instruction += `\n❌ INTERDIT: Mentionner des vêtements (il n'y en a plus!)`;
+    }
     instruction += `\n✅ OBLIGATOIRE: Tu dois PARLER à ${userName}, pas juste agir!`;
     
     instruction += `\n\nRÉPONDS MAINTENANT en tant que ${charName}:`;
