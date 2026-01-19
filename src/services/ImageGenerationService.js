@@ -2685,12 +2685,10 @@ class ImageGenerationService {
         duoProfilePrompt += ', clean lines, vibrant colors, both visible';
       }
       
-      // Negative prompt pour duo
-      const negativePromptDuo = this.buildNegativePrompt(character).replace('two people', 'three or more people');
-      
       console.log(`👯 Génération PROFIL DUO: ${character.name}`);
       console.log(`👯 Prompt DUO: ${duoProfilePrompt.substring(0, 300)}...`);
-      return await this.generateImageWithPollinations(duoProfilePrompt, negativePromptDuo);
+      // Utiliser la même méthode que les personnages solo
+      return await this.generateImage(duoProfilePrompt, character);
     }
 
     // === SUITE NORMALE POUR PERSONNAGES SOLO ===
@@ -3730,11 +3728,10 @@ class ImageGenerationService {
         finalDuoPrompt += ', ' + sceneElements.mood;
       }
       
-      // NEGATIVE PROMPT pour duos
-      const negativePromptDuo = this.buildNegativePrompt(character).replace('single person', 'three or more people, crowd');
-      
       console.log(`👯 Génération IMAGE DUO: ${character.name}`);
-      return await this.generateImageWithPollinations(finalDuoPrompt, negativePromptDuo);
+      console.log(`👯 Prompt DUO SCÈNE: ${finalDuoPrompt.substring(0, 300)}...`);
+      // Utiliser la même méthode que les personnages solo
+      return await this.generateImage(finalDuoPrompt, character);
     }
     
     // === SUITE NORMALE POUR PERSONNAGES SOLO ===
