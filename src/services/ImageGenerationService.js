@@ -56,6 +56,16 @@ class ImageGenerationService {
       'correct breast shape and size if female, natural nipple placement, ' +
       'symmetrical body, balanced pose, stable stance';
     
+    // v5.4.15 - PROMPT ANATOMIQUE POUR DUOS/TRIOS
+    this.anatomyDuoPrompt = 
+      'ANATOMICALLY PERFECT TWO PEOPLE: ' +
+      'exactly TWO distinct persons shown together, both with proper anatomy, ' +
+      'each person has TWO arms, TWO legs, TWO hands with FIVE fingers each, ' +
+      'each person has ONE head, ONE face, TWO eyes, ONE nose, ONE mouth, ' +
+      'two distinct bodies, not merged, clearly separated individuals, ' +
+      'both persons fully visible, interacting naturally, ' +
+      'proper proportions for both, natural poses together';
+    
     // NEGATIVE PROMPT ULTRA-COMPLET (pour SD local et Pollinations)
     // Base - sera augmenté dynamiquement selon le body type
     this.negativePromptBase = 
@@ -951,6 +961,157 @@ class ImageGenerationService {
     }
     
     return 25; // Âge par défaut
+  }
+  
+  /**
+   * v5.4.15 - Détecte si un personnage est un duo/trio (2+ personnes)
+   * @param {Object} character - Le personnage
+   * @returns {Object} { isDuo: boolean, memberCount: number, members: array }
+   */
+  isDuoOrTrioCharacter(character) {
+    // Vérifier le type threesome
+    if (character.type === 'threesome') {
+      const memberCount = character.members?.length || 2;
+      return { isDuo: true, memberCount, members: character.members || [] };
+    }
+    
+    // Vérifier le genre duo/couple
+    const gender = (character.gender || '').toLowerCase();
+    if (gender.includes('duo') || gender === 'couple') {
+      const memberCount = character.members?.length || 2;
+      return { isDuo: true, memberCount, members: character.members || [] };
+    }
+    
+    // Vérifier le nom contient "&" ou "et" (indiquant deux personnes)
+    const name = character.name || '';
+    if (name.includes(' & ') || name.includes(' et ')) {
+      const memberCount = character.members?.length || 2;
+      return { isDuo: true, memberCount, members: character.members || [] };
+    }
+    
+    // Vérifier les tags
+    const tags = character.tags || [];
+    if (tags.includes('duo') || tags.includes('couple') || tags.includes('plan à trois') || tags.includes('trio')) {
+      const memberCount = character.members?.length || 2;
+      return { isDuo: true, memberCount, members: character.members || [] };
+    }
+    
+    return { isDuo: false, memberCount: 1, members: [] };
+  }
+  
+  /**
+   * v5.4.15 - Construit un prompt pour les personnages duo/trio
+   * @param {Object} character - Le personnage duo
+   * @param {number} level - Niveau de relation
+   * @param {boolean} isRealistic - Style réaliste ou anime
+   * @returns {string} Prompt adapté pour duo
+   */
+  buildDuoPrompt(character, level, isRealistic) {
+    const duoInfo = this.isDuoOrTrioCharacter(character);
+    if (!duoInfo.isDuo) return '';
+    
+    const members = duoInfo.members;
+    const isNSFW = level >= 2;
+    
+    let prompt = 'TWO DISTINCT PEOPLE shown together, both fully visible, ';
+    
+    // Utiliser l'imagePrompt du personnage comme base (contient la description des 2 personnes)
+    if (character.imagePrompt) {
+      prompt += character.imagePrompt + ', ';
+    } else {
+      // Fallback: construire à partir des membres
+      if (members.length >= 2) {
+        const m1 = members[0];
+        const m2 = members[1];
+        
+        if (character.gender === 'duo_female') {
+          prompt += `two beautiful women together, ${m1.name || 'first woman'} with ${m1.hairColor || 'dark'} hair ${m1.bust || ''} bust, ${m2.name || 'second woman'} with ${m2.hairColor || 'light'} hair ${m2.bust || ''} bust, `;
+        } else if (character.gender === 'duo_male') {
+          prompt += `two handsome men together, ${m1.name || 'first man'} ${m1.hairColor || ''} ${m1.penis || ''}, ${m2.name || 'second man'} ${m2.hairColor || ''} ${m2.penis || ''}, `;
+        } else if (character.gender === 'couple') {
+          prompt += `couple together, man and woman, ${m1.hairColor || ''} ${m1.penis || m1.bust || ''}, ${m2.hairColor || ''} ${m2.bust || m2.penis || ''}, `;
+        }
+      }
+    }
+    
+    // Ajouter les descriptions physiques
+    if (character.appearance) {
+      prompt += character.appearance + ', ';
+    }
+    if (character.physicalDescription) {
+      prompt += character.physicalDescription + ', ';
+    }
+    
+    // Tenues pour duos selon niveau
+    if (isNSFW) {
+      const duoOutfits = {
+        2: [ // Provocant
+          'both wearing provocative matching lingerie, sensual couple',
+          'both in sexy evening wear, elegant seductive',
+          'both in form-fitting dresses showing curves',
+          'matching underwear, intimate couple pose',
+        ],
+        3: [ // Lingerie
+          'both in lace lingerie, intimate boudoir setting',
+          'matching black lingerie, sensual pose together',
+          'both in sheer negligees, bedroom intimate',
+          'both in corsets and stockings, seductive',
+        ],
+        4: [ // Topless
+          'both topless, covering each other, intimate embrace',
+          'both partially nude, artistic sensual pose together',
+          'both topless in bed, passionate intimate moment',
+          'both bare chested, romantic sensual scene',
+        ],
+        5: [ // Nu
+          'both nude together, artistic intimate embrace',
+          'both naked, passionate sensual pose',
+          'both fully nude in bed, intimate lovers scene',
+          'both nude in embrace, romantic passionate',
+        ],
+      };
+      
+      const levelOutfits = duoOutfits[Math.min(level, 5)] || duoOutfits[2];
+      const selectedOutfit = levelOutfits[Math.floor(Math.random() * levelOutfits.length)];
+      prompt += selectedOutfit + ', ';
+      
+      // Poses duo NSFW
+      const duoPoses = {
+        2: ['close together, flirtatious pose', 'arms around each other, seductive look', 'sitting together intimately'],
+        3: ['embracing in lingerie', 'on bed together sensual', 'intimate couple pose'],
+        4: ['passionate embrace topless', 'sensual touch, bare skin', 'intimate moment together'],
+        5: ['nude embrace lovers', 'passionate nude scene', 'intimate lovers in bed'],
+      };
+      const levelPoses = duoPoses[Math.min(level, 5)] || duoPoses[2];
+      const selectedPose = levelPoses[Math.floor(Math.random() * levelPoses.length)];
+      prompt += selectedPose + ', ';
+    } else {
+      // SFW duo
+      prompt += 'both dressed elegantly, friendly pose together, ';
+    }
+    
+    // Localisation
+    const duoLocations = isNSFW ? [
+      'luxury bedroom setting',
+      'romantic hotel room',
+      'intimate boudoir',
+      'silk sheets bed',
+      'fireplace romantic lighting',
+    ] : [
+      'elegant living room',
+      'beautiful outdoor setting',
+      'modern stylish interior',
+    ];
+    prompt += duoLocations[Math.floor(Math.random() * duoLocations.length)] + ', ';
+    
+    // Style et qualité
+    if (isRealistic) {
+      prompt += 'professional photography, 8K ultra HD, two people shot, NOT merged, both faces visible';
+    } else {
+      prompt += 'masterpiece anime art, best quality, two characters, both distinct, both visible';
+    }
+    
+    return prompt;
   }
 
   /**
@@ -2470,6 +2631,12 @@ class ImageGenerationService {
     }
 
     console.log(`✨ Génération image PROFIL (SFW) pour ${character.name}`);
+    
+    // v5.4.15 - DÉTECTER SI C'EST UN DUO/TRIO
+    const duoInfo = this.isDuoOrTrioCharacter(character);
+    if (duoInfo.isDuo) {
+      console.log(`👯 PROFIL DUO DÉTECTÉ: ${character.name} (${duoInfo.memberCount} personnes)`);
+    }
 
     // v5.3.67 - Obtenir le profil physique prioritaire (PERSISTANT)
     const priorityPhysicalPrompt = this.buildPriorityPhysicalPrompt(character);
@@ -2540,9 +2707,27 @@ class ImageGenerationService {
       }
     }
     
-    // Genre et âge
-    const genderEn = character.gender === 'female' ? 'woman' : 'man';
-    prompt += `, beautiful ${charAge} year old ${genderEn}`;
+    // Genre et âge - v5.4.15: Support spécial pour duos
+    if (duoInfo.isDuo) {
+      // Pour les duos, utiliser l'appearance complète ou construire depuis les membres
+      if (character.appearance) {
+        prompt += ', ' + character.appearance;
+      } else if (character.imagePrompt) {
+        prompt += ', ' + character.imagePrompt;
+      } else {
+        // Fallback selon le type de duo
+        if (character.gender === 'duo_female') {
+          prompt += ', two beautiful women together';
+        } else if (character.gender === 'duo_male') {
+          prompt += ', two handsome men together';
+        } else if (character.gender === 'couple') {
+          prompt += ', beautiful couple, man and woman together';
+        }
+      }
+    } else {
+      const genderEn = character.gender === 'female' ? 'woman' : (character.gender === 'male' ? 'man' : 'person');
+      prompt += `, beautiful ${charAge} year old ${genderEn}`;
+    }
     
     // === CHEVEUX ===
     if (character.hairColor || character.hairLength) {
@@ -2663,18 +2848,30 @@ class ImageGenerationService {
       prompt += ', tasteful, classy, SFW';
     }
     
-    // ANATOMIE STRICTE
-    prompt += ', ' + this.anatomyStrictPrompt;
+    // ANATOMIE STRICTE - v5.4.15: différent pour duos
+    if (duoInfo.isDuo) {
+      prompt += ', ' + this.anatomyDuoPrompt;
+    } else {
+      prompt += ', ' + this.anatomyStrictPrompt;
+    }
     
-    // QUALITÉ SPÉCIFIQUE AU STYLE
+    // QUALITÉ SPÉCIFIQUE AU STYLE - v5.4.15: différent pour duos
     if (isRealistic) {
       prompt += ', ultra-high quality photo, 8K resolution, sharp focus, professional photography';
       prompt += ', realistic skin texture, lifelike details';
-      prompt += ', single person only, one subject, solo portrait';
+      if (duoInfo.isDuo) {
+        prompt += ', two people visible, both subjects clear, couple portrait';
+      } else {
+        prompt += ', single person only, one subject, solo portrait';
+      }
     } else {
       prompt += ', masterpiece anime art, best quality illustration, highly detailed anime';
       prompt += ', clean lines, vibrant colors';
-      prompt += ', single character, solo, one person';
+      if (duoInfo.isDuo) {
+        prompt += ', two characters, both visible, couple scene';
+      } else {
+        prompt += ', single character, solo, one person';
+      }
     }
     
     // === v5.3.59 - RENFORCEMENT FINAL DE LA MORPHOLOGIE (comme v5.3.34) ===
@@ -3460,6 +3657,12 @@ class ImageGenerationService {
     
     console.log(`🖼️ Image pour ${character.name} - Niveau RELATION: ${level} - ${isNSFW ? '🔞 NSFW' : '✨ SFW'}`);
     
+    // v5.4.15 - DÉTECTER SI C'EST UN DUO/TRIO
+    const duoInfo = this.isDuoOrTrioCharacter(character);
+    if (duoInfo.isDuo) {
+      console.log(`👯 PERSONNAGE DUO DÉTECTÉ: ${character.name} (${duoInfo.memberCount} personnes)`);
+    }
+    
     // v5.3.77 - Extraire les informations du profil utilisateur
     const userProfileInfo = this.extractUserProfileForImage(userProfile, isNSFW);
     if (userProfileInfo) {
@@ -3479,6 +3682,36 @@ class ImageGenerationService {
     // === GÉNÉRER LES ÉLÉMENTS VARIÉS ===
     const sceneElements = this.generateVariedSceneElements();
     
+    // v5.4.15 - GÉNÉRATION SPÉCIALE POUR DUOS
+    if (duoInfo.isDuo) {
+      const duoPrompt = this.buildDuoPrompt(character, level, isRealistic);
+      console.log(`👯 Prompt DUO généré: ${duoPrompt.substring(0, 200)}...`);
+      
+      // Construire le prompt final pour duo
+      let finalDuoPrompt = style + ', ' + duoPrompt;
+      finalDuoPrompt += ', ' + this.anatomyDuoPrompt;
+      
+      // Ajouter le lieu varié
+      if (sceneElements.location) {
+        finalDuoPrompt += ', ' + sceneElements.location;
+      }
+      
+      // Lighting et mood
+      if (sceneElements.lighting) {
+        finalDuoPrompt += ', ' + sceneElements.lighting;
+      }
+      if (sceneElements.mood) {
+        finalDuoPrompt += ', ' + sceneElements.mood;
+      }
+      
+      // NEGATIVE PROMPT pour duos
+      const negativePromptDuo = this.buildNegativePrompt(character).replace('single person', 'three or more people, crowd');
+      
+      console.log(`👯 Génération IMAGE DUO: ${character.name}`);
+      return await this.generateImageWithPollinations(finalDuoPrompt, negativePromptDuo);
+    }
+    
+    // === SUITE NORMALE POUR PERSONNAGES SOLO ===
     // v5.3.59 - COMMENCER PAR "FULL BODY SHOT" + STYLE
     let prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
     
