@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   TextInput,
   RefreshControl,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import AuthService from '../services/AuthService';
 
@@ -458,17 +460,21 @@ export default function AdminPanelScreen() {
     );
   };
 
+  // v5.3.73 - Écran de chargement avec status bar padding
   if (loading && !refreshing) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={styles.loadingText}>Chargement des utilisateurs...</Text>
+      <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={styles.loadingText}>Chargement des utilisateurs...</Text>
+        </View>
       </View>
     );
   }
 
+  // v5.3.73 - Rendu principal avec structure robuste
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       <View style={styles.header}>
         <Text style={styles.title}>👑 Panel Admin</Text>
         <Text style={styles.subtitle}>Gestion des membres</Text>

@@ -390,17 +390,21 @@ export default function MyCharactersScreen({ navigation }) {
     );
   }, [handleDelete, handleEdit, handleTogglePublic]);
 
+  // v5.3.73 - Écran de chargement avec SafeAreaView
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
-        <Text style={styles.loadingText}>Chargement des personnages...</Text>
+      <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={styles.loadingText}>Chargement des personnages...</Text>
+        </View>
       </View>
     );
   }
 
+  // v5.3.73 - Rendu principal avec structure robuste
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       <View style={styles.container}>
         {/* Titre */}
         <View style={styles.header}>
@@ -475,7 +479,7 @@ export default function MyCharactersScreen({ navigation }) {
           <Text style={styles.fabText}>+</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
