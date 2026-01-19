@@ -669,27 +669,53 @@ class ImageGenerationService {
   }
 
   /**
-   * v5.3.72 - Retourne une emphase supplémentaire pour la taille de bonnet
-   * Pour renforcer la poitrine dans les prompts
+   * v5.3.75 - Retourne une emphase TRIPLE pour la taille de bonnet
+   * Répétition maximale pour forcer le modèle à respecter la taille
    */
   getBustEmphasis(bustSize) {
     if (!bustSize) return '';
     const size = bustSize.toUpperCase().trim();
     
+    // v5.3.75 - Emphase TRIPLE avec descriptions ultra-détaillées
     const emphasisMap = {
-      'A': 'VERY SMALL A-CUP, nearly flat chest, petite bust',
-      'B': 'SMALL B-CUP breasts, modest petite bust',
-      'C': 'MEDIUM C-CUP breasts, average sized bust',
-      'D': 'LARGE D-CUP breasts, big full bust, visible cleavage',
-      'DD': 'VERY LARGE DD-CUP breasts, heavy big bust, deep cleavage',
-      'E': 'HUGE E-CUP breasts, very big heavy bust, massive cleavage',
-      'F': 'HUGE F-CUP breasts, enormous bust, gigantic cleavage',
-      'G': 'GIGANTIC G-CUP breasts, extremely large bust, massive',
-      'H': 'MASSIVE H-CUP breasts, colossal bust, giant heavy breasts',
-      'I': 'COLOSSAL I-CUP breasts, impossibly huge bust, enormous heavy'
+      'A': 'VERY SMALL A-CUP breasts (A-cup), nearly flat chest, tiny petite bust, small nipples, minimal cleavage, flat-chested appearance',
+      'B': 'SMALL B-CUP breasts (B-cup), modest petite bust, small perky breasts, subtle cleavage, youthful small chest',
+      'C': 'MEDIUM C-CUP breasts (C-cup), average sized bust, natural round breasts, normal cleavage, proportionate chest',
+      'D': 'LARGE D-CUP breasts (D-cup), BIG FULL ROUND BREASTS, visible cleavage, heavy bouncy bust, large chest, big boobs',
+      'DD': 'VERY LARGE DD-CUP breasts (DD-cup), BIG HEAVY BOUNCY BREASTS, DEEP PROMINENT CLEAVAGE, voluptuous bust, large heavy boobs, DD cup size breasts',
+      'E': 'HUGE E-CUP breasts (E-cup), VERY BIG HEAVY BOUNCY BREASTS, MASSIVE DEEP CLEAVAGE, extremely busty, huge boobs, E cup huge chest',
+      'F': 'HUGE F-CUP breasts (F-cup), ENORMOUS HEAVY BREASTS, GIGANTIC CLEAVAGE, extremely busty woman, massive boobs, F cup enormous bust',
+      'G': 'GIGANTIC G-CUP breasts (G-cup), EXTREMELY LARGE HEAVY BREASTS, MASSIVE BUST, giant boobs, G cup gigantic chest, huge heavy bouncy breasts',
+      'H': 'MASSIVE H-CUP breasts (H-cup), COLOSSAL HEAVY BREASTS, GIANT BUST, enormous boobs, H cup massive chest, impossibly large breasts',
+      'I': 'COLOSSAL I-CUP breasts (I-cup), IMPOSSIBLY HUGE HEAVY BREASTS, GIGANTIC BUST, I cup colossal chest, extremely massive boobs'
     };
     
     return emphasisMap[size] || '';
+  }
+  
+  /**
+   * v5.3.75 - Retourne un prompt ULTRA-PRIORITAIRE pour la poitrine
+   * Répété 3 fois avec variations pour forcer la génération correcte
+   */
+  getBustUltraPriority(bustSize, gender) {
+    if (!bustSize || gender !== 'female') return '';
+    const size = bustSize.toUpperCase().trim();
+    
+    // Mapping avec descriptions ULTRA détaillées et répétées
+    const bustPrompts = {
+      'A': 'A-CUP BREASTS, small flat chest, petite bust, tiny breasts',
+      'B': 'B-CUP BREASTS, small perky breasts, modest bust, small chest',
+      'C': 'C-CUP BREASTS, medium breasts, average bust, normal chest size',
+      'D': 'D-CUP BREASTS, LARGE breasts, BIG BUST, full round chest, big boobs',
+      'DD': '((DD-CUP BREASTS)), ((VERY LARGE BREASTS)), ((BIG HEAVY BUST)), deep cleavage, DD cup big boobs, large bouncy breasts',
+      'E': '((E-CUP BREASTS)), ((HUGE BREASTS)), ((VERY BIG BUST)), massive cleavage, E cup huge boobs, very large heavy breasts',
+      'F': '((F-CUP BREASTS)), ((ENORMOUS BREASTS)), ((HUGE BUST)), gigantic cleavage, F cup enormous boobs, extremely large breasts',
+      'G': '((G-CUP BREASTS)), ((GIGANTIC BREASTS)), ((MASSIVE BUST)), G cup giant boobs, extremely huge heavy breasts',
+      'H': '((H-CUP BREASTS)), ((MASSIVE BREASTS)), ((COLOSSAL BUST)), H cup massive boobs, impossibly large breasts',
+      'I': '((I-CUP BREASTS)), ((COLOSSAL BREASTS)), ((GIGANTIC BUST)), I cup colossal boobs, extremely massive breasts'
+    };
+    
+    return bustPrompts[size] || '';
   }
 
   /**
@@ -4318,17 +4344,21 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.3.67 - CACHE des profils physiques pour persistance
+   * v5.3.75 - CACHE des profils physiques pour persistance
    * Garantit que le même personnage a toujours la même apparence
+   * v5.3.75 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
    */
   physicalProfileCache = {};
+  cacheVersion = '5.3.75'; // Incrémenter pour invalider le cache
   
   /**
-   * v5.3.67 - Génère une clé unique pour un personnage basée sur ses attributs physiques
+   * v5.3.75 - Génère une clé unique pour un personnage basée sur ses attributs physiques
+   * Inclut la version pour invalider le cache lors des mises à jour
    */
   getCharacterPhysicalKey(character) {
     if (!character) return 'unknown';
     const parts = [
+      this.cacheVersion, // v5.3.75 - Inclure la version pour invalider le cache
       character.id || character.name || 'anon',
       character.gender || '',
       character.bodyType || '',
@@ -4366,18 +4396,31 @@ class ImageGenerationService {
       parts.push('androgynous person, non-binary');
     }
     
-    // === v5.3.72 - POITRINE EN PRIORITÉ #2 (femmes) ===
-    // La poitrine est maintenant AVANT la morphologie pour emphase maximale
-    if (physicalDetails.bust && physicalDetails.gender === 'female') {
-      parts.push(physicalDetails.bust);
-      // Répéter la taille de bonnet pour emphase
-      if (character.bust) {
-        const bustEmphasis = this.getBustEmphasis(character.bust);
-        if (bustEmphasis) {
-          parts.push(bustEmphasis);
-        }
+    // === v5.3.75 - POITRINE EN PRIORITÉ ABSOLUE #2 (femmes) ===
+    // TRIPLE emphase pour forcer la génération correcte de la taille de poitrine
+    if (physicalDetails.gender === 'female' && character.bust) {
+      // 1. Prompt ultra-prioritaire (avec parenthèses pour poids)
+      const ultraPriority = this.getBustUltraPriority(character.bust, 'female');
+      if (ultraPriority) {
+        parts.push(ultraPriority);
       }
-      console.log(`👙 POITRINE PRIORITAIRE: ${physicalDetails.bust}`);
+      
+      // 2. Description détaillée depuis extractPhysicalDetails
+      if (physicalDetails.bust) {
+        parts.push(physicalDetails.bust);
+      }
+      
+      // 3. Emphase additionnelle
+      const bustEmphasis = this.getBustEmphasis(character.bust);
+      if (bustEmphasis) {
+        parts.push(bustEmphasis);
+      }
+      
+      console.log(`👙 POITRINE TRIPLE PRIORITÉ: ${character.bust} -> ${ultraPriority}`);
+    } else if (physicalDetails.bust && physicalDetails.gender === 'female') {
+      // Fallback si pas de character.bust direct
+      parts.push(physicalDetails.bust);
+      console.log(`👙 POITRINE (fallback): ${physicalDetails.bust}`);
     }
     
     // === 3. ÂGE ===
