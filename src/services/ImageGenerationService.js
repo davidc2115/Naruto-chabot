@@ -1204,24 +1204,26 @@ class ImageGenerationService {
       else if (h <= 165) parts.push('average height');
     }
     
-    // === 12. POITRINE (femmes) - v5.3.65 RÉALISTE ===
+    // === 12. POITRINE (femmes) - v5.4.2 ULTRA-RENFORCÉE ===
     if (character.gender === 'female') {
-      const bust = (character.bust || '').toUpperCase();
+      const bust = (character.bust || '').toUpperCase().replace(/[^A-Z]/g, '');
       const bustDescriptions = {
-        'A': 'VERY SMALL A-CUP breasts, nearly flat chest, small nipples, barely visible cleavage',
-        'B': 'SMALL B-CUP breasts, petite modest bust, small perky breasts, subtle cleavage',
-        'C': 'MEDIUM C-CUP breasts, average sized breasts, natural round shape, normal cleavage',
-        'D': 'LARGE D-CUP breasts, big full round breasts, visible cleavage, heavy bust',
-        'DD': 'VERY LARGE DD-CUP breasts, big heavy breasts, deep prominent cleavage, bouncy',
-        'E': 'HUGE E-CUP breasts, very big heavy breasts, massive deep cleavage, bouncy jiggling',
-        'F': 'HUGE F-CUP breasts, enormous heavy breasts, huge deep cleavage, very bouncy',
-        'G': 'GIGANTIC G-CUP breasts, extremely large heavy breasts, massive cleavage, giant bust',
-        'H': 'MASSIVE H-CUP breasts, impossibly huge heavy breasts, enormous cleavage, gigantic',
-        'I': 'COLOSSAL I-CUP breasts, extremely massive heavy breasts, gigantic bust',
+        'A': '((SMALL A-CUP breasts)), nearly flat petite chest, tiny breasts, small nipples',
+        'B': '((SMALL B-CUP breasts)), petite modest bust, small perky breasts, subtle cleavage',
+        'C': '((MEDIUM C-CUP breasts)), average sized breasts, natural round shape, visible cleavage',
+        'D': '(((LARGE D-CUP breasts))), BIG FULL ROUND breasts, VISIBLE CLEAVAGE, heavy bouncy bust',
+        'DD': '(((VERY LARGE DD-CUP breasts))), BIG HEAVY breasts, DEEP PROMINENT CLEAVAGE, bouncy jiggly',
+        'E': '((((HUGE E-CUP breasts)))), VERY BIG HEAVY breasts, MASSIVE DEEP CLEAVAGE, bouncy jiggling',
+        'F': '((((HUGE F-CUP breasts)))), ENORMOUS HEAVY breasts, GIGANTIC DEEP CLEAVAGE, very bouncy',
+        'G': '(((((GIGANTIC G-CUP breasts))))), EXTREMELY LARGE HEAVY breasts, MASSIVE cleavage, giant bust',
+        'H': '(((((MASSIVE H-CUP breasts))))), IMPOSSIBLY HUGE HEAVY breasts, ENORMOUS cleavage, gigantic',
+        'I': '(((((COLOSSAL I-CUP breasts))))), EXTREMELY MASSIVE HEAVY breasts, GIGANTIC bust',
       };
-      if (bustDescriptions[bust]) {
-        parts.push(bustDescriptions[bust]);
-        console.log(`👙 POITRINE buildUltra: ${bust} -> ${bustDescriptions[bust]}`);
+      const letterMatch = bust.match(/([A-I])/);
+      const bustKey = letterMatch ? letterMatch[1] : bust;
+      if (bustDescriptions[bustKey]) {
+        parts.push(bustDescriptions[bustKey]);
+        console.log(`👙 POITRINE buildUltra v5.4.2: ${bustKey} -> ${bustDescriptions[bustKey].substring(0, 50)}`);
       }
     }
     
@@ -1860,40 +1862,51 @@ class ImageGenerationService {
   /**
    * Extrait les caractéristiques corporelles spécifiques (fesses, hanches, ventre, cuisses)
    * et les transforme en prompts explicites pour l'image
-   * VERSION AMÉLIORÉE - Détecte TOUS les termes de morphologie
+   * VERSION v5.4.2 - NSFW: ignore vêtements, poitrines ULTRA-RENFORCÉES
+   * @param {boolean} ignoreOutfit - Si true, n'inclut PAS imagePrompt (mode NSFW)
    */
-  extractBodyFeatures(character) {
+  extractBodyFeatures(character, ignoreOutfit = false) {
     const features = [];
     
-    // Combiner TOUTES les sources de données du personnage
+    // v5.4.2 - Combiner les sources SANS imagePrompt en mode NSFW
+    // imagePrompt contient souvent la tenue par défaut qu'on veut ignorer en NSFW
     const fullText = (
       (character.appearance || '') + ' ' + 
       (character.bodyType || '') + ' ' + 
       (character.physicalDescription || '') + ' ' +
-      (character.imagePrompt || '') + ' ' +
+      (ignoreOutfit ? '' : (character.imagePrompt || '')) + ' ' + // IGNORER en NSFW!
       (character.personality || '') + ' ' +
       (Array.isArray(character.tags) ? character.tags.join(' ') : '')
     ).toLowerCase();
     
-    console.log('🔍 extractBodyFeatures - Texte analysé:', fullText.substring(0, 300));
+    console.log(`🔍 extractBodyFeatures (ignoreOutfit=${ignoreOutfit}) - Texte: ${fullText.substring(0, 200)}...`);
     
-    // === PRIORITÉ 1: POITRINE EXPLICITE (character.bust) ===
+    // === v5.4.2 - PRIORITÉ 1: POITRINE EXPLICITE ULTRA-RENFORCÉE ===
     if (character.gender === 'female' && character.bust) {
-      const bustSize = character.bust.toUpperCase().trim();
+      const bustSize = character.bust.toUpperCase().trim().replace(/[^A-Z]/g, ''); // Nettoyer
+      // v5.4.2 - Descriptions ULTRA-DÉTAILLÉES pour chaque taille
       const bustDescriptions = {
-        'A': 'SMALL A-CUP BREASTS, petite flat chest, tiny breasts',
-        'B': 'SMALL B-CUP BREASTS, modest small bust, petite chest',
-        'C': 'MEDIUM C-CUP BREASTS, average bust, normal sized breasts',
-        'D': 'LARGE D-CUP BREASTS, big full breasts, generous bust, impressive cleavage',
-        'DD': 'VERY LARGE DD-CUP BREASTS, big heavy breasts, impressive large bust, deep cleavage',
-        'E': 'HUGE E-CUP BREASTS, very big heavy breasts, enormous bust, massive chest',
-        'F': 'HUGE F-CUP BREASTS, massive heavy breasts, gigantic bust, extremely large chest',
-        'G': 'GIGANTIC G-CUP BREASTS, enormous massive breasts, huge heavy bust',
-        'H': 'MASSIVE H-CUP BREASTS, extremely huge breasts, colossal bust, giant chest'
+        'A': '((SMALL A-CUP BREASTS)), nearly flat petite chest, tiny small breasts, delicate bust, cute small chest',
+        'B': '((SMALL B-CUP BREASTS)), modest petite bust, small perky breasts, delicate cleavage, cute small chest',
+        'C': '((MEDIUM C-CUP BREASTS)), average sized breasts, round natural bust, visible cleavage, normal sized chest',
+        'D': '(((LARGE D-CUP BREASTS))), big full round breasts, generous impressive bust, DEEP VISIBLE CLEAVAGE, heavy chest, bouncy breasts',
+        'DD': '(((VERY LARGE DD-CUP BREASTS))), BIG HEAVY BREASTS, impressive large bust, DEEP PROMINENT CLEAVAGE, bouncy jiggly chest, heavy round breasts',
+        'E': '((((HUGE E-CUP BREASTS)))), VERY BIG HEAVY BREASTS, ENORMOUS BUST, MASSIVE DEEP CLEAVAGE, jiggly bouncy chest, extremely large breasts that bounce',
+        'F': '((((HUGE F-CUP BREASTS)))), MASSIVE HEAVY BREASTS, GIGANTIC BUST, EXTREMELY DEEP CLEAVAGE, very jiggly bouncy, enormous round breasts',
+        'G': '(((((GIGANTIC G-CUP BREASTS))))), ENORMOUS MASSIVE BREASTS, HUGE HEAVY BUST, IMPOSSIBLY DEEP CLEAVAGE, giant bouncy chest, colossal breasts',
+        'H': '(((((MASSIVE H-CUP BREASTS))))), EXTREMELY HUGE BREASTS, COLOSSAL BUST, GIANT CHEST, impossibly big heavy breasts, enormous jiggly bouncy bust',
+        'I': '(((((COLOSSAL I-CUP BREASTS))))), IMPOSSIBLY HUGE BREASTS, GIGANTIC MASSIVE BUST, absurdly big heavy chest, enormous bouncing breasts'
       };
       if (bustDescriptions[bustSize]) {
         features.push(bustDescriptions[bustSize]);
-        console.log('👙 POITRINE DIRECTE:', bustSize, '→', bustDescriptions[bustSize].substring(0, 50));
+        console.log('👙 POITRINE ULTRA:', bustSize, '→', bustDescriptions[bustSize].substring(0, 60));
+      } else {
+        // Fallback: extraire la lettre de la taille
+        const letterMatch = bustSize.match(/([A-I])/);
+        if (letterMatch && bustDescriptions[letterMatch[1]]) {
+          features.push(bustDescriptions[letterMatch[1]]);
+          console.log('👙 POITRINE (fallback):', letterMatch[1]);
+        }
       }
     }
     
@@ -2284,28 +2297,38 @@ class ImageGenerationService {
     nsfw += ', smooth flawless skin, beautiful body, attractive physique';
     
     if (character.gender === 'female') {
-      // Poitrine (description uniquement, pas de vêtements)
+      // v5.4.2 - Poitrine ULTRA-RENFORCÉE (description uniquement, pas de vêtements)
       const bustSize = character.bust || character.bustSize;
       if (bustSize) {
+        // v5.4.2 - Descriptions TRÈS MARQUÉES pour emphase maximale
         const bustDescriptions = {
-          'A': 'small perky breasts',
-          'B': 'petite natural breasts',
-          'C': 'medium beautiful breasts',
-          'D': 'large generous breasts, full bust',
-          'DD': 'very large breasts, impressive bust',
-          'E': 'huge breasts, massive bust',
-          'F': 'enormous breasts, gigantic bust',
-          'G': 'massive huge breasts',
-          'H': 'enormous massive breasts'
+          'A': '((small perky A-cup breasts)), petite flat chest, tiny bust',
+          'B': '((petite natural B-cup breasts)), small modest bust, cute chest',
+          'C': '((medium beautiful C-cup breasts)), average bust, nice cleavage',
+          'D': '(((LARGE generous D-cup breasts))), BIG FULL BUST, VISIBLE CLEAVAGE, heavy bouncy',
+          'DD': '(((VERY LARGE DD-cup breasts))), BIG IMPRESSIVE BUST, DEEP CLEAVAGE, bouncy heavy',
+          'E': '((((HUGE E-cup breasts)))), MASSIVE BUST, ENORMOUS CLEAVAGE, very heavy jiggly',
+          'F': '((((ENORMOUS F-cup breasts)))), GIGANTIC BUST, HUGE DEEP CLEAVAGE, bouncy heavy',
+          'G': '(((((MASSIVE G-cup breasts))))), GIANT BUST, ENORMOUS CLEAVAGE, extremely heavy',
+          'H': '(((((ENORMOUS MASSIVE H-cup breasts))))), COLOSSAL BUST, GIGANTIC CLEAVAGE',
+          'I': '(((((COLOSSAL I-cup breasts))))), IMPOSSIBLY HUGE BUST, GIGANTIC CLEAVAGE'
         };
         
-        let normalizedBust = bustSize;
-        if (bustSize.toLowerCase().includes('petit')) normalizedBust = 'B';
-        else if (bustSize.toLowerCase().includes('moyen')) normalizedBust = 'C';
-        else if (bustSize.toLowerCase().includes('génér') || bustSize.toLowerCase().includes('voluptu')) normalizedBust = 'D';
-        else if (bustSize.toLowerCase().includes('énorme')) normalizedBust = 'E';
+        // Extraire la lettre du bonnet
+        let normalizedBust = bustSize.toUpperCase().replace(/[^A-Z]/g, '');
+        const letterMatch = normalizedBust.match(/([A-I])/);
+        normalizedBust = letterMatch ? letterMatch[1] : normalizedBust;
         
-        nsfw += `, ${bustDescriptions[normalizedBust] || bustDescriptions[bustSize] || 'beautiful breasts'}`;
+        // Fallback pour descriptions françaises
+        if (!bustDescriptions[normalizedBust]) {
+          if (bustSize.toLowerCase().includes('petit')) normalizedBust = 'B';
+          else if (bustSize.toLowerCase().includes('moyen')) normalizedBust = 'C';
+          else if (bustSize.toLowerCase().includes('génér') || bustSize.toLowerCase().includes('voluptu')) normalizedBust = 'D';
+          else if (bustSize.toLowerCase().includes('énorme') || bustSize.toLowerCase().includes('gros')) normalizedBust = 'E';
+        }
+        
+        nsfw += `, ${bustDescriptions[normalizedBust] || 'beautiful breasts'}`;
+        console.log(`👙 buildNSFWPrompt: ${bustSize} -> ${normalizedBust}`);
       }
       
       nsfw += ', feminine curves, hourglass figure, sensual body';
@@ -3503,11 +3526,11 @@ class ImageGenerationService {
       prompt += `, ${conversationContext.action}`;
     }
     
-    // === CARACTÉRISTIQUES CORPORELLES SPÉCIFIQUES ===
-    const bodyFeatures = this.extractBodyFeatures(character);
+    // === v5.4.2 - CARACTÉRISTIQUES CORPORELLES (ignorer vêtements en NSFW) ===
+    const bodyFeatures = this.extractBodyFeatures(character, isNSFW); // isNSFW = ignoreOutfit
     if (bodyFeatures) {
       prompt += `, ${bodyFeatures}`;
-      console.log(`💪 CORPS: ${bodyFeatures.substring(0, 100)}...`);
+      console.log(`💪 CORPS (NSFW=${isNSFW}): ${bodyFeatures.substring(0, 100)}...`);
     }
     
     // === SELON LE MODE SFW/NSFW ===
@@ -3729,11 +3752,11 @@ class ImageGenerationService {
       prompt += `, ${sceneElements.location}`;
       prompt += `, ${sceneElements.lighting}`;
       
-      // === CARACTÉRISTIQUES CORPORELLES SPÉCIFIQUES ===
-      const bodyFeatures = this.extractBodyFeatures(character);
-      if (bodyFeatures) {
-        prompt += `, ${bodyFeatures}`;
-        console.log(`💪 CORPS: ${bodyFeatures.substring(0, 80)}...`);
+      // === v5.4.2 - CARACTÉRISTIQUES CORPORELLES (IGNORER vêtements car NSFW) ===
+      const bodyFeaturesNSFW = this.extractBodyFeatures(character, true); // Mode NSFW, ignorer vêtements!
+      if (bodyFeaturesNSFW) {
+        prompt += `, ${bodyFeaturesNSFW}`;
+        console.log(`💪 CORPS NSFW: ${bodyFeaturesNSFW.substring(0, 80)}...`);
       }
       
       // === TENUE NSFW BASÉE SUR LE NIVEAU ===
@@ -4618,7 +4641,7 @@ class ImageGenerationService {
    * v5.3.75 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
    */
   physicalProfileCache = {};
-  cacheVersion = '5.4.1'; // Incrémenter pour invalider le cache
+  cacheVersion = '5.4.2'; // Incrémenter pour invalider le cache
   
   /**
    * v5.3.75 - Génère une clé unique pour un personnage basée sur ses attributs physiques

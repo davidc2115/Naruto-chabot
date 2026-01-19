@@ -12,17 +12,16 @@ import {
   Platform,
   StatusBar,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
 import AuthService from '../services/AuthService';
 
 const FREEBOX_URL = 'http://88.174.155.230:33437';
 
 /**
- * v5.4.0 - AdminPanelScreen COMPLÈTEMENT RÉÉCRIT
- * - Gestion d'erreurs robuste
- * - Affichage même si serveur indisponible
- * - Interface claire pour gérer utilisateurs
+ * v5.4.2 - AdminPanelScreen RÉÉCRIT POUR AFFICHAGE GARANTI
+ * - Rendu TOUJOURS garanti, jamais de page blanche
+ * - Gestion d'erreurs complète
+ * - UI robuste avec états clairs
  */
 export default function AdminPanelScreen() {
   const [users, setUsers] = useState([]);
@@ -30,132 +29,120 @@ export default function AdminPanelScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState(null);
-  const [serverStatus, setServerStatus] = useState('checking'); // checking, online, offline
+  const [serverStatus, setServerStatus] = useState('checking');
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   // Charger les utilisateurs au démarrage
   useEffect(() => {
-    console.log('🚀 AdminPanelScreen: Initialisation v5.4.0...');
-    loadUsers();
+    console.log('🚀 AdminPanelScreen v5.4.2: Initialisation...');
+    loadUsersWithTimeout();
   }, []);
 
-  // Fonction de chargement des utilisateurs
-  const loadUsers = useCallback(async () => {
+  // Fonction de chargement avec timeout
+  const loadUsersWithTimeout = async () => {
     try {
       setLoading(true);
       setError(null);
+      setServerStatus('checking');
+      setLoadAttempt(prev => prev + 1);
       
-      const currentUser = AuthService.getCurrentUser();
-      console.log('📋 Chargement des utilisateurs...');
-      console.log('👤 Admin email:', currentUser?.email);
+      console.log(`📋 Tentative de chargement #${loadAttempt + 1}...`);
       
-      // Essayer plusieurs endpoints
-      let usersData = null;
+      // Timeout de 15 secondes
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout: Le serveur met trop de temps à répondre')), 15000)
+      );
       
-      // 1. Essayer /admin/users
-      try {
-        console.log('🔗 Tentative: /admin/users');
-        const response = await fetch(`${FREEBOX_URL}/admin/users`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Admin-Email': currentUser?.email || ''
-          },
-          timeout: 10000
-        });
-        
-        console.log('📥 Status /admin/users:', response.status);
-        
-        if (response.ok) {
-          const data = await response.json();
-          usersData = data.users || data || [];
-          setServerStatus('online');
-          console.log('✅ /admin/users: ', usersData.length, 'utilisateurs');
-        }
-      } catch (e) {
-        console.log('❌ /admin/users failed:', e.message);
-      }
+      const loadPromise = loadUsersInternal();
       
-      // 2. Fallback: /api/users/all
-      if (!usersData) {
-        try {
-          console.log('🔗 Fallback: /api/users/all');
-          const response = await fetch(`${FREEBOX_URL}/api/users/all`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Admin-Email': currentUser?.email || ''
-            },
-            timeout: 10000
-          });
-          
-          console.log('📥 Status /api/users/all:', response.status);
-          
-          if (response.ok) {
-            const data = await response.json();
-            usersData = data.users || data || [];
-            setServerStatus('online');
-            console.log('✅ /api/users/all:', usersData.length, 'utilisateurs');
-          }
-        } catch (e) {
-          console.log('❌ /api/users/all failed:', e.message);
-        }
-      }
+      await Promise.race([loadPromise, timeoutPromise]);
       
-      // 3. Fallback: /api/users
-      if (!usersData) {
-        try {
-          console.log('🔗 Fallback: /api/users');
-          const response = await fetch(`${FREEBOX_URL}/api/users`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Admin-Email': currentUser?.email || ''
-            },
-            timeout: 10000
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            usersData = data.users || data || [];
-            setServerStatus('online');
-            console.log('✅ /api/users:', usersData.length, 'utilisateurs');
-          }
-        } catch (e) {
-          console.log('❌ /api/users failed:', e.message);
-        }
-      }
-      
-      // Résultat
-      if (usersData && usersData.length > 0) {
-        setUsers(usersData);
-        setError(null);
-        console.log('✅ Total utilisateurs chargés:', usersData.length);
-      } else if (usersData) {
-        setUsers([]);
-        setError('Aucun utilisateur trouvé sur le serveur.');
-        setServerStatus('online');
-      } else {
-        setUsers([]);
-        setError('Impossible de contacter le serveur. Vérifiez votre connexion.');
-        setServerStatus('offline');
-      }
-      
-    } catch (error) {
-      console.error('❌ Erreur globale:', error.message);
-      setError(`Erreur: ${error.message}`);
+    } catch (err) {
+      console.error('❌ Erreur globale:', err.message);
+      setError(err.message || 'Erreur de connexion');
       setServerStatus('offline');
       setUsers([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  };
+
+  // Fonction interne de chargement
+  const loadUsersInternal = async () => {
+    const currentUser = AuthService.getCurrentUser();
+    console.log('👤 Admin email:', currentUser?.email);
+    
+    let usersData = null;
+    let lastError = null;
+    
+    // Liste des endpoints à essayer
+    const endpoints = [
+      '/admin/users',
+      '/api/users/all', 
+      '/api/users',
+      '/users'
+    ];
+    
+    for (const endpoint of endpoints) {
+      if (usersData) break;
+      
+      try {
+        console.log(`🔗 Essai: ${endpoint}`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        
+        const response = await fetch(`${FREEBOX_URL}${endpoint}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Email': currentUser?.email || '',
+            'Authorization': `Bearer ${currentUser?.token || ''}`
+          },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        console.log(`📥 ${endpoint}: status ${response.status}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          usersData = Array.isArray(data) ? data : (data.users || data.data || []);
+          setServerStatus('online');
+          console.log(`✅ ${endpoint}: ${usersData.length} utilisateurs`);
+          break;
+        } else {
+          lastError = `Erreur ${response.status}`;
+        }
+      } catch (e) {
+        console.log(`❌ ${endpoint}: ${e.message}`);
+        lastError = e.message;
+      }
+    }
+    
+    // Résultat
+    if (usersData && usersData.length > 0) {
+      setUsers(usersData);
+      setError(null);
+      setServerStatus('online');
+    } else if (usersData) {
+      setUsers([]);
+      setError('Aucun utilisateur trouvé');
+      setServerStatus('online');
+    } else {
+      setUsers([]);
+      setError(lastError || 'Serveur indisponible');
+      setServerStatus('offline');
+    }
+  };
 
   // Pull to refresh
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
-    loadUsers();
-  }, [loadUsers]);
+    loadUsersWithTimeout();
+  }, []);
 
   // Modifier le statut admin
   const toggleAdminStatus = useCallback(async (userId, currentStatus, email) => {
@@ -186,19 +173,18 @@ export default function AdminPanelScreen() {
               
               if (response.ok) {
                 Alert.alert('✅ Succès', `Droits admin ${currentStatus ? 'retirés' : 'accordés'}`);
-                loadUsers();
+                loadUsersWithTimeout();
               } else {
-                const errorData = await response.json().catch(() => ({}));
-                Alert.alert('❌ Erreur', errorData.error || 'Impossible de modifier les droits');
+                Alert.alert('❌ Erreur', 'Impossible de modifier les droits');
               }
             } catch (error) {
-              Alert.alert('❌ Erreur', `Erreur de connexion: ${error.message}`);
+              Alert.alert('❌ Erreur', error.message);
             }
           }
         }
       ]
     );
-  }, [loadUsers]);
+  }, []);
 
   // Modifier le statut premium
   const togglePremiumStatus = useCallback(async (userId, currentStatus, email) => {
@@ -229,19 +215,18 @@ export default function AdminPanelScreen() {
               
               if (response.ok) {
                 Alert.alert('✅ Succès', `Statut premium ${currentStatus ? 'retiré' : 'accordé'}`);
-                loadUsers();
+                loadUsersWithTimeout();
               } else {
-                const errorData = await response.json().catch(() => ({}));
-                Alert.alert('❌ Erreur', errorData.error || 'Impossible de modifier le statut');
+                Alert.alert('❌ Erreur', 'Impossible de modifier le statut');
               }
             } catch (error) {
-              Alert.alert('❌ Erreur', `Erreur de connexion: ${error.message}`);
+              Alert.alert('❌ Erreur', error.message);
             }
           }
         }
       ]
     );
-  }, [loadUsers]);
+  }, []);
 
   // Supprimer un utilisateur
   const deleteUser = useCallback(async (userId, email) => {
@@ -252,7 +237,7 @@ export default function AdminPanelScreen() {
     
     Alert.alert(
       '🗑️ Supprimer l\'utilisateur',
-      `Êtes-vous sûr de vouloir supprimer le compte de ${email} ?\n\nCette action est IRRÉVERSIBLE.`,
+      `Supprimer ${email} ?\n\nAction IRRÉVERSIBLE.`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
@@ -269,26 +254,26 @@ export default function AdminPanelScreen() {
               });
               
               if (response.ok) {
-                Alert.alert('✅ Supprimé', 'L\'utilisateur a été supprimé');
-                loadUsers();
+                Alert.alert('✅ Supprimé', 'Utilisateur supprimé');
+                loadUsersWithTimeout();
               } else {
-                Alert.alert('❌ Erreur', 'Impossible de supprimer l\'utilisateur');
+                Alert.alert('❌ Erreur', 'Impossible de supprimer');
               }
             } catch (error) {
-              Alert.alert('❌ Erreur', `Erreur de connexion: ${error.message}`);
+              Alert.alert('❌ Erreur', error.message);
             }
           }
         }
       ]
     );
-  }, [loadUsers]);
+  }, []);
 
-  // Voir le profil complet d'un utilisateur
+  // Voir le profil complet
   const viewUserProfile = useCallback((user) => {
     const profile = user.full_profile || user.profile || {};
     
     const username = profile.username || user.username || 'Non défini';
-    const age = profile.age || user.age || 'Non défini';
+    const age = profile.age || user.age || 'N/A';
     const genderRaw = (profile.gender || user.gender || '').toLowerCase();
     const nsfwMode = profile.nsfwMode || user.nsfw_enabled || false;
     const bust = profile.bust || user.bust || '';
@@ -323,7 +308,7 @@ export default function AdminPanelScreen() {
     details += `\n📅 Inscrit le: ${createdAt}\n`;
     details += `🆔 ID: ${user.id || 'MANQUANT'}`;
 
-    Alert.alert(`👤 Profil de ${username}`, details, [{ text: 'Fermer' }]);
+    Alert.alert(`👤 ${username}`, details, [{ text: 'Fermer' }]);
   }, []);
 
   // Filtrer les utilisateurs
@@ -339,7 +324,6 @@ export default function AdminPanelScreen() {
     
     return (
       <View style={[styles.userCard, isCurrentUser && styles.currentUserCard]}>
-        {/* En-tête avec nom et badges */}
         <View style={styles.userHeader}>
           <Text style={styles.userName} numberOfLines={1}>{username}</Text>
           <View style={styles.badges}>
@@ -356,11 +340,9 @@ export default function AdminPanelScreen() {
           </View>
         </View>
         
-        {/* Email et ID */}
         <Text style={styles.userEmail}>{item.email}</Text>
         <Text style={styles.userId}>ID: {item.id || '⚠️ MANQUANT'}</Text>
         
-        {/* Détails */}
         <View style={styles.userDetails}>
           {item.age && <Text style={styles.detailChip}>🎂 {item.age} ans</Text>}
           {item.gender && (
@@ -373,15 +355,13 @@ export default function AdminPanelScreen() {
           )}
         </View>
         
-        {/* Bouton voir profil */}
         <TouchableOpacity 
           style={styles.viewProfileBtn}
           onPress={() => viewUserProfile(item)}
         >
-          <Text style={styles.viewProfileBtnText}>👁️ Voir le profil complet</Text>
+          <Text style={styles.viewProfileBtnText}>👁️ Voir profil complet</Text>
         </TouchableOpacity>
         
-        {/* Actions (sauf pour l'utilisateur actuel) */}
         {!isCurrentUser ? (
           <View style={styles.actions}>
             <TouchableOpacity 
@@ -418,129 +398,181 @@ export default function AdminPanelScreen() {
     );
   }, [toggleAdminStatus, togglePremiumStatus, deleteUser, viewUserProfile]);
 
-  // === RENDU PRINCIPAL ===
+  // ============================================
+  // === RENDU PRINCIPAL - TOUJOURS QUELQUE CHOSE
+  // ============================================
+  
+  // HEADER - Toujours affiché
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <Text style={styles.title}>👑 Panel Admin</Text>
+      <Text style={styles.subtitle}>Gestion des utilisateurs v5.4.2</Text>
+      <View style={styles.serverStatus}>
+        <View style={[
+          styles.statusDot, 
+          serverStatus === 'online' ? styles.statusOnline : 
+          serverStatus === 'offline' ? styles.statusOffline : 
+          styles.statusChecking
+        ]} />
+        <Text style={styles.statusText}>
+          {serverStatus === 'online' ? 'Serveur connecté' : 
+           serverStatus === 'offline' ? 'Serveur hors ligne' : 
+           'Vérification...'}
+        </Text>
+      </View>
+    </View>
+  );
+
+  // STATS - Affichées même si vides
+  const renderStats = () => (
+    <View style={styles.statsRow}>
+      <View style={styles.statBox}>
+        <Text style={styles.statNumber}>{users.length}</Text>
+        <Text style={styles.statLabel}>Membres</Text>
+      </View>
+      <View style={styles.statBox}>
+        <Text style={styles.statNumber}>{users.filter(u => u.is_admin).length}</Text>
+        <Text style={styles.statLabel}>Admins</Text>
+      </View>
+      <View style={styles.statBox}>
+        <Text style={styles.statNumber}>{users.filter(u => u.is_premium).length}</Text>
+        <Text style={styles.statLabel}>Premium</Text>
+      </View>
+    </View>
+  );
+
+  // CONTENU PRINCIPAL
+  const renderContent = () => {
+    // Chargement
+    if (loading && !refreshing) {
+      return (
+        <View style={styles.centerBox}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={styles.centerText}>Chargement des utilisateurs...</Text>
+          <Text style={styles.subText}>Tentative #{loadAttempt}</Text>
+        </View>
+      );
+    }
+    
+    // Erreur avec serveur offline
+    if (error && serverStatus === 'offline') {
+      return (
+        <View style={styles.centerBox}>
+          <Text style={styles.errorEmoji}>📡</Text>
+          <Text style={styles.errorTitle}>Serveur indisponible</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadUsersWithTimeout}>
+            <Text style={styles.retryBtnText}>🔄 Réessayer</Text>
+          </TouchableOpacity>
+          <Text style={styles.hintText}>
+            Vérifiez que le serveur Freebox est en ligne
+          </Text>
+        </View>
+      );
+    }
+    
+    // Erreur autre
+    if (error) {
+      return (
+        <View style={styles.centerBox}>
+          <Text style={styles.errorEmoji}>⚠️</Text>
+          <Text style={styles.errorTitle}>Erreur</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadUsersWithTimeout}>
+            <Text style={styles.retryBtnText}>🔄 Réessayer</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    
+    // Liste vide
+    if (filteredUsers.length === 0) {
+      return (
+        <View style={styles.centerBox}>
+          <Text style={styles.emptyEmoji}>👥</Text>
+          <Text style={styles.emptyTitle}>
+            {searchQuery ? 'Aucun résultat' : 'Aucun utilisateur'}
+          </Text>
+          <Text style={styles.emptyText}>
+            {searchQuery ? 
+              `Aucun utilisateur ne correspond à "${searchQuery}"` : 
+              'La liste des utilisateurs est vide'}
+          </Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadUsersWithTimeout}>
+            <Text style={styles.retryBtnText}>🔄 Recharger</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    
+    // Liste des utilisateurs
+    return (
+      <FlatList
+        data={filteredUsers}
+        renderItem={renderUser}
+        keyExtractor={item => item.id?.toString() || item.email || Math.random().toString()}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#6366f1']}
+            tintColor="#6366f1"
+          />
+        }
+      />
+    );
+  };
+
+  // === RENDU FINAL ===
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>👑 Panel Admin</Text>
-          <Text style={styles.subtitle}>Gestion des utilisateurs</Text>
-          <View style={styles.serverStatus}>
-            <View style={[
-              styles.statusDot, 
-              serverStatus === 'online' ? styles.statusOnline : 
-              serverStatus === 'offline' ? styles.statusOffline : 
-              styles.statusChecking
-            ]} />
-            <Text style={styles.statusText}>
-              {serverStatus === 'online' ? 'Serveur connecté' : 
-               serverStatus === 'offline' ? 'Serveur hors ligne' : 
-               'Vérification...'}
-            </Text>
-          </View>
+    <View style={styles.container}>
+      <View style={styles.headerSection}>
+        {renderHeader()}
+      </View>
+      
+      <View style={styles.contentSection}>
+        {renderStats()}
+        
+        {/* Recherche */}
+        <View style={styles.searchBox}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="🔍 Rechercher un membre..."
+            placeholderTextColor="#9ca3af"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
         
         {/* Contenu principal */}
-        <View style={styles.content}>
-          {/* Stats */}
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{users.length}</Text>
-              <Text style={styles.statLabel}>Membres</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{users.filter(u => u.is_admin).length}</Text>
-              <Text style={styles.statLabel}>Admins</Text>
-            </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statNumber}>{users.filter(u => u.is_premium).length}</Text>
-              <Text style={styles.statLabel}>Premium</Text>
-            </View>
-          </View>
-          
-          {/* Recherche */}
-          <View style={styles.searchBox}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="🔍 Rechercher un membre..."
-              placeholderTextColor="#9ca3af"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-          
-          {/* État de chargement */}
-          {loading && !refreshing ? (
-            <View style={styles.loadingBox}>
-              <ActivityIndicator size="large" color="#6366f1" />
-              <Text style={styles.loadingText}>Chargement des utilisateurs...</Text>
-            </View>
-          ) : error ? (
-            /* Affichage erreur */
-            <View style={styles.errorBox}>
-              <Text style={styles.errorEmoji}>⚠️</Text>
-              <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity style={styles.retryBtn} onPress={loadUsers}>
-                <Text style={styles.retryBtnText}>🔄 Réessayer</Text>
-              </TouchableOpacity>
-            </View>
-          ) : filteredUsers.length === 0 ? (
-            /* Liste vide */
-            <View style={styles.emptyBox}>
-              <Text style={styles.emptyEmoji}>👥</Text>
-              <Text style={styles.emptyText}>
-                {searchQuery ? 'Aucun résultat pour cette recherche' : 'Aucun utilisateur trouvé'}
-              </Text>
-              <TouchableOpacity style={styles.retryBtn} onPress={loadUsers}>
-                <Text style={styles.retryBtnText}>🔄 Recharger</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            /* Liste des utilisateurs */
-            <FlatList
-              data={filteredUsers}
-              renderItem={renderUser}
-              keyExtractor={item => item.id?.toString() || item.email || Math.random().toString()}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                  colors={['#6366f1']}
-                  tintColor="#6366f1"
-                />
-              }
-            />
-          )}
+        <View style={styles.listSection}>
+          {renderContent()}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#6366f1',
-  },
   container: {
     flex: 1,
     backgroundColor: '#6366f1',
   },
-  header: {
-    padding: 20,
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 10,
-    backgroundColor: '#6366f1',
+  headerSection: {
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 50,
+    paddingHorizontal: 20,
+    paddingBottom: 15,
   },
+  header: {},
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#e0e7ff',
     marginTop: 4,
   },
@@ -568,18 +600,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#e0e7ff',
   },
-  content: {
+  contentSection: {
     flex: 1,
     backgroundColor: '#f3f4f6',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
   },
   statsRow: {
     flexDirection: 'row',
     backgroundColor: '#fff',
     paddingVertical: 15,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   statBox: {
     flex: 1,
@@ -596,7 +629,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   searchBox: {
-    padding: 15,
+    padding: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
@@ -609,61 +642,78 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#111827',
   },
-  loadingBox: {
+  listSection: {
+    flex: 1,
+  },
+  centerBox: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: 30,
   },
-  loadingText: {
+  centerText: {
     marginTop: 15,
     fontSize: 16,
     color: '#6b7280',
   },
-  errorBox: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
+  subText: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#9ca3af',
   },
   errorEmoji: {
-    fontSize: 50,
+    fontSize: 60,
     marginBottom: 15,
   },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 10,
+  },
   errorText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#ef4444',
     textAlign: 'center',
     marginBottom: 20,
   },
+  hintText: {
+    marginTop: 15,
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
   retryBtn: {
     backgroundColor: '#6366f1',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 10,
   },
   retryBtnText: {
     color: '#fff',
     fontWeight: '600',
-  },
-  emptyBox: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
+    fontSize: 15,
   },
   emptyEmoji: {
-    fontSize: 50,
+    fontSize: 60,
     marginBottom: 15,
   },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 10,
+  },
   emptyText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#6b7280',
     textAlign: 'center',
     marginBottom: 20,
   },
   listContent: {
     padding: 15,
+    paddingBottom: 30,
   },
   userCard: {
     backgroundColor: '#fff',
