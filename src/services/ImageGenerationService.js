@@ -3396,10 +3396,12 @@ class ImageGenerationService {
       throw new Error('Génération d\'images désactivée pour les personnages mineurs');
     }
 
+    // v5.4.6 - Le level est le niveau de RELATION avec ce personnage spécifique
+    // PAS un niveau global utilisateur!
     const level = Math.max(1, relationLevel || 1);
     const isNSFW = level >= 2; // NSFW seulement à partir du niveau 2
     
-    console.log(`🖼️ Génération image niveau ${level} - ${isNSFW ? '🔞 NSFW' : '✨ SFW'}`);
+    console.log(`🖼️ Image pour ${character.name} - Niveau RELATION: ${level} - ${isNSFW ? '🔞 NSFW' : '✨ SFW'}`);
     
     // v5.3.77 - Extraire les informations du profil utilisateur
     const userProfileInfo = this.extractUserProfileForImage(userProfile, isNSFW);
@@ -3737,10 +3739,11 @@ class ImageGenerationService {
         console.log(`💪 CORPS NSFW: ${bodyFeaturesNSFW.substring(0, 80)}...`);
       }
       
-      // === TENUE NSFW BASÉE SUR LE NIVEAU ===
+      // === v5.4.6 - TENUE BASÉE SUR LE NIVEAU DE RELATION AVEC LE PERSONNAGE ===
+      // Le level passé est le niveau de relation avec CE personnage (pas un niveau global!)
       const levelOutfit = this.getOutfitByLevel(level);
       prompt += `, ${levelOutfit}`;
-      console.log(`👗 TENUE niveau ${level}: ${levelOutfit.substring(0, 60)}...`);
+      console.log(`👗 TENUE niveau RELATION ${level}: ${levelOutfit.substring(0, 60)}...`);
       
       // Ambiance sensuelle
       prompt += `, ${sceneElements.mood}`;

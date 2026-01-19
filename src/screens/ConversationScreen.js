@@ -496,15 +496,15 @@ export default function ConversationScreen({ route, navigation }) {
     try {
       console.log(`🎁 Génération image récompense niveau ${newLevel}: ${reward.imageType}`);
       
-      // v5.3.70 - Utiliser generateSceneImage avec le niveau NSFW approprié
-      // C'est la même fonction que pour les images en conversation
+      // v5.4.6 - Utiliser generateSceneImage avec le niveau DE RELATION avec ce personnage
+      // Le niveau est celui de la relation avec CE personnage spécifique
       const profile = userProfile || await UserProfileService.getProfile();
       
-      // Calculer le niveau de relation équivalent pour l'image
-      // Plus le niveau est élevé, plus l'image est explicite
+      // Le niveau de relation avec ce personnage détermine le type d'image
+      // newLevel = nouveau niveau de relation avec ce personnage spécifique
       const relationLevel = Math.min(newLevel, 10); // Cap at 10 for max NSFW
       
-      console.log(`📸 Génération image niveau ${newLevel} avec relationLevel=${relationLevel}`);
+      console.log(`📸 Récompense niveau ${newLevel} avec ${character.name} - Image niveau ${relationLevel}`);
       
       // Utiliser la même fonction que les conversations pour garantir la cohérence
       const imageUrl = await ImageGenerationService.generateSceneImage(
@@ -577,11 +577,20 @@ export default function ConversationScreen({ route, navigation }) {
         throw new Error('Personnage invalide');
       }
       
-      // Niveau de relation pour adapter la tenue/pose
-      const currentLevel = userLevel?.level || 1;
-      const effectiveLevel = Math.max(1, currentLevel);
+      // v5.4.6 - Niveau de relation SPÉCIFIQUE AU PERSONNAGE (pas global!)
+      // On récupère le niveau directement depuis LevelService pour être sûr
+      let effectiveLevel = 1;
+      try {
+        const characterLevelData = await LevelService.getCharacterStats(character.id);
+        effectiveLevel = Math.max(1, characterLevelData?.level || 1);
+        console.log(`📊 Niveau relation avec ${character.name}: ${effectiveLevel} (titre: ${characterLevelData?.title})`);
+      } catch (levelError) {
+        // Fallback sur le state si erreur
+        effectiveLevel = Math.max(1, userLevel?.level || 1);
+        console.log(`⚠️ Fallback niveau: ${effectiveLevel}`);
+      }
       
-      console.log(`🎨 Génération image: Niveau ${effectiveLevel}`);
+      console.log(`🎨 Génération image: Niveau relation ${effectiveLevel} avec ${character.name}`);
       
       // Génération avec timeout
       const imageUrl = await Promise.race([
