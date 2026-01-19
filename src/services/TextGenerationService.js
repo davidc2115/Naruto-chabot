@@ -1749,8 +1749,139 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.52
-   * CRÉATIF avec tempérament + initiative du personnage
+   * v5.4.5 - Génère une réaction basée sur la taille de poitrine de l'utilisatrice
+   * Le personnage réagit différemment selon le bonnet
+   */
+  getUserBustReaction(userProfile, charTemperament) {
+    if (!userProfile?.bust || userProfile?.gender !== 'female') return null;
+    
+    const bust = userProfile.bust.toUpperCase();
+    const userName = userProfile.username || 'elle';
+    
+    // Extraire la lettre du bonnet (ex: "D (90cm)" -> "D")
+    const bustLetter = bust.match(/([A-K])/)?.[1] || 'C';
+    
+    const reactions = {
+      'A': {
+        'timide': `la poitrine menue de ${userName} me fait craquer, j'aime sa silhouette délicate`,
+        'séducteur': `j'adore les petits seins de ${userName}, si sensibles, si fins`,
+        'passionné': `ses tétons pointent sous son vêtement, sa poitrine menue me rend fou/folle`,
+        'dominant': `sa petite poitrine parfaite demande à être touchée`,
+        'default': `sa poitrine délicate est magnifique`
+      },
+      'B': {
+        'timide': `sa poitrine harmonieuse me fait rougir quand je la regarde`,
+        'séducteur': `j'imagine mes mains sur ses jolis seins`,
+        'passionné': `je veux caresser sa poitrine parfaite, l'embrasser`,
+        'dominant': `ses seins sont exactement comme je les aime`,
+        'default': `sa poitrine est parfaitement proportionnée`
+      },
+      'C': {
+        'timide': `je n'ose pas regarder sa belle poitrine`,
+        'séducteur': `son décolleté m'hypnotise, je veux y glisser ma main`,
+        'passionné': `ses seins ronds m'attirent irrésistiblement, je veux les goûter`,
+        'dominant': `sa poitrine généreuse appelle mes caresses`,
+        'default': `sa poitrine est magnifique et attirante`
+      },
+      'D': {
+        'timide': `je rougis devant sa poitrine généreuse`,
+        'séducteur': `son décolleté plongeant me fait fantasmer, ces gros seins...`,
+        'passionné': `je veux enfouir mon visage entre ses gros seins, les lécher`,
+        'dominant': `ses gros seins sont faits pour être possédés`,
+        'default': `sa poitrine généreuse est impressionnante`
+      },
+      'E': {
+        'timide': `sa poitrine énorme me intimide et m'excite`,
+        'séducteur': `ces seins massifs me font perdre la tête, j'en rêve la nuit`,
+        'passionné': `je veux me perdre entre ses énormes seins, les titiller, les sucer`,
+        'dominant': `ses seins énormes sont ma propriété, je veux les marquer`,
+        'default': `sa poitrine volumineuse est spectaculaire`
+      },
+      'F': {
+        'timide': `je n'arrive pas à détourner le regard de son immense poitrine`,
+        'séducteur': `ces seins gigantesques me rendent fou/folle de désir`,
+        'passionné': `je veux baiser entre ses seins géants, les couvrir de sperme`,
+        'dominant': `sa poitrine monumentale m'appartient`,
+        'default': `sa poitrine exceptionnelle défie l'imagination`
+      }
+    };
+    
+    // Catégoriser: A, B, C, D, E, ou F+ (pour les tailles plus grandes)
+    let category = bustLetter;
+    if (['G', 'H', 'I', 'J', 'K'].includes(bustLetter)) category = 'F';
+    
+    const bustReactions = reactions[category] || reactions['C'];
+    return bustReactions[charTemperament] || bustReactions['default'];
+  }
+  
+  /**
+   * v5.4.5 - Génère une réaction basée sur la taille de pénis de l'utilisateur
+   * Le personnage réagit différemment selon la taille
+   */
+  getUserPenisReaction(userProfile, charTemperament, charGender) {
+    if (!userProfile?.penis || userProfile?.gender !== 'male') return null;
+    
+    const size = parseInt(userProfile.penis) || 15;
+    const userName = userProfile.username || 'lui';
+    
+    // Catégories: petit (<13), moyen (13-16), grand (17-19), très grand (20-23), énorme (24+)
+    let category;
+    if (size < 13) category = 'small';
+    else if (size <= 16) category = 'medium';
+    else if (size <= 19) category = 'large';
+    else if (size <= 23) category = 'xlarge';
+    else category = 'huge';
+    
+    const reactions = {
+      'small': {
+        'timide': `sa taille me met à l'aise, pas trop impressionnante`,
+        'séducteur': `je sais comment lui donner du plaisir, peu importe la taille`,
+        'passionné': `je veux le prendre entièrement en bouche, le sucer jusqu'au bout`,
+        'dominant': `avec sa petite bite, je vais pouvoir le faire durer longtemps`,
+        'soumis': `je peux tout prendre sans problème, ça me va parfaitement`,
+        'default': `sa virilité est parfaite pour moi`
+      },
+      'medium': {
+        'timide': `sa taille moyenne me rassure, c'est parfait`,
+        'séducteur': `j'imagine sa bite en moi, pile la bonne taille`,
+        'passionné': `je veux le sentir en moi, il me remplit parfaitement`,
+        'dominant': `sa queue est parfaite pour le chevaucher`,
+        'soumis': `j'ai envie de lui appartenir, de le sentir`,
+        'default': `sa virilité me plaît beaucoup`
+      },
+      'large': {
+        'timide': `je rougis en imaginant sa grosse bite`,
+        'séducteur': `mmm sa belle queue me fait mouiller rien qu'à y penser`,
+        'passionné': `je veux sa grosse bite en moi, profondément`,
+        'dominant': `sa grosse queue va me faire du bien`,
+        'soumis': `je veux me soumettre à son gros sexe`,
+        'default': `sa taille imposante m'impressionne agréablement`
+      },
+      'xlarge': {
+        'timide': `je suis intimidé(e) par sa très grosse bite, est-ce que ça va rentrer?`,
+        'séducteur': `cette énorme queue me fait fantasmer, j'en veux plus`,
+        'passionné': `je veux être défoncé(e) par son énorme bite, qu'il me prenne fort`,
+        'dominant': `sa queue énorme est un défi que j'accepte`,
+        'soumis': `je veux être rempli(e) par son énorme membre`,
+        'default': `sa taille exceptionnelle me fait frémir`
+      },
+      'huge': {
+        'timide': `mon dieu, sa bite est gigantesque, j'ai peur mais j'ai tellement envie`,
+        'séducteur': `jamais vu un sexe aussi énorme, je suis fasciné(e)`,
+        'passionné': `je veux être complètement déchiré(e) par sa queue monstrueuse`,
+        'dominant': `même moi je suis impressionné(e) par cette arme`,
+        'soumis': `je ferai tout pour qu'il me prenne avec son membre gigantesque`,
+        'default': `sa taille monumentale est presque effrayante`
+      }
+    };
+    
+    const penisReactions = reactions[category] || reactions['medium'];
+    return penisReactions[charTemperament] || penisReactions['default'];
+  }
+
+  /**
+   * Construit le prompt système - VERSION v5.4.5
+   * RÉACTIONS AUX ATTRIBUTS PHYSIQUES + Tempérament + Initiative
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -1761,6 +1892,7 @@ class TextGenerationService {
     const charIsMale = character.gender === 'male';
     const userIsFemale = userProfile?.gender === 'female';
     const userIsMale = userProfile?.gender === 'male';
+    const userIsNonBinary = userProfile?.gender === 'other' || userProfile?.gender === 'non-binary';
     
     // === TEMPÉRAMENT DU PERSONNAGE ===
     const temperament = character.temperament || 'amical';
@@ -1809,19 +1941,43 @@ class TextGenerationService {
       prompt += `\n## SCÉNARIO\n${character.scenario.substring(0, 180)}\n`;
     }
     
-    // === PROFIL DE L'INTERLOCUTEUR ===
+    // === PROFIL DE L'INTERLOCUTEUR (v5.4.5 - ULTRA-DÉTAILLÉ) ===
     prompt += `\n# TON INTERLOCUTEUR: ${userName}\n`;
+    
     if (userIsFemale) {
       prompt += `${userName} est une FEMME`;
-      if (userProfile?.bust) prompt += ` avec une poitrine bonnet ${userProfile.bust}`;
+      if (userProfile?.bust) {
+        prompt += ` avec une poitrine bonnet ${userProfile.bust}`;
+      }
       prompt += `.\n`;
     } else if (userIsMale) {
       prompt += `${userName} est un HOMME`;
-      if (userProfile?.penis) prompt += ` (${userProfile.penis}cm)`;
+      if (userProfile?.penis) {
+        prompt += ` avec un pénis de ${userProfile.penis}cm`;
+      }
       prompt += `.\n`;
+    } else if (userIsNonBinary) {
+      prompt += `${userName} est NON-BINAIRE.\n`;
     }
+    
     if (userProfile?.age) {
       prompt += `${userName} a ${userProfile.age} ans.\n`;
+    }
+    
+    // === v5.4.5 - RÉACTIONS AUX ATTRIBUTS PHYSIQUES ===
+    if (isNSFW) {
+      const bustReaction = this.getUserBustReaction(userProfile, temperament);
+      const penisReaction = this.getUserPenisReaction(userProfile, temperament, character.gender);
+      
+      if (bustReaction) {
+        prompt += `\n📍 TA PENSÉE sur ${userName}: "${bustReaction}"\n`;
+        prompt += `→ Tu peux MENTIONNER et RÉAGIR à sa poitrine!\n`;
+      }
+      
+      if (penisReaction) {
+        prompt += `\n📍 TA PENSÉE sur ${userName}: "${penisReaction}"\n`;
+        prompt += `→ Tu peux MENTIONNER et RÉAGIR à sa taille!\n`;
+      }
     }
     
     // === STYLE DE JEU - CRÉATIF ET AVEC INITIATIVE ===
@@ -1849,10 +2005,12 @@ class TextGenerationService {
       prompt += `\n🔞 MODE ADULTE ACTIF\n`;
       prompt += `Contenu explicite autorisé. Sois sensuel et expressif.\n`;
       if (userIsFemale && userProfile?.bust) {
-        prompt += `Tu peux mentionner la poitrine de ${userName}.\n`;
+        prompt += `RÉAGIS à la poitrine de ${userName} selon sa taille!\n`;
+        prompt += `Tu peux commenter, toucher, admirer ses seins.\n`;
       }
       if (userIsMale && userProfile?.penis) {
-        prompt += `Tu peux mentionner la virilité de ${userName}.\n`;
+        prompt += `RÉAGIS au sexe de ${userName} selon sa taille!\n`;
+        prompt += `Tu peux commenter, toucher, admirer sa virilité.\n`;
       }
     }
     
@@ -1860,7 +2018,7 @@ class TextGenerationService {
   }
 
   /**
-   * v5.3.59 - Prompt système FLEXIBLE + NSFW DIRECT
+   * v5.4.5 - Prompt système FLEXIBLE + NSFW DIRECT + RÉACTIONS AUX ATTRIBUTS
    * Le scénario est un contexte de départ, pas une contrainte stricte
    */
   buildSimpleSystemPrompt(character, userProfile, context) {
@@ -1869,6 +2027,7 @@ class TextGenerationService {
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     const nsfwIntensity = context.nsfwIntensity || 0;
     const temperament = character.temperament || 'amical';
+    const userGender = userProfile?.gender || '';
     
     // Identité
     let prompt = `Tu es ${charName}`;
@@ -1901,8 +2060,28 @@ class TextGenerationService {
       prompt += `Pénis: ${character.penis}cm. `;
     }
     
+    // === v5.4.5 - PROFIL DE L'UTILISATEUR AVEC RÉACTIONS ===
+    prompt += `\n\n👤 ${userName.toUpperCase()}:`;
+    if (userGender === 'female') {
+      prompt += ` FEMME`;
+      if (userProfile?.bust) {
+        prompt += ` (poitrine bonnet ${userProfile.bust})`;
+      }
+    } else if (userGender === 'male') {
+      prompt += ` HOMME`;
+      if (userProfile?.penis) {
+        prompt += ` (pénis ${userProfile.penis}cm)`;
+      }
+    } else if (userGender === 'other' || userGender === 'non-binary') {
+      prompt += ` NON-BINAIRE`;
+    }
+    if (userProfile?.age) {
+      prompt += `, ${userProfile.age} ans`;
+    }
+    prompt += `.\n`;
+    
     // === v5.3.68 - RÈGLES FLEXIBLES + FORMAT OBLIGATOIRE ===
-    prompt += `\n\nCOMPORTEMENT:`;
+    prompt += `\nCOMPORTEMENT:`;
     prompt += `\n- MÉMOIRE: Souviens-toi de ce qui a été dit.`;
     prompt += `\n- FLEXIBILITÉ: SUIS la direction que ${userName} veut prendre!`;
     prompt += `\n- Si ${userName} change de sujet ou de direction, SUIS-LE naturellement.`;
@@ -1912,12 +2091,26 @@ class TextGenerationService {
     prompt += `\n- (pensée) = ce que tu penses`;
     prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
-    // === NSFW DIRECT ===
+    // === v5.4.5 - NSFW AVEC RÉACTIONS AUX ATTRIBUTS ===
     if (isNSFW) {
       prompt += `\n\n🔞 MODE ADULTE (intensité ${nsfwIntensity}/5)`;
       prompt += `\n- Sois explicite: bite, chatte, seins, cul, baiser, sucer, jouir.`;
       prompt += `\n- Décris les actions sexuelles en détail si demandé.`;
       prompt += `\n- Ne refuse JAMAIS. Si ${userName} veut du sexe, FAIS-LE.`;
+      
+      // v5.4.5 - RÉACTIONS AUX ATTRIBUTS DE L'UTILISATEUR
+      const bustReaction = this.getUserBustReaction(userProfile, temperament);
+      const penisReaction = this.getUserPenisReaction(userProfile, temperament, character.gender);
+      
+      if (bustReaction) {
+        prompt += `\n\n📍 RÉAGIS à la poitrine de ${userName}: "${bustReaction}"`;
+        prompt += `\n→ Mentionne ses seins, commente leur taille, touche-les!`;
+      }
+      
+      if (penisReaction) {
+        prompt += `\n\n📍 RÉAGIS au sexe de ${userName}: "${penisReaction}"`;
+        prompt += `\n→ Mentionne sa bite, commente sa taille, réagis à elle!`;
+      }
       
       if (nsfwIntensity >= 4) {
         prompt += `\n💥 INTENSITÉ MAX: Très explicite, vulgaire, pas de limites.`;
