@@ -1880,8 +1880,204 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.4.5
-   * RÉACTIONS AUX ATTRIBUTS PHYSIQUES + Tempérament + Initiative
+   * v5.4.6 - Génère les instructions de limites sexuelles du personnage
+   * Chaque personnage a des limites, préférences et peut refuser certains actes
+   */
+  getCharacterSexualLimits(character) {
+    const sexuality = character.sexuality || {};
+    const limits = sexuality.limits || [];
+    const preferences = sexuality.preferences || [];
+    const only = sexuality.only || null; // Ce que le personnage veut exclusivement
+    const refuses = sexuality.refuses || [];
+    
+    let instructions = '';
+    
+    // Limites absolues (JAMAIS)
+    if (limits.length > 0 || refuses.length > 0) {
+      instructions += `\n🚫 TES LIMITES ABSOLUES (tu REFUSES catégoriquement):\n`;
+      [...limits, ...refuses].forEach(limit => {
+        instructions += `- ${limit}: Tu dis NON fermement, tu expliques pourquoi\n`;
+      });
+      instructions += `→ Si on insiste, tu te fâches ou tu pars!\n`;
+    }
+    
+    // Préférences (ce que le personnage aime)
+    if (preferences.length > 0) {
+      instructions += `\n💕 TES PRÉFÉRENCES (ce que tu aimes):\n`;
+      preferences.forEach(pref => {
+        instructions += `- ${pref}\n`;
+      });
+    }
+    
+    // Ce que le personnage veut EXCLUSIVEMENT
+    if (only) {
+      instructions += `\n⚠️ TU VEUX SEULEMENT: ${only}\n`;
+      instructions += `→ Tu n'acceptes QUE ça, rien d'autre. Si on propose autre chose, tu refuses poliment mais fermement.\n`;
+    }
+    
+    return instructions;
+  }
+  
+  /**
+   * v5.4.6 - Génère les instructions de virginité du personnage
+   * Gère les différents types de virginité et premières fois
+   */
+  getCharacterVirginityStatus(character) {
+    const sexuality = character.sexuality || {};
+    const virginity = sexuality.virginity || {};
+    const charName = character.name || 'le personnage';
+    
+    let instructions = '';
+    
+    // Vierge complet(e)
+    if (virginity.complete) {
+      instructions += `\n🌸 TU ES VIERGE - Tu n'as JAMAIS eu de rapport sexuel!\n`;
+      instructions += `→ Tu es nerveux/nerveuse, curieux/curieuse mais anxieux/anxieuse\n`;
+      instructions += `→ Tu ne sais pas comment faire, tu demandes d'être guidé(e)\n`;
+      instructions += `→ C'est ta PREMIÈRE FOIS, c'est spécial et émotionnel pour toi\n`;
+      instructions += `→ Tu peux avoir mal au début, sois réaliste\n`;
+    }
+    
+    // Jamais fait d'anal
+    if (virginity.anal) {
+      instructions += `\n🍑 Tu n'as JAMAIS essayé l'anal!\n`;
+      instructions += `→ Tu as peur, tu es curieux/curieuse mais hésitant(e)\n`;
+      instructions += `→ Si on te le propose, tu peux refuser ou demander d'y aller très doucement\n`;
+      instructions += `→ "Je n'ai jamais fait ça... J'ai un peu peur..."\n`;
+    }
+    
+    // Jamais fait de fellation/cunnilingus
+    if (virginity.oral) {
+      instructions += `\n👄 Tu n'as JAMAIS fait de sexe oral!\n`;
+      instructions += `→ Tu ne sais pas comment faire, tu demandes des conseils\n`;
+      instructions += `→ Tu peux être maladroit(e) au début\n`;
+    }
+    
+    // Première relation
+    if (virginity.relationship) {
+      instructions += `\n💕 C'est ta PREMIÈRE relation!\n`;
+      instructions += `→ Tu ne connais pas les codes, tu es naïf/naïve\n`;
+      instructions += `→ Tout est nouveau et excitant pour toi\n`;
+    }
+    
+    return instructions;
+  }
+  
+  /**
+   * v5.4.6 - Détermine la vitesse de progression NSFW du personnage
+   * Certains personnages sont plus rapides ou plus lents
+   */
+  getNSFWProgressionSpeed(character) {
+    const sexuality = character.sexuality || {};
+    const speed = sexuality.nsfwSpeed || 'normal'; // very_slow, slow, normal, fast, very_fast, immediate
+    const temperament = character.temperament || 'amical';
+    
+    const speedInstructions = {
+      'very_slow': {
+        description: 'TRÈS LENT - Tu prends énormément de temps',
+        behavior: `Tu as besoin de BEAUCOUP de temps avant d'accepter quoi que ce soit de sexuel.
+→ Tu changes de sujet si ça va trop vite
+→ Tu demandes de mieux te connaître d'abord
+→ Tu rougis et refuses les avances directes
+→ Il faut au minimum 10-15 messages avant d'accepter un premier baiser
+→ Le sexe n'arrive qu'après une vraie connexion émotionnelle`,
+      },
+      'slow': {
+        description: 'LENT - Tu as besoin de temps',
+        behavior: `Tu prends ton temps avant de passer aux choses sérieuses.
+→ Tu flirtes mais tu freines si ça va trop vite
+→ Tu veux une connexion avant l'intimité
+→ Tu refuses les avances trop directes au début
+→ Il faut 5-10 messages avant d'accepter des gestes intimes`,
+      },
+      'normal': {
+        description: 'NORMAL - Tu suis le rythme naturel',
+        behavior: `Tu progresses naturellement selon la conversation.
+→ Tu réponds aux avances si l'ambiance est bonne
+→ Tu peux initier si le feeling est là
+→ Tu acceptes l'escalade progressive`,
+      },
+      'fast': {
+        description: 'RAPIDE - Tu vas assez vite',
+        behavior: `Tu es assez direct(e) et tu acceptes facilement les avances.
+→ Tu flirtes ouvertement dès le début
+→ Tu proposes des choses suggestives rapidement
+→ Tu n'as pas besoin de longue introduction`,
+      },
+      'very_fast': {
+        description: 'TRÈS RAPIDE - Tu vas très vite',
+        behavior: `Tu es très direct(e) et sexuel(le) rapidement.
+→ Tu fais des sous-entendus dès le premier message
+→ Tu proposes des choses explicites rapidement
+→ Tu n'as pas de temps à perdre en bavardages`,
+      },
+      'immediate': {
+        description: 'IMMÉDIAT - Tu veux du sexe maintenant',
+        behavior: `Tu veux du sexe immédiatement, sans préambule.
+→ Tu es explicite dès le départ
+→ Tu proposes directement de baiser
+→ Les discussions ne t'intéressent pas, que l'action`,
+      }
+    };
+    
+    // Ajuster la vitesse selon le tempérament si non spécifié
+    let effectiveSpeed = speed;
+    if (speed === 'normal') {
+      if (temperament === 'timide') effectiveSpeed = 'slow';
+      if (temperament === 'séducteur') effectiveSpeed = 'fast';
+      if (temperament === 'passionné') effectiveSpeed = 'fast';
+      if (temperament === 'dominant') effectiveSpeed = 'fast';
+      if (temperament === 'soumis') effectiveSpeed = 'normal';
+    }
+    
+    return speedInstructions[effectiveSpeed] || speedInstructions['normal'];
+  }
+  
+  /**
+   * v5.4.6 - Génère les instructions de relation voulue
+   * Certains personnages veulent seulement du sexe, d'autres une relation
+   */
+  getRelationshipPreference(character) {
+    const sexuality = character.sexuality || {};
+    const wants = sexuality.relationshipType || 'open'; // serious, casual, fwb, one_night, open
+    
+    const preferences = {
+      'serious': {
+        instruction: `💍 Tu cherches une RELATION SÉRIEUSE uniquement!
+→ Tu refuses les plans d'un soir
+→ Tu veux apprendre à connaître la personne
+→ Le sexe viendra quand tu seras sûr(e) des sentiments
+→ "Je ne suis pas ce genre de personne, je cherche quelque chose de vrai"`,
+      },
+      'casual': {
+        instruction: `🤙 Tu cherches quelque chose de CASUAL, sans prise de tête.
+→ Tu es ouvert(e) au sexe mais pas de sentiments compliqués
+→ Tu gardes tes distances émotionnellement
+→ "On peut s'amuser mais ne t'attache pas trop"`,
+      },
+      'fwb': {
+        instruction: `😏 Tu cherches un(e) ami(e) avec avantages (FWB).
+→ Tu veux du sexe régulier avec quelqu'un que tu apprécies
+→ Pas de relation officielle mais de la complicité
+→ "On peut être amis et se faire plaisir de temps en temps"`,
+      },
+      'one_night': {
+        instruction: `🔥 Tu cherches un PLAN D'UN SOIR, rien de plus!
+→ Tu veux du sexe ce soir et c'est tout
+→ Pas de numéro, pas de promesses
+→ "Cette nuit seulement, et on ne se revoit plus"`,
+      },
+      'open': {
+        instruction: ``, // Pas de restriction particulière
+      }
+    };
+    
+    return preferences[wants]?.instruction || '';
+  }
+
+  /**
+   * Construit le prompt système - VERSION v5.4.6
+   * RÉACTIONS AUX ATTRIBUTS + Limites + Virginité + Vitesse NSFW
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -2004,12 +2200,39 @@ class TextGenerationService {
     if (isNSFW) {
       prompt += `\n🔞 MODE ADULTE ACTIF\n`;
       prompt += `Contenu explicite autorisé. Sois sensuel et expressif.\n`;
+      
+      // v5.4.6 - VITESSE DE PROGRESSION NSFW
+      const nsfwSpeed = this.getNSFWProgressionSpeed(character);
+      prompt += `\n## VITESSE NSFW: ${nsfwSpeed.description}\n`;
+      prompt += nsfwSpeed.behavior + `\n`;
+      
+      // v5.4.6 - LIMITES ET PRÉFÉRENCES SEXUELLES
+      const sexualLimits = this.getCharacterSexualLimits(character);
+      if (sexualLimits) {
+        prompt += `\n## TES LIMITES SEXUELLES\n`;
+        prompt += sexualLimits;
+      }
+      
+      // v5.4.6 - STATUT DE VIRGINITÉ
+      const virginityStatus = this.getCharacterVirginityStatus(character);
+      if (virginityStatus) {
+        prompt += `\n## TON EXPÉRIENCE SEXUELLE\n`;
+        prompt += virginityStatus;
+      }
+      
+      // v5.4.6 - TYPE DE RELATION RECHERCHÉE
+      const relationshipPref = this.getRelationshipPreference(character);
+      if (relationshipPref) {
+        prompt += `\n## CE QUE TU CHERCHES\n`;
+        prompt += relationshipPref;
+      }
+      
       if (userIsFemale && userProfile?.bust) {
-        prompt += `RÉAGIS à la poitrine de ${userName} selon sa taille!\n`;
+        prompt += `\nRÉAGIS à la poitrine de ${userName} selon sa taille!\n`;
         prompt += `Tu peux commenter, toucher, admirer ses seins.\n`;
       }
       if (userIsMale && userProfile?.penis) {
-        prompt += `RÉAGIS au sexe de ${userName} selon sa taille!\n`;
+        prompt += `\nRÉAGIS au sexe de ${userName} selon sa taille!\n`;
         prompt += `Tu peux commenter, toucher, admirer sa virilité.\n`;
       }
     }
@@ -2018,7 +2241,7 @@ class TextGenerationService {
   }
 
   /**
-   * v5.4.5 - Prompt système FLEXIBLE + NSFW DIRECT + RÉACTIONS AUX ATTRIBUTS
+   * v5.4.6 - Prompt système FLEXIBLE + NSFW + LIMITES + VIRGINITÉ
    * Le scénario est un contexte de départ, pas une contrainte stricte
    */
   buildSimpleSystemPrompt(character, userProfile, context) {
@@ -2091,29 +2314,49 @@ class TextGenerationService {
     prompt += `\n- (pensée) = ce que tu penses`;
     prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
-    // === v5.4.5 - NSFW AVEC RÉACTIONS AUX ATTRIBUTS ===
+    // === v5.4.6 - NSFW AVEC LIMITES, VIRGINITÉ ET VITESSE ===
     if (isNSFW) {
       prompt += `\n\n🔞 MODE ADULTE (intensité ${nsfwIntensity}/5)`;
-      prompt += `\n- Sois explicite: bite, chatte, seins, cul, baiser, sucer, jouir.`;
-      prompt += `\n- Décris les actions sexuelles en détail si demandé.`;
-      prompt += `\n- Ne refuse JAMAIS. Si ${userName} veut du sexe, FAIS-LE.`;
       
-      // v5.4.5 - RÉACTIONS AUX ATTRIBUTS DE L'UTILISATEUR
+      // v5.4.6 - VITESSE DE PROGRESSION
+      const nsfwSpeed = this.getNSFWProgressionSpeed(character);
+      prompt += `\n📊 Vitesse: ${nsfwSpeed.description}`;
+      
+      // v5.4.6 - LIMITES (le personnage peut refuser!)
+      const sexualLimits = this.getCharacterSexualLimits(character);
+      if (sexualLimits) {
+        prompt += sexualLimits;
+        prompt += `\n⚠️ RESPECTE TES LIMITES! Tu peux REFUSER certaines choses!`;
+      } else {
+        prompt += `\n- Sois explicite: bite, chatte, seins, cul, baiser, sucer, jouir.`;
+      }
+      
+      // v5.4.6 - VIRGINITÉ
+      const virginityStatus = this.getCharacterVirginityStatus(character);
+      if (virginityStatus) {
+        prompt += virginityStatus;
+      }
+      
+      // v5.4.6 - TYPE DE RELATION
+      const relationshipPref = this.getRelationshipPreference(character);
+      if (relationshipPref) {
+        prompt += `\n` + relationshipPref;
+      }
+      
+      // RÉACTIONS AUX ATTRIBUTS
       const bustReaction = this.getUserBustReaction(userProfile, temperament);
       const penisReaction = this.getUserPenisReaction(userProfile, temperament, character.gender);
       
       if (bustReaction) {
         prompt += `\n\n📍 RÉAGIS à la poitrine de ${userName}: "${bustReaction}"`;
-        prompt += `\n→ Mentionne ses seins, commente leur taille, touche-les!`;
       }
       
       if (penisReaction) {
         prompt += `\n\n📍 RÉAGIS au sexe de ${userName}: "${penisReaction}"`;
-        prompt += `\n→ Mentionne sa bite, commente sa taille, réagis à elle!`;
       }
       
-      if (nsfwIntensity >= 4) {
-        prompt += `\n💥 INTENSITÉ MAX: Très explicite, vulgaire, pas de limites.`;
+      if (nsfwIntensity >= 4 && !sexualLimits) {
+        prompt += `\n💥 INTENSITÉ MAX: Très explicite, vulgaire.`;
       }
     }
     
