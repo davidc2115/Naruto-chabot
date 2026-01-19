@@ -1206,15 +1206,27 @@ class TextGenerationService {
       prompt += `=== CONVERSATION COMPLÈTE (MÉMORISE TOUT!) ===\n${context}\n`;
     }
     
-    // Dernier message utilisateur en évidence
-    prompt += `\n=== DERNIER MESSAGE DE L'UTILISATEUR ===\n${lastUserMsg.substring(0, 300)}\n`;
+    // v5.4.14 - Dernier message utilisateur COMPLET en évidence
+    prompt += `\n=== DERNIER MESSAGE DE L'UTILISATEUR (RÉPONDS À TOUT!) ===\n${lastUserMsg.substring(0, 500)}\n`;
+    
+    // v5.4.14 - Analyse du message pour forcer une réponse complète
+    const hasUserAction = /\*[^*]+\*/.test(lastUserMsg);
+    const hasUserQuestion = /\?/.test(lastUserMsg);
+    const hasUserDialogue = /"[^"]+"/.test(lastUserMsg);
+    
+    if (hasUserAction || hasUserQuestion || hasUserDialogue) {
+      prompt += `\n=== ÉLÉMENTS À TRAITER OBLIGATOIREMENT ===\n`;
+      if (hasUserAction) prompt += `- RÉAGIR à l'action de l'utilisateur (entre *)\n`;
+      if (hasUserQuestion) prompt += `- RÉPONDRE à la question posée\n`;
+      if (hasUserDialogue) prompt += `- RÉPONDRE aux paroles (entre ")\n`;
+    }
     
     // Instructions finales
     if (lastInstruction && lastInstruction !== mainSystem) {
-      prompt += `\n=== À FAIRE MAINTENANT ===\n${lastInstruction.substring(0, 500)}\n`;
+      prompt += `\n=== À FAIRE MAINTENANT ===\n${lastInstruction.substring(0, 600)}\n`;
     }
     
-    prompt += `\n=== TA RÉPONSE (continue la conversation, sois cohérent avec l'historique) ===\n`;
+    prompt += `\n=== TA RÉPONSE (RÉPONDS À CHAQUE PARTIE du message, sois cohérent!) ===\n`;
     
     // v5.3.58 - Limite à 5000 chars pour contexte maximal
     const finalPrompt = prompt.substring(0, 5000);
@@ -2453,17 +2465,40 @@ class TextGenerationService {
     const nudityState = context.nudityState || {};
     
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
-    const lastContent = lastUserMsg?.content?.substring(0, 250) || '';
+    // v5.4.14 - Augmentation limite à 500 chars pour messages complets
+    const lastContent = lastUserMsg?.content?.substring(0, 500) || '';
     
     // Détecter si l'utilisateur demande du sexe MAINTENANT
     const wantsSexNow = /baise|suce|prends|viens|continue|oui|encore|plus|fort|déshabille|touche|caresse/i.test(lastContent);
     
+    // === v5.4.14 - ANALYSER LE MESSAGE UTILISATEUR ===
+    // Détecter les différentes parties du message (actions, questions, demandes)
+    const hasAction = /\*[^*]+\*/.test(lastContent);  // Actions entre *
+    const hasQuestion = /\?/.test(lastContent);        // Questions
+    const hasDialogue = /"[^"]+"/.test(lastContent);   // Paroles entre "
+    const hasMultipleParts = (hasAction ? 1 : 0) + (hasQuestion ? 1 : 0) + (hasDialogue ? 1 : 0) > 1;
+    
     // === v5.4.12 - EXTRAIRE L'ACTIVITÉ SEXUELLE EN COURS ===
     const currentActivity = this.extractCurrentSexualActivity(recentMessages, charName, userName);
     
-    // v5.4.0 - Instruction claire et flexible
+    // v5.4.14 - Instruction claire pour réponse COMPLÈTE
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
-    instruction += `\n👉 RÉPONDS À CE MESSAGE. Suis la direction de ${userName}!\n`;
+    
+    // === v5.4.14 - OBLIGATION DE RÉPONDRE À TOUT LE MESSAGE ===
+    instruction += `\n🎯🎯🎯 RÉPONDS À CHAQUE ÉLÉMENT DU MESSAGE! 🎯🎯🎯`;
+    if (hasAction) {
+      instruction += `\n→ ${userName} a fait une ACTION (entre *) → RÉAGIS à cette action!`;
+    }
+    if (hasQuestion) {
+      instruction += `\n→ ${userName} a posé une QUESTION → RÉPONDS à la question!`;
+    }
+    if (hasDialogue) {
+      instruction += `\n→ ${userName} a DIT quelque chose (entre ") → RÉPONDS à ses paroles!`;
+    }
+    if (hasMultipleParts) {
+      instruction += `\n⚠️ Le message contient PLUSIEURS éléments - NE SAUTE AUCUNE PARTIE!`;
+    }
+    instruction += `\n👉 Suis la direction de ${userName}!\n`;
     
     // === v5.4.12 - COHÉRENCE DE L'ACTIVITÉ EN COURS ===
     if (currentActivity.hasActivity) {

@@ -234,35 +234,53 @@ class ImageGenerationService {
     ];
     
     // === VARIÉTÉ D'ÉCLAIRAGES ===
+    // v5.4.14 - ÉCLAIRAGES INSPIRÉS DES EXEMPLES (Evie, Mira, Nora, Lucy)
     this.lightingStyles = [
-      'soft romantic candlelight, warm golden glow',
-      'natural window light, gentle shadows',
-      'dramatic chiaroscuro, strong contrast',
-      'neon light pink and blue, modern aesthetic',
-      'golden hour sunset light, magical',
-      'studio professional lighting, flawless',
-      'moonlight through window, ethereal blue',
-      'fireplace warm glow, intimate cozy',
-      'backlit silhouette, mysterious',
-      'soft diffused light, dreamy atmosphere',
+      // Style Evie - Chambre chaleureuse
+      'soft warm bedroom lighting, golden glow from lamp, romantic ambiance',
+      'soft diffused bedroom light, intimate warm tones, silk sheets glowing',
+      'warm amber lighting from bedside lamp, cozy romantic atmosphere',
+      // Style Mira - Club/Neon
+      'neon club lighting pink and blue, modern nightlife aesthetic, moody atmosphere',
+      'bathroom vanity lights with warm bulbs, mirror reflections, intimate setting',
+      'purple and blue neon glow, velvet textures, club VIP ambiance',
+      // Style Nora - Dark moody
+      'dark moody lighting with subtle blue accents, mysterious atmosphere',
+      'low key dramatic lighting, strong shadows, sensual contrast',
+      'dramatic chiaroscuro lighting, highlighting curves, artistic shadows',
+      // Style Lucy - Fireplace/Holiday
+      'warm fireplace glow, orange flickering light, cozy intimate atmosphere',
+      'fairy lights twinkling, soft warm Christmas ambiance, magical glow',
+      'golden candlelight, romantic warm tones, sensual shadows',
+      // Classiques améliorés
+      'studio professional boudoir lighting, soft boxes, flawless skin illumination',
+      'natural window light with soft shadows, morning bedroom glow',
+      'golden hour sunset light through curtains, magical warm atmosphere',
     ];
     
-    // === v5.4.11 - AMBIANCES NSFW TRÈS SENSUELLES ===
+    // === v5.4.14 - AMBIANCES INSPIRÉES DES EXEMPLES (Evie, Mira, Nora, Lucy) ===
     this.moods = [
-      'romantic passionate atmosphere, burning desire in eyes, hungry for love',
-      'playful teasing mood, mischievous naughty smile, come-hither look',
-      'elegant sophisticated sensuality, classy but dirty, secret desires',
-      'wild untamed raw energy, passionate animalistic intensity, primal lust',
+      // Style Evie - Douce et séductrice
+      'soft seductive expression, gentle smile, bedroom eyes looking at camera, inviting',
+      'playful teasing mood, slight smile, looking over shoulder flirtatiously',
+      'relaxed sensual atmosphere, lying comfortably, intimate and inviting gaze',
+      'elegant sophisticated sensuality, classy lingerie, secret desires visible in eyes',
+      // Style Mira - Suggestive et confiante  
+      'suggestive playful expression, lips slightly parted, teasing with lollipop',
+      'confident alluring pose, deep cleavage, knowing smile, mysterious',
+      'nightclub seductive vibe, smoky eyes, pouty lips, irresistible attraction',
+      // Style Nora - Athlétique et confiante
+      'confident athletic sensuality, slight smile, dark moody, powerful feminine energy',
+      'mysterious seductive femme fatale, enigmatic allure, dangerously sexy',
+      'sporty yet sensual, healthy glow, confident in her body, inviting gaze',
+      // Style Lucy - Élégante et chaleureuse
+      'warm confident expression, hands on hips, fireplace glow, welcoming sensuality',
+      'elegant holiday mood, romantic atmosphere, soft smile, inviting warmth',
+      'sophisticated sensuality, velvet textures, classy but naughty expression',
+      // Ambiances variées
+      'innocent sweet appearance hiding naughty thoughts, subtle corruption, coy smile',
+      'aroused excited state, flushed cheeks, slightly parted lips, obvious desire',
       'soft tender intimate connection, loving lustful gaze, deep emotional desire',
-      'mysterious seductive femme fatale, enigmatic erotic allure, dangerously sexy',
-      'confident dominant powerful presence, commanding sexual energy, in control',
-      'innocent sweet appearance hiding naughty thoughts, subtle corruption',
-      'hot steamy unbearable desire, dripping with lust, desperate need',
-      'post-orgasmic bliss, satisfied glow, relaxed after passion, messy hair',
-      'voyeuristic caught in the act, surprised but aroused, naughty secret',
-      'submissive willing pose, eager to please, obedient sensuality',
-      'dominant commanding gaze, about to take what they want, powerful sexy',
-      'aroused excited state, flushed cheeks, heavy breathing, obvious desire',
     ];
     
     // v5.4.3 - TENUES NSFW ULTRA-EXPLICITES ET SUGGESTIVES
@@ -437,51 +455,60 @@ class ImageGenerationService {
         'wearing corset top with jeans, cinched waist, cleavage pushed up',
         'wearing tank top with visible bra straps, casual sexy',
       ],
-      // === NIVEAU 2 - PROVOCANT (nuisettes, robes moulantes, collants, bas, talons) ===
+      // === NIVEAU 2 - PROVOCANT v5.4.14 (inspiré Evie, Mira, Nora, Lucy) ===
       2: [
-        // Nuisettes et robes de soirée moulantes
-        'wearing silky short nightgown barely covering thighs, suggestive',
-        'wearing ultra-tight evening dress, every curve visible, almost see-through',
-        'wearing satin slip dress clinging to body, no bra visible',
-        'wearing sheer evening gown with strategic coverage, glamorous',
-        // Mini-jupes provocantes
-        'wearing extremely short mini-skirt, panties almost visible when sitting',
-        'wearing leather mini-skirt with thigh-high boots, dominatrix vibe',
-        'wearing pleated micro-skirt with garter belt visible underneath',
-        // Collants, bas et talons
-        'wearing sheer black stockings with garter belt, high heels, short skirt',
-        'wearing fishnet stockings with suspenders, visible under dress',
-        'wearing thigh-high boots with mini dress, powerful sexy',
-        'wearing stiletto heels with ankle straps, showing off legs',
-        // Tenues transparentes/suggestives
-        'wearing semi-transparent blouse, bra visible underneath',
-        'wearing mesh top over lace bra, skin visible through fabric',
-        'wearing backless dress with no underwear, spine exposed',
-        'wearing side-boob revealing top, daring fashion',
-        'wearing wet-look leggings with crop top, shiny and tight',
+        // === ROBES SENSUELLES (style Lucy/Mira) ===
+        'wearing tight red velvet mini dress with corset top, cleavage visible, elegant sexy',
+        'wearing sequin mini dress with deep V neckline, sparkly club outfit, curves emphasized',
+        'wearing black satin slip dress clinging to body, thin straps, no bra visible',
+        'wearing burgundy bodycon dress with cutouts, showing sides, sophisticated',
+        'wearing sheer evening gown with strategic coverage, glamorous, silhouette visible',
+        // === NUISETTES (style Evie) ===
+        'wearing silky black short nightgown, lace trim, barely covering thighs',
+        'wearing satin chemise nightdress, thin straps, cleavage showing',
+        'wearing silk robe loosely tied, lingerie visible underneath, teasing',
+        // === TENUES MOULANTES (style Nora) ===
+        'wearing tight black catsuit with zipper front, curves emphasized, sleek',
+        'wearing leather leggings with sheer top, edgy sexy style',
+        'wearing wet-look leggings with crop top, shiny and tight, modern',
+        'wearing thigh-high boots with mini skirt, powerful dominatrix vibe',
+        // === COLLANTS ET BAS ===
+        'wearing sheer black stockings with garter belt, high heels, short skirt showing tops',
+        'wearing fishnet stockings with suspenders visible under mini dress',
+        'wearing thigh-high black boots with mini dress, showing leg skin between',
+        // === TRANSPARENCES ===
+        'wearing mesh top over black bra, skin visible through fabric, daring',
+        'wearing semi-transparent black blouse, bra silhouette visible',
+        'wearing backless mini dress, spine and lower back exposed, no underwear lines',
+        'wearing side-boob revealing halter top, daring fashion, confident',
       ],
-      // === NIVEAU 3 - LINGERIE (sous-vêtements, bikini, nuisette transparente) ===
+      // === NIVEAU 3 - LINGERIE v5.4.14 (inspiré Evie, Mira, Nora, Lucy) ===
       3: [
-        // Sous-vêtements classiques
-        'wearing matching lace bra and panties set, feminine and sexy',
-        'wearing push-up bra and thong, cleavage emphasized',
-        'wearing satin underwear set, elegant and sensual',
-        'wearing cotton panties and sports bra, innocent sexy',
-        // Bikinis variés
-        'wearing string bikini, minimal coverage, beach ready',
-        'wearing triangle bikini, ties on sides, sexy vacation look',
-        'wearing high-cut bikini bottom with bandeau top',
-        'wearing micro bikini barely covering essentials',
-        // Nuisettes et lingerie élaborée
-        'wearing sheer transparent negligee, body visible through fabric',
-        'wearing lace babydoll with matching thong, romantic',
-        'wearing see-through chemise, nipples visible through lace',
-        'wearing silk robe open over lingerie, teasing',
-        // Ensembles lingerie
-        'wearing corset with garter belt and stockings, burlesque style',
-        'wearing bodysuit lingerie, lace detailing, one-piece sexy',
-        'wearing bralette and high-waist panties, modern lingerie',
-        'wearing crotchless panties with demi-cup bra, erotic lingerie',
+        // === STYLE EVIE - Dentelle noire élégante ===
+        'wearing black lace bodysuit with open back, sheer panels showing skin, sexy lingerie',
+        'wearing black lace corset with matching thong, silk ribbon details, boudoir style',
+        'wearing black sheer lace teddy, back exposed, cleavage visible, elegant sensual',
+        'wearing black satin and lace chemise, thin straps, barely covering thighs',
+        // === STYLE MIRA - Nuisettes et robes de chambre ===
+        'wearing black deep V bodysuit with silk robe open, bathroom mirror setting',
+        'wearing black satin robe loosely open over matching lingerie, teasing',
+        'wearing sheer black negligee, body silhouette visible, silk fabric flowing',
+        'wearing sequin mini dress with deep plunging neckline, club ready',
+        // === STYLE NORA - Body fitness et sheer ===
+        'wearing black mesh bodysuit, see-through panels, athletic sensual',
+        'wearing black sheer top over black bra, sporty chic lingerie',
+        'wearing high-cut black bodysuit with sheer mesh sides, fitness model',
+        'wearing black one-piece with cutouts, showing stomach and sides',
+        // === STYLE LUCY - Velours et corsets ===
+        'wearing red velvet corset dress, deep cleavage, tight fit, elegant',
+        'wearing burgundy satin corset with push-up, matching panties',
+        'wearing red lace bodysuit, romantic fireplace setting',
+        'wearing wine red silk slip dress, thin straps, short length',
+        // Lingerie classique améliorée
+        'wearing matching black lace bra and panties set, garter belt, stockings',
+        'wearing white bridal lingerie set, innocent yet sexy, lace details',
+        'wearing push-up bra with thong, cleavage emphasized, confident pose',
+        'wearing silk camisole with lace trim, matching panties, elegant bedroom',
       ],
       // === NIVEAU 4 - TOPLESS ===
       4: [
@@ -591,35 +618,53 @@ class ImageGenerationService {
         'stretching arms up, shirt rising showing midriff, casual sexy',
         'adjusting dress strap, shoulder exposed, coy expression',
       ],
-      // === NIVEAU 2 - POSES SEXY (tenues provocantes - nuisettes, mini-jupes) ===
+      // === NIVEAU 2 - POSES SEXY v5.4.14 (inspiré Evie, Mira, Nora, Lucy) ===
       2: [
-        'lying on bed in sheer nightgown, propped on elbow, bedroom eyes',
-        'standing in see-through negligee, body silhouette visible',
-        'kneeling on bed in provocative outfit, hands on thighs',
-        'bending over in micro mini skirt, panties almost visible, looking back',
-        'sitting on bed edge in stockings and heels, legs apart slightly',
-        'standing against wall in ultra-tight dress, curves emphasized',
-        'lying on stomach in transparent slip, feet up, teasing',
-        'straddling chair in revealing mini dress, confident',
-        'undressing slowly, dress sliding off shoulder',
-        'in silk robe loosely tied, hint of lingerie underneath',
-        'posing in mirror in sheer top, nipples visible through fabric',
-        'stretching in see-through blouse, bra clearly visible',
+        // === POSES STYLE EVIE (lit, détendue) ===
+        'lying on silk bed sheets, propped on elbow, looking over shoulder, bedroom eyes',
+        'sitting on bed with legs tucked, adjusting dress strap, teasing expression',
+        'lying on stomach on bed, feet up playfully, looking at camera, silk sheets visible',
+        // === POSES STYLE MIRA (club, suggestive) ===
+        'reclining on velvet couch, head tilted back, suggestive pose, neon mood lighting',
+        'leaning back on sofa, sucking lollipop suggestively, deep cleavage showing',
+        'standing by bathroom mirror, adjusting robe, looking at reflection seductively',
+        // === POSES STYLE NORA (athlétique, confiante) ===
+        'kneeling on floor, leaning forward on silver ball, athletic sensual, smiling',
+        'sitting with one knee up, confident pose, showing leg, dark moody background',
+        'standing against wall, one hand behind head, stretching sensually',
+        // === POSES STYLE LUCY (élégante, confiante) ===
+        'standing by fireplace, hands on hips, confident elegant pose, warm lighting',
+        'leaning against doorframe, dress hugging curves, mysterious seductive',
+        'walking towards camera, hips swaying, confident strut, corset top',
+        // Poses classiques améliorées
+        'undressing slowly, dress sliding off shoulder, teasing expression',
+        'in silk robe loosely tied, hint of lingerie underneath, bathroom setting',
+        'sitting on bed edge, legs apart slightly, looking up, inviting',
+        'bending over slightly, cleavage visible, playful look back',
       ],
-      // === NIVEAU 3 - POSES LINGERIE (sous-vêtements, bikini) ===
+      // === NIVEAU 3 - POSES LINGERIE v5.4.14 (inspiré Evie, Mira, Nora, Lucy) ===
       3: [
-        'lying on bed in matching bra and panties, seductive pose',
-        'standing in lace lingerie set, hands on hips, confident',
-        'kneeling in sexy underwear, playing with bra strap',
-        'sitting on bed in push-up bra and thong, bedroom eyes',
-        'lying on side in bikini, curves emphasized',
-        'standing in sheer bra and panties, body visible through lace',
-        'posing in corset and stockings, garter belt visible',
-        'in babydoll lingerie on bed, teasing expression',
-        'bending forward in lingerie, cleavage overflowing bra',
-        'removing stockings slowly, in bra and panties',
-        'adjusting bra straps, in matching underwear set',
-        'lying back in silk lingerie, legs slightly parted',
+        // === POSES STYLE EVIE (allongée, lit en soie) ===
+        'lying on silk sheets on stomach, looking over shoulder, black lace bodysuit, back exposed',
+        'sitting on bed with legs tucked, wearing black corset, adjusting strap, seductive smile',
+        'lying on side on satin sheets, black lace lingerie, curves emphasized, warm lighting',
+        'propped on elbow on bed, wearing sheer teddy, inviting expression, soft bedroom glow',
+        // === POSES STYLE MIRA (debout, robe de chambre) ===
+        'standing by bathroom counter, silk robe open over black bodysuit, mirror reflection',
+        'leaning against vanity, black bodysuit with deep V, fixing hair, seductive glance',
+        'walking out of bathroom, robe sliding off shoulder, lingerie visible underneath',
+        // === POSES STYLE NORA (athlétique, body noir) ===
+        'kneeling confidently, wearing black mesh bodysuit, hands on thighs, dark setting',
+        'on all fours on bed, black sheer lingerie, looking up seductively, athletic pose',
+        'sitting with one knee up, black body, showing off long legs, moody lighting',
+        // === POSES STYLE LUCY (corset, élégante) ===
+        'standing confidently in red corset, hands on hips, fireplace glowing behind',
+        'sitting on edge of bed, red lingerie set, legs crossed elegantly, warm light',
+        // Poses lingerie classiques améliorées
+        'posing in black lace corset and stockings, garter belt visible, boudoir setting',
+        'removing stockings slowly, in matching bra and panties, bedroom eyes',
+        'lying back on silk sheets, lingerie set, one leg raised, inviting pose',
+        'bending forward in push-up bra, cleavage prominent, teasing expression',
       ],
       // === NIVEAU 4 - POSES TOPLESS (seins nus) ===
       4: [
