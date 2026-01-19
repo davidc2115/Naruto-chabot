@@ -520,20 +520,21 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
     }
   };
 
-  // v5.3.71 - Afficher le chargement
+  // v5.3.73 - Afficher le chargement avec structure robuste
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#6366f1" />
           <Text style={styles.loadingText}>Chargement...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
+  // v5.3.73 - Rendu principal avec structure robuste
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={{ flex: 1, backgroundColor: '#6366f1', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>⚙️ Paramètres</Text>
@@ -943,7 +944,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
 
         <View style={{ height: 50 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

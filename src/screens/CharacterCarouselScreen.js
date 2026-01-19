@@ -388,9 +388,10 @@ export default function CharacterCarouselScreen({ navigation }) {
     setCurrentIndex(0);
   };
 
+  // v5.3.73 - État vide avec structure robuste
   if (!currentCharacter) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={{ flex: 1, backgroundColor: '#0a0a12', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyIcon}>🔍</Text>
           <Text style={styles.emptyTitle}>Aucun personnage trouvé</Text>
@@ -421,15 +422,16 @@ export default function CharacterCarouselScreen({ navigation }) {
             <Text style={styles.shuffleAllButtonText}>🔀 Mélanger tous les personnages</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // Utiliser la nouvelle fonction pour obtenir l'image
   const imageUrl = getCharacterImageUrl(currentCharacter);
 
+  // v5.3.73 - Rendu principal avec structure robuste
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: '#0a0a12', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       {/* Logo Boys & Girls avec diamants (image) */}
       <View style={styles.logoContainer}>
         <Image 
@@ -678,7 +680,7 @@ export default function CharacterCarouselScreen({ navigation }) {
           />
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

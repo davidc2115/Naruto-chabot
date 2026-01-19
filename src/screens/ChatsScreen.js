@@ -297,9 +297,9 @@ export default function ChatsScreen({ navigation }) {
     );
   };
 
-  // === RENDU ===
+  // === RENDU v5.3.73 ===
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: '#12121f', paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       <StatusBar barStyle="light-content" backgroundColor="#12121f" />
       
       {/* Header */}
@@ -352,7 +352,7 @@ export default function ChatsScreen({ navigation }) {
           />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
