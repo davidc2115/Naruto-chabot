@@ -573,10 +573,7 @@ export default function ConversationScreen({ route, navigation }) {
     }
   };
 
-  // v5.4.27 - État pour le compteur de génération multiple
-  const [imageGenerationCount, setImageGenerationCount] = useState(0);
-  const [totalImagesToGenerate, setTotalImagesToGenerate] = useState(0);
-
+  // v5.4.35 - GÉNÉRATION D'IMAGE SIMPLE (RETOUR À L'ANCIENNE VERSION QUI FONCTIONNAIT)
   const generateImage = async () => {
     if (generatingImage) return;
 
@@ -602,24 +599,7 @@ export default function ConversationScreen({ route, navigation }) {
       return;
     }
 
-    // v5.4.27 - Demander combien d'images générer
-    Alert.alert(
-      '🎨 Générer des images',
-      'Combien d\'images voulez-vous générer ?',
-      [
-        { text: '1 image', onPress: () => doGenerateImages(1) },
-        { text: '3 images', onPress: () => doGenerateImages(3) },
-        { text: '5 images', onPress: () => doGenerateImages(5) },
-        { text: 'Annuler', style: 'cancel' },
-      ]
-    );
-  };
-
-  // v5.4.27 - Fonction interne pour générer N images
-  const doGenerateImages = async (count) => {
     setGeneratingImage(true);
-    setImageGenerationCount(0);
-    setTotalImagesToGenerate(count);
     
     try {
       // Validation
@@ -627,7 +607,7 @@ export default function ConversationScreen({ route, navigation }) {
         throw new Error('Personnage invalide');
       }
       
-      // v5.4.6 - Niveau de relation SPÉCIFIQUE AU PERSONNAGE
+      // v5.4.35 - Niveau de relation avec ce personnage
       let effectiveLevel = 1;
       try {
         const characterLevelData = await LevelService.getCharacterStats(character.id);
@@ -638,70 +618,44 @@ export default function ConversationScreen({ route, navigation }) {
         console.log(`⚠️ Fallback niveau: ${effectiveLevel}`);
       }
       
-      console.log(`🎨 Génération de ${count} images: Niveau relation ${effectiveLevel} avec ${character.name}`);
+      console.log(`🎨 Génération d'une image: Niveau ${effectiveLevel} avec ${character.name}`);
       
-      const generatedImages = [];
-      let currentMessages = [...messages];
+      // v5.4.35 - GÉNÉRATION SIMPLE D'UNE SEULE IMAGE
+      const imageUrl = await Promise.race([
+        ImageGenerationService.generateSceneImage(
+          character,
+          userProfile,
+          messages,
+          effectiveLevel
+        ),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout génération')), 90000)
+        )
+      ]);
       
-      // Générer les images une par une
-      for (let i = 0; i < count; i++) {
+      console.log(`📸 URL reçue: ${imageUrl ? imageUrl.substring(0, 100) : 'UNDEFINED'}`);
+      
+      if (imageUrl && typeof imageUrl === 'string' && imageUrl.length > 10) {
+        // Sauvegarder dans la galerie
         try {
-          setImageGenerationCount(i + 1);
-          console.log(`📸 Génération image ${i + 1}/${count}...`);
-          
-          // Génération avec timeout
-          const imageUrl = await Promise.race([
-            ImageGenerationService.generateSceneImage(
-              character,
-              userProfile,
-              currentMessages,
-              effectiveLevel
-            ),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout génération')), 90000)
-            )
-          ]);
-          
-          // v5.4.34 - MEILLEUR LOGGING ET VALIDATION
-          console.log(`📸 URL reçue: ${imageUrl ? imageUrl.substring(0, 100) + '...' : 'UNDEFINED'}`);
-          
-          if (imageUrl && typeof imageUrl === 'string' && imageUrl.length > 10) {
-            generatedImages.push(imageUrl);
-            
-            // Sauvegarde dans la galerie
-            try {
-              await GalleryService.saveImageToGallery(character.id, imageUrl);
-              console.log(`💾 Image sauvegardée dans galerie`);
-            } catch (saveError) {
-              console.log('⚠️ Erreur sauvegarde galerie:', saveError.message);
-            }
-            
-            console.log(`✅ Image ${i + 1}/${count} générée: ${imageUrl.substring(0, 80)}...`);
-          } else {
-            console.log(`⚠️ Image ${i + 1}/${count} - URL invalide ou vide`);
-          }
-          
-          // Petit délai entre les images pour éviter le rate limiting
-          if (i < count - 1) {
-            await new Promise(r => setTimeout(r, 1500));
-          }
-        } catch (imageError) {
-          console.error(`❌ Erreur image ${i + 1}:`, imageError.message);
+          await GalleryService.saveImageToGallery(character.id, imageUrl);
+          console.log(`💾 Image sauvegardée dans galerie`);
+        } catch (saveError) {
+          console.log('⚠️ Erreur sauvegarde galerie:', saveError.message);
         }
-      }
-      
-      // Recharger la galerie une fois toutes les images générées
-      await loadGallery();
-      
-      // Ajouter un message récapitulatif dans la conversation
-      if (generatedImages.length > 0) {
+        
+        // Recharger la galerie
+        await loadGallery();
+        
+        // Ajouter un message avec l'image dans la conversation
         const imageMessage = {
           role: 'system',
-          content: `[${generatedImages.length} image${generatedImages.length > 1 ? 's' : ''} générée${generatedImages.length > 1 ? 's' : ''} et ajoutée${generatedImages.length > 1 ? 's' : ''} à la galerie]`,
-          image: generatedImages[0], // Afficher la première image dans le message
+          content: '[Image générée et ajoutée à la galerie]',
+          image: imageUrl,
+          timestamp: Date.now(),
         };
 
-        const updatedMessages = [...currentMessages, imageMessage];
+        const updatedMessages = [...messages, imageMessage];
         setMessages(updatedMessages);
         
         try {
@@ -710,15 +664,12 @@ export default function ConversationScreen({ route, navigation }) {
           console.log('⚠️ Erreur sauvegarde conversation');
         }
         
-        Alert.alert(
-          '✅ Génération terminée', 
-          `${generatedImages.length}/${count} image${generatedImages.length > 1 ? 's' : ''} générée${generatedImages.length > 1 ? 's' : ''} et ajoutée${generatedImages.length > 1 ? 's' : ''} à la galerie !`
-        );
+        console.log(`✅ Image générée avec succès`);
       } else {
-        throw new Error('Aucune image générée');
+        throw new Error('URL image invalide');
       }
 
-      // Scroll sécurisé
+      // Scroll vers le bas
       if (!userIsScrolling && flatListRef.current) {
         setTimeout(() => {
           try {
@@ -747,8 +698,6 @@ export default function ConversationScreen({ route, navigation }) {
       }
     } finally {
       setGeneratingImage(false);
-      setImageGenerationCount(0);
-      setTotalImagesToGenerate(0);
     }
   };
 
@@ -1021,15 +970,14 @@ export default function ConversationScreen({ route, navigation }) {
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
-                // PAROLES: Couleur spécifique dialogue ou noir/blanc selon bulle
-                // v5.4.29 - Toujours utiliser la couleur dialogue si définie
+                // v5.4.35 - PAROLES: TOUJOURS NOIR pour le personnage
                 return (
                   <Text 
                     key={`dialogue-${index}`} 
                     style={{ 
-                      color: isUser ? '#ffffff' : (style.dialogueColor || '#1f2937'),
+                      color: isUser ? '#ffffff' : '#000000', // NOIR pour assistant
                       fontStyle: 'normal',
-                      fontWeight: '500', // Semi-bold pour distinguer des autres
+                      fontWeight: '500',
                       backgroundColor: 'transparent',
                     }}
                   >
@@ -1037,13 +985,12 @@ export default function ConversationScreen({ route, navigation }) {
                   </Text>
                 );
               } else {
-                // v5.4.29 - Texte normal/espaces: couleur NEUTRE distincte
-                // DIFFÉRENT de dialogueColor pour éviter confusion
+                // v5.4.35 - Texte normal: AUSSI NOIR pour cohérence
                 return (
                   <Text 
                     key={`text-${index}`} 
                     style={{ 
-                      color: isUser ? 'rgba(255,255,255,0.7)' : '#9ca3af', // Gris clair neutre
+                      color: isUser ? '#ffffff' : '#000000', // NOIR pour assistant
                       fontStyle: 'normal',
                       fontWeight: 'normal',
                       backgroundColor: 'transparent',

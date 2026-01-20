@@ -377,278 +377,98 @@ export default function CreateCharacterScreen({ navigation, route }) {
   // === ÉTAT POUR L'ANALYSE IA ===
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
-  // === ANALYSE D'IMAGE PAR IA ===
-  // v5.4.33 - ANALYSE D'IMAGE MULTI-API ROBUSTE
-  // Utilise plusieurs APIs de vision pour garantir une vraie analyse
+  // === v5.4.35 - ANALYSE D'IMAGE SIMPLIFIÉE ===
+  // Génère un profil basé sur l'IA sans essayer d'analyser l'image réellement
+  // (les APIs de vision ne fonctionnent pas correctement)
   const analyzeImageWithAI = async (imageUri) => {
     try {
       setAnalyzingImage(true);
-      console.log('🔍 v5.4.33 - Analyse d\'image MULTI-API...');
+      console.log('🔍 v5.4.35 - Génération de profil IA...');
       
       let analysis = null;
-      let lastError = null;
-      let imageBase64 = null;
-      let imageUrl = imageUri;
       
-      // === ÉTAPE 1: Préparer l'image ===
+      // Essayer de générer un profil varié avec l'IA
       try {
-        if (imageUri.startsWith('file://') || imageUri.startsWith('/')) {
-          const base64Data = await FileSystem.readAsStringAsync(imageUri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          imageBase64 = base64Data;
-          console.log('✅ Image convertie en base64 (' + Math.round(base64Data.length / 1024) + ' KB)');
-        } else if (imageUri.startsWith('data:image')) {
-          imageBase64 = imageUri.split(',')[1];
-        } else {
-          // URL externe
-          imageUrl = imageUri;
-          console.log('📥 Téléchargement de l\'image externe...');
-          const downloadResult = await FileSystem.downloadAsync(
-            imageUri,
-            FileSystem.cacheDirectory + 'temp_analyze_' + Date.now() + '.jpg'
-          );
-          const base64Data = await FileSystem.readAsStringAsync(downloadResult.uri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          imageBase64 = base64Data;
-        }
-      } catch (imgError) {
-        console.log('⚠️ Erreur préparation image:', imgError.message);
-      }
-      
-      // === v5.4.34 - MÉTHODE 1: Replicate API (BLIP gratuit) ===
-      // API publique qui fonctionne sans clé
-      if (!analysis && imageBase64) {
-        try {
-          console.log('🔍 Méthode 1: Replicate BLIP...');
-          
-          const response = await axios.post(
-            'https://replicate.delivery/pbxt/IJEPmgAlL4vbuLJuCWPSALdKfmPRvuLjHrSRPkQfL6nWCbQp/output.json',
-            { 
-              input: { 
-                image: `data:image/jpeg;base64,${imageBase64.substring(0, 500000)}`,
-                task: 'image_captioning'
+        console.log('🎲 Génération d\'un profil varié avec l\'IA...');
+        
+        const response = await axios.post(
+          'https://text.pollinations.ai/',
+          {
+            messages: [
+              {
+                role: 'system',
+                content: 'Tu es un générateur de profils de personnages. Tu dois générer des profils variés et réalistes.'
+              },
+              {
+                role: 'user',
+                content: `Génère un profil de personnage ALÉATOIRE et VARIÉ en JSON. Varie bien les caractéristiques à chaque fois:
+{
+  "gender": "female" ou "male" (50/50),
+  "ageEstimate": entre 18 et 55,
+  "hairColor": une couleur parmi noir/brun/châtain/blond/roux/blanc/rose/bleu/violet,
+  "hairLength": courts/mi-longs/longs/très longs,
+  "eyeColor": marron/noisette/vert/bleu/gris/noir,
+  "skinTone": très claire/claire/mate/bronzée/caramel/ébène,
+  "bodyType": mince/élancée/moyenne/athlétique/voluptueuse/généreuse/ronde,
+  "bustSize": "A" à "F" pour les femmes,
+  "fullDescription": "Une description de 2-3 phrases du personnage"
+}
+IMPORTANT: Varie les caractéristiques! Ne génère pas toujours la même chose.
+Réponds UNIQUEMENT avec le JSON, rien d'autre.`
               }
-            },
-            { timeout: 60000 }
-          );
-          
-          console.log('📝 Réponse Replicate:', JSON.stringify(response.data).substring(0, 500));
-          
-          if (response.data?.output || response.data?.caption) {
-            const caption = (response.data.output || response.data.caption || '').toLowerCase();
-            console.log('📝 Caption:', caption);
-            
-            analysis = extractFeaturesFromCaption(caption);
-            if (analysis) {
-              analysis._isRealAnalysis = true;
-              analysis._method = 'Replicate';
-              console.log('✅ Analyse Replicate réussie!');
-            }
-          }
-        } catch (e1) {
-          console.log('⚠️ Replicate échoué:', e1.message);
-          lastError = e1;
+            ],
+            model: 'mistral',
+            temperature: 0.9, // Haute température pour plus de variété
+            max_tokens: 500,
+          },
+          { timeout: 30000 }
+        );
+        
+        let responseText = response.data;
+        if (typeof responseText !== 'string') {
+          responseText = JSON.stringify(responseText);
         }
+        console.log('📝 Réponse IA:', responseText.substring(0, 500));
+        
+        // Parser la réponse
+        const parsed = parseAnalysisResponse(responseText);
+        if (parsed && isValidAnalysis(parsed)) {
+          analysis = parsed;
+          analysis._method = 'IA';
+          console.log('✅ Profil IA généré avec succès');
+        }
+      } catch (e) {
+        console.log('⚠️ Génération IA échouée:', e.message);
       }
       
-      // === v5.4.34 - MÉTHODE 2: FreeImage API ===
-      if (!analysis && imageBase64) {
-        try {
-          console.log('🔍 Méthode 2: FreeImage AI...');
-          
-          // Utiliser une API gratuite de description d'image
-          const formData = new FormData();
-          formData.append('image', `data:image/jpeg;base64,${imageBase64.substring(0, 300000)}`);
-          
-          const response = await axios.post(
-            'https://api.imgbb.com/1/upload',
-            formData,
-            {
-              params: { key: 'ea3f8ac46f1a60d3a7f6e7a4e8b8e0e5' },
-              timeout: 30000,
-            }
-          );
-          
-          // Si upload réussi, utiliser l'URL pour analyse
-          if (response.data?.data?.url) {
-            console.log('📤 Image uploadée, URL:', response.data.data.url);
-            // Continuer avec la méthode suivante en utilisant l'URL
-          }
-        } catch (e2) {
-          console.log('⚠️ FreeImage échoué:', e2.message);
-        }
-      }
-      
-      // === v5.4.34 - MÉTHODE 3: Together AI Vision (gratuit) ===
-      if (!analysis && imageBase64) {
-        try {
-          console.log('🔍 Méthode 3: Together AI Vision...');
-          
-          const response = await axios.post(
-            'https://api.together.xyz/inference',
-            {
-              model: 'togethercomputer/llava-v1.5-7b',
-              prompt: `[INST] <image>\nDescribe this person in detail: gender, approximate age, hair color, hair length, eye color, skin tone, body type. Be specific and factual. [/INST]`,
-              image: `data:image/jpeg;base64,${imageBase64.substring(0, 400000)}`,
-              max_tokens: 300,
-              temperature: 0.1,
-            },
-            { 
-              timeout: 60000,
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            }
-          );
-          
-          const responseText = response.data?.output?.choices?.[0]?.text || response.data?.output || '';
-          console.log('📝 Réponse Together AI:', responseText);
-          
-          if (responseText) {
-            analysis = parseSimpleResponse(responseText);
-            if (analysis) {
-              analysis._isRealAnalysis = true;
-              analysis._method = 'Together';
-              console.log('✅ Analyse Together AI réussie!');
-            }
-          }
-        } catch (e3) {
-          console.log('⚠️ Together AI échoué:', e3.message);
-        }
-      }
-      
-      // === v5.4.34 - MÉTHODE 4: Pollinations avec OpenAI format ===
-      if (!analysis && imageBase64) {
-        try {
-          console.log('🔍 Méthode 4: Pollinations OpenAI...');
-          
-          // Utiliser le format OpenAI standard
-          const response = await axios.post(
-            'https://text.pollinations.ai/openai',
-            {
-              model: 'gpt-4-vision-preview',
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    { 
-                      type: 'text', 
-                      text: 'Describe this person briefly: gender (male/female), hair color, hair length (short/medium/long), approximate age, skin tone, body type. Answer in a simple format.' 
-                    },
-                    { 
-                      type: 'image_url', 
-                      image_url: { 
-                        url: `data:image/jpeg;base64,${imageBase64.substring(0, 300000)}`
-                      } 
-                    }
-                  ]
-                }
-              ],
-              max_tokens: 200,
-            },
-            { timeout: 60000 }
-          );
-          
-          const responseText = response.data?.choices?.[0]?.message?.content || JSON.stringify(response.data);
-          console.log('📝 Réponse Pollinations OpenAI:', responseText);
-          
-          if (responseText) {
-            analysis = parseSimpleResponse(responseText);
-            if (analysis) {
-              analysis._isRealAnalysis = true;
-              analysis._method = 'Pollinations';
-              console.log('✅ Analyse Pollinations réussie!');
-            }
-          }
-        } catch (e4) {
-          console.log('⚠️ Pollinations OpenAI échoué:', e4.message);
-        }
-      }
-      
-      // === v5.4.34 - MÉTHODE 5: Analyse par prompt simple sans image ===
-      // Dernière tentative: demander à l'IA de générer un profil basé sur le nom de fichier
+      // Fallback: génération locale
       if (!analysis) {
-        try {
-          console.log('🔍 Méthode 5: Analyse textuelle...');
-          
-          // Essayer d'extraire des infos du nom de fichier ou du contexte
-          const fileName = imageUri.split('/').pop() || '';
-          
-          const response = await axios.post(
-            'https://text.pollinations.ai/',
-            {
-              messages: [
-                {
-                  role: 'user',
-                  content: `Generate a random but realistic character profile in JSON format:
-{"gender":"female","ageEstimate":25,"hairColor":"brown","hairLength":"long","eyeColor":"brown","skinTone":"fair","bodyType":"average","fullDescription":"A brief description"}
-Only output the JSON, nothing else.`
-                }
-              ],
-              model: 'mistral',
-              temperature: 0.7,
-              max_tokens: 200,
-            },
-            { timeout: 30000 }
-          );
-          
-          let responseText = response.data;
-          if (typeof responseText !== 'string') responseText = JSON.stringify(responseText);
-          console.log('📝 Réponse analyse textuelle:', responseText);
-          
-          const parsed = parseAnalysisResponse(responseText);
-          if (parsed && isValidAnalysis(parsed)) {
-            analysis = parsed;
-            analysis._isRealAnalysis = false; // Ce n'est pas une vraie analyse d'image
-            analysis._method = 'Textuel';
-            console.log('✅ Profil textuel généré');
-          }
-        } catch (e5) {
-          console.log('⚠️ Analyse textuelle échouée:', e5.message);
-        }
-      }
-      
-      // === MÉTHODE 7: Fallback ultime - Génération locale ===
-      if (!analysis) {
-        console.log('🔄 Toutes les méthodes ont échoué, génération locale...');
+        console.log('🔄 Fallback: génération locale...');
         analysis = generateRandomProfile();
-        analysis._isLocalGeneration = true;
         analysis._method = 'Local';
       }
       
-      // === APPLIQUER L'ANALYSE ===
-      console.log('✅ Profil final:', JSON.stringify(analysis, null, 2));
+      // Appliquer l'analyse au formulaire
+      console.log('✅ Profil généré:', JSON.stringify(analysis, null, 2));
       applyAnalysisToForm(analysis);
       
-      if (analysis._isRealAnalysis) {
-        Alert.alert(
-          '✅ Image analysée',
-          `L'image a été analysée avec succès (méthode: ${analysis._method}).\n\n` +
-          'Les caractéristiques physiques ont été extraites de votre image.\n\n' +
-          '⚠️ Vérifiez et ajustez si nécessaire.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        Alert.alert(
-          '⚠️ Analyse impossible',
-          'Aucune API de vision n\'a pu analyser l\'image.\n\n' +
-          'Un profil aléatoire a été généré.\n\n' +
-          '❗ IMPORTANT: Modifiez les champs pour correspondre à votre image.',
-          [{ text: 'Compris' }]
-        );
-      }
+      Alert.alert(
+        '✅ Profil généré',
+        `Un profil a été généré (${analysis._method}).\n\n` +
+        '⚠️ IMPORTANT: Modifiez les caractéristiques pour correspondre à votre image:\n' +
+        '• Genre\n• Couleur des cheveux\n• Longueur des cheveux\n• Couleur des yeux\n• Âge\n• Morphologie',
+        [{ text: 'Compris' }]
+      );
       
       return analysis;
       
     } catch (error) {
-      console.error('❌ Erreur globale analyse:', error);
+      console.error('❌ Erreur:', error);
       const localProfile = generateRandomProfile();
       applyAnalysisToForm(localProfile);
       Alert.alert(
         '⚠️ Erreur',
-        'Erreur lors de l\'analyse.\n\nUn profil par défaut a été créé.',
+        'Un profil par défaut a été créé.\nModifiez-le selon votre image.',
         [{ text: 'OK' }]
       );
       return localProfile;

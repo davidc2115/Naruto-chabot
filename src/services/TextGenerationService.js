@@ -2810,48 +2810,81 @@ class TextGenerationService {
     // v5.4.14 - Instruction claire pour réponse COMPLÈTE
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
     
-    // === v5.4.32 - GESTION DE TIERCE PERSONNE ===
+    // === v5.4.35 - GESTION DE TIERCE PERSONNE AMÉLIORÉE ===
     const thirdPersonInfo = context.thirdPersonInfo || {};
-    const hasThirdPerson = thirdPersonInfo.hasThirdPerson;
+    let hasThirdPerson = thirdPersonInfo.hasThirdPerson;
+    let thirdName = thirdPersonInfo.thirdPersonName || null;
+    let thirdRelation = thirdPersonInfo.thirdPersonRelation || '';
+    
+    // v5.4.35 - Détection directe dans le dernier message (plus fiable)
+    const thirdPersonKeywords = [
+      'ma fille', 'sa fille', 'ta fille', 'la fille',
+      'ma mère', 'maman', 'ma maman',
+      'mon père', 'papa', 'mon papa',
+      'ma femme', 'mon mari',
+      'ma copine', 'mon copain',
+      'mon ami', 'mon amie', 'ma meilleure amie',
+      'ma belle-mère', 'mon beau-père',
+      'ma coloc', 'mon coloc', 'ma colocataire',
+      'ma voisine', 'mon voisin',
+      'ma collègue', 'mon collègue',
+      'quelqu\'un entre', 'quelqu\'un arrive',
+      'elle entre', 'il entre', 'elle arrive', 'il arrive',
+    ];
+    
+    const lastContentLower = lastContent.toLowerCase();
+    for (const keyword of thirdPersonKeywords) {
+      if (lastContentLower.includes(keyword)) {
+        hasThirdPerson = true;
+        // Extraire la relation
+        const relations = {
+          'fille': 'Fille', 'mère': 'Mère', 'maman': 'Mère', 
+          'père': 'Père', 'papa': 'Père',
+          'femme': 'Femme', 'mari': 'Mari',
+          'copine': 'Copine', 'copain': 'Copain',
+          'ami': 'Ami', 'amie': 'Amie',
+          'belle-mère': 'Belle-mère', 'beau-père': 'Beau-père',
+          'coloc': 'Coloc', 'colocataire': 'Coloc',
+          'voisine': 'Voisine', 'voisin': 'Voisin',
+          'collègue': 'Collègue',
+        };
+        for (const [rel, name] of Object.entries(relations)) {
+          if (keyword.includes(rel)) {
+            thirdName = name;
+            thirdRelation = rel;
+            break;
+          }
+        }
+        if (!thirdName) thirdName = 'Cette personne';
+        console.log(`👥 v5.4.35 Tierce personne DÉTECTÉE: ${thirdName} (${keyword})`);
+        break;
+      }
+    }
     
     if (hasThirdPerson) {
-      const thirdName = thirdPersonInfo.thirdPersonName || 'cette personne';
-      const thirdRelation = thirdPersonInfo.thirdPersonRelation || '';
-      
-      instruction += `\n\n👥👥👥 TIERCE PERSONNE PRÉSENTE! 👥👥👥`;
-      instruction += `\n🎭 ${thirdName}${thirdRelation ? ` (${thirdRelation})` : ''} est dans la scène!`;
-      
-      // Détecter si l'utilisateur s'adresse à la tierce personne
-      const addressingThird = lastContent.includes('lui demande') || 
-                              lastContent.includes('lui dit') || 
-                              lastContent.includes('lui parle') ||
-                              lastContent.includes('me tourne vers') ||
-                              lastContent.includes('m\'adresse à') ||
-                              lastContent.includes('regarde ' + thirdName.toLowerCase()) ||
-                              lastContent.includes('à ' + thirdName.toLowerCase());
-      
-      if (addressingThird) {
-        instruction += `\n\n⚠️ ${userName} S'ADRESSE À ${thirdName.toUpperCase()}!`;
-        instruction += `\n→ Tu dois faire RÉPONDRE ${thirdName} directement!`;
-        instruction += `\n→ Utilise ce format pour ${thirdName}:`;
-        instruction += `\n   [${thirdName}] *action* "parole" (pensée)`;
-        instruction += `\n→ ${charName} peut aussi réagir après, mais ${thirdName} doit répondre EN PREMIER!`;
-      } else {
-        instruction += `\n\n📝 SCÉNARIO MULTI-PERSONNAGES ACTIF:`;
-        instruction += `\n→ Tu peux faire réagir ${thirdName} si c'est pertinent`;
-        instruction += `\n→ Format pour ${thirdName}: [${thirdName}] *action* "parole" (pensée)`;
-        instruction += `\n→ Format pour ${charName}: *action* "parole" (pensée) [sans préfixe]`;
-        instruction += `\n→ Les deux personnages peuvent interagir dans ta réponse`;
-      }
-      
-      instruction += `\n\n🎭 PERSONNAGES PRÉSENTS:`;
+      instruction += `\n\n👥👥👥 TIERCE PERSONNE DANS LA SCÈNE! 👥👥👥`;
+      instruction += `\n🎭 ${thirdName}${thirdRelation ? ` (${thirdRelation})` : ''} est PRÉSENT(E)!`;
+      instruction += `\n\n⚠️⚠️⚠️ RÈGLE OBLIGATOIRE ⚠️⚠️⚠️`;
+      instruction += `\nTu DOIS faire parler/réagir ${thirdName} dans ta réponse!`;
+      instruction += `\n\n📝 FORMAT MULTI-PERSONNAGES:`;
+      instruction += `\nPour ${thirdName}: [${thirdName}] *action* "parole" (pensée)`;
+      instruction += `\nPour ${charName}: *action* "parole" (pensée)`;
+      instruction += `\n\n📌 EXEMPLE DE RÉPONSE:`;
+      instruction += `\n[${thirdName}] *ouvre la porte, surprise* "Qu'est-ce que...?!" (Choqué(e))`;
+      instruction += `\n*se fige* "Ce n'est pas ce que tu crois..." (Merde!)`;
+      instruction += `\n\n🎭 PERSONNAGES EN SCÈNE:`;
       instruction += `\n- ${charName} (personnage principal)`;
-      instruction += `\n- ${thirdName} (tierce personne)`;
+      instruction += `\n- ${thirdName} (autre personne)`;
       instruction += `\n- ${userName} (utilisateur)`;
       
-      if (thirdPersonInfo.situation === 'arrive') {
-        instruction += `\n\n📍 SITUATION: ${thirdName} vient d'arriver/entrer`;
-        instruction += `\n→ ${thirdName} peut être surpris(e), curieux/curieuse, choqué(e), etc.`;
+      // Détecter si l'utilisateur s'adresse à la tierce personne
+      const addressingKeywords = ['lui demande', 'lui dis', 'lui dit', 'lui parle', 'lui explique',
+                                   'me tourne vers', 'm\'adresse à', 'regarde ' + (thirdName || '').toLowerCase()];
+      const addressingThird = addressingKeywords.some(k => lastContentLower.includes(k));
+      
+      if (addressingThird) {
+        instruction += `\n\n🎯 ${userName} PARLE À ${thirdName.toUpperCase()}!`;
+        instruction += `\n→ ${thirdName} DOIT répondre EN PREMIER!`;
       }
     }
     
