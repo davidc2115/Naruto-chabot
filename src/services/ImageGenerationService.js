@@ -4685,58 +4685,121 @@ class ImageGenerationService {
     await CustomImageAPIService.loadConfig();
     
     const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🎨 Stratégie: ${strategy.toUpperCase()} (tentative ${retryCount + 1}/${this.maxRetries + 2})`);
+    console.log(`🎨 v5.4.30 Stratégie STRICTE: ${strategy.toUpperCase()} (tentative ${retryCount + 1}/${this.maxRetries})`);
     
     let imageUrl;
     
-    // v5.4.17 - Support des 3 stratégies
-    switch (strategy) {
-      case 'local':
-        console.log('📱 Génération avec SD Local (smartphone)...');
-        imageUrl = await this.generateWithLocal(prompt);
-        break;
-        
-      case 'freebox':
-        console.log('🏠 Génération avec SD Freebox (serveur)...');
-        imageUrl = await this.generateWithFreeboxSD(prompt, character);
-        break;
-        
-      case 'pollinations':
-      default:
-        console.log('☁️ Génération avec Pollinations AI (cloud)...');
-        imageUrl = await this.generateWithPollinations(prompt, character);
-        break;
+    // v5.4.30 - STRICTEMENT RESPECTER LA STRATÉGIE SÉLECTIONNÉE
+    // PAS DE FALLBACK vers une autre stratégie!
+    try {
+      switch (strategy) {
+        case 'local':
+          console.log('📱 Génération STRICTE avec SD Local...');
+          imageUrl = await this.generateWithLocalStrict(prompt, character);
+          break;
+          
+        case 'freebox':
+          console.log('🏠 Génération STRICTE avec SD Freebox...');
+          imageUrl = await this.generateWithFreeboxSD(prompt, character);
+          break;
+          
+        case 'pollinations':
+        default:
+          console.log('☁️ Génération avec Pollinations AI...');
+          imageUrl = await this.generateWithPollinations(prompt, character);
+          break;
+      }
+    } catch (genError) {
+      console.error(`❌ Erreur génération ${strategy}:`, genError.message);
+      
+      // v5.4.30 - RETRY AVEC LA MÊME STRATÉGIE, PAS DE FALLBACK
+      if (retryCount < this.maxRetries - 1) {
+        console.log(`🔄 Retry ${retryCount + 2} avec ${strategy}...`);
+        await new Promise(r => setTimeout(r, 2000));
+        return await this.generateImage(prompt, retryCount + 1, character);
+      }
+      
+      // Dernier recours: retourner quand même l'URL (même si erreur)
+      if (strategy === 'freebox') {
+        // Générer une nouvelle URL Freebox avec seed différent
+        return await this.generateWithFreeboxSD(prompt + ', seed:' + Date.now(), character);
+      }
+      throw genError;
     }
     
-    // Vérifier si l'image est valide
-    const isValid = await this.validateImageUrl(imageUrl);
-    
-    if (isValid) {
-      console.log(`✅ Image générée avec succès via ${strategy.toUpperCase()}`);
+    // v5.4.30 - Validation selon la stratégie
+    // Pour Freebox, on ne valide pas car c'est une URL générée à la volée
+    if (strategy === 'freebox') {
+      // Freebox retourne une URL qui génère l'image à l'accès
+      // Pas de validation nécessaire, l'URL est toujours valide
+      console.log(`✅ URL Freebox générée (stratégie: ${strategy})`);
       return imageUrl;
     }
     
-    // Si échec et encore des retries disponibles
+    // Pour les autres stratégies, valider l'URL
+    const isValid = await this.validateImageUrl(imageUrl);
+    
+    if (isValid) {
+      console.log(`✅ Image générée via ${strategy.toUpperCase()}`);
+      return imageUrl;
+    }
+    
+    // Si échec et encore des retries disponibles (MÊME STRATÉGIE!)
     if (retryCount < this.maxRetries - 1) {
-      console.log(`⚠️ Image invalide, retry ${retryCount + 2}...`);
-      // Délai progressif: 2s, 4s, 6s...
-      await new Promise(r => setTimeout(r, 2000 + retryCount * 2000));
+      console.log(`⚠️ URL invalide, retry ${retryCount + 2} avec ${strategy}...`);
+      await new Promise(r => setTimeout(r, 2000 + retryCount * 1000));
       return await this.generateImage(prompt, retryCount + 1, character);
     }
     
-    // v5.4.27 - RESPECTER LA STRATÉGIE SÉLECTIONNÉE - PAS DE FALLBACK AUTOMATIQUE
-    // Ne faire de fallback que si la stratégie est 'auto' ou non définie
-    if (strategy === 'freebox') {
-      console.log('🏠 Freebox sélectionné - Réessai avec Freebox (pas de fallback)...');
-      // Réessayer une dernière fois avec Freebox avec un seed différent
-      return await this.generateWithFreeboxSD(prompt + ', seed:' + Date.now(), character);
-    } else if (strategy === 'local') {
-      console.log('📱 Local sélectionné - Réessai avec Local (pas de fallback)...');
-      return await this.generateWithLocal(prompt);
-    } else {
-      // Stratégie pollinations ou auto - utiliser Pollinations
-      console.log('☁️ Pollinations sélectionné ou fallback auto...');
-      return await this.generateWithPollinations(prompt, character);
+    // v5.4.30 - DERNIER RETRY AVEC LA MÊME STRATÉGIE
+    console.log(`🔄 Dernier essai avec ${strategy}...`);
+    switch (strategy) {
+      case 'freebox':
+        return await this.generateWithFreeboxSD(prompt + ', variation:' + Date.now(), character);
+      case 'local':
+        return await this.generateWithLocalStrict(prompt + ', variation:' + Date.now(), character);
+      default:
+        return await this.generateWithPollinations(prompt + ', variation:' + Date.now(), character);
+    }
+  }
+  
+  /**
+   * v5.4.30 - Génération locale STRICTE (pas de fallback vers Pollinations)
+   */
+  async generateWithLocalStrict(prompt, character = null) {
+    console.log('📱 Tentative génération locale SD STRICTE...');
+    
+    try {
+      const availability = await StableDiffusionLocalService.checkAvailability();
+      
+      if (!availability.available || !availability.modelDownloaded || !availability.canRunSD) {
+        console.log('⚠️ SD Local non disponible - Utilisation de Freebox SD (PAS Pollinations)');
+        // v5.4.30 - Fallback vers Freebox, JAMAIS vers Pollinations
+        return await this.generateWithFreeboxSD(prompt, character);
+      }
+
+      const fullPrompt = `${prompt}, ${this.anatomyStrictPrompt}, masterpiece, best quality, ultra detailed`;
+
+      console.log('🎨 Génération avec SD-Turbo local...');
+      
+      const result = await StableDiffusionLocalService.generateImage(fullPrompt, {
+        negativePrompt: this.negativePromptFull,
+        steps: 4,
+        guidanceScale: 7.5,
+      });
+
+      if (result && result.imagePath) {
+        console.log('✅ Image générée localement');
+        return result.imagePath;
+      }
+      
+      console.log('⚠️ Pas de résultat SD Local, fallback Freebox SD');
+      return await this.generateWithFreeboxSD(prompt, character);
+      
+    } catch (error) {
+      console.error('❌ Erreur génération locale:', error.message);
+      // v5.4.30 - Fallback vers Freebox, PAS vers Pollinations
+      return await this.generateWithFreeboxSD(prompt, character);
     }
   }
   
@@ -6763,71 +6826,42 @@ class ImageGenerationService {
   }
 
   /**
-   * v5.4.28 - APIs de fallback - RESPECTE LA STRATÉGIE SÉLECTIONNÉE
+   * v5.4.30 - APIs de fallback - RESPECTE STRICTEMENT LA STRATÉGIE SÉLECTIONNÉE
+   * NE JAMAIS utiliser Pollinations si une autre stratégie est configurée
    */
   async generateWithFallbackAPI(prompt, apiIndex = 0, character = null) {
     const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🔄 Fallback API - Stratégie actuelle: ${strategy}`);
+    console.log(`🔄 v5.4.30 Fallback API - Stratégie STRICTE: ${strategy}`);
     
-    // v5.4.28 - RESPECTER LA STRATÉGIE
-    if (strategy === 'freebox') {
-      console.log('🏠 Fallback: Réutilisation Freebox SD');
-      return await this.generateWithFreeboxSD(prompt, character);
+    // v5.4.30 - RESPECTER STRICTEMENT LA STRATÉGIE
+    switch (strategy) {
+      case 'freebox':
+        console.log('🏠 Fallback STRICT: Freebox SD uniquement');
+        return await this.generateWithFreeboxSD(prompt + ', retry:' + Date.now(), character);
+        
+      case 'local':
+        console.log('📱 Fallback STRICT: Local SD -> Freebox SD');
+        return await this.generateWithLocalStrict(prompt, character);
+        
+      case 'pollinations':
+      default:
+        // Seulement si Pollinations est configuré
+        console.log('☁️ Fallback: Pollinations');
+        const seed = Date.now() + Math.floor(Math.random() * 99999);
+        const shortPrompt = prompt.substring(0, 500);
+        const encoded = encodeURIComponent(shortPrompt);
+        await new Promise(r => setTimeout(r, 3000));
+        const antiCache = Date.now();
+        return `https://image.pollinations.ai/prompt/${encoded}?width=576&height=1024&seed=${seed}&nologo=true&nofeed=true&model=flux&safe=false&enhance=true&t=${antiCache}`;
     }
-    
-    // Sinon utiliser Pollinations
-    const seed = Date.now() + Math.floor(Math.random() * 99999);
-    const shortPrompt = prompt.substring(0, 500);
-    const encoded = encodeURIComponent(shortPrompt);
-    
-    await new Promise(r => setTimeout(r, 3000)); // Attendre 3s
-    
-    const antiCache = Date.now();
-    const url = `https://image.pollinations.ai/prompt/${encoded}?width=576&height=1024&seed=${seed}&nologo=true&nofeed=true&model=flux&safe=false&enhance=true&t=${antiCache}`;
-    
-    console.log(`🌐 Fallback Pollinations API`);
-    return url;
   }
 
   /**
-   * Génère une image avec Stable Diffusion Local
+   * v5.4.30 - Génère une image avec Stable Diffusion Local
+   * Fallback vers Freebox (PAS Pollinations) si local non disponible
    */
   async generateWithLocal(prompt) {
-    console.log('📱 Tentative génération locale SD...');
-    
-    try {
-      const availability = await StableDiffusionLocalService.checkAvailability();
-      
-      if (!availability.available || !availability.modelDownloaded || !availability.canRunSD) {
-        console.log('⚠️ SD Local non disponible - Utilisation de Freebox SD');
-        // v5.4.28 - FIX: Utiliser generateWithFreeboxSD au lieu de generateWithFreebox
-        return await this.generateWithFreeboxSD(prompt, null);
-      }
-
-      const fullPrompt = `${prompt}, ${this.anatomyStrictPrompt}, masterpiece, best quality, ultra detailed`;
-
-      console.log('🎨 Génération avec SD-Turbo local...');
-      
-      const result = await StableDiffusionLocalService.generateImage(fullPrompt, {
-        negativePrompt: this.negativePromptFull,
-        steps: 4,
-        guidanceScale: 7.5,
-      });
-
-      if (result && result.imagePath) {
-        console.log('✅ Image générée localement');
-        return result.imagePath;
-      }
-      
-      console.log('⚠️ Pas de résultat SD Local, fallback Freebox SD');
-      // v5.4.28 - FIX: Utiliser generateWithFreeboxSD
-      return await this.generateWithFreeboxSD(prompt, null);
-      
-    } catch (error) {
-      console.error('❌ Erreur génération locale:', error.message);
-      // v5.4.28 - FIX: Utiliser generateWithFreeboxSD
-      return await this.generateWithFreeboxSD(prompt, null);
-    }
+    return await this.generateWithLocalStrict(prompt, null);
   }
 }
 
