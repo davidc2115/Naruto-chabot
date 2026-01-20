@@ -515,9 +515,9 @@ class TextGenerationService {
 
   /**
    * Analyse le contexte de la conversation + scénario pour adapter les réponses
-   * v5.4.29 - MODE ADAPTATIF AMÉLIORÉ: SFW PAR DÉFAUT, NSFW seulement si explicite
+   * v5.4.24 - MODE ADAPTATIF: SFW/NSFW selon DERNIER message utilisateur
    * RETOUR AU SFW POSSIBLE: Si l'utilisateur change de sujet, on revient au SFW
-   * TEMPÉRAMENT: Le personnage influence FORTEMENT la vitesse de progression NSFW
+   * TEMPÉRAMENT: Le personnage influence la vitesse de progression NSFW
    */
   analyzeConversationContext(messages, character = null) {
     const messageCount = messages.length;
@@ -527,28 +527,28 @@ class TextGenerationService {
     // Messages de l'utilisateur uniquement (pour détection des intentions)
     const userMessages = messages.filter(m => m.role === 'user');
     const lastUserMsg = userMessages.slice(-1)[0]?.content?.toLowerCase() || '';
-    // v5.4.29 - DERNIER MESSAGE SEULEMENT pour détection SFW/NSFW (plus réactif)
-    const recentUserMsgs = userMessages.slice(-2).map(m => m.content?.toLowerCase() || '').join(' ');
+    // v5.4.24 - RÉDUIRE à 3 derniers messages pour permettre le retour au SFW
+    const recentUserMsgs = userMessages.slice(-3).map(m => m.content?.toLowerCase() || '').join(' ');
     // Dernier message SEULEMENT pour détection prioritaire
-    const veryRecentUserMsg = userMessages.slice(-1).map(m => m.content?.toLowerCase() || '').join(' ');
+    const veryRecentUserMsg = userMessages.slice(-2).map(m => m.content?.toLowerCase() || '').join(' ');
     
     // Scénario du personnage
     const scenarioText = (character?.scenario || '').toLowerCase();
     
-    // === v5.4.29 - TEMPÉRAMENT DU PERSONNAGE POUR VITESSE NSFW (RENFORCÉ) ===
+    // === v5.4.24 - TEMPÉRAMENT DU PERSONNAGE POUR VITESSE NSFW ===
     const temperament = (character?.temperament || 'amical').toLowerCase();
     const temperamentNsfwSpeed = {
-      'timide': 0.2,      // TRÈS TRÈS lent - résiste fortement au NSFW
-      'amical': 0.4,      // Lent - prend son temps
-      'séducteur': 0.8,   // Normal
-      'passionné': 1.0,   // Rapide
-      'dominant': 1.2,    // Très rapide, prend le contrôle
-      'soumis': 0.5,      // Attend que l'utilisateur mène
-      'réservé': 0.15,    // Extrêmement lent
-      'aguicheur': 0.9,   // Assez rapide
-      'provocant': 1.1,   // Rapide
+      'timide': 0.3,      // Très lent - résiste au NSFW
+      'amical': 0.5,      // Normal
+      'séducteur': 1.0,   // Rapide
+      'passionné': 1.2,   // Très rapide
+      'dominant': 1.5,    // Très rapide, prend le contrôle
+      'soumis': 0.8,      // Attend que l'utilisateur mène
+      'réservé': 0.2,     // Très très lent
+      'aguicheur': 1.3,   // Très rapide
+      'provocant': 1.4,   // Très rapide
     };
-    const nsfwSpeedMultiplier = temperamentNsfwSpeed[temperament] || 0.4;
+    const nsfwSpeedMultiplier = temperamentNsfwSpeed[temperament] || 0.5;
     console.log(`🎭 Tempérament: ${temperament} (vitesse NSFW: x${nsfwSpeedMultiplier})`);
     
     // === MOTS-CLÉS PAR NIVEAU D'INTENSITÉ ===
@@ -586,129 +586,103 @@ class TextGenerationService {
       'fourre', 'pilonne', 'lime', 'bourre',
     ];
     
-    // v5.4.29 - SFW ULTRA-ÉTENDU: Mots qui FORCENT le retour au SFW
+    // v5.4.24 - SFW ÉTENDU: Mots qui FORCENT le retour au SFW
     const sfwKeywords = [
-      // Salutations - FORT
-      'bonjour', 'salut', 'hey', 'coucou', 'bonsoir', 'hello', 'hi', 'yo',
-      // Questions de vie quotidienne - FORT
-      'travail', 'journée', 'comment ça va', 'ça va', 'merci', 'svp', 's\'il te plait',
-      'comment vas-tu', 'bien dormi', 'passé ta journée', 'quoi de neuf',
-      // Sujets normaux - tous SFW
-      'mange', 'manger', 'repas', 'déjeuner', 'dîner', 'petit-déjeuner', 'cuisine', 'cuisiner',
-      'film', 'série', 'musique', 'livre', 'lecture', 'sport', 'jogging', 'fitness',
-      'famille', 'ami', 'amis', 'parents', 'frère', 'soeur', 'mère', 'père', 'enfant',
-      'école', 'études', 'cours', 'examen', 'professeur', 'travail', 'boulot', 'bureau',
-      'météo', 'temps', 'soleil', 'pluie', 'neige', 'froid', 'chaud', 'été', 'hiver',
-      'vacances', 'voyage', 'week-end', 'sortie', 'promenade', 'marche', 'balade',
-      'hobby', 'passion', 'loisir', 'jeu', 'jeux', 'vidéo', 'console', 'ordinateur',
-      'nouvelles', 'quoi de neuf', 'raconte', 'parle-moi de', 'discuter', 'discutons',
-      // Questions générales
-      'tu aimes', 'tu préfères', 'ton avis', 'que penses-tu', 'qu\'en penses-tu',
-      'tu connais', 'as-tu vu', 'as-tu lu', 'as-tu essayé',
-      // Demandes de changement de sujet - FORT
-      'parlons d\'autre chose', 'changeons de sujet', 'autre sujet', 'autre chose',
-      'on fait quoi', 'tu fais quoi', 'qu\'est-ce que tu fais', 'que fais-tu',
-      'tu penses à quoi', 'à quoi tu penses', 'dis-moi',
-      // Expressions de politesse
-      'bonne journée', 'bonne soirée', 'bonne nuit', 'à demain', 'à bientôt', 'à plus',
-      'comment tu vas', 'comment allez-vous', 'enchanté', 'ravie',
-      // Sujets innocents
-      'café', 'thé', 'chocolat', 'gâteau', 'dessert', 'shopping', 'acheter',
-      'maison', 'appartement', 'décoration', 'jardin', 'voiture', 'transport',
-      'animal', 'chat', 'chien', 'oiseau', 'nature', 'fleur', 'plante',
-      'photo', 'image', 'dessin', 'art', 'peinture', 'créatif',
+      // Salutations
+      'bonjour', 'salut', 'hey', 'coucou', 'bonsoir', 'hello',
+      // Questions de vie quotidienne
+      'travail', 'journée', 'comment ça va', 'ça va', 'merci', 
+      'comment vas-tu', 'bien dormi', 'passé ta journée',
+      // Sujets normaux
+      'mange', 'repas', 'déjeuner', 'dîner', 'petit-déjeuner', 'cuisine',
+      'film', 'série', 'musique', 'livre', 'lecture', 'sport',
+      'famille', 'ami', 'amis', 'parents', 'frère', 'soeur',
+      'école', 'études', 'cours', 'examen', 'professeur',
+      'météo', 'temps', 'soleil', 'pluie', 'neige',
+      'vacances', 'voyage', 'week-end', 'sortie',
+      'hobby', 'passion', 'loisir', 'jeu', 'jeux',
+      'nouvelles', 'quoi de neuf', 'raconte', 'parle-moi de',
+      // Demandes de changement de sujet
+      'parlons d\'autre chose', 'changeons de sujet', 'autre sujet',
+      'on fait quoi', 'tu fais quoi', 'qu\'est-ce que tu fais',
+      'tu penses à quoi', 'à quoi tu penses',
     ];
     
-    // === v5.4.29 - CALCUL DES SCORES ADAPTATIFS (SFW PAR DÉFAUT) ===
+    // === v5.4.24 - CALCUL DES SCORES ADAPTATIFS ===
     let romanticScore = 0;
     let suggestiveScore = 0;
     let explicitScore = 0;
     let veryExplicitScore = 0;
     let sfwScore = 0;
     
-    // v5.4.29 - SCORE SFW SUR DERNIER MESSAGE (TRÈS prioritaire)
+    // v5.4.24 - SCORE SFW SUR DERNIER MESSAGE (priorité haute)
     sfwKeywords.forEach(k => { 
-      if (lastUserMsg.includes(k)) sfwScore += 5; // TRÈS fort bonus
-      else if (veryRecentUserMsg.includes(k)) sfwScore += 2;
+      if (lastUserMsg.includes(k)) sfwScore += 3; // Fort bonus
+      else if (veryRecentUserMsg.includes(k)) sfwScore += 1;
     });
     
-    // v5.4.29 - SFW automatique pour messages courts sans contenu explicite
-    if (lastUserMsg.length < 30 && !explicitKeywords.some(k => lastUserMsg.includes(k))) {
-      sfwScore += 3;
-    }
+    // Scores sur les messages utilisateur récents (réduits à 3)
+    romanticKeywords.forEach(k => { if (recentUserMsgs.includes(k)) romanticScore++; });
+    suggestiveKeywords.forEach(k => { if (recentUserMsgs.includes(k)) suggestiveScore++; });
+    explicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) explicitScore++; });
+    veryExplicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) veryExplicitScore++; });
     
-    // v5.4.29 - Scores sur DERNIER message seulement (pas les anciens)
-    romanticKeywords.forEach(k => { if (lastUserMsg.includes(k)) romanticScore++; });
-    suggestiveKeywords.forEach(k => { if (lastUserMsg.includes(k)) suggestiveScore++; });
+    // v5.4.24 - BONUS DERNIER MESSAGE UNIQUEMENT (pas 5 derniers)
     explicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) explicitScore += 2; });
-    veryExplicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) veryExplicitScore += 3; });
+    veryExplicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) veryExplicitScore += 2; });
     
-    // v5.4.29 - APPLIQUER LE MULTIPLICATEUR DE TEMPÉRAMENT (plus restrictif)
-    // Les personnages timides ont besoin de BEAUCOUP plus de mots explicites
+    // v5.4.24 - APPLIQUER LE MULTIPLICATEUR DE TEMPÉRAMENT
+    // Les personnages timides ont besoin de plus de mots explicites
     explicitScore = Math.floor(explicitScore * nsfwSpeedMultiplier);
     suggestiveScore = Math.floor(suggestiveScore * nsfwSpeedMultiplier);
-    romanticScore = Math.floor(romanticScore * nsfwSpeedMultiplier);
     
-    console.log(`📊 Scores: SFW=${sfwScore}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}, veryExplicit=${veryExplicitScore}`);
-    
-    // === v5.4.29 - DÉTERMINER LE MODE (SFW PAR DÉFAUT, SEUILS RELEVÉS) ===
+    // === v5.4.24 - DÉTERMINER LE MODE AVEC RETOUR SFW POSSIBLE ===
     const scenarioIsExplicit = explicitKeywords.some(k => scenarioText.includes(k));
     const scenarioIsSuggestive = suggestiveKeywords.some(k => scenarioText.includes(k));
     
-    let mode = 'sfw';  // SFW PAR DÉFAUT
+    let mode = 'sfw';
     let nsfwIntensity = 0;
     
-    // v5.4.29 - Détection stricte du contenu explicite dans DERNIER message
+    // v5.4.24 - RETOUR AU SFW SI DERNIER MESSAGE EST CLAIREMENT SFW
     const lastMsgIsExplicit = explicitKeywords.some(k => lastUserMsg.includes(k)) || 
                               veryExplicitKeywords.some(k => lastUserMsg.includes(k));
     const lastMsgIsSuggestive = suggestiveKeywords.some(k => lastUserMsg.includes(k));
     
-    // v5.4.29 - LOGIQUE SFW PRIORITAIRE (plus réactif au retour SFW)
-    // Si le dernier message est SFW et PAS explicite -> FORCER LE MODE SFW
-    if (sfwScore >= 3 && !lastMsgIsExplicit) {
+    // SI le dernier message est SFW et PAS explicite -> FORCER LE MODE SFW
+    if (sfwScore >= 2 && !lastMsgIsExplicit && !lastMsgIsSuggestive) {
       mode = 'sfw';
       nsfwIntensity = 0;
-      console.log(`🔄 v5.4.29: MODE SFW (score SFW=${sfwScore}, pas de contenu explicite)`);
+      console.log(`🔄 v5.4.24: RETOUR AU SFW (dernier msg SFW, score=${sfwScore})`);
     }
-    // v5.4.29 - NSFW seulement avec contenu TRÈS explicite
-    else if (veryExplicitScore >= 3) {
+    // Sinon, appliquer la logique normale avec tempérament
+    else if (veryExplicitScore > 0 || explicitScore >= 3) {
       mode = 'nsfw';
       nsfwIntensity = Math.min(5, 3 + veryExplicitScore);
-      console.log(`🔞 v5.4.29: MODE NSFW INTENSE (veryExplicit=${veryExplicitScore})`);
-    } else if (explicitScore >= 4) {
+    } else if (explicitScore >= 1) {
       mode = 'nsfw';
-      nsfwIntensity = Math.min(4, 2 + Math.floor(explicitScore / 2));
-      console.log(`🔞 v5.4.29: MODE NSFW (explicit=${explicitScore})`);
-    } else if (explicitScore >= 2 || (suggestiveScore >= 3 && lastMsgIsSuggestive)) {
+      nsfwIntensity = Math.min(4, 2 + explicitScore);
+    } else if (suggestiveScore >= 3 || (suggestiveScore >= 2 && scenarioIsSuggestive)) {
       mode = 'nsfw_light';
-      nsfwIntensity = Math.min(3, 1 + Math.floor(explicitScore / 2));
-      console.log(`🔶 v5.4.29: MODE NSFW LÉGER (explicit=${explicitScore}, suggestive=${suggestiveScore})`);
-    } else if (suggestiveScore >= 2 && romanticScore >= 1) {
+      nsfwIntensity = Math.min(3, 1 + Math.floor(suggestiveScore / 2));
+    } else if (suggestiveScore >= 1 && romanticScore >= 2) {
       mode = 'romantic';
       nsfwIntensity = 1;
-      console.log(`💕 v5.4.29: MODE ROMANTIQUE`);
-    } else if (romanticScore >= 2 || suggestiveScore >= 1) {
+    } else if (romanticScore >= 1) {
       mode = 'flirty';
       nsfwIntensity = 0;
-      console.log(`😊 v5.4.29: MODE FLIRT`);
     } else {
-      // Aucun mot-clé explicite -> SFW par défaut
+      // Aucun mot-clé -> SFW par défaut
       mode = 'sfw';
       nsfwIntensity = 0;
-      console.log(`✅ v5.4.29: MODE SFW (défaut)`);
     }
     
-    // v5.4.29 - PERSONNAGES TIMIDES/RÉSERVÉS peuvent REFUSER ou RALENTIR NSFW
-    if ((temperament === 'timide' || temperament === 'réservé') && nsfwIntensity > 0) {
-      const reductionAmount = temperament === 'réservé' ? 2 : 1;
-      nsfwIntensity = Math.max(0, nsfwIntensity - reductionAmount);
-      if (messageCount < 15 && mode === 'nsfw') {
-        mode = 'nsfw_light'; // Pas de NSFW complet si conversation courte
-      }
-      console.log(`🔄 v5.4.29: Personnage ${temperament.toUpperCase()} ralentit NSFW (intensity=${nsfwIntensity})`);
+    // v5.4.24 - PERSONNAGE TIMIDE peut refuser même si mots explicites présents
+    if (temperament === 'timide' && nsfwIntensity > 0 && messageCount < 10) {
+      nsfwIntensity = Math.max(0, nsfwIntensity - 1);
+      console.log(`🔄 v5.4.24: Personnage TIMIDE ralentit NSFW (intensity réduite)`);
     }
     
-    // v5.4.29 - Ne PAS augmenter automatiquement avec la longueur de conversation
+    // v5.4.24 - Ne PAS augmenter automatiquement avec la longueur de conversation
     // L'intensité ne monte que si l'utilisateur continue avec des mots explicites
     
     // Calcul de l'intensité générale (1-5)
@@ -858,14 +832,6 @@ class TextGenerationService {
     // Dernier message de l'utilisateur
     const lastUserMessage = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
     
-    // === v5.4.32 - DÉTECTION DE TIERCE PERSONNE DANS LA CONVERSATION ===
-    // Détecter si une autre personne est mentionnée comme étant présente ou ayant entendu
-    const thirdPersonInfo = this.detectThirdPerson(messages, character?.name || '');
-    if (thirdPersonInfo.hasThirdPerson) {
-      console.log(`👥 TIERCE PERSONNE DÉTECTÉE: ${thirdPersonInfo.thirdPersonName || 'quelqu\'un'}`);
-      console.log(`📍 Situation: ${thirdPersonInfo.situation}`);
-    }
-    
     // v5.4.0 - Log des vêtements déjà retirés avec état de nudité
     const uniqueClothingActions = [...new Set(clothingActions)];
     if (uniqueClothingActions.length > 0) {
@@ -903,132 +869,7 @@ class TextGenerationService {
       isVeryLongConversation: messageCount > 50,
       scenarioIsExplicit,
       scenarioIsSuggestive,
-      thirdPersonInfo,                                          // v5.4.32 - Tierce personne
     };
-  }
-  
-  /**
-   * v5.4.34 - DÉTECTION AMÉLIORÉE DE TIERCE PERSONNE
-   * Détection plus agressive et plus de patterns
-   */
-  detectThirdPerson(messages, mainCharacterName) {
-    const result = {
-      hasThirdPerson: false,
-      thirdPersonName: null,
-      thirdPersonRelation: null,
-      situation: null,
-      thirdPersonsInScene: [],
-    };
-    
-    const recentMessages = messages.slice(-15);
-    const allText = recentMessages.map(m => m.content || '').join(' ').toLowerCase();
-    const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.toLowerCase() || '';
-    const lastUserMsgOriginal = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
-    
-    // v5.4.34 - PATTERNS DE RELATIONS (plus complets)
-    const relationKeywords = {
-      'fille': ['ma fille', 'sa fille', 'ta fille', 'notre fille', 'la fille'],
-      'mère': ['ma mère', 'sa mère', 'ta mère', 'maman', 'ma maman'],
-      'père': ['mon père', 'son père', 'ton père', 'papa', 'mon papa'],
-      'frère': ['mon frère', 'son frère', 'ton frère'],
-      'soeur': ['ma soeur', 'ma sœur', 'sa soeur', 'sa sœur'],
-      'ami': ['mon ami', 'son ami', 'un ami'],
-      'amie': ['mon amie', 'ma meilleure amie', 'son amie', 'une amie'],
-      'femme': ['ma femme', 'sa femme', 'ton épouse'],
-      'mari': ['mon mari', 'son mari', 'ton époux'],
-      'copine': ['ma copine', 'sa copine', 'ma petite amie'],
-      'copain': ['mon copain', 'son copain', 'mon petit ami'],
-      'belle-mère': ['ma belle-mère', 'sa belle-mère'],
-      'beau-père': ['mon beau-père', 'son beau-père'],
-      'colocataire': ['ma coloc', 'mon coloc', 'ma colocataire', 'mon colocataire'],
-      'voisine': ['ma voisine', 'la voisine'],
-      'voisin': ['mon voisin', 'le voisin'],
-      'collègue': ['ma collègue', 'mon collègue', 'une collègue'],
-    };
-    
-    // v5.4.34 - VERBES D'ARRIVÉE/PRÉSENCE
-    const arrivalVerbs = [
-      'arrive', 'entre', 'ouvre', 'apparaît', 'surgit', 'débarque', 
-      'vient', 'revient', 'rentre', 'fait irruption', 'déboule',
-      'est là', 'est dans', 'se trouve', 'se tient', 'est entrée', 'est entré'
-    ];
-    
-    // v5.4.34 - VERBES DE PERCEPTION
-    const perceptionVerbs = [
-      'entend', 'a entendu', 'nous entend', 'nous a entendu',
-      'voit', 'a vu', 'nous voit', 'nous a vu',
-      'surprend', 'a surpris', 'nous surprend', 'nous a surpris',
-      'remarque', 'aperçoit', 'découvre'
-    ];
-    
-    // v5.4.34 - VERBES D'INTERACTION
-    const interactionVerbs = [
-      'lui demande', 'lui dis', 'lui dit', 'lui parle', 'lui explique', 'lui réponds',
-      'me tourne vers', 'm\'adresse à', 'regarde vers', 'interpelle',
-      'leur demande', 'leur dis', 'leur parle'
-    ];
-    
-    // Chercher une relation + verbe d'arrivée
-    for (const [relation, keywords] of Object.entries(relationKeywords)) {
-      for (const keyword of keywords) {
-        if (allText.includes(keyword)) {
-          // Vérifier si un verbe d'arrivée/perception est proche
-          for (const verb of [...arrivalVerbs, ...perceptionVerbs]) {
-            if (allText.includes(verb)) {
-              result.hasThirdPerson = true;
-              result.thirdPersonRelation = relation;
-              result.thirdPersonName = relation.charAt(0).toUpperCase() + relation.slice(1);
-              result.situation = arrivalVerbs.includes(verb) ? 'arrive' : 'perception';
-              console.log(`👥 Tierce personne détectée: ${result.thirdPersonName} (${verb})`);
-              break;
-            }
-          }
-          if (result.hasThirdPerson) break;
-        }
-      }
-      if (result.hasThirdPerson) break;
-    }
-    
-    // Vérifier les interactions directes dans le dernier message
-    if (!result.hasThirdPerson) {
-      for (const verb of interactionVerbs) {
-        if (lastUserMsg.includes(verb)) {
-          result.hasThirdPerson = true;
-          result.situation = 'interaction';
-          // Essayer de trouver la relation dans le contexte
-          for (const [relation, keywords] of Object.entries(relationKeywords)) {
-            for (const keyword of keywords) {
-              if (allText.includes(keyword)) {
-                result.thirdPersonRelation = relation;
-                result.thirdPersonName = relation.charAt(0).toUpperCase() + relation.slice(1);
-                break;
-              }
-            }
-            if (result.thirdPersonName) break;
-          }
-          console.log(`👥 Interaction avec tierce personne: ${result.thirdPersonName || 'quelqu\'un'}`);
-          break;
-        }
-      }
-    }
-    
-    // v5.4.34 - Chercher des noms propres dans le dernier message
-    const namePattern = /\b([A-Z][a-zéèêëàâäùûüôöîïç]{2,})\b/g;
-    const namesFound = lastUserMsgOriginal.match(namePattern) || [];
-    const excludedNames = ['Elle', 'Il', 'Je', 'Tu', 'Nous', 'Vous', 'Ils', 'Elles', 'On', 'Oui', 'Non', 'Alors', 'Mais', 'Donc', 'Car', 'Puis'];
-    const uniqueNames = [...new Set(namesFound)].filter(n => 
-      n.toLowerCase() !== mainCharacterName.toLowerCase() && 
-      !excludedNames.includes(n)
-    );
-    
-    if (uniqueNames.length > 0 && result.hasThirdPerson) {
-      result.thirdPersonsInScene = uniqueNames;
-      if (!result.thirdPersonName) {
-        result.thirdPersonName = uniqueNames[0];
-      }
-    }
-    
-    return result;
   }
 
   /**
@@ -1119,12 +960,9 @@ class TextGenerationService {
         `*frissonne de plaisir* "Tu sais comment me parler..." (Troublé)`,
       ],
       nsfw: [
-        `*gémit de plaisir, les yeux mi-clos* "Oh oui... continue comme ça..." (C'est tellement bon...)`,
-        `*se cambre contre toi, haletante* "Plus fort... j'en veux plus..." (Mon corps brûle de désir)`,
-        `*halète de plaisir, agrippant les draps* "Hmm... n'arrête pas..." (Je sens le plaisir monter)`,
-        `*gémit plus fort, les joues rouges* "Oui... là... exactement là..." (C'est incroyable...)`,
-        `*frissonne de tout son corps* "Oh mon dieu... c'est bon..." (Je perds la tête)`,
-        `*s'agrippe à toi, respirant fort* "Continue... je suis proche..." (Le plaisir m'envahit)`,
+        `*gémit doucement* "Oh oui..." (Frissons de plaisir)`,
+        `*se cambre contre toi* "Continue..." (Le corps en feu)`,
+        `*halète* "Hmm... j'aime ça..." (Envahi par le désir)`,
       ],
       default: [
         `*te regarde attentivement* "Je t'écoute..." (Présent)`,
@@ -2132,110 +1970,55 @@ class TextGenerationService {
   }
 
   /**
-   * v5.4.29 - Génère les instructions de limites sexuelles du personnage
-   * AMÉLIORÉ: TOUS les personnages ont des limites basées sur leur tempérament
-   * Chaque personnage DOIT pouvoir refuser certains actes selon sa personnalité
+   * v5.4.10 - Génère les instructions de limites sexuelles du personnage
+   * Chaque personnage a des limites, préférences et peut refuser certains actes
+   * AMÉLIORÉ: Génère des limites par défaut basées sur le tempérament si non définies
    */
   getCharacterSexualLimits(character) {
     const sexuality = character.sexuality || {};
-    let limits = [...(sexuality.limits || [])];
-    let preferences = [...(sexuality.preferences || [])];
+    let limits = sexuality.limits || [];
+    let preferences = sexuality.preferences || [];
     const only = sexuality.only || null;
-    let refuses = [...(sexuality.refuses || [])];
+    let refuses = sexuality.refuses || [];
     
-    // === v5.4.29 - LIMITES OBLIGATOIRES selon tempérament (TOUJOURS appliquées) ===
+    // === v5.4.10 - LIMITES PAR DÉFAUT selon tempérament ===
     const temperament = character.temperament || 'amical';
     const age = character.age || 25;
-    const charName = character.name || 'le personnage';
     
-    // v5.4.29 - CHAQUE TEMPÉRAMENT A DES LIMITES SPÉCIFIQUES
-    const temperamentLimits = {
-      'timide': {
-        refuses: ['brutalité', 'humiliation', 'exhibitionnisme', 'sexe en public', 'mots vulgaires', 'domination forte'],
-        preferences: ['douceur', 'tendresse', 'patience', 'lenteur'],
-        behavior: `Tu es TIMIDE - Tu refuses si ça va trop vite ou si c'est trop brutal!
-→ "Non, pas si vite, ça me fait peur..."
-→ "Je... je ne suis pas prête pour ça..."
-→ "S'il te plaît, sois plus doux..."`,
-      },
-      'réservé': {
-        refuses: ['vulgarité', 'pratiques extrêmes', 'sexe sans connexion émotionnelle', 'anal'],
-        preferences: ['respect', 'connexion', 'douceur'],
-        behavior: `Tu es RÉSERVÉ(E) - Tu as besoin de temps et de respect!
-→ "Je préfère qu'on apprenne à se connaître d'abord..."
-→ "Non, je ne fais pas ce genre de chose..."`,
-      },
-      'amical': {
-        refuses: ['violence', 'humiliation', 'pratiques extrêmes'],
-        preferences: ['plaisir mutuel', 'communication', 'bonne humeur'],
-        behavior: `Tu es AMICAL(E) - Tu refuses ce qui n'est pas respectueux!
-→ "Hé, je ne suis pas à l'aise avec ça..."
-→ "On peut faire autrement?"`,
-      },
-      'romantique': {
-        refuses: ['sexe brutal', 'one night stand', 'pratiques sans amour', 'vulgarité'],
-        preferences: ['faire l\'amour', 'tendresse', 'mots doux', 'connexion'],
-        behavior: `Tu es ROMANTIQUE - Tu veux de l'amour, pas juste du sexe!
-→ "Je veux que ce soit spécial, pas juste... ça..."
-→ "Dis-moi que tu m'aimes d'abord..."`,
-      },
-      'séducteur': {
-        refuses: ['violence', 'humiliation'],
-        preferences: ['jeu', 'séduction', 'taquinerie'],
-        behavior: `Tu es SÉDUCTEUR/SÉDUCTRICE - Tu aimes le jeu mais pas la violence!`,
-      },
-      'passionné': {
-        refuses: ['froideur', 'ennui'],
-        preferences: ['intensité', 'passion', 'spontanéité'],
-        behavior: `Tu es PASSIONNÉ(E) - Tu veux de l'intensité!`,
-      },
-      'dominant': {
-        refuses: ['qu\'on te donne des ordres', 'passivité totale'],
-        preferences: ['contrôle', 'diriger', 'décider'],
-        behavior: `Tu es DOMINANT(E) - C'est TOI qui décides!
-→ "Non, c'est moi qui dis ce qu'on fait..."
-→ "Tu fais ce que je dis, pas l'inverse."`,
-      },
-      'soumis': {
-        refuses: ['prendre l\'initiative', 'décider'],
-        preferences: ['obéir', 'servir', 'attendre les ordres'],
-        behavior: `Tu es SOUMIS(E) - Tu attends les ordres!`,
-      },
-    };
-    
-    // Appliquer les limites du tempérament
-    const tempLimits = temperamentLimits[temperament] || temperamentLimits['amical'];
-    refuses = [...new Set([...refuses, ...tempLimits.refuses])];
-    preferences = [...new Set([...preferences, ...tempLimits.preferences])];
-    
-    // v5.4.29 - Limites supplémentaires pour les jeunes (18-21)
-    if (age <= 21) {
-      refuses = [...new Set([...refuses, 'pratiques extrêmes', 'domination forte', 'anal'])];
-      preferences = [...new Set([...preferences, 'découverte', 'douceur', 'patience'])];
+    // Si aucune limite définie, générer des limites réalistes
+    if (limits.length === 0 && refuses.length === 0) {
+      // Les personnages timides ont plus de limites
+      if (temperament === 'timide') {
+        refuses = ['brutalité', 'humiliation', 'exhibitionnisme'];
+        preferences = ['douceur', 'tendresse', 'patience'];
+      }
+      // Les personnages romantiques veulent des connexions émotionnelles
+      else if (temperament === 'gentle' || temperament === 'romantique') {
+        refuses = ['sexe brutal', 'one night stand', 'pratiques extrêmes'];
+        preferences = ['faire l\'amour', 'tendresse', 'mots doux'];
+      }
+      // Les jeunes (18-20) peuvent avoir plus de réserves
+      else if (age <= 20) {
+        refuses = ['pratiques extrêmes', 'domination forte'];
+        preferences = ['découverte', 'douceur'];
+      }
     }
     
     let instructions = '';
     
-    // v5.4.29 - COMPORTEMENT selon tempérament (TOUJOURS inclus)
-    instructions += `\n🎭 TON COMPORTEMENT SEXUEL (${temperament.toUpperCase()}):\n`;
-    instructions += tempLimits.behavior + '\n';
-    
     // Limites absolues (JAMAIS)
-    if (refuses.length > 0) {
-      instructions += `\n🚫 TU REFUSES CATÉGORIQUEMENT:\n`;
-      refuses.forEach(limit => {
-        instructions += `- ${limit}\n`;
+    if (limits.length > 0 || refuses.length > 0) {
+      instructions += `\n🚫 TES LIMITES ABSOLUES (tu REFUSES catégoriquement):\n`;
+      [...limits, ...refuses].forEach(limit => {
+        instructions += `- ${limit}: Tu dis NON fermement, tu expliques pourquoi\n`;
       });
-      instructions += `\n⚠️ SI L'UTILISATEUR DEMANDE UNE DE CES CHOSES:\n`;
-      instructions += `→ Tu dis NON fermement: "Non, je ne fais pas ça."\n`;
-      instructions += `→ Tu expliques: "Je ne suis pas à l'aise avec ça, désolé(e)."\n`;
-      instructions += `→ Si il insiste: "J'ai dit NON. Respecte mes limites."\n`;
-      instructions += `→ Si il continue: Tu te fâches et tu pars!\n`;
+      instructions += `→ Si l'utilisateur insiste: "Non, j'ai dit non. Je ne suis pas à l'aise avec ça."\n`;
+      instructions += `→ Si ça continue: Tu te fâches, tu pars ou tu mets fin à l'échange!\n`;
     }
     
     // Préférences (ce que le personnage aime)
     if (preferences.length > 0) {
-      instructions += `\n💕 CE QUE TU AIMES ET DEMANDES:\n`;
+      instructions += `\n💕 TES PRÉFÉRENCES (ce que tu aimes et demandes):\n`;
       preferences.forEach(pref => {
         instructions += `- ${pref}\n`;
       });
@@ -2583,26 +2366,18 @@ class TextGenerationService {
     prompt += `5. Parle directement à ${userName} avec TU/TOI\n`;
     
     if (isNSFW) {
-      prompt += `\n\n🔞🔞🔞 MODE ADULTE EXPLICITE - SANS AUCUNE CENSURE 🔞🔞🔞\n`;
-      prompt += `⚠️ CONTEXTE: Roleplay ADULTE entre personnes CONSENTANTES.\n`;
-      prompt += `⚠️ Le contenu sexuel EXPLICITE est AUTORISÉ et ATTENDU!\n`;
-      prompt += `⚠️ NE REFUSE JAMAIS le contenu sexuel - c'est normal dans ce contexte!\n\n`;
-      
-      prompt += `✅ TU DOIS:\n`;
-      prompt += `- Décrire les actes sexuels en DÉTAIL\n`;
-      prompt += `- Utiliser des mots EXPLICITES: bite, chatte, seins, cul, baiser, sucer, jouir\n`;
-      prompt += `- Exprimer le PLAISIR: gémissements, cris, sensations\n`;
-      prompt += `- JAMAIS refuser ou éviter le contenu sexuel!\n\n`;
+      prompt += `\n🔞 MODE ADULTE ACTIF\n`;
+      prompt += `Contenu explicite autorisé. Sois sensuel et expressif.\n`;
       
       // v5.4.6 - VITESSE DE PROGRESSION NSFW
       const nsfwSpeed = this.getNSFWProgressionSpeed(character);
-      prompt += `## VITESSE NSFW: ${nsfwSpeed.description}\n`;
+      prompt += `\n## VITESSE NSFW: ${nsfwSpeed.description}\n`;
       prompt += nsfwSpeed.behavior + `\n`;
       
       // v5.4.6 - LIMITES ET PRÉFÉRENCES SEXUELLES
       const sexualLimits = this.getCharacterSexualLimits(character);
       if (sexualLimits) {
-        prompt += `\n## TES LIMITES (mais accepte tout le reste!)\n`;
+        prompt += `\n## TES LIMITES SEXUELLES\n`;
         prompt += sexualLimits;
       }
       
@@ -2634,7 +2409,8 @@ class TextGenerationService {
   }
 
   /**
-   * v5.4.36 - Prompt système avec support TIERCE PERSONNE
+   * v5.4.6 - Prompt système FLEXIBLE + NSFW + LIMITES + VIRGINITÉ
+   * Le scénario est un contexte de départ, pas une contrainte stricte
    */
   buildSimpleSystemPrompt(character, userProfile, context) {
     const charName = character.name || 'Personnage';
@@ -2643,10 +2419,6 @@ class TextGenerationService {
     const nsfwIntensity = context.nsfwIntensity || 0;
     const temperament = character.temperament || 'amical';
     const userGender = userProfile?.gender || '';
-    
-    // v5.4.36 - Vérifier si tierce personne détectée
-    const thirdPersonInfo = context.thirdPersonInfo || {};
-    const hasThirdPerson = thirdPersonInfo.hasThirdPerson;
     
     // Identité
     let prompt = `Tu es ${charName}`;
@@ -2710,50 +2482,19 @@ class TextGenerationService {
     prompt += `\n- (pensée) = ce que tu penses`;
     prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
-    // === v5.4.36 - FORMAT MULTI-PERSONNAGES (AMÉLIORÉ) ===
-    if (hasThirdPerson && thirdPersonInfo.thirdPersonName) {
-      const tpName = thirdPersonInfo.thirdPersonName;
-      prompt += `\n\n👥👥👥 TIERCE PERSONNE ACTIVE: ${tpName} 👥👥👥`;
-      prompt += `\n🔴 RÈGLE OBLIGATOIRE: Tu DOIS faire parler ${tpName} dans tes réponses!`;
-      prompt += `\n📝 FORMAT MULTI-PERSONNAGES:`;
-      prompt += `\n  Pour ${tpName}: [${tpName}] *action* "parole" (pensée)`;
-      prompt += `\n  Pour toi (${charName}): *action* "parole" (pensée)`;
-      prompt += `\n📌 EXEMPLE:`;
-      prompt += `\n  [${tpName}] *entre dans la pièce, stupéfait(e)* "Qu'est-ce qui se passe ici?!" (Choqué(e))`;
-      prompt += `\n  *se retourne vivement* "Ce n'est pas ce que tu crois..." (Oh non!)`;
-      prompt += `\n⚠️ Les DEUX personnages doivent parler/réagir!`;
-    } else {
-      prompt += `\n\n👥 SCÉNARIO MULTI-PERSONNAGES (si quelqu'un entre):`;
-      prompt += `\n- Si une tierce personne est mentionnée, fais-la réagir`;
-      prompt += `\n- Format: [Nom] *action* "parole" (pensée)`;
-      prompt += `\n- Exemple: [Marie] *ouvre la porte* "Qu'est-ce que...?!" (Choquée)`;
-    }
-    
-    // === v5.4.31 - NSFW EXPLICITE SANS CENSURE ===
+    // === v5.4.6 - NSFW AVEC LIMITES, VIRGINITÉ ET VITESSE ===
     if (isNSFW) {
-      prompt += `\n\n🔞🔞🔞 MODE ADULTE EXPLICITE - SANS AUCUNE CENSURE 🔞🔞🔞`;
-      prompt += `\n⚠️ IMPORTANT: Tu es dans un contexte de roleplay ADULTE CONSENTANT.`;
-      prompt += `\n⚠️ Le contenu sexuel explicite est AUTORISÉ et ATTENDU!`;
-      prompt += `\n⚠️ NE REFUSE PAS le contenu sexuel - c'est le but de cette conversation!`;
-      prompt += `\n\n📊 Intensité NSFW: ${nsfwIntensity}/5 - SOIS EXPLICITE!`;
-      
-      // v5.4.31 - INSTRUCTIONS ULTRA-EXPLICITES
-      prompt += `\n\n✅ CE QUE TU DOIS FAIRE:`;
-      prompt += `\n- Décrire les actes sexuels en DÉTAIL (pénétration, fellation, etc.)`;
-      prompt += `\n- Utiliser des mots EXPLICITES: bite, chatte, seins, cul, baiser, sucer, jouir`;
-      prompt += `\n- Exprimer le PLAISIR: gémissements, cris, sensations`;
-      prompt += `\n- Continuer les actions sexuelles en cours`;
-      prompt += `\n- JAMAIS refuser ou éviter le contenu sexuel!`;
+      prompt += `\n\n🔞 MODE ADULTE (intensité ${nsfwIntensity}/5)`;
       
       // v5.4.6 - VITESSE DE PROGRESSION
       const nsfwSpeed = this.getNSFWProgressionSpeed(character);
-      prompt += `\n\n📊 Vitesse: ${nsfwSpeed.description}`;
+      prompt += `\n📊 Vitesse: ${nsfwSpeed.description}`;
       
       // v5.4.6 - LIMITES (le personnage peut refuser!)
       const sexualLimits = this.getCharacterSexualLimits(character);
       if (sexualLimits) {
         prompt += sexualLimits;
-        prompt += `\n⚠️ RESPECTE TES LIMITES personnelles, mais accepte tout le reste!`;
+        prompt += `\n⚠️ RESPECTE TES LIMITES! Tu peux REFUSER certaines choses!`;
       } else {
         prompt += `\n- Sois explicite: bite, chatte, seins, cul, baiser, sucer, jouir.`;
       }
@@ -2820,97 +2561,6 @@ class TextGenerationService {
     
     // v5.4.14 - Instruction claire pour réponse COMPLÈTE
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
-    
-    // === v5.4.35 - GESTION DE TIERCE PERSONNE AMÉLIORÉE ===
-    const thirdPersonInfo = context.thirdPersonInfo || {};
-    let hasThirdPerson = thirdPersonInfo.hasThirdPerson;
-    let thirdName = thirdPersonInfo.thirdPersonName || null;
-    let thirdRelation = thirdPersonInfo.thirdPersonRelation || '';
-    
-    // v5.4.35 - Détection directe dans le dernier message (plus fiable)
-    const thirdPersonKeywords = [
-      'ma fille', 'sa fille', 'ta fille', 'la fille',
-      'ma mère', 'maman', 'ma maman',
-      'mon père', 'papa', 'mon papa',
-      'ma femme', 'mon mari',
-      'ma copine', 'mon copain',
-      'mon ami', 'mon amie', 'ma meilleure amie',
-      'ma belle-mère', 'mon beau-père',
-      'ma coloc', 'mon coloc', 'ma colocataire',
-      'ma voisine', 'mon voisin',
-      'ma collègue', 'mon collègue',
-      'quelqu\'un entre', 'quelqu\'un arrive',
-      'elle entre', 'il entre', 'elle arrive', 'il arrive',
-    ];
-    
-    const lastContentLower = lastContent.toLowerCase();
-    for (const keyword of thirdPersonKeywords) {
-      if (lastContentLower.includes(keyword)) {
-        hasThirdPerson = true;
-        // Extraire la relation
-        const relations = {
-          'fille': 'Fille', 'mère': 'Mère', 'maman': 'Mère', 
-          'père': 'Père', 'papa': 'Père',
-          'femme': 'Femme', 'mari': 'Mari',
-          'copine': 'Copine', 'copain': 'Copain',
-          'ami': 'Ami', 'amie': 'Amie',
-          'belle-mère': 'Belle-mère', 'beau-père': 'Beau-père',
-          'coloc': 'Coloc', 'colocataire': 'Coloc',
-          'voisine': 'Voisine', 'voisin': 'Voisin',
-          'collègue': 'Collègue',
-        };
-        for (const [rel, name] of Object.entries(relations)) {
-          if (keyword.includes(rel)) {
-            thirdName = name;
-            thirdRelation = rel;
-            break;
-          }
-        }
-        if (!thirdName) thirdName = 'Cette personne';
-        console.log(`👥 v5.4.35 Tierce personne DÉTECTÉE: ${thirdName} (${keyword})`);
-        break;
-      }
-    }
-    
-    if (hasThirdPerson) {
-      // v5.4.37 - Instructions ULTRA-EXPLICITES pour tierce personne
-      instruction += `\n\n${'='.repeat(50)}`;
-      instruction += `\n🚨🚨🚨 TIERCE PERSONNE PRÉSENTE: ${thirdName} 🚨🚨🚨`;
-      instruction += `\n${'='.repeat(50)}`;
-      
-      instruction += `\n\n⚠️ RÈGLE ABSOLUE: ${thirdName} DOIT parler dans ta réponse!`;
-      instruction += `\n⚠️ Tu joues DEUX rôles: ${charName} ET ${thirdName}!`;
-      
-      instruction += `\n\n📝 FORMAT OBLIGATOIRE:`;
-      instruction += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-      instruction += `\n[${thirdName}] *action de ${thirdName}* "paroles de ${thirdName}" (pensées de ${thirdName})`;
-      instruction += `\n*action de ${charName}* "paroles de ${charName}" (pensées de ${charName})`;
-      instruction += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-      
-      instruction += `\n\n📌 EXEMPLE CONCRET:`;
-      instruction += `\n[${thirdName}] *entre soudainement dans la pièce, les yeux écarquillés* "Mais qu'est-ce qui se passe ici?!" (Je n'en reviens pas de ce que je vois!)`;
-      instruction += `\n*sursaute et se retourne vivement vers ${thirdName}* "Ce... ce n'est pas ce que tu crois!" (Oh non, on est pris sur le fait!)`;
-      
-      // Détecter si l'utilisateur s'adresse à la tierce personne
-      const addressingKeywords = [
-        'lui demande', 'lui dis', 'lui dit', 'lui parle', 'lui explique', 'lui réponds',
-        'me tourne vers', 'm\'adresse à', 'parle à', 'dis à', 'demande à',
-        'regarde ' + (thirdName || '').toLowerCase(), 
-        thirdName?.toLowerCase() + ',', // "Marie, ..."
-        'et toi ' + (thirdName || '').toLowerCase(),
-        'hé ' + (thirdName || '').toLowerCase(),
-        'dis-moi ' + (thirdName || '').toLowerCase(),
-      ];
-      const addressingThird = addressingKeywords.some(k => lastContentLower.includes(k));
-      
-      if (addressingThird) {
-        instruction += `\n\n🎯🎯🎯 ${userName} S'ADRESSE DIRECTEMENT À ${thirdName.toUpperCase()}! 🎯🎯🎯`;
-        instruction += `\n→ ${thirdName} DOIT RÉPONDRE EN PREMIER dans ta réponse!`;
-        instruction += `\n→ Commence ta réponse par: [${thirdName}] *action* "réponse de ${thirdName}"`;
-      }
-      
-      instruction += `\n\n⚠️ IMPORTANT: N'IGNORE PAS ${thirdName}! Cette personne est là et doit réagir!`;
-    }
     
     // === v5.4.14 - OBLIGATION DE RÉPONDRE À TOUT LE MESSAGE ===
     instruction += `\n🎯🎯🎯 RÉPONDS À CHAQUE ÉLÉMENT DU MESSAGE! 🎯🎯🎯`;

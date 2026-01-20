@@ -377,84 +377,53 @@ export default function CreateCharacterScreen({ navigation, route }) {
   // === ÉTAT POUR L'ANALYSE IA ===
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
-  // === v5.4.37 - ANALYSE D'IMAGE AVEC POLLINATIONS VISION (GRATUIT) ===
+  // === ANALYSE D'IMAGE PAR IA ===
+  // v5.4.26 - VERSION SIMPLIFIÉE ET ROBUSTE
+  // Génère un profil varié et cohérent - plus de dépendance aux APIs vision
   const analyzeImageWithAI = async (imageUri) => {
     try {
       setAnalyzingImage(true);
-      console.log('🔍 v5.4.37 - Analyse avec Pollinations Vision...');
+      console.log('🔍 v5.4.26 - Analyse IA de l\'image...');
       
       let analysis = null;
+      let lastError = null;
       
-      // === MÉTHODE 1: Pollinations Vision API (GPT-4o gratuit) ===
+      // v5.4.26 - MÉTHODE 1: Pollinations simple (sans vision, génère un profil varié)
       try {
-        console.log('📸 Conversion image en base64...');
+        console.log('🔄 Génération de profil avec IA...');
         
-        // Convertir l'image en base64
-        let base64Image = null;
+        // Générer des caractéristiques variées et aléatoires
+        const randomSeed = Date.now() % 1000;
+        const promptVariety = `Tu es un créateur de personnages. Génère un profil physique UNIQUE et VARIÉ pour un personnage fictif.
         
-        if (imageUri.startsWith('data:')) {
-          // Déjà en base64
-          base64Image = imageUri;
-        } else if (imageUri.startsWith('file://') || imageUri.startsWith('/')) {
-          // Fichier local - lire et convertir
-          const base64Data = await FileSystem.readAsStringAsync(imageUri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          base64Image = `data:image/jpeg;base64,${base64Data}`;
-        } else if (imageUri.startsWith('http')) {
-          // URL externe - utiliser directement
-          base64Image = imageUri;
-        }
-        
-        if (!base64Image) {
-          throw new Error('Impossible de traiter l\'image');
-        }
-        
-        // Limiter la taille (max 1MB en base64)
-        if (base64Image.length > 1500000) {
-          console.log('⚠️ Image trop grande, réduction...');
-          base64Image = base64Image.substring(0, 1500000);
-        }
-        
-        console.log('🌐 Appel Pollinations Vision API...');
-        
-        const visionPrompt = `Analyse cette image et décris UNIQUEMENT ce que tu VOIS. Réponds en JSON:
-{
-  "gender": "female" ou "male",
-  "ageEstimate": nombre entre 18 et 60,
-  "hairColor": "noir", "brun", "châtain", "blond", "roux", "blanc", "rose", "bleu" ou autre,
-  "hairLength": "courts", "mi-longs", "longs" ou "très longs",
-  "eyeColor": "marron", "noisette", "vert", "bleu", "gris" ou "noir",
-  "skinTone": "très claire", "claire", "mate", "bronzée", "caramel" ou "ébène",
-  "bodyType": "mince", "élancée", "moyenne", "athlétique", "voluptueuse", "généreuse" ou "ronde",
-  "bustSize": "A", "B", "C", "D", "DD", "E" ou "F" (pour les femmes),
-  "fullDescription": "Description en 2-3 phrases"
-}
-IMPORTANT: Décris UNIQUEMENT ce que tu vois dans l'image! JSON seulement:`;
+IMPORTANT: Génère des caractéristiques VARIÉES et DIFFÉRENTES à chaque fois. Seed aléatoire: ${randomSeed}
+
+Réponds UNIQUEMENT avec ce JSON VALIDE (rien d'autre avant ou après):
+{"gender":"female","ageEstimate":25,"hairColor":"noir","hairLength":"longs","eyeColor":"marron","skinTone":"claire","bodyType":"moyenne","bustSize":"C","fullDescription":"Description ici"}
+
+VALEURS À CHOISIR ALÉATOIREMENT:
+- gender: choisir "female" (80%) ou "male" (20%)
+- ageEstimate: choisir un nombre entre 18 et 45
+- hairColor: choisir parmi noir, brun, châtain, blond, roux, rose, bleu, blanc
+- hairLength: choisir parmi courts, mi-longs, longs, très longs
+- eyeColor: choisir parmi marron, noisette, vert, bleu, gris
+- skinTone: choisir parmi très claire, claire, mate, bronzée, caramel, ébène
+- bodyType: choisir parmi mince, élancée, moyenne, athlétique, voluptueuse, généreuse, ronde
+- bustSize (si femme): choisir parmi A, B, C, D, DD, E, F
+- fullDescription: écrire 2-3 phrases décrivant le personnage
+
+GÉNÈRE UN PROFIL UNIQUE ET VARIÉ! JSON uniquement:`;
 
         const response = await axios.post(
           'https://text.pollinations.ai/',
           {
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: visionPrompt },
-                  { 
-                    type: 'image_url', 
-                    image_url: { 
-                      url: base64Image,
-                      detail: 'high'
-                    } 
-                  }
-                ]
-              }
-            ],
-            model: 'openai',  // GPT-4o avec vision
-            temperature: 0.3,
+            messages: [{ role: 'user', content: promptVariety }],
+            model: 'mistral',
+            temperature: 0.95, // Haute température pour variété
+            seed: randomSeed,
           },
           { 
-            timeout: 60000,
+            timeout: 30000,
             headers: { 'Content-Type': 'application/json' }
           }
         );
@@ -463,186 +432,58 @@ IMPORTANT: Décris UNIQUEMENT ce que tu vois dans l'image! JSON seulement:`;
         if (typeof responseText !== 'string') {
           responseText = JSON.stringify(responseText);
         }
-        console.log('📝 Réponse Vision:', responseText.substring(0, 500));
+        console.log('📝 Réponse IA:', responseText.substring(0, 500));
         
-        // Parser la réponse JSON
         const parsed = parseAnalysisResponse(responseText);
         if (parsed && isValidAnalysis(parsed)) {
           analysis = parsed;
-          analysis._method = 'Pollinations Vision';
-          console.log('✅ Analyse Vision réussie!');
+          console.log('✅ Génération IA réussie');
         }
-      } catch (visionError) {
-        console.log('⚠️ Pollinations Vision échoué:', visionError.message);
+      } catch (e1) {
+        console.log('⚠️ Pollinations échoué:', e1.message);
+        lastError = e1;
       }
       
-      // === MÉTHODE 2: Fallback avec génération aléatoire variée ===
+      // v5.4.26 - MÉTHODE 2: Génération locale aléatoire (fallback garanti)
       if (!analysis) {
-        console.log('🔄 Fallback: génération locale variée...');
+        console.log('🔄 Génération locale aléatoire...');
         analysis = generateRandomProfile();
-        analysis._method = 'Local';
+        analysis._isLocalGeneration = true;
+        console.log('✅ Génération locale réussie');
       }
       
-      // Appliquer l'analyse au formulaire
-      console.log('✅ Profil appliqué:', JSON.stringify(analysis, null, 2));
-      applyAnalysisToForm(analysis);
-      
-      // Message selon la méthode utilisée
-      if (analysis._method === 'Pollinations Vision') {
+      // === APPLIQUER L'ANALYSE ===
+      if (analysis) {
+        console.log('✅ Profil généré:', JSON.stringify(analysis, null, 2));
+        applyAnalysisToForm(analysis);
+        
+        const isLocal = analysis._isLocalGeneration;
         Alert.alert(
-          '✅ Image analysée!',
-          'L\'IA a détecté les caractéristiques de votre image.\n\n' +
-          'Vérifiez que les informations sont correctes et ajustez si nécessaire.',
+          '✅ Profil généré',
+          isLocal 
+            ? 'Un profil a été généré automatiquement.\n\nModifiez les caractéristiques selon l\'image.'
+            : 'Un profil varié a été généré.\n\nAjustez les caractéristiques si nécessaire.',
           [{ text: 'OK' }]
         );
+        return analysis;
       } else {
-        Alert.alert(
-          '📝 Profil généré',
-          'L\'analyse d\'image n\'a pas fonctionné.\nUn profil aléatoire a été créé.\n\n' +
-          '⚠️ Modifiez les caractéristiques pour correspondre à votre image.',
-          [{ text: 'Compris' }]
-        );
+        throw lastError || new Error('Génération impossible');
       }
       
-      return analysis;
-      
     } catch (error) {
-      console.error('❌ Erreur analyse:', error);
+      console.error('❌ Erreur génération profil:', error);
+      // Fallback ultime: génération locale
       const localProfile = generateRandomProfile();
       applyAnalysisToForm(localProfile);
       Alert.alert(
-        '⚠️ Erreur',
-        'Impossible d\'analyser l\'image.\nUn profil par défaut a été créé.',
+        '✅ Profil généré',
+        'Un profil par défaut a été créé.\n\nModifiez les caractéristiques selon votre image.',
         [{ text: 'OK' }]
       );
       return localProfile;
     } finally {
       setAnalyzingImage(false);
     }
-  };
-  
-  // v5.4.33 - Extraire les caractéristiques d'une description en anglais
-  const extractFeaturesFromCaption = (caption) => {
-    if (!caption) return null;
-    
-    const result = {
-      gender: 'female',
-      ageEstimate: 25,
-      hairColor: 'brun',
-      hairLength: 'longs',
-      eyeColor: 'marron',
-      skinTone: 'claire',
-      bodyType: 'moyenne',
-      bustSize: 'C',
-      fullDescription: caption,
-    };
-    
-    // Détecter le genre
-    if (caption.includes('man') || caption.includes('boy') || caption.includes('male') || caption.includes('guy')) {
-      result.gender = 'male';
-    } else if (caption.includes('woman') || caption.includes('girl') || caption.includes('female') || caption.includes('lady')) {
-      result.gender = 'female';
-    }
-    
-    // Détecter la couleur des cheveux
-    if (caption.includes('blonde') || caption.includes('blond')) result.hairColor = 'blond';
-    else if (caption.includes('brunette') || caption.includes('brown hair')) result.hairColor = 'brun';
-    else if (caption.includes('black hair') || caption.includes('dark hair')) result.hairColor = 'noir';
-    else if (caption.includes('red hair') || caption.includes('ginger') || caption.includes('redhead')) result.hairColor = 'roux';
-    else if (caption.includes('white hair') || caption.includes('gray hair') || caption.includes('grey hair')) result.hairColor = 'blanc';
-    else if (caption.includes('pink hair')) result.hairColor = 'rose';
-    else if (caption.includes('blue hair')) result.hairColor = 'bleu';
-    
-    // Détecter la longueur des cheveux
-    if (caption.includes('long hair')) result.hairLength = 'longs';
-    else if (caption.includes('short hair')) result.hairLength = 'courts';
-    else if (caption.includes('medium hair') || caption.includes('shoulder')) result.hairLength = 'mi-longs';
-    
-    // Détecter le teint
-    if (caption.includes('dark skin') || caption.includes('black skin')) result.skinTone = 'ébène';
-    else if (caption.includes('tan') || caption.includes('tanned')) result.skinTone = 'bronzée';
-    else if (caption.includes('pale') || caption.includes('fair')) result.skinTone = 'très claire';
-    
-    // Détecter l'âge approximatif
-    const ageMatch = caption.match(/(\d{2})\s*(?:year|ans|old)/);
-    if (ageMatch) {
-      result.ageEstimate = parseInt(ageMatch[1]);
-    } else if (caption.includes('young')) {
-      result.ageEstimate = 22;
-    } else if (caption.includes('middle') || caption.includes('mature')) {
-      result.ageEstimate = 40;
-    } else if (caption.includes('old') || caption.includes('elder')) {
-      result.ageEstimate = 55;
-    }
-    
-    // Morphologie
-    if (caption.includes('slim') || caption.includes('thin') || caption.includes('slender')) result.bodyType = 'mince';
-    else if (caption.includes('curvy') || caption.includes('voluptuous')) result.bodyType = 'voluptueuse';
-    else if (caption.includes('athletic') || caption.includes('fit') || caption.includes('muscular')) result.bodyType = 'athlétique';
-    else if (caption.includes('plus') || caption.includes('large') || caption.includes('chubby')) result.bodyType = 'ronde';
-    
-    // Poitrine
-    if (caption.includes('large breast') || caption.includes('big breast') || caption.includes('busty')) result.bustSize = 'DD';
-    else if (caption.includes('small breast') || caption.includes('flat')) result.bustSize = 'A';
-    
-    return result;
-  };
-  
-  // v5.4.33 - Parser une réponse simple (format: gender,hair,length,age,skin,body)
-  const parseSimpleResponse = (text) => {
-    if (!text) return null;
-    
-    const lower = text.toLowerCase();
-    
-    const result = {
-      gender: 'female',
-      ageEstimate: 25,
-      hairColor: 'brun',
-      hairLength: 'longs',
-      eyeColor: 'marron',
-      skinTone: 'claire',
-      bodyType: 'moyenne',
-      bustSize: 'C',
-      fullDescription: text,
-    };
-    
-    // Genre
-    if (lower.includes('male') && !lower.includes('female')) result.gender = 'male';
-    else if (lower.includes('female') || lower.includes('woman') || lower.includes('girl')) result.gender = 'female';
-    
-    // Cheveux couleur
-    if (lower.includes('blonde') || lower.includes('blond')) result.hairColor = 'blond';
-    else if (lower.includes('brown') || lower.includes('brunette')) result.hairColor = 'brun';
-    else if (lower.includes('black')) result.hairColor = 'noir';
-    else if (lower.includes('red') || lower.includes('ginger')) result.hairColor = 'roux';
-    else if (lower.includes('white') || lower.includes('gray') || lower.includes('grey')) result.hairColor = 'blanc';
-    else if (lower.includes('pink')) result.hairColor = 'rose';
-    else if (lower.includes('blue')) result.hairColor = 'bleu';
-    
-    // Cheveux longueur
-    if (lower.includes('short')) result.hairLength = 'courts';
-    else if (lower.includes('medium')) result.hairLength = 'mi-longs';
-    else if (lower.includes('long')) result.hairLength = 'longs';
-    
-    // Âge
-    const ageMatch = lower.match(/(\d{2})/);
-    if (ageMatch) {
-      const age = parseInt(ageMatch[1]);
-      if (age >= 18 && age <= 80) result.ageEstimate = age;
-    }
-    
-    // Teint
-    if (lower.includes('dark') || lower.includes('ebony')) result.skinTone = 'ébène';
-    else if (lower.includes('tan') || lower.includes('olive')) result.skinTone = 'bronzée';
-    else if (lower.includes('pale') || lower.includes('fair') || lower.includes('light')) result.skinTone = 'très claire';
-    
-    // Morphologie
-    if (lower.includes('slim') || lower.includes('thin')) result.bodyType = 'mince';
-    else if (lower.includes('curvy') || lower.includes('voluptuous')) result.bodyType = 'voluptueuse';
-    else if (lower.includes('athletic') || lower.includes('fit')) result.bodyType = 'athlétique';
-    else if (lower.includes('average')) result.bodyType = 'moyenne';
-    
-    return result;
   };
   
   // v5.4.26 - Génération de profil aléatoire LOCAL (sans réseau)

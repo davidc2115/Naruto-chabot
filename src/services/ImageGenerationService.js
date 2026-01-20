@@ -84,8 +84,8 @@ class ImageGenerationService {
       'blurry, low quality, pixelated, watermark, signature, text, ' +
       'ugly, grotesque, horror, creepy, nightmare';
     
-    // v5.4.28 - NEGATIVE PROMPT ULTRA-COMPLET RENFORCÉ
-    // Base - corrige les défauts anatomiques courants
+    // v5.4.24 - NEGATIVE PROMPT ULTRA-COMPLET RENFORCÉ ET ÉTENDU
+    // Base - sera augmenté dynamiquement selon le body type
     this.negativePromptBase = 
       'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, anatomical errors, ' +
       'extra limbs, missing limbs, three arms, four arms, three legs, four legs, extra body parts, ' +
@@ -93,17 +93,10 @@ class ImageGenerationService {
       'malformed hands, twisted hands, backwards hands, extra fingers, missing fingers, ' +
       'fused fingers, six fingers, seven fingers, too many fingers, mutated hands, bad hands, ' +
       'clothes fused with skin, clothes melting into body, fabric merged with flesh, ' +
+      // v5.4.24 - NOUVEAUX DEFAUTS À ÉVITER
       'extra person, duplicate person, clone person, twin in background, ' +
       'split body, multiple torsos, conjoined twins, siamese, ' +
-      'wrong face proportions, deformed face, melted face, ' +
-      // v5.4.28 - DÉFAUTS ANATOMIQUES SPÉCIFIQUES À CORRIGER
-      'breasts and butt visible together in same view from front, ' +
-      'butt visible from front view, ass on front of body, ' +
-      'arms where breasts should be, arms coming from chest, ' +
-      'breasts on back, nipples on back, ' +
-      'extra breasts, three breasts, four breasts, ' +
-      'breasts on stomach, breasts too low, breasts on belly, ' +
-      'arms coming from breasts, limbs from wrong places, ';
+      'wrong face proportions, deformed face, melted face, ';
       
     this.negativePromptFull = this.negativePromptBase +
       'clawed hands, webbed fingers, malformed feet, extra toes, bent wrong way, ' +
@@ -124,6 +117,7 @@ class ImageGenerationService {
       'jpeg artifacts, compression artifacts, noise, grainy, ' +
       'ugly, grotesque, horror, creepy, nightmare, zombie, ' +
       'nsfw artifacts, censorship bars, mosaic censorship, black bars, ' +
+      // v5.4.24 - NOUVEAUX DEFAUTS À ÉVITER
       'realistic nipples on anime, anime nipples on realistic, wrong art style nipples, ' +
       'missing nipples when topless, no nipples when nude, nipple placement wrong, ' +
       'lips wrong color, lips too big, lips too small, mouth open wrong, teeth showing badly, ' +
@@ -134,17 +128,7 @@ class ImageGenerationService {
       'clothes phasing through body, transparent clothes wrong, clothes defying gravity, ' +
       'skin texture wrong, plastic skin, mannequin skin, waxy skin, ' +
       'body parts wrong size, arm longer than leg, tiny feet, giant feet, ' +
-      'unrealistic pose, impossible contortion, broken joints, hyperextended limbs, ' +
-      // v5.4.28 - DÉFAUTS ANATOMIQUES GRAVES
-      'arm growing from breast, arm replacing breast, limb from chest, ' +
-      'seeing both breasts and butt from front, anatomically impossible view, ' +
-      'back visible from front, spine visible from front, ' +
-      'reversed body, body facing two directions, twisted body, ' +
-      'head on backwards, face on back of head, ' +
-      'legs attached to chest, arms attached to hips, ' +
-      'breasts on arms, nipples on arms, nipples on hands, ' +
-      'duplicate breasts at different heights, stacked breasts, ' +
-      'body parts in wrong positions, organs visible, internal anatomy showing';
+      'unrealistic pose, impossible contortion, broken joints, hyperextended limbs';
     
     // PROMPT QUALITÉ PARFAITE - Pour images sans défauts
     this.perfectQualityPrompt = 
@@ -4132,7 +4116,6 @@ class ImageGenerationService {
           '((dancing provocatively)), ((dress riding up)), movement sexy',
           '((stretching in crop top)), ((underboob visible)), stretch pose',
         ];
-        // v5.4.28 - TENUES ULTRA-SEXY ET PROVOCANTES NSFW
         const sexyOutfits = [
           '((wearing skin-tight mini dress)), ((every curve visible)), bodycon',
           '((crop top and micro shorts)), ((midriff and legs)), hot pants outfit',
@@ -4142,26 +4125,15 @@ class ImageGenerationService {
           '((side-boob revealing top)), ((no bra)), daring fashion',
           '((ultra short skirt)), ((barely covering)), micro mini',
           '((wet white shirt)), ((body visible through)), wet look',
+          '((mesh top)), ((bra showing through)), layered sexy',
+          '((tube top barely covering)), ((slipping down)), precarious top',
+          '((cut-out dress)), ((strategic skin showing)), peek-a-boo dress',
+          '((bodysuit with deep V)), ((cleavage emphasized)), sleek sexy',
+          '((off-shoulder top)), ((almost falling)), shoulder exposed',
           '((latex dress)), ((skintight shiny)), fetish fashion',
           '((bikini top as shirt)), ((maximum exposure)), beach to street',
-          // v5.4.28 - NOUVELLES TENUES HYPER-SEXY
-          '((micro mini skirt)), ((ass cheeks visible)), ((panties peeking out)), slutty skirt',
-          '((transparent negligee)), ((entire body visible through)), ((nipples showing)), see-through nightwear',
-          '((sheer sexy nightgown)), ((nothing hidden)), ((body silhouette)), transparent sleepwear',
-          '((leather mini skirt)), ((tight around ass)), ((fetish fashion)), dominatrix style',
-          '((latex bodysuit)), ((skintight glossy)), ((curves emphasized)), fetish catsuit',
-          '((leather bra and panties)), ((bondage style)), ((straps)), dominatrix lingerie',
-          '((super tight dress)), ((breasts and ass molded)), ((second skin)), painted-on dress',
-          '((sexy stockings with garter)), ((thighs visible)), ((no panties)), stocking fetish',
-          '((fishnet dress)), ((body visible through holes)), ((nothing underneath)), mesh dress',
-          '((string bikini)), ((barely covering nipples)), ((ass exposed)), micro bikini',
-          '((open-front robe)), ((breasts visible)), ((untied)), revealing robe',
-          '((cutout bodysuit)), ((breasts exposed through holes)), ((strategic openings)), peekaboo bodysuit',
-          '((wet bikini)), ((see-through from water)), ((nipples visible)), pool wear',
-          '((tight leather pants)), ((ass perfectly shaped)), ((camel toe)), leather bottoms',
-          '((corset only)), ((breasts pushed up)), ((waist cinched)), victorian sexy',
         ];
-        // v5.4.28 - POSES ULTRA-SEXY ET PROVOCANTES NSFW
+        // v5.4.26 - POSES SEXY ULTRA-VARIÉES ET PROVOCANTES
         const sexyPoses = [
           '((bending forward showing cleavage)), ((breasts hanging)), cleavage pose',
           '((hand on hip, hip popped)), ((confident stance)), power pose',
@@ -4175,33 +4147,38 @@ class ImageGenerationService {
           '((finger on lips)), ((innocent but sexy)), coy pose',
           '((lying back provocatively)), ((dress riding up)), recline tease',
           '((straddling chair)), ((dress stretched)), straddle pose',
-          // v5.4.28 - POSES ULTRA-INTIMES ET PROVOCANTES NSFW
-          '((lying on bed on back)), ((breasts lifted and prominent)), ((nipples visible through fabric)), bed display',
-          '((sitting on chair with legs wide open)), ((panties fully visible)), ((skirt hiked up)), spread seated',
-          '((bent forward at waist)), ((ass presented)), ((panties visible from behind)), bent over tease',
-          '((hands under breasts)), ((lifting and squeezing them)), ((cleavage enhanced)), breast lift pose',
-          '((hands inside bra)), ((squeezing own breasts)), ((pleasure expression)), self-grope',
-          '((pulling neckline down)), ((one breast almost out)), ((nipple nearly visible)), reveal tease',
-          '((lifting skirt from behind)), ((showing panties and ass)), ((looking back)), skirt lift',
-          '((sitting with knees up)), ((panties visible between legs)), ((seductive gaze)), knees up view',
-          '((lying on bed arching back)), ((breasts thrust up)), ((stomach exposed)), arch display',
-          '((on all fours)), ((ass up high)), ((breasts hanging)), doggy position',
-          '((straddling chair facing camera)), ((panties stretched)), ((grinding motion)), straddle grind',
-          '((standing bent over)), ((touching toes)), ((ass and panties prominent)), touch toes',
-          '((lying on side)), ((leg raised high)), ((panties pulled tight)), side leg raise',
-          '((kneeling with thighs spread)), ((panties visible)), ((hands on thighs)), open kneel',
-          '((sitting on floor)), ((legs spread wide)), ((dress bunched)), floor spread',
-          '((against wall)), ((one leg wrapped around)), ((dress hiked)), wall pose',
-          '((on bed on knees)), ((leaning back)), ((breasts thrust forward)), kneel back',
-          '((lying face down)), ((ass up)), ((panties wedgie)), prone ass up',
-          '((squatting with legs apart)), ((panties stretched)), ((looking up)), squat spread',
-          '((riding motion)), ((hips forward)), ((breasts bouncing)), ride pose',
-          '((hands pulling panties aside)), ((teasing reveal)), ((naughty look)), panty pull',
-          '((bra being removed)), ((breasts about to fall out)), ((undressing)), bra removal',
-          '((dress falling off shoulders)), ((breasts nearly exposed)), ((oops moment)), dress slip',
-          '((touching between own legs)), ((over panties)), ((pleasure face)), self touch',
-          '((spreading legs on bed)), ((inviting pose)), ((come hither look)), bed invite',
-          '((ass against glass)), ((pressed flat)), ((looking back)), glass press',
+          // v5.4.24 - POSES INTIMES ET SÉDUISANTES
+          '((lying on bed on back)), ((breasts prominent)), ((dress riding up)), relaxed seductive',
+          '((hands under breasts lifting them)), ((emphasizing bust)), lift and display pose',
+          '((pulling down one dress strap)), ((shoulder exposed)), ((bra strap visible)), teasing undress',
+          '((lifting dress hem)), ((showing panties)), ((teasing view)), upskirt self-reveal',
+          '((bent over table)), ((cleavage from above)), ((rear emphasized)), bent serving pose',
+          '((arching back on bed)), ((breasts thrust upward)), ((stomach taut)), sensual arch',
+          '((one hand on breast)), ((squeezing gently)), ((seductive look)), self-touch tease',
+          '((pulling neckline down)), ((revealing more cleavage)), ((almost nipple)), tease reveal',
+          '((sitting on edge of bed)), ((legs dangling open)), ((panties visible)), invite pose',
+          '((reaching behind to unzip)), ((back exposed)), ((undressing)), zipper moment',
+          '((lying on stomach)), ((looking back)), ((ass emphasized)), prone seductive',
+          '((standing with dress falling)), ((catching it last moment)), oops moment',
+          '((one knee on bed)), ((other foot on floor)), ((cleavage forward)), climbing pose',
+          '((hands behind head)), ((chest pushed out)), ((confident display)), exhibit pose',
+          '((twisting torso)), ((breast profile visible)), ((hip curve)), twist display',
+          // v5.4.26 - NOUVELLES POSES ENCORE PLUS PROVOCANTES
+          '((sitting on kitchen counter)), ((legs spread)), ((dress hiked)), domestic fantasy',
+          '((pressed against window)), ((breasts against glass)), exhibitionist pose',
+          '((on all fours on bed)), ((looking back seductively)), ((ass up)), crawl pose',
+          '((standing in doorway)), ((leaning on frame)), ((hip out)), entrance tease',
+          '((lying on couch)), ((one leg over back)), ((dress fallen open)), lounging sexy',
+          '((bent over sofa arm)), ((rear presented)), ((looking back)), furniture tease',
+          '((sitting on chair backwards)), ((straddling)), ((chest on chair back)), reverse sit',
+          '((standing on tiptoes)), ((stretching up)), ((dress riding)), reach pose',
+          '((squatting down)), ((cleavage prominent)), ((looking up)), low angle tease',
+          '((leaning over table)), ((breasts on table)), ((rear out)), table lean',
+          '((against bookshelf)), ((one leg raised)), ((dress falling)), library fantasy',
+          '((in bathtub)), ((bubbles strategic)), ((wet skin)), bath seduction',
+          '((on swing or hammock)), ((legs dangling)), ((playful)), outdoor swing pose',
+          '((doing splits or stretching)), ((flexibility shown)), ((sporty sexy)), yoga pose',
+          '((dancing with arms up)), ((dress spinning)), ((movement)), dance freeze',
         ];
         priorityAngle = sexyAngles[Math.floor(Math.random() * sexyAngles.length)];
         priorityOutfit = sexyOutfits[Math.floor(Math.random() * sexyOutfits.length)];
@@ -4685,185 +4662,48 @@ class ImageGenerationService {
     await CustomImageAPIService.loadConfig();
     
     const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🎨 v5.4.31 Stratégie STRICTE: ${strategy.toUpperCase()} (tentative ${retryCount + 1}/${this.maxRetries})`);
-    console.log(`🎯 JAMAIS de fallback vers une autre stratégie!`);
+    console.log(`🎨 Stratégie: ${strategy.toUpperCase()} (tentative ${retryCount + 1}/${this.maxRetries + 2})`);
     
     let imageUrl;
     
-    // v5.4.30 - STRICTEMENT RESPECTER LA STRATÉGIE SÉLECTIONNÉE
-    // PAS DE FALLBACK vers une autre stratégie!
-    try {
-      switch (strategy) {
-        case 'local':
-          console.log('📱 Génération STRICTE avec SD Local...');
-          imageUrl = await this.generateWithLocalStrict(prompt, character);
-          break;
-          
-        case 'freebox':
-          console.log('🏠 Génération STRICTE avec SD Freebox...');
-          imageUrl = await this.generateWithFreeboxSD(prompt, character);
-          break;
-          
-        case 'pollinations':
-        default:
-          console.log('☁️ Génération avec Pollinations AI...');
-          imageUrl = await this.generateWithPollinations(prompt, character);
-          break;
-      }
-    } catch (genError) {
-      console.error(`❌ Erreur génération ${strategy}:`, genError.message);
-      
-      // v5.4.30 - RETRY AVEC LA MÊME STRATÉGIE, PAS DE FALLBACK
-      if (retryCount < this.maxRetries - 1) {
-        console.log(`🔄 Retry ${retryCount + 2} avec ${strategy}...`);
-        await new Promise(r => setTimeout(r, 2000));
-        return await this.generateImage(prompt, retryCount + 1, character);
-      }
-      
-      // Dernier recours: retourner quand même l'URL (même si erreur)
-      if (strategy === 'freebox') {
-        // Générer une nouvelle URL Freebox avec seed différent
-        return await this.generateWithFreeboxSD(prompt + ', seed:' + Date.now(), character);
-      }
-      throw genError;
+    // v5.4.17 - Support des 3 stratégies
+    switch (strategy) {
+      case 'local':
+        console.log('📱 Génération avec SD Local (smartphone)...');
+        imageUrl = await this.generateWithLocal(prompt);
+        break;
+        
+      case 'freebox':
+        console.log('🏠 Génération avec SD Freebox (serveur)...');
+        imageUrl = await this.generateWithFreeboxSD(prompt, character);
+        break;
+        
+      case 'pollinations':
+      default:
+        console.log('☁️ Génération avec Pollinations AI (cloud)...');
+        imageUrl = await this.generateWithPollinations(prompt, character);
+        break;
     }
     
-    // v5.4.30 - Validation selon la stratégie
-    // Pour Freebox, on ne valide pas car c'est une URL générée à la volée
-    if (strategy === 'freebox') {
-      // Freebox retourne une URL qui génère l'image à l'accès
-      // Pas de validation nécessaire, l'URL est toujours valide
-      console.log(`✅ URL Freebox générée (stratégie: ${strategy})`);
-      return imageUrl;
-    }
-    
-    // Pour les autres stratégies, valider l'URL
+    // Vérifier si l'image est valide
     const isValid = await this.validateImageUrl(imageUrl);
     
     if (isValid) {
-      console.log(`✅ Image générée via ${strategy.toUpperCase()}`);
+      console.log(`✅ Image générée avec succès via ${strategy.toUpperCase()}`);
       return imageUrl;
     }
     
-    // Si échec et encore des retries disponibles (MÊME STRATÉGIE!)
+    // Si échec et encore des retries disponibles
     if (retryCount < this.maxRetries - 1) {
-      console.log(`⚠️ URL invalide, retry ${retryCount + 2} avec ${strategy}...`);
-      await new Promise(r => setTimeout(r, 2000 + retryCount * 1000));
+      console.log(`⚠️ Image invalide, retry ${retryCount + 2}...`);
+      // Délai progressif: 2s, 4s, 6s...
+      await new Promise(r => setTimeout(r, 2000 + retryCount * 2000));
       return await this.generateImage(prompt, retryCount + 1, character);
     }
     
-    // v5.4.30 - DERNIER RETRY AVEC LA MÊME STRATÉGIE
-    console.log(`🔄 Dernier essai avec ${strategy}...`);
-    switch (strategy) {
-      case 'freebox':
-        return await this.generateWithFreeboxSD(prompt + ', variation:' + Date.now(), character);
-      case 'local':
-        return await this.generateWithLocalStrict(prompt + ', variation:' + Date.now(), character);
-      default:
-        return await this.generateWithPollinations(prompt + ', variation:' + Date.now(), character);
-    }
-  }
-  
-  /**
-   * v5.4.30 - Génération locale STRICTE (pas de fallback vers Pollinations)
-   */
-  async generateWithLocalStrict(prompt, character = null) {
-    console.log('📱 Tentative génération locale SD STRICTE...');
-    
-    try {
-      const availability = await StableDiffusionLocalService.checkAvailability();
-      
-      if (!availability.available || !availability.modelDownloaded || !availability.canRunSD) {
-        console.log('⚠️ SD Local non disponible - Utilisation de Freebox SD (PAS Pollinations)');
-        // v5.4.30 - Fallback vers Freebox, JAMAIS vers Pollinations
-        return await this.generateWithFreeboxSD(prompt, character);
-      }
-
-      const fullPrompt = `${prompt}, ${this.anatomyStrictPrompt}, masterpiece, best quality, ultra detailed`;
-
-      console.log('🎨 Génération avec SD-Turbo local...');
-      
-      const result = await StableDiffusionLocalService.generateImage(fullPrompt, {
-        negativePrompt: this.negativePromptFull,
-        steps: 4,
-        guidanceScale: 7.5,
-      });
-
-      if (result && result.imagePath) {
-        console.log('✅ Image générée localement');
-        return result.imagePath;
-      }
-      
-      console.log('⚠️ Pas de résultat SD Local, fallback Freebox SD');
-      return await this.generateWithFreeboxSD(prompt, character);
-      
-    } catch (error) {
-      console.error('❌ Erreur génération locale:', error.message);
-      // v5.4.30 - Fallback vers Freebox, PAS vers Pollinations
-      return await this.generateWithFreeboxSD(prompt, character);
-    }
-  }
-  
-  /**
-   * v5.4.27 - GÉNÉRATION MULTIPLE D'IMAGES
-   * Génère plusieurs images à la suite et les retourne toutes
-   * @param {string} prompt - Le prompt de base
-   * @param {object} character - Le personnage
-   * @param {number} count - Nombre d'images à générer (1-5)
-   * @param {function} onProgress - Callback appelé après chaque image (optional)
-   * @returns {Promise<string[]>} - Array des URLs d'images générées
-   */
-  async generateMultipleImages(prompt, character = null, count = 3, onProgress = null) {
-    const maxCount = Math.min(Math.max(1, count), 5); // Entre 1 et 5
-    console.log(`🖼️ Génération de ${maxCount} images...`);
-    
-    const images = [];
-    
-    for (let i = 0; i < maxCount; i++) {
-      try {
-        console.log(`📸 Image ${i + 1}/${maxCount}...`);
-        
-        // Ajouter une variation au prompt pour des images différentes
-        const variation = this.getPromptVariation(i);
-        const variedPrompt = prompt + ', ' + variation;
-        
-        const imageUrl = await this.generateImage(variedPrompt, 0, character);
-        
-        if (imageUrl) {
-          images.push(imageUrl);
-          console.log(`✅ Image ${i + 1}/${maxCount} générée`);
-          
-          // Callback de progression
-          if (onProgress) {
-            onProgress(i + 1, maxCount, imageUrl);
-          }
-        }
-        
-        // Délai entre les images pour éviter le rate limiting
-        if (i < maxCount - 1) {
-          await new Promise(r => setTimeout(r, 1500));
-        }
-      } catch (error) {
-        console.error(`❌ Erreur image ${i + 1}:`, error.message);
-      }
-    }
-    
-    console.log(`✅ ${images.length}/${maxCount} images générées avec succès`);
-    return images;
-  }
-  
-  /**
-   * v5.4.27 - Variations de prompt pour images multiples
-   */
-  getPromptVariation(index) {
-    const variations = [
-      'slightly different angle, unique composition',
-      'alternative pose, different expression',
-      'varied lighting, different mood',
-      'changed perspective, new angle',
-      'different background detail, varied atmosphere',
-    ];
-    return variations[index % variations.length];
+    // Dernière tentative: fallback sur Pollinations
+    console.log('🔄 Fallback sur Pollinations AI...');
+    return await this.generateWithPollinations(prompt, character);
   }
 
   /**
@@ -6801,16 +6641,8 @@ class ImageGenerationService {
     finalPrompt += ', ' + this.anatomyStrictPrompt;
     finalPrompt += ', masterpiece, best quality, ultra detailed, 8K';
     
-    // v5.4.31 - NSFW EXPLICITE SANS CENSURE
     if (isNSFW) {
-      finalPrompt += ', ((nsfw)), ((explicit)), erotic, sensual, sexy, provocative, intimate';
-      finalPrompt += ', uncensored, nude, exposed, seductive, alluring, arousing';
-      if (nsfwLevel >= 4) {
-        finalPrompt += ', ((topless)), ((bare breasts)), ((nipples visible))';
-      }
-      if (nsfwLevel >= 5) {
-        finalPrompt += ', ((fully nude)), ((naked)), ((genitals visible)), explicit nudity';
-      }
+      finalPrompt += ', nsfw, erotic, sensual, sexy, provocative, intimate';
     }
     
     // v5.4.22 - Limiter la longueur pour le serveur Freebox mais garder plus
@@ -6835,42 +6667,71 @@ class ImageGenerationService {
   }
 
   /**
-   * v5.4.30 - APIs de fallback - RESPECTE STRICTEMENT LA STRATÉGIE SÉLECTIONNÉE
-   * NE JAMAIS utiliser Pollinations si une autre stratégie est configurée
+   * APIs de fallback alternatives (gratuits)
    */
-  async generateWithFallbackAPI(prompt, apiIndex = 0, character = null) {
-    const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🔄 v5.4.30 Fallback API - Stratégie STRICTE: ${strategy}`);
+  async generateWithFallbackAPI(prompt, apiIndex = 0) {
+    const seed = Date.now() + Math.floor(Math.random() * 99999);
+    const shortPrompt = prompt.substring(0, 500);
+    const encoded = encodeURIComponent(shortPrompt);
     
-    // v5.4.30 - RESPECTER STRICTEMENT LA STRATÉGIE
-    switch (strategy) {
-      case 'freebox':
-        console.log('🏠 Fallback STRICT: Freebox SD uniquement');
-        return await this.generateWithFreeboxSD(prompt + ', retry:' + Date.now(), character);
-        
-      case 'local':
-        console.log('📱 Fallback STRICT: Local SD -> Freebox SD');
-        return await this.generateWithLocalStrict(prompt, character);
-        
-      case 'pollinations':
-      default:
-        // Seulement si Pollinations est configuré
-        console.log('☁️ Fallback: Pollinations');
-        const seed = Date.now() + Math.floor(Math.random() * 99999);
-        const shortPrompt = prompt.substring(0, 500);
-        const encoded = encodeURIComponent(shortPrompt);
-        await new Promise(r => setTimeout(r, 3000));
-        const antiCache = Date.now();
-        return `https://image.pollinations.ai/prompt/${encoded}?width=576&height=1024&seed=${seed}&nologo=true&nofeed=true&model=flux&safe=false&enhance=true&t=${antiCache}`;
-    }
+    // Rotation entre différentes APIs
+    const apis = [
+      // Prodia (gratuit, rapide)
+      () => `https://api.prodia.com/generate?prompt=${encoded}&seed=${seed}`,
+      // GetImg.ai placeholder
+      () => `https://getimg.ai/api/v1/generate?prompt=${encoded}`,
+      // Lexica (recherche d'images similaires)
+      () => `https://lexica.art/api/v1/search?q=${encoded}`,
+    ];
+    
+    // Pour l'instant, générer une URL Pollinations avec délai anti-rate-limit
+    await new Promise(r => setTimeout(r, 3000)); // Attendre 3s
+    
+    const antiCache = Date.now();
+    // v5.3.52 - Ratio 9:16 pour smartphones
+    // v5.4.16 - URL avec mode NSFW activé (safe=false)
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=576&height=1024&seed=${seed}&nologo=true&nofeed=true&model=flux&safe=false&enhance=true&t=${antiCache}`;
+    
+    console.log(`🌐 Fallback API (attente anti-rate-limit)`);
+    return url;
   }
 
   /**
-   * v5.4.30 - Génère une image avec Stable Diffusion Local
-   * Fallback vers Freebox (PAS Pollinations) si local non disponible
+   * Génère une image avec Stable Diffusion Local
    */
   async generateWithLocal(prompt) {
-    return await this.generateWithLocalStrict(prompt, null);
+    console.log('📱 Tentative génération locale SD...');
+    
+    try {
+      const availability = await StableDiffusionLocalService.checkAvailability();
+      
+      if (!availability.available || !availability.modelDownloaded || !availability.canRunSD) {
+        console.log('⚠️ SD Local non disponible - Utilisation de Freebox');
+        return await this.generateWithFreebox(prompt);
+      }
+
+      const fullPrompt = `${prompt}, ${this.anatomyStrictPrompt}, masterpiece, best quality, ultra detailed`;
+
+      console.log('🎨 Génération avec SD-Turbo local...');
+      
+      const result = await StableDiffusionLocalService.generateImage(fullPrompt, {
+        negativePrompt: this.negativePromptFull,
+        steps: 4, // Plus d'étapes pour meilleure qualité
+        guidanceScale: 7.5, // Plus de guidance pour respecter le prompt
+      });
+
+      if (result && result.imagePath) {
+        console.log('✅ Image générée localement');
+        return result.imagePath;
+      }
+      
+      console.log('⚠️ Pas de résultat SD Local, fallback Freebox');
+      return await this.generateWithFreebox(prompt);
+      
+    } catch (error) {
+      console.error('❌ Erreur génération locale:', error.message);
+      return await this.generateWithFreebox(prompt);
+    }
   }
 }
 
