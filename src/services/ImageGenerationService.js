@@ -4701,9 +4701,82 @@ class ImageGenerationService {
       return await this.generateImage(prompt, retryCount + 1, character);
     }
     
-    // Dernière tentative: fallback sur Pollinations
-    console.log('🔄 Fallback sur Pollinations AI...');
-    return await this.generateWithPollinations(prompt, character);
+    // v5.4.27 - RESPECTER LA STRATÉGIE SÉLECTIONNÉE - PAS DE FALLBACK AUTOMATIQUE
+    // Ne faire de fallback que si la stratégie est 'auto' ou non définie
+    if (strategy === 'freebox') {
+      console.log('🏠 Freebox sélectionné - Réessai avec Freebox (pas de fallback)...');
+      // Réessayer une dernière fois avec Freebox avec un seed différent
+      return await this.generateWithFreeboxSD(prompt + ', seed:' + Date.now(), character);
+    } else if (strategy === 'local') {
+      console.log('📱 Local sélectionné - Réessai avec Local (pas de fallback)...');
+      return await this.generateWithLocal(prompt);
+    } else {
+      // Stratégie pollinations ou auto - utiliser Pollinations
+      console.log('☁️ Pollinations sélectionné ou fallback auto...');
+      return await this.generateWithPollinations(prompt, character);
+    }
+  }
+  
+  /**
+   * v5.4.27 - GÉNÉRATION MULTIPLE D'IMAGES
+   * Génère plusieurs images à la suite et les retourne toutes
+   * @param {string} prompt - Le prompt de base
+   * @param {object} character - Le personnage
+   * @param {number} count - Nombre d'images à générer (1-5)
+   * @param {function} onProgress - Callback appelé après chaque image (optional)
+   * @returns {Promise<string[]>} - Array des URLs d'images générées
+   */
+  async generateMultipleImages(prompt, character = null, count = 3, onProgress = null) {
+    const maxCount = Math.min(Math.max(1, count), 5); // Entre 1 et 5
+    console.log(`🖼️ Génération de ${maxCount} images...`);
+    
+    const images = [];
+    
+    for (let i = 0; i < maxCount; i++) {
+      try {
+        console.log(`📸 Image ${i + 1}/${maxCount}...`);
+        
+        // Ajouter une variation au prompt pour des images différentes
+        const variation = this.getPromptVariation(i);
+        const variedPrompt = prompt + ', ' + variation;
+        
+        const imageUrl = await this.generateImage(variedPrompt, 0, character);
+        
+        if (imageUrl) {
+          images.push(imageUrl);
+          console.log(`✅ Image ${i + 1}/${maxCount} générée`);
+          
+          // Callback de progression
+          if (onProgress) {
+            onProgress(i + 1, maxCount, imageUrl);
+          }
+        }
+        
+        // Délai entre les images pour éviter le rate limiting
+        if (i < maxCount - 1) {
+          await new Promise(r => setTimeout(r, 1500));
+        }
+      } catch (error) {
+        console.error(`❌ Erreur image ${i + 1}:`, error.message);
+      }
+    }
+    
+    console.log(`✅ ${images.length}/${maxCount} images générées avec succès`);
+    return images;
+  }
+  
+  /**
+   * v5.4.27 - Variations de prompt pour images multiples
+   */
+  getPromptVariation(index) {
+    const variations = [
+      'slightly different angle, unique composition',
+      'alternative pose, different expression',
+      'varied lighting, different mood',
+      'changed perspective, new angle',
+      'different background detail, varied atmosphere',
+    ];
+    return variations[index % variations.length];
   }
 
   /**

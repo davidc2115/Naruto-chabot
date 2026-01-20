@@ -573,6 +573,10 @@ export default function ConversationScreen({ route, navigation }) {
     }
   };
 
+  // v5.4.27 - État pour le compteur de génération multiple
+  const [imageGenerationCount, setImageGenerationCount] = useState(0);
+  const [totalImagesToGenerate, setTotalImagesToGenerate] = useState(0);
+
   const generateImage = async () => {
     if (generatingImage) return;
 
@@ -586,7 +590,6 @@ export default function ConversationScreen({ route, navigation }) {
           { 
             text: 'Devenir Premium', 
             onPress: () => {
-              // Navigation vers l'écran Premium si disponible
               try {
                 navigation.navigate('Premium');
               } catch (e) {
@@ -599,69 +602,115 @@ export default function ConversationScreen({ route, navigation }) {
       return;
     }
 
+    // v5.4.27 - Demander combien d'images générer
+    Alert.alert(
+      '🎨 Générer des images',
+      'Combien d\'images voulez-vous générer ?',
+      [
+        { text: '1 image', onPress: () => doGenerateImages(1) },
+        { text: '3 images', onPress: () => doGenerateImages(3) },
+        { text: '5 images', onPress: () => doGenerateImages(5) },
+        { text: 'Annuler', style: 'cancel' },
+      ]
+    );
+  };
+
+  // v5.4.27 - Fonction interne pour générer N images
+  const doGenerateImages = async (count) => {
     setGeneratingImage(true);
+    setImageGenerationCount(0);
+    setTotalImagesToGenerate(count);
+    
     try {
       // Validation
       if (!character?.id) {
         throw new Error('Personnage invalide');
       }
       
-      // v5.4.6 - Niveau de relation SPÉCIFIQUE AU PERSONNAGE (pas global!)
-      // On récupère le niveau directement depuis LevelService pour être sûr
+      // v5.4.6 - Niveau de relation SPÉCIFIQUE AU PERSONNAGE
       let effectiveLevel = 1;
       try {
         const characterLevelData = await LevelService.getCharacterStats(character.id);
         effectiveLevel = Math.max(1, characterLevelData?.level || 1);
-        console.log(`📊 Niveau relation avec ${character.name}: ${effectiveLevel} (titre: ${characterLevelData?.title})`);
+        console.log(`📊 Niveau relation avec ${character.name}: ${effectiveLevel}`);
       } catch (levelError) {
-        // Fallback sur le state si erreur
         effectiveLevel = Math.max(1, userLevel?.level || 1);
         console.log(`⚠️ Fallback niveau: ${effectiveLevel}`);
       }
       
-      console.log(`🎨 Génération image: Niveau relation ${effectiveLevel} avec ${character.name}`);
+      console.log(`🎨 Génération de ${count} images: Niveau relation ${effectiveLevel} avec ${character.name}`);
       
-      // Génération avec timeout
-      const imageUrl = await Promise.race([
-        ImageGenerationService.generateSceneImage(
-          character,
-          userProfile,
-          messages || [],
-          effectiveLevel
-        ),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout génération')), 90000)
-        )
-      ]);
+      const generatedImages = [];
+      let currentMessages = [...messages];
       
-      if (!imageUrl) {
-        throw new Error('Image non générée');
+      // Générer les images une par une
+      for (let i = 0; i < count; i++) {
+        try {
+          setImageGenerationCount(i + 1);
+          console.log(`📸 Génération image ${i + 1}/${count}...`);
+          
+          // Génération avec timeout
+          const imageUrl = await Promise.race([
+            ImageGenerationService.generateSceneImage(
+              character,
+              userProfile,
+              currentMessages,
+              effectiveLevel
+            ),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout génération')), 90000)
+            )
+          ]);
+          
+          if (imageUrl) {
+            generatedImages.push(imageUrl);
+            
+            // Sauvegarde dans la galerie
+            try {
+              await GalleryService.saveImageToGallery(character.id, imageUrl);
+            } catch (saveError) {
+              console.log('⚠️ Erreur sauvegarde galerie:', saveError.message);
+            }
+            
+            console.log(`✅ Image ${i + 1}/${count} générée`);
+          }
+          
+          // Petit délai entre les images pour éviter le rate limiting
+          if (i < count - 1) {
+            await new Promise(r => setTimeout(r, 1500));
+          }
+        } catch (imageError) {
+          console.error(`❌ Erreur image ${i + 1}:`, imageError.message);
+        }
       }
       
-      // Sauvegarde avec protection
-      try {
-        await GalleryService.saveImageToGallery(character.id, imageUrl);
-        await loadGallery();
-      } catch (saveError) {
-        console.log('⚠️ Erreur sauvegarde galerie:', saveError.message);
-      }
+      // Recharger la galerie une fois toutes les images générées
+      await loadGallery();
       
-      const imageMessage = {
-        role: 'system',
-        content: '[Image générée et sauvegardée dans la galerie]',
-        image: imageUrl,
-      };
+      // Ajouter un message récapitulatif dans la conversation
+      if (generatedImages.length > 0) {
+        const imageMessage = {
+          role: 'system',
+          content: `[${generatedImages.length} image${generatedImages.length > 1 ? 's' : ''} générée${generatedImages.length > 1 ? 's' : ''} et ajoutée${generatedImages.length > 1 ? 's' : ''} à la galerie]`,
+          image: generatedImages[0], // Afficher la première image dans le message
+        };
 
-      const updatedMessages = [...messages, imageMessage];
-      setMessages(updatedMessages);
-      
-      try {
-        await saveConversation(updatedMessages, relationship);
-      } catch (e) {
-        console.log('⚠️ Erreur sauvegarde conversation');
+        const updatedMessages = [...currentMessages, imageMessage];
+        setMessages(updatedMessages);
+        
+        try {
+          await saveConversation(updatedMessages, relationship);
+        } catch (e) {
+          console.log('⚠️ Erreur sauvegarde conversation');
+        }
+        
+        Alert.alert(
+          '✅ Génération terminée', 
+          `${generatedImages.length}/${count} image${generatedImages.length > 1 ? 's' : ''} générée${generatedImages.length > 1 ? 's' : ''} et ajoutée${generatedImages.length > 1 ? 's' : ''} à la galerie !`
+        );
+      } else {
+        throw new Error('Aucune image générée');
       }
-
-      Alert.alert('Succès', 'Image générée et ajoutée à la galerie !');
 
       // Scroll sécurisé
       if (!userIsScrolling && flatListRef.current) {
@@ -692,6 +741,8 @@ export default function ConversationScreen({ route, navigation }) {
       }
     } finally {
       setGeneratingImage(false);
+      setImageGenerationCount(0);
+      setTotalImagesToGenerate(0);
     }
   };
 
@@ -1392,7 +1443,14 @@ export default function ConversationScreen({ route, navigation }) {
           disabled={generatingImage}
         >
           {generatingImage ? (
-            <ActivityIndicator size="small" color="#6366f1" />
+            <View style={styles.imageButtonGenerating}>
+              <ActivityIndicator size="small" color="#6366f1" />
+              {totalImagesToGenerate > 1 && (
+                <Text style={styles.imageCountText}>
+                  {imageGenerationCount}/{totalImagesToGenerate}
+                </Text>
+              )}
+            </View>
           ) : (
             <Text style={styles.imageButtonText}>
               {isPremium ? '🎨' : '🔒'}
@@ -1733,6 +1791,17 @@ const styles = StyleSheet.create({
   },
   imageButtonText: {
     fontSize: 20,
+  },
+  // v5.4.27 - Styles pour génération multiple
+  imageButtonGenerating: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageCountText: {
+    fontSize: 8,
+    color: '#6366f1',
+    fontWeight: 'bold',
+    marginTop: 2,
   },
   input: {
     flex: 1,
