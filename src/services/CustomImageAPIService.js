@@ -4,15 +4,17 @@ import AuthService from './AuthService';
 
 /**
  * Service de configuration d'API d'image
- * Freebox utilise Pollinations avec rotation de modèles en cas de rate limit
- * v5.3.8 - Configuration PAR UTILISATEUR
+ * v5.4.17 - Support de 3 stratégies:
+ * - pollinations: Pollinations AI (cloud)
+ * - freebox: Stable Diffusion sur serveur Freebox
+ * - local: SD Local sur smartphone
  */
 class CustomImageAPIService {
   constructor() {
-    // URL Freebox par défaut (serveur Pollinations avec fallback multi-modèles)
-    this.customApiUrl = 'http://88.174.155.230:33437/generate';
-    this.apiType = 'freebox'; // 'freebox' ou 'local'
-    this.strategy = 'freebox'; // 'freebox' ou 'local'
+    // URL Freebox par défaut pour SD sur Freebox
+    this.freeboxUrl = 'http://88.174.155.230:33437/generate';
+    this.apiType = 'pollinations'; // 'pollinations', 'freebox' ou 'local'
+    this.strategy = 'pollinations'; // Par défaut: Pollinations AI
     this.currentUserId = null;
   }
 
@@ -63,51 +65,59 @@ class CustomImageAPIService {
       
       if (config) {
         const parsed = JSON.parse(config);
-        this.customApiUrl = parsed.url || 'http://88.174.155.230:33437/generate';
-        this.apiType = parsed.type || 'freebox';
-        // Forcer freebox ou local, jamais pollinations
-        this.strategy = (parsed.strategy === 'local') ? 'local' : 'freebox';
+        this.freeboxUrl = parsed.freeboxUrl || parsed.url || 'http://88.174.155.230:33437/generate';
+        this.apiType = parsed.type || 'pollinations';
+        // Supporter les 3 stratégies: pollinations, freebox, local
+        this.strategy = parsed.strategy || 'pollinations';
+        
+        // Migration: ancienne config "freebox" devient "pollinations"
+        if (this.strategy === 'freebox' && !parsed.freeboxUrl) {
+          // L'ancienne config "freebox" utilisait Pollinations
+          this.strategy = 'pollinations';
+        }
         
         console.log(`📸 Config images chargée (user: ${userId}):`, {
-          url: this.customApiUrl ? this.customApiUrl.substring(0, 50) + '...' : 'freebox default',
+          freeboxUrl: this.freeboxUrl ? this.freeboxUrl.substring(0, 50) + '...' : 'default',
           type: this.apiType,
           strategy: this.strategy
         });
       } else {
-        console.log(`📸 Aucune config images (user: ${userId}), utilisation par défaut: Freebox`);
-        this.customApiUrl = 'http://88.174.155.230:33437/generate';
-        this.apiType = 'freebox';
-        this.strategy = 'freebox';
+        console.log(`📸 Aucune config images (user: ${userId}), utilisation par défaut: Pollinations AI`);
+        this.freeboxUrl = 'http://88.174.155.230:33437/generate';
+        this.apiType = 'pollinations';
+        this.strategy = 'pollinations';
       }
     } catch (error) {
       console.error('Error loading custom API config:', error);
-      // Fallback sur Freebox
-      this.customApiUrl = 'http://88.174.155.230:33437/generate';
-      this.apiType = 'freebox';
-      this.strategy = 'freebox';
+      // Fallback sur Pollinations
+      this.freeboxUrl = 'http://88.174.155.230:33437/generate';
+      this.apiType = 'pollinations';
+      this.strategy = 'pollinations';
     }
   }
 
   /**
    * Sauvegarder la configuration de l'API personnalisée (PAR UTILISATEUR)
+   * @param {string} strategy - 'pollinations', 'freebox', ou 'local'
+   * @param {string} freeboxUrl - URL du serveur Freebox (si strategy='freebox')
    */
-  async saveConfig(url, type = 'freebox', strategy = 'freebox') {
+  async saveConfig(strategy = 'pollinations', freeboxUrl = null) {
     try {
       const userId = await this.getCurrentUserId();
       
-      // Forcer freebox ou local uniquement
-      const validStrategy = (strategy === 'local') ? 'local' : 'freebox';
-      const validType = (type === 'local') ? 'local' : 'freebox';
+      // Valider la stratégie
+      const validStrategies = ['pollinations', 'freebox', 'local'];
+      const validStrategy = validStrategies.includes(strategy) ? strategy : 'pollinations';
       
       const config = { 
-        url: url || 'http://88.174.155.230:33437/generate', 
-        type: validType, 
+        freeboxUrl: freeboxUrl || this.freeboxUrl || 'http://88.174.155.230:33437/generate',
+        type: validStrategy,
         strategy: validStrategy,
         userId: userId,
         updatedAt: Date.now()
       };
       
-      this.customApiUrl = config.url;
+      this.freeboxUrl = config.freeboxUrl;
       this.apiType = config.type;
       this.strategy = config.strategy;
       
@@ -124,14 +134,18 @@ class CustomImageAPIService {
   }
 
   /**
-   * Supprimer la configuration (revenir à Freebox par défaut)
+   * Supprimer la configuration (revenir à Pollinations par défaut)
    */
   async clearConfig() {
     try {
+      const userId = await this.getCurrentUserId();
+      const userKey = `custom_image_api_${userId}`;
+      await AsyncStorage.removeItem(userKey);
       await AsyncStorage.removeItem('custom_image_api');
-      this.customApiUrl = 'http://88.174.155.230:33437/generate';
-      this.apiType = 'freebox';
-      this.strategy = 'freebox';
+      
+      this.freeboxUrl = 'http://88.174.155.230:33437/generate';
+      this.apiType = 'pollinations';
+      this.strategy = 'pollinations';
       return true;
     } catch (error) {
       console.error('Error clearing custom API config:', error);
@@ -140,10 +154,17 @@ class CustomImageAPIService {
   }
 
   /**
-   * Obtenir l'URL de l'API actuelle
+   * Obtenir l'URL du serveur Freebox
+   */
+  getFreeboxUrl() {
+    return this.freeboxUrl || 'http://88.174.155.230:33437/generate';
+  }
+
+  /**
+   * Obtenir l'URL de l'API actuelle (pour compatibilité)
    */
   getApiUrl() {
-    return this.customApiUrl || 'http://88.174.155.230:33437/generate';
+    return this.freeboxUrl;
   }
 
   /**
@@ -161,14 +182,14 @@ class CustomImageAPIService {
   }
 
   /**
-   * Vérifier si une API personnalisée est configurée
+   * Vérifier si on doit utiliser Pollinations AI
    */
-  hasCustomApi() {
-    return this.customApiUrl !== null && this.customApiUrl !== '';
+  shouldUsePollinations() {
+    return this.strategy === 'pollinations';
   }
 
   /**
-   * Vérifier si on doit utiliser Freebox
+   * Vérifier si on doit utiliser Freebox SD
    */
   shouldUseFreebox() {
     return this.strategy === 'freebox';
@@ -182,10 +203,10 @@ class CustomImageAPIService {
   }
 
   /**
-   * Tester la connexion à l'API personnalisée
+   * Tester la connexion au serveur Freebox
    */
-  async testConnection(url = null) {
-    const testUrl = url || this.customApiUrl;
+  async testFreeboxConnection(url = null) {
+    const testUrl = url || this.freeboxUrl;
     
     if (!testUrl) {
       return { success: false, error: 'Aucune URL configurée' };
@@ -200,7 +221,7 @@ class CustomImageAPIService {
         healthUrl = testUrl.replace(/\/$/, '') + '/health';
       }
       
-      console.log('🧪 Test connexion:', healthUrl);
+      console.log('🧪 Test connexion Freebox:', healthUrl);
       
       const response = await axios.get(healthUrl, {
         timeout: 10000,
@@ -210,45 +231,45 @@ class CustomImageAPIService {
         },
       });
 
-      console.log('✅ Réponse:', response.status, response.data);
+      console.log('✅ Réponse Freebox:', response.status, response.data);
 
       return {
         success: true,
         status: response.status,
-        message: 'Connexion réussie',
+        message: 'Connexion au serveur Freebox réussie !',
       };
     } catch (error) {
-      console.error('❌ Erreur test connexion:', error.message);
+      console.error('❌ Erreur test connexion Freebox:', error.message);
       
       // Message d'erreur plus détaillé
       let errorMsg = error.message;
       if (error.message.includes('Network Error') || error.message.includes('Network request failed')) {
-        errorMsg = 'Erreur réseau. Vérifiez que:\n1. L\'URL est correcte\n2. La Freebox est allumée\n3. Le port 33437 est ouvert\n4. Vous êtes sur le même réseau (ou en 4G/5G)';
+        errorMsg = 'Erreur réseau. Vérifiez que:\n1. L\'URL est correcte\n2. La Freebox est allumée\n3. Le port 33437 est ouvert\n4. Vous êtes sur le même réseau';
       } else if (error.code === 'ECONNREFUSED') {
-        errorMsg = 'Connexion refusée. Le serveur n\'est pas accessible.';
+        errorMsg = 'Connexion refusée. Le serveur Freebox n\'est pas accessible.';
       } else if (error.code === 'ETIMEDOUT') {
-        errorMsg = 'Timeout. Le serveur met trop de temps à répondre.';
+        errorMsg = 'Timeout. Le serveur Freebox met trop de temps à répondre.';
       }
       
       return {
         success: false,
         error: errorMsg,
-        message: 'Impossible de se connecter à l\'API',
+        message: 'Impossible de se connecter au serveur Freebox',
       };
     }
   }
 
   /**
-   * Construire l'URL de génération d'image - FREEBOX UNIQUEMENT
+   * Construire l'URL de génération d'image pour Freebox SD
    */
-  buildImageUrl(prompt, options = {}) {
+  buildFreeboxImageUrl(prompt, options = {}) {
     const {
-      width = 768,
-      height = 768,
+      width = 576,
+      height = 1024,
       seed = Date.now(),
     } = options;
 
-    const url = this.customApiUrl || 'http://88.174.155.230:33437/generate';
+    const url = this.freeboxUrl || 'http://88.174.155.230:33437/generate';
     const encodedPrompt = encodeURIComponent(prompt);
     
     // Si l'URL contient déjà des paramètres, utiliser &, sinon ?

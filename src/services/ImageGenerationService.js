@@ -4325,8 +4325,10 @@ class ImageGenerationService {
   }
 
   /**
-   * v5.3.58 - Génère une image avec retry et fallback intelligent
-   * Accepte maintenant un objet character optionnel pour les détails physiques directs
+   * v5.4.17 - Génère une image avec 3 stratégies possibles:
+   * - pollinations: Pollinations AI (cloud, NSFW)
+   * - freebox: Stable Diffusion sur serveur Freebox
+   * - local: SD Local sur smartphone
    */
   async generateImage(prompt, retryCountOrCharacter = 0, character = null) {
     // Gérer la rétrocompatibilité
@@ -4340,23 +4342,34 @@ class ImageGenerationService {
     await CustomImageAPIService.loadConfig();
     
     const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🎨 Stratégie: ${strategy} (tentative ${retryCount + 1}/${this.maxRetries + 2})`);
+    console.log(`🎨 Stratégie: ${strategy.toUpperCase()} (tentative ${retryCount + 1}/${this.maxRetries + 2})`);
     
     let imageUrl;
     
-    // Première tentative: stratégie configurée
-    if (strategy === 'local') {
-      imageUrl = await this.generateWithLocal(prompt);
-    } else {
-      // v5.3.58 - Passer le character pour les détails physiques directs
-      imageUrl = await this.generateWithFreebox(prompt, character);
+    // v5.4.17 - Support des 3 stratégies
+    switch (strategy) {
+      case 'local':
+        console.log('📱 Génération avec SD Local (smartphone)...');
+        imageUrl = await this.generateWithLocal(prompt);
+        break;
+        
+      case 'freebox':
+        console.log('🏠 Génération avec SD Freebox (serveur)...');
+        imageUrl = await this.generateWithFreeboxSD(prompt, character);
+        break;
+        
+      case 'pollinations':
+      default:
+        console.log('☁️ Génération avec Pollinations AI (cloud)...');
+        imageUrl = await this.generateWithPollinations(prompt, character);
+        break;
     }
     
     // Vérifier si l'image est valide
     const isValid = await this.validateImageUrl(imageUrl);
     
     if (isValid) {
-      console.log('✅ Image générée avec succès');
+      console.log(`✅ Image générée avec succès via ${strategy.toUpperCase()}`);
       return imageUrl;
     }
     
@@ -4368,9 +4381,9 @@ class ImageGenerationService {
       return await this.generateImage(prompt, retryCount + 1, character);
     }
     
-    // Dernière tentative: fallback API avec délai long
-    console.log('🔄 Utilisation fallback API avec délai anti-rate-limit...');
-    return await this.generateWithFallbackAPI(prompt, retryCount);
+    // Dernière tentative: fallback sur Pollinations
+    console.log('🔄 Fallback sur Pollinations AI...');
+    return await this.generateWithPollinations(prompt, character);
   }
 
   /**
@@ -4643,13 +4656,12 @@ class ImageGenerationService {
    * Accepte maintenant un objet character optionnel pour les détails physiques directs
    */
   /**
-   * v5.4.16 - Génère une image avec POLLINATIONS AI (pas Freebox!)
-   * Note: Le nom "Freebox" est historique, cette fonction utilise Pollinations AI
+   * v5.4.17 - Génère une image avec POLLINATIONS AI (Cloud)
    * URL: https://image.pollinations.ai/prompt/
    * Paramètres: model=flux, safe=false (NSFW), enhance=true
    */
-  async generateWithFreebox(prompt, character = null) {
-    console.log('🖼️ Génération via POLLINATIONS AI (model=flux, safe=false)...');
+  async generateWithPollinations(prompt, character = null) {
+    console.log('☁️ POLLINATIONS AI: Génération cloud (model=flux, safe=false, NSFW activé)...');
     
     await this.waitForRateLimit();
     
@@ -5995,26 +6007,59 @@ class ImageGenerationService {
   }
   
   /**
-   * API de secours avec Freebox
+   * v5.4.17 - Génère une image avec Stable Diffusion sur serveur FREEBOX
+   * Utilise le serveur SD hébergé sur la Freebox
+   * URL configurable: http://88.174.155.230:33437/generate
    */
-  async generateWithFreeboxBackup(prompt) {
-    console.log('🏠 Génération avec API Freebox (backup)...');
+  async generateWithFreeboxSD(prompt, character = null) {
+    console.log('🏠 FREEBOX SD: Génération sur serveur Freebox...');
     
-    let freeboxUrl = CustomImageAPIService.getApiUrl();
+    await this.waitForRateLimit();
+    
+    // Récupérer l'URL du serveur Freebox
+    let freeboxUrl = CustomImageAPIService.getFreeboxUrl();
     if (!freeboxUrl) {
-      freeboxUrl = this.freeboxURL;
+      freeboxUrl = this.freeboxURL || 'http://88.174.155.230:33437/generate';
     }
     
-    const seed = Date.now() + Math.floor(Math.random() * 10000);
-    const shortPrompt = prompt.substring(0, 800);
+    const seed = Date.now() + Math.floor(Math.random() * 100000);
+    const lowerPrompt = prompt.toLowerCase();
+    
+    // Détecter le niveau NSFW
+    const nsfwMatch = prompt.match(/\[NSFW_LEVEL_(\d+)\]/);
+    const nsfwLevel = nsfwMatch ? parseInt(nsfwMatch[1]) : 0;
+    const isNSFW = nsfwLevel >= 2;
+    
+    // Construire le prompt final
+    let finalPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
+    
+    // Ajouter les prompts de qualité pour SD
+    finalPrompt += ', ' + this.anatomyStrictPrompt;
+    finalPrompt += ', masterpiece, best quality, ultra detailed, 8K';
+    
+    if (isNSFW) {
+      finalPrompt += ', nsfw, erotic, sensual';
+    }
+    
+    // Limiter la longueur pour le serveur Freebox
+    const shortPrompt = finalPrompt.substring(0, 1500);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
+    // Construire l'URL avec les paramètres
     const separator = freeboxUrl.includes('?') ? '&' : '?';
-    // v5.3.52 - Ratio 9:16 pour smartphones
-    let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=576&height=1024&seed=${seed}`;
+    const imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=576&height=1024&seed=${seed}&negative_prompt=${encodeURIComponent(this.negativePromptBase)}`;
     
-    console.log(`🔗 URL Freebox générée`);
+    console.log(`🏠 URL Freebox SD (seed: ${seed}, NSFW: ${nsfwLevel})`);
+    console.log(`📝 Prompt Freebox (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
+    
     return imageUrl;
+  }
+  
+  /**
+   * API de secours (compatibilité)
+   */
+  async generateWithFreeboxBackup(prompt) {
+    return await this.generateWithFreeboxSD(prompt, null);
   }
 
   /**

@@ -49,8 +49,8 @@ export default function SettingsScreen({ navigation, onLogout }) {
   const [groqModel, setGroqModel] = useState('');
   const [availableModels, setAvailableModels] = useState([]);
   
-  // Configuration images
-  const [imageSource, setImageSource] = useState('freebox');
+  // Configuration images - v5.4.17: 3 options
+  const [imageSource, setImageSource] = useState('pollinations'); // 'pollinations', 'freebox', 'local'
   const [freeboxUrl, setFreeboxUrl] = useState('http://88.174.155.230:33437/generate');
   
   // SD Local
@@ -301,12 +301,14 @@ export default function SettingsScreen({ navigation, onLogout }) {
     try {
       await CustomImageAPIService.loadConfig();
       const strategy = CustomImageAPIService.getStrategy();
-      const url = CustomImageAPIService.getApiUrl();
+      const url = CustomImageAPIService.getFreeboxUrl();
       
-      setImageSource(strategy || 'freebox');
+      // v5.4.17 - Supporter les 3 stratégies
+      setImageSource(strategy || 'pollinations');
       if (url) {
         setFreeboxUrl(url);
       }
+      console.log(`📸 Config images chargée: ${strategy}, URL: ${url?.substring(0, 40)}...`);
     } catch (error) {
       console.error('Erreur chargement config images:', error);
     }
@@ -441,17 +443,27 @@ export default function SettingsScreen({ navigation, onLogout }) {
 
   const saveImageConfig = async () => {
     try {
-      if (imageSource === 'local') {
-        await CustomImageAPIService.saveConfig('', 'local', 'local');
-        Alert.alert('✅ Succès', 'Stable Diffusion Local activé ! Téléchargez le modèle pour commencer.');
-      } else {
-        // Freebox
-        if (!freeboxUrl.trim()) {
-          Alert.alert('Erreur', 'Veuillez entrer l\'URL de la Freebox.');
-          return;
-        }
-        await CustomImageAPIService.saveConfig(freeboxUrl.trim(), 'freebox', 'freebox');
-        Alert.alert('✅ Succès', 'API Freebox configurée !');
+      // v5.4.17 - Support des 3 stratégies
+      switch (imageSource) {
+        case 'local':
+          await CustomImageAPIService.saveConfig('local', null);
+          Alert.alert('✅ Succès', 'Stable Diffusion Local activé !\nTéléchargez le modèle pour commencer.');
+          break;
+          
+        case 'freebox':
+          if (!freeboxUrl.trim()) {
+            Alert.alert('Erreur', 'Veuillez entrer l\'URL du serveur Freebox.');
+            return;
+          }
+          await CustomImageAPIService.saveConfig('freebox', freeboxUrl.trim());
+          Alert.alert('✅ Succès', 'Stable Diffusion Freebox configuré !\nURL: ' + freeboxUrl.substring(0, 40) + '...');
+          break;
+          
+        case 'pollinations':
+        default:
+          await CustomImageAPIService.saveConfig('pollinations', null);
+          Alert.alert('✅ Succès', 'Pollinations AI activé !\nGénération cloud avec NSFW activé.');
+          break;
       }
     } catch (error) {
       Alert.alert('❌ Erreur', error.message);
@@ -465,8 +477,8 @@ export default function SettingsScreen({ navigation, onLogout }) {
     }
 
     try {
-      Alert.alert('Test en cours', 'Vérification de la connexion...');
-      const result = await CustomImageAPIService.testConnection(freeboxUrl.trim());
+      Alert.alert('Test en cours', 'Vérification de la connexion au serveur Freebox...');
+      const result = await CustomImageAPIService.testFreeboxConnection(freeboxUrl.trim());
       
       if (result.success) {
         Alert.alert('✅ Succès', 'Connexion à la Freebox réussie !');
@@ -825,10 +837,29 @@ export default function SettingsScreen({ navigation, onLogout }) {
           </View>
           <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
           <Text style={styles.sectionDescription}>
-            Choisissez entre Freebox (serveur) ou SD Local (smartphone).
+            Choisissez votre source de génération d'images.
           </Text>
 
-          {/* Option Pollinations AI (Cloud) */}
+          {/* Option 1: Pollinations AI (Cloud) */}
+          <TouchableOpacity
+            style={[
+              styles.optionCard,
+              imageSource === 'pollinations' && styles.optionCardActive
+            ]}
+            onPress={() => setImageSource('pollinations')}
+          >
+            <View style={styles.radioButton}>
+              {imageSource === 'pollinations' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>☁️ Pollinations AI (Cloud)</Text>
+              <Text style={styles.optionDescription}>
+                Génération cloud rapide et gratuite. NSFW activé !
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Option 2: Stable Diffusion sur Freebox */}
           <TouchableOpacity
             style={[
               styles.optionCard,
@@ -840,14 +871,14 @@ export default function SettingsScreen({ navigation, onLogout }) {
               {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>☁️ Pollinations AI (Recommandé)</Text>
+              <Text style={styles.optionTitle}>🏠 SD Freebox (Serveur)</Text>
               <Text style={styles.optionDescription}>
-                Génération cloud via Pollinations AI. NSFW activé, rapide et gratuit !
+                Stable Diffusion sur votre serveur Freebox. Privé et illimité !
               </Text>
             </View>
           </TouchableOpacity>
 
-          {/* Option SD Local */}
+          {/* Option 3: SD Local */}
           <TouchableOpacity
             style={[
               styles.optionCard,
@@ -868,11 +899,11 @@ export default function SettingsScreen({ navigation, onLogout }) {
           </TouchableOpacity>
 
           {/* Configuration Pollinations AI */}
-          {imageSource === 'freebox' && (
+          {imageSource === 'pollinations' && (
             <View style={styles.configBox}>
               <Text style={styles.configTitle}>☁️ Pollinations AI (Cloud)</Text>
               <Text style={styles.optionDescription}>
-                Utilise automatiquement Pollinations AI avec le modèle Flux.
+                Génération automatique via Pollinations AI avec le modèle Flux.
               </Text>
               <Text style={[styles.optionDescription, { color: '#22c55e', marginTop: 8 }]}>
                 ✅ Mode NSFW activé (safe=false)
@@ -882,6 +913,33 @@ export default function SettingsScreen({ navigation, onLogout }) {
               </Text>
               <Text style={[styles.optionDescription, { color: '#22c55e' }]}>
                 ✅ Modèle Flux pour meilleure qualité
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#3b82f6', marginTop: 8 }]}>
+                ℹ️ Aucune configuration requise
+              </Text>
+            </View>
+          )}
+
+          {/* Configuration Freebox SD */}
+          {imageSource === 'freebox' && (
+            <View style={styles.configBox}>
+              <Text style={styles.configTitle}>🏠 Stable Diffusion Freebox</Text>
+              <Text style={styles.optionDescription}>
+                Connectez-vous à votre serveur Stable Diffusion sur Freebox.
+              </Text>
+              <TextInput
+                style={styles.urlInput}
+                placeholder="http://88.174.155.230:33437/generate"
+                value={freeboxUrl}
+                onChangeText={setFreeboxUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
+                <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
+              </TouchableOpacity>
+              <Text style={[styles.optionDescription, { color: '#f59e0b', marginTop: 8, fontSize: 11 }]}>
+                ⚠️ Assurez-vous que le serveur SD est démarré sur votre Freebox
               </Text>
             </View>
           )}
