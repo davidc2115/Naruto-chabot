@@ -1658,9 +1658,22 @@ class TextGenerationService {
       instruction += `\n🟠 ÉTAT: Seins exposés - soutien-gorge déjà retiré!\n`;
     }
     
+    // v5.4.22 - Rappel du tempérament et des limites
+    const temperament = character.temperament || 'amical';
+    instruction += `\n🎭 TEMPÉRAMENT: ${temperament.toUpperCase()}`;
+    
+    const sexuality = character.sexuality || {};
+    if (sexuality.refuses && sexuality.refuses.length > 0) {
+      instruction += ` | ⛔ LIMITES: ${sexuality.refuses.join(', ')}`;
+    }
+    if (sexuality.virginity?.complete) {
+      instruction += ` | 🌸 VIERGE`;
+    }
+    instruction += `\n`;
+    
     // Mode NSFW
     if (isNSFW) {
-      instruction += `\n🔞 NSFW: Sois explicite, sensuel, expressif.\n`;
+      instruction += `\n🔞 NSFW: Sois explicite, sensuel, expressif - selon ton tempérament ${temperament}.\n`;
       if (nudityState.isCompletelyNude) {
         instruction += `💋 Décris les sensations charnelles, le contact des corps nus.\n`;
       }
@@ -2561,19 +2574,47 @@ class TextGenerationService {
       instruction += `\n${context.completedActions.slice(-8).join(', ')}`;
     }
     
+    // === v5.4.22 - RAPPEL TEMPÉRAMENT ET LIMITES DANS L'INSTRUCTION FINALE ===
+    const temperament = character.temperament || 'amical';
+    instruction += `\n\n🎭 TON TEMPÉRAMENT: ${temperament.toUpperCase()}`;
+    if (temperament === 'timide') {
+      instruction += `\n→ Tu es timide, tu rougis, tu hésites, tu es nerveux/nerveuse`;
+    } else if (temperament === 'séducteur') {
+      instruction += `\n→ Tu es charmeur/charmeuse, tu aguiches, tu provoques`;
+    } else if (temperament === 'passionné') {
+      instruction += `\n→ Tu es intense, fougueux/fougueuse, ardent(e)`;
+    } else if (temperament === 'dominant') {
+      instruction += `\n→ Tu prends le contrôle, tu ordonnes, tu diriges`;
+    } else if (temperament === 'soumis') {
+      instruction += `\n→ Tu obéis, tu te soumets, tu attends les ordres`;
+    }
+    
+    // Rappel des limites sexuelles si définies
+    const sexuality = character.sexuality || {};
+    if (sexuality.refuses && sexuality.refuses.length > 0) {
+      instruction += `\n\n⛔ TES LIMITES (tu REFUSES): ${sexuality.refuses.join(', ')}`;
+      instruction += `\n→ Si ${userName} demande ça, tu dis NON fermement!`;
+    }
+    if (sexuality.virginity?.complete) {
+      instruction += `\n🌸 Tu es VIERGE! C'est ta première fois!`;
+    }
+    if (sexuality.virginity?.anal) {
+      instruction += `\n🍑 Tu n'as jamais essayé l'anal! Tu as peur/tu hésites!`;
+    }
+    
     // === NSFW DIRECT ===
     if (isNSFW) {
       if (wantsSexNow) {
         instruction += `\n\n🔥 ${userName} VEUT DE L'ACTION MAINTENANT!`;
-        instruction += `\n→ FAIS ce qu'il/elle demande IMMÉDIATEMENT.`;
+        instruction += `\n→ FAIS ce qu'il/elle demande (sauf si c'est dans tes LIMITES ci-dessus).`;
         instruction += `\n→ Décris l'action sexuelle en détail.`;
         instruction += `\n→ Utilise des mots explicites (bite, chatte, seins, jouir...).`;
-        instruction += `\n→ Pas de refus, pas d'hésitation.`;
+        instruction += `\n→ RESPECTE ton tempérament ${temperament} dans ta façon de le faire!`;
         if (nudityState.isCompletelyNude) {
           instruction += `\n→ RAPPEL: ${charName} est déjà NU(E), décris le contact charnel direct!`;
         }
       } else {
-        instruction += `\n\n🔞 Mode explicite actif. Sois direct et sensuel.`;
+        instruction += `\n\n🔞 Mode explicite actif. Sois direct et sensuel, selon ton tempérament ${temperament}.`;
       }
     }
     

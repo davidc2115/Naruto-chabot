@@ -81,6 +81,24 @@ class StorageService {
       const userId = await this.getCurrentUserId();
       console.log(`💾 Sauvegarde conversation: userId=${userId}, charId=${characterId}, msgs=${messages?.length || 0}`);
       
+      // v5.4.22 - SUPPRIMER de la liste des conversations supprimées si présent
+      // Cela permet de réafficher une conversation qui a été redémarrée
+      try {
+        const deletedKey = `deleted_conversations_${userId}`;
+        const deletedData = await AsyncStorage.getItem(deletedKey);
+        if (deletedData) {
+          const deletedList = JSON.parse(deletedData);
+          const charIdStr = String(characterId);
+          if (deletedList.includes(charIdStr)) {
+            const newDeletedList = deletedList.filter(id => id !== charIdStr);
+            await AsyncStorage.setItem(deletedKey, JSON.stringify(newDeletedList));
+            console.log(`✅ v5.4.22: Conversation ${charIdStr} retirée de la liste supprimée`);
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur nettoyage liste supprimée:', e.message);
+      }
+      
       // Utiliser UN SEUL format de clé simple et prévisible
       const key = `conv_${userId}_${characterId}`;
       const data = {

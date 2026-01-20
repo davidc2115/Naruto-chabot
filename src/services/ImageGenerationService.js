@@ -84,26 +84,35 @@ class ImageGenerationService {
       'blurry, low quality, pixelated, watermark, signature, text, ' +
       'ugly, grotesque, horror, creepy, nightmare';
     
-    // NEGATIVE PROMPT ULTRA-COMPLET (pour SD local et Pollinations)
+    // v5.4.22 - NEGATIVE PROMPT ULTRA-COMPLET RENFORCÉ
     // Base - sera augmenté dynamiquement selon le body type
     this.negativePromptBase = 
       'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, anatomical errors, ' +
       'extra limbs, missing limbs, three arms, four arms, three legs, four legs, extra body parts, ' +
       'floating limbs, disconnected limbs, merged limbs, fused body parts, ' +
       'malformed hands, twisted hands, backwards hands, extra fingers, missing fingers, ' +
-      'fused fingers, six fingers, seven fingers, too many fingers, mutated hands, bad hands, ';
+      'fused fingers, six fingers, seven fingers, too many fingers, mutated hands, bad hands, ' +
+      'clothes fused with skin, clothes melting into body, fabric merged with flesh, ';
       
     this.negativePromptFull = this.negativePromptBase +
-      'clawed hands, webbed fingers, malformed feet, extra toes, ' +
+      'clawed hands, webbed fingers, malformed feet, extra toes, bent wrong way, ' +
       'extra arms, extra legs, duplicate body parts, clone, conjoined, ' +
-      'two heads, two faces, multiple people, crowd, group, ' +
-      'malformed breasts, misshapen breasts, uneven breasts, extra nipples, ' +
+      'two heads, two faces, multiple people when single, crowd, group when solo, ' +
+      'malformed breasts, misshapen breasts, uneven breasts, extra nipples, droopy wrong breasts, ' +
+      'breasts too high, breasts too low, breasts on stomach, breasts on neck, ' +
+      'square breasts, triangular breasts, flat when should be big, huge when should be small, ' +
       'malformed face, asymmetrical face, cross-eyed, misaligned eyes, third eye, ' +
-      'double chin overlapping, long neck, twisted neck, broken neck, ' +
+      'double chin overlapping, long neck, twisted neck, broken neck, giraffe neck, ' +
+      'legs bending wrong way, knees backwards, arms bending wrong, elbows reversed, ' +
+      'butt on front, butt too high, butt on back of knees, malformed buttocks, ' +
+      'waist too thin, waist too wide, impossible waist, broken spine, twisted torso, ' +
+      'fingers merged together, thumb on wrong side, palm facing wrong way, ' +
+      'toes fused, feet backwards, ankles twisted, ' +
       'blurry, low quality, pixelated, watermark, signature, text, logo, ' +
       'bad proportions, giant head, tiny head, long arms, short arms, ' +
       'jpeg artifacts, compression artifacts, noise, grainy, ' +
-      'ugly, grotesque, horror, creepy, nightmare, zombie';
+      'ugly, grotesque, horror, creepy, nightmare, zombie, ' +
+      'nsfw artifacts, censorship bars, mosaic censorship, black bars';
     
     // PROMPT QUALITÉ PARFAITE - Pour images sans défauts
     this.perfectQualityPrompt = 
@@ -1250,8 +1259,8 @@ class ImageGenerationService {
    * @returns {Object} { style: string, isRealistic: boolean }
    */
   getRandomStyle() {
-    // 50% chance anime, 50% chance réaliste
-    const isRealistic = Math.random() > 0.5;
+    // v5.4.22 - 75% réaliste, 25% anime (plus d'images réalistes demandées)
+    const isRealistic = Math.random() < 0.75;
     
     if (isRealistic) {
       const style = this.realisticStyles[Math.floor(Math.random() * this.realisticStyles.length)];
@@ -3884,7 +3893,8 @@ class ImageGenerationService {
     // v5.4.21 - COMMENCER PAR STYLE + ANGLE/POSE PRIORITAIRE POUR NSFW
     let prompt = '';
     
-    // v5.4.21 - En mode NSFW, mettre l'angle/pose/tenue EN PREMIER (priorité maximale)
+    // v5.4.22 - En mode NSFW, mettre l'angle/pose/tenue EN PREMIER (priorité maximale)
+    // VARIÉTÉ MAXIMALE avec tenues et poses plus provocantes et sexy
     if (isNSFW && level >= 2) {
       // Sélectionner l'angle en fonction du niveau
       let priorityAngle;
@@ -3892,88 +3902,178 @@ class ImageGenerationService {
       let priorityPose;
       
       if (level >= 5) {
-        // Niveau 5+ : TRÈS EXPLICITE
+        // Niveau 5+ : TRÈS EXPLICITE - NUE COMPLÈTE
         const explicitAngles = [
-          '((legs spread wide)), ((intimate area visible)), explicit POV',
-          '((bent over presenting)), ((ass and pussy visible)), rear explicit view',
-          '((lying on back, legs open wide)), full frontal nude, intimate exposure',
-          '((on all fours)), rear view, ass up, presenting sexually',
-          '((straddling view)), breasts and pussy visible, riding position',
-          '((close-up between spread legs)), genitals visible, explicit detail',
+          '((legs spread wide open)), ((pussy fully visible)), explicit frontal view',
+          '((bent over presenting rear)), ((ass and pussy visible from behind)), doggy view',
+          '((lying on back, legs wide apart)), ((full frontal nudity)), intimate exposure',
+          '((on all fours)), ((rear view ass up)), presenting sexually, pussy peeking',
+          '((straddling view from below)), ((breasts and pussy visible)), riding position',
+          '((kneeling with legs spread)), ((genitals exposed)), submissive explicit',
+          '((lying with legs in the air)), ((everything visible)), maximum exposure',
+          '((squatting down)), ((pussy and ass visible)), explicit squat pose',
+          '((hands spreading pussy lips)), ((intimate close-up)), self-exposure',
+          '((lying face down ass up)), ((rear fully exposed)), presenting pose',
+          '((sitting with legs wide open)), ((pussy on display)), inviting view',
+          '((standing bent forward)), ((ass and pussy from behind)), provocative bend',
         ];
         const explicitOutfits = [
-          '((completely nude)), ((naked)), no clothes, fully exposed',
-          '((spread legs nude)), ((genitals exposed)), nothing on',
-          '((fully naked)), ((all clothes off)), complete nudity',
+          '((completely nude)), ((naked body)), no clothes at all, fully exposed skin',
+          '((totally naked)), ((nothing covering)), nude and vulnerable',
+          '((fully nude)), ((bare everywhere)), complete nudity displayed',
+          '((stark naked)), ((all clothes removed)), pure nudity',
+          '((wearing nothing)), ((nude body glistening)), completely bare',
+          '((nude with only high heels)), ((otherwise naked)), erotic nudity',
+          '((nude with choker only)), ((body fully exposed)), accessorized nudity',
+          '((nude oiled body)), ((glistening naked skin)), wet look nude',
         ];
         const explicitPoses = [
-          '((masturbating)), touching herself, pleasuring herself',
-          '((spreading herself open)), showing everything, exposing intimacy',
-          '((legs wide apart)), fully exposed, inviting',
+          '((masturbating)), ((fingers on pussy)), pleasuring herself visibly',
+          '((spreading pussy open)), ((showing inside)), maximum exposure pose',
+          '((touching between legs)), ((self-pleasure)), erotic masturbation',
+          '((fingers inside)), ((penetrating self)), explicit self-play',
+          '((rubbing clit)), ((pleasure face)), orgasmic expression',
+          '((legs behind head)), ((maximum flexibility)), gymnastic explicit',
+          '((riding invisible)), ((bouncing pose)), sexual movement',
+          '((arching back in ecstasy)), ((orgasm pose)), climax moment',
+          '((grabbing own ass cheeks)), ((spreading apart)), presenting rear',
+          '((pinching nipples)), ((pleasure expression)), breast stimulation',
         ];
         priorityAngle = explicitAngles[Math.floor(Math.random() * explicitAngles.length)];
         priorityOutfit = explicitOutfits[Math.floor(Math.random() * explicitOutfits.length)];
         priorityPose = explicitPoses[Math.floor(Math.random() * explicitPoses.length)];
       } else if (level >= 4) {
-        // Niveau 4 : TOPLESS/SEINS NUS
+        // Niveau 4 : TOPLESS/SEINS NUS - Plus de variété
         const toplessAngles = [
-          '((topless)), ((bare breasts)), nipples visible, breast focus',
-          '((from above looking at topless body)), breasts visible, intimate angle',
-          '((breasts centered)), ((nipples erect)), topless close-up',
-          '((rear view)), ((butt emphasized)), looking back topless',
-          '((kneeling topless)), ((breasts hanging)), submissive pose',
+          '((topless)), ((bare breasts prominent)), nipples clearly visible, breast focus',
+          '((from above looking at topless body)), ((breasts viewed from top)), intimate angle',
+          '((breasts centered in frame)), ((nipples erect and detailed)), chest focus',
+          '((rear view showing butt)), ((topless looking back)), sexy back view',
+          '((kneeling topless)), ((breasts hanging naturally)), submissive topless',
+          '((lying topless on bed)), ((breasts falling to sides)), relaxed nude',
+          '((standing topless profile)), ((breast silhouette)), elegant topless',
+          '((bending forward topless)), ((breasts hanging down)), gravity view',
+          '((stretching arms up topless)), ((breasts lifted)), athletic topless',
+          '((topless with hands behind head)), ((breasts pushed out)), display pose',
+          '((topless on knees)), ((breasts at eye level)), worship angle',
+          '((topless back arched)), ((breasts thrust forward)), dramatic pose',
         ];
         const toplessOutfits = [
-          '((topless)), ((bare breasts)), only wearing panties',
-          '((shirtless)), ((breasts fully exposed)), bottomless or just underwear',
-          '((nude from waist up)), ((big breasts out)), minimal coverage below',
+          '((topless)), ((bare breasts)), wearing only tiny panties',
+          '((shirtless)), ((breasts fully exposed)), just a thong below',
+          '((nude from waist up)), ((big breasts out)), lace panties only',
+          '((topless in garter belt)), ((breasts free)), stockings and heels',
+          '((topless in short skirt)), ((breasts bouncing)), no bra',
+          '((breasts out of bra)), ((bra pulled down)), partially undressed',
+          '((topless with open shirt)), ((breasts visible through)), unbuttoned',
+          '((topless in just boots)), ((otherwise bare)), fetish topless',
+          '((topless wet)), ((water on breasts)), shower or pool scene',
+          '((oiled topless body)), ((glistening breasts)), massage look',
         ];
         const toplessPoses = [
-          '((cupping her breasts)), sensual topless pose',
-          '((arching back)), ((breasts pushed out)), sexy display',
-          '((on knees)), ((breasts prominent)), looking up seductively',
+          '((cupping her own breasts)), ((squeezing)), sensual self-touch',
+          '((arching back dramatically)), ((breasts pushed forward)), sexy arch',
+          '((on knees looking up)), ((breasts prominent)), submissive gaze',
+          '((pressing breasts together)), ((creating cleavage)), push-up pose',
+          '((lifting one breast)), ((showing underboob)), playful touch',
+          '((hands on breasts)), ((covering nipples teasingly)), peek-a-boo',
+          '((jiggling breasts)), ((movement captured)), bouncing action',
+          '((leaning forward)), ((breasts hanging)), gravity emphasized',
+          '((twisting torso)), ((breast profile)), elegant twist',
+          '((pulling on nipples)), ((erotic expression)), nipple play',
         ];
         priorityAngle = toplessAngles[Math.floor(Math.random() * toplessAngles.length)];
         priorityOutfit = toplessOutfits[Math.floor(Math.random() * toplessOutfits.length)];
         priorityPose = toplessPoses[Math.floor(Math.random() * toplessPoses.length)];
       } else if (level >= 3) {
-        // Niveau 3 : LINGERIE SEXY
+        // Niveau 3 : LINGERIE TRÈS SEXY - Plus provocante
         const lingerieAngles = [
-          '((in sexy lingerie)), ((lace bra visible)), cleavage emphasized',
-          '((bent forward in lingerie)), ((deep cleavage)), seductive pose',
-          '((lying in lingerie)), ((body curves visible)), on bed inviting',
-          '((from behind in panties)), ((butt cheeks visible)), looking back',
+          '((in revealing lingerie)), ((lace bra barely covering)), deep cleavage',
+          '((bent forward in lingerie)), ((breasts almost spilling out)), teasing view',
+          '((lying in sheer lingerie)), ((body visible through fabric)), see-through',
+          '((from behind in thong)), ((ass cheeks fully visible)), rear lingerie view',
+          '((kneeling in lingerie)), ((cleavage emphasized)), worship angle',
+          '((standing in doorway in lingerie)), ((silhouette)), backlit sexy',
+          '((lying on stomach in lingerie)), ((ass up)), butt focus',
+          '((straddling in lingerie)), ((crotch area visible)), suggestive pose',
+          '((undressing from lingerie)), ((bra half off)), mid-undress',
+          '((lingerie pulled aside)), ((skin peeking)), tease reveal',
         ];
         const lingerieOutfits = [
-          '((wearing sexy lingerie)), ((lace bra and panties)), see-through fabric',
-          '((sheer negligee)), ((body visible through)), sexy sleepwear',
-          '((corset and thong)), ((curves emphasized)), provocative lingerie',
-          '((crotchless lingerie)), ((cupless bra)), revealing underwear',
+          '((wearing sheer lace lingerie)), ((nipples visible through)), see-through bra',
+          '((transparent negligee)), ((entire body visible)), nothing hidden',
+          '((corset pushing breasts up)), ((maximum cleavage)), waist cinched',
+          '((crotchless panties)), ((intimate area accessible)), open lingerie',
+          '((cupless bra)), ((nipples exposed)), peek-a-boo bra',
+          '((fishnet bodystocking)), ((body visible through mesh)), full coverage but revealing',
+          '((tiny bikini)), ((barely covering)), string bikini',
+          '((sheer babydoll)), ((everything visible through)), romantic but revealing',
+          '((open-front lingerie)), ((breasts fully exposed)), frame lingerie',
+          '((wet white lingerie)), ((completely see-through)), wet look',
+          '((leather lingerie)), ((strappy and revealing)), bondage style',
+          '((lace teddy)), ((high cut sides)), one piece revealing',
+          '((garter belt and stockings only)), ((no panties)), minimal coverage',
+          '((mesh bodysuit)), ((pattern barely covers)), strategic coverage',
         ];
         const lingeriePoses = [
-          '((lounging seductively)), in lingerie on bed',
-          '((undressing slowly)), pulling down bra strap',
-          '((hands on body)), sensual self-touch in lingerie',
+          '((lounging seductively on bed)), ((legs slightly parted)), inviting pose',
+          '((slowly removing bra)), ((strap sliding off)), strip tease',
+          '((hands exploring own body)), ((sensual self-caress)), lingerie touch',
+          '((pulling panties down)), ((revealing more)), undressing tease',
+          '((arching back on bed)), ((breasts emphasized)), sexy stretch',
+          '((kneeling on all fours)), ((lingerie view from behind)), crawling pose',
+          '((standing with leg up)), ((panties visible)), flamingo pose',
+          '((lying with legs in air)), ((lingerie from below)), legs up pose',
+          '((sitting spread-legged)), ((panties stretched)), open seated',
+          '((bending over)), ((rear in thong)), bent over view',
         ];
         priorityAngle = lingerieAngles[Math.floor(Math.random() * lingerieAngles.length)];
         priorityOutfit = lingerieOutfits[Math.floor(Math.random() * lingerieOutfits.length)];
         priorityPose = lingeriePoses[Math.floor(Math.random() * lingeriePoses.length)];
       } else {
-        // Niveau 2 : TENUE PROVOCANTE
+        // Niveau 2 : TENUE TRÈS PROVOCANTE - Plus sexy
         const sexyAngles = [
-          '((tight dress showing curves)), ((cleavage visible)), sexy pose',
-          '((mini skirt)), ((legs visible)), flirtatious stance',
-          '((low-cut top)), ((breasts pushed up)), provocative outfit',
+          '((tight dress showing every curve)), ((cleavage prominent)), sexy stance',
+          '((micro mini skirt)), ((long legs on display)), flirtatious pose',
+          '((low-cut top)), ((breasts pushed together)), maximum cleavage view',
+          '((bent over in short dress)), ((panties peeking)), upskirt tease',
+          '((sitting with legs uncrossed)), ((panties visible)), revealing sit',
+          '((wet t-shirt)), ((breasts visible through)), wet clothing',
+          '((side view in tight dress)), ((curves emphasized)), profile sexy',
+          '((from behind in tight jeans)), ((ass emphasized)), rear view',
+          '((dancing provocatively)), ((dress riding up)), movement sexy',
+          '((stretching in crop top)), ((underboob visible)), stretch pose',
         ];
         const sexyOutfits = [
-          '((wearing tight mini dress)), ((curves hugged)), sexy outfit',
-          '((crop top and short shorts)), ((midriff visible)), hot outfit',
-          '((low-cut dress)), ((maximum cleavage)), revealing clothes',
+          '((wearing skin-tight mini dress)), ((every curve visible)), bodycon',
+          '((crop top and micro shorts)), ((midriff and legs)), hot pants outfit',
+          '((plunging neckline dress)), ((cleavage to navel)), deep V dress',
+          '((see-through blouse)), ((bra visible underneath)), sheer top',
+          '((backless dress)), ((entire back exposed)), elegant but sexy',
+          '((side-boob revealing top)), ((no bra)), daring fashion',
+          '((ultra short skirt)), ((barely covering)), micro mini',
+          '((wet white shirt)), ((body visible through)), wet look',
+          '((mesh top)), ((bra showing through)), layered sexy',
+          '((tube top barely covering)), ((slipping down)), precarious top',
+          '((cut-out dress)), ((strategic skin showing)), peek-a-boo dress',
+          '((bodysuit with deep V)), ((cleavage emphasized)), sleek sexy',
+          '((off-shoulder top)), ((almost falling)), shoulder exposed',
+          '((latex dress)), ((skintight shiny)), fetish fashion',
+          '((bikini top as shirt)), ((maximum exposure)), beach to street',
         ];
         const sexyPoses = [
-          '((bending forward)), showing cleavage, flirty smile',
-          '((hand on hip)), confident sexy pose',
-          '((sitting with legs crossed)), skirt riding up',
+          '((bending forward showing cleavage)), ((breasts hanging)), cleavage pose',
+          '((hand on hip, hip popped)), ((confident stance)), power pose',
+          '((sitting with legs apart)), ((skirt riding up)), open seated',
+          '((leaning against wall)), ((chest pushed out)), lean pose',
+          '((adjusting dress strap)), ((almost slipping)), wardrobe malfunction',
+          '((pulling up skirt teasingly)), ((showing thigh)), tease pose',
+          '((unbuttoning top)), ((revealing more)), undressing start',
+          '((hands running through hair)), ((chest emphasized)), glamour pose',
+          '((blowing a kiss)), ((seductive expression)), flirty pose',
+          '((finger on lips)), ((innocent but sexy)), coy pose',
+          '((lying back provocatively)), ((dress riding up)), recline tease',
+          '((straddling chair)), ((dress stretched)), straddle pose',
         ];
         priorityAngle = sexyAngles[Math.floor(Math.random() * sexyAngles.length)];
         priorityOutfit = sexyOutfits[Math.floor(Math.random() * sexyOutfits.length)];
@@ -4361,6 +4461,24 @@ class ImageGenerationService {
         console.log(`👤 Contexte utilisateur ajouté: ${userContextPrompt}`);
       }
     }
+
+    // v5.4.22 - RENFORCEMENT ANTI-DÉFAUTS ULTRA-STRICT (ajouté à la fin pour emphase)
+    // Ces termes sont cruciaux pour éviter les problèmes anatomiques
+    prompt += ', ((perfect anatomy)), ((correct proportions)), ((natural human body))';
+    prompt += ', ((exactly two arms)), ((exactly two legs)), ((five fingers each hand))';
+    prompt += ', ((symmetrical face)), ((two eyes)), ((one nose)), ((one mouth))';
+    prompt += ', ((natural breast shape)), ((correct breast placement on chest))';
+    prompt += ', ((legs bending correctly)), ((knees in right direction)), ((elbows correct))';
+    prompt += ', ((clothes not fused with skin)), ((separate fabric from body))';
+    prompt += ', ((realistic skin texture)), ((natural body curves))';
+    if (isRealistic) {
+      prompt += ', ((photograph quality)), ((no artifacts)), ((sharp focus))';
+      prompt += ', ((professional lighting)), ((studio quality)), 8K resolution';
+    } else {
+      prompt += ', ((clean lineart)), ((no distortions)), ((anime quality))';
+      prompt += ', ((vibrant colors)), ((detailed shading))';
+    }
+    console.log('✅ v5.4.22: Renforcement anti-défauts ajouté');
 
     // Ajouter un marqueur de niveau pour forcer le mode NSFW
     if (isNSFW) {
@@ -4780,14 +4898,20 @@ class ImageGenerationService {
       // Nettoyer le marker NSFW du prompt
       let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
       
-      // Ajouter qualité et paramètres anatomiques anti-défauts
-      cleanPrompt += ', masterpiece, best quality, ultra detailed, 8K';
-      cleanPrompt += ', anatomically correct, perfect anatomy';
-      cleanPrompt += ', (one person:1.2), correct number of limbs';
-      cleanPrompt += ', beautiful detailed face, detailed eyes, detailed hands';
-      cleanPrompt += ', five fingers on each hand, two arms, two legs';
+      // v5.4.22 - QUALITÉ ET ANTI-DÉFAUTS RENFORCÉS
+      cleanPrompt += ', masterpiece, best quality, ultra detailed, 8K resolution, sharp focus';
+      cleanPrompt += ', ((anatomically correct)), ((perfect human anatomy)), ((correct proportions))';
+      cleanPrompt += ', ((exactly one person)), ((correct number of limbs))';
+      cleanPrompt += ', ((exactly two arms attached to shoulders)), ((exactly two legs attached to hips))';
+      cleanPrompt += ', ((five fingers on each hand)), ((two hands)), ((two feet))';
+      cleanPrompt += ', ((beautiful detailed face)), ((symmetrical face)), ((two eyes)), ((one nose)), ((one mouth))';
+      cleanPrompt += ', ((natural breast shape)), ((breasts on chest not stomach))';
+      cleanPrompt += ', ((legs bending naturally)), ((knees forward not backward))';
+      cleanPrompt += ', ((clothes separate from skin)), NOT deformed, NOT distorted, NOT mutated';
+      cleanPrompt += ', NOT extra limbs, NOT merged body parts, NOT fused fingers';
+      cleanPrompt += ', professional photography quality, studio lighting';
       
-      const shortPrompt = cleanPrompt.substring(0, 1900);
+      const shortPrompt = cleanPrompt.substring(0, 2400);
       const encodedPrompt = encodeURIComponent(shortPrompt);
       const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true&safe=false&nofeed=true`;
       
@@ -4829,12 +4953,15 @@ class ImageGenerationService {
                           lowerPrompt.includes('sheer');
     
     if (hasNSFWContent) {
-      console.log('🔞 v5.4.19: Contenu NSFW détecté sans marker - utilisation directe');
+      console.log('🔞 v5.4.22: Contenu NSFW détecté sans marker - utilisation directe');
       let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
       cleanPrompt += ', masterpiece, best quality, ultra detailed, 8K';
-      cleanPrompt += ', anatomically correct, perfect anatomy';
+      cleanPrompt += ', ((anatomically correct)), ((perfect anatomy)), ((correct proportions))';
+      cleanPrompt += ', ((exactly two arms)), ((exactly two legs)), ((five fingers each hand))';
+      cleanPrompt += ', ((natural breast shape)), ((correct body structure))';
+      cleanPrompt += ', NOT deformed, NOT extra limbs, NOT mutated';
       
-      const shortPrompt = cleanPrompt.substring(0, 1900);
+      const shortPrompt = cleanPrompt.substring(0, 2400);
       const encodedPrompt = encodeURIComponent(shortPrompt);
       const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true&safe=false&nofeed=true`;
       
@@ -6206,18 +6333,22 @@ class ImageGenerationService {
     // - NSFW reinforcement keywords
     // NE PAS reconstruire le prompt car ça ÉCRASE ces tenues/poses!
     if (isNSFW) {
-      console.log(`🔞 v5.4.19 FIX: MARKER [NSFW_LEVEL_${nsfwLevel}] DÉTECTÉ pour Freebox SD`);
+      console.log(`🔞 v5.4.22 FIX: MARKER [NSFW_LEVEL_${nsfwLevel}] DÉTECTÉ pour Freebox SD`);
       console.log(`🔞 UTILISATION DIRECTE du prompt original avec tenues/poses niveau ${nsfwLevel}`);
       
       // Utiliser le prompt tel quel, il contient déjà les tenues/poses NSFW
       finalPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
       
-      // Ajouter qualité et paramètres anatomiques anti-défauts
-      finalPrompt += ', masterpiece, best quality, ultra detailed';
-      finalPrompt += ', anatomically correct, perfect anatomy';
-      finalPrompt += ', (one person:1.2), correct number of limbs';
-      finalPrompt += ', beautiful detailed face, detailed eyes, detailed hands';
-      finalPrompt += ', five fingers on each hand, two arms, two legs';
+      // v5.4.22 - QUALITÉ ET ANTI-DÉFAUTS RENFORCÉS pour Freebox SD
+      finalPrompt += ', masterpiece, best quality, ultra detailed, 8K resolution';
+      finalPrompt += ', ((anatomically correct)), ((perfect human anatomy)), ((correct proportions))';
+      finalPrompt += ', ((exactly one person)), ((exactly two arms)), ((exactly two legs))';
+      finalPrompt += ', ((five fingers each hand)), ((natural hand pose))';
+      finalPrompt += ', ((beautiful detailed face)), ((symmetrical features))';
+      finalPrompt += ', ((natural breast shape)), ((correct breast placement))';
+      finalPrompt += ', ((legs bending forward not backward)), ((correct joint anatomy))';
+      finalPrompt += ', ((clothes not fused with skin)), ((fabric separate from body))';
+      finalPrompt += ', professional quality, sharp focus, detailed';
       
       console.log(`📝 PROMPT NSFW DIRECT Niveau ${nsfwLevel} pour Freebox:`);
       console.log(`📝 Tenue/Pose: ${finalPrompt.substring(0, 500)}...`);
@@ -6231,11 +6362,11 @@ class ImageGenerationService {
     finalPrompt += ', masterpiece, best quality, ultra detailed, 8K';
     
     if (isNSFW) {
-      finalPrompt += ', nsfw, erotic, sensual, sexy, provocative';
+      finalPrompt += ', nsfw, erotic, sensual, sexy, provocative, intimate';
     }
     
-    // Limiter la longueur pour le serveur Freebox
-    const shortPrompt = finalPrompt.substring(0, 1500);
+    // v5.4.22 - Limiter la longueur pour le serveur Freebox mais garder plus
+    const shortPrompt = finalPrompt.substring(0, 2000);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
     // Construire l'URL avec les paramètres
