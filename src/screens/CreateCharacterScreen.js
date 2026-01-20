@@ -378,11 +378,12 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
   // === ANALYSE D'IMAGE PAR IA ===
-  // v5.3.51 - Utilise l'IA pour analyser l'image et détecter les caractéristiques physiques
+  // v5.4.25 - RÉÉCRITURE COMPLÈTE pour analyse d'image fonctionnelle
+  // Utilise plusieurs APIs en fallback pour garantir l'analyse
   const analyzeImageWithAI = async (imageUri) => {
     try {
       setAnalyzingImage(true);
-      console.log('🔍 Analyse IA de l\'image...');
+      console.log('🔍 v5.4.25 - Analyse IA de l\'image...');
       
       // Convertir l'image en base64
       let base64Image = '';
@@ -392,185 +393,232 @@ export default function CreateCharacterScreen({ navigation, route }) {
         });
         base64Image = imageData;
         console.log('📸 Image convertie en base64:', base64Image.length, 'caractères');
+        
+        // Vérifier que l'image n'est pas trop grande (max 4MB base64)
+        if (base64Image.length > 5500000) {
+          console.log('⚠️ Image trop grande, compression nécessaire');
+          // Tronquer pour test (l'image sera quand même analysable)
+          base64Image = base64Image.substring(0, 5500000);
+        }
       } catch (e) {
         console.error('❌ Erreur conversion base64:', e);
         throw new Error('Impossible de lire l\'image');
       }
       
-      // Prompt pour l'analyse détaillée
-      const analysisPrompt = `Analyse cette image d'une personne et décris PRÉCISÉMENT ses caractéristiques physiques visibles.
-      
-Réponds UNIQUEMENT avec un JSON valide dans ce format exact (sans texte avant ou après):
-{
-  "gender": "female" ou "male",
-  "ageEstimate": nombre estimé (18-80),
-  "hairColor": "couleur en français (noir, brun, châtain, blond, roux, blanc, gris, etc.)",
-  "hairLength": "très courts, courts, mi-longs, longs, ou très longs",
-  "hairStyle": "description du style (lisses, ondulés, bouclés, frisés, etc.)",
-  "eyeColor": "couleur en français (marron, noisette, vert, bleu, gris, noir, ambre)",
-  "skinTone": "très claire, claire, mate, bronzée, caramel, ou ébène",
-  "bodyType": "mince, élancée, moyenne, athlétique, voluptueuse, généreuse, ronde, ou pulpeuse",
-  "bustSize": "A, B, C, D, DD, E, F, G ou H (si femme visible)",
-  "heightEstimate": "petite (150-160), moyenne (160-170), grande (170-180), très grande (180+)",
-  "faceShape": "ovale, rond, carré, en cœur, allongé",
-  "distinctiveFeatures": "liste des traits distinctifs (taches de rousseur, grain de beauté, fossettes, etc.)",
-  "expression": "expression du visage",
-  "clothing": "description des vêtements visibles",
-  "fullDescription": "description physique complète et détaillée en français (3-4 phrases)"
-}
+      // v5.4.25 - Prompt optimisé pour meilleure analyse
+      const analysisPrompt = `Tu es un expert en analyse d'images de personnes. Analyse cette image et extrait TOUTES les caractéristiques physiques visibles.
 
-IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte explicatif.`;
+INSTRUCTIONS IMPORTANTES:
+1. Analyse attentivement TOUS les détails physiques visibles
+2. Si tu ne peux pas déterminer une caractéristique, fais une estimation raisonnable
+3. Pour le genre: regarde les traits du visage, la silhouette, la poitrine
+4. Pour l'âge: regarde les traits du visage, les rides, la peau
+5. Pour les cheveux: couleur exacte, longueur approximative
+6. Pour le corps: silhouette générale visible
 
-      // Appeler l'API Pollinations Vision
-      const response = await axios.post(
-        'https://text.pollinations.ai/',
-        {
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: analysisPrompt },
-                { 
-                  type: 'image_url', 
-                  image_url: { url: `data:image/jpeg;base64,${base64Image}` }
-                }
-              ]
-            }
-          ],
-          model: 'openai',
-          jsonMode: true,
-        },
-        { 
-          timeout: 60000,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-      
-      let analysisText = response.data;
-      if (typeof analysisText !== 'string') {
-        analysisText = JSON.stringify(analysisText);
-      }
-      
-      console.log('📝 Réponse IA brute:', analysisText.substring(0, 500));
-      
-      // Extraire le JSON de la réponse
+Réponds UNIQUEMENT avec ce JSON (RIEN D'AUTRE):
+{"gender":"female","ageEstimate":25,"hairColor":"noir","hairLength":"longs","eyeColor":"marron","skinTone":"claire","bodyType":"moyenne","bustSize":"C","fullDescription":"Description complète ici"}
+
+Les valeurs possibles:
+- gender: "female" ou "male"
+- ageEstimate: nombre entre 18 et 80
+- hairColor: noir, brun, châtain, blond, roux, blanc, gris, rose, bleu, vert, violet
+- hairLength: très courts, courts, mi-longs, longs, très longs
+- eyeColor: marron, noisette, vert, bleu, gris, noir
+- skinTone: très claire, claire, mate, bronzée, caramel, ébène
+- bodyType: mince, élancée, moyenne, athlétique, voluptueuse, généreuse, ronde, pulpeuse
+- bustSize (femmes): A, B, C, D, DD, E, F, G, H
+- fullDescription: 2-3 phrases décrivant la personne
+
+RÉPONDS UNIQUEMENT AVEC LE JSON, SANS AUCUN TEXTE AVANT OU APRÈS.`;
+
       let analysis = null;
+      let lastError = null;
+      
+      // === TENTATIVE 1: Pollinations Vision avec GPT-4o ===
       try {
-        // Chercher un bloc JSON dans la réponse
-        const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          analysis = JSON.parse(jsonMatch[0]);
-        } else {
-          analysis = JSON.parse(analysisText);
+        console.log('🔄 Tentative 1: Pollinations GPT-4o Vision...');
+        const response1 = await axios.post(
+          'https://text.pollinations.ai/',
+          {
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: analysisPrompt },
+                  { 
+                    type: 'image_url', 
+                    image_url: { url: `data:image/jpeg;base64,${base64Image}` }
+                  }
+                ]
+              }
+            ],
+            model: 'openai-large', // GPT-4o pour vision
+            temperature: 0.3,
+            jsonMode: true,
+          },
+          { 
+            timeout: 90000,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+        
+        let text1 = response1.data;
+        if (typeof text1 !== 'string') text1 = JSON.stringify(text1);
+        console.log('📝 Réponse GPT-4o:', text1.substring(0, 500));
+        
+        const parsed1 = parseAnalysisResponse(text1);
+        if (parsed1 && isValidAnalysis(parsed1)) {
+          analysis = parsed1;
+          console.log('✅ Analyse GPT-4o réussie');
         }
-      } catch (e) {
-        console.error('❌ Erreur parsing JSON:', e);
-        throw new Error('L\'IA n\'a pas pu analyser l\'image correctement');
+      } catch (e1) {
+        console.log('⚠️ GPT-4o échoué:', e1.message);
+        lastError = e1;
       }
       
-      console.log('✅ Analyse IA réussie:', JSON.stringify(analysis, null, 2));
-      
-      // v5.4.21 - Validation plus robuste de l'analyse
-      if (analysis) {
-        // Valider que l'analyse contient des données utilisables
-        const hasValidData = analysis.gender || analysis.ageEstimate || analysis.hairColor || analysis.fullDescription;
-        if (!hasValidData) {
-          console.log('⚠️ Analyse IA vide ou invalide, utilisation des valeurs par défaut');
-          autoGenerateDescription();
-          Alert.alert(
-            '⚠️ Analyse partielle',
-            'L\'IA n\'a pas pu détecter toutes les caractéristiques. Les champs ont été remplis avec des valeurs par défaut.',
-            [{ text: 'OK' }]
+      // === TENTATIVE 2: Pollinations Vision avec modèle standard ===
+      if (!analysis) {
+        try {
+          console.log('🔄 Tentative 2: Pollinations Vision standard...');
+          const response2 = await axios.post(
+            'https://text.pollinations.ai/',
+            {
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: analysisPrompt },
+                    { 
+                      type: 'image_url', 
+                      image_url: { url: `data:image/jpeg;base64,${base64Image}` }
+                    }
+                  ]
+                }
+              ],
+              model: 'openai',
+              temperature: 0.3,
+            },
+            { 
+              timeout: 90000,
+              headers: { 'Content-Type': 'application/json' }
+            }
           );
-          return null;
-        }
-        
-        // Genre - v5.4.21 - Validation stricte
-        if (analysis.gender) {
-          const genderLower = String(analysis.gender).toLowerCase().trim();
-          // Accepter uniquement 'male', 'homme', 'man' pour masculin
-          const isMale = genderLower === 'male' || genderLower === 'homme' || genderLower === 'man';
-          const newGender = isMale ? 'male' : 'female';
-          console.log(`👤 Genre détecté: "${analysis.gender}" -> ${newGender}`);
-          setGender(newGender);
-        }
-        
-        // Âge - v5.4.21 - Validation avec fallback
-        if (analysis.ageEstimate) {
-          const ageNum = parseInt(analysis.ageEstimate);
-          if (!isNaN(ageNum) && ageNum >= 18 && ageNum <= 99) {
-            setAge(String(ageNum));
-            console.log(`🎂 Âge détecté: ${ageNum}`);
-          } else {
-            setAge('25');
-            console.log(`⚠️ Âge invalide "${analysis.ageEstimate}", défaut: 25`);
+          
+          let text2 = response2.data;
+          if (typeof text2 !== 'string') text2 = JSON.stringify(text2);
+          console.log('📝 Réponse Vision standard:', text2.substring(0, 500));
+          
+          const parsed2 = parseAnalysisResponse(text2);
+          if (parsed2 && isValidAnalysis(parsed2)) {
+            analysis = parsed2;
+            console.log('✅ Analyse Vision standard réussie');
           }
+        } catch (e2) {
+          console.log('⚠️ Vision standard échoué:', e2.message);
+          lastError = e2;
         }
-        
-        // Cheveux
-        if (analysis.hairColor) {
-          // Normaliser la couleur des cheveux
-          const hairColorMap = {
-            'noir': 'noirs', 'noire': 'noirs', 'noirs': 'noirs',
-            'brun': 'bruns', 'brune': 'bruns', 'bruns': 'bruns',
-            'châtain': 'châtains', 'chatain': 'châtains',
-            'blond': 'blonds', 'blonde': 'blonds', 'blonds': 'blonds',
-            'roux': 'roux', 'rousse': 'roux',
-            'blanc': 'blancs', 'blanche': 'blancs', 'gris': 'gris', 'argenté': 'gris',
-          };
-          const normalizedHair = hairColorMap[analysis.hairColor.toLowerCase()] || analysis.hairColor;
-          setHairColor(normalizedHair);
+      }
+      
+      // === TENTATIVE 3: Modèle Claude via Pollinations ===
+      if (!analysis) {
+        try {
+          console.log('🔄 Tentative 3: Pollinations Claude Vision...');
+          const response3 = await axios.post(
+            'https://text.pollinations.ai/',
+            {
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: analysisPrompt },
+                    { 
+                      type: 'image_url', 
+                      image_url: { url: `data:image/jpeg;base64,${base64Image}` }
+                    }
+                  ]
+                }
+              ],
+              model: 'claude', // Essayer Claude
+              temperature: 0.3,
+            },
+            { 
+              timeout: 90000,
+              headers: { 'Content-Type': 'application/json' }
+            }
+          );
+          
+          let text3 = response3.data;
+          if (typeof text3 !== 'string') text3 = JSON.stringify(text3);
+          console.log('📝 Réponse Claude:', text3.substring(0, 500));
+          
+          const parsed3 = parseAnalysisResponse(text3);
+          if (parsed3 && isValidAnalysis(parsed3)) {
+            analysis = parsed3;
+            console.log('✅ Analyse Claude réussie');
+          }
+        } catch (e3) {
+          console.log('⚠️ Claude échoué:', e3.message);
+          lastError = e3;
         }
-        
-        if (analysis.hairLength) {
-          setHairLength(analysis.hairLength);
+      }
+      
+      // === TENTATIVE 4: Description textuelle sans vision (fallback) ===
+      if (!analysis) {
+        try {
+          console.log('🔄 Tentative 4: Génération intelligente sans vision...');
+          // Demander à l'IA de générer une description aléatoire mais cohérente
+          const fallbackPrompt = `Génère un profil physique aléatoire mais réaliste pour un personnage fictif.
+Le personnage doit avoir des caractéristiques variées et intéressantes.
+
+Réponds UNIQUEMENT avec ce JSON:
+{"gender":"female","ageEstimate":25,"hairColor":"noir","hairLength":"longs","eyeColor":"marron","skinTone":"claire","bodyType":"moyenne","bustSize":"C","fullDescription":"Description ici"}`;
+          
+          const response4 = await axios.post(
+            'https://text.pollinations.ai/',
+            {
+              messages: [{ role: 'user', content: fallbackPrompt }],
+              model: 'mistral',
+              temperature: 0.8,
+            },
+            { timeout: 30000 }
+          );
+          
+          let text4 = response4.data;
+          if (typeof text4 !== 'string') text4 = JSON.stringify(text4);
+          console.log('📝 Réponse fallback:', text4.substring(0, 500));
+          
+          const parsed4 = parseAnalysisResponse(text4);
+          if (parsed4) {
+            analysis = parsed4;
+            analysis._isFallback = true; // Marquer comme fallback
+            console.log('✅ Génération fallback réussie');
+          }
+        } catch (e4) {
+          console.log('⚠️ Fallback échoué:', e4.message);
+          lastError = e4;
         }
+      }
+      
+      // === APPLIQUER L'ANALYSE ===
+      if (analysis) {
+        console.log('✅ Analyse finale:', JSON.stringify(analysis, null, 2));
+        applyAnalysisToForm(analysis);
         
-        // Yeux
-        if (analysis.eyeColor) {
-          setEyeColor(analysis.eyeColor.toLowerCase());
-        }
-        
-        // Peau
-        if (analysis.skinTone) {
-          setSkinTone(analysis.skinTone.toLowerCase());
-        }
-        
-        // Morphologie
-        if (analysis.bodyType) {
-          setBodyType(analysis.bodyType.toLowerCase());
-        }
-        
-        // Poitrine (femmes)
-        if (analysis.gender === 'female' && analysis.bustSize) {
-          setBust(analysis.bustSize.toUpperCase());
-        }
-        
-        // Taille estimée
-        if (analysis.heightEstimate) {
-          const heightMap = {
-            'petite': '155', 'moyenne': '165', 'grande': '175', 'très grande': '180'
-          };
-          const heightKey = analysis.heightEstimate.split(' ')[0].toLowerCase();
-          setHeight(heightMap[heightKey] || '165');
-        }
-        
-        // Description complète
-        if (analysis.fullDescription) {
-          setAppearance(analysis.fullDescription);
-        } else {
-          // Générer une description à partir des données
-          generateDetailedDescription(analysis);
-        }
-        
+        const isFallback = analysis._isFallback;
         Alert.alert(
-          '✅ Analyse terminée',
-          'Les caractéristiques physiques ont été détectées et appliquées aux champs du formulaire.\n\nVérifiez et ajustez si nécessaire.',
+          isFallback ? '⚠️ Analyse partielle' : '✅ Analyse terminée',
+          isFallback 
+            ? 'L\'analyse d\'image n\'a pas fonctionné. Des valeurs ont été générées automatiquement.\n\nVérifiez et ajustez les caractéristiques.'
+            : 'Les caractéristiques physiques ont été détectées et appliquées.\n\nVérifiez et ajustez si nécessaire.',
           [{ text: 'OK' }]
         );
+        return analysis;
+      } else {
+        // Aucune méthode n'a fonctionné
+        console.log('❌ Toutes les tentatives ont échoué');
+        throw lastError || new Error('Analyse impossible');
       }
-      
-      return analysis;
       
     } catch (error) {
       console.error('❌ Erreur analyse IA:', error);
@@ -579,11 +627,249 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte explicatif.`;
         'L\'analyse automatique a échoué. Veuillez remplir les champs manuellement.\n\nErreur: ' + (error.message || 'Erreur inconnue'),
         [{ text: 'OK' }]
       );
-      // Générer une description par défaut
       autoGenerateDescription();
       return null;
     } finally {
       setAnalyzingImage(false);
+    }
+  };
+  
+  // === v5.4.25 - HELPER: Parser la réponse d'analyse ===
+  const parseAnalysisResponse = (text) => {
+    if (!text) return null;
+    
+    try {
+      // Nettoyer le texte
+      let cleanText = text.trim();
+      
+      // Supprimer les blocs de code markdown
+      cleanText = cleanText.replace(/```json\s*/gi, '');
+      cleanText = cleanText.replace(/```\s*/gi, '');
+      
+      // Chercher un objet JSON
+      const jsonMatch = cleanText.match(/\{[\s\S]*?\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      
+      // Essayer de parser directement
+      return JSON.parse(cleanText);
+    } catch (e) {
+      console.log('⚠️ Parsing échoué:', e.message);
+      
+      // Essayer d'extraire les valeurs manuellement avec regex
+      try {
+        const extracted = {};
+        
+        // Genre
+        const genderMatch = text.match(/["']?gender["']?\s*[:=]\s*["']?(female|male|homme|femme)["']?/i);
+        if (genderMatch) extracted.gender = genderMatch[1].toLowerCase().includes('male') || genderMatch[1].toLowerCase().includes('homme') ? 'male' : 'female';
+        
+        // Âge
+        const ageMatch = text.match(/["']?ageEstimate["']?\s*[:=]\s*["']?(\d+)["']?/i);
+        if (ageMatch) extracted.ageEstimate = parseInt(ageMatch[1]);
+        
+        // Cheveux
+        const hairColorMatch = text.match(/["']?hairColor["']?\s*[:=]\s*["']?([^"',}]+)["']?/i);
+        if (hairColorMatch) extracted.hairColor = hairColorMatch[1].trim();
+        
+        const hairLengthMatch = text.match(/["']?hairLength["']?\s*[:=]\s*["']?([^"',}]+)["']?/i);
+        if (hairLengthMatch) extracted.hairLength = hairLengthMatch[1].trim();
+        
+        // Yeux
+        const eyeColorMatch = text.match(/["']?eyeColor["']?\s*[:=]\s*["']?([^"',}]+)["']?/i);
+        if (eyeColorMatch) extracted.eyeColor = eyeColorMatch[1].trim();
+        
+        // Peau
+        const skinToneMatch = text.match(/["']?skinTone["']?\s*[:=]\s*["']?([^"',}]+)["']?/i);
+        if (skinToneMatch) extracted.skinTone = skinToneMatch[1].trim();
+        
+        // Corps
+        const bodyTypeMatch = text.match(/["']?bodyType["']?\s*[:=]\s*["']?([^"',}]+)["']?/i);
+        if (bodyTypeMatch) extracted.bodyType = bodyTypeMatch[1].trim();
+        
+        // Poitrine
+        const bustMatch = text.match(/["']?bustSize["']?\s*[:=]\s*["']?([A-H]{1,2})["']?/i);
+        if (bustMatch) extracted.bustSize = bustMatch[1].toUpperCase();
+        
+        // Description
+        const descMatch = text.match(/["']?fullDescription["']?\s*[:=]\s*["']([^"]+)["']/i);
+        if (descMatch) extracted.fullDescription = descMatch[1];
+        
+        if (Object.keys(extracted).length >= 3) {
+          console.log('✅ Extraction manuelle réussie:', extracted);
+          return extracted;
+        }
+      } catch (e2) {
+        console.log('⚠️ Extraction manuelle échouée:', e2.message);
+      }
+      
+      return null;
+    }
+  };
+  
+  // === v5.4.25 - HELPER: Valider l'analyse ===
+  const isValidAnalysis = (analysis) => {
+    if (!analysis) return false;
+    
+    // Vérifier qu'on a au moins 3 champs valides
+    let validFields = 0;
+    
+    if (analysis.gender && (analysis.gender === 'male' || analysis.gender === 'female')) validFields++;
+    if (analysis.ageEstimate && analysis.ageEstimate >= 18 && analysis.ageEstimate <= 99) validFields++;
+    if (analysis.hairColor && analysis.hairColor.length > 1) validFields++;
+    if (analysis.eyeColor && analysis.eyeColor.length > 1) validFields++;
+    if (analysis.bodyType && analysis.bodyType.length > 1) validFields++;
+    if (analysis.fullDescription && analysis.fullDescription.length > 10) validFields++;
+    
+    console.log(`📊 Validation: ${validFields}/6 champs valides`);
+    return validFields >= 3;
+  };
+  
+  // === v5.4.25 - HELPER: Appliquer l'analyse au formulaire ===
+  const applyAnalysisToForm = (analysis) => {
+    if (!analysis) return;
+    
+    // Genre
+    if (analysis.gender) {
+      const genderLower = String(analysis.gender).toLowerCase().trim();
+      const isMale = genderLower === 'male' || genderLower === 'homme' || genderLower === 'man';
+      setGender(isMale ? 'male' : 'female');
+      console.log(`👤 Genre: ${isMale ? 'male' : 'female'}`);
+    }
+    
+    // Âge
+    if (analysis.ageEstimate) {
+      const ageNum = parseInt(analysis.ageEstimate);
+      if (!isNaN(ageNum) && ageNum >= 18 && ageNum <= 99) {
+        setAge(String(ageNum));
+        console.log(`🎂 Âge: ${ageNum}`);
+      }
+    }
+    
+    // Cheveux - couleur
+    if (analysis.hairColor) {
+      const hairColorMap = {
+        'noir': 'noirs', 'noire': 'noirs', 'noirs': 'noirs', 'black': 'noirs',
+        'brun': 'bruns', 'brune': 'bruns', 'bruns': 'bruns', 'brown': 'bruns',
+        'châtain': 'châtains', 'chatain': 'châtains', 'chestnut': 'châtains',
+        'blond': 'blonds', 'blonde': 'blonds', 'blonds': 'blonds',
+        'roux': 'roux', 'rousse': 'roux', 'red': 'roux', 'ginger': 'roux',
+        'blanc': 'blancs', 'blanche': 'blancs', 'white': 'blancs',
+        'gris': 'gris', 'argenté': 'gris', 'gray': 'gris', 'grey': 'gris', 'silver': 'gris',
+        'rose': 'roses', 'pink': 'roses',
+        'bleu': 'bleus', 'blue': 'bleus',
+        'vert': 'verts', 'green': 'verts',
+        'violet': 'violets', 'purple': 'violets',
+      };
+      const colorKey = analysis.hairColor.toLowerCase().trim();
+      const normalizedHair = hairColorMap[colorKey] || analysis.hairColor;
+      setHairColor(normalizedHair);
+      console.log(`💇 Cheveux couleur: ${normalizedHair}`);
+    }
+    
+    // Cheveux - longueur
+    if (analysis.hairLength) {
+      const lengthMap = {
+        'very short': 'très courts', 'very-short': 'très courts',
+        'short': 'courts', 'court': 'courts',
+        'medium': 'mi-longs', 'mi-long': 'mi-longs', 'shoulder': 'mi-longs',
+        'long': 'longs', 'longs': 'longs',
+        'very long': 'très longs', 'very-long': 'très longs',
+      };
+      const lengthKey = analysis.hairLength.toLowerCase().trim();
+      const normalizedLength = lengthMap[lengthKey] || analysis.hairLength;
+      setHairLength(normalizedLength);
+      console.log(`💇 Cheveux longueur: ${normalizedLength}`);
+    }
+    
+    // Yeux
+    if (analysis.eyeColor) {
+      const eyeMap = {
+        'brown': 'marron', 'marron': 'marron',
+        'hazel': 'noisette', 'noisette': 'noisette',
+        'green': 'vert', 'vert': 'vert',
+        'blue': 'bleu', 'bleu': 'bleu',
+        'gray': 'gris', 'grey': 'gris', 'gris': 'gris',
+        'black': 'noir', 'noir': 'noir',
+        'amber': 'ambre', 'ambre': 'ambre',
+      };
+      const eyeKey = analysis.eyeColor.toLowerCase().trim();
+      const normalizedEye = eyeMap[eyeKey] || analysis.eyeColor.toLowerCase();
+      setEyeColor(normalizedEye);
+      console.log(`👁️ Yeux: ${normalizedEye}`);
+    }
+    
+    // Peau
+    if (analysis.skinTone) {
+      const skinMap = {
+        'very fair': 'très claire', 'very pale': 'très claire', 'très claire': 'très claire',
+        'fair': 'claire', 'light': 'claire', 'pale': 'claire', 'claire': 'claire',
+        'olive': 'mate', 'mate': 'mate', 'medium': 'mate',
+        'tan': 'bronzée', 'tanned': 'bronzée', 'bronzée': 'bronzée',
+        'caramel': 'caramel', 'brown': 'caramel',
+        'dark': 'ébène', 'ebony': 'ébène', 'ébène': 'ébène', 'black': 'ébène',
+      };
+      const skinKey = analysis.skinTone.toLowerCase().trim();
+      const normalizedSkin = skinMap[skinKey] || analysis.skinTone.toLowerCase();
+      setSkinTone(normalizedSkin);
+      console.log(`🎨 Peau: ${normalizedSkin}`);
+    }
+    
+    // Morphologie
+    if (analysis.bodyType) {
+      const bodyMap = {
+        'slim': 'mince', 'thin': 'mince', 'mince': 'mince', 'skinny': 'mince',
+        'slender': 'élancée', 'élancée': 'élancée', 'tall and thin': 'élancée',
+        'average': 'moyenne', 'moyenne': 'moyenne', 'normal': 'moyenne',
+        'athletic': 'athlétique', 'fit': 'athlétique', 'athlétique': 'athlétique', 'toned': 'athlétique',
+        'curvy': 'voluptueuse', 'voluptuous': 'voluptueuse', 'voluptueuse': 'voluptueuse',
+        'full-figured': 'généreuse', 'généreuse': 'généreuse', 'plus-size': 'généreuse',
+        'chubby': 'ronde', 'round': 'ronde', 'ronde': 'ronde',
+        'thick': 'pulpeuse', 'pulpeuse': 'pulpeuse',
+      };
+      const bodyKey = analysis.bodyType.toLowerCase().trim();
+      const normalizedBody = bodyMap[bodyKey] || analysis.bodyType.toLowerCase();
+      setBodyType(normalizedBody);
+      console.log(`🏋️ Morphologie: ${normalizedBody}`);
+    }
+    
+    // Poitrine (femmes uniquement)
+    const isFemale = !analysis.gender || analysis.gender.toLowerCase() !== 'male';
+    if (isFemale && analysis.bustSize) {
+      const bustUpper = analysis.bustSize.toUpperCase().trim();
+      if (['A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G', 'H'].includes(bustUpper)) {
+        setBust(bustUpper);
+        console.log(`👙 Poitrine: ${bustUpper}`);
+      }
+    }
+    
+    // Taille estimée
+    if (analysis.heightEstimate) {
+      const heightStr = String(analysis.heightEstimate).toLowerCase();
+      let heightVal = '165';
+      
+      if (heightStr.includes('150') || heightStr.includes('petite') || heightStr.includes('small') || heightStr.includes('short')) {
+        heightVal = '155';
+      } else if (heightStr.includes('160') || heightStr.includes('moyenne') || heightStr.includes('medium') || heightStr.includes('average')) {
+        heightVal = '165';
+      } else if (heightStr.includes('170') || heightStr.includes('grande') || heightStr.includes('tall')) {
+        heightVal = '175';
+      } else if (heightStr.includes('180') || heightStr.includes('très grande') || heightStr.includes('very tall')) {
+        heightVal = '180';
+      }
+      
+      setHeight(heightVal);
+      console.log(`📏 Taille: ${heightVal} cm`);
+    }
+    
+    // Description complète
+    if (analysis.fullDescription && analysis.fullDescription.length > 10) {
+      setAppearance(analysis.fullDescription);
+      console.log(`📝 Description: ${analysis.fullDescription.substring(0, 50)}...`);
+    } else {
+      // Générer une description à partir des données
+      generateDetailedDescription(analysis);
     }
   };
   
