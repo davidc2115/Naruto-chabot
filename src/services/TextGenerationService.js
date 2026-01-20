@@ -1362,18 +1362,30 @@ class TextGenerationService {
       
       console.error(`❌ Groq erreur (${status}): ${errorMsg}`);
       
-      // v5.3.61 - PAS de fallback, juste rotation et retry si possible
+      // v5.4.23 - FALLBACK AUTOMATIQUE VERS POLLINATIONS
+      // Au lieu de juste throw, on essaie Pollinations automatiquement
+      console.log('🔄 Groq échoué, fallback automatique vers Pollinations...');
+      
+      // Rotation de la clé Groq pour la prochaine fois
       if (status === 429 || status === 401) {
         this.groqCurrentKeyIndex = (this.groqCurrentKeyIndex + 1) % Math.max(1, this.groqSharedKeysEncoded.length);
-        console.log('🔄 Groq: rotation de clé après erreur');
-        throw new Error(`Erreur Groq (${status}): ${errorMsg}. Réessayez ou changez d'API.`);
+        console.log('🔄 Groq: rotation de clé pour prochaine utilisation');
       }
       
-      // Si organisation restreinte
-      if (errorMsg && (errorMsg.includes('restricted') || errorMsg.includes('Organization'))) {
-        throw new Error('Compte Groq restreint. Créez un nouveau compte sur console.groq.com');
+      // FALLBACK: Appeler Pollinations directement
+      try {
+        console.log('📡 Tentative Pollinations Mistral...');
+        const pollinationsApi = this.availableApis['pollinations-mistral'];
+        const response = await this.callPollinationsApi(pollinationsApi, fullMessages, options);
+        if (response) {
+          console.log('✅ Fallback Pollinations réussi');
+          return response;
+        }
+      } catch (pollinationsError) {
+        console.error('❌ Pollinations fallback aussi échoué:', pollinationsError.message);
       }
       
+      // Si tout échoue, throw l'erreur originale
       throw error;
     }
   }

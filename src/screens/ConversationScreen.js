@@ -397,27 +397,56 @@ export default function ConversationScreen({ route, navigation }) {
         console.log('⚠️ Erreur updateRelationship:', relError.message);
       }
 
-      // Génération de la réponse avec timeout
+      // v5.4.23 - Génération de la réponse avec timeout et retry automatique
       let response;
-      try {
-        response = await Promise.race([
-          TextGenerationService.generateResponse(
-            updatedMessages,
-            character,
-            userProfile
-          ),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 60000)
-          )
-        ]);
-      } catch (genError) {
-        console.error('❌ Erreur génération:', genError.message);
-        response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
+      let generationAttempts = 0;
+      const maxGenerationAttempts = 3;
+      
+      while (generationAttempts < maxGenerationAttempts) {
+        generationAttempts++;
+        try {
+          console.log(`🤖 Tentative de génération ${generationAttempts}/${maxGenerationAttempts}...`);
+          response = await Promise.race([
+            TextGenerationService.generateResponse(
+              updatedMessages,
+              character,
+              userProfile
+            ),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 45000)
+            )
+          ]);
+          
+          // Si on a une réponse valide, sortir de la boucle
+          if (response && typeof response === 'string' && response.length > 10) {
+            console.log('✅ Réponse générée avec succès');
+            break;
+          } else {
+            console.log('⚠️ Réponse vide ou trop courte, retry...');
+            response = null;
+          }
+        } catch (genError) {
+          console.error(`❌ Erreur génération (tentative ${generationAttempts}):`, genError.message);
+          
+          // Attendre un peu avant de réessayer
+          if (generationAttempts < maxGenerationAttempts) {
+            await new Promise(r => setTimeout(r, 1000 * generationAttempts));
+          }
+        }
       }
 
-      // Vérification de la réponse
-      if (!response || typeof response !== 'string') {
-        response = `*sourit* "..." (Réponse vide, réessaie)`;
+      // Si toutes les tentatives ont échoué, générer une réponse contextuelle
+      if (!response || typeof response !== 'string' || response.length < 10) {
+        console.log('⚠️ Toutes les tentatives échouées, génération contextuelle...');
+        // Réponse contextuelle basée sur le dernier message
+        const lastUserContent = userMessageContent.toLowerCase();
+        if (lastUserContent.includes('bonjour') || lastUserContent.includes('salut') || lastUserContent.includes('hey')) {
+          response = `*sourit chaleureusement* "Bonjour ! Je suis content(e) de te voir." (${character.name} semble heureux/heureuse)`;
+        } else if (lastUserContent.includes('?')) {
+          response = `*réfléchit un instant* "Hmm, bonne question..." (${character.name} prend le temps de répondre)`;
+        } else {
+          response = `*t'écoute attentivement* "Je t'entends..." *hoche la tête* (${character.name} est attentif/attentive)`;
+        }
       }
 
       const assistantMessage = {
@@ -712,9 +741,10 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   /**
-   * Formatage du texte RP - Version robuste v6
+   * v5.4.23 - Formatage du texte RP - Version robuste v7
    * Parse: *actions*, (pensées), "dialogues"
    * Gère les astérisques Unicode et les actions inline
+   * FIX: Les actions/pensées entre paroles sont maintenant correctement colorées
    */
   const formatRPMessage = (content) => {
     if (!content || typeof content !== 'string') {
@@ -726,22 +756,26 @@ export default function ConversationScreen({ route, navigation }) {
     const len = content.length;
     let currentText = '';
     
+    // Tous les caractères de guillemets possibles
+    const openQuotes = ['"', '\u00AB', '\u201C', '\uFF02', "'", '\u2018', '\u201A'];
+    const closeQuotes = ['"', '\u00BB', '\u201D', '\uFF02', "'", '\u2019', '\u201B'];
+    
     while (i < len) {
       const char = content[i];
       
-      // Détecter le début d'une action (astérisque)
+      // Détecter le début d'une action (astérisque) - PRIORITÉ HAUTE
       if (isAsterisk(char)) {
         // Sauvegarder le texte accumulé avant
-        if (currentText) {
+        if (currentText.trim()) {
           result.push({ type: 'text', text: currentText });
-          currentText = '';
         }
+        currentText = '';
         
         // Chercher la fin de l'action (prochain astérisque)
         const actionEnd = findNextAsterisk(content, i + 1);
         
         if (actionEnd !== -1 && actionEnd > i + 1) {
-          // Action trouvée
+          // Action trouvée - inclure les astérisques
           const actionContent = content.substring(i + 1, actionEnd);
           result.push({ type: 'action', text: '*' + actionContent + '*' });
           i = actionEnd + 1;
@@ -753,23 +787,26 @@ export default function ConversationScreen({ route, navigation }) {
         continue;
       }
       
-      // Détecter le début d'une pensée (parenthèse)
+      // Détecter le début d'une pensée (parenthèse) - PRIORITÉ HAUTE
       if (char === '(' || char === '\uFF08') {
-        if (currentText) {
+        if (currentText.trim()) {
           result.push({ type: 'text', text: currentText });
-          currentText = '';
         }
+        currentText = '';
         
-        const closeChar = char === '\uFF08' ? '\uFF09' : ')';
+        // Chercher la parenthèse fermante
+        let depth = 1;
         let thoughtEnd = -1;
-        for (let j = i + 1; j < len; j++) {
-          if (content[j] === closeChar || content[j] === ')') {
-            thoughtEnd = j;
-            break;
+        for (let j = i + 1; j < len && depth > 0; j++) {
+          if (content[j] === '(' || content[j] === '\uFF08') depth++;
+          else if (content[j] === ')' || content[j] === '\uFF09') {
+            depth--;
+            if (depth === 0) thoughtEnd = j;
           }
         }
         
-        if (thoughtEnd !== -1 && thoughtEnd > i + 2) {
+        if (thoughtEnd !== -1 && thoughtEnd > i + 1) {
+          // Pensée trouvée - inclure les parenthèses
           const thoughtContent = content.substring(i, thoughtEnd + 1);
           result.push({ type: 'thought', text: thoughtContent });
           i = thoughtEnd + 1;
@@ -781,45 +818,74 @@ export default function ConversationScreen({ route, navigation }) {
       }
       
       // Détecter le début d'un dialogue (guillemets)
-      if (char === '"' || char === '\u00AB' || char === '\u201C' || char === '\uFF02') {
-        if (currentText) {
+      const openQuoteIndex = openQuotes.indexOf(char);
+      if (openQuoteIndex !== -1) {
+        if (currentText.trim()) {
           result.push({ type: 'text', text: currentText });
-          currentText = '';
         }
+        currentText = '';
         
         // Trouver le guillemet fermant correspondant
-        let closeChars = ['"', '\u00BB', '\u201D', '\uFF02'];
-        if (char === '\u00AB') closeChars = ['\u00BB'];
-        
+        // Chercher le guillemet fermant en priorité, sinon n'importe quel guillemet fermant
         let dialogueEnd = -1;
+        const primaryClose = closeQuotes[openQuoteIndex];
+        
         for (let j = i + 1; j < len; j++) {
-          if (closeChars.includes(content[j])) {
+          // Arrêter si on rencontre une action ou pensée (ne pas les englober)
+          if (isAsterisk(content[j]) || content[j] === '(' || content[j] === '\uFF08') {
+            // Vérifier si c'est une action/pensée valide (a une fermeture)
+            if (isAsterisk(content[j])) {
+              const nextAsterisk = findNextAsterisk(content, j + 1);
+              if (nextAsterisk !== -1) {
+                // Il y a une action, terminer le dialogue ici
+                dialogueEnd = j - 1;
+                break;
+              }
+            }
+            if (content[j] === '(' || content[j] === '\uFF08') {
+              // Il y a une pensée
+              dialogueEnd = j - 1;
+              break;
+            }
+          }
+          
+          if (content[j] === primaryClose || closeQuotes.includes(content[j])) {
             dialogueEnd = j;
             break;
           }
         }
         
-        if (dialogueEnd !== -1 && dialogueEnd > i + 1) {
+        if (dialogueEnd !== -1 && dialogueEnd >= i + 1) {
+          // Dialogue trouvé - inclure les guillemets pour clarté visuelle
           const dialogueContent = content.substring(i + 1, dialogueEnd);
-          result.push({ type: 'dialogue', text: dialogueContent });
-          i = dialogueEnd + 1;
+          if (dialogueContent.trim()) {
+            result.push({ type: 'dialogue', text: '"' + dialogueContent + '"' });
+          }
+          // Avancer après le guillemet fermant si on l'a trouvé
+          if (closeQuotes.includes(content[dialogueEnd])) {
+            i = dialogueEnd + 1;
+          } else {
+            i = dialogueEnd + 1;
+          }
         } else {
+          // Pas de fermeture valide, traiter le reste comme dialogue
           currentText += char;
           i++;
         }
         continue;
       }
       
-      // Caractère normal
+      // Caractère normal - ajouter au texte courant
       currentText += char;
       i++;
     }
     
-    // Ajouter le texte restant
-    if (currentText) {
+    // Ajouter le texte restant (s'il y en a)
+    if (currentText.trim()) {
       result.push({ type: 'text', text: currentText });
     }
     
+    // Si rien n'a été parsé, retourner le contenu original
     return result.length > 0 ? result : [{ type: 'text', text: content }];
   };
 
@@ -859,31 +925,61 @@ export default function ConversationScreen({ route, navigation }) {
           )}
           <Text style={styles.messageContent}>
             {formattedParts.map((part, index) => {
+              // v5.4.23 - Styles distincts et bien séparés pour chaque type
               if (part.type === 'action') {
-                // ACTIONS: Couleur personnalisée
+                // ACTIONS: Rouge/personnalisé, italique, gras
                 return (
-                  <Text key={index} style={{ color: style.actionColor || '#ef4444', fontStyle: 'italic', fontWeight: 'bold' }}>
+                  <Text 
+                    key={`action-${index}`} 
+                    style={{ 
+                      color: style.actionColor || '#ef4444', 
+                      fontStyle: 'italic', 
+                      fontWeight: 'bold',
+                      // Forcer le style inline pour éviter l'héritage
+                    }}
+                  >
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'thought') {
-                // PENSÉES: Couleur personnalisée
+                // PENSÉES: Bleu/personnalisé, italique
                 return (
-                  <Text key={index} style={{ color: style.thoughtColor || '#3b82f6', fontStyle: 'italic' }}>
+                  <Text 
+                    key={`thought-${index}`} 
+                    style={{ 
+                      color: style.thoughtColor || '#3b82f6', 
+                      fontStyle: 'italic',
+                      fontWeight: 'normal',
+                    }}
+                  >
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
-                // PAROLES: Couleur personnalisée
+                // PAROLES: Noir/blanc selon bulle, normal
                 return (
-                  <Text key={index} style={{ color: isUser ? '#ffffff' : (style.dialogueColor || '#1f2937') }}>
+                  <Text 
+                    key={`dialogue-${index}`} 
+                    style={{ 
+                      color: isUser ? '#ffffff' : (style.dialogueColor || '#1f2937'),
+                      fontStyle: 'normal',
+                      fontWeight: 'normal',
+                    }}
+                  >
                     {part.text}
                   </Text>
                 );
               } else {
-                // Texte normal
+                // Texte normal/espaces: gris neutre
                 return (
-                  <Text key={index} style={{ color: isUser ? '#ffffff' : (style.dialogueColor || '#4b5563') }}>
+                  <Text 
+                    key={`text-${index}`} 
+                    style={{ 
+                      color: isUser ? 'rgba(255,255,255,0.8)' : '#6b7280',
+                      fontStyle: 'normal',
+                      fontWeight: 'normal',
+                    }}
+                  >
                     {part.text}
                   </Text>
                 );
