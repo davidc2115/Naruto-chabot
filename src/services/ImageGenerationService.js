@@ -235,7 +235,7 @@ class ImageGenerationService {
       ],
     };
     
-    // === v5.3.54 - TYPES DE PHOTOS CORPS ENTIER TOUJOURS ===
+    // === v5.4.20 - TYPES DE PHOTOS VARIÉS AVEC ANGLES INTIMES ===
     this.shotTypes = [
       // Vues de face corps entier sexy
       'full body frontal shot showing entire figure from head to feet, breasts and body visible',
@@ -259,6 +259,39 @@ class ImageGenerationService {
       'full body low angle, powerful pose, complete figure from feet to head',
       'full body mirror reflection showing complete figure, front and back',
       'full body caught undressing, candid sexy moment, entire figure',
+    ];
+    
+    // === v5.4.20 - ANGLES INTIMES NSFW (pour niveaux 4+) ===
+    this.intimateAngles = [
+      // === VUES CENTRÉES SUR LA POITRINE ===
+      'close-up on breasts, cleavage detail, nipples visible, sensual focus',
+      'medium shot focused on chest, breasts emphasized, seductive expression',
+      'POV looking down at breasts, hands cupping, intimate perspective',
+      'breast focus shot, nipples prominent, soft lighting on skin',
+      'chest centered frame, breasts bouncing or jiggling, dynamic pose',
+      // === VUES DU DESSUS ===
+      'shot from above, looking down at body, breasts visible from top angle',
+      'overhead view of body lying down, intimate bird eye perspective',
+      'top-down angle showing cleavage and body, voyeuristic POV',
+      'from above while lying on bed, breasts and face visible',
+      // === VUES DE DERRIÈRE / FESSES ===
+      'rear view focused on butt, looking over shoulder seductively',
+      'ass-focused shot, bent over, rear presented, back arched',
+      'from behind, butt emphasized, thong or naked, inviting pose',
+      'doggy style angle, rear view, butt prominent, face looking back',
+      'kneeling from behind, ass up, face down, submissive pose',
+      'standing rear view, butt cheeks visible, looking back flirtatiously',
+      // === VUES INTIMES / SEXE ===
+      'legs spread view, intimate area visible, lying on bed',
+      'POV between legs, looking up at face, intimate perspective',
+      'pussy shot, legs open wide, explicit frontal view',
+      'close-up intimate area, spread open, detailed explicit',
+      'missionary POV, looking down at body, legs wrapped around',
+      // === VUES COMBINÉES SENSUELLES ===
+      'on all fours, breasts hanging, rear up, seductive look back',
+      'lying on side, breast and hip curve emphasized, sensual pose',
+      'straddling view from below, breasts and face visible',
+      'bent over bed, rear view with breasts visible from angle',
     ];
     
     // === VARIÉTÉ D'ÉCLAIRAGES ===
@@ -3282,69 +3315,94 @@ class ImageGenerationService {
       details.skin.color = 'fair caucasian skin';
     }
     
-    // === MORPHOLOGIE / CORPS - AMÉLIORE AVEC MOTS-CLÉS MULTIPLES ===
-    // Collecter les indicateurs de morphologie
-    const bodyIndicators = {
-      bbw: allText.includes('bbw') || allText.includes('très ronde') || allText.includes('très grosse') || allText.includes('obèse'),
-      round: allText.includes('ronde') || allText.includes('rondelette') || allText.includes('potelée') || allText.includes('dodue'),
-      chubby: allText.includes('chubby') || allText.includes('enrobée') || allText.includes('en chair'),
-      generous: false, // Désactivé v5.3.30
-      voluptuous: allText.includes('pulpeuse') || allText.includes('plantureuse'),
-      curvy: allText.includes('courbes') || allText.includes('formes') || allText.includes('curvy') || allText.includes('curves'),
-      thick: allText.includes('thick') || allText.includes('épaisse') || allText.includes('cuisses épaisses'),
-      maternal: allText.includes('maternelle') || allText.includes('maman') || allText.includes('milf') || allText.includes('mature'),
-      athletic: allText.includes('musclé') || allText.includes('athlétique') || allText.includes('tonique') || allText.includes('sportif'),
-      slim: allText.includes('mince') || allText.includes('svelte') || allText.includes('élancée') || allText.includes('fine'),
-      petite: allText.includes('petite') && !allText.includes('poitrine'),
-      massive: allText.includes('massif') || allText.includes('trapu') || allText.includes('costaud'),
-      hourglass: allText.includes('sablier') || allText.includes('hourglass'),
+    // === v5.4.20 - MORPHOLOGIE / CORPS - PRIORITÉ AU CHAMP bodyType EXPLICITE ===
+    // D'abord vérifier si le personnage a un bodyType explicitement défini
+    const explicitBodyType = (character.bodyType || '').toLowerCase().trim();
+    
+    // Mapping des types de corps explicites vers les descriptions en anglais
+    const explicitBodyTypeMap = {
+      'mince': 'SLIM SLENDER BODY, lean figure, thin physique, slender frame',
+      'élancée': 'SLENDER ELEGANT BODY, tall and slim, graceful figure, lean physique',
+      'moyenne': 'AVERAGE NORMAL BODY, normal proportions, regular build',
+      'athlétique': 'ATHLETIC TONED BODY, fit physique, defined muscles, sporty figure, toned arms and legs',
+      'voluptueuse': 'VOLUPTUOUS BODY, extremely curvy figure, sexy hourglass shape, large bust, wide hips, thick thighs, sensual full curves',
+      'généreuse': 'GENEROUS CURVY BODY, full-figured woman, voluptuous figure, wide hips, large bust, thick thighs',
+      'pulpeuse': 'THICK CURVY BODY, pronounced sexy curves, thick thighs, wide hips, full-figured',
+      'ronde': 'CHUBBY ROUND BODY, plump soft curves, thick body with soft belly, wide hips, rounded figure',
+      'très ronde': 'BBW body type, very fat curvy woman, extremely thick plump body, big belly, thick everywhere',
+      'plantureuse': 'VOLUPTUOUS CURVY body, big breasts, wide hips, hourglass figure',
+      'enrobée': 'PLUMP SOFT body, chubby, soft curves, round belly',
+      'potelée': 'CHUBBY CUTE body, soft plump figure, round face',
     };
     
-    console.log('🔍 Indicateurs morphologie:', Object.entries(bodyIndicators).filter(([k,v]) => v).map(([k]) => k).join(', '));
-    
-    // BBW / Très ronde - PRIORITÉ MAXIMALE
-    if (bodyIndicators.bbw) {
-      details.body.type = 'BBW body type, very fat curvy woman, extremely thick plump body, very large full-figured, big beautiful woman, chubby fat body, wide hips, big belly, thick everywhere';
-    }
-    // Ronde / Chubby / Dodue
-    else if (bodyIndicators.round || bodyIndicators.chubby) {
-      details.body.type = 'CHUBBY ROUND BODY, plump soft curves, full-figured curvy woman, thick body with soft belly, wide hips, rounded figure, pleasantly plump';
-    }
-    // Généreuse - MOTS FRANÇAIS SPÉCIFIQUES
-    else if (bodyIndicators.generous) {
-      details.body.type = 'GENEROUS CURVY BODY, full-figured woman with generous curves everywhere, voluptuous figure, wide hips, large bust, thick thighs, womanly curves, sexy full body';
-    }
-    // Voluptueuse / Pulpeuse - MOTS FRANÇAIS SPÉCIFIQUES
-    else if (bodyIndicators.voluptuous) {
-      details.body.type = 'VOLUPTUOUS BODY, extremely curvy figure, sexy hourglass shape, large bust, wide hips, thick thighs, sensual full curves, bombshell figure';
-    }
-    // Curvy / Formes
-    else if (bodyIndicators.curvy || bodyIndicators.hourglass) {
-      details.body.type = 'CURVY HOURGLASS BODY, sexy curves, pronounced bust and hips, slim waist, feminine figure, attractive curves';
-    }
-    // Thick / Épaisse
-    else if (bodyIndicators.thick) {
-      details.body.type = 'THICK CURVY BODY, pronounced sexy curves, thick thighs, wide hips, full-figured, thicc body';
-    }
-    // Maternelle / MILF
-    else if (bodyIndicators.maternal) {
-      details.body.type = 'MATURE MATERNAL BODY, soft womanly curves, nurturing figure, full bust, wide hips, mature feminine body, MILF figure';
-    }
-    // Musclée / Athlétique
-    else if (bodyIndicators.athletic) {
-      details.body.type = 'ATHLETIC TONED BODY, fit physique, defined muscles, sporty figure, toned arms and legs';
-    }
-    // Mince / Élancée
-    else if (bodyIndicators.slim) {
-      details.body.type = 'SLIM SLENDER BODY, lean figure, thin physique, slender frame';
-    }
-    // Petite
-    else if (bodyIndicators.petite) {
-      details.body.type = 'PETITE SMALL BODY, delicate frame, small stature';
-    }
-    // Massif / Trapu (hommes)
-    else if (bodyIndicators.massive) {
-      details.body.type = 'MASSIVE MUSCULAR STOCKY BODY, broad powerful build, big strong frame';
+    // Si bodyType explicite trouvé, l'utiliser directement
+    if (explicitBodyType && explicitBodyTypeMap[explicitBodyType]) {
+      details.body.type = explicitBodyTypeMap[explicitBodyType];
+      console.log(`🏋️ MORPHOLOGIE EXPLICITE: ${explicitBodyType} -> ${details.body.type.substring(0, 40)}...`);
+    } else {
+      // Sinon, utiliser la détection par mots-clés dans physicalDescription SEULEMENT
+      // NE PAS utiliser les tags ou le nom pour éviter les faux positifs
+      const physDescOnly = (character.physicalDescription || '').toLowerCase();
+      
+      const bodyIndicators = {
+        bbw: physDescOnly.includes('bbw') || physDescOnly.includes('très ronde') || physDescOnly.includes('très grosse') || physDescOnly.includes('obèse'),
+        round: physDescOnly.includes('ronde ') || physDescOnly.includes('rondelette') || physDescOnly.includes('potelée') || physDescOnly.includes('dodue'),
+        chubby: physDescOnly.includes('chubby') || physDescOnly.includes('enrobée') || physDescOnly.includes('en chair'),
+        generous: false, // Désactivé - trop de faux positifs
+        voluptuous: physDescOnly.includes('pulpeuse') || physDescOnly.includes('plantureuse') || physDescOnly.includes('voluptueuse'),
+        curvy: physDescOnly.includes('courbes généreuses') || physDescOnly.includes('formes généreuses') || physDescOnly.includes('curvy body'),
+        thick: physDescOnly.includes('thick body') || physDescOnly.includes('épaisse') || physDescOnly.includes('cuisses épaisses'),
+        maternal: false, // Désactivé - MILF ne signifie pas forcément ronde
+        athletic: physDescOnly.includes('musclé') || physDescOnly.includes('athlétique') || physDescOnly.includes('tonique') || physDescOnly.includes('sportif'),
+        slim: physDescOnly.includes('mince') || physDescOnly.includes('svelte') || physDescOnly.includes('élancée') || physDescOnly.includes('fine silhouette'),
+        petite: physDescOnly.includes('petite silhouette') || physDescOnly.includes('petite taille'),
+        massive: physDescOnly.includes('massif') || physDescOnly.includes('trapu') || physDescOnly.includes('costaud'),
+        hourglass: physDescOnly.includes('sablier') || physDescOnly.includes('hourglass'),
+      };
+      
+      const activeIndicators = Object.entries(bodyIndicators).filter(([k,v]) => v).map(([k]) => k);
+      if (activeIndicators.length > 0) {
+        console.log('🔍 Indicateurs morphologie (physicalDescription):', activeIndicators.join(', '));
+      }
+      
+      // BBW / Très ronde - PRIORITÉ MAXIMALE
+      if (bodyIndicators.bbw) {
+        details.body.type = 'BBW body type, very fat curvy woman, extremely thick plump body, very large full-figured, big beautiful woman, chubby fat body, wide hips, big belly, thick everywhere';
+      }
+      // Ronde / Chubby / Dodue
+      else if (bodyIndicators.round || bodyIndicators.chubby) {
+        details.body.type = 'CHUBBY ROUND BODY, plump soft curves, full-figured curvy woman, thick body with soft belly, wide hips, rounded figure, pleasantly plump';
+      }
+      // Voluptueuse / Pulpeuse - MOTS FRANÇAIS SPÉCIFIQUES
+      else if (bodyIndicators.voluptuous) {
+        details.body.type = 'VOLUPTUOUS BODY, extremely curvy figure, sexy hourglass shape, large bust, wide hips, thick thighs, sensual full curves, bombshell figure';
+      }
+      // Curvy / Formes généreuses - SEULEMENT SI explicite
+      else if (bodyIndicators.curvy || bodyIndicators.hourglass) {
+        details.body.type = 'CURVY HOURGLASS BODY, sexy curves, pronounced bust and hips, slim waist, feminine figure, attractive curves';
+      }
+      // Thick / Épaisse
+      else if (bodyIndicators.thick) {
+        details.body.type = 'THICK CURVY BODY, pronounced sexy curves, thick thighs, wide hips, full-figured, thicc body';
+      }
+      // Musclée / Athlétique
+      else if (bodyIndicators.athletic) {
+        details.body.type = 'ATHLETIC TONED BODY, fit physique, defined muscles, sporty figure, toned arms and legs';
+      }
+      // Mince / Élancée
+      else if (bodyIndicators.slim) {
+        details.body.type = 'SLIM SLENDER BODY, lean figure, thin physique, slender frame';
+      }
+      // Petite
+      else if (bodyIndicators.petite) {
+        details.body.type = 'PETITE SMALL BODY, delicate frame, small stature';
+      }
+      // Massif / Trapu (hommes)
+      else if (bodyIndicators.massive) {
+        details.body.type = 'MASSIVE MUSCULAR STOCKY BODY, broad powerful build, big strong frame';
+      }
+      // v5.4.20 - PAS DE DEFAULT CURVY - Si rien n'est détecté, laisser vide
+      // Le générateur utilisera une silhouette normale
     }
     
     // === POITRINE (FEMMES) - BONNET - DESCRIPTIONS RENFORCÉES ===
@@ -3956,34 +4014,91 @@ class ImageGenerationService {
       // Anatomie détaillée pour NSFW
       prompt += this.buildAnatomyDescription(character, isRealistic);
       
-      // === v5.3.54 - ANGLE/TYPE DE PHOTO TOUJOURS CORPS ENTIER ===
-      const nsfwAngles = [
-        // Corps entier obligatoire
-        'full body shot showing entire figure from head to feet, complete person visible',
-        'full body frontal view, entire body from head to toes visible',
-        'full body view lying on bed, complete figure from top to bottom',
-        'full length shot, whole body exposed from head to feet',
-        // Vues de face corps entier
-        'full body frontal view, entire figure visible, sexy confident pose',
-        'full body front facing camera, complete person head to feet',
-        'full body facing viewer, entire figure shown, inviting pose',
-        // Vues de profil corps entier
-        'full body side profile, entire figure from head to feet',
-        'full body profile view, complete silhouette visible',
-        'full body three-quarter angle, entire person shown',
-        // Vues de dos corps entier
-        'full body back view, entire figure from head to feet, looking over shoulder',
-        'full body rear view, complete person visible, arched back',
-        'full body from behind, entire figure head to toes visible',
-        // Poses corps entier
-        'full body lying on bed, entire figure visible, inviting pose',
-        'full body on knees, complete figure from head to floor',
-        'full body bent over, entire person visible, provocative',
-        'full body straddling position, complete figure shown',
-      ];
-      const randomAngle = nsfwAngles[Math.floor(Math.random() * nsfwAngles.length)];
-      prompt += `, ${randomAngle}`;
-      console.log(`📷 ANGLE: ${randomAngle.substring(0, 50)}...`);
+      // === v5.4.20 - ANGLES VARIÉS SELON LE NIVEAU ===
+      let selectedAngle;
+      
+      if (level >= 5) {
+        // Niveau 5+ : ANGLES TRÈS INTIMES (focus sur parties intimes)
+        const explicitAngles = [
+          // Vues intimes explicites
+          'legs spread wide open, intimate area fully visible, explicit view',
+          'POV between spread legs, pussy visible, looking up at camera',
+          'close-up on intimate area, legs open, explicit detail',
+          'bent over presenting rear, ass and pussy visible from behind',
+          'lying on back, legs wide open, full frontal intimate view',
+          'doggy position, rear view, ass up face down, presenting',
+          'straddling view from below, pussy and breasts visible',
+          'on knees, legs spread, touching self intimately',
+          // Vues des fesses explicites
+          'close-up on ass, bent over, cheeks spread',
+          'rear view, on all fours, ass prominently displayed',
+          'lying on stomach, ass up, looking back seductively',
+          // Vues poitrine explicites
+          'topless close-up, breasts prominent, nipples erect',
+          'POV looking down at bare breasts being squeezed',
+          'breasts bouncing, dynamic movement, nipples visible',
+        ];
+        selectedAngle = explicitAngles[Math.floor(Math.random() * explicitAngles.length)];
+        console.log(`📷 ANGLE EXPLICITE Niveau ${level}: ${selectedAngle.substring(0, 50)}...`);
+      } else if (level >= 4) {
+        // Niveau 4 : ANGLES INTIMES (topless, focus poitrine/fesses)
+        const intimateAngles = [
+          // Focus poitrine
+          'medium shot focused on bare breasts, nipples visible, sensual',
+          'topless frontal view, breasts emphasized, seductive expression',
+          'close-up on cleavage and breasts, soft lighting, intimate',
+          'POV looking down at topless body, breasts prominent',
+          'breasts centered in frame, hands cupping, erotic',
+          // Focus fesses
+          'rear view, butt emphasized, looking over shoulder',
+          'bent over slightly, ass prominent, inviting pose',
+          'from behind, butt cheeks visible, arched back',
+          'kneeling, rear view, butt up, submissive pose',
+          // Vues du dessus
+          'shot from above, looking down at topless body',
+          'overhead angle, breasts visible from top, lying on bed',
+          // Corps entier intime
+          'full body topless, confident pose, entire figure visible',
+          'topless on bed, inviting pose, complete figure shown',
+        ];
+        selectedAngle = intimateAngles[Math.floor(Math.random() * intimateAngles.length)];
+        console.log(`📷 ANGLE INTIME Niveau ${level}: ${selectedAngle.substring(0, 50)}...`);
+      } else if (level >= 3) {
+        // Niveau 3 : ANGLES SENSUELS (lingerie, suggestif)
+        const sensualAngles = [
+          'full body in lingerie, curves emphasized, seductive pose',
+          'lying on bed in underwear, inviting, entire figure visible',
+          'bending forward showing cleavage in bra, teasing',
+          'from behind in panties, looking over shoulder, butt visible',
+          'kneeling on bed in lingerie, provocative pose',
+          'undressing, bra strap sliding off shoulder, sexy tease',
+          'in doorway wearing lingerie, backlit silhouette, mysterious',
+          'mirror selfie in underwear, showing off body',
+          'lying on side in lingerie, hip curve emphasized',
+          'sitting with legs crossed in bra and panties, elegant sexy',
+        ];
+        selectedAngle = sensualAngles[Math.floor(Math.random() * sensualAngles.length)];
+        console.log(`📷 ANGLE SENSUEL Niveau ${level}: ${selectedAngle.substring(0, 50)}...`);
+      } else {
+        // Niveau 2 : ANGLES PROVOCANTS (habillée sexy)
+        const provocativeAngles = [
+          'full body in tight dress, curves visible, confident pose',
+          'leaning forward showing cleavage, flirtatious smile',
+          'sitting with legs crossed, short skirt riding up',
+          'from behind, looking over shoulder, dress hugging curves',
+          'lying on bed fully clothed, inviting pose, sexy',
+          'undressing, pulling dress strap down, teasing',
+          'in doorway, silhouette visible through sheer dress',
+          'dancing pose, dress flowing, movement captured',
+          'bending over slightly, rear emphasized, playful',
+          'standing confidently, hands on hips, sexy outfit',
+        ];
+        selectedAngle = provocativeAngles[Math.floor(Math.random() * provocativeAngles.length)];
+        console.log(`📷 ANGLE PROVOCANT Niveau ${level}: ${selectedAngle.substring(0, 50)}...`);
+      }
+      
+      prompt += `, ${selectedAngle}`;
+      console.log(`📷 ANGLE FINAL: ${selectedAngle}`);
       
       // === v5.4.9 - POSITIONS BASÉES SUR LE NIVEAU (comme les tenues) ===
       // Utiliser getPoseByLevel pour avoir des poses adaptées au niveau

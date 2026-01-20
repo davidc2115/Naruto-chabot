@@ -21,8 +21,9 @@ import UserProfileService from '../services/UserProfileService';
 import AuthService from '../services/AuthService';
 
 export default function CreateCharacterScreen({ navigation, route }) {
-  const { characterToEdit } = route.params || {};
+  const { characterToEdit, isBuiltIn } = route.params || {};
   const isEditing = !!characterToEdit;
+  const isEditingBuiltIn = isBuiltIn && isEditing; // v5.4.20 - Modification d'un personnage intégré
 
   // === INFORMATIONS DE BASE ===
   const [name, setName] = useState(characterToEdit?.name || '');
@@ -57,6 +58,9 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [isPublic, setIsPublic] = useState(characterToEdit?.isPublic || false);
   const [serverOnline, setServerOnline] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
+  
+  // v5.4.20 - Tags personnalisables
+  const [tags, setTags] = useState(characterToEdit?.tags?.join(', ') || '');
   
   // === LISTES DE CHOIX ===
   const hairLengths = ['très courts', 'courts', 'mi-longs', 'longs', 'très longs'];
@@ -625,7 +629,8 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte explicatif.`;
   };
 
   const handleSave = async () => {
-    if (!name || !age || !personality || !scenario || !startMessage) {
+    // v5.4.20 - Validation plus souple pour modifications de personnages intégrés
+    if (!isEditingBuiltIn && (!name || !age || !personality || !scenario || !startMessage)) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
       return;
     }
@@ -635,7 +640,12 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte explicatif.`;
       const finalAppearance = appearance || generatePhysicalDescription();
       const finalImagePrompt = generateImagePrompt();
       
-      const character = {
+      // v5.4.20 - Parser les tags depuis le champ texte
+      const parsedTags = tags
+        ? tags.split(',').map(t => t.trim()).filter(t => t)
+        : [temperament, 'personnalisé', gender === 'female' ? 'femme' : 'homme', bodyType].filter(Boolean);
+      
+      const characterData = {
         name,
         age: parseInt(age),
         gender,
@@ -660,26 +670,34 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte explicatif.`;
           communication: `Style ${temperament}`,
           reactions: 'Réactions naturelles',
         },
-        // === TAGS ===
-        tags: [
-          temperament, 
-          'personnalisé', 
-          gender === 'female' ? 'femme' : 'homme',
-          bodyType,
-        ].filter(Boolean),
+        // === TAGS v5.4.20 ===
+        tags: parsedTags,
         // === SCÉNARIO ===
         scenario,
         description: scenario,
         startMessage,
         // === MÉTADONNÉES ===
         imageUrl: imageUrl || undefined,
-        isCustom: true,
+        isCustom: !isEditingBuiltIn, // Si c'est un built-in, ne pas marquer comme custom
         isPublic: isPublic,
       };
 
-      let savedCharacter;
-      if (isEditing) {
-        savedCharacter = await CustomCharacterService.updateCustomCharacter(characterToEdit.id, character);
+      // v5.4.20 - GESTION DIFFÉRENCIÉE SELON LE TYPE DE PERSONNAGE
+      if (isEditingBuiltIn) {
+        // === MODIFICATION D'UN PERSONNAGE INTÉGRÉ ===
+        // Sauvegarder les modifications localement
+        await CustomCharacterService.saveCharacterModifications(characterToEdit.id, characterData);
+        
+        if (imageUrl && imageUrl !== characterToEdit.imageUrl) {
+          await GalleryService.saveImageToGallery(characterToEdit.id, imageUrl);
+        }
+        
+        Alert.alert('✅ Succès', `Les modifications de ${name} ont été sauvegardées localement.\n\nElles seront appliquées à ce personnage.`, [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+      } else if (isEditing) {
+        // === MODIFICATION D'UN PERSONNAGE CUSTOM ===
+        await CustomCharacterService.updateCustomCharacter(characterToEdit.id, characterData);
         
         if (imageUrl && imageUrl !== characterToEdit.imageUrl) {
           await GalleryService.saveImageToGallery(characterToEdit.id, imageUrl);
@@ -689,7 +707,8 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte explicatif.`;
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       } else {
-        savedCharacter = await CustomCharacterService.saveCustomCharacter(character, isPublic);
+        // === CRÉATION D'UN NOUVEAU PERSONNAGE CUSTOM ===
+        const savedCharacter = await CustomCharacterService.saveCustomCharacter(characterData, isPublic);
         
         if (imageUrl && savedCharacter.id) {
           await GalleryService.saveImageToGallery(savedCharacter.id, imageUrl);
@@ -1030,6 +1049,29 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte explicatif.`;
         multiline
         numberOfLines={4}
       />
+
+      {/* v5.4.20 - Section Tags */}
+      <Text style={styles.label}>🏷️ Tags (séparés par des virgules)</Text>
+      <TextInput
+        style={styles.input}
+        value={tags}
+        onChangeText={setTags}
+        placeholder="romantique, aventurier, mystérieux, milf, etc..."
+      />
+      <Text style={styles.hint}>
+        Exemples: romantique, aventurier, milf, dominant, timide, fantasy...
+      </Text>
+
+      {/* Note pour les personnages intégrés */}
+      {isEditingBuiltIn && (
+        <View style={styles.builtInNote}>
+          <Text style={styles.builtInNoteTitle}>ℹ️ Modification d'un personnage intégré</Text>
+          <Text style={styles.builtInNoteText}>
+            Les modifications seront sauvegardées localement et appliquées à ce personnage.
+            Le personnage original ne sera pas modifié.
+          </Text>
+        </View>
+      )}
 
       {/* Section Public/Privé */}
       <View style={styles.publicSection}>
@@ -1456,5 +1498,32 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#d97706',
     fontWeight: '500',
+  },
+  // v5.4.20 - Styles pour Tags et Built-in note
+  hint: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  builtInNote: {
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    padding: 15,
+    marginTop: 15,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#f59e0b',
+  },
+  builtInNoteTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#92400e',
+    marginBottom: 6,
+  },
+  builtInNoteText: {
+    fontSize: 13,
+    color: '#78350f',
+    lineHeight: 18,
   },
 });

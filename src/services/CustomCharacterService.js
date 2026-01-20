@@ -468,6 +468,100 @@ class CustomCharacterService {
       console.log('✅ Cache personnages publics vidé');
     } catch (e) {}
   }
+
+  // === v5.4.20 - MODIFICATIONS DES PERSONNAGES INTÉGRÉS ===
+  
+  /**
+   * Sauvegarde des modifications locales pour un personnage intégré
+   * Stocke les modifications dans un stockage séparé
+   */
+  async saveCharacterModifications(characterId, modifications) {
+    try {
+      const key = 'character_modifications';
+      const data = await AsyncStorage.getItem(key);
+      const allMods = data ? JSON.parse(data) : {};
+      
+      allMods[characterId] = {
+        ...allMods[characterId],
+        ...modifications,
+        modifiedAt: Date.now(),
+      };
+      
+      await AsyncStorage.setItem(key, JSON.stringify(allMods));
+      console.log(`✅ Modifications sauvegardées pour personnage ${characterId}`);
+      return allMods[characterId];
+    } catch (error) {
+      console.error('❌ Erreur sauvegarde modifications:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupère les modifications locales pour un personnage
+   */
+  async getCharacterModifications(characterId) {
+    try {
+      const key = 'character_modifications';
+      const data = await AsyncStorage.getItem(key);
+      const allMods = data ? JSON.parse(data) : {};
+      return allMods[characterId] || null;
+    } catch (error) {
+      console.error('❌ Erreur chargement modifications:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Récupère toutes les modifications de personnages
+   */
+  async getAllCharacterModifications() {
+    try {
+      const key = 'character_modifications';
+      const data = await AsyncStorage.getItem(key);
+      return data ? JSON.parse(data) : {};
+    } catch (error) {
+      console.error('❌ Erreur chargement toutes modifications:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Applique les modifications locales à un personnage intégré
+   * Retourne le personnage avec les modifications appliquées
+   */
+  async applyModificationsToCharacter(character) {
+    if (!character || !character.id) return character;
+    
+    const modifications = await this.getCharacterModifications(character.id);
+    if (!modifications) return character;
+    
+    return {
+      ...character,
+      ...modifications,
+      _hasLocalMods: true, // Flag pour indiquer que des modifications existent
+    };
+  }
+
+  /**
+   * Supprime les modifications d'un personnage
+   */
+  async deleteCharacterModifications(characterId) {
+    try {
+      const key = 'character_modifications';
+      const data = await AsyncStorage.getItem(key);
+      const allMods = data ? JSON.parse(data) : {};
+      
+      if (allMods[characterId]) {
+        delete allMods[characterId];
+        await AsyncStorage.setItem(key, JSON.stringify(allMods));
+        console.log(`✅ Modifications supprimées pour personnage ${characterId}`);
+      }
+      return true;
+    } catch (error) {
+      console.error('❌ Erreur suppression modifications:', error);
+      return false;
+    }
+  }
 }
 
 export default new CustomCharacterService();

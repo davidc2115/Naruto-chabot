@@ -232,12 +232,12 @@ export default function CharacterDetailScreen({ route, navigation }) {
     navigation.navigate('Conversation', { character });
   };
 
+  // v5.4.20 - Modification possible pour TOUS les personnages
   const handleEditCharacter = () => {
-    if (character.isCustom) {
-      navigation.navigate('CreateCharacter', { characterToEdit: character });
-    } else {
-      Alert.alert('Info', 'Seuls les personnages personnalisés peuvent être modifiés');
-    }
+    navigation.navigate('CreateCharacter', { 
+      characterToEdit: character,
+      isBuiltIn: !character.isCustom // Flag pour savoir si c'est un personnage intégré
+    });
   };
 
   const handleDeleteCharacter = async () => {
@@ -590,16 +590,17 @@ export default function CharacterDetailScreen({ route, navigation }) {
             </TouchableOpacity>
           )}
 
-          {character.isCustom && (
-            <View style={styles.customButtonsRow}>
-              <TouchableOpacity style={styles.editButton} onPress={handleEditCharacter}>
-                <Text style={styles.editButtonText}>✏️ Modifier</Text>
-              </TouchableOpacity>
+          {/* v5.4.20 - Bouton Modifier pour TOUS les personnages */}
+          <View style={styles.customButtonsRow}>
+            <TouchableOpacity style={styles.editButton} onPress={handleEditCharacter}>
+              <Text style={styles.editButtonText}>✏️ Modifier</Text>
+            </TouchableOpacity>
+            {character.isCustom && (
               <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteCharacter}>
                 <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
               </TouchableOpacity>
-            </View>
-          )}
+            )}
+          </View>
         </View>
       </View>
     </ScrollView>
