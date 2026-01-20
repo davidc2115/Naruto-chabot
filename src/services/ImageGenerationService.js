@@ -4656,9 +4656,10 @@ class ImageGenerationService {
    * Accepte maintenant un objet character optionnel pour les détails physiques directs
    */
   /**
-   * v5.4.17 - Génère une image avec POLLINATIONS AI (Cloud)
+   * v5.4.18 - Génère une image avec POLLINATIONS AI (Cloud)
    * URL: https://image.pollinations.ai/prompt/
    * Paramètres: model=flux, safe=false (NSFW), enhance=true
+   * IMPORTANT: Préserve le prompt original si il contient déjà les tenues/poses NSFW
    */
   async generateWithPollinations(prompt, character = null) {
     console.log('☁️ POLLINATIONS AI: Génération cloud (model=flux, safe=false, NSFW activé)...');
@@ -4673,6 +4674,43 @@ class ImageGenerationService {
     const nsfwMatch = prompt.match(/\[NSFW_LEVEL_(\d+)\]/);
     const nsfwLevel = nsfwMatch ? parseInt(nsfwMatch[1]) : 0;
     const isNSFW = nsfwLevel >= 2;
+    
+    // v5.4.18 - VÉRIFIER SI LE PROMPT CONTIENT DÉJÀ LES TENUES/POSES NSFW
+    // Si oui, utiliser le prompt tel quel (il vient de generateSceneImage avec les bons éléments)
+    const hasNSFWContent = lowerPrompt.includes('lingerie') || 
+                          lowerPrompt.includes('topless') || 
+                          lowerPrompt.includes('nude') ||
+                          lowerPrompt.includes('naked') ||
+                          lowerPrompt.includes('breasts') ||
+                          lowerPrompt.includes('nipples') ||
+                          lowerPrompt.includes('panties') ||
+                          lowerPrompt.includes('bra ') ||
+                          lowerPrompt.includes('thong') ||
+                          lowerPrompt.includes('corset') ||
+                          lowerPrompt.includes('stockings') ||
+                          lowerPrompt.includes('garter') ||
+                          lowerPrompt.includes('bodysuit') ||
+                          lowerPrompt.includes('negligee') ||
+                          lowerPrompt.includes('sensual') ||
+                          lowerPrompt.includes('provocative') ||
+                          lowerPrompt.includes('cleavage') ||
+                          lowerPrompt.includes('erotic') ||
+                          lowerPrompt.includes('explicit');
+    
+    if (isNSFW && hasNSFWContent) {
+      console.log('🔞 v5.4.18: Prompt NSFW COMPLET détecté - utilisation directe');
+      // Nettoyer le marker NSFW du prompt
+      let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
+      // Ajouter qualité
+      cleanPrompt += ', masterpiece, best quality, ultra detailed, 8K';
+      
+      const shortPrompt = cleanPrompt.substring(0, 1900);
+      const encodedPrompt = encodeURIComponent(shortPrompt);
+      const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true&safe=false&nofeed=true`;
+      
+      console.log(`📝 Prompt NSFW DIRECT (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
+      return imageUrl;
+    }
     
     // Détecter si anime ou réaliste
     const isAnime = lowerPrompt.includes('anime') || lowerPrompt.includes('manga');
@@ -6007,9 +6045,10 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.4.17 - Génère une image avec Stable Diffusion sur serveur FREEBOX
+   * v5.4.18 - Génère une image avec Stable Diffusion sur serveur FREEBOX
    * Utilise le serveur SD hébergé sur la Freebox
    * URL configurable: http://88.174.155.230:33437/generate
+   * IMPORTANT: Préserve le prompt original si il contient déjà les tenues/poses NSFW
    */
   async generateWithFreeboxSD(prompt, character = null) {
     console.log('🏠 FREEBOX SD: Génération sur serveur Freebox...');
@@ -6030,15 +6069,44 @@ class ImageGenerationService {
     const nsfwLevel = nsfwMatch ? parseInt(nsfwMatch[1]) : 0;
     const isNSFW = nsfwLevel >= 2;
     
-    // Construire le prompt final
-    let finalPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
+    // v5.4.18 - VÉRIFIER SI LE PROMPT CONTIENT DÉJÀ LES TENUES/POSES NSFW
+    const hasNSFWContent = lowerPrompt.includes('lingerie') || 
+                          lowerPrompt.includes('topless') || 
+                          lowerPrompt.includes('nude') ||
+                          lowerPrompt.includes('naked') ||
+                          lowerPrompt.includes('breasts') ||
+                          lowerPrompt.includes('nipples') ||
+                          lowerPrompt.includes('panties') ||
+                          lowerPrompt.includes('bra ') ||
+                          lowerPrompt.includes('thong') ||
+                          lowerPrompt.includes('corset') ||
+                          lowerPrompt.includes('stockings') ||
+                          lowerPrompt.includes('garter') ||
+                          lowerPrompt.includes('bodysuit') ||
+                          lowerPrompt.includes('negligee') ||
+                          lowerPrompt.includes('sensual') ||
+                          lowerPrompt.includes('provocative') ||
+                          lowerPrompt.includes('cleavage') ||
+                          lowerPrompt.includes('erotic') ||
+                          lowerPrompt.includes('explicit');
+    
+    let finalPrompt;
+    
+    if (isNSFW && hasNSFWContent) {
+      console.log('🔞 v5.4.18: Prompt NSFW COMPLET détecté pour Freebox - utilisation directe');
+      // Utiliser le prompt tel quel, il contient déjà les tenues/poses NSFW
+      finalPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
+    } else {
+      // Construire le prompt normalement
+      finalPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
+    }
     
     // Ajouter les prompts de qualité pour SD
     finalPrompt += ', ' + this.anatomyStrictPrompt;
     finalPrompt += ', masterpiece, best quality, ultra detailed, 8K';
     
     if (isNSFW) {
-      finalPrompt += ', nsfw, erotic, sensual';
+      finalPrompt += ', nsfw, erotic, sensual, sexy, provocative';
     }
     
     // Limiter la longueur pour le serveur Freebox
@@ -6050,7 +6118,7 @@ class ImageGenerationService {
     const imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=576&height=1024&seed=${seed}&negative_prompt=${encodeURIComponent(this.negativePromptBase)}`;
     
     console.log(`🏠 URL Freebox SD (seed: ${seed}, NSFW: ${nsfwLevel})`);
-    console.log(`📝 Prompt Freebox (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
+    console.log(`📝 Prompt Freebox (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
     
     return imageUrl;
   }
