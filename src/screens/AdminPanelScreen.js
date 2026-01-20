@@ -11,6 +11,9 @@ import {
   RefreshControl,
   Platform,
   StatusBar,
+  Modal,
+  ScrollView,
+  Image,
 } from 'react-native';
 import AuthService from '../services/AuthService';
 
@@ -258,6 +261,11 @@ export default function AdminPanelScreen() {
     );
   }, [loadUsers]);
 
+  // v5.4.21 - État pour les personnages d'un utilisateur
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userCharacters, setUserCharacters] = useState([]);
+  const [loadingCharacters, setLoadingCharacters] = useState(false);
+
   const viewUserProfile = useCallback((user) => {
     const profile = user.full_profile || user.profile || {};
     const username = profile.username || user.username || 'N/A';
@@ -270,8 +278,144 @@ export default function AdminPanelScreen() {
     details += `🔞 NSFW: ${profile.nsfwMode ? 'Oui' : 'Non'}\n`;
     details += `\n🆔 ${user.id}`;
 
-    Alert.alert(`👤 ${username}`, details);
+    Alert.alert(
+      `👤 ${username}`, 
+      details,
+      [
+        { text: 'Fermer', style: 'cancel' },
+        { 
+          text: '📚 Voir personnages', 
+          onPress: () => loadUserCharacters(user)
+        }
+      ]
+    );
   }, []);
+
+  // v5.4.21 - Charger les personnages créés par un utilisateur
+  const loadUserCharacters = useCallback(async (user) => {
+    setSelectedUser(user);
+    setLoadingCharacters(true);
+    setUserCharacters([]);
+    
+    try {
+      const response = await fetch(`${FREEBOX_URL}/api/characters/user/${user.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+        },
+        timeout: 10000
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const chars = data.characters || data || [];
+        setUserCharacters(Array.isArray(chars) ? chars : []);
+        console.log(`📚 ${chars.length} personnages trouvés pour ${user.email}`);
+      } else {
+        // Essayer de récupérer depuis les personnages publics
+        const publicResponse = await fetch(`${FREEBOX_URL}/api/characters/public`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 10000
+        });
+        
+        if (publicResponse.ok) {
+          const publicData = await publicResponse.json();
+          const allPublic = publicData.characters || publicData || [];
+          // Filtrer par créateur
+          const userChars = allPublic.filter(c => 
+            c.createdBy === user.id || 
+            c.createdByEmail === user.email
+          );
+          setUserCharacters(userChars);
+          console.log(`📚 ${userChars.length} personnages publics trouvés pour ${user.email}`);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erreur chargement personnages:', error);
+      Alert.alert('Erreur', 'Impossible de charger les personnages de cet utilisateur');
+    } finally {
+      setLoadingCharacters(false);
+    }
+  }, []);
+
+  // v5.4.21 - Ajouter un personnage à l'application de façon permanente
+  const addCharacterToApp = useCallback(async (character) => {
+    Alert.alert(
+      '➕ Ajouter à l\'application',
+      `Voulez-vous ajouter "${character.name}" de façon permanente à l'application?\n\nUne copie sera créée et ne pourra plus être supprimée par l'utilisateur original.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Ajouter',
+          onPress: async () => {
+            try {
+              // Créer une copie du personnage avec un nouvel ID
+              const permanentCharacter = {
+                ...character,
+                id: `perm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                originalId: character.id,
+                originalCreator: character.createdBy,
+                originalCreatorEmail: character.createdByEmail,
+                isPermanent: true,
+                isCustom: false, // Le marquer comme personnage intégré
+                addedToAppAt: Date.now(),
+                addedByAdmin: AuthService.getCurrentUser()?.email,
+              };
+              
+              // Sauvegarder sur le serveur comme personnage permanent
+              const response = await fetch(`${FREEBOX_URL}/api/characters/permanent`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+                },
+                body: JSON.stringify({ character: permanentCharacter })
+              });
+              
+              if (response.ok) {
+                Alert.alert('✅ Succès', `"${character.name}" a été ajouté à l'application de façon permanente.`);
+              } else {
+                // Sauvegarder localement comme fallback
+                const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+                const key = 'permanent_characters';
+                const existing = await AsyncStorage.getItem(key);
+                const chars = existing ? JSON.parse(existing) : [];
+                chars.push(permanentCharacter);
+                await AsyncStorage.setItem(key, JSON.stringify(chars));
+                Alert.alert('✅ Succès', `"${character.name}" a été ajouté localement. Il sera synchronisé plus tard.`);
+              }
+            } catch (error) {
+              console.error('❌ Erreur ajout personnage:', error);
+              Alert.alert('Erreur', 'Impossible d\'ajouter ce personnage');
+            }
+          }
+        }
+      ]
+    );
+  }, []);
+
+  // v5.4.21 - Voir les détails d'un personnage
+  const viewCharacterDetails = useCallback((character) => {
+    let details = `📛 ${character.name}\n`;
+    details += `🎂 ${character.age || '?'} ans\n`;
+    details += `⚧️ ${character.gender === 'female' ? 'Femme' : character.gender === 'male' ? 'Homme' : 'Non-binaire'}\n`;
+    if (character.tags && character.tags.length > 0) {
+      details += `🏷️ ${character.tags.join(', ')}\n`;
+    }
+    details += `\n📖 ${(character.scenario || character.description || 'Pas de scénario').substring(0, 100)}...\n`;
+    details += `\n✨ ${(character.physicalDescription || character.appearance || 'Pas de description').substring(0, 100)}...`;
+    
+    Alert.alert(
+      `👤 ${character.name}`,
+      details,
+      [
+        { text: 'Fermer', style: 'cancel' },
+        { text: '➕ Ajouter à l\'app', onPress: () => addCharacterToApp(character) }
+      ]
+    );
+  }, [addCharacterToApp]);
 
   // Filtrer les utilisateurs
   const filteredUsers = users.filter(user => 
@@ -338,7 +482,7 @@ export default function AdminPanelScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>👑 Admin Panel</Text>
-        <Text style={styles.version}>v5.4.4</Text>
+        <Text style={styles.version}>v5.4.21</Text>
         <View style={styles.statusRow}>
           <View style={[styles.statusDot, 
             serverStatus === 'online' ? styles.online : 
@@ -421,6 +565,89 @@ export default function AdminPanelScreen() {
           />
         )}
       </View>
+      
+      {/* v5.4.21 - Modal pour les personnages de l'utilisateur */}
+      <Modal
+        visible={selectedUser !== null}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setSelectedUser(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                📚 Personnages de {selectedUser?.username || selectedUser?.email?.split('@')[0] || 'Utilisateur'}
+              </Text>
+              <TouchableOpacity onPress={() => setSelectedUser(null)}>
+                <Text style={styles.closeBtn}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            {loadingCharacters ? (
+              <View style={styles.modalLoading}>
+                <ActivityIndicator size="large" color="#6366f1" />
+                <Text style={styles.loadingText}>Chargement des personnages...</Text>
+              </View>
+            ) : userCharacters.length === 0 ? (
+              <View style={styles.noCharacters}>
+                <Text style={styles.noCharsIcon}>🎭</Text>
+                <Text style={styles.noCharsText}>Aucun personnage créé</Text>
+              </View>
+            ) : (
+              <ScrollView style={styles.charactersList}>
+                {userCharacters.map((char, index) => (
+                  <TouchableOpacity 
+                    key={char.id || index}
+                    style={styles.characterCard}
+                    onPress={() => viewCharacterDetails(char)}
+                  >
+                    <View style={styles.charRow}>
+                      {char.imageUrl ? (
+                        <Image 
+                          source={{ uri: char.imageUrl }} 
+                          style={styles.charImage}
+                          defaultSource={require('../../assets/adaptive-icon.png')}
+                        />
+                      ) : (
+                        <View style={styles.charImagePlaceholder}>
+                          <Text style={styles.charImagePlaceholderText}>
+                            {(char.name || '?')[0].toUpperCase()}
+                          </Text>
+                        </View>
+                      )}
+                      <View style={styles.charInfo}>
+                        <Text style={styles.charName}>{char.name || 'Sans nom'}</Text>
+                        <Text style={styles.charMeta}>
+                          {char.age || '?'} ans • {char.gender === 'female' ? '♀' : char.gender === 'male' ? '♂' : '⚧'}
+                        </Text>
+                        {char.tags && char.tags.length > 0 && (
+                          <Text style={styles.charTags} numberOfLines={1}>
+                            🏷️ {char.tags.slice(0, 3).join(', ')}
+                          </Text>
+                        )}
+                      </View>
+                      <TouchableOpacity 
+                        style={styles.addToAppBtn}
+                        onPress={() => addCharacterToApp(char)}
+                      >
+                        <Text style={styles.addToAppBtnText}>➕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+            
+            <TouchableOpacity 
+              style={styles.closeModalBtn}
+              onPress={() => setSelectedUser(null)}
+            >
+              <Text style={styles.closeModalBtnText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -642,6 +869,141 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 12,
     color: '#6366f1',
+    fontWeight: '600',
+  },
+  // v5.4.21 - Styles pour le modal des personnages
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: '100%',
+    maxHeight: '80%',
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1,
+  },
+  closeBtn: {
+    fontSize: 24,
+    color: '#9ca3af',
+    padding: 5,
+  },
+  modalLoading: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 50,
+  },
+  loadingText: {
+    marginTop: 15,
+    color: '#6366f1',
+    fontSize: 14,
+  },
+  noCharacters: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 50,
+  },
+  noCharsIcon: {
+    fontSize: 50,
+    marginBottom: 15,
+  },
+  noCharsText: {
+    fontSize: 16,
+    color: '#9ca3af',
+  },
+  charactersList: {
+    maxHeight: 400,
+  },
+  characterCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  charRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  charImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+  charImagePlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#6366f1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  charImagePlaceholderText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  charInfo: {
+    flex: 1,
+  },
+  charName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  charMeta: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 2,
+  },
+  charTags: {
+    fontSize: 11,
+    color: '#9ca3af',
+  },
+  addToAppBtn: {
+    backgroundColor: '#10b981',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addToAppBtnText: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  closeModalBtn: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  closeModalBtnText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '600',
   },
 });

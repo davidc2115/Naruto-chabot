@@ -3881,10 +3881,117 @@ class ImageGenerationService {
     }
     
     // === SUITE NORMALE POUR PERSONNAGES SOLO ===
-    // v5.3.59 - COMMENCER PAR "FULL BODY SHOT" + STYLE
-    let prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
+    // v5.4.21 - COMMENCER PAR STYLE + ANGLE/POSE PRIORITAIRE POUR NSFW
+    let prompt = '';
     
-    // === v5.3.67 - PROFIL PHYSIQUE PRIORITAIRE EN PREMIER (persistant) ===
+    // v5.4.21 - En mode NSFW, mettre l'angle/pose/tenue EN PREMIER (priorité maximale)
+    if (isNSFW && level >= 2) {
+      // Sélectionner l'angle en fonction du niveau
+      let priorityAngle;
+      let priorityOutfit;
+      let priorityPose;
+      
+      if (level >= 5) {
+        // Niveau 5+ : TRÈS EXPLICITE
+        const explicitAngles = [
+          '((legs spread wide)), ((intimate area visible)), explicit POV',
+          '((bent over presenting)), ((ass and pussy visible)), rear explicit view',
+          '((lying on back, legs open wide)), full frontal nude, intimate exposure',
+          '((on all fours)), rear view, ass up, presenting sexually',
+          '((straddling view)), breasts and pussy visible, riding position',
+          '((close-up between spread legs)), genitals visible, explicit detail',
+        ];
+        const explicitOutfits = [
+          '((completely nude)), ((naked)), no clothes, fully exposed',
+          '((spread legs nude)), ((genitals exposed)), nothing on',
+          '((fully naked)), ((all clothes off)), complete nudity',
+        ];
+        const explicitPoses = [
+          '((masturbating)), touching herself, pleasuring herself',
+          '((spreading herself open)), showing everything, exposing intimacy',
+          '((legs wide apart)), fully exposed, inviting',
+        ];
+        priorityAngle = explicitAngles[Math.floor(Math.random() * explicitAngles.length)];
+        priorityOutfit = explicitOutfits[Math.floor(Math.random() * explicitOutfits.length)];
+        priorityPose = explicitPoses[Math.floor(Math.random() * explicitPoses.length)];
+      } else if (level >= 4) {
+        // Niveau 4 : TOPLESS/SEINS NUS
+        const toplessAngles = [
+          '((topless)), ((bare breasts)), nipples visible, breast focus',
+          '((from above looking at topless body)), breasts visible, intimate angle',
+          '((breasts centered)), ((nipples erect)), topless close-up',
+          '((rear view)), ((butt emphasized)), looking back topless',
+          '((kneeling topless)), ((breasts hanging)), submissive pose',
+        ];
+        const toplessOutfits = [
+          '((topless)), ((bare breasts)), only wearing panties',
+          '((shirtless)), ((breasts fully exposed)), bottomless or just underwear',
+          '((nude from waist up)), ((big breasts out)), minimal coverage below',
+        ];
+        const toplessPoses = [
+          '((cupping her breasts)), sensual topless pose',
+          '((arching back)), ((breasts pushed out)), sexy display',
+          '((on knees)), ((breasts prominent)), looking up seductively',
+        ];
+        priorityAngle = toplessAngles[Math.floor(Math.random() * toplessAngles.length)];
+        priorityOutfit = toplessOutfits[Math.floor(Math.random() * toplessOutfits.length)];
+        priorityPose = toplessPoses[Math.floor(Math.random() * toplessPoses.length)];
+      } else if (level >= 3) {
+        // Niveau 3 : LINGERIE SEXY
+        const lingerieAngles = [
+          '((in sexy lingerie)), ((lace bra visible)), cleavage emphasized',
+          '((bent forward in lingerie)), ((deep cleavage)), seductive pose',
+          '((lying in lingerie)), ((body curves visible)), on bed inviting',
+          '((from behind in panties)), ((butt cheeks visible)), looking back',
+        ];
+        const lingerieOutfits = [
+          '((wearing sexy lingerie)), ((lace bra and panties)), see-through fabric',
+          '((sheer negligee)), ((body visible through)), sexy sleepwear',
+          '((corset and thong)), ((curves emphasized)), provocative lingerie',
+          '((crotchless lingerie)), ((cupless bra)), revealing underwear',
+        ];
+        const lingeriePoses = [
+          '((lounging seductively)), in lingerie on bed',
+          '((undressing slowly)), pulling down bra strap',
+          '((hands on body)), sensual self-touch in lingerie',
+        ];
+        priorityAngle = lingerieAngles[Math.floor(Math.random() * lingerieAngles.length)];
+        priorityOutfit = lingerieOutfits[Math.floor(Math.random() * lingerieOutfits.length)];
+        priorityPose = lingeriePoses[Math.floor(Math.random() * lingeriePoses.length)];
+      } else {
+        // Niveau 2 : TENUE PROVOCANTE
+        const sexyAngles = [
+          '((tight dress showing curves)), ((cleavage visible)), sexy pose',
+          '((mini skirt)), ((legs visible)), flirtatious stance',
+          '((low-cut top)), ((breasts pushed up)), provocative outfit',
+        ];
+        const sexyOutfits = [
+          '((wearing tight mini dress)), ((curves hugged)), sexy outfit',
+          '((crop top and short shorts)), ((midriff visible)), hot outfit',
+          '((low-cut dress)), ((maximum cleavage)), revealing clothes',
+        ];
+        const sexyPoses = [
+          '((bending forward)), showing cleavage, flirty smile',
+          '((hand on hip)), confident sexy pose',
+          '((sitting with legs crossed)), skirt riding up',
+        ];
+        priorityAngle = sexyAngles[Math.floor(Math.random() * sexyAngles.length)];
+        priorityOutfit = sexyOutfits[Math.floor(Math.random() * sexyOutfits.length)];
+        priorityPose = sexyPoses[Math.floor(Math.random() * sexyPoses.length)];
+      }
+      
+      // v5.4.21 - PROMPT NSFW: Angle/Tenue/Pose EN PREMIER avec poids élevé
+      prompt = `${style}, ${priorityAngle}, ${priorityOutfit}, ${priorityPose}`;
+      console.log(`🔥 v5.4.21 NSFW Niveau ${level} - PRIORITÉ:`);
+      console.log(`   📷 Angle: ${priorityAngle}`);
+      console.log(`   👙 Tenue: ${priorityOutfit}`);
+      console.log(`   🎭 Pose: ${priorityPose}`);
+    } else {
+      // Mode SFW - prompt classique
+      prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
+    }
+    
+    // === v5.3.67 - PROFIL PHYSIQUE PRIORITAIRE ===
     if (priorityPhysicalPrompt) {
       prompt += ', ' + priorityPhysicalPrompt;
       console.log('✅ Profil physique prioritaire ajouté (generateSceneImage)');
@@ -4008,156 +4115,24 @@ class ImageGenerationService {
     
     // === SELON LE MODE SFW/NSFW ===
     if (isNSFW) {
-      // === MODE NSFW (niveau 2+) - VARIÉTÉ MAXIMALE ===
-      console.log(`🔞 Mode NSFW actif - Niveau ${level}`);
+      // === v5.4.21 MODE NSFW SIMPLIFIÉ ===
+      // L'angle, tenue et pose ont déjà été ajoutés en PRIORITÉ au début du prompt
+      // Ici on ajoute seulement les éléments complémentaires
+      console.log(`🔞 Mode NSFW actif - Niveau ${level} (angle/tenue/pose déjà en tête)`);
       
       // Anatomie détaillée pour NSFW
-      prompt += this.buildAnatomyDescription(character, isRealistic);
-      
-      // === v5.4.20 - ANGLES VARIÉS SELON LE NIVEAU ===
-      let selectedAngle;
-      
-      if (level >= 5) {
-        // Niveau 5+ : ANGLES TRÈS INTIMES (focus sur parties intimes)
-        const explicitAngles = [
-          // Vues intimes explicites
-          'legs spread wide open, intimate area fully visible, explicit view',
-          'POV between spread legs, pussy visible, looking up at camera',
-          'close-up on intimate area, legs open, explicit detail',
-          'bent over presenting rear, ass and pussy visible from behind',
-          'lying on back, legs wide open, full frontal intimate view',
-          'doggy position, rear view, ass up face down, presenting',
-          'straddling view from below, pussy and breasts visible',
-          'on knees, legs spread, touching self intimately',
-          // Vues des fesses explicites
-          'close-up on ass, bent over, cheeks spread',
-          'rear view, on all fours, ass prominently displayed',
-          'lying on stomach, ass up, looking back seductively',
-          // Vues poitrine explicites
-          'topless close-up, breasts prominent, nipples erect',
-          'POV looking down at bare breasts being squeezed',
-          'breasts bouncing, dynamic movement, nipples visible',
-        ];
-        selectedAngle = explicitAngles[Math.floor(Math.random() * explicitAngles.length)];
-        console.log(`📷 ANGLE EXPLICITE Niveau ${level}: ${selectedAngle.substring(0, 50)}...`);
-      } else if (level >= 4) {
-        // Niveau 4 : ANGLES INTIMES (topless, focus poitrine/fesses)
-        const intimateAngles = [
-          // Focus poitrine
-          'medium shot focused on bare breasts, nipples visible, sensual',
-          'topless frontal view, breasts emphasized, seductive expression',
-          'close-up on cleavage and breasts, soft lighting, intimate',
-          'POV looking down at topless body, breasts prominent',
-          'breasts centered in frame, hands cupping, erotic',
-          // Focus fesses
-          'rear view, butt emphasized, looking over shoulder',
-          'bent over slightly, ass prominent, inviting pose',
-          'from behind, butt cheeks visible, arched back',
-          'kneeling, rear view, butt up, submissive pose',
-          // Vues du dessus
-          'shot from above, looking down at topless body',
-          'overhead angle, breasts visible from top, lying on bed',
-          // Corps entier intime
-          'full body topless, confident pose, entire figure visible',
-          'topless on bed, inviting pose, complete figure shown',
-        ];
-        selectedAngle = intimateAngles[Math.floor(Math.random() * intimateAngles.length)];
-        console.log(`📷 ANGLE INTIME Niveau ${level}: ${selectedAngle.substring(0, 50)}...`);
-      } else if (level >= 3) {
-        // Niveau 3 : ANGLES SENSUELS (lingerie, suggestif)
-        const sensualAngles = [
-          'full body in lingerie, curves emphasized, seductive pose',
-          'lying on bed in underwear, inviting, entire figure visible',
-          'bending forward showing cleavage in bra, teasing',
-          'from behind in panties, looking over shoulder, butt visible',
-          'kneeling on bed in lingerie, provocative pose',
-          'undressing, bra strap sliding off shoulder, sexy tease',
-          'in doorway wearing lingerie, backlit silhouette, mysterious',
-          'mirror selfie in underwear, showing off body',
-          'lying on side in lingerie, hip curve emphasized',
-          'sitting with legs crossed in bra and panties, elegant sexy',
-        ];
-        selectedAngle = sensualAngles[Math.floor(Math.random() * sensualAngles.length)];
-        console.log(`📷 ANGLE SENSUEL Niveau ${level}: ${selectedAngle.substring(0, 50)}...`);
-      } else {
-        // Niveau 2 : ANGLES PROVOCANTS (habillée sexy)
-        const provocativeAngles = [
-          'full body in tight dress, curves visible, confident pose',
-          'leaning forward showing cleavage, flirtatious smile',
-          'sitting with legs crossed, short skirt riding up',
-          'from behind, looking over shoulder, dress hugging curves',
-          'lying on bed fully clothed, inviting pose, sexy',
-          'undressing, pulling dress strap down, teasing',
-          'in doorway, silhouette visible through sheer dress',
-          'dancing pose, dress flowing, movement captured',
-          'bending over slightly, rear emphasized, playful',
-          'standing confidently, hands on hips, sexy outfit',
-        ];
-        selectedAngle = provocativeAngles[Math.floor(Math.random() * provocativeAngles.length)];
-        console.log(`📷 ANGLE PROVOCANT Niveau ${level}: ${selectedAngle.substring(0, 50)}...`);
-      }
-      
-      prompt += `, ${selectedAngle}`;
-      console.log(`📷 ANGLE FINAL: ${selectedAngle}`);
-      
-      // === v5.4.9 - POSITIONS BASÉES SUR LE NIVEAU (comme les tenues) ===
-      // Utiliser getPoseByLevel pour avoir des poses adaptées au niveau
-      // - Niveau 1: Poses aguichantes (habillée sexy)
-      // - Niveau 2: Poses sexy (tenues provocantes)
-      // - Niveau 3: Poses topless (lingerie/topless)
-      // - Niveau 4: Poses nue artistique
-      // - Niveau 5: Poses nue sensuelle
-      // - Niveau 6+: Poses de plus en plus explicites
-      const levelPose = this.getPoseByLevel(level);
-      prompt += `, ${levelPose}`;
-      console.log(`🎭 POSE niveau ${level}: ${levelPose.substring(0, 60)}...`);
-      
-      // === v5.4.9 - SUPPRESSION DE LA SÉLECTION ALÉATOIRE DE TENUE ===
-      // La tenue est UNIQUEMENT gérée par getOutfitByLevel() plus bas
-      // Cela évite les conflits entre différentes instructions de tenue
-      // getOutfitByLevel gère correctement:
-      // - Niveau 1: Habillé sexy
-      // - Niveau 2: Provocant (nuisettes, mini-jupes)
-      // - Niveau 3: Lingerie (sous-vêtements, bikini)
-      // - Niveau 4: TOPLESS (seins nus)
-      // - Niveau 5: Nu artistique (complètement nue)
-      // - Niveau 6+: De plus en plus explicite
-      console.log(`🎯 v5.4.9: Tenue unique via getOutfitByLevel, niveau ${level}`);
-      
-      // === v5.3.52 - VUES/ANGLES VARIÉS ===
-      // v5.3.54 - TOUTES LES VUES EN CORPS ENTIER (pas de close-up)
-      const nsfwViews = [
-        'full body shot, showing entire figure from head to feet, complete person',
-        'full body view from above, entire figure visible from head to toes',
-        'full body back view, showing entire back from head to feet',
-        'full body side profile view, complete silhouette head to feet',
-        'full body low angle, entire figure from feet to head',
-        'full body mirror reflection showing complete figure',
-        'full body three-quarter view, entire person visible',
-        'full body frontal, complete figure with clothing action',
-        'full body dramatic pose, entire figure head to feet',
-        'full body artistic nude, complete figure visible',
-      ];
-      const selectedView = nsfwViews[Math.floor(Math.random() * nsfwViews.length)];
-      prompt += `, ${selectedView}, NOT cropped, NOT zoomed in`;
-      console.log(`📷 VUE: ${selectedView.substring(0, 50)}...`);
+      prompt += ', ' + this.buildAnatomyDescription(character, isRealistic);
       
       // Lieu intime
       prompt += `, ${sceneElements.location}`;
       prompt += `, ${sceneElements.lighting}`;
       
       // === v5.4.2 - CARACTÉRISTIQUES CORPORELLES (IGNORER vêtements car NSFW) ===
-      const bodyFeaturesNSFW = this.extractBodyFeatures(character, true); // Mode NSFW, ignorer vêtements!
+      const bodyFeaturesNSFW = this.extractBodyFeatures(character, true);
       if (bodyFeaturesNSFW) {
         prompt += `, ${bodyFeaturesNSFW}`;
         console.log(`💪 CORPS NSFW: ${bodyFeaturesNSFW.substring(0, 80)}...`);
       }
-      
-      // === v5.4.11 - TENUE BASÉE SUR LE NIVEAU DE RELATION AVEC LE PERSONNAGE ===
-      // Le level passé est le niveau de relation avec CE personnage (pas un niveau global!)
-      const levelOutfit = this.getOutfitByLevel(level);
-      prompt += `, ${levelOutfit}`;
-      console.log(`👗 TENUE niveau RELATION ${level}: ${levelOutfit.substring(0, 60)}...`);
       
       // v5.4.11 - RENFORCEMENT DE LA TENUE SELON LE NIVEAU
       if (level >= 4) {

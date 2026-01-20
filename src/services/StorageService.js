@@ -253,7 +253,7 @@ class StorageService {
       
       console.log(`🚫 Conversations supprimées à ignorer: ${deletedIds.length}`);
       
-      // v5.3.49 - Chercher TOUTES les conversations possibles (tous formats)
+      // v5.4.21 - Chercher TOUTES les conversations possibles (tous formats)
       const keys = await AsyncStorage.getAllKeys();
       const convKeys = keys.filter(key => {
         // Exclure les index et deleted
@@ -262,8 +262,10 @@ class StorageService {
         // Format principal: conv_userId_characterId
         if (key.startsWith(`conv_${userId}_`)) return true;
         
-        // Backups globaux
+        // v5.4.21 - Backups globaux (TOUS les formats de backup)
         if (key.startsWith('conv_backup_')) return true;
+        if (key.startsWith('conv_fallback_')) return true;  // Ajouté v5.4.21
+        if (key.startsWith('conv_emergency_')) return true; // Ajouté v5.4.21
         
         // Formats legacy: conv_anonymous_, conv_device_, conversation_
         if (key.startsWith('conv_anonymous_')) return true;

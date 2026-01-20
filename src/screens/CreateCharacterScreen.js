@@ -73,6 +73,134 @@ export default function CreateCharacterScreen({ navigation, route }) {
     checkPremiumStatus();
   }, []);
 
+  // v5.4.21 - Extraire les données des personnages intégrés lors de l'édition
+  React.useEffect(() => {
+    if (characterToEdit && isBuiltIn) {
+      console.log('📝 Extraction des données du personnage intégré:', characterToEdit.name);
+      
+      // Extraire les infos de physicalDescription ou appearance
+      const physDesc = (characterToEdit.physicalDescription || characterToEdit.appearance || '').toLowerCase();
+      
+      // Nom, âge, genre - devraient exister
+      if (characterToEdit.name) setName(characterToEdit.name);
+      if (characterToEdit.age) setAge(String(characterToEdit.age));
+      if (characterToEdit.gender) setGender(characterToEdit.gender);
+      
+      // Apparence - utiliser la description complète
+      if (characterToEdit.appearance) setAppearance(characterToEdit.appearance);
+      else if (characterToEdit.physicalDescription) setAppearance(characterToEdit.physicalDescription);
+      
+      // Personnalité
+      if (characterToEdit.personality) setPersonality(characterToEdit.personality);
+      
+      // Tempérament
+      if (characterToEdit.temperament) setTemperament(characterToEdit.temperament);
+      
+      // Scénario
+      if (characterToEdit.scenario) setScenario(characterToEdit.scenario);
+      else if (characterToEdit.description) setScenario(characterToEdit.description);
+      
+      // Message de départ
+      if (characterToEdit.startMessage) setStartMessage(characterToEdit.startMessage);
+      else if (characterToEdit.greeting) setStartMessage(characterToEdit.greeting);
+      
+      // Cheveux - extraire de physicalDescription si non défini
+      if (characterToEdit.hairColor) {
+        setHairColor(characterToEdit.hairColor);
+      } else {
+        // Détecter la couleur de cheveux
+        if (physDesc.includes('noir')) setHairColor('noirs');
+        else if (physDesc.includes('brun') || physDesc.includes('châtain')) setHairColor('bruns');
+        else if (physDesc.includes('blond')) setHairColor('blonds');
+        else if (physDesc.includes('roux') || physDesc.includes('rousse')) setHairColor('roux');
+        else if (physDesc.includes('blanc') || physDesc.includes('argenté') || physDesc.includes('gris')) setHairColor('gris');
+      }
+      
+      // Longueur de cheveux
+      if (characterToEdit.hairLength) {
+        setHairLength(characterToEdit.hairLength);
+      } else {
+        if (physDesc.includes('très courts')) setHairLength('très courts');
+        else if (physDesc.includes('courts')) setHairLength('courts');
+        else if (physDesc.includes('mi-longs')) setHairLength('mi-longs');
+        else if (physDesc.includes('très longs')) setHairLength('très longs');
+        else if (physDesc.includes('longs')) setHairLength('longs');
+      }
+      
+      // Yeux
+      if (characterToEdit.eyeColor) {
+        setEyeColor(characterToEdit.eyeColor);
+      } else {
+        if (physDesc.includes('yeux marron')) setEyeColor('marron');
+        else if (physDesc.includes('yeux bleu')) setEyeColor('bleu');
+        else if (physDesc.includes('yeux vert')) setEyeColor('vert');
+        else if (physDesc.includes('yeux gris')) setEyeColor('gris');
+        else if (physDesc.includes('yeux noisette')) setEyeColor('noisette');
+        else if (physDesc.includes('yeux noir')) setEyeColor('noir');
+      }
+      
+      // Taille
+      if (characterToEdit.height) {
+        const heightNum = characterToEdit.height.replace(/\D/g, '');
+        if (heightNum) setHeight(heightNum);
+      } else {
+        const heightMatch = physDesc.match(/(\d{3})\s*cm/);
+        if (heightMatch) setHeight(heightMatch[1]);
+      }
+      
+      // Morphologie
+      if (characterToEdit.bodyType) {
+        setBodyType(characterToEdit.bodyType);
+      } else {
+        if (physDesc.includes('mince') || physDesc.includes('svelte')) setBodyType('mince');
+        else if (physDesc.includes('athlétique') || physDesc.includes('sportif')) setBodyType('athlétique');
+        else if (physDesc.includes('voluptu')) setBodyType('voluptueuse');
+        else if (physDesc.includes('généreus')) setBodyType('généreuse');
+        else if (physDesc.includes('rond')) setBodyType('ronde');
+        else if (physDesc.includes('pulpeu')) setBodyType('pulpeuse');
+        else if (physDesc.includes('élanc')) setBodyType('élancée');
+      }
+      
+      // Peau
+      if (characterToEdit.skinTone) {
+        setSkinTone(characterToEdit.skinTone);
+      } else {
+        if (physDesc.includes('ébène') || physDesc.includes('noire')) setSkinTone('ébène');
+        else if (physDesc.includes('caramel')) setSkinTone('caramel');
+        else if (physDesc.includes('bronzé')) setSkinTone('bronzée');
+        else if (physDesc.includes('mate')) setSkinTone('mate');
+        else if (physDesc.includes('très claire') || physDesc.includes('porcelaine')) setSkinTone('très claire');
+        else if (physDesc.includes('claire') || physDesc.includes('pâle')) setSkinTone('claire');
+      }
+      
+      // Poitrine (femmes)
+      if (characterToEdit.gender === 'female' && characterToEdit.bust) {
+        setBust(characterToEdit.bust);
+      } else if (characterToEdit.gender === 'female') {
+        const bustMatch = physDesc.match(/bonnet\s*([A-H])/i);
+        if (bustMatch) setBust(bustMatch[1].toUpperCase());
+      }
+      
+      // Pénis (hommes)
+      if (characterToEdit.gender === 'male' && characterToEdit.penis) {
+        const penisNum = characterToEdit.penis.replace(/\D/g, '');
+        if (penisNum) setPenis(penisNum);
+      }
+      
+      // Tags
+      if (characterToEdit.tags && Array.isArray(characterToEdit.tags)) {
+        setTags(characterToEdit.tags.join(', '));
+      }
+      
+      // Image
+      if (characterToEdit.imageUrl) {
+        setImageUrl(characterToEdit.imageUrl);
+      }
+      
+      console.log('✅ Données du personnage intégré extraites');
+    }
+  }, [characterToEdit, isBuiltIn]);
+
   const checkPremiumStatus = async () => {
     try {
       // Vérifier si admin (toujours premium)
@@ -340,18 +468,43 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte explicatif.`;
         throw new Error('L\'IA n\'a pas pu analyser l\'image correctement');
       }
       
-      console.log('✅ Analyse IA réussie:', analysis);
+      console.log('✅ Analyse IA réussie:', JSON.stringify(analysis, null, 2));
       
-      // Appliquer les résultats aux champs du formulaire
+      // v5.4.21 - Validation plus robuste de l'analyse
       if (analysis) {
-        // Genre
-        if (analysis.gender) {
-          setGender(analysis.gender === 'male' ? 'male' : 'female');
+        // Valider que l'analyse contient des données utilisables
+        const hasValidData = analysis.gender || analysis.ageEstimate || analysis.hairColor || analysis.fullDescription;
+        if (!hasValidData) {
+          console.log('⚠️ Analyse IA vide ou invalide, utilisation des valeurs par défaut');
+          autoGenerateDescription();
+          Alert.alert(
+            '⚠️ Analyse partielle',
+            'L\'IA n\'a pas pu détecter toutes les caractéristiques. Les champs ont été remplis avec des valeurs par défaut.',
+            [{ text: 'OK' }]
+          );
+          return null;
         }
         
-        // Âge
+        // Genre - v5.4.21 - Validation stricte
+        if (analysis.gender) {
+          const genderLower = String(analysis.gender).toLowerCase().trim();
+          // Accepter uniquement 'male', 'homme', 'man' pour masculin
+          const isMale = genderLower === 'male' || genderLower === 'homme' || genderLower === 'man';
+          const newGender = isMale ? 'male' : 'female';
+          console.log(`👤 Genre détecté: "${analysis.gender}" -> ${newGender}`);
+          setGender(newGender);
+        }
+        
+        // Âge - v5.4.21 - Validation avec fallback
         if (analysis.ageEstimate) {
-          setAge(String(Math.max(18, Math.min(80, analysis.ageEstimate))));
+          const ageNum = parseInt(analysis.ageEstimate);
+          if (!isNaN(ageNum) && ageNum >= 18 && ageNum <= 99) {
+            setAge(String(ageNum));
+            console.log(`🎂 Âge détecté: ${ageNum}`);
+          } else {
+            setAge('25');
+            console.log(`⚠️ Âge invalide "${analysis.ageEstimate}", défaut: 25`);
+          }
         }
         
         // Cheveux
