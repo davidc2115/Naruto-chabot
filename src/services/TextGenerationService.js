@@ -2634,8 +2634,7 @@ class TextGenerationService {
   }
 
   /**
-   * v5.4.6 - Prompt système FLEXIBLE + NSFW + LIMITES + VIRGINITÉ
-   * Le scénario est un contexte de départ, pas une contrainte stricte
+   * v5.4.36 - Prompt système avec support TIERCE PERSONNE
    */
   buildSimpleSystemPrompt(character, userProfile, context) {
     const charName = character.name || 'Personnage';
@@ -2644,6 +2643,10 @@ class TextGenerationService {
     const nsfwIntensity = context.nsfwIntensity || 0;
     const temperament = character.temperament || 'amical';
     const userGender = userProfile?.gender || '';
+    
+    // v5.4.36 - Vérifier si tierce personne détectée
+    const thirdPersonInfo = context.thirdPersonInfo || {};
+    const hasThirdPerson = thirdPersonInfo.hasThirdPerson;
     
     // Identité
     let prompt = `Tu es ${charName}`;
@@ -2707,16 +2710,24 @@ class TextGenerationService {
     prompt += `\n- (pensée) = ce que tu penses`;
     prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
-    // === v5.4.32 - FORMAT MULTI-PERSONNAGES ===
-    prompt += `\n\n👥 SCÉNARIO MULTI-PERSONNAGES (si une tierce personne est présente):`;
-    prompt += `\n- Si quelqu'un d'autre entre dans la scène ou est mentionné, tu peux le faire réagir`;
-    prompt += `\n- Format pour tierce personne: [Nom] *action* "parole" (pensée)`;
-    prompt += `\n- Format pour toi (${charName}): *action* "parole" (pensée) [sans préfixe]`;
-    prompt += `\n- Si ${userName} s'adresse à la tierce personne, FAIS-LA RÉPONDRE!`;
-    prompt += `\n- Exemple avec fille qui entre:`;
-    prompt += `\n  [Marie] *ouvre la porte, choquée* "Papa?! Qu'est-ce que..." (Elle n'en revient pas!)`;
-    prompt += `\n  *me fige, gêné* "Ma chérie, ce n'est pas ce que tu crois..." (Merde, elle a vu!)`;
-    prompt += `\n- Les personnages peuvent interagir entre eux dans la même réponse`;
+    // === v5.4.36 - FORMAT MULTI-PERSONNAGES (AMÉLIORÉ) ===
+    if (hasThirdPerson && thirdPersonInfo.thirdPersonName) {
+      const tpName = thirdPersonInfo.thirdPersonName;
+      prompt += `\n\n👥👥👥 TIERCE PERSONNE ACTIVE: ${tpName} 👥👥👥`;
+      prompt += `\n🔴 RÈGLE OBLIGATOIRE: Tu DOIS faire parler ${tpName} dans tes réponses!`;
+      prompt += `\n📝 FORMAT MULTI-PERSONNAGES:`;
+      prompt += `\n  Pour ${tpName}: [${tpName}] *action* "parole" (pensée)`;
+      prompt += `\n  Pour toi (${charName}): *action* "parole" (pensée)`;
+      prompt += `\n📌 EXEMPLE:`;
+      prompt += `\n  [${tpName}] *entre dans la pièce, stupéfait(e)* "Qu'est-ce qui se passe ici?!" (Choqué(e))`;
+      prompt += `\n  *se retourne vivement* "Ce n'est pas ce que tu crois..." (Oh non!)`;
+      prompt += `\n⚠️ Les DEUX personnages doivent parler/réagir!`;
+    } else {
+      prompt += `\n\n👥 SCÉNARIO MULTI-PERSONNAGES (si quelqu'un entre):`;
+      prompt += `\n- Si une tierce personne est mentionnée, fais-la réagir`;
+      prompt += `\n- Format: [Nom] *action* "parole" (pensée)`;
+      prompt += `\n- Exemple: [Marie] *ouvre la porte* "Qu'est-ce que...?!" (Choquée)`;
+    }
     
     // === v5.4.31 - NSFW EXPLICITE SANS CENSURE ===
     if (isNSFW) {

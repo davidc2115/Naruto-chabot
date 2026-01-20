@@ -1410,11 +1410,6 @@ export default function ConversationScreen({ route, navigation }) {
           {generatingImage ? (
             <View style={styles.imageButtonGenerating}>
               <ActivityIndicator size="small" color="#6366f1" />
-              {totalImagesToGenerate > 1 && (
-                <Text style={styles.imageCountText}>
-                  {imageGenerationCount}/{totalImagesToGenerate}
-                </Text>
-              )}
             </View>
           ) : (
             <Text style={styles.imageButtonText}>

@@ -377,100 +377,43 @@ export default function CreateCharacterScreen({ navigation, route }) {
   // === ÉTAT POUR L'ANALYSE IA ===
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
-  // === v5.4.35 - ANALYSE D'IMAGE SIMPLIFIÉE ===
-  // Génère un profil basé sur l'IA sans essayer d'analyser l'image réellement
-  // (les APIs de vision ne fonctionnent pas correctement)
+  // === v5.4.36 - GÉNÉRATION DE PROFIL LOCALE (SANS API) ===
+  // Les APIs de vision ne fonctionnent pas - génération locale uniquement
   const analyzeImageWithAI = async (imageUri) => {
     try {
       setAnalyzingImage(true);
-      console.log('🔍 v5.4.35 - Génération de profil IA...');
+      console.log('🔍 v5.4.36 - Génération de profil LOCAL...');
       
-      let analysis = null;
+      // Simuler un court délai pour l'UX
+      await new Promise(r => setTimeout(r, 500));
       
-      // Essayer de générer un profil varié avec l'IA
-      try {
-        console.log('🎲 Génération d\'un profil varié avec l\'IA...');
-        
-        const response = await axios.post(
-          'https://text.pollinations.ai/',
-          {
-            messages: [
-              {
-                role: 'system',
-                content: 'Tu es un générateur de profils de personnages. Tu dois générer des profils variés et réalistes.'
-              },
-              {
-                role: 'user',
-                content: `Génère un profil de personnage ALÉATOIRE et VARIÉ en JSON. Varie bien les caractéristiques à chaque fois:
-{
-  "gender": "female" ou "male" (50/50),
-  "ageEstimate": entre 18 et 55,
-  "hairColor": une couleur parmi noir/brun/châtain/blond/roux/blanc/rose/bleu/violet,
-  "hairLength": courts/mi-longs/longs/très longs,
-  "eyeColor": marron/noisette/vert/bleu/gris/noir,
-  "skinTone": très claire/claire/mate/bronzée/caramel/ébène,
-  "bodyType": mince/élancée/moyenne/athlétique/voluptueuse/généreuse/ronde,
-  "bustSize": "A" à "F" pour les femmes,
-  "fullDescription": "Une description de 2-3 phrases du personnage"
-}
-IMPORTANT: Varie les caractéristiques! Ne génère pas toujours la même chose.
-Réponds UNIQUEMENT avec le JSON, rien d'autre.`
-              }
-            ],
-            model: 'mistral',
-            temperature: 0.9, // Haute température pour plus de variété
-            max_tokens: 500,
-          },
-          { timeout: 30000 }
-        );
-        
-        let responseText = response.data;
-        if (typeof responseText !== 'string') {
-          responseText = JSON.stringify(responseText);
-        }
-        console.log('📝 Réponse IA:', responseText.substring(0, 500));
-        
-        // Parser la réponse
-        const parsed = parseAnalysisResponse(responseText);
-        if (parsed && isValidAnalysis(parsed)) {
-          analysis = parsed;
-          analysis._method = 'IA';
-          console.log('✅ Profil IA généré avec succès');
-        }
-      } catch (e) {
-        console.log('⚠️ Génération IA échouée:', e.message);
-      }
+      // Générer un profil varié localement
+      const profile = generateRandomProfile();
+      console.log('✅ Profil généré:', JSON.stringify(profile, null, 2));
       
-      // Fallback: génération locale
-      if (!analysis) {
-        console.log('🔄 Fallback: génération locale...');
-        analysis = generateRandomProfile();
-        analysis._method = 'Local';
-      }
-      
-      // Appliquer l'analyse au formulaire
-      console.log('✅ Profil généré:', JSON.stringify(analysis, null, 2));
-      applyAnalysisToForm(analysis);
+      // Appliquer au formulaire
+      applyAnalysisToForm(profile);
       
       Alert.alert(
-        '✅ Profil généré',
-        `Un profil a été généré (${analysis._method}).\n\n` +
-        '⚠️ IMPORTANT: Modifiez les caractéristiques pour correspondre à votre image:\n' +
-        '• Genre\n• Couleur des cheveux\n• Longueur des cheveux\n• Couleur des yeux\n• Âge\n• Morphologie',
-        [{ text: 'Compris' }]
+        '📝 Profil généré',
+        'Un profil aléatoire a été créé.\n\n' +
+        '⚠️ MODIFIEZ les caractéristiques pour correspondre à votre image:\n\n' +
+        '• Genre (homme/femme)\n' +
+        '• Couleur des cheveux\n' +
+        '• Longueur des cheveux\n' +
+        '• Couleur des yeux\n' +
+        '• Âge\n' +
+        '• Teint\n' +
+        '• Morphologie',
+        [{ text: 'Compris, je vais modifier' }]
       );
       
-      return analysis;
+      return profile;
       
     } catch (error) {
       console.error('❌ Erreur:', error);
       const localProfile = generateRandomProfile();
       applyAnalysisToForm(localProfile);
-      Alert.alert(
-        '⚠️ Erreur',
-        'Un profil par défaut a été créé.\nModifiez-le selon votre image.',
-        [{ text: 'OK' }]
-      );
       return localProfile;
     } finally {
       setAnalyzingImage(false);
