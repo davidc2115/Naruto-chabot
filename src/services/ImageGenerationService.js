@@ -4685,7 +4685,8 @@ class ImageGenerationService {
     await CustomImageAPIService.loadConfig();
     
     const strategy = CustomImageAPIService.getStrategy();
-    console.log(`🎨 v5.4.30 Stratégie STRICTE: ${strategy.toUpperCase()} (tentative ${retryCount + 1}/${this.maxRetries})`);
+    console.log(`🎨 v5.4.31 Stratégie STRICTE: ${strategy.toUpperCase()} (tentative ${retryCount + 1}/${this.maxRetries})`);
+    console.log(`🎯 JAMAIS de fallback vers une autre stratégie!`);
     
     let imageUrl;
     
@@ -6800,8 +6801,16 @@ class ImageGenerationService {
     finalPrompt += ', ' + this.anatomyStrictPrompt;
     finalPrompt += ', masterpiece, best quality, ultra detailed, 8K';
     
+    // v5.4.31 - NSFW EXPLICITE SANS CENSURE
     if (isNSFW) {
-      finalPrompt += ', nsfw, erotic, sensual, sexy, provocative, intimate';
+      finalPrompt += ', ((nsfw)), ((explicit)), erotic, sensual, sexy, provocative, intimate';
+      finalPrompt += ', uncensored, nude, exposed, seductive, alluring, arousing';
+      if (nsfwLevel >= 4) {
+        finalPrompt += ', ((topless)), ((bare breasts)), ((nipples visible))';
+      }
+      if (nsfwLevel >= 5) {
+        finalPrompt += ', ((fully nude)), ((naked)), ((genitals visible)), explicit nudity';
+      }
     }
     
     // v5.4.22 - Limiter la longueur pour le serveur Freebox mais garder plus

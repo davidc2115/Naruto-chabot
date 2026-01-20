@@ -67,13 +67,18 @@ class CustomImageAPIService {
         const parsed = JSON.parse(config);
         this.freeboxUrl = parsed.freeboxUrl || parsed.url || 'http://88.174.155.230:33437/generate';
         this.apiType = parsed.type || 'pollinations';
-        // Supporter les 3 stratégies: pollinations, freebox, local
+        // v5.4.31 - Supporter les 3 stratégies: pollinations, freebox, local
+        // IMPORTANT: NE PAS migrer/changer la stratégie si elle est explicitement "freebox"
         this.strategy = parsed.strategy || 'pollinations';
         
-        // Migration: ancienne config "freebox" devient "pollinations"
-        if (this.strategy === 'freebox' && !parsed.freeboxUrl) {
-          // L'ancienne config "freebox" utilisait Pollinations
-          this.strategy = 'pollinations';
+        // v5.4.31 - Si la stratégie est freebox, TOUJOURS utiliser freebox (pas de migration auto)
+        // L'ancienne migration causait des problèmes en changeant freebox en pollinations
+        if (this.strategy === 'freebox') {
+          console.log('🏠 Stratégie FREEBOX détectée - PAS de migration vers Pollinations');
+          // S'assurer que l'URL Freebox est définie
+          if (!this.freeboxUrl) {
+            this.freeboxUrl = 'http://88.174.155.230:33437/generate';
+          }
         }
         
         console.log(`📸 Config images chargée (user: ${userId}):`, {
@@ -81,6 +86,7 @@ class CustomImageAPIService {
           type: this.apiType,
           strategy: this.strategy
         });
+        console.log(`🎯 STRATÉGIE ACTIVE: ${this.strategy.toUpperCase()}`);
       } else {
         console.log(`📸 Aucune config images (user: ${userId}), utilisation par défaut: Pollinations AI`);
         this.freeboxUrl = 'http://88.174.155.230:33437/generate';

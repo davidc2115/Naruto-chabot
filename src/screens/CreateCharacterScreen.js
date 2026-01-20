@@ -415,29 +415,43 @@ export default function CreateCharacterScreen({ navigation, route }) {
         console.log('⚠️ Impossible de lire l\'image:', imgError.message);
       }
       
-      // === MÉTHODE 1: Pollinations Vision API (avec image réelle) ===
+      // === v5.4.31 - MÉTHODE 1: Pollinations Vision API GPT-4V ===
+      // ANALYSE D'IMAGE RÉELLE - NE PAS INVENTER
       if (imageBase64) {
         try {
-          console.log('🔍 Analyse avec Pollinations Vision (GPT-4o)...');
+          console.log('🔍 v5.4.31 Analyse RÉELLE avec GPT-4 Vision...');
+          console.log(`📷 Taille image base64: ${Math.round(imageBase64.length / 1024)} KB`);
           
-          const visionPrompt = `Analyse cette image de personnage et décris PRÉCISÉMENT ce que tu vois.
+          // v5.4.31 - PROMPT ULTRA-STRICT pour forcer l'analyse réelle
+          const visionPrompt = `TASK: Analyze this image and describe ONLY what you ACTUALLY SEE. DO NOT invent or imagine anything.
 
-ANALYSE l'image et réponds avec CE JSON EXACT (utilise les valeurs que tu VOIS dans l'image):
+CRITICAL RULES:
+- Look at the ACTUAL image I'm sending
+- Describe ONLY visible features
+- If you cannot see something clearly, say "unknown"
+- DO NOT generate creative or fictional descriptions
+- DO NOT describe characters that aren't in the image
+
+Look at the image and extract these VISIBLE characteristics:
+
 {
-  "gender": "female" ou "male",
-  "ageEstimate": nombre entre 18 et 60,
-  "hairColor": "noir/brun/châtain/blond/roux/blanc/rose/bleu/vert/violet",
-  "hairLength": "très courts/courts/mi-longs/longs/très longs",
-  "eyeColor": "marron/noisette/vert/bleu/gris/noir/violet/rouge",
-  "skinTone": "très claire/claire/mate/bronzée/caramel/ébène",
-  "bodyType": "mince/élancée/moyenne/athlétique/voluptueuse/généreuse/ronde/musclée",
-  "bustSize": "A/B/C/D/DD/E/F" (si femme, basé sur ce que tu vois),
-  "fullDescription": "Description de 2-3 phrases de ce que tu VOIS dans l'image"
+  "gender": "female" or "male" (based on what you SEE),
+  "ageEstimate": number 18-70 (estimate based on face),
+  "hairColor": "black/brown/blonde/red/white/pink/blue/green/purple" (ACTUAL color visible),
+  "hairLength": "very short/short/medium/long/very long" (ACTUAL length visible),
+  "eyeColor": "brown/hazel/green/blue/gray/black" (if visible),
+  "skinTone": "very pale/fair/tan/olive/brown/dark" (ACTUAL skin color),
+  "bodyType": "slim/average/athletic/curvy/plus-size" (if visible),
+  "bustSize": "A/B/C/D/DD/E/F" (if female and visible, otherwise "unknown"),
+  "fullDescription": "2-3 sentences describing what you ACTUALLY SEE in this specific image"
 }
 
-IMPORTANT: Base-toi UNIQUEMENT sur ce que tu VOIS dans l'image, pas sur des suppositions!
-Réponds UNIQUEMENT avec le JSON, rien d'autre.`;
+ONLY output the JSON. No other text.`;
 
+          // v5.4.31 - NE PAS TRONQUER l'image, envoyer le maximum possible
+          const maxBase64Size = Math.min(imageBase64.length, 1500000); // 1.5MB max
+          const imageData = imageBase64.substring(0, maxBase64Size);
+          
           const response = await axios.post(
             'https://text.pollinations.ai/',
             {
@@ -449,17 +463,19 @@ Réponds UNIQUEMENT avec le JSON, rien d'autre.`;
                     { 
                       type: 'image_url', 
                       image_url: { 
-                        url: `data:image/jpeg;base64,${imageBase64.substring(0, 500000)}` // Limiter taille
+                        url: `data:image/jpeg;base64,${imageData}`,
+                        detail: 'high' // Haute résolution pour meilleure analyse
                       } 
                     }
                   ]
                 }
               ],
-              model: 'openai-large', // GPT-4o Vision
-              temperature: 0.3, // Basse température pour précision
+              model: 'openai-large', // GPT-4V
+              temperature: 0.1, // Très basse pour précision maximale
+              max_tokens: 1000,
             },
             { 
-              timeout: 60000, // 60 secondes pour vision
+              timeout: 90000, // 90 secondes
               headers: { 'Content-Type': 'application/json' }
             }
           );
@@ -468,24 +484,33 @@ Réponds UNIQUEMENT avec le JSON, rien d'autre.`;
           if (typeof responseText !== 'string') {
             responseText = JSON.stringify(responseText);
           }
-          console.log('📝 Réponse Vision:', responseText.substring(0, 500));
+          console.log('📝 Réponse GPT-4V:', responseText.substring(0, 600));
           
           const parsed = parseAnalysisResponse(responseText);
           if (parsed && isValidAnalysis(parsed)) {
-            analysis = parsed;
-            analysis._isRealAnalysis = true;
-            console.log('✅ VRAIE analyse d\'image réussie!');
+            // v5.4.31 - Vérifier que ce n'est pas une description générique
+            const desc = parsed.fullDescription || '';
+            const isGeneric = desc.includes('bleus tressés') || desc.includes('blue braided') || 
+                              desc.includes('cascadent') || desc.includes('intelligence vive');
+            
+            if (!isGeneric) {
+              analysis = parsed;
+              analysis._isRealAnalysis = true;
+              console.log('✅ Analyse GPT-4V réussie et validée!');
+            } else {
+              console.log('⚠️ Réponse GPT-4V semble générique, essai autre méthode...');
+            }
           }
         } catch (e1) {
-          console.log('⚠️ Pollinations Vision échoué:', e1.message);
+          console.log('⚠️ GPT-4V Vision échoué:', e1.message);
           lastError = e1;
         }
       }
       
-      // === MÉTHODE 2: Fallback Pollinations Claude Vision ===
+      // === v5.4.31 - MÉTHODE 2: Fallback Gemini/Claude Vision ===
       if (!analysis && imageBase64) {
         try {
-          console.log('🔄 Essai avec Claude Vision...');
+          console.log('🔄 v5.4.31 Essai avec modèle alternatif...');
           
           const response = await axios.post(
             'https://text.pollinations.ai/',
@@ -496,33 +521,39 @@ Réponds UNIQUEMENT avec le JSON, rien d'autre.`;
                   content: [
                     { 
                       type: 'text', 
-                      text: `Décris PRÉCISÉMENT la personne dans cette image. Réponds en JSON:
-{"gender":"female/male","ageEstimate":25,"hairColor":"couleur","hairLength":"longueur","eyeColor":"couleur","skinTone":"teint","bodyType":"morphologie","bustSize":"taille","fullDescription":"description"}` 
+                      text: `STRICT INSTRUCTION: Analyze this ACTUAL image. DO NOT make up features.
+Look at the image and output ONLY this JSON with what you ACTUALLY SEE:
+{"gender":"female/male","ageEstimate":25,"hairColor":"actual color","hairLength":"actual length","eyeColor":"actual color","skinTone":"actual tone","bodyType":"visible type","bustSize":"A-F or unknown","fullDescription":"what you actually see"}
+NO creative writing. ONLY describe visible features from this specific image.` 
                     },
                     { 
                       type: 'image_url', 
-                      image_url: { url: `data:image/jpeg;base64,${imageBase64.substring(0, 300000)}` } 
+                      image_url: { 
+                        url: `data:image/jpeg;base64,${imageBase64.substring(0, 800000)}`,
+                        detail: 'high'
+                      } 
                     }
                   ]
                 }
               ],
-              model: 'claude', // Claude Vision
-              temperature: 0.3,
+              model: 'mistral-large', // Essayer un autre modèle
+              temperature: 0.1,
             },
-            { timeout: 45000, headers: { 'Content-Type': 'application/json' } }
+            { timeout: 60000, headers: { 'Content-Type': 'application/json' } }
           );
           
           let responseText = response.data;
           if (typeof responseText !== 'string') responseText = JSON.stringify(responseText);
+          console.log('📝 Réponse alternative:', responseText.substring(0, 500));
           
           const parsed = parseAnalysisResponse(responseText);
           if (parsed && isValidAnalysis(parsed)) {
             analysis = parsed;
             analysis._isRealAnalysis = true;
-            console.log('✅ Claude Vision analyse réussie!');
+            console.log('✅ Analyse alternative réussie!');
           }
         } catch (e2) {
-          console.log('⚠️ Claude Vision échoué:', e2.message);
+          console.log('⚠️ Modèle alternatif échoué:', e2.message);
         }
       }
       
