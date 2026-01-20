@@ -956,26 +956,26 @@ export default function ConversationScreen({ route, navigation }) {
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
-                // PAROLES: Noir/blanc selon bulle, normal
+                // PAROLES: Toujours NOIR pour le personnage (cohérence)
                 return (
                   <Text 
                     key={`dialogue-${index}`} 
                     style={{ 
-                      color: isUser ? '#ffffff' : (style.dialogueColor || '#1f2937'),
+                      color: isUser ? '#ffffff' : '#000000',
                       fontStyle: 'normal',
-                      fontWeight: 'normal',
+                      fontWeight: '500',
                     }}
                   >
                     {part.text}
                   </Text>
                 );
               } else {
-                // Texte normal/espaces: gris neutre
+                // Texte normal: NOIR aussi pour cohérence
                 return (
                   <Text 
                     key={`text-${index}`} 
                     style={{ 
-                      color: isUser ? 'rgba(255,255,255,0.8)' : '#6b7280',
+                      color: isUser ? '#ffffff' : '#000000',
                       fontStyle: 'normal',
                       fontWeight: 'normal',
                     }}

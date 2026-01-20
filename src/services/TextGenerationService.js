@@ -2482,6 +2482,13 @@ class TextGenerationService {
     prompt += `\n- (pensée) = ce que tu penses`;
     prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
+    // === v5.4.39 - SUPPORT TIERCE PERSONNE ===
+    prompt += `\n\n👥 SI UNE TIERCE PERSONNE EST MENTIONNÉE:`;
+    prompt += `\n- Tu peux la faire parler/réagir dans ta réponse`;
+    prompt += `\n- Format: [Nom] *action* "parole" (pensée)`;
+    prompt += `\n- Exemple: [Marie] *entre soudain* "Qu'est-ce que...?!" (Choquée)`;
+    prompt += `\n- Toi (${charName}): *action* "parole" (pensée) [sans préfixe]`;
+    
     // === v5.4.6 - NSFW AVEC LIMITES, VIRGINITÉ ET VITESSE ===
     if (isNSFW) {
       prompt += `\n\n🔞 MODE ADULTE (intensité ${nsfwIntensity}/5)`;
@@ -2561,6 +2568,65 @@ class TextGenerationService {
     
     // v5.4.14 - Instruction claire pour réponse COMPLÈTE
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
+    
+    // === v5.4.39 - DÉTECTION DE TIERCE PERSONNE ===
+    const lastContentLower = lastContent.toLowerCase();
+    const thirdPersonKeywords = [
+      'ma fille', 'sa fille', 'ta fille', 'la fille',
+      'ma mère', 'maman', 'ma maman',
+      'mon père', 'papa', 'mon papa',
+      'ma femme', 'mon mari', 'ma copine', 'mon copain',
+      'mon ami', 'mon amie', 'ma meilleure amie',
+      'ma belle-mère', 'mon beau-père',
+      'ma voisine', 'mon voisin', 'ma collègue', 'mon collègue',
+      'quelqu\'un entre', 'quelqu\'un arrive',
+      'elle entre', 'il entre', 'elle arrive', 'il arrive',
+      'on nous surprend', 'on est surpris',
+    ];
+    
+    let hasThirdPerson = false;
+    let thirdPersonName = null;
+    
+    for (const keyword of thirdPersonKeywords) {
+      if (lastContentLower.includes(keyword)) {
+        hasThirdPerson = true;
+        // Extraire le nom de la relation
+        const relations = {
+          'fille': 'Fille', 'mère': 'Mère', 'maman': 'Mère', 
+          'père': 'Père', 'papa': 'Père',
+          'femme': 'Femme', 'mari': 'Mari',
+          'copine': 'Copine', 'copain': 'Copain',
+          'ami': 'Ami', 'amie': 'Amie',
+          'voisine': 'Voisine', 'voisin': 'Voisin',
+          'collègue': 'Collègue',
+        };
+        for (const [rel, name] of Object.entries(relations)) {
+          if (keyword.includes(rel)) {
+            thirdPersonName = name;
+            break;
+          }
+        }
+        if (!thirdPersonName) thirdPersonName = 'Cette personne';
+        console.log(`👥 Tierce personne détectée: ${thirdPersonName}`);
+        break;
+      }
+    }
+    
+    // === v5.4.39 - INSTRUCTIONS POUR TIERCE PERSONNE ===
+    if (hasThirdPerson) {
+      instruction += `\n\n${'='.repeat(50)}`;
+      instruction += `\n🚨🚨🚨 TIERCE PERSONNE: ${thirdPersonName} 🚨🚨🚨`;
+      instruction += `\n${'='.repeat(50)}`;
+      instruction += `\n\n⚠️ Tu DOIS faire parler ${thirdPersonName} dans ta réponse!`;
+      instruction += `\n⚠️ Tu joues DEUX rôles: ${charName} ET ${thirdPersonName}!`;
+      instruction += `\n\n📝 FORMAT OBLIGATOIRE:`;
+      instruction += `\n[${thirdPersonName}] *action* "paroles" (pensées)`;
+      instruction += `\n*action de ${charName}* "paroles de ${charName}" (pensées)`;
+      instruction += `\n\n📌 EXEMPLE:`;
+      instruction += `\n[${thirdPersonName}] *entre dans la pièce, choqué(e)* "Qu'est-ce qui se passe?!" (Je n'en reviens pas!)`;
+      instruction += `\n*sursaute* "Ce n'est pas ce que tu crois!" (Merde!)`;
+      instruction += `\n\n⚠️ N'IGNORE PAS ${thirdPersonName}! Cette personne DOIT réagir!\n`;
+    }
     
     // === v5.4.14 - OBLIGATION DE RÉPONDRE À TOUT LE MESSAGE ===
     instruction += `\n🎯🎯🎯 RÉPONDS À CHAQUE ÉLÉMENT DU MESSAGE! 🎯🎯🎯`;

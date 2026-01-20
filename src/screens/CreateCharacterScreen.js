@@ -378,52 +378,76 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
   // === ANALYSE D'IMAGE PAR IA ===
-  // v5.4.26 - VERSION SIMPLIFIÉE ET ROBUSTE
-  // Génère un profil varié et cohérent - plus de dépendance aux APIs vision
+  // v5.4.39 - VRAIE ANALYSE D'IMAGE avec Pollinations Vision (GPT-4o gratuit)
   const analyzeImageWithAI = async (imageUri) => {
     try {
       setAnalyzingImage(true);
-      console.log('🔍 v5.4.26 - Analyse IA de l\'image...');
+      console.log('🔍 v5.4.39 - Analyse RÉELLE de l\'image...');
       
       let analysis = null;
-      let lastError = null;
       
-      // v5.4.26 - MÉTHODE 1: Pollinations simple (sans vision, génère un profil varié)
+      // === MÉTHODE 1: Pollinations Vision API (GPT-4o gratuit) ===
       try {
-        console.log('🔄 Génération de profil avec IA...');
+        console.log('📸 Conversion de l\'image en base64...');
         
-        // Générer des caractéristiques variées et aléatoires
-        const randomSeed = Date.now() % 1000;
-        const promptVariety = `Tu es un créateur de personnages. Génère un profil physique UNIQUE et VARIÉ pour un personnage fictif.
+        let imageData = null;
         
-IMPORTANT: Génère des caractéristiques VARIÉES et DIFFÉRENTES à chaque fois. Seed aléatoire: ${randomSeed}
-
-Réponds UNIQUEMENT avec ce JSON VALIDE (rien d'autre avant ou après):
-{"gender":"female","ageEstimate":25,"hairColor":"noir","hairLength":"longs","eyeColor":"marron","skinTone":"claire","bodyType":"moyenne","bustSize":"C","fullDescription":"Description ici"}
-
-VALEURS À CHOISIR ALÉATOIREMENT:
-- gender: choisir "female" (80%) ou "male" (20%)
-- ageEstimate: choisir un nombre entre 18 et 45
-- hairColor: choisir parmi noir, brun, châtain, blond, roux, rose, bleu, blanc
-- hairLength: choisir parmi courts, mi-longs, longs, très longs
-- eyeColor: choisir parmi marron, noisette, vert, bleu, gris
-- skinTone: choisir parmi très claire, claire, mate, bronzée, caramel, ébène
-- bodyType: choisir parmi mince, élancée, moyenne, athlétique, voluptueuse, généreuse, ronde
-- bustSize (si femme): choisir parmi A, B, C, D, DD, E, F
-- fullDescription: écrire 2-3 phrases décrivant le personnage
-
-GÉNÈRE UN PROFIL UNIQUE ET VARIÉ! JSON uniquement:`;
+        // Convertir l'image en base64
+        if (imageUri.startsWith('data:')) {
+          imageData = imageUri;
+        } else if (imageUri.startsWith('file://') || imageUri.startsWith('/')) {
+          const base64 = await FileSystem.readAsStringAsync(imageUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          imageData = `data:image/jpeg;base64,${base64}`;
+        } else if (imageUri.startsWith('http')) {
+          imageData = imageUri; // URL directe
+        }
+        
+        if (!imageData) {
+          throw new Error('Image non valide');
+        }
+        
+        // Limiter la taille (max 1.5MB)
+        if (imageData.length > 1500000) {
+          console.log('⚠️ Image trop grande, limitation...');
+          imageData = imageData.substring(0, 1500000);
+        }
+        
+        console.log('🌐 Appel Pollinations Vision API (GPT-4o)...');
+        
+        const visionPrompt = `Analyse cette image et décris UNIQUEMENT ce que tu VOIS.
+Réponds en JSON STRICT (rien d'autre):
+{
+  "gender": "female" ou "male",
+  "ageEstimate": nombre entre 18-60,
+  "hairColor": "noir/brun/châtain/blond/roux/blanc/rose/bleu",
+  "hairLength": "courts/mi-longs/longs/très longs",
+  "eyeColor": "marron/noisette/vert/bleu/gris/noir",
+  "skinTone": "très claire/claire/mate/bronzée/caramel/ébène",
+  "bodyType": "mince/élancée/moyenne/athlétique/voluptueuse/généreuse/ronde",
+  "bustSize": "A/B/C/D/DD/E/F" (femmes uniquement),
+  "fullDescription": "Description physique de 2-3 phrases"
+}
+DÉCRIS UNIQUEMENT CE QUE TU VOIS! JSON seulement:`;
 
         const response = await axios.post(
           'https://text.pollinations.ai/',
           {
-            messages: [{ role: 'user', content: promptVariety }],
-            model: 'mistral',
-            temperature: 0.95, // Haute température pour variété
-            seed: randomSeed,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: visionPrompt },
+                  { type: 'image_url', image_url: { url: imageData, detail: 'high' } }
+                ]
+              }
+            ],
+            model: 'openai', // GPT-4o avec vision
+            temperature: 0.2,
           },
           { 
-            timeout: 30000,
+            timeout: 60000,
             headers: { 'Content-Type': 'application/json' }
           }
         );
@@ -432,54 +456,50 @@ GÉNÈRE UN PROFIL UNIQUE ET VARIÉ! JSON uniquement:`;
         if (typeof responseText !== 'string') {
           responseText = JSON.stringify(responseText);
         }
-        console.log('📝 Réponse IA:', responseText.substring(0, 500));
+        console.log('📝 Réponse Vision:', responseText.substring(0, 500));
         
         const parsed = parseAnalysisResponse(responseText);
         if (parsed && isValidAnalysis(parsed)) {
           analysis = parsed;
-          console.log('✅ Génération IA réussie');
+          analysis._method = 'Vision';
+          console.log('✅ Analyse Vision réussie!');
         }
-      } catch (e1) {
-        console.log('⚠️ Pollinations échoué:', e1.message);
-        lastError = e1;
+      } catch (visionError) {
+        console.log('⚠️ Vision API échouée:', visionError.message);
       }
       
-      // v5.4.26 - MÉTHODE 2: Génération locale aléatoire (fallback garanti)
+      // === MÉTHODE 2: Fallback génération aléatoire variée ===
       if (!analysis) {
-        console.log('🔄 Génération locale aléatoire...');
+        console.log('🔄 Fallback: génération locale...');
         analysis = generateRandomProfile();
-        analysis._isLocalGeneration = true;
-        console.log('✅ Génération locale réussie');
+        analysis._method = 'Local';
       }
       
-      // === APPLIQUER L'ANALYSE ===
-      if (analysis) {
-        console.log('✅ Profil généré:', JSON.stringify(analysis, null, 2));
-        applyAnalysisToForm(analysis);
-        
-        const isLocal = analysis._isLocalGeneration;
+      // Appliquer l'analyse
+      console.log('✅ Profil:', JSON.stringify(analysis, null, 2));
+      applyAnalysisToForm(analysis);
+      
+      if (analysis._method === 'Vision') {
         Alert.alert(
-          '✅ Profil généré',
-          isLocal 
-            ? 'Un profil a été généré automatiquement.\n\nModifiez les caractéristiques selon l\'image.'
-            : 'Un profil varié a été généré.\n\nAjustez les caractéristiques si nécessaire.',
+          '✅ Image analysée!',
+          'L\'IA a analysé votre image.\n\nVérifiez et ajustez si nécessaire.',
           [{ text: 'OK' }]
         );
-        return analysis;
       } else {
-        throw lastError || new Error('Génération impossible');
+        Alert.alert(
+          '📝 Profil généré',
+          'Analyse non disponible.\nUn profil a été créé.\n\nModifiez selon votre image.',
+          [{ text: 'OK' }]
+        );
       }
       
+      return analysis;
+      
     } catch (error) {
-      console.error('❌ Erreur génération profil:', error);
-      // Fallback ultime: génération locale
+      console.error('❌ Erreur:', error);
       const localProfile = generateRandomProfile();
       applyAnalysisToForm(localProfile);
-      Alert.alert(
-        '✅ Profil généré',
-        'Un profil par défaut a été créé.\n\nModifiez les caractéristiques selon votre image.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('⚠️ Erreur', 'Un profil par défaut a été créé.', [{ text: 'OK' }]);
       return localProfile;
     } finally {
       setAnalyzingImage(false);
