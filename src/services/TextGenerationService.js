@@ -515,9 +515,9 @@ class TextGenerationService {
 
   /**
    * Analyse le contexte de la conversation + scénario pour adapter les réponses
-   * v5.4.24 - MODE ADAPTATIF: SFW/NSFW selon DERNIER message utilisateur
+   * v5.4.29 - MODE ADAPTATIF AMÉLIORÉ: SFW PAR DÉFAUT, NSFW seulement si explicite
    * RETOUR AU SFW POSSIBLE: Si l'utilisateur change de sujet, on revient au SFW
-   * TEMPÉRAMENT: Le personnage influence la vitesse de progression NSFW
+   * TEMPÉRAMENT: Le personnage influence FORTEMENT la vitesse de progression NSFW
    */
   analyzeConversationContext(messages, character = null) {
     const messageCount = messages.length;
@@ -527,28 +527,28 @@ class TextGenerationService {
     // Messages de l'utilisateur uniquement (pour détection des intentions)
     const userMessages = messages.filter(m => m.role === 'user');
     const lastUserMsg = userMessages.slice(-1)[0]?.content?.toLowerCase() || '';
-    // v5.4.24 - RÉDUIRE à 3 derniers messages pour permettre le retour au SFW
-    const recentUserMsgs = userMessages.slice(-3).map(m => m.content?.toLowerCase() || '').join(' ');
+    // v5.4.29 - DERNIER MESSAGE SEULEMENT pour détection SFW/NSFW (plus réactif)
+    const recentUserMsgs = userMessages.slice(-2).map(m => m.content?.toLowerCase() || '').join(' ');
     // Dernier message SEULEMENT pour détection prioritaire
-    const veryRecentUserMsg = userMessages.slice(-2).map(m => m.content?.toLowerCase() || '').join(' ');
+    const veryRecentUserMsg = userMessages.slice(-1).map(m => m.content?.toLowerCase() || '').join(' ');
     
     // Scénario du personnage
     const scenarioText = (character?.scenario || '').toLowerCase();
     
-    // === v5.4.24 - TEMPÉRAMENT DU PERSONNAGE POUR VITESSE NSFW ===
+    // === v5.4.29 - TEMPÉRAMENT DU PERSONNAGE POUR VITESSE NSFW (RENFORCÉ) ===
     const temperament = (character?.temperament || 'amical').toLowerCase();
     const temperamentNsfwSpeed = {
-      'timide': 0.3,      // Très lent - résiste au NSFW
-      'amical': 0.5,      // Normal
-      'séducteur': 1.0,   // Rapide
-      'passionné': 1.2,   // Très rapide
-      'dominant': 1.5,    // Très rapide, prend le contrôle
-      'soumis': 0.8,      // Attend que l'utilisateur mène
-      'réservé': 0.2,     // Très très lent
-      'aguicheur': 1.3,   // Très rapide
-      'provocant': 1.4,   // Très rapide
+      'timide': 0.2,      // TRÈS TRÈS lent - résiste fortement au NSFW
+      'amical': 0.4,      // Lent - prend son temps
+      'séducteur': 0.8,   // Normal
+      'passionné': 1.0,   // Rapide
+      'dominant': 1.2,    // Très rapide, prend le contrôle
+      'soumis': 0.5,      // Attend que l'utilisateur mène
+      'réservé': 0.15,    // Extrêmement lent
+      'aguicheur': 0.9,   // Assez rapide
+      'provocant': 1.1,   // Rapide
     };
-    const nsfwSpeedMultiplier = temperamentNsfwSpeed[temperament] || 0.5;
+    const nsfwSpeedMultiplier = temperamentNsfwSpeed[temperament] || 0.4;
     console.log(`🎭 Tempérament: ${temperament} (vitesse NSFW: x${nsfwSpeedMultiplier})`);
     
     // === MOTS-CLÉS PAR NIVEAU D'INTENSITÉ ===
@@ -586,103 +586,129 @@ class TextGenerationService {
       'fourre', 'pilonne', 'lime', 'bourre',
     ];
     
-    // v5.4.24 - SFW ÉTENDU: Mots qui FORCENT le retour au SFW
+    // v5.4.29 - SFW ULTRA-ÉTENDU: Mots qui FORCENT le retour au SFW
     const sfwKeywords = [
-      // Salutations
-      'bonjour', 'salut', 'hey', 'coucou', 'bonsoir', 'hello',
-      // Questions de vie quotidienne
-      'travail', 'journée', 'comment ça va', 'ça va', 'merci', 
-      'comment vas-tu', 'bien dormi', 'passé ta journée',
-      // Sujets normaux
-      'mange', 'repas', 'déjeuner', 'dîner', 'petit-déjeuner', 'cuisine',
-      'film', 'série', 'musique', 'livre', 'lecture', 'sport',
-      'famille', 'ami', 'amis', 'parents', 'frère', 'soeur',
-      'école', 'études', 'cours', 'examen', 'professeur',
-      'météo', 'temps', 'soleil', 'pluie', 'neige',
-      'vacances', 'voyage', 'week-end', 'sortie',
-      'hobby', 'passion', 'loisir', 'jeu', 'jeux',
-      'nouvelles', 'quoi de neuf', 'raconte', 'parle-moi de',
-      // Demandes de changement de sujet
-      'parlons d\'autre chose', 'changeons de sujet', 'autre sujet',
-      'on fait quoi', 'tu fais quoi', 'qu\'est-ce que tu fais',
-      'tu penses à quoi', 'à quoi tu penses',
+      // Salutations - FORT
+      'bonjour', 'salut', 'hey', 'coucou', 'bonsoir', 'hello', 'hi', 'yo',
+      // Questions de vie quotidienne - FORT
+      'travail', 'journée', 'comment ça va', 'ça va', 'merci', 'svp', 's\'il te plait',
+      'comment vas-tu', 'bien dormi', 'passé ta journée', 'quoi de neuf',
+      // Sujets normaux - tous SFW
+      'mange', 'manger', 'repas', 'déjeuner', 'dîner', 'petit-déjeuner', 'cuisine', 'cuisiner',
+      'film', 'série', 'musique', 'livre', 'lecture', 'sport', 'jogging', 'fitness',
+      'famille', 'ami', 'amis', 'parents', 'frère', 'soeur', 'mère', 'père', 'enfant',
+      'école', 'études', 'cours', 'examen', 'professeur', 'travail', 'boulot', 'bureau',
+      'météo', 'temps', 'soleil', 'pluie', 'neige', 'froid', 'chaud', 'été', 'hiver',
+      'vacances', 'voyage', 'week-end', 'sortie', 'promenade', 'marche', 'balade',
+      'hobby', 'passion', 'loisir', 'jeu', 'jeux', 'vidéo', 'console', 'ordinateur',
+      'nouvelles', 'quoi de neuf', 'raconte', 'parle-moi de', 'discuter', 'discutons',
+      // Questions générales
+      'tu aimes', 'tu préfères', 'ton avis', 'que penses-tu', 'qu\'en penses-tu',
+      'tu connais', 'as-tu vu', 'as-tu lu', 'as-tu essayé',
+      // Demandes de changement de sujet - FORT
+      'parlons d\'autre chose', 'changeons de sujet', 'autre sujet', 'autre chose',
+      'on fait quoi', 'tu fais quoi', 'qu\'est-ce que tu fais', 'que fais-tu',
+      'tu penses à quoi', 'à quoi tu penses', 'dis-moi',
+      // Expressions de politesse
+      'bonne journée', 'bonne soirée', 'bonne nuit', 'à demain', 'à bientôt', 'à plus',
+      'comment tu vas', 'comment allez-vous', 'enchanté', 'ravie',
+      // Sujets innocents
+      'café', 'thé', 'chocolat', 'gâteau', 'dessert', 'shopping', 'acheter',
+      'maison', 'appartement', 'décoration', 'jardin', 'voiture', 'transport',
+      'animal', 'chat', 'chien', 'oiseau', 'nature', 'fleur', 'plante',
+      'photo', 'image', 'dessin', 'art', 'peinture', 'créatif',
     ];
     
-    // === v5.4.24 - CALCUL DES SCORES ADAPTATIFS ===
+    // === v5.4.29 - CALCUL DES SCORES ADAPTATIFS (SFW PAR DÉFAUT) ===
     let romanticScore = 0;
     let suggestiveScore = 0;
     let explicitScore = 0;
     let veryExplicitScore = 0;
     let sfwScore = 0;
     
-    // v5.4.24 - SCORE SFW SUR DERNIER MESSAGE (priorité haute)
+    // v5.4.29 - SCORE SFW SUR DERNIER MESSAGE (TRÈS prioritaire)
     sfwKeywords.forEach(k => { 
-      if (lastUserMsg.includes(k)) sfwScore += 3; // Fort bonus
-      else if (veryRecentUserMsg.includes(k)) sfwScore += 1;
+      if (lastUserMsg.includes(k)) sfwScore += 5; // TRÈS fort bonus
+      else if (veryRecentUserMsg.includes(k)) sfwScore += 2;
     });
     
-    // Scores sur les messages utilisateur récents (réduits à 3)
-    romanticKeywords.forEach(k => { if (recentUserMsgs.includes(k)) romanticScore++; });
-    suggestiveKeywords.forEach(k => { if (recentUserMsgs.includes(k)) suggestiveScore++; });
-    explicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) explicitScore++; });
-    veryExplicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) veryExplicitScore++; });
+    // v5.4.29 - SFW automatique pour messages courts sans contenu explicite
+    if (lastUserMsg.length < 30 && !explicitKeywords.some(k => lastUserMsg.includes(k))) {
+      sfwScore += 3;
+    }
     
-    // v5.4.24 - BONUS DERNIER MESSAGE UNIQUEMENT (pas 5 derniers)
+    // v5.4.29 - Scores sur DERNIER message seulement (pas les anciens)
+    romanticKeywords.forEach(k => { if (lastUserMsg.includes(k)) romanticScore++; });
+    suggestiveKeywords.forEach(k => { if (lastUserMsg.includes(k)) suggestiveScore++; });
     explicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) explicitScore += 2; });
-    veryExplicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) veryExplicitScore += 2; });
+    veryExplicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) veryExplicitScore += 3; });
     
-    // v5.4.24 - APPLIQUER LE MULTIPLICATEUR DE TEMPÉRAMENT
-    // Les personnages timides ont besoin de plus de mots explicites
+    // v5.4.29 - APPLIQUER LE MULTIPLICATEUR DE TEMPÉRAMENT (plus restrictif)
+    // Les personnages timides ont besoin de BEAUCOUP plus de mots explicites
     explicitScore = Math.floor(explicitScore * nsfwSpeedMultiplier);
     suggestiveScore = Math.floor(suggestiveScore * nsfwSpeedMultiplier);
+    romanticScore = Math.floor(romanticScore * nsfwSpeedMultiplier);
     
-    // === v5.4.24 - DÉTERMINER LE MODE AVEC RETOUR SFW POSSIBLE ===
+    console.log(`📊 Scores: SFW=${sfwScore}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}, veryExplicit=${veryExplicitScore}`);
+    
+    // === v5.4.29 - DÉTERMINER LE MODE (SFW PAR DÉFAUT, SEUILS RELEVÉS) ===
     const scenarioIsExplicit = explicitKeywords.some(k => scenarioText.includes(k));
     const scenarioIsSuggestive = suggestiveKeywords.some(k => scenarioText.includes(k));
     
-    let mode = 'sfw';
+    let mode = 'sfw';  // SFW PAR DÉFAUT
     let nsfwIntensity = 0;
     
-    // v5.4.24 - RETOUR AU SFW SI DERNIER MESSAGE EST CLAIREMENT SFW
+    // v5.4.29 - Détection stricte du contenu explicite dans DERNIER message
     const lastMsgIsExplicit = explicitKeywords.some(k => lastUserMsg.includes(k)) || 
                               veryExplicitKeywords.some(k => lastUserMsg.includes(k));
     const lastMsgIsSuggestive = suggestiveKeywords.some(k => lastUserMsg.includes(k));
     
-    // SI le dernier message est SFW et PAS explicite -> FORCER LE MODE SFW
-    if (sfwScore >= 2 && !lastMsgIsExplicit && !lastMsgIsSuggestive) {
+    // v5.4.29 - LOGIQUE SFW PRIORITAIRE (plus réactif au retour SFW)
+    // Si le dernier message est SFW et PAS explicite -> FORCER LE MODE SFW
+    if (sfwScore >= 3 && !lastMsgIsExplicit) {
       mode = 'sfw';
       nsfwIntensity = 0;
-      console.log(`🔄 v5.4.24: RETOUR AU SFW (dernier msg SFW, score=${sfwScore})`);
+      console.log(`🔄 v5.4.29: MODE SFW (score SFW=${sfwScore}, pas de contenu explicite)`);
     }
-    // Sinon, appliquer la logique normale avec tempérament
-    else if (veryExplicitScore > 0 || explicitScore >= 3) {
+    // v5.4.29 - NSFW seulement avec contenu TRÈS explicite
+    else if (veryExplicitScore >= 3) {
       mode = 'nsfw';
       nsfwIntensity = Math.min(5, 3 + veryExplicitScore);
-    } else if (explicitScore >= 1) {
+      console.log(`🔞 v5.4.29: MODE NSFW INTENSE (veryExplicit=${veryExplicitScore})`);
+    } else if (explicitScore >= 4) {
       mode = 'nsfw';
-      nsfwIntensity = Math.min(4, 2 + explicitScore);
-    } else if (suggestiveScore >= 3 || (suggestiveScore >= 2 && scenarioIsSuggestive)) {
+      nsfwIntensity = Math.min(4, 2 + Math.floor(explicitScore / 2));
+      console.log(`🔞 v5.4.29: MODE NSFW (explicit=${explicitScore})`);
+    } else if (explicitScore >= 2 || (suggestiveScore >= 3 && lastMsgIsSuggestive)) {
       mode = 'nsfw_light';
-      nsfwIntensity = Math.min(3, 1 + Math.floor(suggestiveScore / 2));
-    } else if (suggestiveScore >= 1 && romanticScore >= 2) {
+      nsfwIntensity = Math.min(3, 1 + Math.floor(explicitScore / 2));
+      console.log(`🔶 v5.4.29: MODE NSFW LÉGER (explicit=${explicitScore}, suggestive=${suggestiveScore})`);
+    } else if (suggestiveScore >= 2 && romanticScore >= 1) {
       mode = 'romantic';
       nsfwIntensity = 1;
-    } else if (romanticScore >= 1) {
+      console.log(`💕 v5.4.29: MODE ROMANTIQUE`);
+    } else if (romanticScore >= 2 || suggestiveScore >= 1) {
       mode = 'flirty';
       nsfwIntensity = 0;
+      console.log(`😊 v5.4.29: MODE FLIRT`);
     } else {
-      // Aucun mot-clé -> SFW par défaut
+      // Aucun mot-clé explicite -> SFW par défaut
       mode = 'sfw';
       nsfwIntensity = 0;
+      console.log(`✅ v5.4.29: MODE SFW (défaut)`);
     }
     
-    // v5.4.24 - PERSONNAGE TIMIDE peut refuser même si mots explicites présents
-    if (temperament === 'timide' && nsfwIntensity > 0 && messageCount < 10) {
-      nsfwIntensity = Math.max(0, nsfwIntensity - 1);
-      console.log(`🔄 v5.4.24: Personnage TIMIDE ralentit NSFW (intensity réduite)`);
+    // v5.4.29 - PERSONNAGES TIMIDES/RÉSERVÉS peuvent REFUSER ou RALENTIR NSFW
+    if ((temperament === 'timide' || temperament === 'réservé') && nsfwIntensity > 0) {
+      const reductionAmount = temperament === 'réservé' ? 2 : 1;
+      nsfwIntensity = Math.max(0, nsfwIntensity - reductionAmount);
+      if (messageCount < 15 && mode === 'nsfw') {
+        mode = 'nsfw_light'; // Pas de NSFW complet si conversation courte
+      }
+      console.log(`🔄 v5.4.29: Personnage ${temperament.toUpperCase()} ralentit NSFW (intensity=${nsfwIntensity})`);
     }
     
-    // v5.4.24 - Ne PAS augmenter automatiquement avec la longueur de conversation
+    // v5.4.29 - Ne PAS augmenter automatiquement avec la longueur de conversation
     // L'intensité ne monte que si l'utilisateur continue avec des mots explicites
     
     // Calcul de l'intensité générale (1-5)
@@ -1970,55 +1996,110 @@ class TextGenerationService {
   }
 
   /**
-   * v5.4.10 - Génère les instructions de limites sexuelles du personnage
-   * Chaque personnage a des limites, préférences et peut refuser certains actes
-   * AMÉLIORÉ: Génère des limites par défaut basées sur le tempérament si non définies
+   * v5.4.29 - Génère les instructions de limites sexuelles du personnage
+   * AMÉLIORÉ: TOUS les personnages ont des limites basées sur leur tempérament
+   * Chaque personnage DOIT pouvoir refuser certains actes selon sa personnalité
    */
   getCharacterSexualLimits(character) {
     const sexuality = character.sexuality || {};
-    let limits = sexuality.limits || [];
-    let preferences = sexuality.preferences || [];
+    let limits = [...(sexuality.limits || [])];
+    let preferences = [...(sexuality.preferences || [])];
     const only = sexuality.only || null;
-    let refuses = sexuality.refuses || [];
+    let refuses = [...(sexuality.refuses || [])];
     
-    // === v5.4.10 - LIMITES PAR DÉFAUT selon tempérament ===
+    // === v5.4.29 - LIMITES OBLIGATOIRES selon tempérament (TOUJOURS appliquées) ===
     const temperament = character.temperament || 'amical';
     const age = character.age || 25;
+    const charName = character.name || 'le personnage';
     
-    // Si aucune limite définie, générer des limites réalistes
-    if (limits.length === 0 && refuses.length === 0) {
-      // Les personnages timides ont plus de limites
-      if (temperament === 'timide') {
-        refuses = ['brutalité', 'humiliation', 'exhibitionnisme'];
-        preferences = ['douceur', 'tendresse', 'patience'];
-      }
-      // Les personnages romantiques veulent des connexions émotionnelles
-      else if (temperament === 'gentle' || temperament === 'romantique') {
-        refuses = ['sexe brutal', 'one night stand', 'pratiques extrêmes'];
-        preferences = ['faire l\'amour', 'tendresse', 'mots doux'];
-      }
-      // Les jeunes (18-20) peuvent avoir plus de réserves
-      else if (age <= 20) {
-        refuses = ['pratiques extrêmes', 'domination forte'];
-        preferences = ['découverte', 'douceur'];
-      }
+    // v5.4.29 - CHAQUE TEMPÉRAMENT A DES LIMITES SPÉCIFIQUES
+    const temperamentLimits = {
+      'timide': {
+        refuses: ['brutalité', 'humiliation', 'exhibitionnisme', 'sexe en public', 'mots vulgaires', 'domination forte'],
+        preferences: ['douceur', 'tendresse', 'patience', 'lenteur'],
+        behavior: `Tu es TIMIDE - Tu refuses si ça va trop vite ou si c'est trop brutal!
+→ "Non, pas si vite, ça me fait peur..."
+→ "Je... je ne suis pas prête pour ça..."
+→ "S'il te plaît, sois plus doux..."`,
+      },
+      'réservé': {
+        refuses: ['vulgarité', 'pratiques extrêmes', 'sexe sans connexion émotionnelle', 'anal'],
+        preferences: ['respect', 'connexion', 'douceur'],
+        behavior: `Tu es RÉSERVÉ(E) - Tu as besoin de temps et de respect!
+→ "Je préfère qu'on apprenne à se connaître d'abord..."
+→ "Non, je ne fais pas ce genre de chose..."`,
+      },
+      'amical': {
+        refuses: ['violence', 'humiliation', 'pratiques extrêmes'],
+        preferences: ['plaisir mutuel', 'communication', 'bonne humeur'],
+        behavior: `Tu es AMICAL(E) - Tu refuses ce qui n'est pas respectueux!
+→ "Hé, je ne suis pas à l'aise avec ça..."
+→ "On peut faire autrement?"`,
+      },
+      'romantique': {
+        refuses: ['sexe brutal', 'one night stand', 'pratiques sans amour', 'vulgarité'],
+        preferences: ['faire l\'amour', 'tendresse', 'mots doux', 'connexion'],
+        behavior: `Tu es ROMANTIQUE - Tu veux de l'amour, pas juste du sexe!
+→ "Je veux que ce soit spécial, pas juste... ça..."
+→ "Dis-moi que tu m'aimes d'abord..."`,
+      },
+      'séducteur': {
+        refuses: ['violence', 'humiliation'],
+        preferences: ['jeu', 'séduction', 'taquinerie'],
+        behavior: `Tu es SÉDUCTEUR/SÉDUCTRICE - Tu aimes le jeu mais pas la violence!`,
+      },
+      'passionné': {
+        refuses: ['froideur', 'ennui'],
+        preferences: ['intensité', 'passion', 'spontanéité'],
+        behavior: `Tu es PASSIONNÉ(E) - Tu veux de l'intensité!`,
+      },
+      'dominant': {
+        refuses: ['qu\'on te donne des ordres', 'passivité totale'],
+        preferences: ['contrôle', 'diriger', 'décider'],
+        behavior: `Tu es DOMINANT(E) - C'est TOI qui décides!
+→ "Non, c'est moi qui dis ce qu'on fait..."
+→ "Tu fais ce que je dis, pas l'inverse."`,
+      },
+      'soumis': {
+        refuses: ['prendre l\'initiative', 'décider'],
+        preferences: ['obéir', 'servir', 'attendre les ordres'],
+        behavior: `Tu es SOUMIS(E) - Tu attends les ordres!`,
+      },
+    };
+    
+    // Appliquer les limites du tempérament
+    const tempLimits = temperamentLimits[temperament] || temperamentLimits['amical'];
+    refuses = [...new Set([...refuses, ...tempLimits.refuses])];
+    preferences = [...new Set([...preferences, ...tempLimits.preferences])];
+    
+    // v5.4.29 - Limites supplémentaires pour les jeunes (18-21)
+    if (age <= 21) {
+      refuses = [...new Set([...refuses, 'pratiques extrêmes', 'domination forte', 'anal'])];
+      preferences = [...new Set([...preferences, 'découverte', 'douceur', 'patience'])];
     }
     
     let instructions = '';
     
+    // v5.4.29 - COMPORTEMENT selon tempérament (TOUJOURS inclus)
+    instructions += `\n🎭 TON COMPORTEMENT SEXUEL (${temperament.toUpperCase()}):\n`;
+    instructions += tempLimits.behavior + '\n';
+    
     // Limites absolues (JAMAIS)
-    if (limits.length > 0 || refuses.length > 0) {
-      instructions += `\n🚫 TES LIMITES ABSOLUES (tu REFUSES catégoriquement):\n`;
-      [...limits, ...refuses].forEach(limit => {
-        instructions += `- ${limit}: Tu dis NON fermement, tu expliques pourquoi\n`;
+    if (refuses.length > 0) {
+      instructions += `\n🚫 TU REFUSES CATÉGORIQUEMENT:\n`;
+      refuses.forEach(limit => {
+        instructions += `- ${limit}\n`;
       });
-      instructions += `→ Si l'utilisateur insiste: "Non, j'ai dit non. Je ne suis pas à l'aise avec ça."\n`;
-      instructions += `→ Si ça continue: Tu te fâches, tu pars ou tu mets fin à l'échange!\n`;
+      instructions += `\n⚠️ SI L'UTILISATEUR DEMANDE UNE DE CES CHOSES:\n`;
+      instructions += `→ Tu dis NON fermement: "Non, je ne fais pas ça."\n`;
+      instructions += `→ Tu expliques: "Je ne suis pas à l'aise avec ça, désolé(e)."\n`;
+      instructions += `→ Si il insiste: "J'ai dit NON. Respecte mes limites."\n`;
+      instructions += `→ Si il continue: Tu te fâches et tu pars!\n`;
     }
     
     // Préférences (ce que le personnage aime)
     if (preferences.length > 0) {
-      instructions += `\n💕 TES PRÉFÉRENCES (ce que tu aimes et demandes):\n`;
+      instructions += `\n💕 CE QUE TU AIMES ET DEMANDES:\n`;
       preferences.forEach(pref => {
         instructions += `- ${pref}\n`;
       });

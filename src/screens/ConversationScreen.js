@@ -792,10 +792,10 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   /**
-   * v5.4.23 - Formatage du texte RP - Version robuste v7
+   * v5.4.29 - Formatage du texte RP - Version robuste v8
    * Parse: *actions*, (pensées), "dialogues"
-   * Gère les astérisques Unicode et les actions inline
-   * FIX: Les actions/pensées entre paroles sont maintenant correctement colorées
+   * FIX: Pensées non tronquées, couleurs de dialogue correctes
+   * FIX: Gère correctement les dialogues interrompus par des actions/pensées
    */
   const formatRPMessage = (content) => {
     if (!content || typeof content !== 'string') {
@@ -808,19 +808,25 @@ export default function ConversationScreen({ route, navigation }) {
     let currentText = '';
     
     // Tous les caractères de guillemets possibles
-    const openQuotes = ['"', '\u00AB', '\u201C', '\uFF02', "'", '\u2018', '\u201A'];
-    const closeQuotes = ['"', '\u00BB', '\u201D', '\uFF02', "'", '\u2019', '\u201B'];
+    const openQuotes = ['"', '\u00AB', '\u201C', '\uFF02'];
+    const closeQuotes = ['"', '\u00BB', '\u201D', '\uFF02'];
+    // Apostrophes traitées séparément (peuvent être dans les mots)
+    
+    // v5.4.29 - Fonction pour sauvegarder le texte accumulé
+    const flushCurrentText = () => {
+      if (currentText.length > 0) {
+        // Même les espaces sont importants pour la mise en page
+        result.push({ type: 'text', text: currentText });
+        currentText = '';
+      }
+    };
     
     while (i < len) {
       const char = content[i];
       
-      // Détecter le début d'une action (astérisque) - PRIORITÉ HAUTE
+      // === PRIORITÉ 1: ACTIONS (astérisques) ===
       if (isAsterisk(char)) {
-        // Sauvegarder le texte accumulé avant
-        if (currentText.trim()) {
-          result.push({ type: 'text', text: currentText });
-        }
-        currentText = '';
+        flushCurrentText();
         
         // Chercher la fin de l'action (prochain astérisque)
         const actionEnd = findNextAsterisk(content, i + 1);
@@ -838,103 +844,104 @@ export default function ConversationScreen({ route, navigation }) {
         continue;
       }
       
-      // Détecter le début d'une pensée (parenthèse) - PRIORITÉ HAUTE
+      // === PRIORITÉ 2: PENSÉES (parenthèses) - v5.4.29 AMÉLIORÉ ===
       if (char === '(' || char === '\uFF08') {
-        if (currentText.trim()) {
-          result.push({ type: 'text', text: currentText });
-        }
-        currentText = '';
+        flushCurrentText();
         
-        // Chercher la parenthèse fermante
+        // v5.4.29 - Chercher la parenthèse fermante avec gestion de profondeur
         let depth = 1;
         let thoughtEnd = -1;
-        for (let j = i + 1; j < len && depth > 0; j++) {
-          if (content[j] === '(' || content[j] === '\uFF08') depth++;
-          else if (content[j] === ')' || content[j] === '\uFF09') {
+        let j = i + 1;
+        
+        // Parcourir jusqu'à trouver la fermeture OU jusqu'à la fin du texte
+        while (j < len) {
+          const c = content[j];
+          if (c === '(' || c === '\uFF08') {
+            depth++;
+          } else if (c === ')' || c === '\uFF09') {
             depth--;
-            if (depth === 0) thoughtEnd = j;
+            if (depth === 0) {
+              thoughtEnd = j;
+              break;
+            }
           }
+          j++;
         }
         
         if (thoughtEnd !== -1 && thoughtEnd > i + 1) {
-          // Pensée trouvée - inclure les parenthèses
+          // v5.4.29 - Pensée trouvée - inclure TOUT le contenu jusqu'à la fermeture
           const thoughtContent = content.substring(i, thoughtEnd + 1);
           result.push({ type: 'thought', text: thoughtContent });
           i = thoughtEnd + 1;
         } else {
-          currentText += char;
-          i++;
+          // Pas de fermeture trouvée - inclure le reste comme pensée incomplète
+          // v5.4.29 - Ne pas tronquer, afficher même si pas fermée
+          const remainingThought = content.substring(i);
+          if (remainingThought.length > 2) {
+            result.push({ type: 'thought', text: remainingThought });
+            i = len; // Fin du parsing
+          } else {
+            currentText += char;
+            i++;
+          }
         }
         continue;
       }
       
-      // Détecter le début d'un dialogue (guillemets)
+      // === PRIORITÉ 3: DIALOGUES (guillemets) ===
       const openQuoteIndex = openQuotes.indexOf(char);
       if (openQuoteIndex !== -1) {
-        if (currentText.trim()) {
-          result.push({ type: 'text', text: currentText });
-        }
-        currentText = '';
+        flushCurrentText();
         
-        // Trouver le guillemet fermant correspondant
-        // Chercher le guillemet fermant en priorité, sinon n'importe quel guillemet fermant
+        // v5.4.29 - Trouver le guillemet fermant, mais S'ARRÊTER avant action/pensée
         let dialogueEnd = -1;
-        const primaryClose = closeQuotes[openQuoteIndex];
+        let j = i + 1;
         
-        for (let j = i + 1; j < len; j++) {
-          // Arrêter si on rencontre une action ou pensée (ne pas les englober)
-          if (isAsterisk(content[j]) || content[j] === '(' || content[j] === '\uFF08') {
-            // Vérifier si c'est une action/pensée valide (a une fermeture)
-            if (isAsterisk(content[j])) {
-              const nextAsterisk = findNextAsterisk(content, j + 1);
-              if (nextAsterisk !== -1) {
-                // Il y a une action, terminer le dialogue ici
-                dialogueEnd = j - 1;
-                break;
-              }
+        while (j < len) {
+          const c = content[j];
+          
+          // v5.4.29 - Si on rencontre une action ou pensée, fermer le dialogue AVANT
+          if (isAsterisk(c) || c === '(' || c === '\uFF08') {
+            // Vérifier que c'est une action/pensée valide
+            if (isAsterisk(c) && findNextAsterisk(content, j + 1) !== -1) {
+              dialogueEnd = j; // Fermer juste avant l'action
+              break;
             }
-            if (content[j] === '(' || content[j] === '\uFF08') {
-              // Il y a une pensée
-              dialogueEnd = j - 1;
+            if (c === '(' || c === '\uFF08') {
+              dialogueEnd = j; // Fermer juste avant la pensée
               break;
             }
           }
           
-          if (content[j] === primaryClose || closeQuotes.includes(content[j])) {
-            dialogueEnd = j;
+          // Guillemet fermant trouvé
+          if (closeQuotes.includes(c)) {
+            dialogueEnd = j + 1; // Inclure le guillemet fermant
             break;
           }
+          j++;
         }
         
-        if (dialogueEnd !== -1 && dialogueEnd >= i + 1) {
-          // Dialogue trouvé - inclure les guillemets pour clarté visuelle
-          const dialogueContent = content.substring(i + 1, dialogueEnd);
-          if (dialogueContent.trim()) {
-            result.push({ type: 'dialogue', text: '"' + dialogueContent + '"' });
-          }
-          // Avancer après le guillemet fermant si on l'a trouvé
-          if (closeQuotes.includes(content[dialogueEnd])) {
-            i = dialogueEnd + 1;
-          } else {
-            i = dialogueEnd + 1;
-          }
-        } else {
-          // Pas de fermeture valide, traiter le reste comme dialogue
-          currentText += char;
-          i++;
+        if (dialogueEnd === -1) {
+          // Pas de fermeture - prendre jusqu'à la fin
+          dialogueEnd = len;
         }
+        
+        // Extraire le contenu du dialogue
+        const dialogueContent = content.substring(i, dialogueEnd);
+        if (dialogueContent.trim().length > 1) {
+          result.push({ type: 'dialogue', text: dialogueContent });
+        }
+        i = dialogueEnd;
         continue;
       }
       
-      // Caractère normal - ajouter au texte courant
+      // === Caractère normal - ajouter au texte courant ===
       currentText += char;
       i++;
     }
     
     // Ajouter le texte restant (s'il y en a)
-    if (currentText.trim()) {
-      result.push({ type: 'text', text: currentText });
-    }
+    flushCurrentText();
     
     // Si rien n'a été parsé, retourner le contenu original
     return result.length > 0 ? result : [{ type: 'text', text: content }];
@@ -976,9 +983,9 @@ export default function ConversationScreen({ route, navigation }) {
           )}
           <Text style={styles.messageContent}>
             {formattedParts.map((part, index) => {
-              // v5.4.23 - Styles distincts et bien séparés pour chaque type
+              // v5.4.29 - Styles DISTINCTS et FORCÉS pour chaque type
               if (part.type === 'action') {
-                // ACTIONS: Rouge/personnalisé, italique, gras
+                // ACTIONS: Rouge/personnalisé, italique, gras - TRÈS VISIBLE
                 return (
                   <Text 
                     key={`action-${index}`} 
@@ -986,14 +993,14 @@ export default function ConversationScreen({ route, navigation }) {
                       color: style.actionColor || '#ef4444', 
                       fontStyle: 'italic', 
                       fontWeight: 'bold',
-                      // Forcer le style inline pour éviter l'héritage
+                      backgroundColor: 'transparent',
                     }}
                   >
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'thought') {
-                // PENSÉES: Bleu/personnalisé, italique
+                // PENSÉES: Bleu/personnalisé, italique - v5.4.29 NON TRONQUÉES
                 return (
                   <Text 
                     key={`thought-${index}`} 
@@ -1001,34 +1008,39 @@ export default function ConversationScreen({ route, navigation }) {
                       color: style.thoughtColor || '#3b82f6', 
                       fontStyle: 'italic',
                       fontWeight: 'normal',
+                      backgroundColor: 'transparent',
                     }}
                   >
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'dialogue') {
-                // PAROLES: Noir/blanc selon bulle, normal
+                // PAROLES: Couleur spécifique dialogue ou noir/blanc selon bulle
+                // v5.4.29 - Toujours utiliser la couleur dialogue si définie
                 return (
                   <Text 
                     key={`dialogue-${index}`} 
                     style={{ 
                       color: isUser ? '#ffffff' : (style.dialogueColor || '#1f2937'),
                       fontStyle: 'normal',
-                      fontWeight: 'normal',
+                      fontWeight: '500', // Semi-bold pour distinguer des autres
+                      backgroundColor: 'transparent',
                     }}
                   >
                     {part.text}
                   </Text>
                 );
               } else {
-                // Texte normal/espaces: gris neutre
+                // v5.4.29 - Texte normal/espaces: couleur NEUTRE distincte
+                // DIFFÉRENT de dialogueColor pour éviter confusion
                 return (
                   <Text 
                     key={`text-${index}`} 
                     style={{ 
-                      color: isUser ? 'rgba(255,255,255,0.8)' : '#6b7280',
+                      color: isUser ? 'rgba(255,255,255,0.7)' : '#9ca3af', // Gris clair neutre
                       fontStyle: 'normal',
                       fontWeight: 'normal',
+                      backgroundColor: 'transparent',
                     }}
                   >
                     {part.text}
