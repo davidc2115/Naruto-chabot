@@ -4656,10 +4656,11 @@ class ImageGenerationService {
    * Accepte maintenant un objet character optionnel pour les détails physiques directs
    */
   /**
-   * v5.4.18 - Génère une image avec POLLINATIONS AI (Cloud)
+   * v5.4.19 - Génère une image avec POLLINATIONS AI (Cloud)
    * URL: https://image.pollinations.ai/prompt/
    * Paramètres: model=flux, safe=false (NSFW), enhance=true
-   * IMPORTANT: Préserve le prompt original si il contient déjà les tenues/poses NSFW
+   * FIX CRITIQUE: Si le marker [NSFW_LEVEL_X] est présent, utiliser le prompt DIRECTEMENT
+   * Le marker est AUTORITATIF - il vient de generateSceneImage avec les tenues/poses correctes
    */
   async generateWithPollinations(prompt, character = null) {
     console.log('☁️ POLLINATIONS AI: Génération cloud (model=flux, safe=false, NSFW activé)...');
@@ -4670,13 +4671,47 @@ class ImageGenerationService {
     const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
     const lowerPrompt = prompt.toLowerCase();
     
-    // Détecter le niveau NSFW
+    // v5.4.19 - Détecter le niveau NSFW via le marker [NSFW_LEVEL_X]
+    // CE MARKER EST LA SOURCE AUTORITAIRE - il est ajouté par generateSceneImage
     const nsfwMatch = prompt.match(/\[NSFW_LEVEL_(\d+)\]/);
     const nsfwLevel = nsfwMatch ? parseInt(nsfwMatch[1]) : 0;
     const isNSFW = nsfwLevel >= 2;
     
-    // v5.4.18 - VÉRIFIER SI LE PROMPT CONTIENT DÉJÀ LES TENUES/POSES NSFW
-    // Si oui, utiliser le prompt tel quel (il vient de generateSceneImage avec les bons éléments)
+    // v5.4.19 - FIX CRITIQUE: SI LE MARKER EST PRÉSENT, UTILISER LE PROMPT DIRECTEMENT
+    // Le prompt vient de generateSceneImage avec:
+    // - getOutfitByLevel(level) : tenues par niveau (mini dress niveau 2, lingerie niveau 3, etc.)
+    // - getPoseByLevel(level) : poses par niveau
+    // - NSFW reinforcement keywords
+    // NE PAS reconstruire le prompt car ça ÉCRASE ces tenues/poses!
+    if (isNSFW) {
+      console.log(`🔞 v5.4.19 FIX: MARKER [NSFW_LEVEL_${nsfwLevel}] DÉTECTÉ`);
+      console.log(`🔞 UTILISATION DIRECTE du prompt original avec tenues/poses niveau ${nsfwLevel}`);
+      
+      // Nettoyer le marker NSFW du prompt
+      let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
+      
+      // Ajouter qualité et paramètres anatomiques anti-défauts
+      cleanPrompt += ', masterpiece, best quality, ultra detailed, 8K';
+      cleanPrompt += ', anatomically correct, perfect anatomy';
+      cleanPrompt += ', (one person:1.2), correct number of limbs';
+      cleanPrompt += ', beautiful detailed face, detailed eyes, detailed hands';
+      cleanPrompt += ', five fingers on each hand, two arms, two legs';
+      
+      const shortPrompt = cleanPrompt.substring(0, 1900);
+      const encodedPrompt = encodeURIComponent(shortPrompt);
+      const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true&safe=false&nofeed=true`;
+      
+      console.log(`📝 PROMPT NSFW DIRECT Niveau ${nsfwLevel}:`);
+      console.log(`📝 Tenue/Pose du prompt: ${shortPrompt.substring(0, 600)}...`);
+      return imageUrl;
+    }
+    
+    // === MODE SFW (pas de marker ou niveau 1) ===
+    // Détecter si anime ou réaliste
+    const isAnime = lowerPrompt.includes('anime') || lowerPrompt.includes('manga');
+    const isRealistic = lowerPrompt.includes('realistic') || lowerPrompt.includes('photo');
+    
+    // Fallback: Vérifier si contenu NSFW présent sans marker (cas rare)
     const hasNSFWContent = lowerPrompt.includes('lingerie') || 
                           lowerPrompt.includes('topless') || 
                           lowerPrompt.includes('nude') ||
@@ -4695,33 +4730,34 @@ class ImageGenerationService {
                           lowerPrompt.includes('provocative') ||
                           lowerPrompt.includes('cleavage') ||
                           lowerPrompt.includes('erotic') ||
-                          lowerPrompt.includes('explicit');
+                          lowerPrompt.includes('explicit') ||
+                          lowerPrompt.includes('nightgown') ||
+                          lowerPrompt.includes('catsuit') ||
+                          lowerPrompt.includes('mini dress') ||
+                          lowerPrompt.includes('slip dress') ||
+                          lowerPrompt.includes('fishnet') ||
+                          lowerPrompt.includes('sheer');
     
-    if (isNSFW && hasNSFWContent) {
-      console.log('🔞 v5.4.18: Prompt NSFW COMPLET détecté - utilisation directe');
-      // Nettoyer le marker NSFW du prompt
+    if (hasNSFWContent) {
+      console.log('🔞 v5.4.19: Contenu NSFW détecté sans marker - utilisation directe');
       let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
-      // Ajouter qualité
       cleanPrompt += ', masterpiece, best quality, ultra detailed, 8K';
+      cleanPrompt += ', anatomically correct, perfect anatomy';
       
       const shortPrompt = cleanPrompt.substring(0, 1900);
       const encodedPrompt = encodeURIComponent(shortPrompt);
       const imageUrl = `${pollinationsUrl}${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true&safe=false&nofeed=true`;
       
-      console.log(`📝 Prompt NSFW DIRECT (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
+      console.log(`📝 Prompt NSFW FALLBACK (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
       return imageUrl;
     }
-    
-    // Détecter si anime ou réaliste
-    const isAnime = lowerPrompt.includes('anime') || lowerPrompt.includes('manga');
-    const isRealistic = lowerPrompt.includes('realistic') || lowerPrompt.includes('photo');
     
     // === v5.4.0 - UTILISER imagePrompt SEULEMENT EN MODE SFW ===
     // En mode NSFW, ne PAS utiliser imagePrompt car il contient la tenue du personnage
     let finalPrompt = '';
     
     // Si character.imagePrompt existe ET qu'on est en mode SFW, l'utiliser
-    if (character && character.imagePrompt && !isNSFW) {
+    if (character && character.imagePrompt) {
       console.log('🎯 Mode SFW: UTILISATION imagePrompt DIRECT (priorité max)');
       finalPrompt = 'FULL BODY SHOT from head to feet, complete figure visible, ' + character.imagePrompt;
       
@@ -6045,10 +6081,11 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.4.18 - Génère une image avec Stable Diffusion sur serveur FREEBOX
+   * v5.4.19 - Génère une image avec Stable Diffusion sur serveur FREEBOX
    * Utilise le serveur SD hébergé sur la Freebox
    * URL configurable: http://88.174.155.230:33437/generate
-   * IMPORTANT: Préserve le prompt original si il contient déjà les tenues/poses NSFW
+   * FIX CRITIQUE: Si le marker [NSFW_LEVEL_X] est présent, utiliser le prompt DIRECTEMENT
+   * Le marker est AUTORITATIF - il vient de generateSceneImage avec les tenues/poses correctes
    */
   async generateWithFreeboxSD(prompt, character = null) {
     console.log('🏠 FREEBOX SD: Génération sur serveur Freebox...');
@@ -6064,40 +6101,38 @@ class ImageGenerationService {
     const seed = Date.now() + Math.floor(Math.random() * 100000);
     const lowerPrompt = prompt.toLowerCase();
     
-    // Détecter le niveau NSFW
+    // v5.4.19 - Détecter le niveau NSFW via le marker [NSFW_LEVEL_X]
+    // CE MARKER EST LA SOURCE AUTORITAIRE - il est ajouté par generateSceneImage
     const nsfwMatch = prompt.match(/\[NSFW_LEVEL_(\d+)\]/);
     const nsfwLevel = nsfwMatch ? parseInt(nsfwMatch[1]) : 0;
     const isNSFW = nsfwLevel >= 2;
     
-    // v5.4.18 - VÉRIFIER SI LE PROMPT CONTIENT DÉJÀ LES TENUES/POSES NSFW
-    const hasNSFWContent = lowerPrompt.includes('lingerie') || 
-                          lowerPrompt.includes('topless') || 
-                          lowerPrompt.includes('nude') ||
-                          lowerPrompt.includes('naked') ||
-                          lowerPrompt.includes('breasts') ||
-                          lowerPrompt.includes('nipples') ||
-                          lowerPrompt.includes('panties') ||
-                          lowerPrompt.includes('bra ') ||
-                          lowerPrompt.includes('thong') ||
-                          lowerPrompt.includes('corset') ||
-                          lowerPrompt.includes('stockings') ||
-                          lowerPrompt.includes('garter') ||
-                          lowerPrompt.includes('bodysuit') ||
-                          lowerPrompt.includes('negligee') ||
-                          lowerPrompt.includes('sensual') ||
-                          lowerPrompt.includes('provocative') ||
-                          lowerPrompt.includes('cleavage') ||
-                          lowerPrompt.includes('erotic') ||
-                          lowerPrompt.includes('explicit');
-    
     let finalPrompt;
     
-    if (isNSFW && hasNSFWContent) {
-      console.log('🔞 v5.4.18: Prompt NSFW COMPLET détecté pour Freebox - utilisation directe');
+    // v5.4.19 - FIX CRITIQUE: SI LE MARKER EST PRÉSENT, UTILISER LE PROMPT DIRECTEMENT
+    // Le prompt vient de generateSceneImage avec:
+    // - getOutfitByLevel(level) : tenues par niveau (mini dress niveau 2, lingerie niveau 3, etc.)
+    // - getPoseByLevel(level) : poses par niveau
+    // - NSFW reinforcement keywords
+    // NE PAS reconstruire le prompt car ça ÉCRASE ces tenues/poses!
+    if (isNSFW) {
+      console.log(`🔞 v5.4.19 FIX: MARKER [NSFW_LEVEL_${nsfwLevel}] DÉTECTÉ pour Freebox SD`);
+      console.log(`🔞 UTILISATION DIRECTE du prompt original avec tenues/poses niveau ${nsfwLevel}`);
+      
       // Utiliser le prompt tel quel, il contient déjà les tenues/poses NSFW
       finalPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
+      
+      // Ajouter qualité et paramètres anatomiques anti-défauts
+      finalPrompt += ', masterpiece, best quality, ultra detailed';
+      finalPrompt += ', anatomically correct, perfect anatomy';
+      finalPrompt += ', (one person:1.2), correct number of limbs';
+      finalPrompt += ', beautiful detailed face, detailed eyes, detailed hands';
+      finalPrompt += ', five fingers on each hand, two arms, two legs';
+      
+      console.log(`📝 PROMPT NSFW DIRECT Niveau ${nsfwLevel} pour Freebox:`);
+      console.log(`📝 Tenue/Pose: ${finalPrompt.substring(0, 500)}...`);
     } else {
-      // Construire le prompt normalement
+      // Mode SFW - construire le prompt normalement
       finalPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
     }
     
