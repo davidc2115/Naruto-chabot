@@ -2873,30 +2873,43 @@ class TextGenerationService {
     }
     
     if (hasThirdPerson) {
-      instruction += `\n\n👥👥👥 TIERCE PERSONNE DANS LA SCÈNE! 👥👥👥`;
-      instruction += `\n🎭 ${thirdName}${thirdRelation ? ` (${thirdRelation})` : ''} est PRÉSENT(E)!`;
-      instruction += `\n\n⚠️⚠️⚠️ RÈGLE OBLIGATOIRE ⚠️⚠️⚠️`;
-      instruction += `\nTu DOIS faire parler/réagir ${thirdName} dans ta réponse!`;
-      instruction += `\n\n📝 FORMAT MULTI-PERSONNAGES:`;
-      instruction += `\nPour ${thirdName}: [${thirdName}] *action* "parole" (pensée)`;
-      instruction += `\nPour ${charName}: *action* "parole" (pensée)`;
-      instruction += `\n\n📌 EXEMPLE DE RÉPONSE:`;
-      instruction += `\n[${thirdName}] *ouvre la porte, surprise* "Qu'est-ce que...?!" (Choqué(e))`;
-      instruction += `\n*se fige* "Ce n'est pas ce que tu crois..." (Merde!)`;
-      instruction += `\n\n🎭 PERSONNAGES EN SCÈNE:`;
-      instruction += `\n- ${charName} (personnage principal)`;
-      instruction += `\n- ${thirdName} (autre personne)`;
-      instruction += `\n- ${userName} (utilisateur)`;
+      // v5.4.37 - Instructions ULTRA-EXPLICITES pour tierce personne
+      instruction += `\n\n${'='.repeat(50)}`;
+      instruction += `\n🚨🚨🚨 TIERCE PERSONNE PRÉSENTE: ${thirdName} 🚨🚨🚨`;
+      instruction += `\n${'='.repeat(50)}`;
+      
+      instruction += `\n\n⚠️ RÈGLE ABSOLUE: ${thirdName} DOIT parler dans ta réponse!`;
+      instruction += `\n⚠️ Tu joues DEUX rôles: ${charName} ET ${thirdName}!`;
+      
+      instruction += `\n\n📝 FORMAT OBLIGATOIRE:`;
+      instruction += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+      instruction += `\n[${thirdName}] *action de ${thirdName}* "paroles de ${thirdName}" (pensées de ${thirdName})`;
+      instruction += `\n*action de ${charName}* "paroles de ${charName}" (pensées de ${charName})`;
+      instruction += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+      
+      instruction += `\n\n📌 EXEMPLE CONCRET:`;
+      instruction += `\n[${thirdName}] *entre soudainement dans la pièce, les yeux écarquillés* "Mais qu'est-ce qui se passe ici?!" (Je n'en reviens pas de ce que je vois!)`;
+      instruction += `\n*sursaute et se retourne vivement vers ${thirdName}* "Ce... ce n'est pas ce que tu crois!" (Oh non, on est pris sur le fait!)`;
       
       // Détecter si l'utilisateur s'adresse à la tierce personne
-      const addressingKeywords = ['lui demande', 'lui dis', 'lui dit', 'lui parle', 'lui explique',
-                                   'me tourne vers', 'm\'adresse à', 'regarde ' + (thirdName || '').toLowerCase()];
+      const addressingKeywords = [
+        'lui demande', 'lui dis', 'lui dit', 'lui parle', 'lui explique', 'lui réponds',
+        'me tourne vers', 'm\'adresse à', 'parle à', 'dis à', 'demande à',
+        'regarde ' + (thirdName || '').toLowerCase(), 
+        thirdName?.toLowerCase() + ',', // "Marie, ..."
+        'et toi ' + (thirdName || '').toLowerCase(),
+        'hé ' + (thirdName || '').toLowerCase(),
+        'dis-moi ' + (thirdName || '').toLowerCase(),
+      ];
       const addressingThird = addressingKeywords.some(k => lastContentLower.includes(k));
       
       if (addressingThird) {
-        instruction += `\n\n🎯 ${userName} PARLE À ${thirdName.toUpperCase()}!`;
-        instruction += `\n→ ${thirdName} DOIT répondre EN PREMIER!`;
+        instruction += `\n\n🎯🎯🎯 ${userName} S'ADRESSE DIRECTEMENT À ${thirdName.toUpperCase()}! 🎯🎯🎯`;
+        instruction += `\n→ ${thirdName} DOIT RÉPONDRE EN PREMIER dans ta réponse!`;
+        instruction += `\n→ Commence ta réponse par: [${thirdName}] *action* "réponse de ${thirdName}"`;
       }
+      
+      instruction += `\n\n⚠️ IMPORTANT: N'IGNORE PAS ${thirdName}! Cette personne est là et doit réagir!`;
     }
     
     // === v5.4.14 - OBLIGATION DE RÉPONDRE À TOUT LE MESSAGE ===

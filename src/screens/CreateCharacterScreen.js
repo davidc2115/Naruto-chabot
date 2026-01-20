@@ -377,43 +377,144 @@ export default function CreateCharacterScreen({ navigation, route }) {
   // === ÉTAT POUR L'ANALYSE IA ===
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
-  // === v5.4.36 - GÉNÉRATION DE PROFIL LOCALE (SANS API) ===
-  // Les APIs de vision ne fonctionnent pas - génération locale uniquement
+  // === v5.4.37 - ANALYSE D'IMAGE AVEC POLLINATIONS VISION (GRATUIT) ===
   const analyzeImageWithAI = async (imageUri) => {
     try {
       setAnalyzingImage(true);
-      console.log('🔍 v5.4.36 - Génération de profil LOCAL...');
+      console.log('🔍 v5.4.37 - Analyse avec Pollinations Vision...');
       
-      // Simuler un court délai pour l'UX
-      await new Promise(r => setTimeout(r, 500));
+      let analysis = null;
       
-      // Générer un profil varié localement
-      const profile = generateRandomProfile();
-      console.log('✅ Profil généré:', JSON.stringify(profile, null, 2));
+      // === MÉTHODE 1: Pollinations Vision API (GPT-4o gratuit) ===
+      try {
+        console.log('📸 Conversion image en base64...');
+        
+        // Convertir l'image en base64
+        let base64Image = null;
+        
+        if (imageUri.startsWith('data:')) {
+          // Déjà en base64
+          base64Image = imageUri;
+        } else if (imageUri.startsWith('file://') || imageUri.startsWith('/')) {
+          // Fichier local - lire et convertir
+          const base64Data = await FileSystem.readAsStringAsync(imageUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          base64Image = `data:image/jpeg;base64,${base64Data}`;
+        } else if (imageUri.startsWith('http')) {
+          // URL externe - utiliser directement
+          base64Image = imageUri;
+        }
+        
+        if (!base64Image) {
+          throw new Error('Impossible de traiter l\'image');
+        }
+        
+        // Limiter la taille (max 1MB en base64)
+        if (base64Image.length > 1500000) {
+          console.log('⚠️ Image trop grande, réduction...');
+          base64Image = base64Image.substring(0, 1500000);
+        }
+        
+        console.log('🌐 Appel Pollinations Vision API...');
+        
+        const visionPrompt = `Analyse cette image et décris UNIQUEMENT ce que tu VOIS. Réponds en JSON:
+{
+  "gender": "female" ou "male",
+  "ageEstimate": nombre entre 18 et 60,
+  "hairColor": "noir", "brun", "châtain", "blond", "roux", "blanc", "rose", "bleu" ou autre,
+  "hairLength": "courts", "mi-longs", "longs" ou "très longs",
+  "eyeColor": "marron", "noisette", "vert", "bleu", "gris" ou "noir",
+  "skinTone": "très claire", "claire", "mate", "bronzée", "caramel" ou "ébène",
+  "bodyType": "mince", "élancée", "moyenne", "athlétique", "voluptueuse", "généreuse" ou "ronde",
+  "bustSize": "A", "B", "C", "D", "DD", "E" ou "F" (pour les femmes),
+  "fullDescription": "Description en 2-3 phrases"
+}
+IMPORTANT: Décris UNIQUEMENT ce que tu vois dans l'image! JSON seulement:`;
+
+        const response = await axios.post(
+          'https://text.pollinations.ai/',
+          {
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: visionPrompt },
+                  { 
+                    type: 'image_url', 
+                    image_url: { 
+                      url: base64Image,
+                      detail: 'high'
+                    } 
+                  }
+                ]
+              }
+            ],
+            model: 'openai',  // GPT-4o avec vision
+            temperature: 0.3,
+          },
+          { 
+            timeout: 60000,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+        
+        let responseText = response.data;
+        if (typeof responseText !== 'string') {
+          responseText = JSON.stringify(responseText);
+        }
+        console.log('📝 Réponse Vision:', responseText.substring(0, 500));
+        
+        // Parser la réponse JSON
+        const parsed = parseAnalysisResponse(responseText);
+        if (parsed && isValidAnalysis(parsed)) {
+          analysis = parsed;
+          analysis._method = 'Pollinations Vision';
+          console.log('✅ Analyse Vision réussie!');
+        }
+      } catch (visionError) {
+        console.log('⚠️ Pollinations Vision échoué:', visionError.message);
+      }
       
-      // Appliquer au formulaire
-      applyAnalysisToForm(profile);
+      // === MÉTHODE 2: Fallback avec génération aléatoire variée ===
+      if (!analysis) {
+        console.log('🔄 Fallback: génération locale variée...');
+        analysis = generateRandomProfile();
+        analysis._method = 'Local';
+      }
       
-      Alert.alert(
-        '📝 Profil généré',
-        'Un profil aléatoire a été créé.\n\n' +
-        '⚠️ MODIFIEZ les caractéristiques pour correspondre à votre image:\n\n' +
-        '• Genre (homme/femme)\n' +
-        '• Couleur des cheveux\n' +
-        '• Longueur des cheveux\n' +
-        '• Couleur des yeux\n' +
-        '• Âge\n' +
-        '• Teint\n' +
-        '• Morphologie',
-        [{ text: 'Compris, je vais modifier' }]
-      );
+      // Appliquer l'analyse au formulaire
+      console.log('✅ Profil appliqué:', JSON.stringify(analysis, null, 2));
+      applyAnalysisToForm(analysis);
       
-      return profile;
+      // Message selon la méthode utilisée
+      if (analysis._method === 'Pollinations Vision') {
+        Alert.alert(
+          '✅ Image analysée!',
+          'L\'IA a détecté les caractéristiques de votre image.\n\n' +
+          'Vérifiez que les informations sont correctes et ajustez si nécessaire.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          '📝 Profil généré',
+          'L\'analyse d\'image n\'a pas fonctionné.\nUn profil aléatoire a été créé.\n\n' +
+          '⚠️ Modifiez les caractéristiques pour correspondre à votre image.',
+          [{ text: 'Compris' }]
+        );
+      }
+      
+      return analysis;
       
     } catch (error) {
-      console.error('❌ Erreur:', error);
+      console.error('❌ Erreur analyse:', error);
       const localProfile = generateRandomProfile();
       applyAnalysisToForm(localProfile);
+      Alert.alert(
+        '⚠️ Erreur',
+        'Impossible d\'analyser l\'image.\nUn profil par défaut a été créé.',
+        [{ text: 'OK' }]
+      );
       return localProfile;
     } finally {
       setAnalyzingImage(false);
