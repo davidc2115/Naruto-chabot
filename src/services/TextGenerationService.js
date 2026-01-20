@@ -515,8 +515,9 @@ class TextGenerationService {
 
   /**
    * Analyse le contexte de la conversation + scénario pour adapter les réponses
-   * NSFW PROGRESSIF: commence SFW puis escalade selon les signaux utilisateur
-   * v5.3.11 - Détection intelligente avec seuils et progression
+   * v5.4.24 - MODE ADAPTATIF: SFW/NSFW selon DERNIER message utilisateur
+   * RETOUR AU SFW POSSIBLE: Si l'utilisateur change de sujet, on revient au SFW
+   * TEMPÉRAMENT: Le personnage influence la vitesse de progression NSFW
    */
   analyzeConversationContext(messages, character = null) {
     const messageCount = messages.length;
@@ -526,10 +527,29 @@ class TextGenerationService {
     // Messages de l'utilisateur uniquement (pour détection des intentions)
     const userMessages = messages.filter(m => m.role === 'user');
     const lastUserMsg = userMessages.slice(-1)[0]?.content?.toLowerCase() || '';
-    const recentUserMsgs = userMessages.slice(-5).map(m => m.content?.toLowerCase() || '').join(' ');
+    // v5.4.24 - RÉDUIRE à 3 derniers messages pour permettre le retour au SFW
+    const recentUserMsgs = userMessages.slice(-3).map(m => m.content?.toLowerCase() || '').join(' ');
+    // Dernier message SEULEMENT pour détection prioritaire
+    const veryRecentUserMsg = userMessages.slice(-2).map(m => m.content?.toLowerCase() || '').join(' ');
     
     // Scénario du personnage
     const scenarioText = (character?.scenario || '').toLowerCase();
+    
+    // === v5.4.24 - TEMPÉRAMENT DU PERSONNAGE POUR VITESSE NSFW ===
+    const temperament = (character?.temperament || 'amical').toLowerCase();
+    const temperamentNsfwSpeed = {
+      'timide': 0.3,      // Très lent - résiste au NSFW
+      'amical': 0.5,      // Normal
+      'séducteur': 1.0,   // Rapide
+      'passionné': 1.2,   // Très rapide
+      'dominant': 1.5,    // Très rapide, prend le contrôle
+      'soumis': 0.8,      // Attend que l'utilisateur mène
+      'réservé': 0.2,     // Très très lent
+      'aguicheur': 1.3,   // Très rapide
+      'provocant': 1.4,   // Très rapide
+    };
+    const nsfwSpeedMultiplier = temperamentNsfwSpeed[temperament] || 0.5;
+    console.log(`🎭 Tempérament: ${temperament} (vitesse NSFW: x${nsfwSpeedMultiplier})`);
     
     // === MOTS-CLÉS PAR NIVEAU D'INTENSITÉ ===
     // Niveau 1: Mots romantiques/flirt (pas encore NSFW)
@@ -566,71 +586,104 @@ class TextGenerationService {
       'fourre', 'pilonne', 'lime', 'bourre',
     ];
     
-    // SFW explicite (force le mode SFW)
-    const sfwKeywords = ['bonjour', 'salut', 'travail', 'journée', 'comment ça va', 'ça va', 'merci'];
+    // v5.4.24 - SFW ÉTENDU: Mots qui FORCENT le retour au SFW
+    const sfwKeywords = [
+      // Salutations
+      'bonjour', 'salut', 'hey', 'coucou', 'bonsoir', 'hello',
+      // Questions de vie quotidienne
+      'travail', 'journée', 'comment ça va', 'ça va', 'merci', 
+      'comment vas-tu', 'bien dormi', 'passé ta journée',
+      // Sujets normaux
+      'mange', 'repas', 'déjeuner', 'dîner', 'petit-déjeuner', 'cuisine',
+      'film', 'série', 'musique', 'livre', 'lecture', 'sport',
+      'famille', 'ami', 'amis', 'parents', 'frère', 'soeur',
+      'école', 'études', 'cours', 'examen', 'professeur',
+      'météo', 'temps', 'soleil', 'pluie', 'neige',
+      'vacances', 'voyage', 'week-end', 'sortie',
+      'hobby', 'passion', 'loisir', 'jeu', 'jeux',
+      'nouvelles', 'quoi de neuf', 'raconte', 'parle-moi de',
+      // Demandes de changement de sujet
+      'parlons d\'autre chose', 'changeons de sujet', 'autre sujet',
+      'on fait quoi', 'tu fais quoi', 'qu\'est-ce que tu fais',
+      'tu penses à quoi', 'à quoi tu penses',
+    ];
     
-    // === CALCUL DES SCORES (uniquement messages utilisateur récents) ===
+    // === v5.4.24 - CALCUL DES SCORES ADAPTATIFS ===
     let romanticScore = 0;
     let suggestiveScore = 0;
     let explicitScore = 0;
     let veryExplicitScore = 0;
     let sfwScore = 0;
     
-    // Scores sur les messages utilisateur récents
+    // v5.4.24 - SCORE SFW SUR DERNIER MESSAGE (priorité haute)
+    sfwKeywords.forEach(k => { 
+      if (lastUserMsg.includes(k)) sfwScore += 3; // Fort bonus
+      else if (veryRecentUserMsg.includes(k)) sfwScore += 1;
+    });
+    
+    // Scores sur les messages utilisateur récents (réduits à 3)
     romanticKeywords.forEach(k => { if (recentUserMsgs.includes(k)) romanticScore++; });
     suggestiveKeywords.forEach(k => { if (recentUserMsgs.includes(k)) suggestiveScore++; });
     explicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) explicitScore++; });
     veryExplicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) veryExplicitScore++; });
-    sfwKeywords.forEach(k => { if (lastUserMsg.includes(k)) sfwScore++; });
     
-    // Bonus pour le dernier message (intention immédiate)
+    // v5.4.24 - BONUS DERNIER MESSAGE UNIQUEMENT (pas 5 derniers)
     explicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) explicitScore += 2; });
     veryExplicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) veryExplicitScore += 2; });
     
-    // === DÉTERMINER LE MODE ET L'INTENSITÉ NSFW ===
-    // Le scénario peut indiquer une prédisposition mais ne force PAS le mode NSFW au démarrage
+    // v5.4.24 - APPLIQUER LE MULTIPLICATEUR DE TEMPÉRAMENT
+    // Les personnages timides ont besoin de plus de mots explicites
+    explicitScore = Math.floor(explicitScore * nsfwSpeedMultiplier);
+    suggestiveScore = Math.floor(suggestiveScore * nsfwSpeedMultiplier);
+    
+    // === v5.4.24 - DÉTERMINER LE MODE AVEC RETOUR SFW POSSIBLE ===
     const scenarioIsExplicit = explicitKeywords.some(k => scenarioText.includes(k));
     const scenarioIsSuggestive = suggestiveKeywords.some(k => scenarioText.includes(k));
     
-    // Déterminer le mode basé sur les ACTIONS DE L'UTILISATEUR (pas le scénario seul)
     let mode = 'sfw';
-    let nsfwIntensity = 0; // 0-5
+    let nsfwIntensity = 0;
     
-    if (veryExplicitScore > 0 || explicitScore >= 3) {
-      // Utilisateur très explicite -> NSFW intense
+    // v5.4.24 - RETOUR AU SFW SI DERNIER MESSAGE EST CLAIREMENT SFW
+    const lastMsgIsExplicit = explicitKeywords.some(k => lastUserMsg.includes(k)) || 
+                              veryExplicitKeywords.some(k => lastUserMsg.includes(k));
+    const lastMsgIsSuggestive = suggestiveKeywords.some(k => lastUserMsg.includes(k));
+    
+    // SI le dernier message est SFW et PAS explicite -> FORCER LE MODE SFW
+    if (sfwScore >= 2 && !lastMsgIsExplicit && !lastMsgIsSuggestive) {
+      mode = 'sfw';
+      nsfwIntensity = 0;
+      console.log(`🔄 v5.4.24: RETOUR AU SFW (dernier msg SFW, score=${sfwScore})`);
+    }
+    // Sinon, appliquer la logique normale avec tempérament
+    else if (veryExplicitScore > 0 || explicitScore >= 3) {
       mode = 'nsfw';
       nsfwIntensity = Math.min(5, 3 + veryExplicitScore);
     } else if (explicitScore >= 1) {
-      // Utilisateur utilise des mots explicites -> NSFW modéré
       mode = 'nsfw';
       nsfwIntensity = Math.min(4, 2 + explicitScore);
     } else if (suggestiveScore >= 3 || (suggestiveScore >= 2 && scenarioIsSuggestive)) {
-      // Beaucoup de suggestions -> NSFW léger
       mode = 'nsfw_light';
       nsfwIntensity = Math.min(3, 1 + Math.floor(suggestiveScore / 2));
     } else if (suggestiveScore >= 1 && romanticScore >= 2) {
-      // Conversation romantique qui s'échauffe
       mode = 'romantic';
       nsfwIntensity = 1;
     } else if (romanticScore >= 1) {
-      // Conversation avec ton romantique
       mode = 'flirty';
       nsfwIntensity = 0;
-    } else if (sfwScore > 0 && explicitScore === 0) {
-      // Discussion normale, maintenir SFW
+    } else {
+      // Aucun mot-clé -> SFW par défaut
       mode = 'sfw';
       nsfwIntensity = 0;
     }
     
-    // Si le dernier message est clairement SFW, réduire l'intensité
-    if (sfwScore > 0 && explicitScore === 0 && veryExplicitScore === 0) {
-      if (nsfwIntensity > 2) nsfwIntensity = 2;
+    // v5.4.24 - PERSONNAGE TIMIDE peut refuser même si mots explicites présents
+    if (temperament === 'timide' && nsfwIntensity > 0 && messageCount < 10) {
+      nsfwIntensity = Math.max(0, nsfwIntensity - 1);
+      console.log(`🔄 v5.4.24: Personnage TIMIDE ralentit NSFW (intensity réduite)`);
     }
     
-    // Progression naturelle avec la longueur de conversation
-    if (messageCount > 20 && suggestiveScore > 0) {
-      nsfwIntensity = Math.min(5, nsfwIntensity + 1);
-    }
+    // v5.4.24 - Ne PAS augmenter automatiquement avec la longueur de conversation
+    // L'intensité ne monte que si l'utilisateur continue avec des mots explicites
     
     // Calcul de l'intensité générale (1-5)
     let intensity = 1;

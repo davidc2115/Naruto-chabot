@@ -84,7 +84,7 @@ class ImageGenerationService {
       'blurry, low quality, pixelated, watermark, signature, text, ' +
       'ugly, grotesque, horror, creepy, nightmare';
     
-    // v5.4.22 - NEGATIVE PROMPT ULTRA-COMPLET RENFORCÉ
+    // v5.4.24 - NEGATIVE PROMPT ULTRA-COMPLET RENFORCÉ ET ÉTENDU
     // Base - sera augmenté dynamiquement selon le body type
     this.negativePromptBase = 
       'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, anatomical errors, ' +
@@ -92,7 +92,11 @@ class ImageGenerationService {
       'floating limbs, disconnected limbs, merged limbs, fused body parts, ' +
       'malformed hands, twisted hands, backwards hands, extra fingers, missing fingers, ' +
       'fused fingers, six fingers, seven fingers, too many fingers, mutated hands, bad hands, ' +
-      'clothes fused with skin, clothes melting into body, fabric merged with flesh, ';
+      'clothes fused with skin, clothes melting into body, fabric merged with flesh, ' +
+      // v5.4.24 - NOUVEAUX DEFAUTS À ÉVITER
+      'extra person, duplicate person, clone person, twin in background, ' +
+      'split body, multiple torsos, conjoined twins, siamese, ' +
+      'wrong face proportions, deformed face, melted face, ';
       
     this.negativePromptFull = this.negativePromptBase +
       'clawed hands, webbed fingers, malformed feet, extra toes, bent wrong way, ' +
@@ -112,7 +116,19 @@ class ImageGenerationService {
       'bad proportions, giant head, tiny head, long arms, short arms, ' +
       'jpeg artifacts, compression artifacts, noise, grainy, ' +
       'ugly, grotesque, horror, creepy, nightmare, zombie, ' +
-      'nsfw artifacts, censorship bars, mosaic censorship, black bars';
+      'nsfw artifacts, censorship bars, mosaic censorship, black bars, ' +
+      // v5.4.24 - NOUVEAUX DEFAUTS À ÉVITER
+      'realistic nipples on anime, anime nipples on realistic, wrong art style nipples, ' +
+      'missing nipples when topless, no nipples when nude, nipple placement wrong, ' +
+      'lips wrong color, lips too big, lips too small, mouth open wrong, teeth showing badly, ' +
+      'eyes different sizes, one eye bigger, wonky eyes, strabismus, lazy eye, ' +
+      'nose wrong position, nose sideways, no nose bridge, flat nose wrong, ' +
+      'ears missing, extra ears, elf ears when human, pointed ears wrong, ' +
+      'hair merging with face, hair through eyes, hair covering wrong, bald spots wrong, ' +
+      'clothes phasing through body, transparent clothes wrong, clothes defying gravity, ' +
+      'skin texture wrong, plastic skin, mannequin skin, waxy skin, ' +
+      'body parts wrong size, arm longer than leg, tiny feet, giant feet, ' +
+      'unrealistic pose, impossible contortion, broken joints, hyperextended limbs';
     
     // PROMPT QUALITÉ PARFAITE - Pour images sans défauts
     this.perfectQualityPrompt = 
@@ -3970,6 +3986,7 @@ class ImageGenerationService {
           '((topless wet)), ((water on breasts)), shower or pool scene',
           '((oiled topless body)), ((glistening breasts)), massage look',
         ];
+        // v5.4.24 - POSES TOPLESS ULTRA-VARIÉES ET SENSUELLES
         const toplessPoses = [
           '((cupping her own breasts)), ((squeezing)), sensual self-touch',
           '((arching back dramatically)), ((breasts pushed forward)), sexy arch',
@@ -3981,6 +3998,19 @@ class ImageGenerationService {
           '((leaning forward)), ((breasts hanging)), gravity emphasized',
           '((twisting torso)), ((breast profile)), elegant twist',
           '((pulling on nipples)), ((erotic expression)), nipple play',
+          // v5.4.24 - NOUVELLES POSES TOPLESS INTIMES
+          '((lying on bed topless)), ((breasts falling to sides naturally)), ((relaxed sensual)), bed nude',
+          '((hands underneath breasts lifting)), ((presenting them)), ((proud display)), offer pose',
+          '((one hand squeezing breast)), ((other touching stomach)), ((sensual look)), multi-touch',
+          '((arms above head topless)), ((breasts lifted)), ((armpits visible)), stretch display',
+          '((topless from behind)), ((looking over shoulder)), ((back muscles and side breast)), rear tease',
+          '((sitting on heels topless)), ((breasts resting on thighs)), ((intimate)), kneel rest',
+          '((breasts pressed against glass or surface)), ((nipples prominent)), ((squished)), press pose',
+          '((oiling own breasts)), ((hands spreading oil)), ((glistening)), massage self',
+          '((topless with hands on hips)), ((confident stance)), ((breasts forward)), power topless',
+          '((bending at waist topless)), ((breasts hanging freely)), ((from front)), bend display',
+          '((topless stretching sideways)), ((breast pulled up)), ((torso elongated)), side stretch',
+          '((sitting cross-legged topless)), ((breasts on display)), ((meditation sexy)), zen nude',
         ];
         priorityAngle = toplessAngles[Math.floor(Math.random() * toplessAngles.length)];
         priorityOutfit = toplessOutfits[Math.floor(Math.random() * toplessOutfits.length)];
@@ -4015,6 +4045,7 @@ class ImageGenerationService {
           '((garter belt and stockings only)), ((no panties)), minimal coverage',
           '((mesh bodysuit)), ((pattern barely covers)), strategic coverage',
         ];
+        // v5.4.24 - POSES LINGERIE ULTRA-VARIÉES ET SENSUELLES
         const lingeriePoses = [
           '((lounging seductively on bed)), ((legs slightly parted)), inviting pose',
           '((slowly removing bra)), ((strap sliding off)), strip tease',
@@ -4026,6 +4057,19 @@ class ImageGenerationService {
           '((lying with legs in air)), ((lingerie from below)), legs up pose',
           '((sitting spread-legged)), ((panties stretched)), open seated',
           '((bending over)), ((rear in thong)), bent over view',
+          // v5.4.24 - NOUVELLES POSES INTIMES LINGERIE
+          '((lying on bed face up)), ((breasts visible in bra)), ((legs open)), bed display',
+          '((kneeling at bed edge)), ((bra cups overflowing)), ((looking up)), worship angle',
+          '((hands lifting breasts in bra)), ((pushing together)), ((cleavage enhanced)), present pose',
+          '((unhooking bra from front)), ((breasts about to spill)), ((tease moment)), undressing',
+          '((lying on side)), ((one leg over other)), ((bra and panties)), side curves',
+          '((standing mirror selfie pose)), ((lingerie visible)), ((checking self)), mirror tease',
+          '((on knees back arched)), ((breasts forward)), ((ass out)), extreme arch',
+          '((crawling on bed towards camera)), ((cleavage prominent)), ((seductive eyes)), prowl pose',
+          '((one bra strap fallen)), ((partial breast exposure)), ((oops moment)), slip reveal',
+          '((panties being removed)), ((sliding down legs)), ((strip in progress)), remove pose',
+          '((touching between legs over panties)), ((self pleasure through fabric)), tease touch',
+          '((bra pulled below breasts)), ((breasts resting on cups)), ((nipples almost visible)), half reveal',
         ];
         priorityAngle = lingerieAngles[Math.floor(Math.random() * lingerieAngles.length)];
         priorityOutfit = lingerieOutfits[Math.floor(Math.random() * lingerieOutfits.length)];
@@ -4061,6 +4105,7 @@ class ImageGenerationService {
           '((latex dress)), ((skintight shiny)), fetish fashion',
           '((bikini top as shirt)), ((maximum exposure)), beach to street',
         ];
+        // v5.4.24 - POSES SEXY ULTRA-VARIÉES ET EXPLICITES
         const sexyPoses = [
           '((bending forward showing cleavage)), ((breasts hanging)), cleavage pose',
           '((hand on hip, hip popped)), ((confident stance)), power pose',
@@ -4074,6 +4119,22 @@ class ImageGenerationService {
           '((finger on lips)), ((innocent but sexy)), coy pose',
           '((lying back provocatively)), ((dress riding up)), recline tease',
           '((straddling chair)), ((dress stretched)), straddle pose',
+          // v5.4.24 - NOUVELLES POSES INTIMES ET SÉDUISANTES
+          '((lying on bed on back)), ((breasts prominent)), ((dress riding up)), relaxed seductive',
+          '((hands under breasts lifting them)), ((emphasizing bust)), lift and display pose',
+          '((pulling down one dress strap)), ((shoulder exposed)), ((bra strap visible)), teasing undress',
+          '((lifting dress hem)), ((showing panties)), ((teasing view)), upskirt self-reveal',
+          '((bent over table)), ((cleavage from above)), ((rear emphasized)), bent serving pose',
+          '((arching back on bed)), ((breasts thrust upward)), ((stomach taut)), sensual arch',
+          '((one hand on breast)), ((squeezing gently)), ((seductive look)), self-touch tease',
+          '((pulling neckline down)), ((revealing more cleavage)), ((almost nipple)), tease reveal',
+          '((sitting on edge of bed)), ((legs dangling open)), ((panties visible)), invite pose',
+          '((reaching behind to unzip)), ((back exposed)), ((undressing)), zipper moment',
+          '((lying on stomach)), ((looking back)), ((ass emphasized)), prone seductive',
+          '((standing with dress falling)), ((catching it last moment)), oops moment',
+          '((one knee on bed)), ((other foot on floor)), ((cleavage forward)), climbing pose',
+          '((hands behind head)), ((chest pushed out)), ((confident display)), exhibit pose',
+          '((twisting torso)), ((breast profile visible)), ((hip curve)), twist display',
         ];
         priorityAngle = sexyAngles[Math.floor(Math.random() * sexyAngles.length)];
         priorityOutfit = sexyOutfits[Math.floor(Math.random() * sexyOutfits.length)];
@@ -4875,7 +4936,12 @@ class ImageGenerationService {
     
     await this.waitForRateLimit();
     
-    const seed = Date.now() + Math.floor(Math.random() * 100000);
+    // v5.4.24 - SEED BASÉ SUR L'IDENTITÉ DU PERSONNAGE pour cohérence d'apparence
+    // Utilise un hash du nom + caractéristiques physiques pour toujours générer la même base
+    const characterIdentityHash = this.generateCharacterIdentityHash(character);
+    const seed = characterIdentityHash + Math.floor(Math.random() * 1000); // Légère variation
+    console.log(`🎭 Seed d'identité personnage: ${characterIdentityHash} (final: ${seed})`);
+    
     const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
     const lowerPrompt = prompt.toLowerCase();
     
@@ -4898,7 +4964,14 @@ class ImageGenerationService {
       // Nettoyer le marker NSFW du prompt
       let cleanPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
       
-      // v5.4.22 - QUALITÉ ET ANTI-DÉFAUTS RENFORCÉS
+      // v5.4.24 - IDENTITÉ VISUELLE COHÉRENTE DU PERSONNAGE
+      const identityPrompt = this.buildCharacterIdentityPrompt(character);
+      if (identityPrompt) {
+        cleanPrompt = identityPrompt + ', ' + cleanPrompt;
+        console.log(`🎭 Identité visuelle ajoutée: ${identityPrompt.substring(0, 100)}...`);
+      }
+      
+      // v5.4.24 - QUALITÉ ET ANTI-DÉFAUTS ULTRA-RENFORCÉS
       cleanPrompt += ', masterpiece, best quality, ultra detailed, 8K resolution, sharp focus';
       cleanPrompt += ', ((anatomically correct)), ((perfect human anatomy)), ((correct proportions))';
       cleanPrompt += ', ((exactly one person)), ((correct number of limbs))';
@@ -4906,10 +4979,14 @@ class ImageGenerationService {
       cleanPrompt += ', ((five fingers on each hand)), ((two hands)), ((two feet))';
       cleanPrompt += ', ((beautiful detailed face)), ((symmetrical face)), ((two eyes)), ((one nose)), ((one mouth))';
       cleanPrompt += ', ((natural breast shape)), ((breasts on chest not stomach))';
+      cleanPrompt += ', ((visible nipples if topless)), ((correct nipple placement)), ((areola visible))';
+      cleanPrompt += ', ((natural lips)), ((detailed mouth)), ((teeth not visible or natural))';
+      cleanPrompt += ', ((eyes same size)), ((iris detailed)), ((pupils centered))';
       cleanPrompt += ', ((legs bending naturally)), ((knees forward not backward))';
       cleanPrompt += ', ((clothes separate from skin)), NOT deformed, NOT distorted, NOT mutated';
       cleanPrompt += ', NOT extra limbs, NOT merged body parts, NOT fused fingers';
-      cleanPrompt += ', professional photography quality, studio lighting';
+      cleanPrompt += ', NOT duplicate person, NOT clone, NOT split body';
+      cleanPrompt += ', professional photography quality, studio lighting, flawless skin';
       
       const shortPrompt = cleanPrompt.substring(0, 2400);
       const encodedPrompt = encodeURIComponent(shortPrompt);
@@ -5256,12 +5333,149 @@ class ImageGenerationService {
   }
   
   /**
+   * v5.4.24 - Génère un hash d'identité unique pour un personnage
+   * Ce hash est utilisé comme base du seed pour garder une apparence cohérente
+   * Basé sur nom + caractéristiques physiques clés
+   */
+  generateCharacterIdentityHash(character) {
+    if (!character) return Date.now();
+    
+    // Construire une chaîne d'identité basée sur les caractéristiques physiques permanentes
+    const identityParts = [
+      character.name || 'unknown',
+      character.gender || '',
+      character.hairColor || '',
+      character.hairLength || '',
+      character.eyeColor || '',
+      character.skinTone || '',
+      character.bodyType || '',
+      character.bust || '',
+      character.age || '',
+    ];
+    
+    const identityString = identityParts.join('_').toLowerCase();
+    
+    // Simple hash function pour convertir la chaîne en nombre
+    let hash = 0;
+    for (let i = 0; i < identityString.length; i++) {
+      const char = identityString.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    
+    // Retourner une valeur positive entre 100000 et 999999
+    return Math.abs(hash % 900000) + 100000;
+  }
+  
+  /**
+   * v5.4.24 - Construit un prompt d'identité visuelle pour cohérence
+   * Inclut visage, cheveux, yeux, peau - caractéristiques qui ne changent jamais
+   */
+  buildCharacterIdentityPrompt(character) {
+    if (!character) return '';
+    
+    const identityParts = [];
+    
+    // Visage et expression de base
+    identityParts.push('same face throughout, consistent facial features');
+    
+    // Cheveux (ne changent pas)
+    if (character.hairColor) {
+      const hairColorEn = this.translateHairColor(character.hairColor);
+      identityParts.push(`${hairColorEn} hair color`);
+    }
+    if (character.hairLength) {
+      const hairLengthEn = this.translateHairLength(character.hairLength);
+      identityParts.push(`${hairLengthEn} hair`);
+    }
+    if (character.hairStyle) {
+      identityParts.push(`${character.hairStyle} hairstyle`);
+    }
+    
+    // Yeux (ne changent pas)
+    if (character.eyeColor) {
+      const eyeColorEn = this.translateEyeColor(character.eyeColor);
+      identityParts.push(`${eyeColorEn} eyes`);
+    }
+    
+    // Peau (ne change pas)
+    if (character.skinTone) {
+      const skinToneEn = this.translateSkinTone(character.skinTone);
+      identityParts.push(`${skinToneEn} skin tone`);
+    }
+    
+    // Morphologie de base (ne change pas)
+    if (character.bodyType) {
+      const bodyTypeEn = this.translateBodyType(character.bodyType);
+      identityParts.push(`${bodyTypeEn} body type`);
+    }
+    
+    // Poitrine pour femmes (ne change pas)
+    if (character.gender === 'female' && character.bust) {
+      identityParts.push(`${character.bust}-cup bust size`);
+    }
+    
+    return identityParts.length > 0 ? identityParts.join(', ') : '';
+  }
+  
+  /**
+   * Helpers de traduction pour l'identité
+   */
+  translateHairColor(color) {
+    const map = {
+      'noir': 'black', 'brun': 'brown', 'châtain': 'chestnut brown',
+      'blond': 'blonde', 'roux': 'red ginger', 'blanc': 'white',
+      'gris': 'gray', 'argenté': 'silver', 'rose': 'pink',
+      'bleu': 'blue', 'vert': 'green', 'violet': 'purple',
+    };
+    return map[color?.toLowerCase()] || color;
+  }
+  
+  translateHairLength(length) {
+    const map = {
+      'court': 'short', 'mi-long': 'medium length', 'long': 'long',
+      'très long': 'very long', 'rasé': 'shaved', 'chauve': 'bald',
+    };
+    return map[length?.toLowerCase()] || length;
+  }
+  
+  translateEyeColor(color) {
+    const map = {
+      'noir': 'black', 'brun': 'brown', 'marron': 'brown',
+      'noisette': 'hazel', 'vert': 'green', 'bleu': 'blue',
+      'gris': 'gray', 'violet': 'violet', 'rouge': 'red',
+    };
+    return map[color?.toLowerCase()] || color;
+  }
+  
+  translateSkinTone(tone) {
+    const map = {
+      'pâle': 'pale', 'clair': 'fair light', 'beige': 'beige tan',
+      'mat': 'olive tan', 'bronzé': 'tanned bronze', 'foncé': 'dark',
+      'noir': 'dark black', 'ébène': 'ebony', 'caramel': 'caramel',
+    };
+    return map[tone?.toLowerCase()] || tone;
+  }
+  
+  translateBodyType(type) {
+    const map = {
+      'mince': 'slim thin', 'élancée': 'tall slender', 'moyenne': 'average',
+      'athlétique': 'athletic toned', 'voluptueuse': 'voluptuous curvy',
+      'généreuse': 'full-figured', 'pulpeuse': 'thick curvy',
+      'ronde': 'chubby plump', 'très ronde': 'BBW plus-size',
+      'plantureuse': 'busty curvy', 'enrobée': 'plump soft',
+      'potelée': 'chubby cute',
+    };
+    return map[type?.toLowerCase()] || type;
+  }
+  
+  /**
    * v5.3.75 - CACHE des profils physiques pour persistance
    * Garantit que le même personnage a toujours la même apparence
-   * v5.3.75 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
+   * v5.4.24 - Cache invalidé à chaque nouvelle version pour appliquer les améliorations
    */
   physicalProfileCache = {};
-  cacheVersion = '5.4.4'; // Incrémenter pour invalider le cache
+  cacheVersion = '5.4.24'; // Incrémenter pour invalider le cache
   
   /**
    * v5.3.75 - Génère une clé unique pour un personnage basée sur ses attributs physiques
@@ -6315,7 +6529,11 @@ class ImageGenerationService {
       freeboxUrl = this.freeboxURL || 'http://88.174.155.230:33437/generate';
     }
     
-    const seed = Date.now() + Math.floor(Math.random() * 100000);
+    // v5.4.24 - SEED BASÉ SUR L'IDENTITÉ DU PERSONNAGE pour cohérence d'apparence
+    const characterIdentityHash = this.generateCharacterIdentityHash(character);
+    const seed = characterIdentityHash + Math.floor(Math.random() * 1000);
+    console.log(`🎭 Seed d'identité personnage (Freebox): ${characterIdentityHash} (final: ${seed})`);
+    
     const lowerPrompt = prompt.toLowerCase();
     
     // v5.4.19 - Détecter le niveau NSFW via le marker [NSFW_LEVEL_X]
@@ -6333,22 +6551,33 @@ class ImageGenerationService {
     // - NSFW reinforcement keywords
     // NE PAS reconstruire le prompt car ça ÉCRASE ces tenues/poses!
     if (isNSFW) {
-      console.log(`🔞 v5.4.22 FIX: MARKER [NSFW_LEVEL_${nsfwLevel}] DÉTECTÉ pour Freebox SD`);
+      console.log(`🔞 v5.4.24 FIX: MARKER [NSFW_LEVEL_${nsfwLevel}] DÉTECTÉ pour Freebox SD`);
       console.log(`🔞 UTILISATION DIRECTE du prompt original avec tenues/poses niveau ${nsfwLevel}`);
       
       // Utiliser le prompt tel quel, il contient déjà les tenues/poses NSFW
       finalPrompt = prompt.replace(/\[NSFW_LEVEL_\d+\]\s*/g, '');
       
-      // v5.4.22 - QUALITÉ ET ANTI-DÉFAUTS RENFORCÉS pour Freebox SD
+      // v5.4.24 - IDENTITÉ VISUELLE COHÉRENTE DU PERSONNAGE
+      const identityPrompt = this.buildCharacterIdentityPrompt(character);
+      if (identityPrompt) {
+        finalPrompt = identityPrompt + ', ' + finalPrompt;
+        console.log(`🎭 Identité visuelle (Freebox): ${identityPrompt.substring(0, 100)}...`);
+      }
+      
+      // v5.4.24 - QUALITÉ ET ANTI-DÉFAUTS ULTRA-RENFORCÉS pour Freebox SD
       finalPrompt += ', masterpiece, best quality, ultra detailed, 8K resolution';
       finalPrompt += ', ((anatomically correct)), ((perfect human anatomy)), ((correct proportions))';
       finalPrompt += ', ((exactly one person)), ((exactly two arms)), ((exactly two legs))';
       finalPrompt += ', ((five fingers each hand)), ((natural hand pose))';
       finalPrompt += ', ((beautiful detailed face)), ((symmetrical features))';
       finalPrompt += ', ((natural breast shape)), ((correct breast placement))';
+      finalPrompt += ', ((visible nipples if topless)), ((correct nipple color)), ((areola natural))';
+      finalPrompt += ', ((lips detailed)), ((mouth natural)), ((teeth hidden or natural))';
+      finalPrompt += ', ((both eyes same size)), ((natural eye color))';
       finalPrompt += ', ((legs bending forward not backward)), ((correct joint anatomy))';
       finalPrompt += ', ((clothes not fused with skin)), ((fabric separate from body))';
-      finalPrompt += ', professional quality, sharp focus, detailed';
+      finalPrompt += ', NOT deformed, NOT mutated, NOT duplicate person';
+      finalPrompt += ', professional quality, sharp focus, detailed, flawless';
       
       console.log(`📝 PROMPT NSFW DIRECT Niveau ${nsfwLevel} pour Freebox:`);
       console.log(`📝 Tenue/Pose: ${finalPrompt.substring(0, 500)}...`);
