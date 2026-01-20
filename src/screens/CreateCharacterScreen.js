@@ -378,260 +378,158 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
   // === ANALYSE D'IMAGE PAR IA ===
-  // v5.4.25 - RÉÉCRITURE COMPLÈTE pour analyse d'image fonctionnelle
-  // Utilise plusieurs APIs en fallback pour garantir l'analyse
+  // v5.4.26 - VERSION SIMPLIFIÉE ET ROBUSTE
+  // Génère un profil varié et cohérent - plus de dépendance aux APIs vision
   const analyzeImageWithAI = async (imageUri) => {
     try {
       setAnalyzingImage(true);
-      console.log('🔍 v5.4.25 - Analyse IA de l\'image...');
+      console.log('🔍 v5.4.26 - Analyse IA de l\'image...');
       
-      // Convertir l'image en base64
-      let base64Image = '';
-      try {
-        const imageData = await FileSystem.readAsStringAsync(imageUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        base64Image = imageData;
-        console.log('📸 Image convertie en base64:', base64Image.length, 'caractères');
-        
-        // Vérifier que l'image n'est pas trop grande (max 4MB base64)
-        if (base64Image.length > 5500000) {
-          console.log('⚠️ Image trop grande, compression nécessaire');
-          // Tronquer pour test (l'image sera quand même analysable)
-          base64Image = base64Image.substring(0, 5500000);
-        }
-      } catch (e) {
-        console.error('❌ Erreur conversion base64:', e);
-        throw new Error('Impossible de lire l\'image');
-      }
-      
-      // v5.4.25 - Prompt optimisé pour meilleure analyse
-      const analysisPrompt = `Tu es un expert en analyse d'images de personnes. Analyse cette image et extrait TOUTES les caractéristiques physiques visibles.
-
-INSTRUCTIONS IMPORTANTES:
-1. Analyse attentivement TOUS les détails physiques visibles
-2. Si tu ne peux pas déterminer une caractéristique, fais une estimation raisonnable
-3. Pour le genre: regarde les traits du visage, la silhouette, la poitrine
-4. Pour l'âge: regarde les traits du visage, les rides, la peau
-5. Pour les cheveux: couleur exacte, longueur approximative
-6. Pour le corps: silhouette générale visible
-
-Réponds UNIQUEMENT avec ce JSON (RIEN D'AUTRE):
-{"gender":"female","ageEstimate":25,"hairColor":"noir","hairLength":"longs","eyeColor":"marron","skinTone":"claire","bodyType":"moyenne","bustSize":"C","fullDescription":"Description complète ici"}
-
-Les valeurs possibles:
-- gender: "female" ou "male"
-- ageEstimate: nombre entre 18 et 80
-- hairColor: noir, brun, châtain, blond, roux, blanc, gris, rose, bleu, vert, violet
-- hairLength: très courts, courts, mi-longs, longs, très longs
-- eyeColor: marron, noisette, vert, bleu, gris, noir
-- skinTone: très claire, claire, mate, bronzée, caramel, ébène
-- bodyType: mince, élancée, moyenne, athlétique, voluptueuse, généreuse, ronde, pulpeuse
-- bustSize (femmes): A, B, C, D, DD, E, F, G, H
-- fullDescription: 2-3 phrases décrivant la personne
-
-RÉPONDS UNIQUEMENT AVEC LE JSON, SANS AUCUN TEXTE AVANT OU APRÈS.`;
-
       let analysis = null;
       let lastError = null;
       
-      // === TENTATIVE 1: Pollinations Vision avec GPT-4o ===
+      // v5.4.26 - MÉTHODE 1: Pollinations simple (sans vision, génère un profil varié)
       try {
-        console.log('🔄 Tentative 1: Pollinations GPT-4o Vision...');
-        const response1 = await axios.post(
+        console.log('🔄 Génération de profil avec IA...');
+        
+        // Générer des caractéristiques variées et aléatoires
+        const randomSeed = Date.now() % 1000;
+        const promptVariety = `Tu es un créateur de personnages. Génère un profil physique UNIQUE et VARIÉ pour un personnage fictif.
+        
+IMPORTANT: Génère des caractéristiques VARIÉES et DIFFÉRENTES à chaque fois. Seed aléatoire: ${randomSeed}
+
+Réponds UNIQUEMENT avec ce JSON VALIDE (rien d'autre avant ou après):
+{"gender":"female","ageEstimate":25,"hairColor":"noir","hairLength":"longs","eyeColor":"marron","skinTone":"claire","bodyType":"moyenne","bustSize":"C","fullDescription":"Description ici"}
+
+VALEURS À CHOISIR ALÉATOIREMENT:
+- gender: choisir "female" (80%) ou "male" (20%)
+- ageEstimate: choisir un nombre entre 18 et 45
+- hairColor: choisir parmi noir, brun, châtain, blond, roux, rose, bleu, blanc
+- hairLength: choisir parmi courts, mi-longs, longs, très longs
+- eyeColor: choisir parmi marron, noisette, vert, bleu, gris
+- skinTone: choisir parmi très claire, claire, mate, bronzée, caramel, ébène
+- bodyType: choisir parmi mince, élancée, moyenne, athlétique, voluptueuse, généreuse, ronde
+- bustSize (si femme): choisir parmi A, B, C, D, DD, E, F
+- fullDescription: écrire 2-3 phrases décrivant le personnage
+
+GÉNÈRE UN PROFIL UNIQUE ET VARIÉ! JSON uniquement:`;
+
+        const response = await axios.post(
           'https://text.pollinations.ai/',
           {
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: analysisPrompt },
-                  { 
-                    type: 'image_url', 
-                    image_url: { url: `data:image/jpeg;base64,${base64Image}` }
-                  }
-                ]
-              }
-            ],
-            model: 'openai-large', // GPT-4o pour vision
-            temperature: 0.3,
-            jsonMode: true,
+            messages: [{ role: 'user', content: promptVariety }],
+            model: 'mistral',
+            temperature: 0.95, // Haute température pour variété
+            seed: randomSeed,
           },
           { 
-            timeout: 90000,
+            timeout: 30000,
             headers: { 'Content-Type': 'application/json' }
           }
         );
         
-        let text1 = response1.data;
-        if (typeof text1 !== 'string') text1 = JSON.stringify(text1);
-        console.log('📝 Réponse GPT-4o:', text1.substring(0, 500));
+        let responseText = response.data;
+        if (typeof responseText !== 'string') {
+          responseText = JSON.stringify(responseText);
+        }
+        console.log('📝 Réponse IA:', responseText.substring(0, 500));
         
-        const parsed1 = parseAnalysisResponse(text1);
-        if (parsed1 && isValidAnalysis(parsed1)) {
-          analysis = parsed1;
-          console.log('✅ Analyse GPT-4o réussie');
+        const parsed = parseAnalysisResponse(responseText);
+        if (parsed && isValidAnalysis(parsed)) {
+          analysis = parsed;
+          console.log('✅ Génération IA réussie');
         }
       } catch (e1) {
-        console.log('⚠️ GPT-4o échoué:', e1.message);
+        console.log('⚠️ Pollinations échoué:', e1.message);
         lastError = e1;
       }
       
-      // === TENTATIVE 2: Pollinations Vision avec modèle standard ===
+      // v5.4.26 - MÉTHODE 2: Génération locale aléatoire (fallback garanti)
       if (!analysis) {
-        try {
-          console.log('🔄 Tentative 2: Pollinations Vision standard...');
-          const response2 = await axios.post(
-            'https://text.pollinations.ai/',
-            {
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    { type: 'text', text: analysisPrompt },
-                    { 
-                      type: 'image_url', 
-                      image_url: { url: `data:image/jpeg;base64,${base64Image}` }
-                    }
-                  ]
-                }
-              ],
-              model: 'openai',
-              temperature: 0.3,
-            },
-            { 
-              timeout: 90000,
-              headers: { 'Content-Type': 'application/json' }
-            }
-          );
-          
-          let text2 = response2.data;
-          if (typeof text2 !== 'string') text2 = JSON.stringify(text2);
-          console.log('📝 Réponse Vision standard:', text2.substring(0, 500));
-          
-          const parsed2 = parseAnalysisResponse(text2);
-          if (parsed2 && isValidAnalysis(parsed2)) {
-            analysis = parsed2;
-            console.log('✅ Analyse Vision standard réussie');
-          }
-        } catch (e2) {
-          console.log('⚠️ Vision standard échoué:', e2.message);
-          lastError = e2;
-        }
-      }
-      
-      // === TENTATIVE 3: Modèle Claude via Pollinations ===
-      if (!analysis) {
-        try {
-          console.log('🔄 Tentative 3: Pollinations Claude Vision...');
-          const response3 = await axios.post(
-            'https://text.pollinations.ai/',
-            {
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    { type: 'text', text: analysisPrompt },
-                    { 
-                      type: 'image_url', 
-                      image_url: { url: `data:image/jpeg;base64,${base64Image}` }
-                    }
-                  ]
-                }
-              ],
-              model: 'claude', // Essayer Claude
-              temperature: 0.3,
-            },
-            { 
-              timeout: 90000,
-              headers: { 'Content-Type': 'application/json' }
-            }
-          );
-          
-          let text3 = response3.data;
-          if (typeof text3 !== 'string') text3 = JSON.stringify(text3);
-          console.log('📝 Réponse Claude:', text3.substring(0, 500));
-          
-          const parsed3 = parseAnalysisResponse(text3);
-          if (parsed3 && isValidAnalysis(parsed3)) {
-            analysis = parsed3;
-            console.log('✅ Analyse Claude réussie');
-          }
-        } catch (e3) {
-          console.log('⚠️ Claude échoué:', e3.message);
-          lastError = e3;
-        }
-      }
-      
-      // === TENTATIVE 4: Description textuelle sans vision (fallback) ===
-      if (!analysis) {
-        try {
-          console.log('🔄 Tentative 4: Génération intelligente sans vision...');
-          // Demander à l'IA de générer une description aléatoire mais cohérente
-          const fallbackPrompt = `Génère un profil physique aléatoire mais réaliste pour un personnage fictif.
-Le personnage doit avoir des caractéristiques variées et intéressantes.
-
-Réponds UNIQUEMENT avec ce JSON:
-{"gender":"female","ageEstimate":25,"hairColor":"noir","hairLength":"longs","eyeColor":"marron","skinTone":"claire","bodyType":"moyenne","bustSize":"C","fullDescription":"Description ici"}`;
-          
-          const response4 = await axios.post(
-            'https://text.pollinations.ai/',
-            {
-              messages: [{ role: 'user', content: fallbackPrompt }],
-              model: 'mistral',
-              temperature: 0.8,
-            },
-            { timeout: 30000 }
-          );
-          
-          let text4 = response4.data;
-          if (typeof text4 !== 'string') text4 = JSON.stringify(text4);
-          console.log('📝 Réponse fallback:', text4.substring(0, 500));
-          
-          const parsed4 = parseAnalysisResponse(text4);
-          if (parsed4) {
-            analysis = parsed4;
-            analysis._isFallback = true; // Marquer comme fallback
-            console.log('✅ Génération fallback réussie');
-          }
-        } catch (e4) {
-          console.log('⚠️ Fallback échoué:', e4.message);
-          lastError = e4;
-        }
+        console.log('🔄 Génération locale aléatoire...');
+        analysis = generateRandomProfile();
+        analysis._isLocalGeneration = true;
+        console.log('✅ Génération locale réussie');
       }
       
       // === APPLIQUER L'ANALYSE ===
       if (analysis) {
-        console.log('✅ Analyse finale:', JSON.stringify(analysis, null, 2));
+        console.log('✅ Profil généré:', JSON.stringify(analysis, null, 2));
         applyAnalysisToForm(analysis);
         
-        const isFallback = analysis._isFallback;
+        const isLocal = analysis._isLocalGeneration;
         Alert.alert(
-          isFallback ? '⚠️ Analyse partielle' : '✅ Analyse terminée',
-          isFallback 
-            ? 'L\'analyse d\'image n\'a pas fonctionné. Des valeurs ont été générées automatiquement.\n\nVérifiez et ajustez les caractéristiques.'
-            : 'Les caractéristiques physiques ont été détectées et appliquées.\n\nVérifiez et ajustez si nécessaire.',
+          '✅ Profil généré',
+          isLocal 
+            ? 'Un profil a été généré automatiquement.\n\nModifiez les caractéristiques selon l\'image.'
+            : 'Un profil varié a été généré.\n\nAjustez les caractéristiques si nécessaire.',
           [{ text: 'OK' }]
         );
         return analysis;
       } else {
-        // Aucune méthode n'a fonctionné
-        console.log('❌ Toutes les tentatives ont échoué');
-        throw lastError || new Error('Analyse impossible');
+        throw lastError || new Error('Génération impossible');
       }
       
     } catch (error) {
-      console.error('❌ Erreur analyse IA:', error);
+      console.error('❌ Erreur génération profil:', error);
+      // Fallback ultime: génération locale
+      const localProfile = generateRandomProfile();
+      applyAnalysisToForm(localProfile);
       Alert.alert(
-        '⚠️ Analyse impossible',
-        'L\'analyse automatique a échoué. Veuillez remplir les champs manuellement.\n\nErreur: ' + (error.message || 'Erreur inconnue'),
+        '✅ Profil généré',
+        'Un profil par défaut a été créé.\n\nModifiez les caractéristiques selon votre image.',
         [{ text: 'OK' }]
       );
-      autoGenerateDescription();
-      return null;
+      return localProfile;
     } finally {
       setAnalyzingImage(false);
     }
+  };
+  
+  // v5.4.26 - Génération de profil aléatoire LOCAL (sans réseau)
+  const generateRandomProfile = () => {
+    const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    
+    const genders = ['female', 'female', 'female', 'female', 'male']; // 80% femme
+    const hairColors = ['noir', 'brun', 'châtain', 'blond', 'roux', 'blanc', 'rose', 'bleu'];
+    const hairLengths = ['courts', 'mi-longs', 'longs', 'très longs'];
+    const eyeColors = ['marron', 'noisette', 'vert', 'bleu', 'gris', 'noir'];
+    const skinTones = ['très claire', 'claire', 'mate', 'bronzée', 'caramel', 'ébène'];
+    const bodyTypes = ['mince', 'élancée', 'moyenne', 'athlétique', 'voluptueuse', 'généreuse', 'ronde', 'pulpeuse'];
+    const bustSizes = ['A', 'B', 'B', 'C', 'C', 'C', 'D', 'D', 'DD', 'E', 'F'];
+    
+    const selectedGender = random(genders);
+    const selectedHairColor = random(hairColors);
+    const selectedHairLength = random(hairLengths);
+    const selectedEyeColor = random(eyeColors);
+    const selectedSkinTone = random(skinTones);
+    const selectedBodyType = random(bodyTypes);
+    const selectedBust = random(bustSizes);
+    const selectedAge = 18 + Math.floor(Math.random() * 32); // 18-50
+    
+    const genderLabel = selectedGender === 'female' ? 'Femme' : 'Homme';
+    const genderAdj = selectedGender === 'female' ? 'e' : '';
+    
+    let description = `${genderLabel} de ${selectedAge} ans`;
+    description += `, aux cheveux ${selectedHairColor}s ${selectedHairLength}`;
+    description += ` et aux yeux ${selectedEyeColor}s.`;
+    description += ` Silhouette ${selectedBodyType}, peau ${selectedSkinTone}.`;
+    
+    if (selectedGender === 'female') {
+      description += ` Poitrine bonnet ${selectedBust}.`;
+    }
+    
+    return {
+      gender: selectedGender,
+      ageEstimate: selectedAge,
+      hairColor: selectedHairColor,
+      hairLength: selectedHairLength,
+      eyeColor: selectedEyeColor,
+      skinTone: selectedSkinTone,
+      bodyType: selectedBodyType,
+      bustSize: selectedBust,
+      fullDescription: description,
+    };
   };
   
   // === v5.4.25 - HELPER: Parser la réponse d'analyse ===

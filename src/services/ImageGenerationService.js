@@ -211,52 +211,80 @@ class ImageGenerationService {
       ],
     };
     
-    // === v5.4.11 - LIEUX NSFW TRÈS DÉTAILLÉS ===
+    // === v5.4.26 - LIEUX NSFW ULTRA-DÉTAILLÉS AVEC ARRIÈRE-PLANS VISIBLES ===
     this.locations = {
       bedroom: [
-        'in luxurious master bedroom with silk red sheets, romantic candles, intimate boudoir atmosphere, detailed room visible',
-        'on king-size bed with satin pillows scattered, messy sheets after passion, intimate bedroom setting',
-        'bedroom with fairy lights and roses, dreamy romantic ambiance, soft bed visible',
-        'modern minimalist bedroom with city view at night, floor-to-ceiling windows, sexy atmosphere',
-        'vintage boudoir room with antique vanity mirror, velvet curtains, erotic elegant setting',
-        'hotel suite bedroom, champagne on nightstand, romantic getaway atmosphere',
+        '((on large bed with silk sheets)), ((detailed bedroom visible)), romantic candles lit, intimate atmosphere',
+        '((lying on king-size bed)), ((messy satin sheets)), pillows scattered, boudoir setting visible',
+        '((on bed with fairy lights)), ((cozy bedroom background)), dreamy romantic ambiance',
+        '((in modern bedroom)), ((city view through window)), night lights, sexy atmosphere',
+        '((on vintage bed)), ((velvet curtains visible)), antique vanity mirror, elegant boudoir',
+        '((in hotel suite bed)), ((champagne on nightstand visible)), romantic getaway room',
+        '((sprawled on luxurious bed)), ((red silk sheets visible)), passion aftermath setting',
+        '((on round bed)), ((mirror on ceiling visible)), love hotel room atmosphere',
+      ],
+      livingroom: [
+        '((on leather sofa)), ((living room visible behind)), sophisticated atmosphere',
+        '((on velvet couch)), ((fireplace crackling in background)), cozy intimate setting',
+        '((sprawled on white couch)), ((modern apartment visible)), city penthouse vibe',
+        '((on sectional sofa)), ((large windows behind)), natural light streaming in',
+        '((on fur rug by fireplace)), ((warm glow)), wine glasses nearby visible',
+        '((leaning on armchair)), ((bookshelf behind)), intellectual sensual vibe',
+      ],
+      kitchen: [
+        '((sitting on kitchen counter)), ((modern kitchen visible)), domestic sexy',
+        '((leaning against kitchen island)), ((appliances visible)), housewife fantasy',
+        '((bent over kitchen table)), ((breakfast setting visible)), morning after',
+        '((on bar stool)), ((kitchen bar behind)), casual sexy atmosphere',
+        '((against refrigerator)), ((kitchen tiles visible)), spontaneous encounter',
       ],
       bathroom: [
-        'in marble bathroom with steamy mirrors, wet tiles, sensual spa atmosphere',
-        'near clawfoot bathtub filled with bubbles, vintage elegant bathroom, rose petals floating',
-        'in modern shower with glass walls, water streaming on body, steam everywhere',
-        'by bathroom mirror after shower, towels on floor, steamy intimate atmosphere',
-        'in jacuzzi with bubbles and champagne, relaxing sensual, jets bubbling',
+        '((in marble bathroom)), ((steamy mirrors visible)), wet tiles, spa atmosphere',
+        '((near clawfoot bathtub)), ((bubbles and rose petals)), vintage bathroom',
+        '((in glass shower)), ((water streaming)), steam everywhere visible',
+        '((by bathroom mirror)), ((towels on floor visible)), after shower',
+        '((in jacuzzi)), ((bubbles around)), champagne nearby, relaxing',
+        '((sitting on bathroom counter)), ((mirror behind)), getting ready',
+      ],
+      wall: [
+        '((pressed against wall)), ((textured wall visible)), passionate encounter',
+        '((leaning on brick wall)), ((industrial loft behind)), urban sexy',
+        '((against floor-to-ceiling window)), ((city skyline behind)), exhibitionist',
+        '((pinned to bedroom wall)), ((door visible)), spontaneous passion',
+        '((against shower wall)), ((water running down)), wet and steamy',
+        '((back to wall)), ((hallway visible)), caught in the act vibe',
+      ],
+      chair: [
+        '((straddling chair backwards)), ((room visible behind)), dominant pose',
+        '((lounging in armchair)), ((reading lamp nearby)), relaxed sensual',
+        '((sitting on office chair)), ((desk behind)), secretary fantasy',
+        '((on vanity chair)), ((makeup table behind)), boudoir getting ready',
+        '((on bar stool)), ((bar counter behind)), nightlife seduction',
+        '((on wooden chair)), ((kitchen behind)), domestic intimate',
+        '((draped over chaise lounge)), ((elegant room visible)), classic boudoir',
       ],
       pool: [
-        'by infinity pool at sunset, wet glistening body, tropical paradise background',
-        'in swimming pool water, breasts above water, wet hair, sensual',
-        'poolside on luxury lounger, tropical palm trees, bikini tan lines visible',
-        'near waterfall pool in exotic jungle, wet paradise, natural beauty',
+        '((by infinity pool)), ((ocean view behind)), sunset tropical paradise',
+        '((in pool water)), ((pool edge visible)), wet glistening body',
+        '((on poolside lounger)), ((palm trees behind)), summer vacation',
+        '((near pool waterfall)), ((exotic garden visible)), jungle paradise',
       ],
       nature: [
-        'on secluded private beach, waves crashing behind, sunset golden light, nude beach atmosphere',
-        'in forest clearing with sunbeams through trees, natural goddess, earthy setting',
-        'near crystal lake at sunset, golden hour glow on skin, romantic nature',
-        'in lavender flower field, purple blooms surrounding, ethereal natural beauty',
-        'on luxury balcony overlooking ocean, salty breeze, panoramic view background',
-      ],
-      interior: [
-        'in penthouse with panoramic city view at night, city lights twinkling behind, luxury atmosphere',
-        'by roaring fireplace on fur rug, warm flickering orange glow, cozy intimate',
-        'on leather sofa in upscale living room, whiskey on table, sophisticated sexy',
-        'in artist studio with large windows and natural light, canvas and paint visible, creative',
-        'in front of large bay window with city skyline, silhouette lighting, mysterious',
-        'on soft white fur rug near crackling fireplace, wine glasses nearby, romantic',
-        'in walk-in closet with designer clothes, full mirror reflection, getting dressed/undressed',
+        '((on private beach)), ((waves crashing behind)), sunset golden light',
+        '((in forest clearing)), ((trees and sunbeams)), natural goddess',
+        '((by crystal lake)), ((water reflection visible)), golden hour',
+        '((in flower field)), ((colorful blooms behind)), ethereal beauty',
+        '((on balcony)), ((ocean panorama behind)), luxury vacation',
       ],
       special: [
-        'hotel room with rose petals on bed and champagne, honeymoon suite, romantic',
-        'yacht deck at sunset on calm ocean, luxury pillows, glamorous atmosphere',
-        'private Finnish sauna with wooden benches, steam rising, hot naked atmosphere',
-        'backstage dressing room with makeup lights, costume rack visible, glamorous',
-        'professional photo studio with softbox lighting, white backdrop, boudoir shoot',
-        'strip club VIP room with velvet couches, purple lighting, naughty atmosphere',
+        '((in hotel suite)), ((rose petals on bed visible)), honeymoon romance',
+        '((on yacht deck)), ((ocean sunset behind)), luxury glamour',
+        '((in sauna)), ((wooden benches visible)), steam rising hot',
+        '((in dressing room)), ((makeup lights behind)), backstage glamour',
+        '((in photo studio)), ((softbox lights visible)), boudoir shoot',
+        '((in VIP room)), ((velvet couches behind)), purple lighting naughty',
+        '((in limousine)), ((leather seats visible)), luxury transport',
+        '((in private jet)), ((airplane interior visible)), mile high fantasy',
       ],
     };
     
@@ -4105,7 +4133,7 @@ class ImageGenerationService {
           '((latex dress)), ((skintight shiny)), fetish fashion',
           '((bikini top as shirt)), ((maximum exposure)), beach to street',
         ];
-        // v5.4.24 - POSES SEXY ULTRA-VARIÉES ET EXPLICITES
+        // v5.4.26 - POSES SEXY ULTRA-VARIÉES ET PROVOCANTES
         const sexyPoses = [
           '((bending forward showing cleavage)), ((breasts hanging)), cleavage pose',
           '((hand on hip, hip popped)), ((confident stance)), power pose',
@@ -4119,7 +4147,7 @@ class ImageGenerationService {
           '((finger on lips)), ((innocent but sexy)), coy pose',
           '((lying back provocatively)), ((dress riding up)), recline tease',
           '((straddling chair)), ((dress stretched)), straddle pose',
-          // v5.4.24 - NOUVELLES POSES INTIMES ET SÉDUISANTES
+          // v5.4.24 - POSES INTIMES ET SÉDUISANTES
           '((lying on bed on back)), ((breasts prominent)), ((dress riding up)), relaxed seductive',
           '((hands under breasts lifting them)), ((emphasizing bust)), lift and display pose',
           '((pulling down one dress strap)), ((shoulder exposed)), ((bra strap visible)), teasing undress',
@@ -4135,18 +4163,41 @@ class ImageGenerationService {
           '((one knee on bed)), ((other foot on floor)), ((cleavage forward)), climbing pose',
           '((hands behind head)), ((chest pushed out)), ((confident display)), exhibit pose',
           '((twisting torso)), ((breast profile visible)), ((hip curve)), twist display',
+          // v5.4.26 - NOUVELLES POSES ENCORE PLUS PROVOCANTES
+          '((sitting on kitchen counter)), ((legs spread)), ((dress hiked)), domestic fantasy',
+          '((pressed against window)), ((breasts against glass)), exhibitionist pose',
+          '((on all fours on bed)), ((looking back seductively)), ((ass up)), crawl pose',
+          '((standing in doorway)), ((leaning on frame)), ((hip out)), entrance tease',
+          '((lying on couch)), ((one leg over back)), ((dress fallen open)), lounging sexy',
+          '((bent over sofa arm)), ((rear presented)), ((looking back)), furniture tease',
+          '((sitting on chair backwards)), ((straddling)), ((chest on chair back)), reverse sit',
+          '((standing on tiptoes)), ((stretching up)), ((dress riding)), reach pose',
+          '((squatting down)), ((cleavage prominent)), ((looking up)), low angle tease',
+          '((leaning over table)), ((breasts on table)), ((rear out)), table lean',
+          '((against bookshelf)), ((one leg raised)), ((dress falling)), library fantasy',
+          '((in bathtub)), ((bubbles strategic)), ((wet skin)), bath seduction',
+          '((on swing or hammock)), ((legs dangling)), ((playful)), outdoor swing pose',
+          '((doing splits or stretching)), ((flexibility shown)), ((sporty sexy)), yoga pose',
+          '((dancing with arms up)), ((dress spinning)), ((movement)), dance freeze',
         ];
         priorityAngle = sexyAngles[Math.floor(Math.random() * sexyAngles.length)];
         priorityOutfit = sexyOutfits[Math.floor(Math.random() * sexyOutfits.length)];
         priorityPose = sexyPoses[Math.floor(Math.random() * sexyPoses.length)];
       }
       
-      // v5.4.21 - PROMPT NSFW: Angle/Tenue/Pose EN PREMIER avec poids élevé
-      prompt = `${style}, ${priorityAngle}, ${priorityOutfit}, ${priorityPose}`;
-      console.log(`🔥 v5.4.21 NSFW Niveau ${level} - PRIORITÉ:`);
+      // v5.4.26 - SÉLECTION DE L'ARRIÈRE-PLAN ALÉATOIRE
+      const backgroundCategories = ['bedroom', 'livingroom', 'kitchen', 'bathroom', 'wall', 'chair', 'special'];
+      const bgCategory = backgroundCategories[Math.floor(Math.random() * backgroundCategories.length)];
+      const bgOptions = this.locations[bgCategory] || this.locations.bedroom;
+      const selectedBackground = bgOptions[Math.floor(Math.random() * bgOptions.length)];
+      
+      // v5.4.26 - PROMPT NSFW: Style + Angle + Tenue + Pose + ARRIÈRE-PLAN
+      prompt = `${style}, ${priorityAngle}, ${priorityOutfit}, ${priorityPose}, ${selectedBackground}`;
+      console.log(`🔥 v5.4.26 NSFW Niveau ${level} - PRIORITÉ:`);
       console.log(`   📷 Angle: ${priorityAngle}`);
       console.log(`   👙 Tenue: ${priorityOutfit}`);
       console.log(`   🎭 Pose: ${priorityPose}`);
+      console.log(`   🏠 Arrière-plan: ${selectedBackground}`);
     } else {
       // Mode SFW - prompt classique
       prompt = 'FULL BODY SHOT showing entire character from head to feet, complete figure visible, NOT cropped, ' + style;
