@@ -662,17 +662,23 @@ export default function ConversationScreen({ route, navigation }) {
             )
           ]);
           
-          if (imageUrl) {
+          // v5.4.34 - MEILLEUR LOGGING ET VALIDATION
+          console.log(`📸 URL reçue: ${imageUrl ? imageUrl.substring(0, 100) + '...' : 'UNDEFINED'}`);
+          
+          if (imageUrl && typeof imageUrl === 'string' && imageUrl.length > 10) {
             generatedImages.push(imageUrl);
             
             // Sauvegarde dans la galerie
             try {
               await GalleryService.saveImageToGallery(character.id, imageUrl);
+              console.log(`💾 Image sauvegardée dans galerie`);
             } catch (saveError) {
               console.log('⚠️ Erreur sauvegarde galerie:', saveError.message);
             }
             
-            console.log(`✅ Image ${i + 1}/${count} générée`);
+            console.log(`✅ Image ${i + 1}/${count} générée: ${imageUrl.substring(0, 80)}...`);
+          } else {
+            console.log(`⚠️ Image ${i + 1}/${count} - URL invalide ou vide`);
           }
           
           // Petit délai entre les images pour éviter le rate limiting

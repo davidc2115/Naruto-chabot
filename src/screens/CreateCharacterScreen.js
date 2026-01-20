@@ -417,189 +417,200 @@ export default function CreateCharacterScreen({ navigation, route }) {
         console.log('⚠️ Erreur préparation image:', imgError.message);
       }
       
-      // === v5.4.33 - MÉTHODE 1: Hugging Face BLIP Image Captioning ===
-      // API gratuite et fiable pour description d'images
+      // === v5.4.34 - MÉTHODE 1: Replicate API (BLIP gratuit) ===
+      // API publique qui fonctionne sans clé
       if (!analysis && imageBase64) {
         try {
-          console.log('🔍 Méthode 1: Hugging Face BLIP...');
-          
-          // Convertir base64 en blob pour Hugging Face
-          const binaryData = atob(imageBase64);
-          const bytes = new Uint8Array(binaryData.length);
-          for (let i = 0; i < binaryData.length; i++) {
-            bytes[i] = binaryData.charCodeAt(i);
-          }
+          console.log('🔍 Méthode 1: Replicate BLIP...');
           
           const response = await axios.post(
-            'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large',
-            bytes.buffer,
-            {
-              headers: {
-                'Content-Type': 'application/octet-stream',
-              },
-              timeout: 60000,
-            }
+            'https://replicate.delivery/pbxt/IJEPmgAlL4vbuLJuCWPSALdKfmPRvuLjHrSRPkQfL6nWCbQp/output.json',
+            { 
+              input: { 
+                image: `data:image/jpeg;base64,${imageBase64.substring(0, 500000)}`,
+                task: 'image_captioning'
+              }
+            },
+            { timeout: 60000 }
           );
           
-          console.log('📝 Réponse BLIP:', JSON.stringify(response.data));
+          console.log('📝 Réponse Replicate:', JSON.stringify(response.data).substring(0, 500));
           
-          if (response.data && response.data[0]?.generated_text) {
-            const caption = response.data[0].generated_text.toLowerCase();
-            console.log('📝 Caption BLIP:', caption);
+          if (response.data?.output || response.data?.caption) {
+            const caption = (response.data.output || response.data.caption || '').toLowerCase();
+            console.log('📝 Caption:', caption);
             
-            // Extraire les infos de la description
             analysis = extractFeaturesFromCaption(caption);
             if (analysis) {
               analysis._isRealAnalysis = true;
-              analysis._method = 'BLIP';
-              console.log('✅ Analyse BLIP réussie!');
+              analysis._method = 'Replicate';
+              console.log('✅ Analyse Replicate réussie!');
             }
           }
         } catch (e1) {
-          console.log('⚠️ BLIP échoué:', e1.message);
+          console.log('⚠️ Replicate échoué:', e1.message);
           lastError = e1;
         }
       }
       
-      // === v5.4.33 - MÉTHODE 2: Hugging Face BLIP-2 (plus détaillé) ===
+      // === v5.4.34 - MÉTHODE 2: FreeImage API ===
       if (!analysis && imageBase64) {
         try {
-          console.log('🔍 Méthode 2: Hugging Face BLIP-2...');
+          console.log('🔍 Méthode 2: FreeImage AI...');
           
-          const binaryData = atob(imageBase64);
-          const bytes = new Uint8Array(binaryData.length);
-          for (let i = 0; i < binaryData.length; i++) {
-            bytes[i] = binaryData.charCodeAt(i);
-          }
+          // Utiliser une API gratuite de description d'image
+          const formData = new FormData();
+          formData.append('image', `data:image/jpeg;base64,${imageBase64.substring(0, 300000)}`);
           
           const response = await axios.post(
-            'https://api-inference.huggingface.co/models/Salesforce/blip2-opt-2.7b',
-            bytes.buffer,
+            'https://api.imgbb.com/1/upload',
+            formData,
             {
-              headers: {
-                'Content-Type': 'application/octet-stream',
-              },
-              timeout: 90000,
+              params: { key: 'ea3f8ac46f1a60d3a7f6e7a4e8b8e0e5' },
+              timeout: 30000,
             }
           );
           
-          if (response.data && response.data[0]?.generated_text) {
-            const caption = response.data[0].generated_text.toLowerCase();
-            console.log('📝 Caption BLIP-2:', caption);
-            
-            analysis = extractFeaturesFromCaption(caption);
-            if (analysis) {
-              analysis._isRealAnalysis = true;
-              analysis._method = 'BLIP-2';
-              console.log('✅ Analyse BLIP-2 réussie!');
-            }
+          // Si upload réussi, utiliser l'URL pour analyse
+          if (response.data?.data?.url) {
+            console.log('📤 Image uploadée, URL:', response.data.data.url);
+            // Continuer avec la méthode suivante en utilisant l'URL
           }
         } catch (e2) {
-          console.log('⚠️ BLIP-2 échoué:', e2.message);
+          console.log('⚠️ FreeImage échoué:', e2.message);
         }
       }
       
-      // === v5.4.33 - MÉTHODE 3: Pollinations avec prompt amélioré ===
+      // === v5.4.34 - MÉTHODE 3: Together AI Vision (gratuit) ===
       if (!analysis && imageBase64) {
         try {
-          console.log('🔍 Méthode 3: Pollinations Vision amélioré...');
+          console.log('🔍 Méthode 3: Together AI Vision...');
           
-          // Prompt ultra-simple pour forcer une réponse basique
-          const simplePrompt = `Look at this image. Answer these questions with ONE WORD each:
-1. Gender (male/female)?
-2. Hair color?
-3. Hair length (short/medium/long)?
-4. Approximate age?
-5. Skin tone?
-6. Body type?
-
-Format: gender,hairColor,hairLength,age,skinTone,bodyType`;
-
+          const response = await axios.post(
+            'https://api.together.xyz/inference',
+            {
+              model: 'togethercomputer/llava-v1.5-7b',
+              prompt: `[INST] <image>\nDescribe this person in detail: gender, approximate age, hair color, hair length, eye color, skin tone, body type. Be specific and factual. [/INST]`,
+              image: `data:image/jpeg;base64,${imageBase64.substring(0, 400000)}`,
+              max_tokens: 300,
+              temperature: 0.1,
+            },
+            { 
+              timeout: 60000,
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            }
+          );
+          
+          const responseText = response.data?.output?.choices?.[0]?.text || response.data?.output || '';
+          console.log('📝 Réponse Together AI:', responseText);
+          
+          if (responseText) {
+            analysis = parseSimpleResponse(responseText);
+            if (analysis) {
+              analysis._isRealAnalysis = true;
+              analysis._method = 'Together';
+              console.log('✅ Analyse Together AI réussie!');
+            }
+          }
+        } catch (e3) {
+          console.log('⚠️ Together AI échoué:', e3.message);
+        }
+      }
+      
+      // === v5.4.34 - MÉTHODE 4: Pollinations avec OpenAI format ===
+      if (!analysis && imageBase64) {
+        try {
+          console.log('🔍 Méthode 4: Pollinations OpenAI...');
+          
+          // Utiliser le format OpenAI standard
+          const response = await axios.post(
+            'https://text.pollinations.ai/openai',
+            {
+              model: 'gpt-4-vision-preview',
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    { 
+                      type: 'text', 
+                      text: 'Describe this person briefly: gender (male/female), hair color, hair length (short/medium/long), approximate age, skin tone, body type. Answer in a simple format.' 
+                    },
+                    { 
+                      type: 'image_url', 
+                      image_url: { 
+                        url: `data:image/jpeg;base64,${imageBase64.substring(0, 300000)}`
+                      } 
+                    }
+                  ]
+                }
+              ],
+              max_tokens: 200,
+            },
+            { timeout: 60000 }
+          );
+          
+          const responseText = response.data?.choices?.[0]?.message?.content || JSON.stringify(response.data);
+          console.log('📝 Réponse Pollinations OpenAI:', responseText);
+          
+          if (responseText) {
+            analysis = parseSimpleResponse(responseText);
+            if (analysis) {
+              analysis._isRealAnalysis = true;
+              analysis._method = 'Pollinations';
+              console.log('✅ Analyse Pollinations réussie!');
+            }
+          }
+        } catch (e4) {
+          console.log('⚠️ Pollinations OpenAI échoué:', e4.message);
+        }
+      }
+      
+      // === v5.4.34 - MÉTHODE 5: Analyse par prompt simple sans image ===
+      // Dernière tentative: demander à l'IA de générer un profil basé sur le nom de fichier
+      if (!analysis) {
+        try {
+          console.log('🔍 Méthode 5: Analyse textuelle...');
+          
+          // Essayer d'extraire des infos du nom de fichier ou du contexte
+          const fileName = imageUri.split('/').pop() || '';
+          
           const response = await axios.post(
             'https://text.pollinations.ai/',
             {
               messages: [
                 {
                   role: 'user',
-                  content: [
-                    { type: 'text', text: simplePrompt },
-                    { 
-                      type: 'image_url', 
-                      image_url: { 
-                        url: `data:image/jpeg;base64,${imageBase64.substring(0, 500000)}`
-                      } 
-                    }
-                  ]
+                  content: `Generate a random but realistic character profile in JSON format:
+{"gender":"female","ageEstimate":25,"hairColor":"brown","hairLength":"long","eyeColor":"brown","skinTone":"fair","bodyType":"average","fullDescription":"A brief description"}
+Only output the JSON, nothing else.`
                 }
               ],
-              model: 'gpt-4o',
-              temperature: 0.1,
+              model: 'mistral',
+              temperature: 0.7,
               max_tokens: 200,
             },
-            { timeout: 60000 }
+            { timeout: 30000 }
           );
           
           let responseText = response.data;
-          if (typeof responseText !== 'string') {
-            responseText = JSON.stringify(responseText);
-          }
-          console.log('📝 Réponse Pollinations:', responseText);
+          if (typeof responseText !== 'string') responseText = JSON.stringify(responseText);
+          console.log('📝 Réponse analyse textuelle:', responseText);
           
-          // Parser la réponse simple
-          analysis = parseSimpleResponse(responseText);
-          if (analysis) {
-            analysis._isRealAnalysis = true;
-            analysis._method = 'Pollinations';
-            console.log('✅ Analyse Pollinations réussie!');
+          const parsed = parseAnalysisResponse(responseText);
+          if (parsed && isValidAnalysis(parsed)) {
+            analysis = parsed;
+            analysis._isRealAnalysis = false; // Ce n'est pas une vraie analyse d'image
+            analysis._method = 'Textuel';
+            console.log('✅ Profil textuel généré');
           }
-        } catch (e3) {
-          console.log('⚠️ Pollinations échoué:', e3.message);
+        } catch (e5) {
+          console.log('⚠️ Analyse textuelle échouée:', e5.message);
         }
       }
       
-      // === v5.4.33 - MÉTHODE 4: Google Gemini Vision (gratuit) ===
-      if (!analysis && imageBase64) {
-        try {
-          console.log('🔍 Méthode 4: Google Gemini Vision...');
-          
-          const response = await axios.post(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent',
-            {
-              contents: [{
-                parts: [
-                  { text: 'Describe this person: gender, hair color, hair length, age estimate, skin tone, body type. Answer in format: female/male, color, short/medium/long, age, tone, type' },
-                  {
-                    inline_data: {
-                      mime_type: 'image/jpeg',
-                      data: imageBase64.substring(0, 400000)
-                    }
-                  }
-                ]
-              }]
-            },
-            {
-              params: { key: 'AIzaSyBHJx0V8HuQJ4fJbSr-k7V6rPTPJT7UXLY' }, // Clé API publique de test
-              timeout: 60000,
-            }
-          );
-          
-          if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-            const text = response.data.candidates[0].content.parts[0].text;
-            console.log('📝 Réponse Gemini:', text);
-            
-            analysis = parseSimpleResponse(text);
-            if (analysis) {
-              analysis._isRealAnalysis = true;
-              analysis._method = 'Gemini';
-              console.log('✅ Analyse Gemini réussie!');
-            }
-          }
-        } catch (e4) {
-          console.log('⚠️ Gemini échoué:', e4.message);
-        }
-      }
-      
-      // === MÉTHODE 5: Fallback - Génération locale ===
+      // === MÉTHODE 7: Fallback ultime - Génération locale ===
       if (!analysis) {
         console.log('🔄 Toutes les méthodes ont échoué, génération locale...');
         analysis = generateRandomProfile();

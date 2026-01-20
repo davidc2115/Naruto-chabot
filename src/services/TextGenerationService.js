@@ -908,104 +908,117 @@ class TextGenerationService {
   }
   
   /**
-   * v5.4.32 - DÉTECTION DE TIERCE PERSONNE DANS LA CONVERSATION
-   * Permet de détecter quand une autre personne entre dans la scène ou est mentionnée
-   * Utilisé pour permettre des réponses multi-personnages
+   * v5.4.34 - DÉTECTION AMÉLIORÉE DE TIERCE PERSONNE
+   * Détection plus agressive et plus de patterns
    */
   detectThirdPerson(messages, mainCharacterName) {
     const result = {
       hasThirdPerson: false,
       thirdPersonName: null,
-      thirdPersonRelation: null, // fille, mère, ami, etc.
-      situation: null, // arrive, entend, entre, etc.
-      thirdPersonsInScene: [], // Liste de toutes les personnes présentes
+      thirdPersonRelation: null,
+      situation: null,
+      thirdPersonsInScene: [],
     };
     
-    // Analyser les derniers messages pour détecter une tierce personne
     const recentMessages = messages.slice(-15);
     const allText = recentMessages.map(m => m.content || '').join(' ').toLowerCase();
     const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.toLowerCase() || '';
+    const lastUserMsgOriginal = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
     
-    // Patterns de détection d'arrivée de tierce personne
-    const arrivalPatterns = [
-      // Quelqu'un arrive/entre
-      /(?:ma|sa|ta|notre|leur)\s+(fille|mère|maman|père|papa|frère|soeur|ami|amie|femme|mari|copine|copain|petite amie|petit ami|belle-mère|beau-père|belle-fille|beau-fils|cousine|cousin|tante|oncle|nièce|neveu|colocataire|coloc|voisine|voisin|patronne|patron|collègue)\s+(?:arrive|entre|ouvre|apparaît|surgit|débarque|vient|revient|rentre)/gi,
-      // Prénom + arrive
-      /(\w+)\s+(?:arrive|entre|ouvre|apparaît|surgit|débarque|vient|revient|rentre)\s+(?:dans|chez|à)/gi,
-      // Quelqu'un entend/voit/surprend
-      /(?:ma|sa|ta|notre|leur)\s+(fille|mère|maman|père|papa|frère|soeur|ami|amie|femme|mari|copine|copain|petite amie|petit ami)\s+(?:entend|a entendu|nous entend|nous a entendu|voit|a vu|nous voit|nous a vu|surprend|a surpris|nous surprend)/gi,
-      // Elle/Il a entendu/vu
-      /(?:elle|il|on)\s+(?:a\s+)?(?:entendu|vu|surpris|remarqué)/gi,
-      // Quelqu'un dans la pièce
-      /(?:quelqu'?un|une personne|ma|sa|ta)\s+(fille|mère|ami|amie)\s+(?:est là|est dans|se trouve|se tient)/gi,
-    ];
-    
-    // Patterns pour questions/interactions avec tierce personne
-    const interactionPatterns = [
-      // L'utilisateur parle À la tierce personne
-      /(?:je\s+(?:lui|leur)\s+(?:demande|dis|parle|explique|réponds))/gi,
-      /(?:(?:qu'?est-ce|pourquoi|comment)\s+tu\s+fais\s+(?:là|ici))/gi,
-      /(?:(?:tu\s+)?(?:as\s+)?(?:entendu|vu)\s+(?:quelque chose|quoi|ça))/gi,
-      // Adresser une question spécifique
-      /(?:je me tourne vers|je regarde vers|je m'adresse à)\s+(?:\w+|ma|sa|ta\s+\w+)/gi,
-    ];
-    
-    // Relations familiales/sociales à détecter
-    const relationPatterns = {
-      'fille': /(?:ma|sa|ta|notre|leur)\s+fille/gi,
-      'mère': /(?:ma|sa|ta|notre|leur)\s+(?:mère|maman)/gi,
-      'père': /(?:mon|son|ton|notre|leur)\s+(?:père|papa)/gi,
-      'frère': /(?:mon|son|ton|notre|leur)\s+frère/gi,
-      'soeur': /(?:ma|sa|ta|notre|leur)\s+(?:soeur|sœur)/gi,
-      'ami': /(?:mon|son|ton|notre|leur)\s+ami\b/gi,
-      'amie': /(?:ma|sa|ta|notre|leur)\s+amie/gi,
-      'femme': /(?:ma|sa|ta|notre|leur)\s+femme/gi,
-      'mari': /(?:mon|son|ton|notre|leur)\s+mari/gi,
-      'copine': /(?:ma|sa|ta|notre|leur)\s+(?:copine|petite amie)/gi,
-      'copain': /(?:mon|son|ton|notre|leur)\s+(?:copain|petit ami)/gi,
-      'belle-mère': /(?:ma|sa|ta)\s+belle-mère/gi,
-      'beau-père': /(?:mon|son|ton)\s+beau-père/gi,
-      'colocataire': /(?:ma|mon|sa|son|ta|ton)\s+(?:colocataire|coloc)/gi,
-      'voisine': /(?:ma|sa|ta)\s+voisine/gi,
-      'voisin': /(?:mon|son|ton)\s+voisin/gi,
-      'patronne': /(?:ma|sa|ta)\s+(?:patronne|boss)/gi,
-      'patron': /(?:mon|son|ton)\s+(?:patron|boss)/gi,
-      'collègue': /(?:ma|mon|sa|son|ta|ton)\s+collègue/gi,
+    // v5.4.34 - PATTERNS DE RELATIONS (plus complets)
+    const relationKeywords = {
+      'fille': ['ma fille', 'sa fille', 'ta fille', 'notre fille', 'la fille'],
+      'mère': ['ma mère', 'sa mère', 'ta mère', 'maman', 'ma maman'],
+      'père': ['mon père', 'son père', 'ton père', 'papa', 'mon papa'],
+      'frère': ['mon frère', 'son frère', 'ton frère'],
+      'soeur': ['ma soeur', 'ma sœur', 'sa soeur', 'sa sœur'],
+      'ami': ['mon ami', 'son ami', 'un ami'],
+      'amie': ['mon amie', 'ma meilleure amie', 'son amie', 'une amie'],
+      'femme': ['ma femme', 'sa femme', 'ton épouse'],
+      'mari': ['mon mari', 'son mari', 'ton époux'],
+      'copine': ['ma copine', 'sa copine', 'ma petite amie'],
+      'copain': ['mon copain', 'son copain', 'mon petit ami'],
+      'belle-mère': ['ma belle-mère', 'sa belle-mère'],
+      'beau-père': ['mon beau-père', 'son beau-père'],
+      'colocataire': ['ma coloc', 'mon coloc', 'ma colocataire', 'mon colocataire'],
+      'voisine': ['ma voisine', 'la voisine'],
+      'voisin': ['mon voisin', 'le voisin'],
+      'collègue': ['ma collègue', 'mon collègue', 'une collègue'],
     };
     
-    // Détecter les arrivées
-    for (const pattern of arrivalPatterns) {
-      const matches = allText.match(pattern);
-      if (matches) {
-        result.hasThirdPerson = true;
-        result.situation = 'arrive';
-        
-        // Extraire la relation si possible
-        for (const [relation, relPattern] of Object.entries(relationPatterns)) {
-          if (relPattern.test(allText)) {
-            result.thirdPersonRelation = relation;
-            result.thirdPersonName = relation; // Par défaut, utiliser la relation comme nom
-            break;
+    // v5.4.34 - VERBES D'ARRIVÉE/PRÉSENCE
+    const arrivalVerbs = [
+      'arrive', 'entre', 'ouvre', 'apparaît', 'surgit', 'débarque', 
+      'vient', 'revient', 'rentre', 'fait irruption', 'déboule',
+      'est là', 'est dans', 'se trouve', 'se tient', 'est entrée', 'est entré'
+    ];
+    
+    // v5.4.34 - VERBES DE PERCEPTION
+    const perceptionVerbs = [
+      'entend', 'a entendu', 'nous entend', 'nous a entendu',
+      'voit', 'a vu', 'nous voit', 'nous a vu',
+      'surprend', 'a surpris', 'nous surprend', 'nous a surpris',
+      'remarque', 'aperçoit', 'découvre'
+    ];
+    
+    // v5.4.34 - VERBES D'INTERACTION
+    const interactionVerbs = [
+      'lui demande', 'lui dis', 'lui dit', 'lui parle', 'lui explique', 'lui réponds',
+      'me tourne vers', 'm\'adresse à', 'regarde vers', 'interpelle',
+      'leur demande', 'leur dis', 'leur parle'
+    ];
+    
+    // Chercher une relation + verbe d'arrivée
+    for (const [relation, keywords] of Object.entries(relationKeywords)) {
+      for (const keyword of keywords) {
+        if (allText.includes(keyword)) {
+          // Vérifier si un verbe d'arrivée/perception est proche
+          for (const verb of [...arrivalVerbs, ...perceptionVerbs]) {
+            if (allText.includes(verb)) {
+              result.hasThirdPerson = true;
+              result.thirdPersonRelation = relation;
+              result.thirdPersonName = relation.charAt(0).toUpperCase() + relation.slice(1);
+              result.situation = arrivalVerbs.includes(verb) ? 'arrive' : 'perception';
+              console.log(`👥 Tierce personne détectée: ${result.thirdPersonName} (${verb})`);
+              break;
+            }
           }
+          if (result.hasThirdPerson) break;
         }
-        break;
+      }
+      if (result.hasThirdPerson) break;
+    }
+    
+    // Vérifier les interactions directes dans le dernier message
+    if (!result.hasThirdPerson) {
+      for (const verb of interactionVerbs) {
+        if (lastUserMsg.includes(verb)) {
+          result.hasThirdPerson = true;
+          result.situation = 'interaction';
+          // Essayer de trouver la relation dans le contexte
+          for (const [relation, keywords] of Object.entries(relationKeywords)) {
+            for (const keyword of keywords) {
+              if (allText.includes(keyword)) {
+                result.thirdPersonRelation = relation;
+                result.thirdPersonName = relation.charAt(0).toUpperCase() + relation.slice(1);
+                break;
+              }
+            }
+            if (result.thirdPersonName) break;
+          }
+          console.log(`👥 Interaction avec tierce personne: ${result.thirdPersonName || 'quelqu\'un'}`);
+          break;
+        }
       }
     }
     
-    // Détecter si l'utilisateur veut interagir avec la tierce personne
-    for (const pattern of interactionPatterns) {
-      if (pattern.test(lastUserMsg)) {
-        result.hasThirdPerson = true;
-        result.situation = 'interaction';
-      }
-    }
-    
-    // Extraire les noms propres mentionnés (potentielles tierces personnes)
-    const namePattern = /\b([A-Z][a-z]{2,})\b/g;
-    const namesFound = allText.match(namePattern) || [];
+    // v5.4.34 - Chercher des noms propres dans le dernier message
+    const namePattern = /\b([A-Z][a-zéèêëàâäùûüôöîïç]{2,})\b/g;
+    const namesFound = lastUserMsgOriginal.match(namePattern) || [];
+    const excludedNames = ['Elle', 'Il', 'Je', 'Tu', 'Nous', 'Vous', 'Ils', 'Elles', 'On', 'Oui', 'Non', 'Alors', 'Mais', 'Donc', 'Car', 'Puis'];
     const uniqueNames = [...new Set(namesFound)].filter(n => 
       n.toLowerCase() !== mainCharacterName.toLowerCase() && 
-      !['Elle', 'Il', 'Je', 'Tu', 'Nous', 'Vous', 'Ils', 'Elles', 'On', 'Oui', 'Non'].includes(n)
+      !excludedNames.includes(n)
     );
     
     if (uniqueNames.length > 0 && result.hasThirdPerson) {
