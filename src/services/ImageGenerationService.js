@@ -84,8 +84,8 @@ class ImageGenerationService {
       'blurry, low quality, pixelated, watermark, signature, text, ' +
       'ugly, grotesque, horror, creepy, nightmare';
     
-    // v5.4.24 - NEGATIVE PROMPT ULTRA-COMPLET RENFORCÉ ET ÉTENDU
-    // Base - sera augmenté dynamiquement selon le body type
+    // v5.4.28 - NEGATIVE PROMPT ULTRA-COMPLET RENFORCÉ
+    // Base - corrige les défauts anatomiques courants
     this.negativePromptBase = 
       'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, anatomical errors, ' +
       'extra limbs, missing limbs, three arms, four arms, three legs, four legs, extra body parts, ' +
@@ -93,10 +93,17 @@ class ImageGenerationService {
       'malformed hands, twisted hands, backwards hands, extra fingers, missing fingers, ' +
       'fused fingers, six fingers, seven fingers, too many fingers, mutated hands, bad hands, ' +
       'clothes fused with skin, clothes melting into body, fabric merged with flesh, ' +
-      // v5.4.24 - NOUVEAUX DEFAUTS À ÉVITER
       'extra person, duplicate person, clone person, twin in background, ' +
       'split body, multiple torsos, conjoined twins, siamese, ' +
-      'wrong face proportions, deformed face, melted face, ';
+      'wrong face proportions, deformed face, melted face, ' +
+      // v5.4.28 - DÉFAUTS ANATOMIQUES SPÉCIFIQUES À CORRIGER
+      'breasts and butt visible together in same view from front, ' +
+      'butt visible from front view, ass on front of body, ' +
+      'arms where breasts should be, arms coming from chest, ' +
+      'breasts on back, nipples on back, ' +
+      'extra breasts, three breasts, four breasts, ' +
+      'breasts on stomach, breasts too low, breasts on belly, ' +
+      'arms coming from breasts, limbs from wrong places, ';
       
     this.negativePromptFull = this.negativePromptBase +
       'clawed hands, webbed fingers, malformed feet, extra toes, bent wrong way, ' +
@@ -117,7 +124,6 @@ class ImageGenerationService {
       'jpeg artifacts, compression artifacts, noise, grainy, ' +
       'ugly, grotesque, horror, creepy, nightmare, zombie, ' +
       'nsfw artifacts, censorship bars, mosaic censorship, black bars, ' +
-      // v5.4.24 - NOUVEAUX DEFAUTS À ÉVITER
       'realistic nipples on anime, anime nipples on realistic, wrong art style nipples, ' +
       'missing nipples when topless, no nipples when nude, nipple placement wrong, ' +
       'lips wrong color, lips too big, lips too small, mouth open wrong, teeth showing badly, ' +
@@ -128,7 +134,17 @@ class ImageGenerationService {
       'clothes phasing through body, transparent clothes wrong, clothes defying gravity, ' +
       'skin texture wrong, plastic skin, mannequin skin, waxy skin, ' +
       'body parts wrong size, arm longer than leg, tiny feet, giant feet, ' +
-      'unrealistic pose, impossible contortion, broken joints, hyperextended limbs';
+      'unrealistic pose, impossible contortion, broken joints, hyperextended limbs, ' +
+      // v5.4.28 - DÉFAUTS ANATOMIQUES GRAVES
+      'arm growing from breast, arm replacing breast, limb from chest, ' +
+      'seeing both breasts and butt from front, anatomically impossible view, ' +
+      'back visible from front, spine visible from front, ' +
+      'reversed body, body facing two directions, twisted body, ' +
+      'head on backwards, face on back of head, ' +
+      'legs attached to chest, arms attached to hips, ' +
+      'breasts on arms, nipples on arms, nipples on hands, ' +
+      'duplicate breasts at different heights, stacked breasts, ' +
+      'body parts in wrong positions, organs visible, internal anatomy showing';
     
     // PROMPT QUALITÉ PARFAITE - Pour images sans défauts
     this.perfectQualityPrompt = 
@@ -4116,6 +4132,7 @@ class ImageGenerationService {
           '((dancing provocatively)), ((dress riding up)), movement sexy',
           '((stretching in crop top)), ((underboob visible)), stretch pose',
         ];
+        // v5.4.28 - TENUES ULTRA-SEXY ET PROVOCANTES NSFW
         const sexyOutfits = [
           '((wearing skin-tight mini dress)), ((every curve visible)), bodycon',
           '((crop top and micro shorts)), ((midriff and legs)), hot pants outfit',
@@ -4125,15 +4142,26 @@ class ImageGenerationService {
           '((side-boob revealing top)), ((no bra)), daring fashion',
           '((ultra short skirt)), ((barely covering)), micro mini',
           '((wet white shirt)), ((body visible through)), wet look',
-          '((mesh top)), ((bra showing through)), layered sexy',
-          '((tube top barely covering)), ((slipping down)), precarious top',
-          '((cut-out dress)), ((strategic skin showing)), peek-a-boo dress',
-          '((bodysuit with deep V)), ((cleavage emphasized)), sleek sexy',
-          '((off-shoulder top)), ((almost falling)), shoulder exposed',
           '((latex dress)), ((skintight shiny)), fetish fashion',
           '((bikini top as shirt)), ((maximum exposure)), beach to street',
+          // v5.4.28 - NOUVELLES TENUES HYPER-SEXY
+          '((micro mini skirt)), ((ass cheeks visible)), ((panties peeking out)), slutty skirt',
+          '((transparent negligee)), ((entire body visible through)), ((nipples showing)), see-through nightwear',
+          '((sheer sexy nightgown)), ((nothing hidden)), ((body silhouette)), transparent sleepwear',
+          '((leather mini skirt)), ((tight around ass)), ((fetish fashion)), dominatrix style',
+          '((latex bodysuit)), ((skintight glossy)), ((curves emphasized)), fetish catsuit',
+          '((leather bra and panties)), ((bondage style)), ((straps)), dominatrix lingerie',
+          '((super tight dress)), ((breasts and ass molded)), ((second skin)), painted-on dress',
+          '((sexy stockings with garter)), ((thighs visible)), ((no panties)), stocking fetish',
+          '((fishnet dress)), ((body visible through holes)), ((nothing underneath)), mesh dress',
+          '((string bikini)), ((barely covering nipples)), ((ass exposed)), micro bikini',
+          '((open-front robe)), ((breasts visible)), ((untied)), revealing robe',
+          '((cutout bodysuit)), ((breasts exposed through holes)), ((strategic openings)), peekaboo bodysuit',
+          '((wet bikini)), ((see-through from water)), ((nipples visible)), pool wear',
+          '((tight leather pants)), ((ass perfectly shaped)), ((camel toe)), leather bottoms',
+          '((corset only)), ((breasts pushed up)), ((waist cinched)), victorian sexy',
         ];
-        // v5.4.26 - POSES SEXY ULTRA-VARIÉES ET PROVOCANTES
+        // v5.4.28 - POSES ULTRA-SEXY ET PROVOCANTES NSFW
         const sexyPoses = [
           '((bending forward showing cleavage)), ((breasts hanging)), cleavage pose',
           '((hand on hip, hip popped)), ((confident stance)), power pose',
@@ -4147,38 +4175,33 @@ class ImageGenerationService {
           '((finger on lips)), ((innocent but sexy)), coy pose',
           '((lying back provocatively)), ((dress riding up)), recline tease',
           '((straddling chair)), ((dress stretched)), straddle pose',
-          // v5.4.24 - POSES INTIMES ET SÉDUISANTES
-          '((lying on bed on back)), ((breasts prominent)), ((dress riding up)), relaxed seductive',
-          '((hands under breasts lifting them)), ((emphasizing bust)), lift and display pose',
-          '((pulling down one dress strap)), ((shoulder exposed)), ((bra strap visible)), teasing undress',
-          '((lifting dress hem)), ((showing panties)), ((teasing view)), upskirt self-reveal',
-          '((bent over table)), ((cleavage from above)), ((rear emphasized)), bent serving pose',
-          '((arching back on bed)), ((breasts thrust upward)), ((stomach taut)), sensual arch',
-          '((one hand on breast)), ((squeezing gently)), ((seductive look)), self-touch tease',
-          '((pulling neckline down)), ((revealing more cleavage)), ((almost nipple)), tease reveal',
-          '((sitting on edge of bed)), ((legs dangling open)), ((panties visible)), invite pose',
-          '((reaching behind to unzip)), ((back exposed)), ((undressing)), zipper moment',
-          '((lying on stomach)), ((looking back)), ((ass emphasized)), prone seductive',
-          '((standing with dress falling)), ((catching it last moment)), oops moment',
-          '((one knee on bed)), ((other foot on floor)), ((cleavage forward)), climbing pose',
-          '((hands behind head)), ((chest pushed out)), ((confident display)), exhibit pose',
-          '((twisting torso)), ((breast profile visible)), ((hip curve)), twist display',
-          // v5.4.26 - NOUVELLES POSES ENCORE PLUS PROVOCANTES
-          '((sitting on kitchen counter)), ((legs spread)), ((dress hiked)), domestic fantasy',
-          '((pressed against window)), ((breasts against glass)), exhibitionist pose',
-          '((on all fours on bed)), ((looking back seductively)), ((ass up)), crawl pose',
-          '((standing in doorway)), ((leaning on frame)), ((hip out)), entrance tease',
-          '((lying on couch)), ((one leg over back)), ((dress fallen open)), lounging sexy',
-          '((bent over sofa arm)), ((rear presented)), ((looking back)), furniture tease',
-          '((sitting on chair backwards)), ((straddling)), ((chest on chair back)), reverse sit',
-          '((standing on tiptoes)), ((stretching up)), ((dress riding)), reach pose',
-          '((squatting down)), ((cleavage prominent)), ((looking up)), low angle tease',
-          '((leaning over table)), ((breasts on table)), ((rear out)), table lean',
-          '((against bookshelf)), ((one leg raised)), ((dress falling)), library fantasy',
-          '((in bathtub)), ((bubbles strategic)), ((wet skin)), bath seduction',
-          '((on swing or hammock)), ((legs dangling)), ((playful)), outdoor swing pose',
-          '((doing splits or stretching)), ((flexibility shown)), ((sporty sexy)), yoga pose',
-          '((dancing with arms up)), ((dress spinning)), ((movement)), dance freeze',
+          // v5.4.28 - POSES ULTRA-INTIMES ET PROVOCANTES NSFW
+          '((lying on bed on back)), ((breasts lifted and prominent)), ((nipples visible through fabric)), bed display',
+          '((sitting on chair with legs wide open)), ((panties fully visible)), ((skirt hiked up)), spread seated',
+          '((bent forward at waist)), ((ass presented)), ((panties visible from behind)), bent over tease',
+          '((hands under breasts)), ((lifting and squeezing them)), ((cleavage enhanced)), breast lift pose',
+          '((hands inside bra)), ((squeezing own breasts)), ((pleasure expression)), self-grope',
+          '((pulling neckline down)), ((one breast almost out)), ((nipple nearly visible)), reveal tease',
+          '((lifting skirt from behind)), ((showing panties and ass)), ((looking back)), skirt lift',
+          '((sitting with knees up)), ((panties visible between legs)), ((seductive gaze)), knees up view',
+          '((lying on bed arching back)), ((breasts thrust up)), ((stomach exposed)), arch display',
+          '((on all fours)), ((ass up high)), ((breasts hanging)), doggy position',
+          '((straddling chair facing camera)), ((panties stretched)), ((grinding motion)), straddle grind',
+          '((standing bent over)), ((touching toes)), ((ass and panties prominent)), touch toes',
+          '((lying on side)), ((leg raised high)), ((panties pulled tight)), side leg raise',
+          '((kneeling with thighs spread)), ((panties visible)), ((hands on thighs)), open kneel',
+          '((sitting on floor)), ((legs spread wide)), ((dress bunched)), floor spread',
+          '((against wall)), ((one leg wrapped around)), ((dress hiked)), wall pose',
+          '((on bed on knees)), ((leaning back)), ((breasts thrust forward)), kneel back',
+          '((lying face down)), ((ass up)), ((panties wedgie)), prone ass up',
+          '((squatting with legs apart)), ((panties stretched)), ((looking up)), squat spread',
+          '((riding motion)), ((hips forward)), ((breasts bouncing)), ride pose',
+          '((hands pulling panties aside)), ((teasing reveal)), ((naughty look)), panty pull',
+          '((bra being removed)), ((breasts about to fall out)), ((undressing)), bra removal',
+          '((dress falling off shoulders)), ((breasts nearly exposed)), ((oops moment)), dress slip',
+          '((touching between own legs)), ((over panties)), ((pleasure face)), self touch',
+          '((spreading legs on bed)), ((inviting pose)), ((come hither look)), bed invite',
+          '((ass against glass)), ((pressed flat)), ((looking back)), glass press',
         ];
         priorityAngle = sexyAngles[Math.floor(Math.random() * sexyAngles.length)];
         priorityOutfit = sexyOutfits[Math.floor(Math.random() * sexyOutfits.length)];
@@ -6740,32 +6763,29 @@ class ImageGenerationService {
   }
 
   /**
-   * APIs de fallback alternatives (gratuits)
+   * v5.4.28 - APIs de fallback - RESPECTE LA STRATÉGIE SÉLECTIONNÉE
    */
-  async generateWithFallbackAPI(prompt, apiIndex = 0) {
+  async generateWithFallbackAPI(prompt, apiIndex = 0, character = null) {
+    const strategy = CustomImageAPIService.getStrategy();
+    console.log(`🔄 Fallback API - Stratégie actuelle: ${strategy}`);
+    
+    // v5.4.28 - RESPECTER LA STRATÉGIE
+    if (strategy === 'freebox') {
+      console.log('🏠 Fallback: Réutilisation Freebox SD');
+      return await this.generateWithFreeboxSD(prompt, character);
+    }
+    
+    // Sinon utiliser Pollinations
     const seed = Date.now() + Math.floor(Math.random() * 99999);
     const shortPrompt = prompt.substring(0, 500);
     const encoded = encodeURIComponent(shortPrompt);
     
-    // Rotation entre différentes APIs
-    const apis = [
-      // Prodia (gratuit, rapide)
-      () => `https://api.prodia.com/generate?prompt=${encoded}&seed=${seed}`,
-      // GetImg.ai placeholder
-      () => `https://getimg.ai/api/v1/generate?prompt=${encoded}`,
-      // Lexica (recherche d'images similaires)
-      () => `https://lexica.art/api/v1/search?q=${encoded}`,
-    ];
-    
-    // Pour l'instant, générer une URL Pollinations avec délai anti-rate-limit
     await new Promise(r => setTimeout(r, 3000)); // Attendre 3s
     
     const antiCache = Date.now();
-    // v5.3.52 - Ratio 9:16 pour smartphones
-    // v5.4.16 - URL avec mode NSFW activé (safe=false)
     const url = `https://image.pollinations.ai/prompt/${encoded}?width=576&height=1024&seed=${seed}&nologo=true&nofeed=true&model=flux&safe=false&enhance=true&t=${antiCache}`;
     
-    console.log(`🌐 Fallback API (attente anti-rate-limit)`);
+    console.log(`🌐 Fallback Pollinations API`);
     return url;
   }
 
@@ -6779,8 +6799,9 @@ class ImageGenerationService {
       const availability = await StableDiffusionLocalService.checkAvailability();
       
       if (!availability.available || !availability.modelDownloaded || !availability.canRunSD) {
-        console.log('⚠️ SD Local non disponible - Utilisation de Freebox');
-        return await this.generateWithFreebox(prompt);
+        console.log('⚠️ SD Local non disponible - Utilisation de Freebox SD');
+        // v5.4.28 - FIX: Utiliser generateWithFreeboxSD au lieu de generateWithFreebox
+        return await this.generateWithFreeboxSD(prompt, null);
       }
 
       const fullPrompt = `${prompt}, ${this.anatomyStrictPrompt}, masterpiece, best quality, ultra detailed`;
@@ -6789,8 +6810,8 @@ class ImageGenerationService {
       
       const result = await StableDiffusionLocalService.generateImage(fullPrompt, {
         negativePrompt: this.negativePromptFull,
-        steps: 4, // Plus d'étapes pour meilleure qualité
-        guidanceScale: 7.5, // Plus de guidance pour respecter le prompt
+        steps: 4,
+        guidanceScale: 7.5,
       });
 
       if (result && result.imagePath) {
@@ -6798,12 +6819,14 @@ class ImageGenerationService {
         return result.imagePath;
       }
       
-      console.log('⚠️ Pas de résultat SD Local, fallback Freebox');
-      return await this.generateWithFreebox(prompt);
+      console.log('⚠️ Pas de résultat SD Local, fallback Freebox SD');
+      // v5.4.28 - FIX: Utiliser generateWithFreeboxSD
+      return await this.generateWithFreeboxSD(prompt, null);
       
     } catch (error) {
       console.error('❌ Erreur génération locale:', error.message);
-      return await this.generateWithFreebox(prompt);
+      // v5.4.28 - FIX: Utiliser generateWithFreeboxSD
+      return await this.generateWithFreeboxSD(prompt, null);
     }
   }
 }

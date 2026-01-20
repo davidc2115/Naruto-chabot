@@ -457,13 +457,14 @@ GÉNÈRE UN PROFIL UNIQUE ET VARIÉ! JSON uniquement:`;
         console.log('✅ Profil généré:', JSON.stringify(analysis, null, 2));
         applyAnalysisToForm(analysis);
         
-        const isLocal = analysis._isLocalGeneration;
+        // v5.4.28 - Message clair sur la nature de la génération
         Alert.alert(
           '✅ Profil généré',
-          isLocal 
-            ? 'Un profil a été généré automatiquement.\n\nModifiez les caractéristiques selon l\'image.'
-            : 'Un profil varié a été généré.\n\nAjustez les caractéristiques si nécessaire.',
-          [{ text: 'OK' }]
+          'Un profil physique a été généré automatiquement.\n\n' +
+          '⚠️ IMPORTANT: Vérifiez et ajustez les caractéristiques pour correspondre à votre image :\n' +
+          '• Genre\n• Couleur des cheveux\n• Couleur des yeux\n• Morphologie\n• Âge\n\n' +
+          'Modifiez les champs ci-dessous selon l\'apparence de votre personnage.',
+          [{ text: 'Compris' }]
         );
         return analysis;
       } else {
