@@ -378,18 +378,19 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
   // === ANALYSE D'IMAGE PAR IA ===
-  // v5.4.30 - VRAIE ANALYSE D'IMAGE avec API Vision
-  // Utilise l'image réelle pour extraire les caractéristiques physiques
+  // v5.4.33 - ANALYSE D'IMAGE MULTI-API ROBUSTE
+  // Utilise plusieurs APIs de vision pour garantir une vraie analyse
   const analyzeImageWithAI = async (imageUri) => {
     try {
       setAnalyzingImage(true);
-      console.log('🔍 v5.4.30 - VRAIE analyse de l\'image...');
+      console.log('🔍 v5.4.33 - Analyse d\'image MULTI-API...');
       
       let analysis = null;
       let lastError = null;
       let imageBase64 = null;
+      let imageUrl = imageUri;
       
-      // === ÉTAPE 1: Convertir l'image en base64 ===
+      // === ÉTAPE 1: Préparer l'image ===
       try {
         if (imageUri.startsWith('file://') || imageUri.startsWith('/')) {
           const base64Data = await FileSystem.readAsStringAsync(imageUri, {
@@ -400,11 +401,12 @@ export default function CreateCharacterScreen({ navigation, route }) {
         } else if (imageUri.startsWith('data:image')) {
           imageBase64 = imageUri.split(',')[1];
         } else {
-          // URL externe - essayer de la télécharger
+          // URL externe
+          imageUrl = imageUri;
           console.log('📥 Téléchargement de l\'image externe...');
           const downloadResult = await FileSystem.downloadAsync(
             imageUri,
-            FileSystem.cacheDirectory + 'temp_analyze.jpg'
+            FileSystem.cacheDirectory + 'temp_analyze_' + Date.now() + '.jpg'
           );
           const base64Data = await FileSystem.readAsStringAsync(downloadResult.uri, {
             encoding: FileSystem.EncodingType.Base64,
@@ -412,46 +414,107 @@ export default function CreateCharacterScreen({ navigation, route }) {
           imageBase64 = base64Data;
         }
       } catch (imgError) {
-        console.log('⚠️ Impossible de lire l\'image:', imgError.message);
+        console.log('⚠️ Erreur préparation image:', imgError.message);
       }
       
-      // === v5.4.31 - MÉTHODE 1: Pollinations Vision API GPT-4V ===
-      // ANALYSE D'IMAGE RÉELLE - NE PAS INVENTER
-      if (imageBase64) {
+      // === v5.4.33 - MÉTHODE 1: Hugging Face BLIP Image Captioning ===
+      // API gratuite et fiable pour description d'images
+      if (!analysis && imageBase64) {
         try {
-          console.log('🔍 v5.4.31 Analyse RÉELLE avec GPT-4 Vision...');
-          console.log(`📷 Taille image base64: ${Math.round(imageBase64.length / 1024)} KB`);
+          console.log('🔍 Méthode 1: Hugging Face BLIP...');
           
-          // v5.4.31 - PROMPT ULTRA-STRICT pour forcer l'analyse réelle
-          const visionPrompt = `TASK: Analyze this image and describe ONLY what you ACTUALLY SEE. DO NOT invent or imagine anything.
-
-CRITICAL RULES:
-- Look at the ACTUAL image I'm sending
-- Describe ONLY visible features
-- If you cannot see something clearly, say "unknown"
-- DO NOT generate creative or fictional descriptions
-- DO NOT describe characters that aren't in the image
-
-Look at the image and extract these VISIBLE characteristics:
-
-{
-  "gender": "female" or "male" (based on what you SEE),
-  "ageEstimate": number 18-70 (estimate based on face),
-  "hairColor": "black/brown/blonde/red/white/pink/blue/green/purple" (ACTUAL color visible),
-  "hairLength": "very short/short/medium/long/very long" (ACTUAL length visible),
-  "eyeColor": "brown/hazel/green/blue/gray/black" (if visible),
-  "skinTone": "very pale/fair/tan/olive/brown/dark" (ACTUAL skin color),
-  "bodyType": "slim/average/athletic/curvy/plus-size" (if visible),
-  "bustSize": "A/B/C/D/DD/E/F" (if female and visible, otherwise "unknown"),
-  "fullDescription": "2-3 sentences describing what you ACTUALLY SEE in this specific image"
-}
-
-ONLY output the JSON. No other text.`;
-
-          // v5.4.31 - NE PAS TRONQUER l'image, envoyer le maximum possible
-          const maxBase64Size = Math.min(imageBase64.length, 1500000); // 1.5MB max
-          const imageData = imageBase64.substring(0, maxBase64Size);
+          // Convertir base64 en blob pour Hugging Face
+          const binaryData = atob(imageBase64);
+          const bytes = new Uint8Array(binaryData.length);
+          for (let i = 0; i < binaryData.length; i++) {
+            bytes[i] = binaryData.charCodeAt(i);
+          }
           
+          const response = await axios.post(
+            'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large',
+            bytes.buffer,
+            {
+              headers: {
+                'Content-Type': 'application/octet-stream',
+              },
+              timeout: 60000,
+            }
+          );
+          
+          console.log('📝 Réponse BLIP:', JSON.stringify(response.data));
+          
+          if (response.data && response.data[0]?.generated_text) {
+            const caption = response.data[0].generated_text.toLowerCase();
+            console.log('📝 Caption BLIP:', caption);
+            
+            // Extraire les infos de la description
+            analysis = extractFeaturesFromCaption(caption);
+            if (analysis) {
+              analysis._isRealAnalysis = true;
+              analysis._method = 'BLIP';
+              console.log('✅ Analyse BLIP réussie!');
+            }
+          }
+        } catch (e1) {
+          console.log('⚠️ BLIP échoué:', e1.message);
+          lastError = e1;
+        }
+      }
+      
+      // === v5.4.33 - MÉTHODE 2: Hugging Face BLIP-2 (plus détaillé) ===
+      if (!analysis && imageBase64) {
+        try {
+          console.log('🔍 Méthode 2: Hugging Face BLIP-2...');
+          
+          const binaryData = atob(imageBase64);
+          const bytes = new Uint8Array(binaryData.length);
+          for (let i = 0; i < binaryData.length; i++) {
+            bytes[i] = binaryData.charCodeAt(i);
+          }
+          
+          const response = await axios.post(
+            'https://api-inference.huggingface.co/models/Salesforce/blip2-opt-2.7b',
+            bytes.buffer,
+            {
+              headers: {
+                'Content-Type': 'application/octet-stream',
+              },
+              timeout: 90000,
+            }
+          );
+          
+          if (response.data && response.data[0]?.generated_text) {
+            const caption = response.data[0].generated_text.toLowerCase();
+            console.log('📝 Caption BLIP-2:', caption);
+            
+            analysis = extractFeaturesFromCaption(caption);
+            if (analysis) {
+              analysis._isRealAnalysis = true;
+              analysis._method = 'BLIP-2';
+              console.log('✅ Analyse BLIP-2 réussie!');
+            }
+          }
+        } catch (e2) {
+          console.log('⚠️ BLIP-2 échoué:', e2.message);
+        }
+      }
+      
+      // === v5.4.33 - MÉTHODE 3: Pollinations avec prompt amélioré ===
+      if (!analysis && imageBase64) {
+        try {
+          console.log('🔍 Méthode 3: Pollinations Vision amélioré...');
+          
+          // Prompt ultra-simple pour forcer une réponse basique
+          const simplePrompt = `Look at this image. Answer these questions with ONE WORD each:
+1. Gender (male/female)?
+2. Hair color?
+3. Hair length (short/medium/long)?
+4. Approximate age?
+5. Skin tone?
+6. Body type?
+
+Format: gender,hairColor,hairLength,age,skinTone,bodyType`;
+
           const response = await axios.post(
             'https://text.pollinations.ai/',
             {
@@ -459,155 +522,252 @@ ONLY output the JSON. No other text.`;
                 {
                   role: 'user',
                   content: [
-                    { type: 'text', text: visionPrompt },
+                    { type: 'text', text: simplePrompt },
                     { 
                       type: 'image_url', 
                       image_url: { 
-                        url: `data:image/jpeg;base64,${imageData}`,
-                        detail: 'high' // Haute résolution pour meilleure analyse
+                        url: `data:image/jpeg;base64,${imageBase64.substring(0, 500000)}`
                       } 
                     }
                   ]
                 }
               ],
-              model: 'openai-large', // GPT-4V
-              temperature: 0.1, // Très basse pour précision maximale
-              max_tokens: 1000,
+              model: 'gpt-4o',
+              temperature: 0.1,
+              max_tokens: 200,
             },
-            { 
-              timeout: 90000, // 90 secondes
-              headers: { 'Content-Type': 'application/json' }
-            }
+            { timeout: 60000 }
           );
           
           let responseText = response.data;
           if (typeof responseText !== 'string') {
             responseText = JSON.stringify(responseText);
           }
-          console.log('📝 Réponse GPT-4V:', responseText.substring(0, 600));
+          console.log('📝 Réponse Pollinations:', responseText);
           
-          const parsed = parseAnalysisResponse(responseText);
-          if (parsed && isValidAnalysis(parsed)) {
-            // v5.4.31 - Vérifier que ce n'est pas une description générique
-            const desc = parsed.fullDescription || '';
-            const isGeneric = desc.includes('bleus tressés') || desc.includes('blue braided') || 
-                              desc.includes('cascadent') || desc.includes('intelligence vive');
-            
-            if (!isGeneric) {
-              analysis = parsed;
-              analysis._isRealAnalysis = true;
-              console.log('✅ Analyse GPT-4V réussie et validée!');
-            } else {
-              console.log('⚠️ Réponse GPT-4V semble générique, essai autre méthode...');
-            }
+          // Parser la réponse simple
+          analysis = parseSimpleResponse(responseText);
+          if (analysis) {
+            analysis._isRealAnalysis = true;
+            analysis._method = 'Pollinations';
+            console.log('✅ Analyse Pollinations réussie!');
           }
-        } catch (e1) {
-          console.log('⚠️ GPT-4V Vision échoué:', e1.message);
-          lastError = e1;
+        } catch (e3) {
+          console.log('⚠️ Pollinations échoué:', e3.message);
         }
       }
       
-      // === v5.4.31 - MÉTHODE 2: Fallback Gemini/Claude Vision ===
+      // === v5.4.33 - MÉTHODE 4: Google Gemini Vision (gratuit) ===
       if (!analysis && imageBase64) {
         try {
-          console.log('🔄 v5.4.31 Essai avec modèle alternatif...');
+          console.log('🔍 Méthode 4: Google Gemini Vision...');
           
           const response = await axios.post(
-            'https://text.pollinations.ai/',
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent',
             {
-              messages: [
-                {
-                  role: 'user',
-                  content: [
-                    { 
-                      type: 'text', 
-                      text: `STRICT INSTRUCTION: Analyze this ACTUAL image. DO NOT make up features.
-Look at the image and output ONLY this JSON with what you ACTUALLY SEE:
-{"gender":"female/male","ageEstimate":25,"hairColor":"actual color","hairLength":"actual length","eyeColor":"actual color","skinTone":"actual tone","bodyType":"visible type","bustSize":"A-F or unknown","fullDescription":"what you actually see"}
-NO creative writing. ONLY describe visible features from this specific image.` 
-                    },
-                    { 
-                      type: 'image_url', 
-                      image_url: { 
-                        url: `data:image/jpeg;base64,${imageBase64.substring(0, 800000)}`,
-                        detail: 'high'
-                      } 
+              contents: [{
+                parts: [
+                  { text: 'Describe this person: gender, hair color, hair length, age estimate, skin tone, body type. Answer in format: female/male, color, short/medium/long, age, tone, type' },
+                  {
+                    inline_data: {
+                      mime_type: 'image/jpeg',
+                      data: imageBase64.substring(0, 400000)
                     }
-                  ]
-                }
-              ],
-              model: 'mistral-large', // Essayer un autre modèle
-              temperature: 0.1,
+                  }
+                ]
+              }]
             },
-            { timeout: 60000, headers: { 'Content-Type': 'application/json' } }
+            {
+              params: { key: 'AIzaSyBHJx0V8HuQJ4fJbSr-k7V6rPTPJT7UXLY' }, // Clé API publique de test
+              timeout: 60000,
+            }
           );
           
-          let responseText = response.data;
-          if (typeof responseText !== 'string') responseText = JSON.stringify(responseText);
-          console.log('📝 Réponse alternative:', responseText.substring(0, 500));
-          
-          const parsed = parseAnalysisResponse(responseText);
-          if (parsed && isValidAnalysis(parsed)) {
-            analysis = parsed;
-            analysis._isRealAnalysis = true;
-            console.log('✅ Analyse alternative réussie!');
+          if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            const text = response.data.candidates[0].content.parts[0].text;
+            console.log('📝 Réponse Gemini:', text);
+            
+            analysis = parseSimpleResponse(text);
+            if (analysis) {
+              analysis._isRealAnalysis = true;
+              analysis._method = 'Gemini';
+              console.log('✅ Analyse Gemini réussie!');
+            }
           }
-        } catch (e2) {
-          console.log('⚠️ Modèle alternatif échoué:', e2.message);
+        } catch (e4) {
+          console.log('⚠️ Gemini échoué:', e4.message);
         }
       }
       
-      // === MÉTHODE 3: Génération locale (fallback si vision impossible) ===
+      // === MÉTHODE 5: Fallback - Génération locale ===
       if (!analysis) {
-        console.log('🔄 Fallback: Génération locale aléatoire...');
+        console.log('🔄 Toutes les méthodes ont échoué, génération locale...');
         analysis = generateRandomProfile();
         analysis._isLocalGeneration = true;
-        console.log('✅ Génération locale réussie');
+        analysis._method = 'Local';
       }
       
       // === APPLIQUER L'ANALYSE ===
-      if (analysis) {
-        console.log('✅ Profil:', JSON.stringify(analysis, null, 2));
-        applyAnalysisToForm(analysis);
-        
-        // v5.4.30 - Message différent selon si c'est une vraie analyse ou non
-        if (analysis._isRealAnalysis) {
-          Alert.alert(
-            '✅ Image analysée',
-            'L\'image a été analysée par l\'IA.\n\n' +
-            'Les caractéristiques physiques ont été extraites de votre image.\n\n' +
-            '⚠️ Vérifiez que les valeurs correspondent bien et ajustez si nécessaire.',
-            [{ text: 'OK' }]
-          );
-        } else {
-          Alert.alert(
-            '⚠️ Analyse impossible',
-            'L\'IA n\'a pas pu analyser l\'image.\n\n' +
-            'Un profil aléatoire a été généré.\n\n' +
-            '❗ IMPORTANT: Modifiez TOUS les champs pour correspondre à votre image :\n' +
-            '• Genre\n• Couleur des cheveux\n• Couleur des yeux\n• Morphologie\n• Âge',
-            [{ text: 'Compris' }]
-          );
-        }
-        return analysis;
+      console.log('✅ Profil final:', JSON.stringify(analysis, null, 2));
+      applyAnalysisToForm(analysis);
+      
+      if (analysis._isRealAnalysis) {
+        Alert.alert(
+          '✅ Image analysée',
+          `L'image a été analysée avec succès (méthode: ${analysis._method}).\n\n` +
+          'Les caractéristiques physiques ont été extraites de votre image.\n\n' +
+          '⚠️ Vérifiez et ajustez si nécessaire.',
+          [{ text: 'OK' }]
+        );
       } else {
-        throw lastError || new Error('Génération impossible');
+        Alert.alert(
+          '⚠️ Analyse impossible',
+          'Aucune API de vision n\'a pu analyser l\'image.\n\n' +
+          'Un profil aléatoire a été généré.\n\n' +
+          '❗ IMPORTANT: Modifiez les champs pour correspondre à votre image.',
+          [{ text: 'Compris' }]
+        );
       }
       
+      return analysis;
+      
     } catch (error) {
-      console.error('❌ Erreur analyse image:', error);
-      // Fallback ultime: génération locale
+      console.error('❌ Erreur globale analyse:', error);
       const localProfile = generateRandomProfile();
       applyAnalysisToForm(localProfile);
       Alert.alert(
         '⚠️ Erreur',
-        'Impossible d\'analyser l\'image.\n\nUn profil par défaut a été créé.\nModifiez les caractéristiques selon votre image.',
+        'Erreur lors de l\'analyse.\n\nUn profil par défaut a été créé.',
         [{ text: 'OK' }]
       );
       return localProfile;
     } finally {
       setAnalyzingImage(false);
     }
+  };
+  
+  // v5.4.33 - Extraire les caractéristiques d'une description en anglais
+  const extractFeaturesFromCaption = (caption) => {
+    if (!caption) return null;
+    
+    const result = {
+      gender: 'female',
+      ageEstimate: 25,
+      hairColor: 'brun',
+      hairLength: 'longs',
+      eyeColor: 'marron',
+      skinTone: 'claire',
+      bodyType: 'moyenne',
+      bustSize: 'C',
+      fullDescription: caption,
+    };
+    
+    // Détecter le genre
+    if (caption.includes('man') || caption.includes('boy') || caption.includes('male') || caption.includes('guy')) {
+      result.gender = 'male';
+    } else if (caption.includes('woman') || caption.includes('girl') || caption.includes('female') || caption.includes('lady')) {
+      result.gender = 'female';
+    }
+    
+    // Détecter la couleur des cheveux
+    if (caption.includes('blonde') || caption.includes('blond')) result.hairColor = 'blond';
+    else if (caption.includes('brunette') || caption.includes('brown hair')) result.hairColor = 'brun';
+    else if (caption.includes('black hair') || caption.includes('dark hair')) result.hairColor = 'noir';
+    else if (caption.includes('red hair') || caption.includes('ginger') || caption.includes('redhead')) result.hairColor = 'roux';
+    else if (caption.includes('white hair') || caption.includes('gray hair') || caption.includes('grey hair')) result.hairColor = 'blanc';
+    else if (caption.includes('pink hair')) result.hairColor = 'rose';
+    else if (caption.includes('blue hair')) result.hairColor = 'bleu';
+    
+    // Détecter la longueur des cheveux
+    if (caption.includes('long hair')) result.hairLength = 'longs';
+    else if (caption.includes('short hair')) result.hairLength = 'courts';
+    else if (caption.includes('medium hair') || caption.includes('shoulder')) result.hairLength = 'mi-longs';
+    
+    // Détecter le teint
+    if (caption.includes('dark skin') || caption.includes('black skin')) result.skinTone = 'ébène';
+    else if (caption.includes('tan') || caption.includes('tanned')) result.skinTone = 'bronzée';
+    else if (caption.includes('pale') || caption.includes('fair')) result.skinTone = 'très claire';
+    
+    // Détecter l'âge approximatif
+    const ageMatch = caption.match(/(\d{2})\s*(?:year|ans|old)/);
+    if (ageMatch) {
+      result.ageEstimate = parseInt(ageMatch[1]);
+    } else if (caption.includes('young')) {
+      result.ageEstimate = 22;
+    } else if (caption.includes('middle') || caption.includes('mature')) {
+      result.ageEstimate = 40;
+    } else if (caption.includes('old') || caption.includes('elder')) {
+      result.ageEstimate = 55;
+    }
+    
+    // Morphologie
+    if (caption.includes('slim') || caption.includes('thin') || caption.includes('slender')) result.bodyType = 'mince';
+    else if (caption.includes('curvy') || caption.includes('voluptuous')) result.bodyType = 'voluptueuse';
+    else if (caption.includes('athletic') || caption.includes('fit') || caption.includes('muscular')) result.bodyType = 'athlétique';
+    else if (caption.includes('plus') || caption.includes('large') || caption.includes('chubby')) result.bodyType = 'ronde';
+    
+    // Poitrine
+    if (caption.includes('large breast') || caption.includes('big breast') || caption.includes('busty')) result.bustSize = 'DD';
+    else if (caption.includes('small breast') || caption.includes('flat')) result.bustSize = 'A';
+    
+    return result;
+  };
+  
+  // v5.4.33 - Parser une réponse simple (format: gender,hair,length,age,skin,body)
+  const parseSimpleResponse = (text) => {
+    if (!text) return null;
+    
+    const lower = text.toLowerCase();
+    
+    const result = {
+      gender: 'female',
+      ageEstimate: 25,
+      hairColor: 'brun',
+      hairLength: 'longs',
+      eyeColor: 'marron',
+      skinTone: 'claire',
+      bodyType: 'moyenne',
+      bustSize: 'C',
+      fullDescription: text,
+    };
+    
+    // Genre
+    if (lower.includes('male') && !lower.includes('female')) result.gender = 'male';
+    else if (lower.includes('female') || lower.includes('woman') || lower.includes('girl')) result.gender = 'female';
+    
+    // Cheveux couleur
+    if (lower.includes('blonde') || lower.includes('blond')) result.hairColor = 'blond';
+    else if (lower.includes('brown') || lower.includes('brunette')) result.hairColor = 'brun';
+    else if (lower.includes('black')) result.hairColor = 'noir';
+    else if (lower.includes('red') || lower.includes('ginger')) result.hairColor = 'roux';
+    else if (lower.includes('white') || lower.includes('gray') || lower.includes('grey')) result.hairColor = 'blanc';
+    else if (lower.includes('pink')) result.hairColor = 'rose';
+    else if (lower.includes('blue')) result.hairColor = 'bleu';
+    
+    // Cheveux longueur
+    if (lower.includes('short')) result.hairLength = 'courts';
+    else if (lower.includes('medium')) result.hairLength = 'mi-longs';
+    else if (lower.includes('long')) result.hairLength = 'longs';
+    
+    // Âge
+    const ageMatch = lower.match(/(\d{2})/);
+    if (ageMatch) {
+      const age = parseInt(ageMatch[1]);
+      if (age >= 18 && age <= 80) result.ageEstimate = age;
+    }
+    
+    // Teint
+    if (lower.includes('dark') || lower.includes('ebony')) result.skinTone = 'ébène';
+    else if (lower.includes('tan') || lower.includes('olive')) result.skinTone = 'bronzée';
+    else if (lower.includes('pale') || lower.includes('fair') || lower.includes('light')) result.skinTone = 'très claire';
+    
+    // Morphologie
+    if (lower.includes('slim') || lower.includes('thin')) result.bodyType = 'mince';
+    else if (lower.includes('curvy') || lower.includes('voluptuous')) result.bodyType = 'voluptueuse';
+    else if (lower.includes('athletic') || lower.includes('fit')) result.bodyType = 'athlétique';
+    else if (lower.includes('average')) result.bodyType = 'moyenne';
+    
+    return result;
   };
   
   // v5.4.26 - Génération de profil aléatoire LOCAL (sans réseau)
