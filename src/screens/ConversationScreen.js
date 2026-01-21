@@ -767,6 +767,37 @@ export default function ConversationScreen({ route, navigation }) {
     while (i < len) {
       const char = content[i];
       
+      // v5.4.45 - Détecter le nom d'un personnage entre crochets [Nom]
+      if (char === '[') {
+        if (currentText.trim()) {
+          result.push({ type: 'text', text: currentText });
+        }
+        currentText = '';
+        
+        // Chercher le crochet fermant
+        let bracketEnd = -1;
+        for (let j = i + 1; j < len && j < i + 50; j++) { // Max 50 chars pour un nom
+          if (content[j] === ']') {
+            bracketEnd = j;
+            break;
+          }
+          // Si on rencontre un autre caractère spécial, ce n'est pas un nom
+          if (content[j] === '\n' || content[j] === '[') break;
+        }
+        
+        if (bracketEnd !== -1 && bracketEnd > i + 1) {
+          const speakerName = content.substring(i + 1, bracketEnd);
+          result.push({ type: 'speaker', text: speakerName });
+          i = bracketEnd + 1;
+          // Supprimer les espaces après le nom du personnage
+          while (i < len && content[i] === ' ') i++;
+        } else {
+          currentText += char;
+          i++;
+        }
+        continue;
+      }
+      
       // Détecter le début d'une action (astérisque) - PRIORITÉ HAUTE
       if (isAsterisk(char)) {
         // Sauvegarder le texte accumulé avant
@@ -929,8 +960,22 @@ export default function ConversationScreen({ route, navigation }) {
           )}
           <Text style={[styles.messageContent, { color: isUser ? '#ffffff' : '#000000' }]}>
             {formattedParts.map((part, index) => {
-              // v5.4.40 - TOUT EN NOIR sauf actions (rouge) et pensées (bleu)
-              if (part.type === 'action') {
+              // v5.4.45 - Affichage des noms de personnages
+              if (part.type === 'speaker') {
+                // NOMS DE PERSONNAGES: Violet/Magenta, gras
+                return (
+                  <Text 
+                    key={`speaker-${index}`} 
+                    style={{ 
+                      color: '#9333ea', // Violet
+                      fontWeight: 'bold',
+                      fontStyle: 'normal',
+                    }}
+                  >
+                    [{part.text}]{' '}
+                  </Text>
+                );
+              } else if (part.type === 'action') {
                 // ACTIONS: Rouge, italique, gras
                 return (
                   <Text 
