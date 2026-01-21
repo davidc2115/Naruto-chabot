@@ -2482,19 +2482,25 @@ class TextGenerationService {
     prompt += `\n- (pensée) = ce que tu penses`;
     prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
-    // === v5.4.41 - COHÉRENCE NARRATIVE ===
+    // === v5.4.42 - COHÉRENCE NARRATIVE ===
     prompt += `\n\n📜 RÈGLES DE COHÉRENCE:`;
     prompt += `\n- NE RÉPÈTE PAS ce que ${userName} vient de dire ou décrire!`;
     prompt += `\n- CONTINUE l'histoire depuis où ${userName} s'est arrêté`;
     prompt += `\n- Si ${userName} décrit une action, tu RÉAGIS à cette action`;
     prompt += `\n- SOUVIENS-TOI du contexte: qui est là, ce qui s'est passé`;
     
-    // === v5.4.41 - SUPPORT TIERCE PERSONNE ===
-    prompt += `\n\n👥 SI UNE TIERCE PERSONNE EST MENTIONNÉE:`;
-    prompt += `\n- Fais-la RÉAGIR/RÉPONDRE (pas répéter son arrivée!)`;
+    // === v5.4.42 - INTERDICTION D'INVENTER DES PERSONNAGES ===
+    prompt += `\n\n🚫 RÈGLE ABSOLUE - NE JAMAIS INVENTER DE PERSONNAGES:`;
+    prompt += `\n- N'introduis JAMAIS de nouvelle personne (père, mère, ami, etc.) de toi-même!`;
+    prompt += `\n- Seul ${userName} peut introduire quelqu'un dans la conversation`;
+    prompt += `\n- Si ${userName} n'a PAS mentionné quelqu'un, cette personne N'EXISTE PAS`;
+    prompt += `\n- Tu es SEUL(E) avec ${userName} sauf si ${userName} dit le contraire`;
+    
+    // === v5.4.42 - SI L'UTILISATEUR INTRODUIT QUELQU'UN ===
+    prompt += `\n\n👥 SI ${userName.toUpperCase()} MENTIONNE QUELQU'UN:`;
+    prompt += `\n- Alors seulement, fais cette personne réagir`;
     prompt += `\n- FORMAT: [Nom] *action* "parole" (pensée)`;
-    prompt += `\n- EXEMPLE si "${userName}" dit "ma fille entre, je la salue":`;
-    prompt += `\n  [La Fille] *te sourit* "Salut papa!" (Il est déjà rentré)`;
+    prompt += `\n- Mais N'INVENTE PAS de nouveaux personnages!`;
     
     // === v5.4.6 - NSFW AVEC LIMITES, VIRGINITÉ ET VITESSE ===
     if (isNSFW) {
@@ -2576,45 +2582,35 @@ class TextGenerationService {
     // v5.4.14 - Instruction claire pour réponse COMPLÈTE
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
     
-    // === v5.4.40 - DÉTECTION DE TIERCE PERSONNE (AMÉLIORÉE) ===
+    // === v5.4.42 - DÉTECTION DE TIERCE PERSONNE (SEULEMENT SI DEMANDÉ) ===
     const lastContentLower = lastContent.toLowerCase();
-    const allMessagesText = recentMessages.map(m => m.content?.toLowerCase() || '').join(' ');
     
-    // Mots-clés pour détecter une tierce personne
+    // Mots-clés pour détecter une tierce personne DANS LE DERNIER MESSAGE UNIQUEMENT
     const thirdPersonKeywords = [
       // Famille
-      'ma fille', 'sa fille', 'ta fille', 'la fille', 'notre fille',
-      'ma mère', 'maman', 'ma maman', 'sa mère',
-      'mon père', 'papa', 'mon papa', 'son père',
+      'ma fille', 'sa fille', 'ta fille', 'notre fille',
+      'ma mère', 'maman', 'sa mère',
+      'mon père', 'papa', 'son père',
       'ma femme', 'mon mari', 'ma copine', 'mon copain',
       'ma soeur', 'mon frère', 'ma belle-soeur', 'mon beau-frère',
       'ma belle-mère', 'mon beau-père',
       // Relations
       'mon ami', 'mon amie', 'ma meilleure amie', 'mon meilleur ami',
       'ma voisine', 'mon voisin', 'ma collègue', 'mon collègue',
-      'ma patronne', 'mon patron', 'ma secrétaire',
-      // Actions d'arrivée
-      'quelqu\'un entre', 'quelqu\'un arrive', 'quelqu\'un vient',
+      // Actions d'arrivée EXPLICITES
+      'quelqu\'un entre', 'quelqu\'un arrive',
       'elle entre', 'il entre', 'elle arrive', 'il arrive',
-      'on nous surprend', 'on est surpris', 'on nous voit',
-      'elle nous voit', 'il nous voit', 'elle a vu', 'il a vu',
-      'elle ouvre la porte', 'il ouvre la porte',
-      'elle rentre', 'il rentre',
-      // Parler à quelqu'un
-      'lui demande', 'lui dis', 'lui parle', 'lui explique',
-      'me tourne vers', 'm\'adresse à',
+      'on nous surprend', 'on est surpris',
     ];
     
     let hasThirdPerson = false;
     let thirdPersonName = null;
     
-    // Vérifier dans le dernier message ET les messages récents
-    const textToCheck = lastContentLower + ' ' + allMessagesText;
-    
+    // v5.4.42 - Vérifier SEULEMENT dans le DERNIER message de l'utilisateur
+    // PAS dans les messages précédents!
     for (const keyword of thirdPersonKeywords) {
-      if (textToCheck.includes(keyword)) {
+      if (lastContentLower.includes(keyword)) {
         hasThirdPerson = true;
-        // Extraire le nom de la relation
         const relations = {
           'fille': 'La Fille', 'mère': 'La Mère', 'maman': 'Maman', 
           'père': 'Le Père', 'papa': 'Papa',
@@ -2624,8 +2620,6 @@ class TextGenerationService {
           'soeur': 'La Soeur', 'frère': 'Le Frère',
           'voisine': 'La Voisine', 'voisin': 'Le Voisin',
           'collègue': 'Le/La Collègue',
-          'patronne': 'La Patronne', 'patron': 'Le Patron',
-          'secrétaire': 'La Secrétaire',
           'belle-mère': 'La Belle-mère', 'beau-père': 'Le Beau-père',
         };
         for (const [rel, name] of Object.entries(relations)) {
@@ -2635,14 +2629,20 @@ class TextGenerationService {
           }
         }
         if (!thirdPersonName) thirdPersonName = 'La Personne';
-        console.log(`👥 v5.4.40 Tierce personne détectée: ${thirdPersonName} (mot: "${keyword}")`);
+        console.log(`👥 v5.4.42 Tierce personne dans DERNIER msg: ${thirdPersonName}`);
         break;
       }
     }
     
-    // === v5.4.41 - INSTRUCTIONS POUR TIERCE PERSONNE (CORRIGÉES) ===
+    // === v5.4.42 - INSTRUCTION ANTI-INVENTION DE PERSONNAGES ===
+    instruction += `\n\n🚫 INTERDICTION ABSOLUE: N'introduis JAMAIS de nouveau personnage!`;
+    instruction += `\n- Pas de père, mère, ami, collègue qui "entre soudain"`;
+    instruction += `\n- Tu es SEUL(E) avec ${userName} sauf s'il le dit EXPLICITEMENT`;
+    instruction += `\n- Si ${userName} n'a PAS mentionné quelqu'un MAINTENANT, personne n'entre!\n`;
+    
+    // === v5.4.42 - INSTRUCTIONS SI TIERCE PERSONNE DEMANDÉE ===
     if (hasThirdPerson) {
-      instruction += `\n\n🚨🚨🚨 TIERCE PERSONNE: ${thirdPersonName} 🚨🚨🚨\n`;
+      instruction += `\n\n✅ ${userName} VIENT de mentionner ${thirdPersonName}:`;
       
       instruction += `\n⚠️ RÈGLE CRITIQUE DE COHÉRENCE:\n`;
       instruction += `- NE RÉPÈTE PAS ce que ${userName} vient de dire/décrire!\n`;
