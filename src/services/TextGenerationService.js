@@ -2482,15 +2482,19 @@ class TextGenerationService {
     prompt += `\n- (pensée) = ce que tu penses`;
     prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
-    // === v5.4.40 - SUPPORT TIERCE PERSONNE RENFORCÉ ===
-    prompt += `\n\n👥 SCÉNARIO MULTI-PERSONNAGES:`;
-    prompt += `\n- Si ${userName} mentionne quelqu'un (sa fille, sa mère, un ami...), TU DOIS la faire réagir!`;
-    prompt += `\n- Tu joues TOUS les personnages présents (pas seulement ${charName})`;
-    prompt += `\n- FORMAT OBLIGATOIRE pour tierce personne: [Nom] *action* "parole" (pensée)`;
-    prompt += `\n- FORMAT pour toi: *action* "parole" (pensée)`;
-    prompt += `\n- EXEMPLE:`;
-    prompt += `\n  [La Fille] *entre, choquée* "Papa?!" (Je n'en reviens pas!)`;
-    prompt += `\n  *se fige* "Ce n'est pas ce que tu crois..." (Merde!)`;
+    // === v5.4.41 - COHÉRENCE NARRATIVE ===
+    prompt += `\n\n📜 RÈGLES DE COHÉRENCE:`;
+    prompt += `\n- NE RÉPÈTE PAS ce que ${userName} vient de dire ou décrire!`;
+    prompt += `\n- CONTINUE l'histoire depuis où ${userName} s'est arrêté`;
+    prompt += `\n- Si ${userName} décrit une action, tu RÉAGIS à cette action`;
+    prompt += `\n- SOUVIENS-TOI du contexte: qui est là, ce qui s'est passé`;
+    
+    // === v5.4.41 - SUPPORT TIERCE PERSONNE ===
+    prompt += `\n\n👥 SI UNE TIERCE PERSONNE EST MENTIONNÉE:`;
+    prompt += `\n- Fais-la RÉAGIR/RÉPONDRE (pas répéter son arrivée!)`;
+    prompt += `\n- FORMAT: [Nom] *action* "parole" (pensée)`;
+    prompt += `\n- EXEMPLE si "${userName}" dit "ma fille entre, je la salue":`;
+    prompt += `\n  [La Fille] *te sourit* "Salut papa!" (Il est déjà rentré)`;
     
     // === v5.4.6 - NSFW AVEC LIMITES, VIRGINITÉ ET VITESSE ===
     if (isNSFW) {
@@ -2636,32 +2640,27 @@ class TextGenerationService {
       }
     }
     
-    // === v5.4.40 - INSTRUCTIONS ULTRA-EXPLICITES POUR TIERCE PERSONNE ===
+    // === v5.4.41 - INSTRUCTIONS POUR TIERCE PERSONNE (CORRIGÉES) ===
     if (hasThirdPerson) {
-      instruction += `\n\n`;
-      instruction += `╔════════════════════════════════════════════════════╗\n`;
-      instruction += `║  🚨 ATTENTION: ${thirdPersonName.toUpperCase()} EST PRÉSENT(E)!  ║\n`;
-      instruction += `╚════════════════════════════════════════════════════╝\n`;
+      instruction += `\n\n🚨🚨🚨 TIERCE PERSONNE: ${thirdPersonName} 🚨🚨🚨\n`;
       
-      instruction += `\n🎭 TU JOUES MAINTENANT 2 PERSONNAGES:\n`;
-      instruction += `   1. ${charName} (toi)\n`;
-      instruction += `   2. ${thirdPersonName}\n`;
+      instruction += `\n⚠️ RÈGLE CRITIQUE DE COHÉRENCE:\n`;
+      instruction += `- NE RÉPÈTE PAS ce que ${userName} vient de dire/décrire!\n`;
+      instruction += `- ${userName} a DÉJÀ décrit l'action (ex: "${thirdPersonName} entre")\n`;
+      instruction += `- TOI tu dois faire RÉAGIR/RÉPONDRE ${thirdPersonName}!\n`;
       
-      instruction += `\n📋 RÈGLE ABSOLUE: ${thirdPersonName} DOIT parler dans ta réponse!\n`;
+      instruction += `\n❌ EXEMPLE INCORRECT (répétition):\n`;
+      instruction += `"${thirdPersonName} entre dans la pièce..." ← NON! C'est ${userName} qui l'a dit!\n`;
       
-      instruction += `\n📝 FORMAT À UTILISER:\n`;
-      instruction += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-      instruction += `[${thirdPersonName}] *action de ${thirdPersonName}* "${thirdPersonName} parle" (pensées de ${thirdPersonName})\n`;
-      instruction += `\n`;
-      instruction += `*action de ${charName}* "${charName} parle" (pensées de ${charName})\n`;
-      instruction += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      instruction += `\n✅ EXEMPLE CORRECT (réaction):\n`;
+      instruction += `[${thirdPersonName}] *te regarde avec surprise* "Oh, salut! Je ne savais pas que tu étais là!" (Tiens, il est rentré)\n`;
       
-      instruction += `\n✅ EXEMPLE CORRECT:\n`;
-      instruction += `[${thirdPersonName}] *ouvre brusquement la porte et se fige, bouche bée* "Mais... mais qu'est-ce que vous faites?!" (Oh mon Dieu, je n'arrive pas à y croire!)\n`;
-      instruction += `\n`;
-      instruction += `*sursaute violemment et essaie de couvrir ${userName}* "Attends, ce n'est pas ce que tu crois!" (Merde, on est pris!)\n`;
+      instruction += `\n📝 FORMAT MULTI-PERSONNAGES:\n`;
+      instruction += `[${thirdPersonName}] *action* "paroles de ${thirdPersonName}" (pensées)\n`;
+      instruction += `*action de ${charName}* "paroles de ${charName}" (pensées)\n`;
       
-      instruction += `\n⚠️ IMPORTANT: Commence ta réponse par [${thirdPersonName}] si ${userName} parle à cette personne!\n`;
+      instruction += `\n🎭 Tu joues ${charName} ET ${thirdPersonName} - les deux doivent parler!\n`;
+      instruction += `\n⚡ CONTINUE L'HISTOIRE depuis où ${userName} s'est arrêté!\n`;
     }
     
     // === v5.4.14 - OBLIGATION DE RÉPONDRE À TOUT LE MESSAGE ===
