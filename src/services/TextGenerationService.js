@@ -2482,12 +2482,15 @@ class TextGenerationService {
     prompt += `\n- (pensée) = ce que tu penses`;
     prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
-    // === v5.4.39 - SUPPORT TIERCE PERSONNE ===
-    prompt += `\n\n👥 SI UNE TIERCE PERSONNE EST MENTIONNÉE:`;
-    prompt += `\n- Tu peux la faire parler/réagir dans ta réponse`;
-    prompt += `\n- Format: [Nom] *action* "parole" (pensée)`;
-    prompt += `\n- Exemple: [Marie] *entre soudain* "Qu'est-ce que...?!" (Choquée)`;
-    prompt += `\n- Toi (${charName}): *action* "parole" (pensée) [sans préfixe]`;
+    // === v5.4.40 - SUPPORT TIERCE PERSONNE RENFORCÉ ===
+    prompt += `\n\n👥 SCÉNARIO MULTI-PERSONNAGES:`;
+    prompt += `\n- Si ${userName} mentionne quelqu'un (sa fille, sa mère, un ami...), TU DOIS la faire réagir!`;
+    prompt += `\n- Tu joues TOUS les personnages présents (pas seulement ${charName})`;
+    prompt += `\n- FORMAT OBLIGATOIRE pour tierce personne: [Nom] *action* "parole" (pensée)`;
+    prompt += `\n- FORMAT pour toi: *action* "parole" (pensée)`;
+    prompt += `\n- EXEMPLE:`;
+    prompt += `\n  [La Fille] *entre, choquée* "Papa?!" (Je n'en reviens pas!)`;
+    prompt += `\n  *se fige* "Ce n'est pas ce que tu crois..." (Merde!)`;
     
     // === v5.4.6 - NSFW AVEC LIMITES, VIRGINITÉ ET VITESSE ===
     if (isNSFW) {
@@ -2569,36 +2572,57 @@ class TextGenerationService {
     // v5.4.14 - Instruction claire pour réponse COMPLÈTE
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
     
-    // === v5.4.39 - DÉTECTION DE TIERCE PERSONNE ===
+    // === v5.4.40 - DÉTECTION DE TIERCE PERSONNE (AMÉLIORÉE) ===
     const lastContentLower = lastContent.toLowerCase();
+    const allMessagesText = recentMessages.map(m => m.content?.toLowerCase() || '').join(' ');
+    
+    // Mots-clés pour détecter une tierce personne
     const thirdPersonKeywords = [
-      'ma fille', 'sa fille', 'ta fille', 'la fille',
-      'ma mère', 'maman', 'ma maman',
-      'mon père', 'papa', 'mon papa',
+      // Famille
+      'ma fille', 'sa fille', 'ta fille', 'la fille', 'notre fille',
+      'ma mère', 'maman', 'ma maman', 'sa mère',
+      'mon père', 'papa', 'mon papa', 'son père',
       'ma femme', 'mon mari', 'ma copine', 'mon copain',
-      'mon ami', 'mon amie', 'ma meilleure amie',
+      'ma soeur', 'mon frère', 'ma belle-soeur', 'mon beau-frère',
       'ma belle-mère', 'mon beau-père',
+      // Relations
+      'mon ami', 'mon amie', 'ma meilleure amie', 'mon meilleur ami',
       'ma voisine', 'mon voisin', 'ma collègue', 'mon collègue',
-      'quelqu\'un entre', 'quelqu\'un arrive',
+      'ma patronne', 'mon patron', 'ma secrétaire',
+      // Actions d'arrivée
+      'quelqu\'un entre', 'quelqu\'un arrive', 'quelqu\'un vient',
       'elle entre', 'il entre', 'elle arrive', 'il arrive',
-      'on nous surprend', 'on est surpris',
+      'on nous surprend', 'on est surpris', 'on nous voit',
+      'elle nous voit', 'il nous voit', 'elle a vu', 'il a vu',
+      'elle ouvre la porte', 'il ouvre la porte',
+      'elle rentre', 'il rentre',
+      // Parler à quelqu'un
+      'lui demande', 'lui dis', 'lui parle', 'lui explique',
+      'me tourne vers', 'm\'adresse à',
     ];
     
     let hasThirdPerson = false;
     let thirdPersonName = null;
     
+    // Vérifier dans le dernier message ET les messages récents
+    const textToCheck = lastContentLower + ' ' + allMessagesText;
+    
     for (const keyword of thirdPersonKeywords) {
-      if (lastContentLower.includes(keyword)) {
+      if (textToCheck.includes(keyword)) {
         hasThirdPerson = true;
         // Extraire le nom de la relation
         const relations = {
-          'fille': 'Fille', 'mère': 'Mère', 'maman': 'Mère', 
-          'père': 'Père', 'papa': 'Père',
-          'femme': 'Femme', 'mari': 'Mari',
-          'copine': 'Copine', 'copain': 'Copain',
-          'ami': 'Ami', 'amie': 'Amie',
-          'voisine': 'Voisine', 'voisin': 'Voisin',
-          'collègue': 'Collègue',
+          'fille': 'La Fille', 'mère': 'La Mère', 'maman': 'Maman', 
+          'père': 'Le Père', 'papa': 'Papa',
+          'femme': 'La Femme', 'mari': 'Le Mari',
+          'copine': 'La Copine', 'copain': 'Le Copain',
+          'ami': 'L\'Ami', 'amie': 'L\'Amie',
+          'soeur': 'La Soeur', 'frère': 'Le Frère',
+          'voisine': 'La Voisine', 'voisin': 'Le Voisin',
+          'collègue': 'Le/La Collègue',
+          'patronne': 'La Patronne', 'patron': 'Le Patron',
+          'secrétaire': 'La Secrétaire',
+          'belle-mère': 'La Belle-mère', 'beau-père': 'Le Beau-père',
         };
         for (const [rel, name] of Object.entries(relations)) {
           if (keyword.includes(rel)) {
@@ -2606,26 +2630,38 @@ class TextGenerationService {
             break;
           }
         }
-        if (!thirdPersonName) thirdPersonName = 'Cette personne';
-        console.log(`👥 Tierce personne détectée: ${thirdPersonName}`);
+        if (!thirdPersonName) thirdPersonName = 'La Personne';
+        console.log(`👥 v5.4.40 Tierce personne détectée: ${thirdPersonName} (mot: "${keyword}")`);
         break;
       }
     }
     
-    // === v5.4.39 - INSTRUCTIONS POUR TIERCE PERSONNE ===
+    // === v5.4.40 - INSTRUCTIONS ULTRA-EXPLICITES POUR TIERCE PERSONNE ===
     if (hasThirdPerson) {
-      instruction += `\n\n${'='.repeat(50)}`;
-      instruction += `\n🚨🚨🚨 TIERCE PERSONNE: ${thirdPersonName} 🚨🚨🚨`;
-      instruction += `\n${'='.repeat(50)}`;
-      instruction += `\n\n⚠️ Tu DOIS faire parler ${thirdPersonName} dans ta réponse!`;
-      instruction += `\n⚠️ Tu joues DEUX rôles: ${charName} ET ${thirdPersonName}!`;
-      instruction += `\n\n📝 FORMAT OBLIGATOIRE:`;
-      instruction += `\n[${thirdPersonName}] *action* "paroles" (pensées)`;
-      instruction += `\n*action de ${charName}* "paroles de ${charName}" (pensées)`;
-      instruction += `\n\n📌 EXEMPLE:`;
-      instruction += `\n[${thirdPersonName}] *entre dans la pièce, choqué(e)* "Qu'est-ce qui se passe?!" (Je n'en reviens pas!)`;
-      instruction += `\n*sursaute* "Ce n'est pas ce que tu crois!" (Merde!)`;
-      instruction += `\n\n⚠️ N'IGNORE PAS ${thirdPersonName}! Cette personne DOIT réagir!\n`;
+      instruction += `\n\n`;
+      instruction += `╔════════════════════════════════════════════════════╗\n`;
+      instruction += `║  🚨 ATTENTION: ${thirdPersonName.toUpperCase()} EST PRÉSENT(E)!  ║\n`;
+      instruction += `╚════════════════════════════════════════════════════╝\n`;
+      
+      instruction += `\n🎭 TU JOUES MAINTENANT 2 PERSONNAGES:\n`;
+      instruction += `   1. ${charName} (toi)\n`;
+      instruction += `   2. ${thirdPersonName}\n`;
+      
+      instruction += `\n📋 RÈGLE ABSOLUE: ${thirdPersonName} DOIT parler dans ta réponse!\n`;
+      
+      instruction += `\n📝 FORMAT À UTILISER:\n`;
+      instruction += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      instruction += `[${thirdPersonName}] *action de ${thirdPersonName}* "${thirdPersonName} parle" (pensées de ${thirdPersonName})\n`;
+      instruction += `\n`;
+      instruction += `*action de ${charName}* "${charName} parle" (pensées de ${charName})\n`;
+      instruction += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      
+      instruction += `\n✅ EXEMPLE CORRECT:\n`;
+      instruction += `[${thirdPersonName}] *ouvre brusquement la porte et se fige, bouche bée* "Mais... mais qu'est-ce que vous faites?!" (Oh mon Dieu, je n'arrive pas à y croire!)\n`;
+      instruction += `\n`;
+      instruction += `*sursaute violemment et essaie de couvrir ${userName}* "Attends, ce n'est pas ce que tu crois!" (Merde, on est pris!)\n`;
+      
+      instruction += `\n⚠️ IMPORTANT: Commence ta réponse par [${thirdPersonName}] si ${userName} parle à cette personne!\n`;
     }
     
     // === v5.4.14 - OBLIGATION DE RÉPONDRE À TOUT LE MESSAGE ===

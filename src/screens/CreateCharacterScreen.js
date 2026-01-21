@@ -377,129 +377,31 @@ export default function CreateCharacterScreen({ navigation, route }) {
   // === ÉTAT POUR L'ANALYSE IA ===
   const [analyzingImage, setAnalyzingImage] = useState(false);
 
-  // === ANALYSE D'IMAGE PAR IA ===
-  // v5.4.39 - VRAIE ANALYSE D'IMAGE avec Pollinations Vision (GPT-4o gratuit)
+  // === v5.4.40 - GÉNÉRATION DE PROFIL LOCAL UNIQUEMENT ===
+  // Pas d'analyse d'image - génère un profil aléatoire à modifier manuellement
   const analyzeImageWithAI = async (imageUri) => {
     try {
       setAnalyzingImage(true);
-      console.log('🔍 v5.4.39 - Analyse RÉELLE de l\'image...');
+      console.log('🔍 v5.4.40 - Génération de profil local...');
       
-      let analysis = null;
+      // Générer un profil aléatoire varié
+      const profile = generateRandomProfile();
       
-      // === MÉTHODE 1: Pollinations Vision API (GPT-4o gratuit) ===
-      try {
-        console.log('📸 Conversion de l\'image en base64...');
-        
-        let imageData = null;
-        
-        // Convertir l'image en base64
-        if (imageUri.startsWith('data:')) {
-          imageData = imageUri;
-        } else if (imageUri.startsWith('file://') || imageUri.startsWith('/')) {
-          const base64 = await FileSystem.readAsStringAsync(imageUri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          imageData = `data:image/jpeg;base64,${base64}`;
-        } else if (imageUri.startsWith('http')) {
-          imageData = imageUri; // URL directe
-        }
-        
-        if (!imageData) {
-          throw new Error('Image non valide');
-        }
-        
-        // Limiter la taille (max 1.5MB)
-        if (imageData.length > 1500000) {
-          console.log('⚠️ Image trop grande, limitation...');
-          imageData = imageData.substring(0, 1500000);
-        }
-        
-        console.log('🌐 Appel Pollinations Vision API (GPT-4o)...');
-        
-        const visionPrompt = `Analyse cette image et décris UNIQUEMENT ce que tu VOIS.
-Réponds en JSON STRICT (rien d'autre):
-{
-  "gender": "female" ou "male",
-  "ageEstimate": nombre entre 18-60,
-  "hairColor": "noir/brun/châtain/blond/roux/blanc/rose/bleu",
-  "hairLength": "courts/mi-longs/longs/très longs",
-  "eyeColor": "marron/noisette/vert/bleu/gris/noir",
-  "skinTone": "très claire/claire/mate/bronzée/caramel/ébène",
-  "bodyType": "mince/élancée/moyenne/athlétique/voluptueuse/généreuse/ronde",
-  "bustSize": "A/B/C/D/DD/E/F" (femmes uniquement),
-  "fullDescription": "Description physique de 2-3 phrases"
-}
-DÉCRIS UNIQUEMENT CE QUE TU VOIS! JSON seulement:`;
-
-        const response = await axios.post(
-          'https://text.pollinations.ai/',
-          {
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: visionPrompt },
-                  { type: 'image_url', image_url: { url: imageData, detail: 'high' } }
-                ]
-              }
-            ],
-            model: 'openai', // GPT-4o avec vision
-            temperature: 0.2,
-          },
-          { 
-            timeout: 60000,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
-        
-        let responseText = response.data;
-        if (typeof responseText !== 'string') {
-          responseText = JSON.stringify(responseText);
-        }
-        console.log('📝 Réponse Vision:', responseText.substring(0, 500));
-        
-        const parsed = parseAnalysisResponse(responseText);
-        if (parsed && isValidAnalysis(parsed)) {
-          analysis = parsed;
-          analysis._method = 'Vision';
-          console.log('✅ Analyse Vision réussie!');
-        }
-      } catch (visionError) {
-        console.log('⚠️ Vision API échouée:', visionError.message);
-      }
+      // Appliquer au formulaire
+      applyAnalysisToForm(profile);
       
-      // === MÉTHODE 2: Fallback génération aléatoire variée ===
-      if (!analysis) {
-        console.log('🔄 Fallback: génération locale...');
-        analysis = generateRandomProfile();
-        analysis._method = 'Local';
-      }
+      Alert.alert(
+        '📝 Profil généré',
+        'Un profil aléatoire a été créé.\n\nModifiez les caractéristiques pour correspondre à votre image.',
+        [{ text: 'OK' }]
+      );
       
-      // Appliquer l'analyse
-      console.log('✅ Profil:', JSON.stringify(analysis, null, 2));
-      applyAnalysisToForm(analysis);
-      
-      if (analysis._method === 'Vision') {
-        Alert.alert(
-          '✅ Image analysée!',
-          'L\'IA a analysé votre image.\n\nVérifiez et ajustez si nécessaire.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        Alert.alert(
-          '📝 Profil généré',
-          'Analyse non disponible.\nUn profil a été créé.\n\nModifiez selon votre image.',
-          [{ text: 'OK' }]
-        );
-      }
-      
-      return analysis;
+      return profile;
       
     } catch (error) {
       console.error('❌ Erreur:', error);
       const localProfile = generateRandomProfile();
       applyAnalysisToForm(localProfile);
-      Alert.alert('⚠️ Erreur', 'Un profil par défaut a été créé.', [{ text: 'OK' }]);
       return localProfile;
     } finally {
       setAnalyzingImage(false);

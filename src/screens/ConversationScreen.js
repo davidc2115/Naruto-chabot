@@ -923,11 +923,11 @@ export default function ConversationScreen({ route, navigation }) {
               {character.name}
             </Text>
           )}
-          <Text style={styles.messageContent}>
+          <Text style={[styles.messageContent, { color: isUser ? '#ffffff' : '#000000' }]}>
             {formattedParts.map((part, index) => {
-              // v5.4.23 - Styles distincts et bien séparés pour chaque type
+              // v5.4.40 - TOUT EN NOIR sauf actions (rouge) et pensées (bleu)
               if (part.type === 'action') {
-                // ACTIONS: Rouge/personnalisé, italique, gras
+                // ACTIONS: Rouge, italique, gras
                 return (
                   <Text 
                     key={`action-${index}`} 
@@ -935,14 +935,13 @@ export default function ConversationScreen({ route, navigation }) {
                       color: style.actionColor || '#ef4444', 
                       fontStyle: 'italic', 
                       fontWeight: 'bold',
-                      // Forcer le style inline pour éviter l'héritage
                     }}
                   >
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'thought') {
-                // PENSÉES: Bleu/personnalisé, italique
+                // PENSÉES: Bleu, italique
                 return (
                   <Text 
                     key={`thought-${index}`} 
@@ -955,22 +954,8 @@ export default function ConversationScreen({ route, navigation }) {
                     {part.text}
                   </Text>
                 );
-              } else if (part.type === 'dialogue') {
-                // PAROLES: Toujours NOIR pour le personnage (cohérence)
-                return (
-                  <Text 
-                    key={`dialogue-${index}`} 
-                    style={{ 
-                      color: isUser ? '#ffffff' : '#000000',
-                      fontStyle: 'normal',
-                      fontWeight: '500',
-                    }}
-                  >
-                    {part.text}
-                  </Text>
-                );
               } else {
-                // Texte normal: NOIR aussi pour cohérence
+                // v5.4.40 - TOUT LE RESTE EN NOIR (dialogue + texte normal)
                 return (
                   <Text 
                     key={`text-${index}`} 
