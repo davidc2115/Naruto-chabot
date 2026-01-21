@@ -586,6 +586,24 @@ class TextGenerationService {
       'fourre', 'pilonne', 'lime', 'bourre',
     ];
     
+    // v5.4.48 - MOTS DE FIN DE NSFW (après orgasme, satisfaction)
+    const endOfNsfwKeywords = [
+      // Orgasme/Satisfaction
+      'j\'ai joui', 'je jouis', 'je viens de jouir', 'on a joui',
+      'c\'était bon', 'c\'était génial', 'c\'était incroyable', 'c\'était intense',
+      'je suis satisfait', 'je suis satisfaite', 'je suis épuisé', 'je suis épuisée',
+      'quelle partie de jambes', 'c\'était fou',
+      // Transition post-sexe
+      'câlin', 'câlins', 'blottir', 'blottis', 'dans tes bras', 'dans mes bras',
+      'se reposer', 'repose', 'repos', 'sieste', 'dormir', 'dort',
+      'c\'était bien', 'j\'ai adoré', 'merci pour', 'merci c\'était',
+      // Retour à la normale
+      'on fait quoi maintenant', 'et maintenant', 'après ça',
+      'on se rhabille', 'je me rhabille', 'remettre mes vêtements',
+      'j\'ai faim', 'on mange', 'un verre', 'une douche', 'prendre une douche',
+      'discuter', 'parlons', 'parler de', 'raconter',
+    ];
+    
     // v5.4.24 - SFW ÉTENDU: Mots qui FORCENT le retour au SFW
     const sfwKeywords = [
       // Salutations
@@ -606,14 +624,23 @@ class TextGenerationService {
       'parlons d\'autre chose', 'changeons de sujet', 'autre sujet',
       'on fait quoi', 'tu fais quoi', 'qu\'est-ce que tu fais',
       'tu penses à quoi', 'à quoi tu penses',
+      // v5.4.48 - Ajout des transitions post-intimité
+      'câlin', 'câlins', 'dans tes bras', 'blottir',
     ];
     
-    // === v5.4.24 - CALCUL DES SCORES ADAPTATIFS ===
+    // === v5.4.48 - CALCUL DES SCORES ADAPTATIFS ===
     let romanticScore = 0;
     let suggestiveScore = 0;
     let explicitScore = 0;
     let veryExplicitScore = 0;
     let sfwScore = 0;
+    let endOfNsfwScore = 0;
+    
+    // v5.4.48 - SCORE FIN DE NSFW (post-orgasme, transition)
+    endOfNsfwKeywords.forEach(k => { 
+      if (lastUserMsg.includes(k)) endOfNsfwScore += 4; // Très fort bonus
+      else if (veryRecentUserMsg.includes(k)) endOfNsfwScore += 2;
+    });
     
     // v5.4.24 - SCORE SFW SUR DERNIER MESSAGE (priorité haute)
     sfwKeywords.forEach(k => { 
@@ -643,16 +670,23 @@ class TextGenerationService {
     let mode = 'sfw';
     let nsfwIntensity = 0;
     
-    // v5.4.24 - RETOUR AU SFW SI DERNIER MESSAGE EST CLAIREMENT SFW
+    // v5.4.48 - RETOUR AU SFW SI FIN DE NSFW OU DERNIER MESSAGE CLAIREMENT SFW
     const lastMsgIsExplicit = explicitKeywords.some(k => lastUserMsg.includes(k)) || 
                               veryExplicitKeywords.some(k => lastUserMsg.includes(k));
     const lastMsgIsSuggestive = suggestiveKeywords.some(k => lastUserMsg.includes(k));
+    const lastMsgIsEndOfNsfw = endOfNsfwScore >= 2;
     
-    // SI le dernier message est SFW et PAS explicite -> FORCER LE MODE SFW
-    if (sfwScore >= 2 && !lastMsgIsExplicit && !lastMsgIsSuggestive) {
+    // v5.4.48 - PRIORITÉ 1: FIN DE NSFW (post-orgasme, câlins, etc.)
+    if (lastMsgIsEndOfNsfw && !lastMsgIsExplicit) {
+      mode = 'post_intimate'; // Nouveau mode: après intimité, tendresse possible
+      nsfwIntensity = 1; // Faible intensité - câlins OK mais pas de relance
+      console.log(`🔄 v5.4.48: MODE POST-INTIME (fin NSFW détectée, score=${endOfNsfwScore})`);
+    }
+    // v5.4.48 - PRIORITÉ 2: Message SFW clair
+    else if (sfwScore >= 2 && !lastMsgIsExplicit && !lastMsgIsSuggestive) {
       mode = 'sfw';
       nsfwIntensity = 0;
-      console.log(`🔄 v5.4.24: RETOUR AU SFW (dernier msg SFW, score=${sfwScore})`);
+      console.log(`🔄 v5.4.48: RETOUR AU SFW (dernier msg SFW, score=${sfwScore})`);
     }
     // Sinon, appliquer la logique normale avec tempérament
     else if (veryExplicitScore > 0 || explicitScore >= 3) {
@@ -847,7 +881,7 @@ class TextGenerationService {
       console.log(`🟠 ÉTAT: SANS BAS - Partie inférieure nue`);
     }
     
-    console.log(`📊 Analyse: mode=${mode}, nsfwIntensity=${nsfwIntensity}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}`);
+    console.log(`📊 Analyse: mode=${mode}, nsfwIntensity=${nsfwIntensity}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}, endNsfw=${endOfNsfwScore}`);
     
     return {
       messageCount,
@@ -959,6 +993,13 @@ class TextGenerationService {
         `*te regarde intensément, les yeux brillants* "Oui..." (Je sens quelque chose)`,
         `*frissonne de plaisir* "Tu sais comment me parler..." (Troublé)`,
       ],
+      tender: [
+        `*se blottit contre toi* "C'était... incroyable." (Comblé(e))`,
+        `*te caresse doucement le visage* "Je suis bien, là, avec toi." (Heureux/se)`,
+        `*t'embrasse tendrement le front* "On reste comme ça encore un peu?" (Câlin)`,
+        `*pose la tête sur ton épaule* "Tu veux qu'on parle ou qu'on reste silencieux?" (Tendre)`,
+        `*te regarde avec un sourire satisfait* "Et maintenant, qu'est-ce qu'on fait?" (Détendu(e))`,
+      ],
       nsfw: [
         `*gémit doucement* "Oh oui..." (Frissons de plaisir)`,
         `*se cambre contre toi* "Continue..." (Le corps en feu)`,
@@ -977,6 +1018,8 @@ class TextGenerationService {
     // En mode NSFW, utiliser les fallbacks NSFW
     if (context.mode === 'nsfw') {
       type = 'nsfw';
+    } else if (context.mode === 'post_intimate') {
+      type = 'tender'; // Nouveau type: tendresse post-intimité
     } else if (context.mode === 'nsfw_light' || lastMsg.includes('embrass') || lastMsg.includes('caress') || lastMsg.includes('touche')) {
       type = 'intimate';
     } else if (lastMsg.includes('bonjour') || lastMsg.includes('salut') || lastMsg.includes('hey') || lastMsg.includes('coucou')) {
@@ -2507,8 +2550,18 @@ class TextGenerationService {
     prompt += `\n  [${charName}] *se retourne* "Ce n'est pas ce que tu crois!"`;
     prompt += `\n- Mais N'INVENTE PAS de nouveaux personnages!`;
     
+    // === v5.4.48 - MODE POST-INTIME (après orgasme/intimité) ===
+    if (context.mode === 'post_intimate') {
+      prompt += `\n\n💕 MODE APRÈS-INTIMITÉ:`;
+      prompt += `\n- ${userName} vient de finir un moment intime, sois TENDRE et AFFECTUEUX`;
+      prompt += `\n- Câlins, caresses douces, mots tendres sont OK`;
+      prompt += `\n- NE RELANCE PAS le sexe sauf si ${userName} le demande explicitement`;
+      prompt += `\n- Tu peux parler de choses normales, poser des questions`;
+      prompt += `\n- Propose un câlin, de rester blottis, de discuter`;
+      prompt += `\n- C'est un moment de complicité et de douceur`;
+    }
     // === v5.4.6 - NSFW AVEC LIMITES, VIRGINITÉ ET VITESSE ===
-    if (isNSFW) {
+    else if (isNSFW) {
       prompt += `\n\n🔞 MODE ADULTE (intensité ${nsfwIntensity}/5)`;
       
       // v5.4.6 - VITESSE DE PROGRESSION
