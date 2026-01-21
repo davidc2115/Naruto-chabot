@@ -2582,35 +2582,48 @@ class TextGenerationService {
     // v5.4.14 - Instruction claire pour réponse COMPLÈTE
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
     
-    // === v5.4.42 - DÉTECTION DE TIERCE PERSONNE (SEULEMENT SI DEMANDÉ) ===
+    // === v5.4.44 - DÉTECTION DE TIERCE PERSONNE (ÉTENDUE) ===
     const lastContentLower = lastContent.toLowerCase();
     
-    // Mots-clés pour détecter une tierce personne DANS LE DERNIER MESSAGE UNIQUEMENT
+    // Mots-clés pour détecter une tierce personne DANS LE DERNIER MESSAGE
     const thirdPersonKeywords = [
-      // Famille
-      'ma fille', 'sa fille', 'ta fille', 'notre fille',
-      'ma mère', 'maman', 'sa mère',
-      'mon père', 'papa', 'son père',
-      'ma femme', 'mon mari', 'ma copine', 'mon copain',
-      'ma soeur', 'mon frère', 'ma belle-soeur', 'mon beau-frère',
-      'ma belle-mère', 'mon beau-père',
+      // Famille directe
+      'ma fille', 'sa fille', 'ta fille', 'notre fille', 'la fille',
+      'ma mère', 'maman', 'sa mère', 'ta mère',
+      'mon père', 'papa', 'son père', 'ton père',
+      'ma femme', 'mon mari', 'sa femme', 'son mari',
+      'ma copine', 'mon copain', 'sa copine', 'son copain',
+      'ma soeur', 'mon frère', 'sa soeur', 'son frère',
+      // Belle-famille
+      'ma belle-mère', 'mon beau-père', 'sa belle-mère', 'son beau-père',
+      'ma belle-fille', 'mon beau-fils', 'sa belle-fille', 'son beau-fils',
+      'ma belle-soeur', 'mon beau-frère',
       // Relations
       'mon ami', 'mon amie', 'ma meilleure amie', 'mon meilleur ami',
       'ma voisine', 'mon voisin', 'ma collègue', 'mon collègue',
-      // Actions d'arrivée EXPLICITES
-      'quelqu\'un entre', 'quelqu\'un arrive',
+      'ma patronne', 'mon patron', 'ma secrétaire',
+      // Actions d'arrivée/surprise
+      'quelqu\'un entre', 'quelqu\'un arrive', 'quelqu\'un vient',
       'elle entre', 'il entre', 'elle arrive', 'il arrive',
-      'on nous surprend', 'on est surpris',
+      'on nous surprend', 'on est surpris', 'nous surprend',
+      'me surprend', 'te surprend', 'la surprend', 'le surprend',
+      'surpris par', 'surprise par', 'surpris en train', 'surprise en train',
+      'elle nous voit', 'il nous voit', 'elle me voit', 'il me voit',
+      'elle ouvre la porte', 'il ouvre la porte',
+      'elle rentre', 'il rentre', 'elle revient', 'il revient',
     ];
     
     let hasThirdPerson = false;
     let thirdPersonName = null;
+    let detectedKeyword = null;
     
-    // v5.4.42 - Vérifier SEULEMENT dans le DERNIER message de l'utilisateur
-    // PAS dans les messages précédents!
+    // Vérifier dans le DERNIER message de l'utilisateur
     for (const keyword of thirdPersonKeywords) {
       if (lastContentLower.includes(keyword)) {
         hasThirdPerson = true;
+        detectedKeyword = keyword;
+        
+        // Mapping des relations vers des noms
         const relations = {
           'fille': 'La Fille', 'mère': 'La Mère', 'maman': 'Maman', 
           'père': 'Le Père', 'papa': 'Papa',
@@ -2620,47 +2633,49 @@ class TextGenerationService {
           'soeur': 'La Soeur', 'frère': 'Le Frère',
           'voisine': 'La Voisine', 'voisin': 'Le Voisin',
           'collègue': 'Le/La Collègue',
+          'patronne': 'La Patronne', 'patron': 'Le Patron',
+          'secrétaire': 'La Secrétaire',
           'belle-mère': 'La Belle-mère', 'beau-père': 'Le Beau-père',
+          'belle-fille': 'La Belle-fille', 'beau-fils': 'Le Beau-fils',
+          'belle-soeur': 'La Belle-soeur', 'beau-frère': 'Le Beau-frère',
         };
+        
         for (const [rel, name] of Object.entries(relations)) {
           if (keyword.includes(rel)) {
             thirdPersonName = name;
             break;
           }
         }
-        if (!thirdPersonName) thirdPersonName = 'La Personne';
-        console.log(`👥 v5.4.42 Tierce personne dans DERNIER msg: ${thirdPersonName}`);
+        if (!thirdPersonName) thirdPersonName = 'Cette Personne';
+        console.log(`👥 v5.4.44 TIERCE PERSONNE DÉTECTÉE: "${thirdPersonName}" (mot-clé: "${keyword}")`);
         break;
       }
     }
     
-    // === v5.4.42 - INSTRUCTION ANTI-INVENTION DE PERSONNAGES ===
-    instruction += `\n\n🚫 INTERDICTION ABSOLUE: N'introduis JAMAIS de nouveau personnage!`;
-    instruction += `\n- Pas de père, mère, ami, collègue qui "entre soudain"`;
-    instruction += `\n- Tu es SEUL(E) avec ${userName} sauf s'il le dit EXPLICITEMENT`;
-    instruction += `\n- Si ${userName} n'a PAS mentionné quelqu'un MAINTENANT, personne n'entre!\n`;
-    
-    // === v5.4.42 - INSTRUCTIONS SI TIERCE PERSONNE DEMANDÉE ===
-    if (hasThirdPerson) {
-      instruction += `\n\n✅ ${userName} VIENT de mentionner ${thirdPersonName}:`;
+    // === v5.4.44 - INSTRUCTIONS SI TIERCE PERSONNE DEMANDÉE ===
+    if (hasThirdPerson && thirdPersonName) {
+      instruction += `\n\n`;
+      instruction += `╔══════════════════════════════════════════════════════════╗\n`;
+      instruction += `║  🚨 TIERCE PERSONNE INTRODUITE: ${thirdPersonName.toUpperCase().padEnd(20)} ║\n`;
+      instruction += `╚══════════════════════════════════════════════════════════╝\n`;
       
-      instruction += `\n⚠️ RÈGLE CRITIQUE DE COHÉRENCE:\n`;
-      instruction += `- NE RÉPÈTE PAS ce que ${userName} vient de dire/décrire!\n`;
-      instruction += `- ${userName} a DÉJÀ décrit l'action (ex: "${thirdPersonName} entre")\n`;
-      instruction += `- TOI tu dois faire RÉAGIR/RÉPONDRE ${thirdPersonName}!\n`;
+      instruction += `\n⚠️⚠️⚠️ RÈGLE OBLIGATOIRE ⚠️⚠️⚠️\n`;
+      instruction += `${thirdPersonName} DOIT parler dans ta réponse!\n`;
+      instruction += `Tu joues DEUX personnages: ${charName} ET ${thirdPersonName}\n`;
       
-      instruction += `\n❌ EXEMPLE INCORRECT (répétition):\n`;
-      instruction += `"${thirdPersonName} entre dans la pièce..." ← NON! C'est ${userName} qui l'a dit!\n`;
+      instruction += `\n📝 FORMAT OBLIGATOIRE:\n`;
+      instruction += `[${thirdPersonName}] *action de ${thirdPersonName}* "paroles de ${thirdPersonName}" (pensées)\n`;
+      instruction += `*action de ${charName}* "paroles de ${charName}" (pensées de ${charName})\n`;
       
-      instruction += `\n✅ EXEMPLE CORRECT (réaction):\n`;
-      instruction += `[${thirdPersonName}] *te regarde avec surprise* "Oh, salut! Je ne savais pas que tu étais là!" (Tiens, il est rentré)\n`;
+      instruction += `\n✅ EXEMPLE pour situation de surprise:\n`;
+      instruction += `[${thirdPersonName}] *ouvre grand les yeux, bouche bée* "Mais... mais qu'est-ce que vous faites?!" (Oh mon Dieu, je n'en reviens pas!)\n`;
+      instruction += `*se fige, paniqué(e)* "Ce... ce n'est pas ce que tu crois!" (Merde, on est pris!)\n`;
       
-      instruction += `\n📝 FORMAT MULTI-PERSONNAGES:\n`;
-      instruction += `[${thirdPersonName}] *action* "paroles de ${thirdPersonName}" (pensées)\n`;
-      instruction += `*action de ${charName}* "paroles de ${charName}" (pensées)\n`;
-      
-      instruction += `\n🎭 Tu joues ${charName} ET ${thirdPersonName} - les deux doivent parler!\n`;
-      instruction += `\n⚡ CONTINUE L'HISTOIRE depuis où ${userName} s'est arrêté!\n`;
+      instruction += `\n🎯 ${thirdPersonName} doit RÉAGIR à ce que ${userName} a décrit!\n`;
+      instruction += `🎯 Ne répète PAS ce que ${userName} a dit, CONTINUE l'histoire!\n`;
+    } else {
+      // Pas de tierce personne - rappeler l'interdiction d'en inventer
+      instruction += `\n\n🚫 Tu es SEUL(E) avec ${userName} - n'introduis personne d'autre!\n`;
     }
     
     // === v5.4.14 - OBLIGATION DE RÉPONDRE À TOUT LE MESSAGE ===
