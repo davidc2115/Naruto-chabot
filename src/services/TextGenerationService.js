@@ -2496,10 +2496,15 @@ class TextGenerationService {
     prompt += `\n- Si ${userName} n'a PAS mentionné quelqu'un, cette personne N'EXISTE PAS`;
     prompt += `\n- Tu es SEUL(E) avec ${userName} sauf si ${userName} dit le contraire`;
     
-    // === v5.4.42 - SI L'UTILISATEUR INTRODUIT QUELQU'UN ===
-    prompt += `\n\n👥 SI ${userName.toUpperCase()} MENTIONNE QUELQU'UN:`;
-    prompt += `\n- Alors seulement, fais cette personne réagir`;
-    prompt += `\n- FORMAT: [Nom] *action* "parole" (pensée)`;
+    // === v5.4.46 - SI L'UTILISATEUR INTRODUIT QUELQU'UN ===
+    prompt += `\n\n👥 SI ${userName.toUpperCase()} MENTIONNE QUELQU'UN D'AUTRE:`;
+    prompt += `\n- Tu DOIS jouer CETTE PERSONNE aussi!`;
+    prompt += `\n- CHAQUE personnage doit avoir son nom AVANT sa réplique`;
+    prompt += `\n- FORMAT OBLIGATOIRE pour toi: [${charName}] *action* "parole" (pensée)`;
+    prompt += `\n- FORMAT OBLIGATOIRE pour l'autre: [Nom de l'autre] *action* "parole" (pensée)`;
+    prompt += `\n- EXEMPLE:`;
+    prompt += `\n  [La Femme] *ouvre la porte* "Qu'est-ce qui se passe ici?!"`;
+    prompt += `\n  [${charName}] *se retourne* "Ce n'est pas ce que tu crois!"`;
     prompt += `\n- Mais N'INVENTE PAS de nouveaux personnages!`;
     
     // === v5.4.6 - NSFW AVEC LIMITES, VIRGINITÉ ET VITESSE ===
@@ -2678,40 +2683,53 @@ class TextGenerationService {
       }
     }
     
-    // === v5.4.45 - INSTRUCTIONS POUR PERSONNAGES MULTIPLES ===
+    // === v5.4.46 - INSTRUCTIONS POUR PERSONNAGES MULTIPLES (RENFORCÉES) ===
     const hasThirdPerson = activeThirdPersons.length > 0;
     
     if (hasThirdPerson) {
       instruction += `\n\n`;
-      instruction += `╔══════════════════════════════════════════════════════════╗\n`;
-      instruction += `║  👥 SCÈNE MULTI-PERSONNAGES                              ║\n`;
-      instruction += `╚══════════════════════════════════════════════════════════╝\n`;
+      instruction += `╔════════════════════════════════════════════════════════════════════╗\n`;
+      instruction += `║  🚨🚨🚨 ATTENTION: SCÈNE MULTI-PERSONNAGES 🚨🚨🚨                  ║\n`;
+      instruction += `╚════════════════════════════════════════════════════════════════════╝\n`;
       
-      instruction += `\n🎭 PERSONNAGES PRÉSENTS DANS LA SCÈNE:\n`;
-      instruction += `   • [${charName}] - Personnage principal (toi)\n`;
-      activeThirdPersons.forEach(tp => {
-        instruction += `   • [${tp}] - Tierce personne\n`;
+      instruction += `\n🎭 PERSONNAGES PRÉSENTS (tu dois les jouer TOUS):\n`;
+      instruction += `   1. [${charName}] = TOI (personnage principal)\n`;
+      activeThirdPersons.forEach((tp, i) => {
+        instruction += `   ${i+2}. [${tp}] = Tierce personne présente\n`;
       });
       
-      instruction += `\n📝 FORMAT OBLIGATOIRE - TOUJOURS INDIQUER QUI PARLE:\n`;
+      instruction += `\n`;
+      instruction += `╔════════════════════════════════════════════════════════════════════╗\n`;
+      instruction += `║  📝 FORMAT 100% OBLIGATOIRE - COMMENCE CHAQUE LIGNE PAR [NOM]     ║\n`;
+      instruction += `╚════════════════════════════════════════════════════════════════════╝\n`;
+      instruction += `\n`;
+      instruction += `QUAND ${charName.toUpperCase()} PARLE, ÉCRIS:\n`;
       instruction += `[${charName}] *action* "paroles" (pensées)\n`;
+      instruction += `\n`;
       activeThirdPersons.forEach(tp => {
+        instruction += `QUAND ${tp.toUpperCase()} PARLE, ÉCRIS:\n`;
         instruction += `[${tp}] *action* "paroles" (pensées)\n`;
+        instruction += `\n`;
       });
       
-      instruction += `\n⚠️ RÈGLES MULTI-PERSONNAGES:\n`;
-      instruction += `• CHAQUE personnage doit avoir son nom entre crochets [Nom]\n`;
-      instruction += `• TOUS les personnages présents peuvent parler/réagir\n`;
-      instruction += `• Le dialogue doit être naturel entre tous\n`;
+      instruction += `⚠️⚠️⚠️ RÈGLE ABSOLUE ⚠️⚠️⚠️\n`;
+      instruction += `CHAQUE RÉPLIQUE DOIT COMMENCER PAR LE NOM ENTRE CROCHETS!\n`;
+      instruction += `SANS LE [NOM], LE TEXTE EST INVALIDE!\n`;
       
       if (newThirdPerson) {
-        instruction += `\n🆕 ${newThirdPerson} VIENT D'ARRIVER - fais-la/le réagir!\n`;
+        instruction += `\n🆕 ${newThirdPerson} VIENT D'ARRIVER - ELLE/IL DOIT PARLER!\n`;
       }
       
-      instruction += `\n✅ EXEMPLE:\n`;
+      instruction += `\n✅ EXEMPLE CORRECT DE RÉPONSE:\n`;
       const tp = activeThirdPersons[0] || 'La Personne';
-      instruction += `[${tp}] *te regarde, choqué(e)* "Qu'est-ce qui se passe ici?!" (Je n'en reviens pas!)\n`;
-      instruction += `[${charName}] *se fige* "Ce n'est pas ce que tu crois..." (Oh non!)\n`;
+      instruction += `---\n`;
+      instruction += `[${tp}] *ouvre grand les yeux en vous voyant* "Mais qu'est-ce que... ?!" (Oh mon Dieu!)\n`;
+      instruction += `\n`;
+      instruction += `[${charName}] *se retourne, paniqué(e)* "Ce n'est pas ce que tu crois!" (Merde, on est pris!)\n`;
+      instruction += `---\n`;
+      
+      instruction += `\n❌ ERREUR À NE PAS FAIRE:\n`;
+      instruction += `*se retourne* "Ce n'est pas ce que tu crois!" ← FAUX! Manque [${charName}] au début!\n`;
     } else {
       // Pas de tierce personne - rappeler l'interdiction d'en inventer
       instruction += `\n\n🚫 Tu es SEUL(E) avec ${userName} - n'introduis personne d'autre!\n`;
