@@ -1274,12 +1274,12 @@ class TextGenerationService {
       if (hasUserDialogue) prompt += `- RÉPONDRE aux paroles (entre ")\n`;
     }
     
-    // Instructions finales
+    // v5.4.47 - Instructions finales NON TRONQUÉES
     if (lastInstruction && lastInstruction !== mainSystem) {
-      prompt += `\n=== À FAIRE MAINTENANT ===\n${lastInstruction.substring(0, 600)}\n`;
+      prompt += `\n=== À FAIRE MAINTENANT ===\n${lastInstruction.substring(0, 1500)}\n`;
     }
     
-    prompt += `\n=== TA RÉPONSE (RÉPONDS À CHAQUE PARTIE du message, sois cohérent!) ===\n`;
+    prompt += `\n=== TA RÉPONSE ===\n`;
     
     // v5.3.58 - Limite à 5000 chars pour contexte maximal
     const finalPrompt = prompt.substring(0, 5000);
@@ -2683,57 +2683,30 @@ class TextGenerationService {
       }
     }
     
-    // === v5.4.46 - INSTRUCTIONS POUR PERSONNAGES MULTIPLES (RENFORCÉES) ===
+    // === v5.4.47 - INSTRUCTIONS MULTI-PERSONNAGES (SIMPLIFIÉES ET EN PREMIER) ===
     const hasThirdPerson = activeThirdPersons.length > 0;
     
     if (hasThirdPerson) {
-      instruction += `\n\n`;
-      instruction += `╔════════════════════════════════════════════════════════════════════╗\n`;
-      instruction += `║  🚨🚨🚨 ATTENTION: SCÈNE MULTI-PERSONNAGES 🚨🚨🚨                  ║\n`;
-      instruction += `╚════════════════════════════════════════════════════════════════════╝\n`;
+      const tp = activeThirdPersons[0];
       
-      instruction += `\n🎭 PERSONNAGES PRÉSENTS (tu dois les jouer TOUS):\n`;
-      instruction += `   1. [${charName}] = TOI (personnage principal)\n`;
-      activeThirdPersons.forEach((tp, i) => {
-        instruction += `   ${i+2}. [${tp}] = Tierce personne présente\n`;
-      });
+      // INSTRUCTION COURTE ET DIRECTE EN PREMIER
+      instruction += `\n\n🚨 MULTI-PERSONNAGES - UTILISE CE FORMAT:\n`;
+      instruction += `[${charName}] *action* "parole"\n`;
+      instruction += `[${tp}] *action* "parole"\n`;
       
-      instruction += `\n`;
-      instruction += `╔════════════════════════════════════════════════════════════════════╗\n`;
-      instruction += `║  📝 FORMAT 100% OBLIGATOIRE - COMMENCE CHAQUE LIGNE PAR [NOM]     ║\n`;
-      instruction += `╚════════════════════════════════════════════════════════════════════╝\n`;
-      instruction += `\n`;
-      instruction += `QUAND ${charName.toUpperCase()} PARLE, ÉCRIS:\n`;
-      instruction += `[${charName}] *action* "paroles" (pensées)\n`;
-      instruction += `\n`;
-      activeThirdPersons.forEach(tp => {
-        instruction += `QUAND ${tp.toUpperCase()} PARLE, ÉCRIS:\n`;
-        instruction += `[${tp}] *action* "paroles" (pensées)\n`;
-        instruction += `\n`;
-      });
+      instruction += `\n👥 Personnages présents: ${charName}`;
+      activeThirdPersons.forEach(p => { instruction += `, ${p}`; });
       
-      instruction += `⚠️⚠️⚠️ RÈGLE ABSOLUE ⚠️⚠️⚠️\n`;
-      instruction += `CHAQUE RÉPLIQUE DOIT COMMENCER PAR LE NOM ENTRE CROCHETS!\n`;
-      instruction += `SANS LE [NOM], LE TEXTE EST INVALIDE!\n`;
+      instruction += `\n\n✅ EXEMPLE:\n`;
+      instruction += `[${tp}] *te regarde choqué(e)* "Qu'est-ce que vous faites?!"\n`;
+      instruction += `[${charName}] *se fige* "Ce n'est pas ce que tu crois!"\n`;
       
       if (newThirdPerson) {
-        instruction += `\n🆕 ${newThirdPerson} VIENT D'ARRIVER - ELLE/IL DOIT PARLER!\n`;
+        instruction += `\n🆕 ${newThirdPerson} arrive - fais-la/le réagir!\n`;
       }
-      
-      instruction += `\n✅ EXEMPLE CORRECT DE RÉPONSE:\n`;
-      const tp = activeThirdPersons[0] || 'La Personne';
-      instruction += `---\n`;
-      instruction += `[${tp}] *ouvre grand les yeux en vous voyant* "Mais qu'est-ce que... ?!" (Oh mon Dieu!)\n`;
-      instruction += `\n`;
-      instruction += `[${charName}] *se retourne, paniqué(e)* "Ce n'est pas ce que tu crois!" (Merde, on est pris!)\n`;
-      instruction += `---\n`;
-      
-      instruction += `\n❌ ERREUR À NE PAS FAIRE:\n`;
-      instruction += `*se retourne* "Ce n'est pas ce que tu crois!" ← FAUX! Manque [${charName}] au début!\n`;
     } else {
-      // Pas de tierce personne - rappeler l'interdiction d'en inventer
-      instruction += `\n\n🚫 Tu es SEUL(E) avec ${userName} - n'introduis personne d'autre!\n`;
-      instruction += `📝 Format: *action* "paroles" (pensées)\n`;
+      instruction += `\n\n📝 Format: *action* "paroles" (pensées)\n`;
+      instruction += `🚫 Tu es seul(e) avec ${userName}.\n`;
     }
     
     // === v5.4.14 - OBLIGATION DE RÉPONDRE À TOUT LE MESSAGE ===
@@ -3257,18 +3230,40 @@ class TextGenerationService {
     cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
     
     // Supprimer les lignes purement narratives (sans action/dialogue/pensée)
+    // v5.4.47 - Garder aussi les lignes avec [Nom] pour multi-personnages
     const lines = cleaned.split('\n').filter(line => {
       const l = line.trim();
       if (l.length === 0) return false;
-      // Garder si contient format RP
-      return l.includes('*') || l.includes('"') || (l.includes('(') && l.includes(')'));
+      // Garder si contient format RP ou nom de personnage
+      return l.includes('*') || l.includes('"') || (l.includes('(') && l.includes(')')) || l.startsWith('[');
     });
     if (lines.length > 0) {
-      cleaned = lines.join(' ').trim();
+      // v5.4.47 - Garder les sauts de ligne entre personnages différents
+      cleaned = lines.join('\n').trim();
     }
     
     // Supprimer les doublons de mots consécutifs
     cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, '$1');
+    
+    // v5.4.47 - DÉTECTER ET SUPPRIMER LES RÉPÉTITIONS DE PHRASES
+    // Diviser en segments par les crochets [Nom] ou par les sauts de ligne
+    const segments = cleaned.split(/(?=\[)|(?=\n)/);
+    const uniqueSegments = [];
+    const seenContent = new Set();
+    
+    for (const segment of segments) {
+      const normalized = segment.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (normalized.length > 10 && !seenContent.has(normalized)) {
+        seenContent.add(normalized);
+        uniqueSegments.push(segment.trim());
+      } else if (normalized.length <= 10) {
+        uniqueSegments.push(segment.trim());
+      }
+    }
+    
+    if (uniqueSegments.length > 0) {
+      cleaned = uniqueSegments.join('\n').trim();
+    }
     
     // SIMPLIFIER uniquement les pensées VRAIMENT trop complexes (40+ chars ou poétiques)
     cleaned = cleaned.replace(/\(([^)]+)\)/g, (match, thought) => {
@@ -3335,25 +3330,44 @@ class TextGenerationService {
       console.log('⚠️ Pensée manquante - ajoutée:', existingThought);
     }
     
-    // Reconstruire la réponse avec les 3 éléments
-    if (!hasDialogue || !hasThought || !hasAction) {
+    // v5.4.47 - NE PAS reconstruire si format multi-personnages [Nom]
+    const hasMultiCharFormat = cleaned.includes('[') && cleaned.includes(']');
+    
+    // Reconstruire la réponse avec les 3 éléments (SEULEMENT si pas multi-personnages)
+    if (!hasMultiCharFormat && (!hasDialogue || !hasThought || !hasAction)) {
       cleaned = `${existingAction} ${existingDialogue} ${existingThought}`.trim();
     }
     
-    // Limiter la longueur - max 400 caractères (pour inclure les 3 éléments)
-    if (cleaned.length > 400) {
-      const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
-      const dialogue = cleaned.match(/"[^"]+"/)?.[0] || '"..."';
-      const thought = cleaned.match(/\([^)]+\)/)?.[0] || '(hmm)';
-      cleaned = `${action} ${dialogue} ${thought}`.trim();
+    // Limiter la longueur - max 600 caractères pour multi-personnages, 400 sinon
+    const maxLen = hasMultiCharFormat ? 600 : 400;
+    if (cleaned.length > maxLen) {
+      if (hasMultiCharFormat) {
+        // Garder les premiers personnages
+        cleaned = cleaned.substring(0, maxLen);
+        // S'assurer de terminer sur un élément complet
+        const lastBracket = cleaned.lastIndexOf(']');
+        const lastStar = cleaned.lastIndexOf('*');
+        const lastQuote = cleaned.lastIndexOf('"');
+        const cutPoint = Math.max(lastBracket, lastStar, lastQuote);
+        if (cutPoint > maxLen / 2) {
+          cleaned = cleaned.substring(0, cutPoint + 1);
+        }
+      } else {
+        const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
+        const dialogue = cleaned.match(/"[^"]+"/)?.[0] || '"..."';
+        const thought = cleaned.match(/\([^)]+\)/)?.[0] || '(hmm)';
+        cleaned = `${action} ${dialogue} ${thought}`.trim();
+      }
     }
     
     // S'assurer qu'il y a du contenu minimum après nettoyage
-    if (cleaned.length < 15 || !cleaned.includes('"')) {
+    // v5.4.47 - Format multi-personnages accepté aussi
+    if (cleaned.length < 15 || (!cleaned.includes('"') && !hasMultiCharFormat)) {
       // Le contenu est trop court après nettoyage, générer un fallback simple
       cleaned = `*te regarde attentivement* "Oui ?" (Hmm...)`;
     }
     
+    console.log(`📝 Réponse nettoyée (${cleaned.length} chars, multi-perso: ${hasMultiCharFormat})`);
     return cleaned;
   }
 
