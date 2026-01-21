@@ -871,10 +871,27 @@ class ImageGenerationService {
   /**
    * Génère un negative prompt dynamique selon le body type du personnage
    * Exclut les morphologies opposées pour éviter la confusion
+   * v5.4.47 - N'exclut pas les personnes multiples pour les groupes
    */
   getDynamicNegativePrompt(character) {
     const physicalDetails = this.parsePhysicalDescription(character);
-    let negative = this.negativePromptFull;
+    
+    // v5.4.47 - Pour les groupes, ne pas exclure multiple people
+    const duoInfo = this.isDuoOrTrioCharacter(character);
+    let negative;
+    if (duoInfo.isDuo) {
+      // Utiliser un negative prompt sans les exclusions de personnes multiples
+      negative = this.negativePromptBase +
+        'clawed hands, webbed fingers, malformed feet, extra toes, bent wrong way, ' +
+        'extra arms per person, extra legs per person, conjoined, ' +
+        'malformed breasts, misshapen breasts, uneven breasts, extra nipples, droopy wrong breasts, ' +
+        'breasts too high, breasts too low, breasts on stomach, breasts on neck, ' +
+        'square breasts, triangular breasts, flat when should be big, huge when should be small, ' +
+        'malformed face, asymmetrical face, cross-eyed, misaligned eyes, third eye';
+      console.log(`👥 Negative prompt adapté pour groupe (${duoInfo.memberCount} personnes)`);
+    } else {
+      negative = this.negativePromptFull;
+    }
     
     const bodyType = (physicalDetails.body.type || '').toLowerCase();
     
@@ -1068,56 +1085,91 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.4.15 - Détecte si un personnage est un duo/trio (2+ personnes)
+   * v5.4.47 - Détecte si un personnage est un duo/trio/groupe (2+ personnes)
    * @param {Object} character - Le personnage
    * @returns {Object} { isDuo: boolean, memberCount: number, members: array }
    */
   isDuoOrTrioCharacter(character) {
+    const tags = character.tags || [];
+    const name = character.name || '';
+    const gender = (character.gender || '').toLowerCase();
+    
+    // v5.4.47 - Vérifier le tag "multiple" ou "groupe"
+    if (tags.includes('multiple') || tags.includes('groupe') || tags.includes('orgie')) {
+      // Essayer d'extraire le nombre de personnes des tags
+      let memberCount = 2;
+      for (const tag of tags) {
+        // Chercher des patterns comme "4 filles", "5 hommes", "6 personnes"
+        const match = tag.match(/(\d+)\s*(filles?|femmes?|hommes?|mecs?|personnes?|couples?)/i);
+        if (match) {
+          memberCount = parseInt(match[1]);
+          break;
+        }
+      }
+      console.log(`👥 GROUPE DÉTECTÉ via tag multiple: ${memberCount} personnes`);
+      return { isDuo: true, memberCount, members: character.members || [] };
+    }
+    
     // Vérifier le type threesome
     if (character.type === 'threesome') {
       const memberCount = character.members?.length || 2;
       return { isDuo: true, memberCount, members: character.members || [] };
     }
     
-    // Vérifier le genre duo/couple
-    const gender = (character.gender || '').toLowerCase();
-    if (gender.includes('duo') || gender === 'couple') {
+    // Vérifier le genre duo/couple/mixed
+    if (gender.includes('duo') || gender === 'couple' || gender === 'mixed') {
       const memberCount = character.members?.length || 2;
       return { isDuo: true, memberCount, members: character.members || [] };
     }
     
     // Vérifier le nom contient "&" ou "et" (indiquant deux personnes)
-    const name = character.name || '';
     if (name.includes(' & ') || name.includes(' et ')) {
       const memberCount = character.members?.length || 2;
       return { isDuo: true, memberCount, members: character.members || [] };
     }
     
-    // Vérifier les tags
-    const tags = character.tags || [];
+    // Vérifier les tags duo/couple/trio
     if (tags.includes('duo') || tags.includes('couple') || tags.includes('plan à trois') || tags.includes('trio')) {
       const memberCount = character.members?.length || 2;
       return { isDuo: true, memberCount, members: character.members || [] };
+    }
+    
+    // v5.4.47 - Chercher un nombre dans les tags
+    for (const tag of tags) {
+      const match = tag.match(/(\d+)\s*(filles?|femmes?|hommes?|mecs?|personnes?)/i);
+      if (match && parseInt(match[1]) >= 2) {
+        const memberCount = parseInt(match[1]);
+        console.log(`👥 GROUPE DÉTECTÉ via tag numérique: ${memberCount} personnes`);
+        return { isDuo: true, memberCount, members: character.members || [] };
+      }
     }
     
     return { isDuo: false, memberCount: 1, members: [] };
   }
   
   /**
-   * v5.4.15 - Construit un prompt pour les personnages duo/trio
-   * @param {Object} character - Le personnage duo
+   * v5.4.47 - Construit un prompt pour les personnages duo/trio/groupe
+   * @param {Object} character - Le personnage duo/groupe
    * @param {number} level - Niveau de relation
    * @param {boolean} isRealistic - Style réaliste ou anime
-   * @returns {string} Prompt adapté pour duo
+   * @returns {string} Prompt adapté pour duo/groupe
    */
   buildDuoPrompt(character, level, isRealistic) {
     const duoInfo = this.isDuoOrTrioCharacter(character);
     if (!duoInfo.isDuo) return '';
     
     const members = duoInfo.members;
+    const memberCount = duoInfo.memberCount;
     const isNSFW = level >= 2;
     
-    let prompt = 'TWO DISTINCT PEOPLE shown together, both fully visible, ';
+    // v5.4.47 - Adapter le nombre de personnes
+    const numberWords = {
+      2: 'TWO', 3: 'THREE', 4: 'FOUR', 5: 'FIVE', 
+      6: 'SIX', 7: 'SEVEN', 8: 'EIGHT', 9: 'NINE', 10: 'TEN', 12: 'TWELVE'
+    };
+    const countWord = numberWords[memberCount] || memberCount.toString();
+    
+    let prompt = `${countWord} DISTINCT PEOPLE shown together, all ${memberCount} people fully visible, group photo, `;
     
     // Utiliser l'imagePrompt du personnage comme base (contient la description des 2 personnes)
     if (character.imagePrompt) {

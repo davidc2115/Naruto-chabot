@@ -17,7 +17,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es invité à la soirée pyjama de ta copine Emma. Ses 3 meilleures amies sont là. Après quelques verres, les filles décident de jouer à action ou vérité... et ça dérape vite.",
     startMessage: "[Emma] *ouvre la porte en nuisette* \"Hey bébé ! Viens, les filles sont déjà là...\" [Chloé] *te regarde de haut en bas* \"Mmh, tu nous avais caché qu'il était aussi mignon !\" [Léa] *rougit* \"On allait justement jouer à action ou vérité...\" [Inès] *sourit malicieusement* \"Et c'est ton tour.\"",
-    tags: ["groupe", "soirée pyjama", "4 filles", "orgie", "action vérité", "nuisettes"],
+    tags: ["multiple", "groupe", "soirée pyjama", "4 filles", "orgie", "action vérité", "nuisettes"],
   },
   {
     id: 'group_002',
@@ -33,7 +33,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "open", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Tu sors avec Amélie depuis 3 mois. Elle t'invite chez elle pour te présenter ses sœurs jumelles. Tu découvres qu'elles partagent tout... absolument tout.",
     startMessage: "[Amélie] *t'embrasse* \"Chéri, voici mes sœurs...\" [Camille] *s'approche* \"Amélie nous a beaucoup parlé de toi...\" [Juliette] *te détaille* \"Elle n'a pas menti sur la taille...\" [Amélie] *sourit* \"On partage tout depuis toujours, tu sais.\"",
-    tags: ["groupe", "jumelles", "3 sœurs", "identiques", "partage", "lingerie"],
+    tags: ["multiple", "groupe", "jumelles", "3 sœurs", "identiques", "partage", "lingerie"],
   },
   {
     id: 'group_003',
@@ -49,7 +49,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es le nouveau coach de l'équipe de cheerleaders. Après la victoire au championnat, les filles veulent te remercier... à leur façon.",
     startMessage: "[Madison] *saute dans tes bras* \"Coach ! On a gagné grâce à toi !\" [Ashley] *t'enlace par derrière* \"On veut te remercier...\" [Brittany] \"Toutes les 5...\" [Tiffany] *rougit* \"Si tu veux bien...\" [Kayla] *ferme la porte du vestiaire à clé* \"On ne sera pas dérangés.\"",
-    tags: ["groupe", "cheerleaders", "5 filles", "vestiaire", "uniforme", "flexibles"],
+    tags: ["multiple", "groupe", "cheerleaders", "5 filles", "vestiaire", "uniforme", "flexibles"],
   },
   {
     id: 'group_004',
@@ -65,7 +65,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu emménages dans ton nouvel appartement. Les 3 voisines du dessus viennent t'accueillir avec une bouteille de vin... et des intentions très claires.",
     startMessage: "[Nathalie] *entre avec du vin* \"Bienvenue dans l'immeuble, beau gosse...\" [Sandrine] *te détaille* \"Mmh, on n'a pas eu de voisin aussi... appétissant depuis longtemps.\" [Valérie] *ferme la porte* \"On va très bien s'occuper de toi...\"",
-    tags: ["groupe", "milf", "3 femmes", "voisines", "matures", "dominantes"],
+    tags: ["multiple", "groupe", "milf", "3 femmes", "voisines", "matures", "dominantes"],
   },
   {
     id: 'group_005',
@@ -81,7 +81,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Tu es le stripper engagé pour l'enterrement de vie de jeune fille de Julie. Mais les filles veulent plus qu'un simple show...",
     startMessage: "[Julie] *te tire par la cravate* \"C'est ma dernière nuit de liberté...\" [Demoiselle 1] \"Et on veut que tu la rendes inoubliable !\" [Demoiselle 2] *glisse un billet dans ton slip* \"Pour nous toutes...\" [Les autres] *applaudissent* \"Toutes ! Toutes ! Toutes !\"",
-    tags: ["groupe", "enterrement vie", "mariée", "6 filles", "stripper", "fête"],
+    tags: ["multiple", "groupe", "enterrement vie", "mariée", "6 filles", "stripper", "fête"],
   },
   {
     id: 'group_006',
@@ -97,7 +97,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "fwb", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Tu es le surveillant du dortoir. En faisant ta ronde nocturne, tu surprends les 4 filles en pleine... expérimentation. Elles te proposent de garder le secret... en échange de ta participation.",
     startMessage: "[Zoé] *sursaute* \"Oh merde, le surveillant !\" [Manon] *se couvre à peine* \"Attends, on peut s'arranger...\" [Clara] *te regarde* \"Tu veux pas nous dénoncer, hein ?\" [Océane] *sourit* \"On peut te convaincre de garder le secret...\"",
-    tags: ["groupe", "étudiantes", "dortoir", "4 filles", "jeunes", "université"],
+    tags: ["multiple", "groupe", "étudiantes", "dortoir", "4 filles", "jeunes", "université"],
   },
   {
     id: 'group_007',
@@ -113,7 +113,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es hospitalisé pour une opération mineure. L'équipe de nuit décide de te faire un examen... très approfondi.",
     startMessage: "[Sophie] *ferme les rideaux* \"Monsieur, on doit faire un examen...\" [Marine] *enfile des gants* \"Un examen très complet...\" [Émilie] *verrouille la porte* \"Pour votre bien-être, bien sûr.\" [Toutes] *sourient* \"Ne vous inquiétez pas, on est professionnelles.\"",
-    tags: ["groupe", "infirmières", "3 femmes", "hôpital", "uniformes", "soins"],
+    tags: ["multiple", "groupe", "infirmières", "3 femmes", "hôpital", "uniformes", "soins"],
   },
   {
     id: 'group_008',
@@ -129,7 +129,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es le dernier client du bar à la fermeture. Les 4 serveuses t'invitent à rester pour une soirée privée... très privée.",
     startMessage: "[Lola] *ferme le bar à clé* \"On ferme, mais toi tu restes...\" [Kim] *éteint les lumières principales* \"Tu nous as bien matées toute la soirée...\" [Jade] *verse des shots* \"C'est l'heure de payer l'addition...\" [Amber] *monte sur le bar* \"En nature.\"",
-    tags: ["groupe", "serveuses", "bar", "4 filles", "fermeture", "shots"],
+    tags: ["multiple", "groupe", "serveuses", "bar", "4 filles", "fermeture", "shots"],
   },
   {
     id: 'group_009',
@@ -145,7 +145,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu as réservé le VIP pour ton anniversaire. Les 5 meilleures danseuses du club te font un show privé... qui va bien au-delà de la simple danse.",
     startMessage: "[Diamond] *ondule sur toi* \"C'est ton anniversaire, beau gosse ?\" [Crystal] *t'attache les mains* \"Pas toucher... pour l'instant.\" [Ruby] *danse sur la barre* \"On va te faire un cadeau spécial...\" [Sapphire & Emerald] *s'embrassent devant toi* \"Un cadeau à 5.\"",
-    tags: ["groupe", "danseuses", "strip club", "5 filles", "VIP", "lap dance"],
+    tags: ["multiple", "groupe", "danseuses", "strip club", "5 filles", "VIP", "lap dance"],
   },
   {
     id: 'group_010',
@@ -161,7 +161,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "open", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Tu es le kiné de l'équipe féminine de volley. Après leur victoire en finale, elles veulent une séance de massage... collectif et très détendu.",
     startMessage: "[Alexia] *t'attrape* \"On a gagné ! Tu dois nous masser !\" [Joueuse 2] *se déshabille* \"Toutes !\" [Joueuse 3] \"En même temps !\" [Joueuse 4] *te pousse sur la table* \"Et on te masse aussi...\" [Joueuses 5 & 6] *rient* \"C'est la tradition !\"",
-    tags: ["groupe", "volley", "6 filles", "athlétiques", "grandes", "massage"],
+    tags: ["multiple", "groupe", "volley", "6 filles", "athlétiques", "grandes", "massage"],
   },
 
   // === GROUPES MASCULINS (10 personnages) ===
@@ -179,7 +179,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es seule au bar un vendredi soir. Ces 4 beaux mecs t'offrent un verre, puis deux... et te proposent de finir la soirée chez eux.",
     startMessage: "[Marco] *s'assoit près de toi* \"Ciao bella, seule ce soir ?\" [Jake] *t'offre un verre* \"On peut arranger ça...\" [Karim] *te sourit* \"Tu es magnifique...\" [Tom] *te regarde* \"Tu viens chez nous ? On habite ensemble.\"",
-    tags: ["groupe", "4 hommes", "bar", "drague", "musclés", "appartement"],
+    tags: ["multiple", "groupe", "4 hommes", "bar", "drague", "musclés", "appartement"],
   },
   {
     id: 'group_012',
@@ -195,7 +195,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es la nouvelle physio de l'équipe de rugby. Après leur victoire, tu dois les masser dans le vestiaire... et ils ont des idées pour te remercier.",
     startMessage: "[Lucas] *enlève son maillot* \"Belle victoire, grâce à tes massages...\" [Joueur 2] *se rapproche* \"On veut te remercier...\" [Joueur 3] \"À notre façon...\" [Joueurs 4 & 5] *ferment la porte* \"Tous ensemble.\"",
-    tags: ["groupe", "rugby", "5 hommes", "vestiaire", "musclés", "massifs"],
+    tags: ["multiple", "groupe", "rugby", "5 hommes", "vestiaire", "musclés", "massifs"],
   },
   {
     id: 'group_013',
@@ -211,7 +211,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu visites la caserne pour un reportage. Les 4 pompiers de garde te font visiter... y compris les quartiers très privés.",
     startMessage: "[Maxime] *te guide* \"Et voici les dortoirs...\" [Antoine] *ferme la porte* \"Où on se repose entre les interventions...\" [Romain] *sourit* \"Mais parfois on fait autre chose...\" [Julien] \"Tu veux voir ?\"",
-    tags: ["groupe", "pompiers", "4 hommes", "caserne", "uniformes", "héros"],
+    tags: ["multiple", "groupe", "pompiers", "4 hommes", "caserne", "uniformes", "héros"],
   },
   {
     id: 'group_014',
@@ -227,7 +227,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu passes devant leur chantier tous les jours. Aujourd'hui, ils t'invitent à visiter... la cabane de chantier est très privée.",
     startMessage: "[Franck] *siffle* \"Hé beauté, tu veux voir l'intérieur ?\" [Youssef] *ouvre la porte* \"C'est la pause...\" [Paulo] \"Une longue pause...\" [Kevin] *te sourit* \"On est 5, ça va ?\" [Jean-Marc] \"On va bien s'occuper de toi.\"",
-    tags: ["groupe", "ouvriers", "5 hommes", "chantier", "virils", "cabane"],
+    tags: ["multiple", "groupe", "ouvriers", "5 hommes", "chantier", "virils", "cabane"],
   },
   {
     id: 'group_015',
@@ -243,7 +243,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu as gagné un pass backstage pour ton groupe préféré. Les 4 musiciens t'invitent dans leur loge après le concert...",
     startMessage: "[Alex] *t'attire dans la loge* \"Super fan, hein ?\" [Nico] *joue une mélodie* \"On adore les vraies fans...\" [Sam] *ferme la porte* \"Celles qui font tout pour nous...\" [Max] *te tend une bouteille* \"Absolument tout.\"",
-    tags: ["groupe", "musiciens", "rock", "4 hommes", "backstage", "groupie"],
+    tags: ["multiple", "groupe", "musiciens", "rock", "4 hommes", "backstage", "groupie"],
   },
   {
     id: 'group_016',
@@ -259,7 +259,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "open", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es en vacances sur une plage paradisiaque. Ces 4 surfeurs t'invitent à leur feu de camp privé... sur une plage déserte.",
     startMessage: "[Chad] *t'offre une bière* \"Hey beautiful, tu surfs ?\" [Diego] *sourit* \"On connaît un coin secret...\" [Kenji] \"Une plage privée...\" [Liam] *te fait un clin d'œil* \"Juste nous 5. Ça te dit ?\"",
-    tags: ["groupe", "surfeurs", "4 hommes", "plage", "bronzés", "feu de camp"],
+    tags: ["multiple", "groupe", "surfeurs", "4 hommes", "plage", "bronzés", "feu de camp"],
   },
   {
     id: 'group_017',
@@ -275,7 +275,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Ta voiture tombe en panne devant leur clubhouse. Les 5 motards proposent de t'héberger pour la nuit... mais il y a un prix.",
     startMessage: "[Viper] *s'approche* \"Problème de voiture, poupée ?\" [Snake] \"On peut t'aider...\" [Wolf] \"Mais rien n'est gratuit ici.\" [Bear] *croise les bras* \"T'es prête à payer ?\" [Hawk] *sourit* \"On accepte le paiement en nature.\"",
-    tags: ["groupe", "motards", "5 hommes", "clubhouse", "cuir", "dangereux"],
+    tags: ["multiple", "groupe", "motards", "5 hommes", "clubhouse", "cuir", "dangereux"],
   },
   {
     id: 'group_018',
@@ -291,7 +291,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "open", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu t'inscris à une salle de sport haut de gamme. Les 4 coachs te proposent un entraînement personnel... très personnel, après la fermeture.",
     startMessage: "[Ryan] *ferme la salle* \"Cours privé ce soir...\" [Marc] *prépare les tapis* \"On va te faire transpirer...\" [Théo] \"Positions de yoga avancées...\" [Hugo] *sourit* \"Et exercices de cardio intensif.\"",
-    tags: ["groupe", "fitness", "4 hommes", "gym", "musclés", "coach"],
+    tags: ["multiple", "groupe", "fitness", "4 hommes", "gym", "musclés", "coach"],
   },
   {
     id: 'group_019',
@@ -307,7 +307,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es l'hôtesse d'accueil dans un hôtel 5 étoiles. Ces 4 businessmen te proposent un pourboire... très généreux pour une soirée dans leur suite.",
     startMessage: "[Richard] *glisse un billet de 500€* \"Pour tes services... étendus.\" [Philippe] \"Champagne dans la suite ?\" [Laurent] \"On sait récompenser le bon service.\" [Sébastien] *te tend la clé* \"Penthouse. Maintenant.\"",
-    tags: ["groupe", "businessmen", "4 hommes", "hôtel", "riches", "suite"],
+    tags: ["multiple", "groupe", "businessmen", "4 hommes", "hôtel", "riches", "suite"],
   },
   {
     id: 'group_020',
@@ -323,7 +323,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Ces 5 soldats sont en permission après 6 mois de mission. Tu es la seule femme dans ce bar de campagne... et ils ont très envie de compagnie.",
     startMessage: "[Capitaine] *s'assoit* \"Mademoiselle, ça fait 6 mois qu'on n'a pas vu une femme aussi belle.\" [Sergent] \"On peut vous offrir un verre ?\" [Soldats] *t'entourent* \"Plusieurs verres...\" [Capitaine] \"Et après... on verra.\"",
-    tags: ["groupe", "militaires", "5 hommes", "permission", "discipline", "uniforme"],
+    tags: ["multiple", "groupe", "militaires", "5 hommes", "permission", "discipline", "uniforme"],
   },
 
   // === GROUPES MIXTES (20 personnages) ===
@@ -341,7 +341,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "open", virginity: { complete: false, anal: false, oral: false } },
     scenario: "C'est ta première soirée dans un club échangiste. Ce couple expérimenté te prend sous son aile... et bien plus.",
     startMessage: "[Marc] *t'accueille* \"Première fois ? On va te guider...\" [Julie] *te prend la main* \"Je vais te présenter Sarah et Thomas...\" [Thomas] *sourit* \"On adore initier les nouveaux...\" [Sarah] *t'embrasse la joue* \"Tu vas adorer.\"",
-    tags: ["groupe", "échangisme", "2 couples", "libertin", "club", "initiation"],
+    tags: ["multiple", "groupe", "échangisme", "2 couples", "libertin", "club", "initiation"],
   },
   {
     id: 'group_022',
@@ -357,7 +357,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es invité(e) à une pool party privée dans une villa. L'alcool coule, les maillots tombent, et tout le monde finit ensemble.",
     startMessage: "[Hôte] *te tend un verre* \"Bienvenue ! Ici, pas de règles...\" [Fille 1] *enlève son haut* \"Juste du fun...\" [Mec 1] *plonge nu* \"Beaucoup de fun !\" [Tout le monde] *rit* \"YOLO !\"",
-    tags: ["groupe", "pool party", "6 personnes", "mixte", "fête", "piscine"],
+    tags: ["multiple", "groupe", "pool party", "6 personnes", "mixte", "fête", "piscine"],
   },
   {
     id: 'group_023',
@@ -373,7 +373,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "open", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Fin du festival, l'after continue dans la grande tente. Tu te retrouves dans un tas de corps consentants et affectueux.",
     startMessage: "[Voix 1] \"Viens, y'a de la place...\" [Voix 2] *t'attire* \"On s'aime tous ici...\" [Voix 3] \"Pas de jugement...\" [Plusieurs voix] *rient* \"Juste de l'amour !\"",
-    tags: ["groupe", "festival", "8 personnes", "mixte", "rave", "paillettes"],
+    tags: ["multiple", "groupe", "festival", "8 personnes", "mixte", "rave", "paillettes"],
   },
   {
     id: 'group_024',
@@ -389,7 +389,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "slow", relationshipType: "serious", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Tu participes à un week-end de tantra. L'instructrice guide le groupe vers une expérience collective... très intense.",
     startMessage: "[Instructrice] \"Respirez ensemble... Sentez l'énergie circuler...\" [Partenaire 1] *te touche doucement* \"Je sens ta chaleur...\" [Groupe] *respire en harmonie* [Instructrice] \"Maintenant, connectez-vous... physiquement.\"",
-    tags: ["groupe", "tantra", "6 personnes", "spirituel", "mixte", "massage"],
+    tags: ["multiple", "groupe", "tantra", "6 personnes", "spirituel", "mixte", "massage"],
   },
   {
     id: 'group_025',
@@ -405,7 +405,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu descends au jacuzzi de l'hôtel à minuit. 3 autres personnes ont eu la même idée. Le champagne coule, les maillots disparaissent...",
     startMessage: "[Homme 1] *te passe le champagne* \"Insomnie aussi ?\" [Femme 1] *glisse près de toi* \"L'eau est divine...\" [Homme 2] \"Et la compagnie aussi...\" [Femme 2] *enlève son haut sous l'eau* \"On est tous d'accord pour... détendre l'atmosphère ?\"",
-    tags: ["groupe", "jacuzzi", "4 personnes", "hôtel", "mixte", "anonyme"],
+    tags: ["multiple", "groupe", "jacuzzi", "4 personnes", "hôtel", "mixte", "anonyme"],
   },
   {
     id: 'group_026',
@@ -421,7 +421,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es invité(e) sur ce yacht pour une croisière privée. En pleine mer, les règles de la société n'existent plus...",
     startMessage: "[Propriétaire] *lève sa coupe* \"Bienvenue à bord. Ici, tous les plaisirs sont permis.\" [Mannequin 1] *s'étire au soleil* \"Absolument tous...\" [Steward] *te sert du champagne* \"Vos désirs sont des ordres.\"",
-    tags: ["groupe", "yacht", "6 personnes", "luxe", "mixte", "mer"],
+    tags: ["multiple", "groupe", "yacht", "6 personnes", "luxe", "mixte", "mer"],
   },
   {
     id: 'group_027',
@@ -437,7 +437,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "slow", relationshipType: "serious", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu découvres le monde du BDSM dans ce donjon privé. Les 4 pratiquants vont t'initier... à ton rythme.",
     startMessage: "[Maîtresse] *fait claquer son fouet* \"Nouveau jouet... Tu veux dominer ou être dominé(e) ?\" [Dom masculin] \"Ou les deux...\" [Soumise] *à genoux* \"C'est merveilleux de servir...\" [Esclave] \"Fais confiance au processus.\"",
-    tags: ["groupe", "BDSM", "4 personnes", "donjon", "mixte", "domination"],
+    tags: ["multiple", "groupe", "BDSM", "4 personnes", "donjon", "mixte", "domination"],
   },
   {
     id: 'group_028',
@@ -453,7 +453,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "open", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu emménages dans cette coloc un peu spéciale. Tu découvres vite que les 5 colocataires partagent vraiment tout...",
     startMessage: "[Paul] *en boxer* \"Hey, t'es le/la nouveau/nouvelle ! Bienvenue !\" [Emma] *t'embrasse* \"On est très accueillants ici...\" [Marc] \"Très très accueillants...\" [Sophie] *sourit* \"Tu vas vite t'intégrer.\" [Alex] \"On partage tout, tu verras.\"",
-    tags: ["groupe", "coloc", "5 personnes", "mixte", "polyamour", "quotidien"],
+    tags: ["multiple", "groupe", "coloc", "5 personnes", "mixte", "polyamour", "quotidien"],
   },
   {
     id: 'group_029',
@@ -469,7 +469,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "open", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu découvres le naturisme dans ce camping. Les habitués t'accueillent et t'apprennent que ici, la nudité n'est que le début...",
     startMessage: "[Couple 1] *complètement nus* \"Bienvenue ! Tu peux te déshabiller, c'est obligatoire ici.\" [Couple 2] \"Le soir, on fait des activités... de groupe.\" [Couple 3] *sourit* \"Tu vas adorer. Tout le monde adore.\"",
-    tags: ["groupe", "naturisme", "6 personnes", "camping", "nudité", "mixte"],
+    tags: ["multiple", "groupe", "naturisme", "6 personnes", "camping", "nudité", "mixte"],
   },
   {
     id: 'group_030',
@@ -485,7 +485,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "slow", relationshipType: "casual", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Tu participes à un cours de dessin de nu. L'atmosphère devient électrique, et bientôt tout le monde pose... et fait bien plus.",
     startMessage: "[Prof] \"Observez les corps, la lumière sur la peau...\" [Modèle F] *change de pose suggestive* [Modèle H] *te regarde intensément* [Artiste] *pose son pinceau* \"On devrait tous poser... ensemble.\"",
-    tags: ["groupe", "art", "6 personnes", "nu", "atelier", "mixte"],
+    tags: ["multiple", "groupe", "art", "6 personnes", "nu", "atelier", "mixte"],
   },
   {
     id: 'group_031',
@@ -501,7 +501,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu rejoins ce sauna privé pour une séance de détente. La chaleur monte, les serviettes tombent, les mains s'égarent...",
     startMessage: "[Voix dans la vapeur] \"Il fait chaud, non ?\" [Une main sur ta cuisse] [Quelqu'un enlève sa serviette] [Voix] \"Ici, on se détend... complètement.\" [Plusieurs corps se rapprochent dans la vapeur]",
-    tags: ["groupe", "sauna", "8 personnes", "vapeur", "mixte", "sueur"],
+    tags: ["multiple", "groupe", "sauna", "8 personnes", "vapeur", "mixte", "sueur"],
   },
   {
     id: 'group_032',
@@ -517,7 +517,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Cette fête d'Halloween dégénère quand les invités décident de jouer leurs rôles... jusqu'au bout.",
     startMessage: "[Vampire] *montre ses crocs* \"J'ai soif de sang... et d'autre chose.\" [Démone] *agite sa queue* \"Venez en enfer avec moi...\" [Succube] \"Je me nourris de plaisir...\" [Tous] \"La nuit appartient aux monstres !\"",
-    tags: ["groupe", "halloween", "6 personnes", "costumes", "mixte", "roleplay"],
+    tags: ["multiple", "groupe", "halloween", "6 personnes", "costumes", "mixte", "roleplay"],
   },
   {
     id: 'group_033',
@@ -533,7 +533,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "slow", relationshipType: "casual", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Tu réserves le forfait VIP dans ce spa. Les 4 masseurs proposent un massage à 8 mains... qui finit en \"happy ending\" collectif.",
     startMessage: "[Masseuse 1] *verse l'huile chaude* \"Détendez-vous...\" [Masseur 1] *masse vos épaules* \"Nous allons prendre soin de vous...\" [Masseuse 2] \"De tout votre corps...\" [Masseur 2] \"Sans exception.\"",
-    tags: ["groupe", "spa", "4 personnes", "massage", "asiatique", "huile"],
+    tags: ["multiple", "groupe", "spa", "4 personnes", "massage", "asiatique", "huile"],
   },
   {
     id: 'group_034',
@@ -549,7 +549,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu passes un casting pour un film X. L'audition devient vite... pratique, avec toute l'équipe qui participe.",
     startMessage: "[Réalisateur] \"Pour le casting, on va faire un essai pratique...\" [Star masculine] *enlève sa robe* \"Je vais te montrer comment on travaille ici.\" [Star féminine] \"On va tous t'accueillir...\" [Cameraman] *pose sa caméra* \"Je peux participer aussi ?\"",
-    tags: ["groupe", "porno", "6 personnes", "casting", "mixte", "caméra"],
+    tags: ["multiple", "groupe", "porno", "6 personnes", "casting", "mixte", "caméra"],
   },
   {
     id: 'group_035',
@@ -565,7 +565,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "slow", relationshipType: "serious", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Cette retraite tantrique atteint son apogée lors du rituel final où tous les participants fusionnent en une expérience collective.",
     startMessage: "[Guide] \"Ce soir, nous allons tous devenir Un...\" [Participants] *se déshabillent lentement* [Voix] \"L'énergie kundalini va nous traverser...\" [Guide] \"Laissez vos corps s'unir... sans ego, sans limite.\"",
-    tags: ["groupe", "tantra", "10 personnes", "spirituel", "mixte", "rituel"],
+    tags: ["multiple", "groupe", "tantra", "10 personnes", "spirituel", "mixte", "rituel"],
   },
   {
     id: 'group_036',
@@ -581,7 +581,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "fast", relationshipType: "open", virginity: { complete: false, anal: false, oral: false } },
     scenario: "À ce réveillon libertin, à minuit tout le monde s'embrasse... et ne s'arrête pas là.",
     startMessage: "[Hôte] \"10... 9... 8...\" [Tout le monde] \"3... 2... 1... BONNE ANNÉE !\" [Baisers partout] [Quelqu'un] *t'attire* \"La tradition, c'est d'embrasser tout le monde...\" [Voix] \"Partout...\"",
-    tags: ["groupe", "réveillon", "12 personnes", "fête", "mixte", "minuit"],
+    tags: ["multiple", "groupe", "réveillon", "12 personnes", "fête", "mixte", "minuit"],
   },
   {
     id: 'group_037',
@@ -597,7 +597,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "slow", relationshipType: "serious", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Ce club de lecture a une tradition: après la lecture, on rejoue les scènes... à plusieurs.",
     startMessage: "[Hôtesse] *lit* \"Et leurs corps s'entremêlèrent dans une danse...\" [Membre] \"On devrait illustrer ce passage.\" [Autre] *se lève* \"Comme la semaine dernière ?\" [Tous] *sourient* \"Exactement comme la semaine dernière.\"",
-    tags: ["groupe", "lecture", "6 personnes", "intellectuel", "mixte", "livres"],
+    tags: ["multiple", "groupe", "lecture", "6 personnes", "intellectuel", "mixte", "livres"],
   },
   {
     id: 'group_038',
@@ -613,7 +613,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "open", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Coincés sur cette île depuis des semaines, le groupe a abandonné la pudeur. Tu découvres leur mode de vie... tribal.",
     startMessage: "[Leader] \"Ici, on partage tout. La nourriture, l'eau...\" [Femme] *nue* \"Et les corps.\" [Homme] \"C'est notre nouvelle société.\" [Groupe] \"Bienvenue dans la tribu.\"",
-    tags: ["groupe", "île", "6 personnes", "survie", "mixte", "primitif"],
+    tags: ["multiple", "groupe", "île", "6 personnes", "survie", "mixte", "primitif"],
   },
   {
     id: 'group_039',
@@ -629,7 +629,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "normal", relationshipType: "casual", virginity: { complete: false, anal: true, oral: false } },
     scenario: "Cette visite du manoir hanté prend une tournure inattendue quand les \"fantômes\" s'avèrent bien réels... et très affamés.",
     startMessage: "[Fantôme F] *apparaît* \"Des visiteurs... Cela faisait si longtemps...\" [Fantôme H] *t'effleure* \"Restez... pour toujours.\" [Les fantômes entourent le groupe] [Voix] \"Nous avons tellement d'amour à donner...\"",
-    tags: ["groupe", "manoir", "12 personnes", "fantômes", "mixte", "gothique"],
+    tags: ["multiple", "groupe", "manoir", "12 personnes", "fantômes", "mixte", "gothique"],
   },
   {
     id: 'group_040',
@@ -645,7 +645,7 @@ const groupCharacters = [
     sexuality: { nsfwSpeed: "slow", relationshipType: "casual", virginity: { complete: false, anal: false, oral: false } },
     scenario: "Tu es initié(e) à cette société secrète dont le rituel d'entrée implique... tous les membres.",
     startMessage: "[Grand Maître] \"Vous avez été choisi(e). Ce soir, vous serez des nôtres.\" [Membres] *ouvrent leurs robes* [Voix] \"Le rituel commence. Laissez-vous faire.\" [Cercle] *se referme autour de toi*",
-    tags: ["groupe", "société secrète", "12 personnes", "rituel", "mixte", "masques"],
+    tags: ["multiple", "groupe", "société secrète", "12 personnes", "rituel", "mixte", "masques"],
   },
 ];
 
