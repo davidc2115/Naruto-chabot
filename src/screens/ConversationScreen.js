@@ -452,6 +452,7 @@ export default function ConversationScreen({ route, navigation }) {
       const assistantMessage = {
         role: 'assistant',
         content: response,
+        timestamp: Date.now(),
       };
 
       const finalMessages = [...updatedMessages, assistantMessage];
@@ -650,16 +651,19 @@ export default function ConversationScreen({ route, navigation }) {
         role: 'system',
         content: '[Image générée et sauvegardée dans la galerie]',
         image: imageUrl,
+        timestamp: Date.now(),
       };
 
-      const updatedMessages = [...messages, imageMessage];
-      setMessages(updatedMessages);
-      
-      try {
-        await saveConversation(updatedMessages, relationship);
-      } catch (e) {
-        console.log('⚠️ Erreur sauvegarde conversation');
-      }
+      // v5.4.43 - Utiliser callback pour éviter la condition de concurrence
+      // Cela garantit qu'on utilise les messages les plus récents
+      setMessages(prevMessages => {
+        const newMessages = [...prevMessages, imageMessage];
+        // Sauvegarde asynchrone
+        saveConversation(newMessages, relationship).catch(e => 
+          console.log('⚠️ Erreur sauvegarde:', e.message)
+        );
+        return newMessages;
+      });
 
       Alert.alert('Succès', 'Image générée et ajoutée à la galerie !');
 
