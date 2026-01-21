@@ -19,6 +19,7 @@ import StableDiffusionLocalService from '../services/StableDiffusionLocalService
 import TextGenerationService from '../services/TextGenerationService';
 import SyncService from '../services/SyncService';
 import AuthService from '../services/AuthService';
+import PayPalService from '../services/PayPalService';
 import * as FileSystem from 'expo-file-system';
 
 // URL du serveur Freebox pour les fonctions admin
@@ -62,6 +63,11 @@ export default function SettingsScreen({ navigation, onLogout }) {
   const [syncStatus, setSyncStatus] = useState(null);
   const [syncing, setSyncing] = useState(false);
   const [serverStats, setServerStats] = useState(null);
+  
+  // v5.4.49 - PayPal
+  const [paypalEmail, setPaypalEmail] = useState('');
+  const [premiumStatus, setPremiumStatus] = useState({ isPremium: false });
+  const [premiumPlans, setPremiumPlans] = useState({});
 
   useEffect(() => {
     loadAllSettings();
@@ -92,11 +98,56 @@ export default function SettingsScreen({ navigation, onLogout }) {
         await checkSDAvailability();
       }
       await loadSyncStatus();
+      await loadPayPalConfig();
     } catch (error) {
       console.error('Erreur chargement paramètres:', error);
     } finally {
       setLoading(false);
     }
+  };
+  
+  // v5.4.49 - Charger la configuration PayPal
+  const loadPayPalConfig = async () => {
+    try {
+      const config = await PayPalService.loadConfig();
+      setPaypalEmail(config.paypalEmail || '');
+      setPremiumPlans(PayPalService.getPremiumPlans());
+      const status = await PayPalService.checkPremiumStatus();
+      setPremiumStatus(status);
+    } catch (error) {
+      console.error('Erreur chargement PayPal:', error);
+    }
+  };
+  
+  // v5.4.49 - Sauvegarder la configuration PayPal
+  const savePayPalConfig = async () => {
+    try {
+      await PayPalService.saveConfig({ paypalEmail });
+      Alert.alert('✅ Succès', 'Configuration PayPal sauvegardée!');
+    } catch (error) {
+      Alert.alert('❌ Erreur', error.message);
+    }
+  };
+  
+  // v5.4.49 - Ouvrir le paiement PayPal
+  const openPayPalPayment = async (planId) => {
+    if (!paypalEmail) {
+      Alert.alert('⚠️ Configuration requise', 'Veuillez d\'abord configurer votre email PayPal.');
+      return;
+    }
+    
+    const plan = premiumPlans[planId];
+    Alert.alert(
+      `💳 ${plan.name}`,
+      `Prix: ${plan.price} ${plan.currency}\n\nCette action va ouvrir PayPal pour le paiement.\n\nAprès le paiement, contactez l'administrateur avec votre preuve de paiement pour activer le premium.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { 
+          text: 'Payer avec PayPal', 
+          onPress: () => PayPalService.openPaymentLink(planId)
+        }
+      ]
+    );
   };
 
   // Charger les APIs de texte disponibles v5.3.33
@@ -1234,14 +1285,85 @@ export default function SettingsScreen({ navigation, onLogout }) {
         </View>
       )}
 
+      {/* v5.4.49 - PAYPAL & PREMIUM */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>💳 Premium & Paiement</Text>
+        
+        {/* Statut Premium */}
+        <View style={styles.premiumStatusBox}>
+          <Text style={styles.premiumStatusTitle}>
+            {premiumStatus.isPremium ? '👑 Compte Premium' : '⭐ Compte Gratuit'}
+          </Text>
+          {premiumStatus.isPremium && premiumStatus.expiresAt && (
+            <Text style={styles.premiumExpiry}>
+              Expire le: {new Date(premiumStatus.expiresAt).toLocaleDateString('fr-FR')}
+            </Text>
+          )}
+          {premiumStatus.isPremium && !premiumStatus.expiresAt && (
+            <Text style={styles.premiumLifetime}>Premium à vie! 🎉</Text>
+          )}
+        </View>
+        
+        {/* Configuration PayPal (Admin) */}
+        {isAdmin && (
+          <View style={styles.paypalConfigBox}>
+            <Text style={styles.paypalConfigTitle}>⚙️ Configuration PayPal (Admin)</Text>
+            <Text style={styles.paypalConfigHint}>
+              Email PayPal pour recevoir les paiements
+            </Text>
+            <TextInput
+              style={styles.paypalInput}
+              value={paypalEmail}
+              onChangeText={setPaypalEmail}
+              placeholder="votre-email@paypal.com"
+              placeholderTextColor="#9ca3af"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TouchableOpacity style={styles.paypalSaveButton} onPress={savePayPalConfig}>
+              <Text style={styles.paypalSaveButtonText}>💾 Sauvegarder</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        
+        {/* Plans Premium */}
+        {!premiumStatus.isPremium && (
+          <View style={styles.premiumPlansBox}>
+            <Text style={styles.premiumPlansTitle}>🌟 Passer en Premium</Text>
+            
+            {Object.entries(premiumPlans).map(([planId, plan]) => (
+              <TouchableOpacity 
+                key={planId}
+                style={styles.premiumPlanCard}
+                onPress={() => openPayPalPayment(planId)}
+              >
+                <View style={styles.premiumPlanHeader}>
+                  <Text style={styles.premiumPlanName}>{plan.name}</Text>
+                  <Text style={styles.premiumPlanPrice}>{plan.price}€</Text>
+                </View>
+                <View style={styles.premiumPlanFeatures}>
+                  {plan.features.map((feature, i) => (
+                    <Text key={i} style={styles.premiumPlanFeature}>✓ {feature}</Text>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            ))}
+            
+            <Text style={styles.premiumNote}>
+              💡 Après le paiement, contactez l'administrateur avec votre preuve de paiement.
+            </Text>
+          </View>
+        )}
+      </View>
+
       {/* À PROPOS */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.7.10</Text>
+          <Text style={styles.aboutText}>Version: 5.4.49</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
-          <Text style={styles.aboutText}>400+ personnages disponibles</Text>
-          <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
+          <Text style={styles.aboutText}>550+ personnages disponibles</Text>
+          <Text style={styles.aboutText}>Génération d'images: Freebox + Pollinations</Text>
           <Text style={styles.aboutText}>Synchronisation Freebox + Personnages publics</Text>
           <Text style={styles.aboutText}>Mode NSFW 100% français</Text>
         </View>
@@ -2110,6 +2232,127 @@ const styles = StyleSheet.create({
     color: '#065f46',
     marginTop: 10,
     lineHeight: 18,
+    fontStyle: 'italic',
+  },
+  // === v5.4.49 - Styles PayPal & Premium ===
+  premiumStatusBox: {
+    backgroundColor: '#fef3c7',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: '#f59e0b',
+  },
+  premiumStatusTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#92400e',
+    textAlign: 'center',
+  },
+  premiumExpiry: {
+    fontSize: 13,
+    color: '#78350f',
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  premiumLifetime: {
+    fontSize: 14,
+    color: '#059669',
+    textAlign: 'center',
+    marginTop: 5,
+    fontWeight: '600',
+  },
+  paypalConfigBox: {
+    backgroundColor: '#e0f2fe',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#0ea5e9',
+  },
+  paypalConfigTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0369a1',
+    marginBottom: 8,
+  },
+  paypalConfigHint: {
+    fontSize: 12,
+    color: '#0c4a6e',
+    marginBottom: 10,
+  },
+  paypalInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#0ea5e9',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: '#1f2937',
+  },
+  paypalSaveButton: {
+    marginTop: 10,
+    backgroundColor: '#0ea5e9',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  paypalSaveButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  premiumPlansBox: {
+    backgroundColor: '#f0fdf4',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#10b981',
+  },
+  premiumPlansTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#065f46',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  premiumPlanCard: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#10b981',
+  },
+  premiumPlanHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  premiumPlanName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#065f46',
+  },
+  premiumPlanPrice: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#059669',
+  },
+  premiumPlanFeatures: {
+    marginTop: 5,
+  },
+  premiumPlanFeature: {
+    fontSize: 12,
+    color: '#047857',
+    marginBottom: 3,
+  },
+  premiumNote: {
+    fontSize: 11,
+    color: '#065f46',
+    textAlign: 'center',
+    marginTop: 10,
     fontStyle: 'italic',
   },
 });
