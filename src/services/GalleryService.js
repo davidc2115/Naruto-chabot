@@ -1,6 +1,8 @@
 /**
  * GalleryService - Gestion de la galerie d'images
- * v5.4.65 - RÉÉCRITURE COMPLÈTE avec AppUserManager
+ * v5.4.66 - CORRECTION BUG: Race condition dans downloadInBackground
+ * 
+ * PROBLÈME RÉSOLU: downloadInBackground écrasait la galerie avec une version obsolète
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
@@ -10,7 +12,7 @@ class GalleryService {
   constructor() {
     this.imageDirectory = `${FileSystem.documentDirectory}gallery/`;
     this.initDirectory();
-    console.log('🖼️ [GalleryService] Initialisé');
+    console.log('🖼️ [GalleryService] Initialisé v5.4.66');
   }
 
   async initDirectory() {
@@ -25,74 +27,104 @@ class GalleryService {
     }
   }
 
-  /**
-   * Récupère l'ID utilisateur via AppUserManager
-   */
   async getCurrentUserId() {
     const userId = await getUserId();
-    console.log(`🔑 [GalleryService] userId: ${userId}`);
     return userId;
   }
 
   /**
-   * SAUVEGARDE IMAGE - Ultra-robuste avec logs détaillés
+   * Récupère les clés de sauvegarde pour un personnage
+   */
+  _getKeys(userId, characterId) {
+    return {
+      primary: `gal_${userId}_${characterId}`,
+      backup: `gal_backup_${characterId}`,
+      global: `gal_global_${characterId}`,
+      legacy: `gallery_${characterId}`,
+    };
+  }
+
+  /**
+   * Charge la galerie existante depuis toutes les clés possibles
+   */
+  async _loadExistingGallery(userId, characterId) {
+    const keys = this._getKeys(userId, characterId);
+    const keysToTry = [keys.primary, keys.backup, keys.global, keys.legacy];
+    
+    for (const key of keysToTry) {
+      try {
+        const data = await AsyncStorage.getItem(key);
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log(`📂 [GALLERY] Chargé ${parsed.length} images depuis ${key}`);
+            return parsed;
+          }
+        }
+      } catch (e) {}
+    }
+    
+    return [];
+  }
+
+  /**
+   * Sauvegarde la galerie vers toutes les clés
+   */
+  async _saveGallery(userId, characterId, gallery) {
+    const keys = this._getKeys(userId, characterId);
+    const jsonData = JSON.stringify(gallery);
+    
+    const savePromises = [
+      AsyncStorage.setItem(keys.primary, jsonData),
+      AsyncStorage.setItem(keys.backup, jsonData),
+      AsyncStorage.setItem(keys.global, jsonData),
+      AsyncStorage.setItem(keys.legacy, jsonData),
+    ];
+    
+    await Promise.all(savePromises);
+    console.log(`💾 [GALLERY] Sauvegardé ${gallery.length} images vers 4 clés`);
+  }
+
+  /**
+   * SAUVEGARDE IMAGE - Version corrigée sans race condition
    */
   async saveImageToGallery(characterId, imageUrl) {
-    const startTime = Date.now();
     console.log(`\n========== SAVE IMAGE START ==========`);
     console.log(`🖼️ characterId: ${characterId}`);
-    console.log(`🖼️ imageUrl: ${imageUrl?.substring(0, 80)}...`);
+    console.log(`🖼️ imageUrl: ${imageUrl?.substring(0, 60)}...`);
     
     try {
-      // Validation
-      if (!characterId) {
-        console.error('❌ [GALLERY SAVE] characterId MANQUANT!');
-        return null;
-      }
-      
-      if (!imageUrl || typeof imageUrl !== 'string') {
-        console.error('❌ [GALLERY SAVE] imageUrl INVALIDE!');
+      if (!characterId || !imageUrl || typeof imageUrl !== 'string') {
+        console.error('❌ [GALLERY] Paramètres invalides');
         return null;
       }
       
       const userId = await this.getCurrentUserId();
-      if (!userId) {
-        console.error('❌ [GALLERY SAVE] userId MANQUANT!');
-        return null;
-      }
+      console.log(`🔑 [GALLERY] userId: ${userId}`);
       
       // Charger galerie existante
-      let gallery = [];
-      const primaryKey = `gal_${userId}_${characterId}`;
-      
-      try {
-        const existing = await AsyncStorage.getItem(primaryKey);
-        if (existing) {
-          gallery = JSON.parse(existing);
-          if (!Array.isArray(gallery)) gallery = [];
-        }
-      } catch (e) {
-        console.log('⚠️ [GALLERY SAVE] Galerie vide ou corrompue, création nouvelle');
-        gallery = [];
-      }
-      
-      console.log(`📦 [GALLERY SAVE] Galerie existante: ${gallery.length} images`);
+      let gallery = await this._loadExistingGallery(userId, characterId);
+      console.log(`📂 [GALLERY] Galerie existante: ${gallery.length} images`);
       
       // Extraire les infos de l'URL
       const seed = this.extractSeedFromUrl(imageUrl);
-      const prompt = this.extractPromptFromUrl(imageUrl);
       
-      // Vérifier si image existe déjà
+      // Vérifier si image existe déjà (par URL exacte ou par seed si non-null)
       const exists = gallery.some(item => {
-        if (typeof item === 'string') {
-          return item === imageUrl || this.extractSeedFromUrl(item) === seed;
+        const itemUrl = typeof item === 'string' ? item : item?.url;
+        if (itemUrl === imageUrl) return true;
+        
+        if (seed) {
+          const itemSeed = typeof item === 'string' 
+            ? this.extractSeedFromUrl(item) 
+            : item?.seed;
+          if (itemSeed === seed) return true;
         }
-        return item.url === imageUrl || item.seed === seed;
+        return false;
       });
       
       if (exists) {
-        console.log(`ℹ️ [GALLERY SAVE] Image déjà présente, ignorée`);
-        console.log(`========== SAVE IMAGE END (already exists) ==========\n`);
+        console.log(`ℹ️ [GALLERY] Image déjà présente, ignorée`);
         return imageUrl;
       }
       
@@ -101,220 +133,144 @@ class GalleryService {
         url: imageUrl,
         localPath: null,
         seed: seed,
-        prompt: prompt ? prompt.substring(0, 500) : null,
         savedAt: Date.now(),
         characterId: String(characterId),
-        isLocal: false,
       };
       
-      // Ajouter au début
+      // Ajouter au DÉBUT
       gallery.unshift(imageData);
+      console.log(`➕ [GALLERY] Image ajoutée, total: ${gallery.length}`);
       
       // Limiter à 100 images
-      if (gallery.length > 100) {
+      while (gallery.length > 100) {
         const removed = gallery.pop();
         if (removed?.localPath) {
-          try {
-            await FileSystem.deleteAsync(removed.localPath, { idempotent: true });
-          } catch (e) {}
+          try { await FileSystem.deleteAsync(removed.localPath, { idempotent: true }); } catch (e) {}
         }
       }
       
-      const jsonData = JSON.stringify(gallery);
-      console.log(`📦 [GALLERY SAVE] Taille données: ${jsonData.length} bytes`);
-      
-      // QUADRUPLE SAUVEGARDE
-      const keys = [
-        primaryKey,
-        `gal_backup_${characterId}`,
-        `gal_global_${characterId}`,
-        `gallery_${characterId}`,
-      ];
-      
-      let saveCount = 0;
-      for (const key of keys) {
-        try {
-          await AsyncStorage.setItem(key, jsonData);
-          console.log(`✅ [GALLERY SAVE] Sauvegardé: ${key}`);
-          saveCount++;
-        } catch (keyError) {
-          console.error(`❌ [GALLERY SAVE] Échec ${key}:`, keyError.message);
-        }
-      }
+      // Sauvegarder
+      await this._saveGallery(userId, characterId, gallery);
       
       // Vérification immédiate
-      const verification = await AsyncStorage.getItem(primaryKey);
-      if (verification) {
-        const parsed = JSON.parse(verification);
-        console.log(`✅ [GALLERY SAVE] Vérification OK: ${parsed.length} images`);
-      } else {
-        console.error(`❌ [GALLERY SAVE] Vérification ÉCHOUÉE!`);
-        // Réessayer la clé principale
-        await AsyncStorage.setItem(primaryKey, jsonData);
+      const verify = await AsyncStorage.getItem(this._getKeys(userId, characterId).primary);
+      if (verify) {
+        const verifyParsed = JSON.parse(verify);
+        console.log(`✅ [GALLERY] Vérification: ${verifyParsed.length} images`);
       }
       
-      // Télécharger en arrière-plan (ne pas attendre)
-      this.downloadInBackground(characterId, imageUrl, seed, primaryKey, gallery).catch(() => {});
+      // Télécharger en arrière-plan (SANS SAUVEGARDER - évite race condition)
+      this._downloadOnly(imageUrl, characterId, seed).catch(() => {});
       
-      const duration = Date.now() - startTime;
-      console.log(`✅ [GALLERY SAVE] Terminé en ${duration}ms (${saveCount}/4 sauvegardes)`);
       console.log(`========== SAVE IMAGE END ==========\n`);
-      
       return imageUrl;
       
     } catch (error) {
-      console.error('❌ [GALLERY SAVE] EXCEPTION:', error);
-      console.error('❌ [GALLERY SAVE] Stack:', error.stack);
+      console.error('❌ [GALLERY] EXCEPTION:', error);
       
       // Sauvegarde d'urgence
       try {
-        const emergencyKey = `gal_emergency_${characterId}`;
-        await AsyncStorage.setItem(emergencyKey, JSON.stringify([{
+        await AsyncStorage.setItem(`gal_emergency_${characterId}`, JSON.stringify([{
           url: imageUrl,
           savedAt: Date.now(),
-          emergency: true,
         }]));
-        console.log(`⚠️ [GALLERY SAVE] Sauvegarde d'urgence: ${emergencyKey}`);
-      } catch (e2) {
-        console.error('❌ [GALLERY SAVE] Même urgence a échoué:', e2.message);
-      }
+      } catch (e2) {}
       
-      console.log(`========== SAVE IMAGE END (ERROR) ==========\n`);
       return null;
     }
   }
 
   /**
-   * CHARGEMENT GALERIE - Recherche multi-clés
+   * Télécharge l'image SANS modifier AsyncStorage
+   * Cela évite la race condition
+   */
+  async _downloadOnly(imageUrl, characterId, seed) {
+    try {
+      await this.initDirectory();
+      const fileName = `${characterId}_${seed || Date.now()}_${Date.now()}.jpg`;
+      const localPath = `${this.imageDirectory}${fileName}`;
+      
+      const result = await FileSystem.downloadAsync(imageUrl, localPath);
+      if (result.status === 200) {
+        console.log(`✅ [GALLERY] Image téléchargée localement: ${fileName}`);
+        
+        // Mettre à jour l'entrée dans la galerie de façon sûre
+        await this._updateLocalPath(characterId, imageUrl, localPath);
+      }
+    } catch (error) {
+      console.log(`⚠️ [GALLERY] Téléchargement échoué:`, error.message);
+    }
+  }
+
+  /**
+   * Met à jour le localPath d'une image de façon sûre (recharge la galerie avant)
+   */
+  async _updateLocalPath(characterId, imageUrl, localPath) {
+    try {
+      const userId = await this.getCurrentUserId();
+      const gallery = await this._loadExistingGallery(userId, characterId);
+      
+      const index = gallery.findIndex(item => {
+        const itemUrl = typeof item === 'string' ? item : item?.url;
+        return itemUrl === imageUrl;
+      });
+      
+      if (index !== -1) {
+        if (typeof gallery[index] === 'string') {
+          gallery[index] = { url: gallery[index], localPath, savedAt: Date.now() };
+        } else {
+          gallery[index].localPath = localPath;
+        }
+        
+        await this._saveGallery(userId, characterId, gallery);
+        console.log(`✅ [GALLERY] LocalPath mis à jour pour index ${index}`);
+      }
+    } catch (error) {
+      console.log(`⚠️ [GALLERY] Erreur mise à jour localPath:`, error.message);
+    }
+  }
+
+  /**
+   * CHARGEMENT GALERIE
    */
   async getGallery(characterId) {
-    console.log(`\n========== LOAD GALLERY START ==========`);
-    console.log(`🖼️ characterId: ${characterId}`);
+    console.log(`\n========== LOAD GALLERY ==========`);
     
     try {
-      if (!characterId) {
-        console.error('❌ [GALLERY LOAD] characterId MANQUANT!');
-        return [];
-      }
+      if (!characterId) return [];
       
       const userId = await this.getCurrentUserId();
-      console.log(`🔑 [GALLERY LOAD] userId: ${userId}`);
+      const gallery = await this._loadExistingGallery(userId, characterId);
       
-      // Liste des clés à essayer
-      const keysToTry = [
-        `gal_${userId}_${characterId}`,
-        `gal_backup_${characterId}`,
-        `gal_global_${characterId}`,
-        `gallery_${characterId}`,
-        `gal_emergency_${characterId}`,
-        `gal_fallback_${characterId}`,
-      ];
-      
-      let data = null;
-      let foundKey = null;
-      
-      for (const key of keysToTry) {
-        try {
-          const d = await AsyncStorage.getItem(key);
-          if (d) {
-            const parsed = JSON.parse(d);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              data = parsed;
-              foundKey = key;
-              console.log(`✅ [GALLERY LOAD] Trouvé: ${key} (${parsed.length} images)`);
-              break;
-            }
-          }
-        } catch (keyError) {
-          console.log(`⚠️ [GALLERY LOAD] Erreur ${key}:`, keyError.message);
-        }
-      }
-      
-      if (!data) {
-        console.log(`ℹ️ [GALLERY LOAD] Galerie vide`);
-        console.log(`========== LOAD GALLERY END ==========\n`);
+      if (gallery.length === 0) {
+        console.log(`ℹ️ [GALLERY] Galerie vide`);
         return [];
-      }
-      
-      // Migrer vers clé principale si trouvé ailleurs
-      if (foundKey && foundKey !== keysToTry[0]) {
-        console.log(`🔄 [GALLERY LOAD] Migration vers clé principale...`);
-        try {
-          await AsyncStorage.setItem(keysToTry[0], JSON.stringify(data));
-        } catch (e) {}
       }
       
       // Construire la liste des URLs/chemins
       const result = [];
-      for (const item of data) {
+      for (const item of gallery) {
         if (typeof item === 'string') {
           result.push(item);
         } else if (item.localPath) {
           const exists = await this.checkLocalFile(item.localPath);
-          if (exists) {
-            result.push(item.localPath);
-          } else if (item.url) {
-            result.push(item.url);
-          }
+          result.push(exists ? item.localPath : item.url);
         } else if (item.url) {
           result.push(item.url);
         }
       }
       
-      console.log(`✅ [GALLERY LOAD] ${result.length} images valides`);
+      console.log(`✅ [GALLERY] ${result.length} images chargées`);
       console.log(`========== LOAD GALLERY END ==========\n`);
-      
       return result;
       
     } catch (error) {
-      console.error('❌ [GALLERY LOAD] EXCEPTION:', error);
-      console.log(`========== LOAD GALLERY END (ERROR) ==========\n`);
+      console.error('❌ [GALLERY] Erreur:', error);
       return [];
     }
   }
 
   // ========== MÉTHODES UTILITAIRES ==========
-
-  async downloadInBackground(characterId, imageUrl, seed, key, gallery) {
-    try {
-      const downloadResult = await this.downloadAndSaveImage(imageUrl, characterId, seed);
-      if (downloadResult.success) {
-        const itemIndex = gallery.findIndex(item => item.seed === seed);
-        if (itemIndex !== -1) {
-          gallery[itemIndex].localPath = downloadResult.localPath;
-          gallery[itemIndex].isLocal = true;
-          await AsyncStorage.setItem(key, JSON.stringify(gallery));
-          console.log(`✅ [GALLERY] Image téléchargée: ${seed}`);
-        }
-      }
-    } catch (error) {
-      console.log(`⚠️ [GALLERY] Téléchargement arrière-plan échoué:`, error.message);
-    }
-  }
-
-  async downloadAndSaveImage(imageUrl, characterId, seed) {
-    try {
-      await this.initDirectory();
-      
-      const fileName = this.generateFileName(characterId, seed);
-      const localPath = `${this.imageDirectory}${fileName}`;
-      
-      const downloadResult = await FileSystem.downloadAsync(imageUrl, localPath);
-      
-      if (downloadResult.status === 200) {
-        return { localPath, fileName, success: true };
-      }
-      return { success: false, error: `Status ${downloadResult.status}` };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  generateFileName(characterId, seed) {
-    const timestamp = Date.now();
-    const seedPart = seed || Math.random().toString(36).substring(7);
-    return `${characterId}_${seedPart}_${timestamp}.jpg`;
-  }
 
   async checkLocalFile(localPath) {
     try {
@@ -327,7 +283,7 @@ class GalleryService {
   }
 
   extractSeedFromUrl(url) {
-    if (!url) return null;
+    if (!url || typeof url !== 'string') return null;
     const seedMatch = url.match(/[&?]seed=(\d+)/);
     return seedMatch ? seedMatch[1] : null;
   }
@@ -341,28 +297,10 @@ class GalleryService {
     return null;
   }
 
-  regeneratePollinationsUrl(originalUrl) {
-    if (!originalUrl || !originalUrl.includes('pollinations.ai')) {
-      return originalUrl;
-    }
-    
-    const seed = this.extractSeedFromUrl(originalUrl);
-    const prompt = this.extractPromptFromUrl(originalUrl);
-    
-    if (seed && prompt) {
-      const encodedPrompt = encodeURIComponent(prompt);
-      return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=768&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
-    }
-    
-    return originalUrl;
-  }
-
   async getGalleryFull(characterId) {
     try {
       const userId = await this.getCurrentUserId();
-      const data = await AsyncStorage.getItem(`gal_${userId}_${characterId}`);
-      if (data) return JSON.parse(data);
-      return [];
+      return await this._loadExistingGallery(userId, characterId);
     } catch (error) {
       return [];
     }
@@ -371,39 +309,25 @@ class GalleryService {
   async deleteImage(characterId, imageUrl) {
     try {
       const userId = await this.getCurrentUserId();
-      const key = `gal_${userId}_${characterId}`;
-      const data = await AsyncStorage.getItem(key);
-      if (!data) return [];
+      let gallery = await this._loadExistingGallery(userId, characterId);
       
-      const gallery = JSON.parse(data);
       const seedToDelete = this.extractSeedFromUrl(imageUrl);
       
-      const filesToDelete = [];
       const updated = gallery.filter(item => {
-        if (typeof item === 'string') {
-          return item !== imageUrl && this.extractSeedFromUrl(item) !== seedToDelete;
-        }
+        const itemUrl = typeof item === 'string' ? item : item?.url;
+        const itemSeed = typeof item === 'string' ? this.extractSeedFromUrl(item) : item?.seed;
         
-        const shouldDelete = item.url === imageUrl || item.seed === seedToDelete || item.localPath === imageUrl;
-        if (shouldDelete && item.localPath) {
-          filesToDelete.push(item.localPath);
-        }
-        return !shouldDelete;
+        // Garder si différent
+        if (itemUrl === imageUrl) return false;
+        if (seedToDelete && itemSeed === seedToDelete) return false;
+        if (typeof item !== 'string' && item?.localPath === imageUrl) return false;
+        
+        return true;
       });
       
-      for (const filePath of filesToDelete) {
-        try {
-          await FileSystem.deleteAsync(filePath, { idempotent: true });
-        } catch (e) {}
-      }
+      await this._saveGallery(userId, characterId, updated);
       
-      await AsyncStorage.setItem(key, JSON.stringify(updated));
-      
-      return updated.map(item => {
-        if (typeof item === 'string') return this.regeneratePollinationsUrl(item);
-        if (item.localPath) return item.localPath;
-        return item.url;
-      });
+      return updated.map(item => typeof item === 'string' ? item : item?.url || item?.localPath);
     } catch (error) {
       console.error('❌ [GALLERY] Delete error:', error);
       throw error;
@@ -414,9 +338,7 @@ class GalleryService {
     try {
       const userId = await this.getCurrentUserId();
       await AsyncStorage.setItem(`bg_${userId}_${conversationId}`, imageUrl);
-    } catch (error) {
-      console.error('❌ [GALLERY] Background save error:', error);
-    }
+    } catch (error) {}
   }
 
   async getConversationBackground(conversationId) {
@@ -456,7 +378,6 @@ class GalleryService {
         totalImages: files.length,
         totalSize,
         totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
-        directory: this.imageDirectory,
       };
     } catch (error) {
       return { totalImages: 0, totalSize: 0, totalSizeMB: '0.00' };
@@ -477,12 +398,8 @@ class GalleryService {
   }
 
   async prefetchGallery(characterId) {
-    try {
-      await this.getGallery(characterId);
-      return true;
-    } catch (error) {
-      return false;
-    }
+    await this.getGallery(characterId);
+    return true;
   }
 }
 

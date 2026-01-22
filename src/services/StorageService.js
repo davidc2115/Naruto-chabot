@@ -1,51 +1,75 @@
 /**
  * StorageService - Gestion du stockage des conversations
- * v5.4.65 - RÉÉCRITURE COMPLÈTE avec AppUserManager
+ * v5.4.66 - CORRECTION: Sauvegarde plus robuste des conversations
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserId } from './AppUserManager';
 
 class StorageService {
   constructor() {
-    console.log('📦 [StorageService] Initialisé');
+    console.log('📦 [StorageService] Initialisé v5.4.66');
   }
 
-  /**
-   * Récupère l'ID utilisateur via AppUserManager
-   */
   async getCurrentUserId() {
-    const userId = await getUserId();
-    console.log(`🔑 [StorageService] userId: ${userId}`);
-    return userId;
+    return await getUserId();
   }
 
   /**
-   * SAUVEGARDE DE CONVERSATION - Ultra-robuste avec logs détaillés
+   * Récupère les clés de sauvegarde pour un personnage
+   */
+  _getKeys(userId, characterId) {
+    return {
+      primary: `conv_${userId}_${characterId}`,
+      backup: `conv_backup_${characterId}`,
+      global: `conv_global_${characterId}`,
+      legacy: `conversation_${characterId}`,
+    };
+  }
+
+  /**
+   * Charge une conversation depuis toutes les clés possibles
+   */
+  async _loadFromAllKeys(userId, characterId) {
+    const keys = this._getKeys(userId, characterId);
+    const keysToTry = [keys.primary, keys.backup, keys.global, keys.legacy];
+    
+    for (const key of keysToTry) {
+      try {
+        const data = await AsyncStorage.getItem(key);
+        if (data) {
+          const parsed = JSON.parse(data);
+          if (parsed.messages && Array.isArray(parsed.messages) && parsed.messages.length > 0) {
+            console.log(`📂 [CONV] Chargé ${parsed.messages.length} msgs depuis ${key}`);
+            return parsed;
+          }
+        }
+      } catch (e) {}
+    }
+    
+    return null;
+  }
+
+  /**
+   * SAUVEGARDE DE CONVERSATION - Ultra-robuste
    */
   async saveConversation(characterId, messages, relationship) {
-    const startTime = Date.now();
-    console.log(`\n========== SAVE CONVERSATION START ==========`);
+    console.log(`\n========== SAVE CONVERSATION ==========`);
     console.log(`📝 characterId: ${characterId}`);
     console.log(`📝 messages: ${messages?.length || 0}`);
-    console.log(`📝 relationship level: ${relationship?.level || 1}`);
     
     try {
-      // Validation
       if (!characterId) {
-        console.error('❌ [SAVE] characterId MANQUANT!');
+        console.error('❌ [CONV] characterId MANQUANT!');
         return false;
       }
       
-      if (!messages || !Array.isArray(messages)) {
-        console.error('❌ [SAVE] messages INVALIDE!');
+      if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        console.error('❌ [CONV] messages VIDE!');
         return false;
       }
       
       const userId = await this.getCurrentUserId();
-      if (!userId) {
-        console.error('❌ [SAVE] userId MANQUANT!');
-        return false;
-      }
+      console.log(`🔑 [CONV] userId: ${userId}`);
       
       // Nettoyer la liste des suppressions
       await this._removeFromDeleted(userId, characterId);
@@ -58,140 +82,122 @@ class StorageService {
         relationship: relationship || { level: 1, affection: 50, trust: 50 },
         lastUpdated: new Date().toISOString(),
         savedAt: Date.now(),
-        version: '5.4.65',
+        messageCount: messages.length,
+        version: '5.4.66',
       };
       
       const jsonData = JSON.stringify(data);
-      console.log(`📦 [SAVE] Taille données: ${jsonData.length} bytes`);
+      console.log(`📦 [CONV] Taille: ${jsonData.length} bytes`);
       
       // QUADRUPLE SAUVEGARDE
-      const keys = [
-        `conv_${userId}_${characterId}`,
-        `conv_backup_${characterId}`,
-        `conv_global_${characterId}`,
-        `conversation_${characterId}`,
+      const keys = this._getKeys(userId, characterId);
+      
+      const savePromises = [
+        AsyncStorage.setItem(keys.primary, jsonData),
+        AsyncStorage.setItem(keys.backup, jsonData),
+        AsyncStorage.setItem(keys.global, jsonData),
+        AsyncStorage.setItem(keys.legacy, jsonData),
       ];
       
-      let saveCount = 0;
-      for (const key of keys) {
-        try {
-          await AsyncStorage.setItem(key, jsonData);
-          console.log(`✅ [SAVE] Sauvegardé: ${key}`);
-          saveCount++;
-        } catch (keyError) {
-          console.error(`❌ [SAVE] Échec ${key}:`, keyError.message);
-        }
-      }
+      await Promise.all(savePromises);
+      console.log(`💾 [CONV] Sauvegardé vers 4 clés`);
       
       // Vérification immédiate
-      const verifyKey = keys[0];
-      const verification = await AsyncStorage.getItem(verifyKey);
-      if (verification) {
-        const parsed = JSON.parse(verification);
-        console.log(`✅ [SAVE] Vérification OK: ${parsed.messages?.length || 0} messages`);
+      const verify = await AsyncStorage.getItem(keys.primary);
+      if (verify) {
+        const verifyParsed = JSON.parse(verify);
+        console.log(`✅ [CONV] Vérification: ${verifyParsed.messages?.length || 0} messages`);
+        
+        if (verifyParsed.messages?.length !== messages.length) {
+          console.error(`❌ [CONV] MISMATCH! Sauvé: ${messages.length}, Vérifié: ${verifyParsed.messages?.length}`);
+          // Réessayer
+          await AsyncStorage.setItem(keys.primary, jsonData);
+        }
       } else {
-        console.error(`❌ [SAVE] Vérification ÉCHOUÉE!`);
+        console.error(`❌ [CONV] Vérification ÉCHOUÉE - données non trouvées!`);
       }
       
       // Mettre à jour l'index
       await this._updateIndex(userId, characterId);
       
-      const duration = Date.now() - startTime;
-      console.log(`✅ [SAVE] Terminé en ${duration}ms (${saveCount}/4 sauvegardes)`);
       console.log(`========== SAVE CONVERSATION END ==========\n`);
-      
-      return saveCount > 0;
+      return true;
       
     } catch (error) {
-      console.error('❌ [SAVE] EXCEPTION:', error);
-      console.error('❌ [SAVE] Stack:', error.stack);
+      console.error('❌ [CONV] EXCEPTION:', error);
       
       // Sauvegarde d'urgence
       try {
-        const emergencyKey = `conv_emergency_${characterId}`;
-        await AsyncStorage.setItem(emergencyKey, JSON.stringify({
+        await AsyncStorage.setItem(`conv_emergency_${characterId}`, JSON.stringify({
           characterId: String(characterId),
           messages: messages || [],
           relationship: relationship || { level: 1 },
           savedAt: Date.now(),
-          emergency: true,
         }));
-        console.log(`⚠️ [SAVE] Sauvegarde d'urgence: ${emergencyKey}`);
-      } catch (e2) {
-        console.error('❌ [SAVE] Même urgence a échoué:', e2.message);
-      }
+        console.log(`⚠️ [CONV] Sauvegarde d'urgence effectuée`);
+      } catch (e2) {}
       
-      console.log(`========== SAVE CONVERSATION END (ERROR) ==========\n`);
       return false;
     }
   }
 
   /**
-   * CHARGEMENT DE CONVERSATION - Recherche multi-clés
+   * CHARGEMENT DE CONVERSATION
    */
   async loadConversation(characterId) {
-    console.log(`\n========== LOAD CONVERSATION START ==========`);
+    console.log(`\n========== LOAD CONVERSATION ==========`);
     console.log(`📝 characterId: ${characterId}`);
     
     try {
       if (!characterId) {
-        console.error('❌ [LOAD] characterId MANQUANT!');
+        console.error('❌ [CONV] characterId MANQUANT!');
         return null;
       }
       
       const userId = await this.getCurrentUserId();
-      console.log(`🔑 [LOAD] userId: ${userId}`);
+      console.log(`🔑 [CONV] userId: ${userId}`);
       
-      // Liste des clés à essayer (ordre de priorité)
-      const keysToTry = [
-        `conv_${userId}_${characterId}`,
-        `conv_backup_${characterId}`,
-        `conv_global_${characterId}`,
-        `conversation_${characterId}`,
+      // Essayer de charger depuis toutes les clés
+      const data = await this._loadFromAllKeys(userId, characterId);
+      
+      if (data) {
+        console.log(`✅ [CONV] Chargé: ${data.messages?.length || 0} messages`);
+        console.log(`========== LOAD CONVERSATION END ==========\n`);
+        return data;
+      }
+      
+      // Essayer les clés d'urgence
+      const emergencyKeys = [
         `conv_emergency_${characterId}`,
         `conv_fallback_${characterId}`,
         `conv_default_${characterId}`,
       ];
       
-      for (const key of keysToTry) {
+      for (const key of emergencyKeys) {
         try {
-          const data = await AsyncStorage.getItem(key);
-          if (data) {
-            const parsed = JSON.parse(data);
-            if (parsed.messages && Array.isArray(parsed.messages) && parsed.messages.length > 0) {
-              console.log(`✅ [LOAD] Trouvé: ${key} (${parsed.messages.length} messages)`);
-              
-              // Si trouvé dans une clé alternative, sauvegarder vers la clé principale
-              if (key !== keysToTry[0]) {
-                console.log(`🔄 [LOAD] Migration vers clé principale...`);
-                // Ne pas await pour ne pas bloquer
-                this.saveConversation(characterId, parsed.messages, parsed.relationship).catch(() => {});
-              }
-              
-              console.log(`========== LOAD CONVERSATION END ==========\n`);
+          const emergencyData = await AsyncStorage.getItem(key);
+          if (emergencyData) {
+            const parsed = JSON.parse(emergencyData);
+            if (parsed.messages && parsed.messages.length > 0) {
+              console.log(`🔄 [CONV] Récupéré depuis ${key}: ${parsed.messages.length} messages`);
+              // Migrer vers les clés principales
+              await this.saveConversation(characterId, parsed.messages, parsed.relationship);
               return parsed;
             }
           }
-        } catch (keyError) {
-          console.log(`⚠️ [LOAD] Erreur ${key}:`, keyError.message);
-        }
+        } catch (e) {}
       }
       
-      // Aucune conversation trouvée
-      console.log(`ℹ️ [LOAD] Aucune conversation trouvée pour ${characterId}`);
+      console.log(`ℹ️ [CONV] Aucune conversation trouvée`);
       console.log(`========== LOAD CONVERSATION END ==========\n`);
       return null;
       
     } catch (error) {
-      console.error('❌ [LOAD] EXCEPTION:', error);
-      console.log(`========== LOAD CONVERSATION END (ERROR) ==========\n`);
+      console.error('❌ [CONV] EXCEPTION:', error);
       return null;
     }
   }
 
-  /**
-   * Supprime un characterId de la liste des conversations supprimées
-   */
   async _removeFromDeleted(userId, characterId) {
     try {
       const deletedKey = `deleted_conversations_${userId}`;
@@ -202,17 +208,11 @@ class StorageService {
         if (deletedList.includes(charIdStr)) {
           const newList = deletedList.filter(id => id !== charIdStr);
           await AsyncStorage.setItem(deletedKey, JSON.stringify(newList));
-          console.log(`✅ [SAVE] Retiré de la liste supprimée`);
         }
       }
-    } catch (e) {
-      // Ignorer les erreurs
-    }
+    } catch (e) {}
   }
 
-  /**
-   * Met à jour l'index des conversations
-   */
   async _updateIndex(userId, characterId) {
     try {
       const indexKey = `conv_index_${userId}`;
@@ -227,16 +227,10 @@ class StorageService {
       if (!index.includes(charIdStr)) {
         index.push(charIdStr);
         await AsyncStorage.setItem(indexKey, JSON.stringify(index));
-        console.log(`📋 [SAVE] Index mis à jour: ${index.length} conversations`);
       }
-    } catch (e) {
-      // Ignorer les erreurs d'index
-    }
+    } catch (e) {}
   }
 
-  /**
-   * Récupère toutes les conversations
-   */
   async getAllConversations() {
     console.log(`\n========== GET ALL CONVERSATIONS ==========`);
     
@@ -245,21 +239,19 @@ class StorageService {
       const result = [];
       const seenIds = new Set();
       
-      // Charger la liste des supprimées
       let deletedIds = [];
       try {
         const deletedData = await AsyncStorage.getItem(`deleted_conversations_${userId}`);
         if (deletedData) deletedIds = JSON.parse(deletedData);
       } catch (e) {}
       
-      // Récupérer toutes les clés
       const allKeys = await AsyncStorage.getAllKeys();
-      const convKeys = allKeys.filter(key => {
-        if (key.includes('index') || key.includes('deleted')) return false;
-        return key.startsWith('conv_') || key.startsWith('conversation_');
-      });
+      const convKeys = allKeys.filter(key => 
+        (key.startsWith('conv_') || key.startsWith('conversation_')) &&
+        !key.includes('index') && !key.includes('deleted')
+      );
       
-      console.log(`🔍 [ALL] ${convKeys.length} clés de conversation trouvées`);
+      console.log(`🔍 [ALL] ${convKeys.length} clés trouvées`);
       
       for (const key of convKeys) {
         try {
@@ -271,10 +263,8 @@ class StorageService {
           
           if (!Array.isArray(messages) || messages.length === 0) continue;
           
-          // Extraire characterId
           let characterId = parsed.characterId;
           if (!characterId) {
-            // Essayer d'extraire de la clé
             const parts = key.split('_');
             characterId = parts[parts.length - 1];
           }
@@ -283,12 +273,10 @@ class StorageService {
           
           const charIdStr = String(characterId);
           
-          // Ignorer les supprimées et doublons
           if (deletedIds.includes(charIdStr)) continue;
           if (seenIds.has(charIdStr)) continue;
           seenIds.add(charIdStr);
           
-          // Normaliser les messages
           const normalizedMessages = messages
             .filter(m => m && m.content)
             .map(m => ({
@@ -309,14 +297,12 @@ class StorageService {
         } catch (e) {}
       }
       
-      // Trier par date
       result.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
       
-      console.log(`✅ [ALL] ${result.length} conversations chargées`);
+      console.log(`✅ [ALL] ${result.length} conversations`);
       console.log(`========== GET ALL CONVERSATIONS END ==========\n`);
       
       return result;
-      
     } catch (error) {
       console.error('❌ [ALL] EXCEPTION:', error);
       return [];
@@ -328,13 +314,12 @@ class StorageService {
   }
 
   async deleteConversation(characterId) {
-    console.log(`🗑️ [DELETE] Suppression: ${characterId}`);
+    console.log(`🗑️ [DELETE] ${characterId}`);
     
     try {
       const userId = await this.getCurrentUserId();
       const charIdStr = String(characterId);
       
-      // Trouver et supprimer les clés de conversation
       const allKeys = await AsyncStorage.getAllKeys();
       const keysToDelete = allKeys.filter(key => {
         if (key.includes('gallery') || key.includes('gal_')) return false;
@@ -343,7 +328,6 @@ class StorageService {
       
       for (const key of keysToDelete) {
         await AsyncStorage.removeItem(key);
-        console.log(`✅ [DELETE] Supprimé: ${key}`);
       }
       
       // Ajouter à la liste des supprimées
@@ -358,6 +342,7 @@ class StorageService {
         }
       } catch (e) {}
       
+      console.log(`✅ [DELETE] Supprimé`);
       return true;
     } catch (error) {
       console.error('❌ [DELETE] EXCEPTION:', error);
@@ -385,9 +370,7 @@ class StorageService {
     try {
       const userId = await this.getCurrentUserId();
       await AsyncStorage.setItem(`rel_${userId}_${characterId}`, JSON.stringify(relationship));
-    } catch (error) {
-      console.error('❌ [REL] Save error:', error);
-    }
+    } catch (error) {}
   }
 
   async loadRelationship(characterId) {
@@ -396,7 +379,6 @@ class StorageService {
       const data = await AsyncStorage.getItem(`rel_${userId}_${characterId}`);
       if (data) return JSON.parse(data);
       
-      // Migration
       const oldData = await AsyncStorage.getItem(`relationship_${characterId}`);
       if (oldData) {
         const parsed = JSON.parse(oldData);
@@ -489,12 +471,8 @@ class StorageService {
     };
   }
 
-  /**
-   * Réinitialise le cache utilisateur
-   */
   resetUserCache() {
-    // Plus nécessaire avec AppUserManager, mais garder pour compatibilité
-    console.log('🔄 [StorageService] resetUserCache appelé');
+    console.log('🔄 [StorageService] resetUserCache');
   }
 }
 
