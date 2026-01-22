@@ -1,62 +1,99 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from './AuthService';
 
+// v5.4.59 - ID GLOBAL PARTAGÉ entre tous les services
+let GLOBAL_USER_ID = null;
+
 class StorageService {
   constructor() {
-    // Cache pour l'ID utilisateur (évite les appels répétés)
+    // Cache pour l'ID utilisateur
     this._cachedUserId = null;
     this._lastUserIdCheck = 0;
   }
 
   /**
-   * Récupère l'ID de l'utilisateur courant pour isoler les données
-   * v5.3.43 - Plus robuste avec cache et fallback device ID persistant
+   * v5.4.59 - Récupère l'ID utilisateur UNIQUE et PERSISTANT
+   * Cet ID est partagé avec GalleryService pour cohérence
    */
   async getCurrentUserId() {
     try {
-      // Utiliser le cache si récent (moins de 5 secondes)
-      const now = Date.now();
-      if (this._cachedUserId && (now - this._lastUserIdCheck) < 5000) {
+      // v5.4.59 - Si on a déjà un ID global, TOUJOURS le réutiliser
+      if (GLOBAL_USER_ID) {
+        return GLOBAL_USER_ID;
+      }
+
+      // Utiliser le cache mémoire si disponible
+      if (this._cachedUserId) {
+        GLOBAL_USER_ID = this._cachedUserId;
         return this._cachedUserId;
       }
 
-      // 1. Essayer AuthService
+      // 1. PRIORITÉ: ID device persistant (ne change JAMAIS)
+      let deviceId = await AsyncStorage.getItem('device_user_id');
+      if (deviceId) {
+        console.log('🔑 [Storage] ID device existant:', deviceId);
+        this._cachedUserId = deviceId;
+        GLOBAL_USER_ID = deviceId;
+        return deviceId;
+      }
+
+      // 2. Essayer AuthService
       const user = AuthService.getCurrentUser();
       if (user?.id) {
+        // Sauvegarder aussi comme device ID pour persistance
+        await AsyncStorage.setItem('device_user_id', user.id);
         this._cachedUserId = user.id;
-        this._lastUserIdCheck = now;
+        GLOBAL_USER_ID = user.id;
+        console.log('🔑 [Storage] ID depuis Auth, sauvegardé:', user.id);
         return user.id;
       }
 
-      // 2. Essayer le token stocké
+      // 3. Essayer le token stocké
       const storedUser = await AsyncStorage.getItem('current_user');
       if (storedUser) {
         try {
           const parsed = JSON.parse(storedUser);
           if (parsed.id) {
+            await AsyncStorage.setItem('device_user_id', parsed.id);
             this._cachedUserId = parsed.id;
-            this._lastUserIdCheck = now;
+            GLOBAL_USER_ID = parsed.id;
+            console.log('🔑 [Storage] ID depuis stored user:', parsed.id);
             return parsed.id;
           }
-        } catch (e) {
-          // JSON invalide, ignorer
-        }
+        } catch (e) {}
       }
 
-      // 3. Utiliser ou créer un ID device PERSISTANT (ne change jamais)
-      let deviceId = await AsyncStorage.getItem('device_user_id');
-      if (!deviceId) {
-        deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-        await AsyncStorage.setItem('device_user_id', deviceId);
-        console.log('📱 Nouvel ID device créé:', deviceId);
-      }
-
+      // 4. Créer un nouvel ID device PERSISTANT
+      deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+      await AsyncStorage.setItem('device_user_id', deviceId);
       this._cachedUserId = deviceId;
-      this._lastUserIdCheck = now;
+      GLOBAL_USER_ID = deviceId;
+      console.log('📱 [Storage] Nouvel ID device créé:', deviceId);
       return deviceId;
     } catch (error) {
-      console.error('Error getting user ID:', error);
-      return 'default';
+      console.error('❌ [Storage] Error getting user ID:', error);
+      // Fallback ultime - créer un ID qui persiste en mémoire
+      if (!GLOBAL_USER_ID) {
+        GLOBAL_USER_ID = 'fallback_' + Date.now();
+      }
+      return GLOBAL_USER_ID;
+    }
+  }
+  
+  /**
+   * v5.4.59 - Retourne l'ID global (pour partage avec GalleryService)
+   */
+  getGlobalUserId() {
+    return GLOBAL_USER_ID;
+  }
+  
+  /**
+   * v5.4.59 - Définit l'ID global (appelé par GalleryService si besoin)
+   */
+  setGlobalUserId(id) {
+    if (id) {
+      GLOBAL_USER_ID = id;
+      this._cachedUserId = id;
     }
   }
 
@@ -70,16 +107,21 @@ class StorageService {
   }
 
   // Conversations - ISOLÉES PAR UTILISATEUR
-  // v5.3.68 - Sauvegarde ULTRA-ROBUSTE avec triple backup et vérification
+  // v5.4.59 - Sauvegarde ULTRA-ROBUSTE avec logs détaillés
   async saveConversation(characterId, messages, relationship) {
     try {
       if (!characterId) {
-        console.error('❌ saveConversation: characterId manquant!');
+        console.error('❌ [CONV SAVE] characterId manquant!');
+        return;
+      }
+      
+      if (!messages || messages.length === 0) {
+        console.log('⚠️ [CONV SAVE] Pas de messages à sauvegarder');
         return;
       }
       
       const userId = await this.getCurrentUserId();
-      console.log(`💾 Sauvegarde conversation: userId=${userId}, charId=${characterId}, msgs=${messages?.length || 0}`);
+      console.log(`💾 [CONV SAVE] userId=${userId}, charId=${characterId}, msgs=${messages.length}`);
       
       // v5.4.22 - SUPPRIMER de la liste des conversations supprimées si présent
       // Cela permet de réafficher une conversation qui a été redémarrée
@@ -99,7 +141,7 @@ class StorageService {
         console.log('⚠️ Erreur nettoyage liste supprimée:', e.message);
       }
       
-      // Utiliser UN SEUL format de clé simple et prévisible
+      // v5.4.59 - Format de clé simple et prévisible
       const key = `conv_${userId}_${characterId}`;
       const data = {
         characterId: String(characterId),
@@ -108,35 +150,45 @@ class StorageService {
         relationship: relationship || { level: 1, affection: 50, trust: 50 },
         lastUpdated: new Date().toISOString(),
         savedAt: Date.now(),
-        version: '5.3.68',
+        version: '5.4.59',
       };
       
-      // v5.3.68 - TRIPLE SAUVEGARDE pour garantir la persistance
+      // v5.4.59 - QUADRUPLE SAUVEGARDE pour garantir la persistance
       const jsonData = JSON.stringify(data);
       
       // 1. Clé principale
       await AsyncStorage.setItem(key, jsonData);
+      console.log(`💾 [CONV SAVE] Clé principale: ${key}`);
       
       // 2. Backup global (sans userId)
       const backupKey = `conv_backup_${characterId}`;
       await AsyncStorage.setItem(backupKey, jsonData);
+      console.log(`💾 [CONV SAVE] Backup: ${backupKey}`);
       
       // 3. Backup de secours
       const fallbackKey = `conv_fallback_${characterId}`;
       await AsyncStorage.setItem(fallbackKey, jsonData);
       
-      console.log(`✅ Conversation sauvegardée: ${key} (${messages?.length || 0} messages) + 2 backups`);
+      // 4. Clé simple (fallback ultime)
+      const simpleKey = `conversation_${characterId}`;
+      await AsyncStorage.setItem(simpleKey, jsonData);
       
-      // Vérifier que la sauvegarde principale a fonctionné
+      console.log(`✅ [CONV SAVE] ${messages.length} messages sauvegardés + 3 backups`);
+      
+      // Vérification immédiate
       const verify = await AsyncStorage.getItem(key);
       if (!verify) {
-        console.error(`❌ ÉCHEC vérification sauvegarde: ${key}`);
-        // Réessayer une fois
+        console.error(`❌ [CONV SAVE] ÉCHEC vérification: ${key}`);
         await AsyncStorage.setItem(key, jsonData);
         const verify2 = await AsyncStorage.getItem(key);
         if (verify2) {
-          console.log('✅ Sauvegarde réussie après retry');
+          console.log('✅ [CONV SAVE] Réessai réussi');
+        } else {
+          console.error('❌ [CONV SAVE] Réessai échoué aussi!');
         }
+      } else {
+        const parsed = JSON.parse(verify);
+        console.log(`✅ [CONV SAVE] Vérification OK: ${parsed.messages?.length} messages`);
       }
       
       // AUSSI sauvegarder dans un index de conversations pour récupération facile
@@ -183,23 +235,25 @@ class StorageService {
     }
   }
 
-  // v5.3.49 - Chargement robuste avec recherche multi-clés
+  // v5.4.59 - Chargement robuste avec logs détaillés
   async loadConversation(characterId) {
+    console.log(`📖 [CONV LOAD] Début chargement: ${characterId}`);
+    
     try {
       if (!characterId) {
-        console.log('⚠️ loadConversation: characterId manquant');
+        console.log('⚠️ [CONV LOAD] characterId manquant');
         return null;
       }
       
       const userId = await this.getCurrentUserId();
-      console.log(`📖 Chargement conversation: userId=${userId}, charId=${characterId}`);
-      
       const key = `conv_${userId}_${characterId}`;
+      console.log(`🔑 [CONV LOAD] Clé principale: ${key}`);
+      
       let data = await AsyncStorage.getItem(key);
       
       if (data) {
         const parsed = JSON.parse(data);
-        console.log(`✅ Conversation chargée: ${key} (${parsed.messages?.length || 0} messages)`);
+        console.log(`✅ [CONV LOAD] Trouvé: ${parsed.messages?.length || 0} messages`);
         
         // S'assurer que cette conversation est dans l'index
         try {
@@ -216,32 +270,44 @@ class StorageService {
         return parsed;
       }
       
-      // v5.3.68 - Essayer TOUS les formats de clés possibles (dans l'ordre de priorité)
+      console.log(`⚠️ [CONV LOAD] Pas trouvé avec clé principale, essai backups...`);
+      
+      // v5.4.59 - Essayer TOUS les formats de clés possibles
       const alternativeKeys = [
-        `conv_backup_${characterId}`,         // Backup global
-        `conv_fallback_${characterId}`,       // Backup de secours v5.3.68
-        `conv_default_${characterId}`,        // Sauvegarde de secours
-        `conv_emergency_${characterId}`,      // Sauvegarde d'urgence
-        `conv_anonymous_${characterId}`,      // Legacy anonymous
-        `conversation_${characterId}`,        // Ancien format
+        `conv_backup_${characterId}`,
+        `conv_fallback_${characterId}`,
+        `conversation_${characterId}`,
+        `conv_default_${characterId}`,
+        `conv_emergency_${characterId}`,
+        `conv_anonymous_${characterId}`,
       ];
+      
+      // Aussi essayer avec d'autres userId possibles
+      const deviceId = await AsyncStorage.getItem('device_user_id');
+      if (deviceId && deviceId !== userId) {
+        alternativeKeys.unshift(`conv_${deviceId}_${characterId}`);
+      }
+      alternativeKeys.push(`conv_default_${characterId}`);
       
       for (const altKey of alternativeKeys) {
         try {
           const altData = await AsyncStorage.getItem(altKey);
           if (altData) {
             const parsed = JSON.parse(altData);
-            console.log(`🔄 Conversation trouvée avec clé alternative: ${altKey}`);
-            // Sauvegarder avec le bon format (ceci met aussi à jour l'index)
-            await this.saveConversation(characterId, parsed.messages, parsed.relationship);
-            return parsed;
+            if (parsed.messages && parsed.messages.length > 0) {
+              console.log(`🔄 [CONV LOAD] Trouvé via backup: ${altKey} (${parsed.messages.length} msgs)`);
+              // Migrer vers la clé principale
+              await this.saveConversation(characterId, parsed.messages, parsed.relationship);
+              return parsed;
+            }
           }
         } catch (e) {}
       }
       
+      console.log(`ℹ️ [CONV LOAD] Aucune conversation trouvée pour ${characterId}`);
       return null;
     } catch (error) {
-      console.error('Error loading conversation:', error);
+      console.error('❌ [CONV LOAD] Error:', error.message);
       return null;
     }
   }

@@ -2,20 +2,26 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import AuthService from './AuthService';
 
+// v5.4.59 - Importer StorageService pour partager l'ID global
+let StorageService = null;
+try {
+  StorageService = require('./StorageService').default;
+} catch (e) {
+  console.log('StorageService non disponible pour Gallery');
+}
+
 /**
  * Service de gestion de galerie d'images
- * v5.4.58 - Stockage LOCAL sur le téléphone pour persistance permanente
- * FIX: Amélioration sauvegarde et chargement galerie
+ * v5.4.59 - Stockage LOCAL avec ID partagé avec StorageService
+ * FIX: Même ID utilisateur pour conversations ET galerie
  */
 class GalleryService {
   constructor() {
     // Répertoire de base pour stocker les images
     this.imageDirectory = `${FileSystem.documentDirectory}gallery/`;
     this.initDirectory();
-    // Cache pour l'ID utilisateur - v5.4.58 ID fixe pour cohérence
+    // Cache pour l'ID utilisateur
     this._cachedUserId = null;
-    this._lastUserIdCheck = 0;
-    this._fixedUserId = null; // ID fixe une fois obtenu
   }
 
   /**
@@ -34,67 +40,61 @@ class GalleryService {
   }
 
   /**
-   * Récupère l'ID de l'utilisateur courant
-   * v5.4.58 - TOUJOURS utiliser le même ID pour cohérence galerie
+   * v5.4.59 - Récupère l'ID utilisateur PARTAGÉ avec StorageService
+   * Garantit que conversations et galerie utilisent le MÊME ID
    */
   async getCurrentUserId() {
     try {
-      // v5.4.58 - Si on a déjà un ID fixe, le réutiliser TOUJOURS
-      if (this._fixedUserId) {
-        return this._fixedUserId;
-      }
-
-      // Utiliser le cache si récent (moins de 30 secondes)
-      const now = Date.now();
-      if (this._cachedUserId && (now - this._lastUserIdCheck) < 30000) {
+      // v5.4.59 - Utiliser le cache mémoire si disponible
+      if (this._cachedUserId) {
         return this._cachedUserId;
       }
 
-      // 1. Essayer AuthService
-      const user = AuthService.getCurrentUser();
-      if (user?.id) {
-        this._cachedUserId = user.id;
-        this._fixedUserId = user.id; // Fixer cet ID
-        this._lastUserIdCheck = now;
-        console.log('🔑 Gallery User ID (Auth):', user.id);
-        return user.id;
+      // v5.4.59 - Essayer d'obtenir l'ID depuis StorageService (source de vérité)
+      if (StorageService) {
+        const globalId = StorageService.getGlobalUserId();
+        if (globalId) {
+          this._cachedUserId = globalId;
+          console.log('🔑 [Gallery] ID depuis StorageService:', globalId);
+          return globalId;
+        }
+        
+        // Sinon, demander à StorageService de le créer/récupérer
+        const storageId = await StorageService.getCurrentUserId();
+        if (storageId) {
+          this._cachedUserId = storageId;
+          console.log('🔑 [Gallery] ID créé via StorageService:', storageId);
+          return storageId;
+        }
       }
 
-      // 2. Essayer le token stocké
-      const storedUser = await AsyncStorage.getItem('current_user');
-      if (storedUser) {
-        try {
-          const parsed = JSON.parse(storedUser);
-          if (parsed.id) {
-            this._cachedUserId = parsed.id;
-            this._fixedUserId = parsed.id; // Fixer cet ID
-            this._lastUserIdCheck = now;
-            console.log('🔑 Gallery User ID (Stored):', parsed.id);
-            return parsed.id;
-          }
-        } catch (e) {}
-      }
-
-      // 3. Utiliser ou créer un ID device PERSISTANT
+      // Fallback: récupérer directement depuis AsyncStorage
       let deviceId = await AsyncStorage.getItem('device_user_id');
-      if (!deviceId) {
-        deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-        await AsyncStorage.setItem('device_user_id', deviceId);
-        console.log('📱 Nouvel ID device créé (Gallery):', deviceId);
+      if (deviceId) {
+        this._cachedUserId = deviceId;
+        console.log('🔑 [Gallery] ID device direct:', deviceId);
+        return deviceId;
       }
 
+      // Créer un nouvel ID si nécessaire
+      deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+      await AsyncStorage.setItem('device_user_id', deviceId);
       this._cachedUserId = deviceId;
-      this._fixedUserId = deviceId; // Fixer cet ID
-      this._lastUserIdCheck = now;
-      console.log('🔑 Gallery User ID (Device):', deviceId);
+      
+      // Informer StorageService du nouvel ID
+      if (StorageService) {
+        StorageService.setGlobalUserId(deviceId);
+      }
+      
+      console.log('📱 [Gallery] Nouvel ID device créé:', deviceId);
       return deviceId;
     } catch (error) {
-      console.error('Error getting user ID (Gallery):', error);
-      // v5.4.58 - Utiliser un ID fixe même en cas d'erreur
-      if (!this._fixedUserId) {
-        this._fixedUserId = 'gallery_default';
+      console.error('❌ [Gallery] Error getting user ID:', error);
+      // Fallback ultime
+      if (!this._cachedUserId) {
+        this._cachedUserId = 'default_user';
       }
-      return this._fixedUserId;
+      return this._cachedUserId;
     }
   }
 
