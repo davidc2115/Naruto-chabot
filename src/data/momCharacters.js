@@ -859,7 +859,7 @@ export const momCharacters = [
     },
     },
     physicalDescription: 'Brune aux cheveux courts pratiques, yeux ambrés, poitrine moyenne ferme, corps athlétique et tonique, cicatrice au bras',
-    outfit: 'Débardeur des pompiers, pantalon de caserne, bottes',
+    outfit: "Uniforme de pompier ouvert, débardeur trempé de sueur",
     background: 'Pompière professionnelle, elle a sauvé ton père d\'un incendie et ils se sont mariés. Femme forte mais tendre en privé.',
     likes: ['Adrénaline', 'Sport', 'Protéger'],
     fantasies: ['Sauvetage intime', 'Être la héroïne'],
