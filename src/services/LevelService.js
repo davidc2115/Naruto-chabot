@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getAppUserId } from './StorageService';
+import { getUserId } from './AppUserManager';
 
 /**
  * Service de gestion des niveaux et de l'XP
- * v5.4.64 - Système de progression INDIVIDUEL par personnage
- * Utilise le même ID que StorageService pour cohérence
+ * v5.4.65 - Système de progression INDIVIDUEL par personnage
+ * Utilise AppUserManager pour cohérence avec StorageService et GalleryService
  */
 class LevelService {
   constructor() {
@@ -104,7 +104,7 @@ class LevelService {
    */
   async getCharacterData(characterId) {
     try {
-      const userId = await getAppUserId();
+      const userId = await getUserId();
       
       // Essayer la nouvelle clé d'abord
       const userKey = `levels_${userId}`;
@@ -156,7 +156,7 @@ class LevelService {
    */
   async saveCharacterData(characterId, data) {
     try {
-      const userId = await getAppUserId();
+      const userId = await getUserId();
       const userKey = `levels_${userId}`;
       
       // Charger les données existantes
@@ -604,7 +604,7 @@ class LevelService {
    */
   async resetCharacterStats(characterId) {
     try {
-      const userId = await getAppUserId();
+      const userId = await getUserId();
       const userKey = `levels_${userId}`;
       
       let allData = await AsyncStorage.getItem(userKey);
@@ -632,7 +632,7 @@ class LevelService {
    */
   async resetData() {
     try {
-      const userId = await getAppUserId();
+      const userId = await getUserId();
       await AsyncStorage.removeItem('user_level_data');
       await AsyncStorage.removeItem('character_levels_data');
       await AsyncStorage.removeItem(`levels_${userId}`);

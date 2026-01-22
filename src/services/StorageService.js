@@ -1,221 +1,156 @@
+/**
+ * StorageService - Gestion du stockage des conversations
+ * v5.4.65 - RÉÉCRITURE COMPLÈTE avec AppUserManager
+ */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-/**
- * Service de stockage des conversations
- * v5.4.64 - CORRECTION CRITIQUE: ID utilisateur unique et synchronisé
- * 
- * PROBLÈME RÉSOLU: Condition de concurrence où StorageService et GalleryService
- * créaient des device_user_id différents, causant la perte des données
- */
-
-// ========== ID UTILISATEUR GLOBAL ==========
-// Variable globale partagée - UNE SEULE source de vérité
-let GLOBAL_APP_USER_ID = null;
-
-/**
- * Obtient l'ID utilisateur de façon SYNCHRONE si disponible
- * Ou ASYNCHRONE si première fois
- */
-export async function getAppUserId() {
-  // Si déjà en mémoire, retourner immédiatement
-  if (GLOBAL_APP_USER_ID) {
-    return GLOBAL_APP_USER_ID;
-  }
-  
-  try {
-    // Essayer de charger depuis AsyncStorage
-    let deviceId = await AsyncStorage.getItem('app_user_id');
-    
-    if (!deviceId) {
-      // Migrer depuis l'ancien format si existe
-      deviceId = await AsyncStorage.getItem('device_user_id');
-      
-      if (!deviceId) {
-        // Créer un nouvel ID UNIQUE
-        deviceId = 'user_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-        console.log('📱 NOUVEL ID créé:', deviceId);
-      }
-      
-      // Sauvegarder avec la nouvelle clé
-      await AsyncStorage.setItem('app_user_id', deviceId);
-    }
-    
-    // Mettre en cache global
-    GLOBAL_APP_USER_ID = deviceId;
-    console.log('📱 ID utilisateur chargé:', deviceId);
-    return deviceId;
-    
-  } catch (error) {
-    console.error('❌ Erreur getAppUserId:', error);
-    // Fallback d'urgence
-    if (!GLOBAL_APP_USER_ID) {
-      GLOBAL_APP_USER_ID = 'fallback_user';
-    }
-    return GLOBAL_APP_USER_ID;
-  }
-}
-
-/**
- * Retourne l'ID de façon synchrone (peut être null si pas encore initialisé)
- */
-export function getAppUserIdSync() {
-  return GLOBAL_APP_USER_ID;
-}
-
-/**
- * Force le rechargement de l'ID (après login/logout)
- */
-export function resetAppUserId() {
-  GLOBAL_APP_USER_ID = null;
-}
-
-// ========== STORAGE SERVICE ==========
+import { getUserId } from './AppUserManager';
 
 class StorageService {
   constructor() {
-    // Initialiser l'ID au démarrage
-    this._initPromise = this._init();
-  }
-
-  async _init() {
-    try {
-      await getAppUserId();
-    } catch (e) {
-      console.log('⚠️ Init ID différé');
-    }
+    console.log('📦 [StorageService] Initialisé');
   }
 
   /**
-   * Récupère l'ID de l'utilisateur courant
-   * v5.4.64 - Utilise le système global unifié
+   * Récupère l'ID utilisateur via AppUserManager
    */
   async getCurrentUserId() {
-    return await getAppUserId();
+    const userId = await getUserId();
+    console.log(`🔑 [StorageService] userId: ${userId}`);
+    return userId;
   }
 
   /**
-   * Réinitialise le cache utilisateur (appelé lors du logout/login)
-   */
-  resetUserCache() {
-    resetAppUserId();
-    console.log('🔄 Cache utilisateur réinitialisé');
-  }
-
-  // ========== CONVERSATIONS ==========
-
-  /**
-   * Sauvegarde une conversation
-   * v5.4.64 - Sauvegarde ultra-robuste avec triple backup
+   * SAUVEGARDE DE CONVERSATION - Ultra-robuste avec logs détaillés
    */
   async saveConversation(characterId, messages, relationship) {
+    const startTime = Date.now();
+    console.log(`\n========== SAVE CONVERSATION START ==========`);
+    console.log(`📝 characterId: ${characterId}`);
+    console.log(`📝 messages: ${messages?.length || 0}`);
+    console.log(`📝 relationship level: ${relationship?.level || 1}`);
+    
     try {
+      // Validation
       if (!characterId) {
-        console.error('❌ saveConversation: characterId manquant!');
-        return;
+        console.error('❌ [SAVE] characterId MANQUANT!');
+        return false;
+      }
+      
+      if (!messages || !Array.isArray(messages)) {
+        console.error('❌ [SAVE] messages INVALIDE!');
+        return false;
       }
       
       const userId = await this.getCurrentUserId();
-      console.log(`💾 SAVE: userId=${userId}, charId=${characterId}, msgs=${messages?.length || 0}`);
+      if (!userId) {
+        console.error('❌ [SAVE] userId MANQUANT!');
+        return false;
+      }
       
-      // Retirer de la liste des conversations supprimées
-      try {
-        const deletedKey = `deleted_conversations_${userId}`;
-        const deletedData = await AsyncStorage.getItem(deletedKey);
-        if (deletedData) {
-          const deletedList = JSON.parse(deletedData);
-          const charIdStr = String(characterId);
-          if (deletedList.includes(charIdStr)) {
-            const newDeletedList = deletedList.filter(id => id !== charIdStr);
-            await AsyncStorage.setItem(deletedKey, JSON.stringify(newDeletedList));
-          }
-        }
-      } catch (e) {}
+      // Nettoyer la liste des suppressions
+      await this._removeFromDeleted(userId, characterId);
       
-      // Données à sauvegarder
+      // Préparer les données
       const data = {
         characterId: String(characterId),
         userId,
-        messages: messages || [],
+        messages: messages,
         relationship: relationship || { level: 1, affection: 50, trust: 50 },
         lastUpdated: new Date().toISOString(),
         savedAt: Date.now(),
-        version: '5.4.64',
+        version: '5.4.65',
       };
       
       const jsonData = JSON.stringify(data);
+      console.log(`📦 [SAVE] Taille données: ${jsonData.length} bytes`);
       
-      // TRIPLE SAUVEGARDE
-      const key = `conv_${userId}_${characterId}`;
+      // QUADRUPLE SAUVEGARDE
+      const keys = [
+        `conv_${userId}_${characterId}`,
+        `conv_backup_${characterId}`,
+        `conv_global_${characterId}`,
+        `conversation_${characterId}`,
+      ];
       
-      // 1. Clé principale
-      await AsyncStorage.setItem(key, jsonData);
+      let saveCount = 0;
+      for (const key of keys) {
+        try {
+          await AsyncStorage.setItem(key, jsonData);
+          console.log(`✅ [SAVE] Sauvegardé: ${key}`);
+          saveCount++;
+        } catch (keyError) {
+          console.error(`❌ [SAVE] Échec ${key}:`, keyError.message);
+        }
+      }
       
-      // 2. Backup global (sans userId)
-      await AsyncStorage.setItem(`conv_backup_${characterId}`, jsonData);
-      
-      // 3. Backup simple
-      await AsyncStorage.setItem(`conv_simple_${characterId}`, jsonData);
-      
-      // Vérification
-      const verify = await AsyncStorage.getItem(key);
-      if (verify) {
-        console.log(`✅ SAVE OK: ${key} (${messages?.length || 0} msgs)`);
+      // Vérification immédiate
+      const verifyKey = keys[0];
+      const verification = await AsyncStorage.getItem(verifyKey);
+      if (verification) {
+        const parsed = JSON.parse(verification);
+        console.log(`✅ [SAVE] Vérification OK: ${parsed.messages?.length || 0} messages`);
       } else {
-        console.error(`❌ SAVE FAILED: ${key}`);
-        // Retry
-        await AsyncStorage.setItem(key, jsonData);
+        console.error(`❌ [SAVE] Vérification ÉCHOUÉE!`);
       }
       
       // Mettre à jour l'index
-      try {
-        const indexKey = `conv_index_${userId}`;
-        let index = [];
-        const indexData = await AsyncStorage.getItem(indexKey);
-        if (indexData) index = JSON.parse(indexData);
-        const charIdStr = String(characterId);
-        if (!index.includes(charIdStr)) {
-          index.push(charIdStr);
-          await AsyncStorage.setItem(indexKey, JSON.stringify(index));
-        }
-      } catch (e) {}
+      await this._updateIndex(userId, characterId);
+      
+      const duration = Date.now() - startTime;
+      console.log(`✅ [SAVE] Terminé en ${duration}ms (${saveCount}/4 sauvegardes)`);
+      console.log(`========== SAVE CONVERSATION END ==========\n`);
+      
+      return saveCount > 0;
       
     } catch (error) {
-      console.error('❌ Error saving conversation:', error);
+      console.error('❌ [SAVE] EXCEPTION:', error);
+      console.error('❌ [SAVE] Stack:', error.stack);
+      
       // Sauvegarde d'urgence
       try {
-        await AsyncStorage.setItem(`conv_emergency_${characterId}`, JSON.stringify({
+        const emergencyKey = `conv_emergency_${characterId}`;
+        await AsyncStorage.setItem(emergencyKey, JSON.stringify({
           characterId: String(characterId),
           messages: messages || [],
-          relationship: relationship || { level: 1, affection: 50, trust: 50 },
+          relationship: relationship || { level: 1 },
           savedAt: Date.now(),
+          emergency: true,
         }));
-      } catch (e2) {}
+        console.log(`⚠️ [SAVE] Sauvegarde d'urgence: ${emergencyKey}`);
+      } catch (e2) {
+        console.error('❌ [SAVE] Même urgence a échoué:', e2.message);
+      }
+      
+      console.log(`========== SAVE CONVERSATION END (ERROR) ==========\n`);
+      return false;
     }
   }
 
   /**
-   * Charge une conversation
-   * v5.4.64 - Recherche multi-clés robuste
+   * CHARGEMENT DE CONVERSATION - Recherche multi-clés
    */
   async loadConversation(characterId) {
+    console.log(`\n========== LOAD CONVERSATION START ==========`);
+    console.log(`📝 characterId: ${characterId}`);
+    
     try {
       if (!characterId) {
-        console.log('⚠️ loadConversation: characterId manquant');
+        console.error('❌ [LOAD] characterId MANQUANT!');
         return null;
       }
       
       const userId = await this.getCurrentUserId();
-      console.log(`📖 LOAD: userId=${userId}, charId=${characterId}`);
+      console.log(`🔑 [LOAD] userId: ${userId}`);
       
-      // Ordre de priorité des clés à essayer
+      // Liste des clés à essayer (ordre de priorité)
       const keysToTry = [
-        `conv_${userId}_${characterId}`,     // Clé principale
-        `conv_backup_${characterId}`,        // Backup global
-        `conv_simple_${characterId}`,        // Backup simple
-        `conv_fallback_${characterId}`,      // Legacy
-        `conv_emergency_${characterId}`,     // Emergency
-        `conv_default_${characterId}`,       // Default
-        `conversation_${characterId}`,       // Très ancien
+        `conv_${userId}_${characterId}`,
+        `conv_backup_${characterId}`,
+        `conv_global_${characterId}`,
+        `conversation_${characterId}`,
+        `conv_emergency_${characterId}`,
+        `conv_fallback_${characterId}`,
+        `conv_default_${characterId}`,
       ];
       
       for (const key of keysToTry) {
@@ -223,26 +158,79 @@ class StorageService {
           const data = await AsyncStorage.getItem(key);
           if (data) {
             const parsed = JSON.parse(data);
-            if (parsed.messages && parsed.messages.length > 0) {
-              console.log(`✅ LOAD OK: ${key} (${parsed.messages.length} msgs)`);
+            if (parsed.messages && Array.isArray(parsed.messages) && parsed.messages.length > 0) {
+              console.log(`✅ [LOAD] Trouvé: ${key} (${parsed.messages.length} messages)`);
               
-              // Sauvegarder avec la clé principale si trouvé ailleurs
+              // Si trouvé dans une clé alternative, sauvegarder vers la clé principale
               if (key !== keysToTry[0]) {
-                await this.saveConversation(characterId, parsed.messages, parsed.relationship);
+                console.log(`🔄 [LOAD] Migration vers clé principale...`);
+                // Ne pas await pour ne pas bloquer
+                this.saveConversation(characterId, parsed.messages, parsed.relationship).catch(() => {});
               }
               
+              console.log(`========== LOAD CONVERSATION END ==========\n`);
               return parsed;
             }
           }
-        } catch (e) {}
+        } catch (keyError) {
+          console.log(`⚠️ [LOAD] Erreur ${key}:`, keyError.message);
+        }
       }
       
-      console.log(`ℹ️ Aucune conversation trouvée pour ${characterId}`);
+      // Aucune conversation trouvée
+      console.log(`ℹ️ [LOAD] Aucune conversation trouvée pour ${characterId}`);
+      console.log(`========== LOAD CONVERSATION END ==========\n`);
       return null;
       
     } catch (error) {
-      console.error('Error loading conversation:', error);
+      console.error('❌ [LOAD] EXCEPTION:', error);
+      console.log(`========== LOAD CONVERSATION END (ERROR) ==========\n`);
       return null;
+    }
+  }
+
+  /**
+   * Supprime un characterId de la liste des conversations supprimées
+   */
+  async _removeFromDeleted(userId, characterId) {
+    try {
+      const deletedKey = `deleted_conversations_${userId}`;
+      const deletedData = await AsyncStorage.getItem(deletedKey);
+      if (deletedData) {
+        const deletedList = JSON.parse(deletedData);
+        const charIdStr = String(characterId);
+        if (deletedList.includes(charIdStr)) {
+          const newList = deletedList.filter(id => id !== charIdStr);
+          await AsyncStorage.setItem(deletedKey, JSON.stringify(newList));
+          console.log(`✅ [SAVE] Retiré de la liste supprimée`);
+        }
+      }
+    } catch (e) {
+      // Ignorer les erreurs
+    }
+  }
+
+  /**
+   * Met à jour l'index des conversations
+   */
+  async _updateIndex(userId, characterId) {
+    try {
+      const indexKey = `conv_index_${userId}`;
+      let index = [];
+      
+      const indexData = await AsyncStorage.getItem(indexKey);
+      if (indexData) {
+        index = JSON.parse(indexData);
+      }
+      
+      const charIdStr = String(characterId);
+      if (!index.includes(charIdStr)) {
+        index.push(charIdStr);
+        await AsyncStorage.setItem(indexKey, JSON.stringify(index));
+        console.log(`📋 [SAVE] Index mis à jour: ${index.length} conversations`);
+      }
+    } catch (e) {
+      // Ignorer les erreurs d'index
     }
   }
 
@@ -250,63 +238,55 @@ class StorageService {
    * Récupère toutes les conversations
    */
   async getAllConversations() {
+    console.log(`\n========== GET ALL CONVERSATIONS ==========`);
+    
     try {
       const userId = await this.getCurrentUserId();
       const result = [];
-      const seenCharacterIds = new Set();
+      const seenIds = new Set();
       
-      console.log(`🔍 Recherche conversations pour userId: ${userId}`);
-      
-      // Charger la liste des conversations supprimées
+      // Charger la liste des supprimées
       let deletedIds = [];
       try {
-        const deletedKey = `deleted_conversations_${userId}`;
-        const deletedData = await AsyncStorage.getItem(deletedKey);
+        const deletedData = await AsyncStorage.getItem(`deleted_conversations_${userId}`);
         if (deletedData) deletedIds = JSON.parse(deletedData);
       } catch (e) {}
       
-      // Chercher toutes les clés de conversations
-      const keys = await AsyncStorage.getAllKeys();
-      const convKeys = keys.filter(key => {
+      // Récupérer toutes les clés
+      const allKeys = await AsyncStorage.getAllKeys();
+      const convKeys = allKeys.filter(key => {
         if (key.includes('index') || key.includes('deleted')) return false;
-        if (key.startsWith(`conv_${userId}_`)) return true;
-        if (key.startsWith('conv_backup_')) return true;
-        if (key.startsWith('conv_simple_')) return true;
-        if (key.startsWith('conv_fallback_')) return true;
-        if (key.startsWith('conv_emergency_')) return true;
-        if (key.startsWith('conversation_')) return true;
-        return false;
+        return key.startsWith('conv_') || key.startsWith('conversation_');
       });
+      
+      console.log(`🔍 [ALL] ${convKeys.length} clés de conversation trouvées`);
       
       for (const key of convKeys) {
         try {
-          const value = await AsyncStorage.getItem(key);
-          if (!value) continue;
+          const data = await AsyncStorage.getItem(key);
+          if (!data) continue;
           
-          const parsed = JSON.parse(value);
-          let messages = parsed.messages || parsed.history;
+          const parsed = JSON.parse(data);
+          const messages = parsed.messages || parsed.history;
           
           if (!Array.isArray(messages) || messages.length === 0) continue;
           
           // Extraire characterId
           let characterId = parsed.characterId;
-          if (!characterId && key.includes('_')) {
+          if (!characterId) {
+            // Essayer d'extraire de la clé
             const parts = key.split('_');
-            if (parts.length >= 2) {
-              characterId = parts[parts.length - 1];
-            }
+            characterId = parts[parts.length - 1];
           }
           
           if (!characterId) continue;
           
           const charIdStr = String(characterId);
           
-          // Ignorer les supprimées
+          // Ignorer les supprimées et doublons
           if (deletedIds.includes(charIdStr)) continue;
-          
-          // Éviter les doublons
-          if (seenCharacterIds.has(charIdStr)) continue;
-          seenCharacterIds.add(charIdStr);
+          if (seenIds.has(charIdStr)) continue;
+          seenIds.add(charIdStr);
           
           // Normaliser les messages
           const normalizedMessages = messages
@@ -332,48 +312,41 @@ class StorageService {
       // Trier par date
       result.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
       
-      console.log(`✅ TOTAL: ${result.length} conversations chargées`);
+      console.log(`✅ [ALL] ${result.length} conversations chargées`);
+      console.log(`========== GET ALL CONVERSATIONS END ==========\n`);
+      
       return result;
       
     } catch (error) {
-      console.error('❌ Error loading all conversations:', error);
+      console.error('❌ [ALL] EXCEPTION:', error);
       return [];
     }
   }
 
-  /**
-   * Force le rechargement de toutes les conversations
-   */
   async refreshConversations() {
     return await this.getAllConversations();
   }
 
-  /**
-   * Supprime une conversation
-   */
   async deleteConversation(characterId) {
+    console.log(`🗑️ [DELETE] Suppression: ${characterId}`);
+    
     try {
       const userId = await this.getCurrentUserId();
       const charIdStr = String(characterId);
       
-      console.log(`🗑️ Suppression conversation: ${characterId}`);
-      
+      // Trouver et supprimer les clés de conversation
       const allKeys = await AsyncStorage.getAllKeys();
-      
-      // Supprimer uniquement les clés de conversation
       const keysToDelete = allKeys.filter(key => {
-        if (key.includes('gallery')) return false;
-        if (key.includes('gal_')) return false;
-        if (key.startsWith('conv_') && key.includes(charIdStr)) return true;
-        if (key.startsWith('conversation_') && key.includes(charIdStr)) return true;
-        return false;
+        if (key.includes('gallery') || key.includes('gal_')) return false;
+        return key.includes(charIdStr) && (key.startsWith('conv_') || key.startsWith('conversation_'));
       });
       
       for (const key of keysToDelete) {
         await AsyncStorage.removeItem(key);
+        console.log(`✅ [DELETE] Supprimé: ${key}`);
       }
       
-      // Ajouter à la liste des suppressions
+      // Ajouter à la liste des supprimées
       try {
         const deletedKey = `deleted_conversations_${userId}`;
         let deleted = [];
@@ -385,23 +358,17 @@ class StorageService {
         }
       } catch (e) {}
       
-      console.log(`✅ Conversation ${characterId} supprimée`);
       return true;
-      
     } catch (error) {
-      console.error('❌ Error deleting conversation:', error);
+      console.error('❌ [DELETE] EXCEPTION:', error);
       return false;
     }
   }
 
-  /**
-   * Vérifie si une conversation a été supprimée
-   */
   async isConversationDeleted(characterId) {
     try {
       const userId = await this.getCurrentUserId();
-      const deletedKey = `deleted_conversations_${userId}`;
-      const deletedData = await AsyncStorage.getItem(deletedKey);
+      const deletedData = await AsyncStorage.getItem(`deleted_conversations_${userId}`);
       if (deletedData) {
         const deleted = JSON.parse(deletedData);
         return deleted.includes(String(characterId));
@@ -417,26 +384,20 @@ class StorageService {
   async saveRelationship(characterId, relationship) {
     try {
       const userId = await this.getCurrentUserId();
-      const key = `rel_${userId}_${characterId}`;
-      await AsyncStorage.setItem(key, JSON.stringify(relationship));
+      await AsyncStorage.setItem(`rel_${userId}_${characterId}`, JSON.stringify(relationship));
     } catch (error) {
-      console.error('Error saving relationship:', error);
+      console.error('❌ [REL] Save error:', error);
     }
   }
 
   async loadRelationship(characterId) {
     try {
       const userId = await this.getCurrentUserId();
-      const key = `rel_${userId}_${characterId}`;
-      const data = await AsyncStorage.getItem(key);
+      const data = await AsyncStorage.getItem(`rel_${userId}_${characterId}`);
+      if (data) return JSON.parse(data);
       
-      if (data) {
-        return JSON.parse(data);
-      }
-      
-      // Migration ancienne clé
-      const oldKey = `relationship_${characterId}`;
-      const oldData = await AsyncStorage.getItem(oldKey);
+      // Migration
+      const oldData = await AsyncStorage.getItem(`relationship_${characterId}`);
       if (oldData) {
         const parsed = JSON.parse(oldData);
         await this.saveRelationship(characterId, parsed);
@@ -526,6 +487,14 @@ class StorageService {
       affectionChange,
       trustChange,
     };
+  }
+
+  /**
+   * Réinitialise le cache utilisateur
+   */
+  resetUserCache() {
+    // Plus nécessaire avec AppUserManager, mais garder pour compatibilité
+    console.log('🔄 [StorageService] resetUserCache appelé');
   }
 }
 
