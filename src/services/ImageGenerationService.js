@@ -85,16 +85,18 @@ class ImageGenerationService {
       'blurry, low quality, pixelated, watermark, signature, text, ' +
       'ugly, grotesque, horror, creepy, nightmare';
     
-    // v5.4.24 - NEGATIVE PROMPT ULTRA-COMPLET RENFORCÉ ET ÉTENDU
+    // v5.4.54 - NEGATIVE PROMPT ULTRA-COMPLET RENFORCÉ - FIX BRAS MANQUANTS
     // Base - sera augmenté dynamiquement selon le body type
     this.negativePromptBase = 
       'deformed, distorted, disfigured, mutated, bad anatomy, wrong anatomy, anatomical errors, ' +
+      // v5.4.54 - BRAS MANQUANTS FIX PRIORITAIRE
+      'missing arms, no arms, armless, one arm only, single arm, arm cut off, arm missing, ' +
+      'missing hands, no hands, handless, stumps instead of arms, amputee, ' +
       'extra limbs, missing limbs, three arms, four arms, three legs, four legs, extra body parts, ' +
       'floating limbs, disconnected limbs, merged limbs, fused body parts, ' +
       'malformed hands, twisted hands, backwards hands, extra fingers, missing fingers, ' +
       'fused fingers, six fingers, seven fingers, too many fingers, mutated hands, bad hands, ' +
       'clothes fused with skin, clothes melting into body, fabric merged with flesh, ' +
-      // v5.4.24 - NOUVEAUX DEFAUTS À ÉVITER
       'extra person, duplicate person, clone person, twin in background, ' +
       'split body, multiple torsos, conjoined twins, siamese, ' +
       'wrong face proportions, deformed face, melted face, ';
@@ -548,54 +550,70 @@ class ImageGenerationService {
   getOutfitByLevel(level) {
     const lvl = Math.min(Math.max(1, level || 1), 10);
     const outfits = {
-      // === NIVEAU 1 - HABILLÉ SEXY (robes, jupes, tops, décolletés) ===
+      // === NIVEAU 1 - HABILLÉ SEXY (robes, jupes, tops, décolletés) v5.4.54 ÉLARGI ===
       1: [
-        // Robes variées
+        // === ROBES MOULANTES (bodycon dresses) ===
+        'wearing tight red bodycon dress hugging every curve, deep cleavage, short length',
+        'wearing black bodycon mini dress, curves emphasized, form-fitting fabric',
+        'wearing burgundy velvet bodycon dress, plunging neckline, sexy silhouette',
+        'wearing white tight dress showing all curves, backless design',
+        'wearing emerald green bodycon dress, side slit, cleavage visible',
+        'wearing metallic gold tight mini dress, club ready, glamorous',
+        // === MINI-JUPES (mini-skirts) ===
+        'wearing very short mini skirt with crop top, long legs visible, sexy casual',
+        'wearing leather mini skirt with tight top, edgy and hot',
+        'wearing pleated school-girl mini skirt, innocent but sexy',
+        'wearing denim micro mini skirt, barely covering, crop top',
+        'wearing satin mini skirt with silk blouse unbuttoned, professional sexy',
+        'wearing plaid mini skirt with knee-high socks, playful schoolgirl look',
+        // === ROBES CLASSIQUES ===
         'wearing elegant red cocktail dress with plunging neckline, cleavage visible',
         'wearing tight black little dress, curves emphasized, short length',
         'wearing flowing summer dress with thin straps, shoulders bare',
-        'wearing bodycon dress hugging every curve, side slit showing leg',
         'wearing off-shoulder evening gown, elegant and sexy',
         'wearing wrap dress with deep V showing cleavage, form-fitting',
-        // Jupes variées
-        'wearing short pleated skirt with tight blouse, legs visible',
-        'wearing pencil skirt with silk blouse unbuttoned, professional sexy',
-        'wearing denim mini skirt with crop top, casual and hot',
-        'wearing leather skirt with lace top, edgy sexy',
-        // Tops et décolletés
-        'wearing low-cut top showing generous cleavage, jeans',
+        // === TOPS SEXY ===
+        'wearing low-cut top showing generous cleavage, tight jeans',
         'wearing crop top exposing toned midriff, high-waisted pants',
         'wearing halter top with plunging neckline, back exposed',
-        'wearing tight sweater emphasizing bust, casual chic',
         'wearing corset top with jeans, cinched waist, cleavage pushed up',
-        'wearing tank top with visible bra straps, casual sexy',
+        'wearing off-shoulder sweater falling down, shoulder exposed, teasing',
+        'wearing tight tank top with no bra, nipples slightly visible',
       ],
-      // === NIVEAU 2 - PROVOCANT v5.4.14 (inspiré Evie, Mira, Nora, Lucy) ===
+      // === NIVEAU 2 - PROVOCANT v5.4.54 ÉLARGI (nuisettes, robes moulantes, provocant) ===
       2: [
-        // === ROBES SENSUELLES (style Lucy/Mira) ===
-        'wearing tight red velvet mini dress with corset top, cleavage visible, elegant sexy',
-        'wearing sequin mini dress with deep V neckline, sparkly club outfit, curves emphasized',
-        'wearing black satin slip dress clinging to body, thin straps, no bra visible',
-        'wearing burgundy bodycon dress with cutouts, showing sides, sophisticated',
-        'wearing sheer evening gown with strategic coverage, glamorous, silhouette visible',
-        // === NUISETTES (style Evie) ===
-        'wearing silky black short nightgown, lace trim, barely covering thighs',
-        'wearing satin chemise nightdress, thin straps, cleavage showing',
-        'wearing silk robe loosely tied, lingerie visible underneath, teasing',
-        // === TENUES MOULANTES (style Nora) ===
-        'wearing tight black catsuit with zipper front, curves emphasized, sleek',
-        'wearing leather leggings with sheer top, edgy sexy style',
-        'wearing wet-look leggings with crop top, shiny and tight, modern',
-        'wearing thigh-high boots with mini skirt, powerful dominatrix vibe',
-        // === COLLANTS ET BAS ===
-        'wearing sheer black stockings with garter belt, high heels, short skirt showing tops',
-        'wearing fishnet stockings with suspenders visible under mini dress',
-        'wearing thigh-high black boots with mini dress, showing leg skin between',
-        // === TRANSPARENCES ===
-        'wearing mesh top over black bra, skin visible through fabric, daring',
-        'wearing semi-transparent black blouse, bra silhouette visible',
-        'wearing backless mini dress, spine and lower back exposed, no underwear lines',
-        'wearing side-boob revealing halter top, daring fashion, confident',
+        // === NUISETTES ET DÉSHABILLÉS (nightwear) ===
+        'wearing silky black short nightgown with lace trim, barely covering thighs, bedroom ready',
+        'wearing pink satin babydoll nightie, sheer fabric, cleavage visible, innocent sexy',
+        'wearing red silk negligee reaching mid-thigh, deep V, side slit',
+        'wearing white lace nightgown, see-through fabric, body silhouette visible',
+        'wearing black sheer chemise, breasts visible through fabric, teasing',
+        'wearing satin slip dress as nightwear, thin straps falling off shoulder',
+        'wearing short silk robe loosely tied, lingerie peeking, just woke up look',
+        'wearing long negligee with high slit, one leg exposed, elegant bedroom',
+        // === ROBES TRÈS MOULANTES PROVOCANTES ===
+        'wearing extremely tight red latex mini dress, every curve visible, club queen',
+        'wearing skin-tight black PVC dress, zipper front half open, shiny provocative',
+        'wearing wet-look bodycon dress leaving nothing to imagination, second skin tight',
+        'wearing backless sequin mini dress, butt cleavage visible, glamorous provocative',
+        'wearing tight white dress with no underwear, body shape completely visible',
+        // === MINI-JUPES TRÈS COURTES ===
+        'wearing micro mini skirt barely covering ass, bending slightly provocative',
+        'wearing ultra short leather skirt with thigh gap visible, dangerous legs',
+        'wearing tiny pleated skirt with visible panties when moving, schoolgirl naughty',
+        // === TENUES PROVOCANTES ===
+        'wearing tight black catsuit with zipper front half open, cleavage exposed',
+        'wearing sheer bodysuit with strategic coverage, almost naked look',
+        'wearing crop top with underboob visible, ultra low-rise jeans',
+        'wearing bandage dress with cutouts showing skin, body wrapped tight',
+        // === COLLANTS ET BAS PROVOCANTS ===
+        'wearing only stockings and garter belt with mini dress, no panties hint',
+        'wearing fishnet bodysuit under open shirt, sexy club outfit',
+        'wearing thigh-high boots with micro skirt, dominatrix vibes',
+        // === TRANSPARENCES OSÉES ===
+        'wearing completely sheer top, bra clearly visible, bold fashion',
+        'wearing mesh dress over bikini, beach club provocative',
+        'wearing see-through blouse, nipples almost visible, daring',
       ],
       // === NIVEAU 3 - LINGERIE v5.4.14 (inspiré Evie, Mira, Nora, Lucy) ===
       3: [
@@ -705,6 +723,114 @@ class ImageGenerationService {
         'maximum erotic exposure, passionate explicit climax',
         'most provocative nude imaginable, total explicit display',
         'extreme explicit position, ultimate sensual pleasure',
+      ],
+    };
+    
+    const effectiveLevel = lvl > 10 ? 10 : lvl;
+    const levelOutfits = outfits[effectiveLevel] || outfits[1];
+    return levelOutfits[Math.floor(Math.random() * levelOutfits.length)];
+  }
+
+  /**
+   * v5.4.54 - Retourne une tenue pour les HOMMES basée sur le niveau de relation
+   * Smoking, torse nu, boxer, uniforme, etc.
+   */
+  getMaleOutfitByLevel(level) {
+    const lvl = Math.min(Math.max(1, level || 1), 10);
+    const outfits = {
+      // === NIVEAU 1 - HABILLÉ CLASSE ===
+      1: [
+        // === SMOKING / COSTUME ===
+        'wearing elegant black tuxedo with bow tie, sophisticated gentleman, James Bond style',
+        'wearing dark navy suit perfectly tailored, white shirt unbuttoned at collar, confident',
+        'wearing grey three-piece suit, vest visible, pocket square, business elegant',
+        'wearing black suit jacket over white t-shirt, casual elegant, modern style',
+        'wearing all-black suit with black shirt, mysterious elegant, powerful look',
+        // === DÉCONTRACTÉ CLASSE ===
+        'wearing fitted dress shirt with rolled sleeves, forearms visible, casual chic',
+        'wearing polo shirt hugging muscles, smart casual, approachable sexy',
+        'wearing leather jacket over t-shirt, bad boy charm, confident',
+        'wearing fitted sweater emphasizing chest, casual cozy, warm look',
+        // === UNIFORMES ===
+        'wearing police uniform, authoritative, badge visible, commanding presence',
+        'wearing firefighter gear partially open, heroic look, muscular',
+        'wearing military dress uniform, medals visible, disciplined and strong',
+        'wearing doctor white coat over shirt, professional and caring',
+        'wearing pilot uniform, captain stripes, confident and worldly',
+      ],
+      // === NIVEAU 2 - CHEMISE OUVERTE / DÉCONTRACTÉ SEXY ===
+      2: [
+        // === CHEMISE OUVERTE ===
+        'wearing white dress shirt unbuttoned showing chest, sleeves rolled, seductive casual',
+        'wearing black shirt half unbuttoned, chest hair visible, masculine confident',
+        'wearing linen shirt completely unbuttoned blowing in wind, abs visible, beach sexy',
+        // === SOUS-VÊTEMENTS VISIBLES ===
+        'wearing suit pants with suspenders, no shirt, muscular torso exposed',
+        'wearing jeans riding low, boxer waistband visible, v-lines showing',
+        'wearing sweatpants low on hips, shirtless, just woke up look',
+        // === UNIFORME SEXY ===
+        'wearing firefighter pants with suspenders, shirtless, sweaty heroic',
+        'wearing police pants with belt, shirtless, authoritative sexy',
+        'wearing military pants, dog tags on bare chest, soldier at rest',
+        // === SPORT ===
+        'wearing tight tank top showing arm muscles, gym ready, pumped',
+        'wearing compression shorts only, athletic build visible, sports sexy',
+        'wearing boxing shorts, gloves on, fighter physique, sweaty',
+      ],
+      // === NIVEAU 3 - TORSE NU ===
+      3: [
+        'shirtless showing defined chest and abs, confident masculine pose',
+        'bare-chested with jeans unbuttoned, v-line visible, bedroom ready',
+        'topless with towel around neck, just showered, wet hair, steamy',
+        'shirtless in bed, sheets at waist, morning after look',
+        'bare torso glistening with oil, fitness model, muscles defined',
+        'shirtless with suit pants, getting dressed, elegant undressing',
+        'topless leaning on door frame, dominant casual, inviting',
+        'bare chest with open robe, luxurious lazy, silk robe hanging',
+      ],
+      // === NIVEAU 4 - EN BOXER / SOUS-VÊTEMENTS ===
+      4: [
+        'wearing only black boxer briefs, muscular legs visible, confident stance',
+        'wearing tight white briefs, bulge visible, athletic body',
+        'wearing grey boxer shorts, morning stretch, casual intimate',
+        'wearing silk boxers only, luxurious, refined masculine',
+        'wearing compression underwear, athlete body, defined muscles',
+        'wearing low-rise briefs, v-line emphasized, seductive',
+        'wearing boxer briefs, sitting on bed, intimate setting',
+        'wearing only towel around waist, fresh from shower',
+      ],
+      // === NIVEAU 5 - NU ARTISTIQUE ===
+      5: [
+        'completely nude, artistic pose, hands strategically placed, masculine beauty',
+        'fully naked from behind, muscular back and butt visible, classical pose',
+        'nude lying on bed, sheet barely covering groin, sensual relaxed',
+        'naked by window, natural light on body, artistic nude',
+        'nude in shower, water running down muscular body',
+        'completely bare, confident standing pose, nothing hidden',
+      ],
+      // === NIVEAU 6+ - EXPLICITE ===
+      6: [
+        'nude with visible arousal, confident masculine, sensual pose',
+        'naked on bed, fully exposed, inviting expression',
+        'completely nude, touching himself, intimate moment',
+      ],
+      7: [
+        'explicit nude, fully erect, touching intimately',
+        'naked spreading legs, everything visible, provocative',
+        'nude stroking, intense pleasure expression',
+      ],
+      8: [
+        'very explicit male nude, masturbating openly',
+        'maximum exposure, erection prominent, pleasure',
+        'explicit self-pleasure, intense arousal visible',
+      ],
+      9: [
+        'extremely explicit, climax approaching, intense',
+        'ultimate male exposure, passionate self-pleasure',
+      ],
+      10: [
+        'maximum explicit, orgasm moment, ultimate pleasure',
+        'most explicit pose, complete male exposure',
       ],
     };
     
@@ -3990,13 +4116,22 @@ class ImageGenerationService {
     // v5.4.21 - COMMENCER PAR STYLE + ANGLE/POSE PRIORITAIRE POUR NSFW
     let prompt = '';
     
-    // v5.4.22 - En mode NSFW, mettre l'angle/pose/tenue EN PREMIER (priorité maximale)
+    // v5.4.54 - En mode NSFW, mettre l'angle/pose/tenue EN PREMIER (priorité maximale)
     // VARIÉTÉ MAXIMALE avec tenues et poses plus provocantes et sexy
+    // Support des tenues masculines ajouté
+    const isMale = character.gender === 'male' || character.gender === 'homme';
+    
     if (isNSFW && level >= 2) {
       // Sélectionner l'angle en fonction du niveau
       let priorityAngle;
       let priorityOutfit;
       let priorityPose;
+      
+      // v5.4.54 - Pour les hommes, utiliser les tenues masculines
+      if (isMale) {
+        priorityOutfit = this.getMaleOutfitByLevel(level);
+        console.log(`👔 Tenue MASCULINE sélectionnée pour ${character.name}`);
+      }
       
       if (level >= 5) {
         // Niveau 5+ : TRÈS EXPLICITE - NUE COMPLÈTE
@@ -4037,7 +4172,10 @@ class ImageGenerationService {
           '((pinching nipples)), ((pleasure expression)), breast stimulation',
         ];
         priorityAngle = explicitAngles[Math.floor(Math.random() * explicitAngles.length)];
-        priorityOutfit = explicitOutfits[Math.floor(Math.random() * explicitOutfits.length)];
+        // v5.4.54 - Ne pas écraser la tenue masculine si déjà définie
+        if (!isMale) {
+          priorityOutfit = explicitOutfits[Math.floor(Math.random() * explicitOutfits.length)];
+        }
         priorityPose = explicitPoses[Math.floor(Math.random() * explicitPoses.length)];
       } else if (level >= 4) {
         // Niveau 4 : TOPLESS/SEINS NUS - Plus de variété
@@ -4094,7 +4232,10 @@ class ImageGenerationService {
           '((sitting cross-legged topless)), ((breasts on display)), ((meditation sexy)), zen nude',
         ];
         priorityAngle = toplessAngles[Math.floor(Math.random() * toplessAngles.length)];
-        priorityOutfit = toplessOutfits[Math.floor(Math.random() * toplessOutfits.length)];
+        // v5.4.54 - Ne pas écraser la tenue masculine si déjà définie
+        if (!isMale) {
+          priorityOutfit = toplessOutfits[Math.floor(Math.random() * toplessOutfits.length)];
+        }
         priorityPose = toplessPoses[Math.floor(Math.random() * toplessPoses.length)];
       } else if (level >= 3) {
         // Niveau 3 : LINGERIE TRÈS SEXY - Plus provocante
@@ -4153,7 +4294,10 @@ class ImageGenerationService {
           '((bra pulled below breasts)), ((breasts resting on cups)), ((nipples almost visible)), half reveal',
         ];
         priorityAngle = lingerieAngles[Math.floor(Math.random() * lingerieAngles.length)];
-        priorityOutfit = lingerieOutfits[Math.floor(Math.random() * lingerieOutfits.length)];
+        // v5.4.54 - Ne pas écraser la tenue masculine si déjà définie
+        if (!isMale) {
+          priorityOutfit = lingerieOutfits[Math.floor(Math.random() * lingerieOutfits.length)];
+        }
         priorityPose = lingeriePoses[Math.floor(Math.random() * lingeriePoses.length)];
       } else {
         // Niveau 2 : TENUE TRÈS PROVOCANTE - Plus sexy
@@ -4234,7 +4378,10 @@ class ImageGenerationService {
           '((dancing with arms up)), ((dress spinning)), ((movement)), dance freeze',
         ];
         priorityAngle = sexyAngles[Math.floor(Math.random() * sexyAngles.length)];
-        priorityOutfit = sexyOutfits[Math.floor(Math.random() * sexyOutfits.length)];
+        // v5.4.54 - Ne pas écraser la tenue masculine si déjà définie
+        if (!isMale) {
+          priorityOutfit = sexyOutfits[Math.floor(Math.random() * sexyOutfits.length)];
+        }
         priorityPose = sexyPoses[Math.floor(Math.random() * sexyPoses.length)];
       }
       
@@ -4630,7 +4777,10 @@ class ImageGenerationService {
     // v5.4.22 - RENFORCEMENT ANTI-DÉFAUTS ULTRA-STRICT (ajouté à la fin pour emphase)
     // Ces termes sont cruciaux pour éviter les problèmes anatomiques
     prompt += ', ((perfect anatomy)), ((correct proportions)), ((natural human body))';
+    // v5.4.54 - RENFORCEMENT BRAS - priorité maximale sur les bras visibles
+    prompt += ', ((TWO VISIBLE ARMS)), ((both arms clearly shown)), ((arms attached to shoulders))';
     prompt += ', ((exactly two arms)), ((exactly two legs)), ((five fingers each hand))';
+    prompt += ', ((arms not hidden)), ((arms not cut off)), ((complete arms from shoulder to hand))';
     prompt += ', ((symmetrical face)), ((two eyes)), ((one nose)), ((one mouth))';
     prompt += ', ((natural breast shape)), ((correct breast placement on chest))';
     prompt += ', ((legs bending correctly)), ((knees in right direction)), ((elbows correct))';
@@ -5080,6 +5230,8 @@ class ImageGenerationService {
       cleanPrompt += ', masterpiece, best quality, ultra detailed, 8K resolution, sharp focus';
       cleanPrompt += ', ((anatomically correct)), ((perfect human anatomy)), ((correct proportions))';
       cleanPrompt += ', ((exactly one person)), ((correct number of limbs))';
+      // v5.4.54 - RENFORCEMENT BRAS VISIBLES
+      cleanPrompt += ', ((TWO VISIBLE ARMS)), ((both arms clearly shown)), ((arms not hidden))';
       cleanPrompt += ', ((exactly two arms attached to shoulders)), ((exactly two legs attached to hips))';
       cleanPrompt += ', ((five fingers on each hand)), ((two hands)), ((two feet))';
       cleanPrompt += ', ((beautiful detailed face)), ((symmetrical face)), ((two eyes)), ((one nose)), ((one mouth))';
