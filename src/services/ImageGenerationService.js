@@ -3428,9 +3428,60 @@ class ImageGenerationService {
       }
     }
     
-    // === v5.3.76 - TENUES ET POSES SELON LE MODE ===
-    if (isNSFW) {
-      // TENUES SEXY/PROVOCANTES pour profil NSFW
+    // === v5.4.68 - TENUE DU PROFIL PRIORITAIRE ===
+    // Si le personnage a une tenue définie dans son profil, l'utiliser en priorité
+    // Sinon, utiliser les tenues aléatoires selon le mode
+    if (character.outfit && character.outfit.length > 5) {
+      // UTILISER LA TENUE DU PROFIL
+      // Traduire en anglais si nécessaire
+      let outfitPrompt = character.outfit;
+      
+      // Traductions françaises communes vers anglais
+      const frenchToEnglish = {
+        'robe': 'dress', 'jupe': 'skirt', 'pantalon': 'pants', 'jean': 'jeans',
+        'chemise': 'shirt', 'blouse': 'blouse', 'haut': 'top', 'tshirt': 't-shirt',
+        'pull': 'sweater', 'veste': 'jacket', 'manteau': 'coat',
+        'lingerie': 'lingerie', 'sous-vêtements': 'underwear', 'soutien-gorge': 'bra',
+        'culotte': 'panties', 'string': 'thong', 'nuisette': 'negligee',
+        'bikini': 'bikini', 'maillot': 'swimsuit', 'tailleur': 'suit',
+        'uniforme': 'uniform', 'kimono': 'kimono', 'chaussures': 'shoes',
+        'talons': 'heels', 'bottes': 'boots', 'baskets': 'sneakers',
+        'rouge': 'red', 'noir': 'black', 'blanc': 'white', 'bleu': 'blue',
+        'vert': 'green', 'rose': 'pink', 'violet': 'purple', 'jaune': 'yellow',
+        'orange': 'orange', 'gris': 'gray', 'marron': 'brown', 'beige': 'beige',
+        'sexy': 'sexy', 'moulant': 'tight', 'court': 'short', 'long': 'long',
+        'décolleté': 'low-cut', 'transparent': 'see-through', 'dentelle': 'lace',
+        'cuir': 'leather', 'soie': 'silk', 'satin': 'satin', 'coton': 'cotton',
+        'élégant': 'elegant', 'décontracté': 'casual', 'classique': 'classic',
+        'portant': 'wearing', 'avec': 'with', 'et': 'and', 'une': 'a',
+        'militaire': 'military', 'pompier': 'firefighter', 'gendarme': 'police',
+        'médecin': 'doctor', 'infirmière': 'nurse', 'école': 'school'
+      };
+      
+      // Traduire les mots français
+      for (const [fr, en] of Object.entries(frenchToEnglish)) {
+        const regex = new RegExp(fr, 'gi');
+        outfitPrompt = outfitPrompt.replace(regex, en);
+      }
+      
+      prompt += `, wearing ${outfitPrompt}`;
+      console.log(`👔 TENUE DU PROFIL utilisée: ${character.outfit}`);
+      
+      // POSES élégantes pour profil avec tenue définie
+      const profilePoses = [
+        'natural confident pose, warm smile',
+        'elegant standing pose, friendly expression',
+        'relaxed casual pose, inviting look',
+        'charming pose, attractive smile',
+        'confident pose, showing off outfit',
+      ];
+      prompt += `, ${profilePoses[Math.floor(Math.random() * profilePoses.length)]}`;
+      
+      // Qualités positives
+      prompt += ', beautiful, attractive, charming';
+      
+    } else if (isNSFW) {
+      // PAS DE TENUE DÉFINIE + MODE NSFW -> TENUES SEXY ALÉATOIRES
       const nsfwProfileOutfits = [
         'wearing sexy lingerie, lace bra and panties, seductive',
         'wearing sheer silk robe, open front, revealing',
@@ -3460,9 +3511,9 @@ class ImageGenerationService {
       
       // Qualités NSFW
       prompt += ', sexy, seductive, sensual, attractive, NSFW';
-      console.log('🔞 Mode PROFIL NSFW activé');
+      console.log('🔞 Mode PROFIL NSFW activé (tenue aléatoire)');
     } else {
-      // TENUES SFW ÉLÉGANTES POUR PROFIL
+      // PAS DE TENUE DÉFINIE + MODE SFW -> TENUES SFW ALÉATOIRES
       const sfwOutfits = [
         'wearing elegant casual outfit, fashionable',
         'wearing beautiful dress, classy',
@@ -3484,6 +3535,7 @@ class ImageGenerationService {
       // Qualités positives SFW
       prompt += ', beautiful, attractive, charming';
       prompt += ', tasteful, classy, SFW';
+      console.log('✨ Mode PROFIL SFW activé (tenue aléatoire)');
     }
     
     // ANATOMIE STRICTE (les duos ont déjà retourné plus haut)
