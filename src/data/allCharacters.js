@@ -74,7 +74,10 @@ import housewifeCharacters from './housewifeCharacters';
 import additionalHousewifeCharacters from './additionalHousewifeCharacters';
 import youngMilf30Characters from './youngMilf30Characters';
 
-// Combiner tous les personnages (820+ personnages au total)
+// ==== NOUVEAUX PERSONNAGES v5.4.56 - Uniformes ====
+import uniformCharacters from './uniformCharacters';
+
+// Combiner tous les personnages (840+ personnages au total)
 export const enhancedCharacters = [
   ...characters,          // 6 Naruto
   ...friendCharacters,    // 30 amies
@@ -114,6 +117,8 @@ export const enhancedCharacters = [
   // ==== NOUVEAUX PERSONNAGES v5.4.55 ====
   ...additionalHousewifeCharacters,  // 20 femmes au foyer (25-40 ans)
   ...youngMilf30Characters,          // 10 MILF environ 30 ans
+  // ==== NOUVEAUX PERSONNAGES v5.4.56 ====
+  ...uniformCharacters,              // 20 personnages en uniforme (10H + 10F)
 ];
 
 export default enhancedCharacters;

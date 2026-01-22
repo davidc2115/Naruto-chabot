@@ -13,6 +13,7 @@ import {
   StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import appConfig from '../../app.json';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
@@ -1366,9 +1367,10 @@ export default function SettingsScreen({ navigation, onLogout }) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 5.4.49</Text>
+          <Text style={styles.aboutText}>Version: {appConfig.expo.version}</Text>
+          <Text style={styles.aboutText}>Build: {appConfig.expo.android.versionCode}</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
-          <Text style={styles.aboutText}>550+ personnages disponibles</Text>
+          <Text style={styles.aboutText}>840+ personnages disponibles</Text>
           <Text style={styles.aboutText}>Génération d'images: Freebox + Pollinations</Text>
           <Text style={styles.aboutText}>Synchronisation Freebox + Personnages publics</Text>
           <Text style={styles.aboutText}>Mode NSFW 100% français</Text>

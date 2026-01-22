@@ -6866,82 +6866,53 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.4.49 - Génération Freebox avec file d'attente
-   * Permet plusieurs utilisateurs sans rate limit
+   * v5.4.56 - Génération Freebox avec file d'attente améliorée
+   * Permet plusieurs utilisateurs sans rate limit ni erreur Pollinations
    */
   async generateWithFreeboxQueued(prompt, character = null) {
     // Obtenir le statut de la file d'attente
     const queueStatus = ImageQueueService.getQueueStatus();
     
-    if (queueStatus.queueLength > 0) {
-      console.log(`📋 File d'attente Freebox: ${queueStatus.queueLength} requêtes en attente`);
+    if (queueStatus.queueLength > 0 || queueStatus.isProcessing) {
+      const waitMsg = ImageQueueService.getWaitMessage();
+      console.log(`📋 ${waitMsg || 'En attente...'}`);
     }
     
-    // Ajouter à la file d'attente avec la fonction de génération
-    return new Promise((resolve, reject) => {
-      const requestId = Date.now();
-      
-      // Stocker la fonction de génération pour l'appeler depuis la queue
-      const generateFunction = async () => {
-        // Attendre un délai minimum entre les requêtes
-        await new Promise(r => setTimeout(r, 2000));
-        return await this.generateWithFreeboxSD(prompt, character);
-      };
-      
-      // Ajouter à la file
-      ImageQueueService.queue.push({
-        id: requestId,
-        prompt,
-        character,
-        timestamp: Date.now(),
-        resolve,
-        reject,
-        status: 'pending',
-        generateFunction,
-      });
-      
-      console.log(`📋 Requête #${requestId} ajoutée à la file Freebox`);
-      
-      // Démarrer le traitement si pas en cours
-      if (!ImageQueueService.isProcessing) {
-        this.processFreeboxQueue();
+    // Créer la fonction de génération qui sera appelée par la queue
+    const generateFunction = async () => {
+      try {
+        // Appel direct à generateWithFreeboxSD
+        const imageUrl = await this.generateWithFreeboxSD(prompt, character);
+        return imageUrl;
+      } catch (error) {
+        console.error('❌ Erreur génération Freebox:', error.message);
+        throw error;
       }
-    });
+    };
+    
+    // Utiliser la méthode addRequest du service de queue
+    try {
+      const result = await ImageQueueService.addRequest(prompt, character, generateFunction);
+      return result;
+    } catch (error) {
+      // NE PAS fallback vers Pollinations - Retourner un message d'erreur propre
+      console.log('⚠️ Génération Freebox en file d\'attente, pas de fallback Pollinations');
+      throw new Error('Image en cours de génération, veuillez patienter');
+    }
   }
   
   /**
-   * v5.4.49 - Traite la file d'attente Freebox
+   * v5.4.56 - Obtient le statut de la file d'attente (pour UI)
    */
-  async processFreeboxQueue() {
-    if (ImageQueueService.isProcessing || ImageQueueService.queue.length === 0) {
-      return;
-    }
-    
-    ImageQueueService.isProcessing = true;
-    
-    while (ImageQueueService.queue.length > 0) {
-      const request = ImageQueueService.queue.shift();
-      request.status = 'processing';
-      
-      console.log(`🔄 Traitement requête Freebox #${request.id} (reste ${ImageQueueService.queue.length})`);
-      
-      try {
-        // Générer l'image
-        const imageUrl = await request.generateFunction();
-        
-        request.status = 'completed';
-        request.resolve(imageUrl);
-        console.log(`✅ Requête Freebox #${request.id} terminée`);
-        
-      } catch (error) {
-        request.status = 'error';
-        console.error(`❌ Erreur requête Freebox #${request.id}:`, error.message);
-        request.reject(error);
-      }
-    }
-    
-    ImageQueueService.isProcessing = false;
-    console.log('📋 File d\'attente Freebox vide');
+  getQueueStatus() {
+    return ImageQueueService.getQueueStatus();
+  }
+  
+  /**
+   * v5.4.56 - Obtient le message d'attente pour l'UI
+   */
+  getQueueWaitMessage() {
+    return ImageQueueService.getWaitMessage();
   }
   
   /**
