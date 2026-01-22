@@ -35,7 +35,35 @@ import stepdaughterCharacters from './stepdaughterCharacters';
 // Import des 40 personnages de groupe (orgies, soirées, etc.)
 import groupCharacters from './groupCharacters';
 
-// Combiner tous les personnages (510+ personnages au total)
+// ==== NOUVEAUX PERSONNAGES v5.4.51 - 220 personnages supplémentaires ====
+// Import des personnages additionnels - Amis, Collègues, Voisins (60 persos)
+import {
+  additionalFriendCharacters,
+  additionalColleagueCharacters,
+  additionalNeighborCharacters,
+} from './additionalCharacters';
+
+// Import des personnages additionnels - MILF, DILF, Médical (50 persos)
+import {
+  additionalMilfCharacters,
+  additionalDilfCharacters,
+  additionalMedicalCharacters,
+} from './additionalCharacters2';
+
+// Import des personnages additionnels - Colocataires, Situations (40 persos)
+import {
+  additionalRoommateCharacters,
+  additionalSituationCharacters,
+} from './additionalCharacters3';
+
+// Import des personnages additionnels - Fantaisie, Beaux-Parents, Beaux-Enfants (70 persos)
+import {
+  additionalFantasyCharacters,
+  additionalStepParentCharacters,
+  additionalStepChildCharacters,
+} from './additionalCharacters4';
+
+// Combiner tous les personnages (730+ personnages au total)
 export const enhancedCharacters = [
   ...characters,          // 6 Naruto
   ...friendCharacters,    // 30 amies
@@ -55,6 +83,18 @@ export const enhancedCharacters = [
   ...beautifulGirlsCharacters, // 20 belles filles variées
   ...stepdaughterCharacters,   // 20 belles-filles (stepdaughter)
   ...groupCharacters,     // 40 personnages de groupe (orgies)
+  // ==== NOUVEAUX PERSONNAGES v5.4.51 ====
+  ...additionalFriendCharacters,    // 20 amis (10H + 10F)
+  ...additionalColleagueCharacters, // 20 collègues (10H + 10F)
+  ...additionalNeighborCharacters,  // 20 voisins (10H + 10F)
+  ...additionalMilfCharacters,      // 10 MILF supplémentaires
+  ...additionalDilfCharacters,      // 10 DILF supplémentaires
+  ...additionalMedicalCharacters,   // 20 médical (10H + 10F)
+  ...additionalRoommateCharacters,  // 20 colocataires (10H + 10F)
+  ...additionalSituationCharacters, // 20 situations (10H + 10F)
+  ...additionalFantasyCharacters,   // 20 fantasy (10H + 10F)
+  ...additionalStepParentCharacters, // 20 beaux-parents (10 beaux-pères + 10 belles-mères)
+  ...additionalStepChildCharacters,  // 20 beaux-enfants (10 beaux-fils + 10 belles-filles)
 ];
 
 export default enhancedCharacters;
