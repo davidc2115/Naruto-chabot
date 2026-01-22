@@ -70,7 +70,11 @@ import bdsmCharacters from './bdsmCharacters';
 import youngMilfCharacters from './youngMilfCharacters';
 import housewifeCharacters from './housewifeCharacters';
 
-// Combiner tous les personnages (790+ personnages au total)
+// ==== NOUVEAUX PERSONNAGES v5.4.55 - Femmes au Foyer et MILF 30 ans ====
+import additionalHousewifeCharacters from './additionalHousewifeCharacters';
+import youngMilf30Characters from './youngMilf30Characters';
+
+// Combiner tous les personnages (820+ personnages au total)
 export const enhancedCharacters = [
   ...characters,          // 6 Naruto
   ...friendCharacters,    // 30 amies
@@ -107,6 +111,9 @@ export const enhancedCharacters = [
   // ==== NOUVEAUX PERSONNAGES v5.4.53 ====
   ...youngMilfCharacters,            // 10 jeunes mamans (young MILFs)
   ...housewifeCharacters,            // 20 mères au foyer (housewives)
+  // ==== NOUVEAUX PERSONNAGES v5.4.55 ====
+  ...additionalHousewifeCharacters,  // 20 femmes au foyer (25-40 ans)
+  ...youngMilf30Characters,          // 10 MILF environ 30 ans
 ];
 
 export default enhancedCharacters;
