@@ -129,25 +129,31 @@ export default function SettingsScreen({ navigation, onLogout }) {
     }
   };
   
-  // v5.4.49 - Ouvrir le paiement PayPal
+  // v5.4.53 - Ouvrir le paiement PayPal avec activation automatique
   const openPayPalPayment = async (planId) => {
     if (!paypalEmail) {
-      Alert.alert('⚠️ Configuration requise', 'Veuillez d\'abord configurer votre email PayPal.');
+      Alert.alert('⚠️ Configuration requise', 'L\'administrateur doit d\'abord configurer PayPal.');
       return;
     }
     
-    const plan = premiumPlans[planId];
-    Alert.alert(
-      `💳 ${plan.name}`,
-      `Prix: ${plan.price} ${plan.currency}\n\nCette action va ouvrir PayPal pour le paiement.\n\nAprès le paiement, contactez l'administrateur avec votre preuve de paiement pour activer le premium.`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { 
-          text: 'Payer avec PayPal', 
-          onPress: () => PayPalService.openPaymentLink(planId)
-        }
-      ]
+    // Utiliser le nouveau processus avec activation automatique
+    const success = await PayPalService.processPaymentWithAutoActivation(
+      planId,
+      // Callback de succès - recharger le statut premium
+      async (status) => {
+        setPremiumStatus(status);
+      },
+      // Callback d'annulation
+      () => {
+        console.log('Paiement annulé');
+      }
     );
+    
+    if (success) {
+      // Recharger le statut premium
+      const newStatus = await PayPalService.checkPremiumStatus();
+      setPremiumStatus(newStatus);
+    }
   };
 
   // Charger les APIs de texte disponibles v5.3.33
@@ -1350,7 +1356,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
             ))}
             
             <Text style={styles.premiumNote}>
-              💡 Après le paiement, contactez l'administrateur avec votre preuve de paiement.
+              💡 Après le paiement sur PayPal, confirmez dans l'app pour activer automatiquement votre Premium !
             </Text>
           </View>
         )}

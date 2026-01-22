@@ -66,7 +66,11 @@ import {
 // ==== NOUVEAUX PERSONNAGES v5.4.52 - 30 personnages BDSM ====
 import bdsmCharacters from './bdsmCharacters';
 
-// Combiner tous les personnages (760+ personnages au total)
+// ==== NOUVEAUX PERSONNAGES v5.4.53 - Jeunes Mamans et Mères au Foyer ====
+import youngMilfCharacters from './youngMilfCharacters';
+import housewifeCharacters from './housewifeCharacters';
+
+// Combiner tous les personnages (790+ personnages au total)
 export const enhancedCharacters = [
   ...characters,          // 6 Naruto
   ...friendCharacters,    // 30 amies
@@ -100,6 +104,9 @@ export const enhancedCharacters = [
   ...additionalStepChildCharacters,  // 20 beaux-enfants (10 beaux-fils + 10 belles-filles)
   // ==== NOUVEAUX PERSONNAGES v5.4.52 ====
   ...bdsmCharacters,                 // 30 personnages BDSM (15H + 15F)
+  // ==== NOUVEAUX PERSONNAGES v5.4.53 ====
+  ...youngMilfCharacters,            // 10 jeunes mamans (young MILFs)
+  ...housewifeCharacters,            // 20 mères au foyer (housewives)
 ];
 
 export default enhancedCharacters;

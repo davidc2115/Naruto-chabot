@@ -1,6 +1,6 @@
 /**
  * Service PayPal pour les paiements
- * v5.4.49 - Gestion des abonnements et paiements premium
+ * v5.4.53 - Gestion des abonnements et paiements premium avec activation automatique
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -150,6 +150,237 @@ class PayPalService {
       Alert.alert('Erreur', error.message);
       return false;
     }
+  }
+  
+  /**
+   * Processus complet de paiement avec activation automatique
+   * Ouvre PayPal, puis demande confirmation et active le premium
+   */
+  async processPaymentWithAutoActivation(planId, onSuccess = null, onCancel = null) {
+    const plan = this.premiumPlans[planId];
+    if (!plan) {
+      Alert.alert('Erreur', 'Plan non trouvé');
+      return false;
+    }
+    
+    // Générer un ID de transaction
+    const transactionId = this.generateTransactionId();
+    
+    // Sauvegarder la transaction en attente
+    await this.savePendingTransaction(transactionId, planId);
+    
+    return new Promise((resolve) => {
+      Alert.alert(
+        '💳 Paiement Premium',
+        `Plan: ${plan.name}\nPrix: ${plan.price}€\n\nVous allez être redirigé vers PayPal.\n\nAprès le paiement, revenez dans l'application et confirmez.`,
+        [
+          {
+            text: 'Annuler',
+            style: 'cancel',
+            onPress: () => {
+              if (onCancel) onCancel();
+              resolve(false);
+            }
+          },
+          {
+            text: 'Payer avec PayPal',
+            onPress: async () => {
+              const opened = await this.openPaymentLink(planId);
+              if (opened) {
+                // Attendre que l'utilisateur revienne et confirme
+                setTimeout(() => {
+                  this.showPaymentConfirmation(transactionId, planId, onSuccess, resolve);
+                }, 3000);
+              } else {
+                resolve(false);
+              }
+            }
+          }
+        ]
+      );
+    });
+  }
+  
+  /**
+   * Affiche la confirmation de paiement après retour de PayPal
+   */
+  showPaymentConfirmation(transactionId, planId, onSuccess, resolve) {
+    const plan = this.premiumPlans[planId];
+    
+    Alert.alert(
+      '✅ Confirmer le paiement',
+      `Avez-vous effectué le paiement de ${plan.price}€ sur PayPal ?\n\nID Transaction: ${transactionId}`,
+      [
+        {
+          text: 'Non, annuler',
+          style: 'cancel',
+          onPress: async () => {
+            await this.removePendingTransaction(transactionId);
+            resolve(false);
+          }
+        },
+        {
+          text: 'Oui, j\'ai payé',
+          onPress: async () => {
+            // Activer automatiquement le premium
+            const status = await this.activatePremiumAfterPayment(transactionId, planId);
+            if (status && status.isPremium) {
+              Alert.alert(
+                '🎉 Premium Activé !',
+                `Félicitations ! Votre compte est maintenant Premium.\n\nPlan: ${plan.name}\nValide jusqu'à: ${status.expiresAt ? new Date(status.expiresAt).toLocaleDateString() : 'À vie'}`,
+                [{ text: 'Super !' }]
+              );
+              if (onSuccess) onSuccess(status);
+              resolve(true);
+            } else {
+              Alert.alert('Erreur', 'Impossible d\'activer le premium. Contactez le support.');
+              resolve(false);
+            }
+          }
+        }
+      ]
+    );
+  }
+  
+  /**
+   * Active le premium automatiquement après confirmation de paiement
+   */
+  async activatePremiumAfterPayment(transactionId, planId) {
+    try {
+      // Activer le statut premium
+      const status = await this.setPremiumStatus(true, planId, transactionId);
+      
+      // Supprimer la transaction en attente
+      await this.removePendingTransaction(transactionId);
+      
+      // Sauvegarder l'historique des paiements
+      await this.savePaymentHistory(transactionId, planId);
+      
+      console.log(`✅ Premium activé automatiquement - Transaction: ${transactionId}, Plan: ${planId}`);
+      
+      return status;
+    } catch (error) {
+      console.error('Erreur activation premium:', error);
+      return null;
+    }
+  }
+  
+  /**
+   * Sauvegarde une transaction en attente
+   */
+  async savePendingTransaction(transactionId, planId) {
+    try {
+      const key = '@pending_transactions';
+      const stored = await AsyncStorage.getItem(key);
+      const pending = stored ? JSON.parse(stored) : [];
+      
+      pending.push({
+        transactionId,
+        planId,
+        createdAt: new Date().toISOString(),
+      });
+      
+      await AsyncStorage.setItem(key, JSON.stringify(pending));
+    } catch (error) {
+      console.error('Erreur sauvegarde transaction en attente:', error);
+    }
+  }
+  
+  /**
+   * Supprime une transaction en attente
+   */
+  async removePendingTransaction(transactionId) {
+    try {
+      const key = '@pending_transactions';
+      const stored = await AsyncStorage.getItem(key);
+      if (stored) {
+        const pending = JSON.parse(stored).filter(t => t.transactionId !== transactionId);
+        await AsyncStorage.setItem(key, JSON.stringify(pending));
+      }
+    } catch (error) {
+      console.error('Erreur suppression transaction en attente:', error);
+    }
+  }
+  
+  /**
+   * Sauvegarde l'historique des paiements
+   */
+  async savePaymentHistory(transactionId, planId) {
+    try {
+      const key = '@payment_history';
+      const stored = await AsyncStorage.getItem(key);
+      const history = stored ? JSON.parse(stored) : [];
+      
+      const plan = this.premiumPlans[planId];
+      history.push({
+        transactionId,
+        planId,
+        planName: plan?.name || planId,
+        amount: plan?.price || 0,
+        currency: plan?.currency || 'EUR',
+        paidAt: new Date().toISOString(),
+      });
+      
+      await AsyncStorage.setItem(key, JSON.stringify(history));
+    } catch (error) {
+      console.error('Erreur sauvegarde historique paiement:', error);
+    }
+  }
+  
+  /**
+   * Récupère l'historique des paiements
+   */
+  async getPaymentHistory() {
+    try {
+      const stored = await AsyncStorage.getItem('@payment_history');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Erreur récupération historique:', error);
+      return [];
+    }
+  }
+  
+  /**
+   * Vérifie et récupère les transactions en attente (au cas où l'app a été fermée)
+   */
+  async checkPendingTransactions() {
+    try {
+      const key = '@pending_transactions';
+      const stored = await AsyncStorage.getItem(key);
+      const pending = stored ? JSON.parse(stored) : [];
+      
+      // Filtrer les transactions de plus de 24h
+      const recent = pending.filter(t => {
+        const created = new Date(t.createdAt);
+        const now = new Date();
+        const hours = (now - created) / (1000 * 60 * 60);
+        return hours < 24;
+      });
+      
+      if (recent.length !== pending.length) {
+        await AsyncStorage.setItem(key, JSON.stringify(recent));
+      }
+      
+      return recent;
+    } catch (error) {
+      console.error('Erreur vérification transactions en attente:', error);
+      return [];
+    }
+  }
+  
+  /**
+   * Permet à l'admin d'activer manuellement le premium pour un utilisateur
+   */
+  async adminActivatePremium(planId, customDuration = null) {
+    const transactionId = `ADMIN_${this.generateTransactionId()}`;
+    return await this.activatePremiumAfterPayment(transactionId, planId);
+  }
+  
+  /**
+   * Désactive le premium (admin ou expiration)
+   */
+  async deactivatePremium() {
+    return await this.setPremiumStatus(false, null, null);
   }
   
   /**
