@@ -63,7 +63,10 @@ import {
   additionalStepChildCharacters,
 } from './additionalCharacters4';
 
-// Combiner tous les personnages (730+ personnages au total)
+// ==== NOUVEAUX PERSONNAGES v5.4.52 - 30 personnages BDSM ====
+import bdsmCharacters from './bdsmCharacters';
+
+// Combiner tous les personnages (760+ personnages au total)
 export const enhancedCharacters = [
   ...characters,          // 6 Naruto
   ...friendCharacters,    // 30 amies
@@ -95,6 +98,8 @@ export const enhancedCharacters = [
   ...additionalFantasyCharacters,   // 20 fantasy (10H + 10F)
   ...additionalStepParentCharacters, // 20 beaux-parents (10 beaux-pères + 10 belles-mères)
   ...additionalStepChildCharacters,  // 20 beaux-enfants (10 beaux-fils + 10 belles-filles)
+  // ==== NOUVEAUX PERSONNAGES v5.4.52 ====
+  ...bdsmCharacters,                 // 30 personnages BDSM (15H + 15F)
 ];
 
 export default enhancedCharacters;
