@@ -541,107 +541,171 @@ class ImageGenerationService {
 
   /**
    * Retourne une tenue basée sur le niveau de relation
-   * REFAIT SELON DEMANDE:
-   * - Niveau 1: Habillé (robes, jupes, tops, décolletés)
-   * - Niveau 2: Provocant (nuisettes, robes moulantes, mini-jupes, collants, bas, talons, transparent)
-   * - Niveau 3: Lingerie (sous-vêtements, bikini, nuisette transparente)
+   * v5.4.57 MEGA EXPANSION - Tenues Ultra Sexy/Provocantes/Intimes
+   * - Niveau 1: Habillé sexy (robes, jupes, tops, décolletés)
+   * - Niveau 2: Provocant (nuisettes, transparences, micro-jupes)
+   * - Niveau 3: Lingerie intime
    * - Niveau 4+: De plus en plus explicite
    */
   getOutfitByLevel(level) {
     const lvl = Math.min(Math.max(1, level || 1), 10);
     const outfits = {
-      // === NIVEAU 1 - HABILLÉ SEXY (robes, jupes, tops, décolletés) v5.4.54 ÉLARGI ===
+      // === NIVEAU 1 - HABILLÉ SEXY v5.4.57 MEGA ===
       1: [
-        // === ROBES MOULANTES (bodycon dresses) ===
-        'wearing tight red bodycon dress hugging every curve, deep cleavage, short length',
-        'wearing black bodycon mini dress, curves emphasized, form-fitting fabric',
-        'wearing burgundy velvet bodycon dress, plunging neckline, sexy silhouette',
-        'wearing white tight dress showing all curves, backless design',
-        'wearing emerald green bodycon dress, side slit, cleavage visible',
-        'wearing metallic gold tight mini dress, club ready, glamorous',
-        // === MINI-JUPES (mini-skirts) ===
+        // ROBES MOULANTES
+        'wearing tight red bodycon dress hugging every curve, deep cleavage, short length, sexy silhouette',
+        'wearing black bodycon mini dress, curves emphasized, form-fitting fabric, showing off figure',
+        'wearing burgundy velvet bodycon dress, plunging neckline, sexy sophisticated',
+        'wearing white tight dress showing all curves, backless design, elegant provocative',
+        'wearing emerald green bodycon dress, side slit revealing thigh, cleavage visible',
+        'wearing metallic gold tight mini dress, club ready, glamorous party queen',
+        'wearing hot pink bodycon dress, extremely tight, attention grabbing',
+        'wearing royal blue velvet mini dress, sweetheart neckline pushing cleavage up',
+        'wearing silver sequin bodycon dress, sparkling sexy, every curve outlined',
+        'wearing leopard print tight dress, wild and provocative, form-fitting',
+        // MINI-JUPES
         'wearing very short mini skirt with crop top, long legs visible, sexy casual',
-        'wearing leather mini skirt with tight top, edgy and hot',
-        'wearing pleated school-girl mini skirt, innocent but sexy',
-        'wearing denim micro mini skirt, barely covering, crop top',
-        'wearing satin mini skirt with silk blouse unbuttoned, professional sexy',
-        'wearing plaid mini skirt with knee-high socks, playful schoolgirl look',
-        // === ROBES CLASSIQUES ===
-        'wearing elegant red cocktail dress with plunging neckline, cleavage visible',
-        'wearing tight black little dress, curves emphasized, short length',
-        'wearing flowing summer dress with thin straps, shoulders bare',
-        'wearing off-shoulder evening gown, elegant and sexy',
-        'wearing wrap dress with deep V showing cleavage, form-fitting',
-        // === TOPS SEXY ===
-        'wearing low-cut top showing generous cleavage, tight jeans',
+        'wearing leather mini skirt with tight top, edgy and hot, dominatrix lite',
+        'wearing pleated schoolgirl mini skirt, innocent but sexy, short enough to tease',
+        'wearing denim micro mini skirt barely covering, crop top showing midriff',
+        'wearing satin mini skirt with unbuttoned silk blouse, professional yet sexy',
+        'wearing plaid mini skirt with knee-high socks, playful schoolgirl fantasy',
+        'wearing vinyl mini skirt shiny and provocative, legs on display',
+        'wearing lace mini skirt, legs visible through, elegant tease',
+        'wearing ruched mini skirt hugging ass, casual club ready',
+        'wearing pleated cheerleader skirt, athletic sexy, bouncy',
+        // ROBES SEXY
+        'wearing elegant cocktail dress with plunging neckline, cleavage centerpiece',
+        'wearing tight little black dress, curves emphasized, party ready',
+        'wearing summer dress with thin straps, shoulders bare, breeze revealing',
+        'wearing off-shoulder evening gown, elegant and alluring',
+        'wearing wrap dress with deep V showing cleavage, tied at waist',
+        'wearing halter dress backless to waist, glamorous evening style',
+        'wearing spaghetti strap slip dress, delicate and sensual',
+        'wearing cutout dress showing midriff and sides, modern sexy design',
+        'wearing asymmetric hem dress exposing one leg fully',
+        'wearing strapless bandeau dress, bold and confident',
+        // TOPS SEXY
+        'wearing low-cut top showing generous cleavage, tight jeans hugging ass',
         'wearing crop top exposing toned midriff, high-waisted pants',
-        'wearing halter top with plunging neckline, back exposed',
-        'wearing corset top with jeans, cinched waist, cleavage pushed up',
-        'wearing off-shoulder sweater falling down, shoulder exposed, teasing',
-        'wearing tight tank top with no bra, nipples slightly visible',
+        'wearing halter top with plunging neckline, entire back exposed',
+        'wearing corset top pushing breasts up, cinched waist, jeans',
+        'wearing off-shoulder sweater falling down one shoulder, casual tease',
+        'wearing tight tank top with no bra visible, nipples slightly showing through',
+        'wearing tube top barely containing breasts, strapless temptation',
+        'wearing deep V blouse opened to navel, cleavage on full display',
+        'wearing backless top, entire spine visible, mysterious allure',
+        'wearing tied front crop top, underboob almost visible',
+        'wearing lace-up front top, cleavage pushed together provocatively',
+        'wearing sheer blouse over visible bra, sophisticated tease',
+        // COMBINAISONS
+        'wearing skin-tight jeans with revealing top, sexy girl next door',
+        'wearing yoga pants hugging perfect ass, sports bra showing abs',
+        'wearing short shorts showing long legs, tank top casual hot',
+        'wearing high-cut one-piece swimsuit, beach goddess pose',
+        'wearing string bikini with sarong loosely tied, beach sexy',
       ],
-      // === NIVEAU 2 - PROVOCANT v5.4.54 ÉLARGI (nuisettes, robes moulantes, provocant) ===
+      // === NIVEAU 2 - PROVOCANT v5.4.57 MEGA ===
       2: [
-        // === NUISETTES ET DÉSHABILLÉS (nightwear) ===
-        'wearing silky black short nightgown with lace trim, barely covering thighs, bedroom ready',
-        'wearing pink satin babydoll nightie, sheer fabric, cleavage visible, innocent sexy',
-        'wearing red silk negligee reaching mid-thigh, deep V, side slit',
-        'wearing white lace nightgown, see-through fabric, body silhouette visible',
-        'wearing black sheer chemise, breasts visible through fabric, teasing',
-        'wearing satin slip dress as nightwear, thin straps falling off shoulder',
-        'wearing short silk robe loosely tied, lingerie peeking, just woke up look',
-        'wearing long negligee with high slit, one leg exposed, elegant bedroom',
-        // === ROBES TRÈS MOULANTES PROVOCANTES ===
-        'wearing extremely tight red latex mini dress, every curve visible, club queen',
-        'wearing skin-tight black PVC dress, zipper front half open, shiny provocative',
-        'wearing wet-look bodycon dress leaving nothing to imagination, second skin tight',
-        'wearing backless sequin mini dress, butt cleavage visible, glamorous provocative',
-        'wearing tight white dress with no underwear, body shape completely visible',
-        // === MINI-JUPES TRÈS COURTES ===
-        'wearing micro mini skirt barely covering ass, bending slightly provocative',
-        'wearing ultra short leather skirt with thigh gap visible, dangerous legs',
-        'wearing tiny pleated skirt with visible panties when moving, schoolgirl naughty',
-        // === TENUES PROVOCANTES ===
-        'wearing tight black catsuit with zipper front half open, cleavage exposed',
-        'wearing sheer bodysuit with strategic coverage, almost naked look',
-        'wearing crop top with underboob visible, ultra low-rise jeans',
-        'wearing bandage dress with cutouts showing skin, body wrapped tight',
-        // === COLLANTS ET BAS PROVOCANTS ===
-        'wearing only stockings and garter belt with mini dress, no panties hint',
-        'wearing fishnet bodysuit under open shirt, sexy club outfit',
-        'wearing thigh-high boots with micro skirt, dominatrix vibes',
-        // === TRANSPARENCES OSÉES ===
-        'wearing completely sheer top, bra clearly visible, bold fashion',
-        'wearing mesh dress over bikini, beach club provocative',
-        'wearing see-through blouse, nipples almost visible, daring',
+        // NUISETTES ET DÉSHABILLÉS
+        'wearing silky black short nightgown with lace trim, barely covering thighs, bedroom seduction',
+        'wearing pink satin babydoll nightie, sheer fabric showing silhouette, innocent yet provocative',
+        'wearing red silk negligee reaching mid-thigh, deep V front, side slits',
+        'wearing white lace nightgown completely see-through, body visible underneath',
+        'wearing black sheer chemise, breasts clearly visible through fabric, intimate tease',
+        'wearing satin slip dress as nightwear, thin straps falling off shoulders',
+        'wearing short silk robe loosely tied, lingerie peeking out, just woke up seduction',
+        'wearing long negligee with high slit to hip, entire leg exposed',
+        'wearing champagne silk nightgown, luxurious and revealing',
+        'wearing powder blue babydoll barely covering anything, innocent provocative',
+        'wearing burgundy satin chemise short and tight, romantic seduction',
+        'wearing sheer ivory nightgown, bridal sexy, everything visible',
+        // ROBES ULTRA PROVOCANTES
+        'wearing extremely tight red latex mini dress, every curve defined, fetish elegant',
+        'wearing skin-tight black PVC dress, zipper front half open showing cleavage',
+        'wearing wet-look bodycon dress, second skin tight, nothing to imagination',
+        'wearing backless sequin mini dress, butt cleavage visible when bending',
+        'wearing tight white dress with no underwear visible, body shape completely outlined',
+        'wearing rubber mini dress gleaming, fetish fashion forward',
+        'wearing holographic tight dress, rave queen attention grabbing',
+        'wearing mesh overlay dress, lingerie beneath fully visible',
+        'wearing bandage dress with strategic cutouts, skin peeking everywhere',
+        'wearing dress so tight every outline visible including nipples',
+        // MICRO MINI-JUPES
+        'wearing micro mini skirt barely covering ass cheeks, bending slightly',
+        'wearing ultra short leather skirt, thigh gap visible, dangerous legs',
+        'wearing tiny pleated skirt, panties visible with movement',
+        'wearing micro denim skirt, ass peeking out bottom, casual provocative',
+        'wearing latex micro skirt shiny and barely there, fetish cute',
+        'wearing sheer micro skirt, panties fully visible through fabric',
+        'wearing belt-skirt barely wider than belt, extreme provocative',
+        // TENUES TRÈS PROVOCANTES
+        'wearing tight black catsuit, zipper front open to navel, cleavage exposed',
+        'wearing sheer bodysuit strategic coverage only, almost naked appearance',
+        'wearing crop top with underboob fully visible, ultra low-rise jeans',
+        'wearing bandage dress multiple cutouts, skin everywhere',
+        'wearing string bikini barely covering anything, beach provocative extreme',
+        'wearing monokini with side completely cut out, daring swimwear',
+        'wearing harness over sheer top, BDSM fashion forward',
+        // COLLANTS ET BAS
+        'wearing only stockings and garter visible under mini dress, no panties hint',
+        'wearing fishnet bodysuit under open shirt, club outfit provocative',
+        'wearing thigh-high boots with micro skirt, dominatrix aesthetic',
+        'wearing suspender tights under short skirt, garters showing',
+        'wearing crotchless tights hint visible, ultra provocative tease',
+        'wearing full body fishnet with strategic coverage only',
+        // TRANSPARENCES
+        'wearing completely sheer top, bra clearly visible or no bra at all',
+        'wearing mesh dress over tiny bikini, beach club provocative',
+        'wearing see-through blouse, nipples visible through, daring fashion',
+        'wearing transparent mini dress, lingerie or nothing underneath visible',
+        'wearing sheer bodysuit entire body visible through fabric',
+        'wearing lace dress nothing underneath, elegant nude illusion',
+        'wearing wet white t-shirt clinging, everything visible through',
       ],
-      // === NIVEAU 3 - LINGERIE v5.4.14 (inspiré Evie, Mira, Nora, Lucy) ===
+      // === NIVEAU 3 - LINGERIE INTIME v5.4.57 MEGA ===
       3: [
-        // === STYLE EVIE - Dentelle noire élégante ===
-        'wearing black lace bodysuit with open back, sheer panels showing skin, sexy lingerie',
-        'wearing black lace corset with matching thong, silk ribbon details, boudoir style',
-        'wearing black sheer lace teddy, back exposed, cleavage visible, elegant sensual',
-        'wearing black satin and lace chemise, thin straps, barely covering thighs',
-        // === STYLE MIRA - Nuisettes et robes de chambre ===
-        'wearing black deep V bodysuit with silk robe open, bathroom mirror setting',
-        'wearing black satin robe loosely open over matching lingerie, teasing',
-        'wearing sheer black negligee, body silhouette visible, silk fabric flowing',
-        'wearing sequin mini dress with deep plunging neckline, club ready',
-        // === STYLE NORA - Body fitness et sheer ===
-        'wearing black mesh bodysuit, see-through panels, athletic sensual',
-        'wearing black sheer top over black bra, sporty chic lingerie',
-        'wearing high-cut black bodysuit with sheer mesh sides, fitness model',
-        'wearing black one-piece with cutouts, showing stomach and sides',
-        // === STYLE LUCY - Velours et corsets ===
-        'wearing red velvet corset dress, deep cleavage, tight fit, elegant',
-        'wearing burgundy satin corset with push-up, matching panties',
-        'wearing red lace bodysuit, romantic fireplace setting',
-        'wearing wine red silk slip dress, thin straps, short length',
-        // Lingerie classique améliorée
-        'wearing matching black lace bra and panties set, garter belt, stockings',
-        'wearing white bridal lingerie set, innocent yet sexy, lace details',
-        'wearing push-up bra with thong, cleavage emphasized, confident pose',
-        'wearing silk camisole with lace trim, matching panties, elegant bedroom',
+        // DENTELLE ÉLÉGANTE
+        'wearing black lace bodysuit open back, sheer panels showing skin, sexy lingerie',
+        'wearing black lace corset matching thong, silk ribbons, boudoir goddess',
+        'wearing black sheer lace teddy, back exposed, cleavage prominent',
+        'wearing black satin and lace chemise barely covering anything',
+        'wearing red lace bralette matching panties, romantic intimate',
+        'wearing white lace bodysuit bridal style, innocent seduction',
+        'wearing navy lace teddy with garter attachments, sophisticated',
+        'wearing emerald lace corset pushing breasts up beautifully',
+        // SATIN ET SOIE
+        'wearing black deep V bodysuit with open silk robe, mirror reflection',
+        'wearing black satin robe loosely open over matching lingerie set',
+        'wearing sheer black negligee body silhouette visible, silk flowing',
+        'wearing red satin corset with matching thong, Valentine seduction',
+        'wearing pink silk slip barely covering, feminine delicate',
+        'wearing champagne satin chemise thin straps, luxurious intimate',
+        'wearing royal blue satin teddy, rich color, sensual fabric',
+        // LINGERIE PROVOCANTE
+        'wearing black mesh bodysuit completely see-through, strategic coverage',
+        'wearing black sheer bra and panties set, everything visible',
+        'wearing high-cut black bodysuit sheer mesh sides, athletic sensual',
+        'wearing black one-piece with cutouts showing stomach sides and back',
+        'wearing open cup bra with matching crotchless panties, extreme intimate',
+        'wearing cupless bra pushing breasts, nipples exposed, matching thong',
+        'wearing shelf bra breasts spilling over, provocative lingerie',
+        // CORSETS ET BUSTIERS
+        'wearing red velvet corset dress, deep cleavage, tight waist',
+        'wearing burgundy satin corset push-up effect, matching panties',
+        'wearing red lace bustier romantic fireplace setting',
+        'wearing black leather corset, dominatrix elegant',
+        'wearing pink satin bustier girly sexy, matching panties',
+        'wearing white bridal corset innocent yet provocative',
+        // ENSEMBLES CLASSIQUES AMÉLIORÉS
+        'wearing matching black lace bra panties garter belt stockings complete set',
+        'wearing white bridal lingerie set innocent yet very sexy lace details',
+        'wearing push-up bra with thong cleavage maximum emphasized',
+        'wearing silk camisole lace trim matching panties elegant bedroom',
+        'wearing strappy lingerie set multiple straps crossing body',
+        'wearing harness lingerie BDSM aesthetic elegant',
+        'wearing cage bra with high-waisted panties modern provocative',
+        'wearing bralette with boyshort panties casual sexy',
       ],
       // === NIVEAU 4 - TOPLESS ===
       4: [
@@ -840,72 +904,113 @@ class ImageGenerationService {
   }
 
   /**
-   * Retourne une pose basée sur le niveau de relation
-   * POSES NSFW VARIÉES: aguichante → sexy → topless → nue → explicite
+   * v5.4.57 MEGA EXPANSION - Poses Ultra Sexy/Provocantes/Intimes
+   * POSES VARIÉES: aguichante → sexy → lingerie → topless → nue → explicite
    */
   getPoseByLevel(level) {
     const lvl = Math.min(Math.max(1, level || 1), 10);
     const poses = {
-      // === NIVEAU 1 - POSES AGUICHANTES (habillée sexy) ===
+      // === NIVEAU 1 - POSES AGUICHANTES v5.4.57 MEGA ===
       1: [
+        // POSES DEBOUT
         'standing confidently, hand on hip, showing off dress, flirty smile',
-        'sitting with legs crossed elegantly, cleavage visible, seductive look',
+        'standing in doorway, dress hugging every curve, mysterious allure',
+        'walking towards camera, hips swaying seductively, confident strut',
+        'standing against wall, one leg bent, hands behind head, stretching',
+        'standing by window, natural light, silhouette visible through dress',
+        'standing with back arched, breasts pushed forward, confident pose',
+        'standing adjusting dress strap, shoulder exposed, teasing smile',
+        'standing hands running through hair, sexy casual pose',
+        'standing turning to look over shoulder, ass emphasized',
+        'standing in heels, legs looking endless, power pose',
+        // POSES ASSISES
+        'sitting with legs crossed elegantly, cleavage prominently visible',
+        'sitting on chair backwards, looking over shoulder seductively',
+        'sitting on edge of desk, legs crossed high, business sexy',
+        'sitting on bar stool, legs dangling, flirty expression',
+        'sitting legs spread slightly, confident casual sexy',
+        'sitting leaning forward, deep cleavage visible, engaging',
+        'sitting with one leg up on chair, skirt riding high',
+        // POSES ALLONGÉES
+        'lying on bed fully clothed, legs slightly apart, inviting gaze',
+        'lying on side, curves emphasized, hand on hip',
+        'lying on stomach, feet up playfully, looking at camera',
+        'lying back, arms above head, stretching sensually',
+        // POSES PROVOQUANTES HABILLÉES
+        'bending over slightly, skirt riding up showing legs',
         'leaning forward showing deep cleavage, teasing smile',
-        'bending over slightly, skirt riding up, playful pose',
-        'lying on bed fully clothed, legs slightly apart, inviting',
-        'standing in doorway, dress hugging curves, mysterious',
-        'sitting on chair backwards, looking over shoulder, sexy',
-        'walking towards camera, hips swaying, confident strut',
-        'stretching arms up, shirt rising showing midriff, casual sexy',
-        'adjusting dress strap, shoulder exposed, coy expression',
+        'stretching arms up, shirt rising showing midriff',
+        'adjusting stockings, leg up on chair, elegant tease',
+        'pulling down neckline slightly, cleavage tease',
+        'dancing pose, dress flowing, movement captured',
       ],
-      // === NIVEAU 2 - POSES SEXY v5.4.14 (inspiré Evie, Mira, Nora, Lucy) ===
+      // === NIVEAU 2 - POSES SEXY PROVOCANTES v5.4.57 MEGA ===
       2: [
-        // === POSES STYLE EVIE (lit, détendue) ===
-        'lying on silk bed sheets, propped on elbow, looking over shoulder, bedroom eyes',
-        'sitting on bed with legs tucked, adjusting dress strap, teasing expression',
-        'lying on stomach on bed, feet up playfully, looking at camera, silk sheets visible',
-        // === POSES STYLE MIRA (club, suggestive) ===
-        'reclining on velvet couch, head tilted back, suggestive pose, neon mood lighting',
-        'leaning back on sofa, sucking lollipop suggestively, deep cleavage showing',
-        'standing by bathroom mirror, adjusting robe, looking at reflection seductively',
-        // === POSES STYLE NORA (athlétique, confiante) ===
-        'kneeling on floor, leaning forward on silver ball, athletic sensual, smiling',
-        'sitting with one knee up, confident pose, showing leg, dark moody background',
-        'standing against wall, one hand behind head, stretching sensually',
-        // === POSES STYLE LUCY (élégante, confiante) ===
-        'standing by fireplace, hands on hips, confident elegant pose, warm lighting',
-        'leaning against doorframe, dress hugging curves, mysterious seductive',
-        'walking towards camera, hips swaying, confident strut, corset top',
-        // Poses classiques améliorées
-        'undressing slowly, dress sliding off shoulder, teasing expression',
-        'in silk robe loosely tied, hint of lingerie underneath, bathroom setting',
-        'sitting on bed edge, legs apart slightly, looking up, inviting',
-        'bending over slightly, cleavage visible, playful look back',
+        // POSES SUR LE LIT
+        'lying on silk bed sheets, propped on elbow, bedroom eyes, inviting',
+        'sitting on bed with legs tucked, adjusting strap, teasing expression',
+        'lying on stomach on bed, feet up playfully, looking back over shoulder',
+        'kneeling on bed, hands on thighs, looking up through lashes',
+        'lying back on pillows, one hand above head, casual seduction',
+        'sitting on bed edge, legs apart slightly, looking up invitingly',
+        'lying on side, one leg bent up, curves on display',
+        'propped up on elbows on bed, body stretched out, inviting',
+        // POSES DEBOUT PROVOCANTES
+        'standing by mirror, adjusting outfit, looking at reflection seductively',
+        'standing in doorframe, robe falling open, lingerie peeking',
+        'standing against wall, one hand behind head, stretching provocatively',
+        'standing by fireplace, warm glow, confident elegant pose',
+        'leaning against vanity, fixing makeup, cleavage visible in mirror',
+        'walking out of bathroom, towel loosely wrapped, just showered',
+        'standing undressing slowly, dress sliding off shoulder',
+        // POSES ASSISES PROVOCANTES  
+        'reclining on velvet couch, head tilted back, suggestive lounging',
+        'leaning back on sofa, legs spread slightly, relaxed provocative',
+        'sitting in armchair, one leg over armrest, casual dominant',
+        'sitting on counter, legs dangling, playful seductive',
+        // POSES DE SÉDUCTION
+        'on hands and knees on bed, looking back seductively, presenting',
+        'kneeling on floor, looking up through lashes, submissive tease',
+        'bending over presenting, looking back with smile',
+        'in silk robe loosely tied, lingerie visible, bathroom setting',
+        'undressing slowly, garment sliding down, striptease tease',
+        'touching own body sensually, self-admiration pose',
+        'arching back, chest forward, sensual stretch',
+        'lying back, hand between thighs innocently, teasing',
       ],
-      // === NIVEAU 3 - POSES LINGERIE v5.4.14 (inspiré Evie, Mira, Nora, Lucy) ===
+      // === NIVEAU 3 - POSES LINGERIE INTIMES v5.4.57 MEGA ===
       3: [
-        // === POSES STYLE EVIE (allongée, lit en soie) ===
-        'lying on silk sheets on stomach, looking over shoulder, black lace bodysuit, back exposed',
-        'sitting on bed with legs tucked, wearing black corset, adjusting strap, seductive smile',
-        'lying on side on satin sheets, black lace lingerie, curves emphasized, warm lighting',
-        'propped on elbow on bed, wearing sheer teddy, inviting expression, soft bedroom glow',
-        // === POSES STYLE MIRA (debout, robe de chambre) ===
-        'standing by bathroom counter, silk robe open over black bodysuit, mirror reflection',
-        'leaning against vanity, black bodysuit with deep V, fixing hair, seductive glance',
-        'walking out of bathroom, robe sliding off shoulder, lingerie visible underneath',
-        // === POSES STYLE NORA (athlétique, body noir) ===
-        'kneeling confidently, wearing black mesh bodysuit, hands on thighs, dark setting',
-        'on all fours on bed, black sheer lingerie, looking up seductively, athletic pose',
-        'sitting with one knee up, black body, showing off long legs, moody lighting',
-        // === POSES STYLE LUCY (corset, élégante) ===
-        'standing confidently in red corset, hands on hips, fireplace glowing behind',
-        'sitting on edge of bed, red lingerie set, legs crossed elegantly, warm light',
-        // Poses lingerie classiques améliorées
-        'posing in black lace corset and stockings, garter belt visible, boudoir setting',
-        'removing stockings slowly, in matching bra and panties, bedroom eyes',
-        'lying back on silk sheets, lingerie set, one leg raised, inviting pose',
-        'bending forward in push-up bra, cleavage prominent, teasing expression',
+        // POSES ALLONGÉES LINGERIE
+        'lying on silk sheets on stomach, looking over shoulder, back exposed',
+        'lying on side on satin sheets, lingerie curves emphasized, warm lighting',
+        'propped on elbow on bed, sheer teddy, inviting expression',
+        'lying back on pillows, lingerie set, one leg raised sensually',
+        'lying on stomach, ass raised slightly, looking back',
+        'spread on bed in lingerie, arms above head, vulnerable sexy',
+        'lying on side, hand tracing body, self-touch intimate',
+        // POSES DEBOUT LINGERIE
+        'standing by bathroom counter, robe open over lingerie, mirror reflection',
+        'leaning against vanity, lingerie with deep V, fixing hair seductively',
+        'walking towards camera in lingerie, confident strut',
+        'standing by bed in corset, hands on hips, dominant pose',
+        'standing removing robe, lingerie being revealed',
+        // POSES AGENOUILLÉES
+        'kneeling confidently, mesh bodysuit, hands on thighs, presenting',
+        'on all fours on bed, sheer lingerie, looking up seductively',
+        'kneeling back on heels, hands on knees, waiting pose',
+        'kneeling upright, hands behind head, chest forward',
+        // POSES ASSISES LINGERIE
+        'sitting with one knee up, lingerie visible, showing off legs',
+        'sitting on edge of bed, lingerie set, legs apart slightly',
+        'sitting in chair, one leg over armrest, lingerie displayed',
+        // POSES STRIP-TEASE
+        'posing in corset and stockings, garter belt visible, boudoir',
+        'removing stockings slowly, matching bra panties, bedroom eyes',
+        'unclasping bra from behind, about to remove, tease',
+        'sliding panties down hips, bending forward',
+        'bending forward in push-up bra, cleavage prominent',
+        'adjusting garter straps, leg up, intimate detail',
+        'looking in mirror, admiring self in lingerie',
       ],
       // === NIVEAU 4 - POSES TOPLESS (seins nus) ===
       4: [
@@ -991,6 +1096,140 @@ class ImageGenerationService {
     };
     
     const effectiveLevel = lvl > 10 ? 10 : lvl;
+    const levelPoses = poses[effectiveLevel] || poses[1];
+    return levelPoses[Math.floor(Math.random() * levelPoses.length)];
+  }
+
+  /**
+   * v5.4.57 - Tenues ANIME spécifiques par niveau
+   * Style manga/anime avec références populaires
+   */
+  getAnimeOutfitByLevel(level) {
+    const lvl = Math.min(Math.max(1, level || 1), 10);
+    const outfits = {
+      1: [
+        'wearing anime school uniform, short pleated skirt, sailor collar, thigh-high socks',
+        'wearing maid outfit anime style, frilly apron, short black dress, white headpiece',
+        'wearing shrine maiden outfit, white haori, red hakama, traditional anime',
+        'wearing anime idol costume, frilly dress, pastel colors, cute accessories',
+        'wearing anime bunny girl outfit, black leotard, bunny ears, fishnet stockings',
+        'wearing anime nurse uniform, short white dress, red cross, sexy nurse',
+        'wearing catgirl maid outfit, cat ears, tail, frilly dress, anime cute',
+        'wearing anime succubus outfit, revealing demon costume, wings, horns',
+        'wearing anime witch costume, short black dress, witch hat, magical',
+        'wearing anime teacher outfit, pencil skirt, glasses, strict yet sexy',
+        'wearing anime tennis outfit, short skirt, sporty cute, active pose',
+        'wearing anime swimsuit, school swimsuit sukumizu, navy blue, cute',
+      ],
+      2: [
+        'wearing anime string bikini, barely covering, beach episode style',
+        'wearing anime bunny suit, high cut leotard, detached collar, cuffs',
+        'wearing anime china dress qipao, high slit, tight fit, dragon pattern',
+        'wearing anime maid bikini, tiny frilly bikini, maid accessories',
+        'wearing anime micro bikini, string ties, minimal coverage',
+        'wearing anime hot spring towel only, onsen scene, steam',
+        'wearing anime naked apron, only apron covering front, bare back',
+        'wearing anime virgin killer sweater, backless, sideboob visible',
+        'wearing anime sheer nightgown, see-through, bedroom anime style',
+        'wearing anime cow bikini, cow print, bell collar, playful',
+        'wearing anime demon lingerie, succubus style, wings, revealing',
+        'wearing anime cat lingerie, paw gloves, tail, cat ears, sexy',
+      ],
+      3: [
+        'wearing anime lingerie set, lace and ribbons, ecchi style detailed',
+        'wearing anime garter belt set, stockings, lace panties, anime detailed',
+        'wearing anime see-through negligee, silhouette visible, bedroom',
+        'wearing anime bondage harness, leather straps, revealing',
+        'wearing anime pasties only with thong, minimal coverage hentai',
+        'wearing anime shibari ropes, tied suggestively, artistic',
+        'wearing anime latex bodysuit, shiny tight, every curve visible',
+        'wearing anime string lingerie, strings only, barely covering',
+        'wearing anime cupless bra, breasts exposed, lace details',
+        'wearing anime crotchless panties, garter set, provocative',
+      ],
+      4: [
+        'topless anime style, bare breasts, anime detailed nipples, only panties',
+        'anime topless apron, breasts visible, cooking scene',
+        'topless anime bath scene, wet hair, water droplets on breasts',
+        'topless anime bed scene, sheet barely covering, ecchi style',
+        'anime topless changing room, caught scene, embarrassed',
+        'topless anime succubus, demon wings, sensual hentai style',
+      ],
+      5: [
+        'fully nude anime style, artistic hentai, detailed body',
+        'nude anime bath scene, steam partially covering, sensual',
+        'nude anime bedroom, silk sheets, elegant hentai pose',
+        'completely naked anime girl, full frontal, detailed anatomy',
+        'nude anime elf, pointed ears, ethereal beauty, naked',
+        'nude anime succubus, wings spread, demon beauty naked',
+      ],
+    };
+    
+    const effectiveLevel = Math.min(lvl, 5);
+    const levelOutfits = outfits[effectiveLevel] || outfits[1];
+    return levelOutfits[Math.floor(Math.random() * levelOutfits.length)];
+  }
+
+  /**
+   * v5.4.57 - Poses ANIME spécifiques par niveau
+   * Poses typiques manga/anime
+   */
+  getAnimePoseByLevel(level) {
+    const lvl = Math.min(Math.max(1, level || 1), 10);
+    const poses = {
+      1: [
+        'anime peace sign pose, cute wink, energetic stance',
+        'anime shy pose, hands together, blushing, looking down',
+        'anime confident pose, hand on hip, smirk, powerful stance',
+        'anime surprised pose, hands on cheeks, wide eyes',
+        'anime sitting seiza style, elegant traditional pose',
+        'anime leaning forward, curious expression, cute tilt',
+        'anime stretching pose, arms up, shirt rising, casual',
+        'anime running pose, dynamic movement, hair flowing',
+        'anime sitting on desk, legs crossed, school setting',
+        'anime idol pose, making heart with hands, sparkling',
+      ],
+      2: [
+        'anime lying on bed, inviting pose, bedroom eyes, ecchi',
+        'anime on all fours pose, looking back, provocative manga',
+        'anime kneeling pose, looking up through lashes, submissive',
+        'anime bath scene pose, water steam, sensual relaxed',
+        'anime caught changing pose, covering self, embarrassed cute',
+        'anime bending over pose, skirt lifting, panty peek',
+        'anime stretching in bed pose, yawn, shirt riding up',
+        'anime getting dressed pose, one leg in stocking',
+        'anime shower scene pose, water running down body',
+        'anime undressing pose, pulling down strap, teasing',
+      ],
+      3: [
+        'anime lingerie modeling pose, confident, showing off body',
+        'anime seductive lying pose, finger on lips, bedroom',
+        'anime presenting pose, arched back, chest forward',
+        'anime M-legs pose, sitting with legs spread, intimate',
+        'anime straddling pose, sitting on object, provocative',
+        'anime back arch pose, chest prominent, sensual curve',
+        'anime pulling down panties pose, teasing strip',
+        'anime mirror selfie pose, lingerie visible, reflection',
+      ],
+      4: [
+        'anime topless pose, arms above head, confident',
+        'anime topless shy pose, one arm covering, peeking',
+        'anime breasts grabbed pose, self-touch, ecchi',
+        'anime nipple play pose, fingers on nipples, pleasure',
+        'anime topless kneeling pose, submissive presentation',
+        'anime topless stretching pose, morning scene',
+      ],
+      5: [
+        'anime nude elegant pose, classical beauty, full body',
+        'anime nude presenting pose, nothing hidden, confident',
+        'anime nude bath relaxing pose, steam, sensual',
+        'anime nude lying spread pose, bed scene, inviting',
+        'anime nude standing confident pose, hand on hip',
+        'anime nude crawling pose, approaching, seductive',
+      ],
+    };
+    
+    const effectiveLevel = Math.min(lvl, 5);
     const levelPoses = poses[effectiveLevel] || poses[1];
     return levelPoses[Math.floor(Math.random() * levelPoses.length)];
   }
@@ -6866,8 +7105,8 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.4.56 - Génération Freebox avec file d'attente améliorée
-   * Permet plusieurs utilisateurs sans rate limit ni erreur Pollinations
+   * v5.4.57 - Génération Freebox avec fallback automatique vers Pollinations
+   * FIX: En cas d'erreur Freebox, utilise Pollinations automatiquement
    */
   async generateWithFreeboxQueued(prompt, character = null) {
     // Obtenir le statut de la file d'attente
@@ -6883,10 +7122,19 @@ class ImageGenerationService {
       try {
         // Appel direct à generateWithFreeboxSD
         const imageUrl = await this.generateWithFreeboxSD(prompt, character);
+        
+        // v5.4.57 - Vérifier que l'URL est valide
+        if (!imageUrl || imageUrl.includes('error') || imageUrl.includes('undefined')) {
+          console.log('⚠️ URL Freebox invalide, fallback Pollinations...');
+          return await this.generateWithPollinations(prompt, character);
+        }
+        
         return imageUrl;
       } catch (error) {
         console.error('❌ Erreur génération Freebox:', error.message);
-        throw error;
+        // v5.4.57 - Fallback automatique vers Pollinations en cas d'erreur
+        console.log('🔄 Fallback automatique vers Pollinations AI...');
+        return await this.generateWithPollinations(prompt, character);
       }
     };
     
@@ -6895,9 +7143,14 @@ class ImageGenerationService {
       const result = await ImageQueueService.addRequest(prompt, character, generateFunction);
       return result;
     } catch (error) {
-      // NE PAS fallback vers Pollinations - Retourner un message d'erreur propre
-      console.log('⚠️ Génération Freebox en file d\'attente, pas de fallback Pollinations');
-      throw new Error('Image en cours de génération, veuillez patienter');
+      // v5.4.57 - En cas d'erreur queue, générer directement avec Pollinations
+      console.log('⚠️ Erreur queue, génération directe Pollinations...');
+      try {
+        return await this.generateWithPollinations(prompt, character);
+      } catch (pollError) {
+        console.error('❌ Erreur Pollinations aussi:', pollError.message);
+        throw new Error('Impossible de générer l\'image. Veuillez réessayer.');
+      }
     }
   }
   

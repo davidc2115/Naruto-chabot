@@ -190,15 +190,30 @@ class GalleryService {
 
   async saveImageToGallery(characterId, imageUrl) {
     try {
+      // v5.4.57 - Validation de l'URL avant sauvegarde
+      if (!imageUrl || typeof imageUrl !== 'string') {
+        console.error('❌ URL invalide pour sauvegarde galerie');
+        return null;
+      }
+      
+      // Vérifier que c'est une URL valide (http ou file)
+      if (!imageUrl.startsWith('http') && !imageUrl.startsWith('file')) {
+        console.error('❌ URL ne commence pas par http ou file:', imageUrl.substring(0, 50));
+        return null;
+      }
+      
       const userId = await this.getCurrentUserId();
       const key = `gal_${userId}_${characterId}`;
       
-      // v5.3.68 - Double chargement pour s'assurer de ne pas perdre de données
+      // v5.4.57 - Double chargement pour s'assurer de ne pas perdre de données
       let gallery = [];
       try {
         const existing = await AsyncStorage.getItem(key);
         if (existing) {
-          gallery = JSON.parse(existing);
+          const parsed = JSON.parse(existing);
+          if (Array.isArray(parsed)) {
+            gallery = parsed;
+          }
         }
       } catch (e) {
         console.log('⚠️ Erreur lecture galerie, création nouvelle');
@@ -214,15 +229,15 @@ class GalleryService {
         if (typeof item === 'string') {
           return this.extractSeedFromUrl(item) === seed || item === imageUrl;
         }
-        return item.seed === seed || item.url === imageUrl;
+        return item?.seed === seed || item?.url === imageUrl;
       });
       
       if (!exists) {
-        // v5.3.68: SAUVEGARDER D'ABORD avec l'URL, puis télécharger en arrière-plan
+        // v5.4.57: SAUVEGARDER D'ABORD avec l'URL, puis télécharger en arrière-plan
         const imageData = {
           url: imageUrl,                    // URL originale (TOUJOURS gardée)
           localPath: null,                  // Sera rempli après téléchargement
-          seed: seed,
+          seed: seed || String(Date.now()), // Fallback si pas de seed
           prompt: prompt ? prompt.substring(0, 500) : null,
           savedAt: Date.now(),
           characterId: characterId,
@@ -241,12 +256,12 @@ class GalleryService {
           }
         }
         
-        // v5.3.68 - TRIPLE sauvegarde pour persistance garantie
+        // v5.4.57 - TRIPLE sauvegarde pour persistance garantie
         const jsonData = JSON.stringify(gallery);
         
         // 1. Clé principale avec userId
         await AsyncStorage.setItem(key, jsonData);
-        console.log(`🖼️ Image ajoutée à la galerie: ${key}, seed=${seed}`);
+        console.log(`🖼️ Image ajoutée à la galerie: ${key}, seed=${seed || 'auto'}`);
         
         // 2. Backup global sans userId (pour récupération)
         const backupKey = `gal_backup_${characterId}`;
@@ -271,14 +286,17 @@ class GalleryService {
       return imageUrl;
     } catch (error) {
       console.error('Error saving image to gallery:', error);
-      // v5.3.68 - Tentative de sauvegarde de secours
+      // v5.4.57 - Tentative de sauvegarde de secours
       try {
         const fallbackKey = `gal_fallback_${characterId}`;
         const simpleData = JSON.stringify([{ url: imageUrl, savedAt: Date.now() }]);
         await AsyncStorage.setItem(fallbackKey, simpleData);
         console.log('⚠️ Sauvegarde de secours effectuée');
-      } catch (e2) {}
-      throw error;
+        return imageUrl; // Retourner l'URL même en cas d'erreur partielle
+      } catch (e2) {
+        console.error('❌ Échec sauvegarde secours aussi');
+      }
+      return null; // Retourner null en cas d'échec total
     }
   }
   
@@ -313,7 +331,7 @@ class GalleryService {
       const key = `gal_${userId}_${characterId}`;
       let data = await AsyncStorage.getItem(key);
       
-      // v5.3.68 - Si pas de données, essayer les clés de backup
+      // v5.4.57 - Si pas de données, essayer les clés de backup
       if (!data) {
         const backupKeys = [
           `gal_backup_${characterId}`,
@@ -334,31 +352,53 @@ class GalleryService {
       }
       
       if (data) {
-        const gallery = JSON.parse(data);
+        let gallery;
+        try {
+          gallery = JSON.parse(data);
+        } catch (parseError) {
+          console.error('❌ Erreur parsing galerie:', parseError);
+          return [];
+        }
+        
+        // v5.4.57 - Vérifier que gallery est un tableau
+        if (!Array.isArray(gallery)) {
+          console.error('❌ Galerie n\'est pas un tableau');
+          return [];
+        }
+        
         const result = [];
         
-        // v5.3.68: Utiliser les fichiers locaux s'ils existent, sinon l'URL originale
+        // v5.4.57: Amélioration du chargement - toujours fournir une URL valide
         for (const item of gallery) {
-          if (typeof item === 'string') {
-            // Ancien format string - utiliser l'URL directement
-            result.push(item);
-          } else if (item.localPath) {
-            // Vérifier si le fichier local existe
-            const exists = await this.checkLocalFile(item.localPath);
-            if (exists) {
-              // Fichier local existe - l'utiliser
-              result.push(item.localPath);
-            } else if (item.url) {
-              // Fichier local n'existe plus - utiliser l'URL originale
-              result.push(item.url);
+          try {
+            if (typeof item === 'string') {
+              // Ancien format string - vérifier que c'est une URL valide
+              if (item && (item.startsWith('http') || item.startsWith('file'))) {
+                result.push(item);
+              }
+            } else if (item && typeof item === 'object') {
+              // Nouveau format objet
+              if (item.localPath) {
+                // Vérifier si le fichier local existe
+                const exists = await this.checkLocalFile(item.localPath);
+                if (exists) {
+                  result.push(item.localPath);
+                } else if (item.url && item.url.startsWith('http')) {
+                  // Fichier local n'existe plus - utiliser l'URL originale
+                  result.push(item.url);
+                }
+              } else if (item.url && item.url.startsWith('http')) {
+                // Pas de fichier local - utiliser l'URL
+                result.push(item.url);
+              }
             }
-          } else if (item.url) {
-            // Pas de fichier local - utiliser l'URL
-            result.push(item.url);
+          } catch (itemError) {
+            console.log('⚠️ Erreur traitement item galerie:', itemError.message);
+            // Continuer avec les autres items
           }
         }
         
-        console.log(`📸 Galerie chargée: ${result.length} images pour ${characterId}`);
+        console.log(`📸 Galerie chargée: ${result.length}/${gallery.length} images pour ${characterId}`);
         return result;
       }
       
