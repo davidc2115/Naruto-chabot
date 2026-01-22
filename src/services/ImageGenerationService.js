@@ -3428,34 +3428,96 @@ class ImageGenerationService {
       }
     }
     
-    // === v5.4.68 - TENUE DU PROFIL PRIORITAIRE ===
-    // Si le personnage a une tenue définie dans son profil, l'utiliser en priorité
-    // Sinon, utiliser les tenues aléatoires selon le mode
+    // === v5.4.72 - TENUE DU PROFIL PRIORITAIRE RENFORCÉE ===
+    // Si le personnage a une tenue définie dans son profil, l'utiliser EN PRIORITÉ ABSOLUE
+    // La tenue est ajoutée DEUX FOIS (début et fin) pour emphase maximale
     if (character.outfit && character.outfit.length > 5) {
       // UTILISER LA TENUE DU PROFIL
       // Traduire en anglais si nécessaire
       let outfitPrompt = character.outfit;
       
-      // Traductions françaises communes vers anglais
+      // Traductions françaises COMPLÈTES vers anglais
       const frenchToEnglish = {
+        // Vêtements basiques
         'robe': 'dress', 'jupe': 'skirt', 'pantalon': 'pants', 'jean': 'jeans',
         'chemise': 'shirt', 'blouse': 'blouse', 'haut': 'top', 'tshirt': 't-shirt',
-        'pull': 'sweater', 'veste': 'jacket', 'manteau': 'coat',
+        'pull': 'sweater', 'veste': 'jacket', 'manteau': 'coat', 'short': 'shorts',
+        'débardeur': 'tank top', 'crop top': 'crop top', 'body': 'bodysuit',
+        'combinaison': 'jumpsuit', 'salopette': 'overalls', 'gilet': 'vest',
+        
+        // Lingerie et sous-vêtements
         'lingerie': 'lingerie', 'sous-vêtements': 'underwear', 'soutien-gorge': 'bra',
-        'culotte': 'panties', 'string': 'thong', 'nuisette': 'negligee',
-        'bikini': 'bikini', 'maillot': 'swimsuit', 'tailleur': 'suit',
-        'uniforme': 'uniform', 'kimono': 'kimono', 'chaussures': 'shoes',
-        'talons': 'heels', 'bottes': 'boots', 'baskets': 'sneakers',
+        'culotte': 'panties', 'string': 'thong', 'nuisette': 'sexy negligee nightgown',
+        'déshabillé': 'sheer robe', 'peignoir': 'silk robe', 'porte-jarretelles': 'garter belt',
+        'bas': 'stockings', 'collants': 'tights', 'boxer': 'boxer briefs',
+        'caleçon': 'underwear', 'slip': 'briefs', 'corset': 'corset',
+        
+        // Maillots et plage
+        'bikini': 'bikini', 'maillot': 'swimsuit', 'paréo': 'sarong',
+        'serviette': 'towel wrapped around body',
+        
+        // Vêtements formels
+        'tailleur': 'business suit', 'costume': 'suit', 'cravate': 'tie',
+        'smoking': 'tuxedo', 'robe de soirée': 'evening gown',
+        
+        // Uniformes
+        'uniforme': 'uniform', 'blouse médicale': 'medical scrubs',
+        'militaire': 'military uniform', 'pompier': 'firefighter gear',
+        'gendarme': 'police uniform', 'médecin': 'doctor coat',
+        'infirmière': 'nurse uniform', 'hôtesse': 'flight attendant uniform',
+        
+        // Chaussures
+        'chaussures': 'shoes', 'talons': 'high heels', 'bottes': 'boots',
+        'baskets': 'sneakers', 'escarpins': 'stilettos', 'cuissardes': 'thigh-high boots',
+        'sandales': 'sandals', 'mocassins': 'loafers',
+        
+        // Matières
+        'cuir': 'leather', 'soie': 'silk', 'satin': 'satin', 'coton': 'cotton',
+        'latex': 'latex', 'velours': 'velvet', 'fourrure': 'fur',
+        'dentelle': 'lace', 'résille': 'fishnet', 'mousseline': 'chiffon',
+        
+        // Couleurs
         'rouge': 'red', 'noir': 'black', 'blanc': 'white', 'bleu': 'blue',
         'vert': 'green', 'rose': 'pink', 'violet': 'purple', 'jaune': 'yellow',
         'orange': 'orange', 'gris': 'gray', 'marron': 'brown', 'beige': 'beige',
-        'sexy': 'sexy', 'moulant': 'tight', 'court': 'short', 'long': 'long',
-        'décolleté': 'low-cut', 'transparent': 'see-through', 'dentelle': 'lace',
-        'cuir': 'leather', 'soie': 'silk', 'satin': 'satin', 'coton': 'cotton',
+        'doré': 'gold', 'argenté': 'silver', 'bordeaux': 'burgundy',
+        
+        // Adjectifs
+        'sexy': 'sexy', 'moulant': 'skin-tight form-fitting', 'court': 'short',
+        'long': 'long', 'décolleté': 'low-cut cleavage showing', 
+        'transparent': 'see-through transparent', 'entrouvert': 'open revealing',
         'élégant': 'elegant', 'décontracté': 'casual', 'classique': 'classic',
-        'portant': 'wearing', 'avec': 'with', 'et': 'and', 'une': 'a',
-        'militaire': 'military', 'pompier': 'firefighter', 'gendarme': 'police',
-        'médecin': 'doctor', 'infirmière': 'nurse', 'école': 'school'
+        'ajusté': 'fitted tight', 'ample': 'loose', 'fendu': 'slit',
+        'échancré': 'high-cut revealing', 'plongeant': 'plunging deep',
+        'révélateur': 'revealing', 'provocant': 'provocative',
+        
+        // États
+        'nue': 'completely nude naked', 'nu': 'completely nude naked',
+        'topless': 'topless bare breasts', 'seins nus': 'topless bare breasts',
+        'torse nu': 'shirtless bare chest', 'mouillé': 'wet',
+        'trempé': 'soaking wet', 'humide': 'damp moist',
+        
+        // Accessoires
+        'collier': 'necklace', 'bracelet': 'bracelet', 'boucles': 'earrings',
+        'montre': 'watch', 'ceinture': 'belt', 'écharpe': 'scarf',
+        'lunettes': 'glasses', 'chapeau': 'hat', 'bandeau': 'headband',
+        'harnais': 'leather harness', 'menottes': 'handcuffs', 'fouet': 'whip',
+        
+        // Mots de liaison
+        'portant': 'wearing', 'avec': 'with', 'et': 'and', 'une': 'a', 'un': 'a',
+        'sur': 'on', 'sous': 'under', 'sans': 'without', 'en': 'in',
+        'rien': 'nothing', 'juste': 'just only', 'seulement': 'only',
+        'à peine': 'barely', 'presque': 'almost', 'complètement': 'completely',
+        
+        // Parties du corps
+        'poitrine': 'breasts', 'seins': 'breasts', 'fesses': 'butt',
+        'cuisses': 'thighs', 'jambes': 'legs', 'bras': 'arms',
+        'épaules': 'shoulders', 'dos': 'back', 'ventre': 'belly',
+        'hanches': 'hips', 'taille': 'waist', 'peau': 'skin',
+        
+        // Termes BDSM/Fétiche
+        'dominatrice': 'dominatrix', 'soumise': 'submissive',
+        'maître': 'master', 'esclave': 'slave',
       };
       
       // Traduire les mots français
@@ -3464,21 +3526,28 @@ class ImageGenerationService {
         outfitPrompt = outfitPrompt.replace(regex, en);
       }
       
-      prompt += `, wearing ${outfitPrompt}`;
-      console.log(`👔 TENUE DU PROFIL utilisée: ${character.outfit}`);
+      // v5.4.72 - AJOUTER LA TENUE EN PRIORITÉ MAXIMALE (au début du prompt)
+      // On reconstruit le prompt avec la tenue en premier
+      const outfitEmphasis = `((wearing ${outfitPrompt})), OUTFIT: ${outfitPrompt}`;
+      prompt = outfitEmphasis + ', ' + prompt;
       
-      // POSES élégantes pour profil avec tenue définie
+      // AUSSI ajouter à la fin pour double emphase
+      prompt += `, wearing ${outfitPrompt}`;
+      console.log(`👔 TENUE DU PROFIL utilisée (PRIORITÉ MAX): ${character.outfit}`);
+      console.log(`👔 Traduction: ${outfitPrompt}`);
+      
+      // POSES adaptées à la tenue
       const profilePoses = [
-        'natural confident pose, warm smile',
-        'elegant standing pose, friendly expression',
-        'relaxed casual pose, inviting look',
-        'charming pose, attractive smile',
-        'confident pose, showing off outfit',
+        'natural confident pose, warm smile, showing off outfit',
+        'elegant standing pose, outfit visible, friendly expression',
+        'relaxed casual pose, full outfit visible, inviting look',
+        'charming pose, attractive smile, outfit on display',
+        'confident pose, outfit clearly shown, beautiful',
       ];
       prompt += `, ${profilePoses[Math.floor(Math.random() * profilePoses.length)]}`;
       
       // Qualités positives
-      prompt += ', beautiful, attractive, charming';
+      prompt += ', beautiful, attractive, charming, outfit visible';
       
     } else if (isNSFW) {
       // PAS DE TENUE DÉFINIE + MODE NSFW -> TENUES SEXY ALÉATOIRES
