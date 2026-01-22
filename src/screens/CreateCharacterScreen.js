@@ -45,6 +45,9 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [personality, setPersonality] = useState(characterToEdit?.personality || '');
   const [temperament, setTemperament] = useState(characterToEdit?.temperament || 'amical');
   
+  // === TENUE ===
+  const [outfit, setOutfit] = useState(characterToEdit?.outfit || '');
+  
   // === SCÉNARIO ===
   const [scenario, setScenario] = useState(characterToEdit?.scenario || '');
   const [startMessage, setStartMessage] = useState(characterToEdit?.startMessage || '');
@@ -190,6 +193,11 @@ export default function CreateCharacterScreen({ navigation, route }) {
       // Tags
       if (characterToEdit.tags && Array.isArray(characterToEdit.tags)) {
         setTags(characterToEdit.tags.join(', '));
+      }
+      
+      // v5.4.69 - Tenue
+      if (characterToEdit.outfit) {
+        setOutfit(characterToEdit.outfit);
       }
       
       // Image
@@ -931,6 +939,8 @@ export default function CreateCharacterScreen({ navigation, route }) {
         },
         // === TAGS v5.4.20 ===
         tags: parsedTags,
+        // === TENUE v5.4.69 ===
+        outfit: outfit || undefined,
         // === SCÉNARIO ===
         scenario,
         description: scenario,
@@ -1288,6 +1298,21 @@ export default function CreateCharacterScreen({ navigation, route }) {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* v5.4.69 - Section Tenue */}
+      <Text style={styles.label}>👘 Tenue habituelle</Text>
+      <TextInput
+        style={[styles.input, styles.textArea]}
+        value={outfit}
+        onChangeText={setOutfit}
+        placeholder="Décrivez la tenue du personnage (utilisée pour les images de profil)...
+Ex: Robe rouge moulante, uniforme de police, kimono traditionnel..."
+        multiline
+        numberOfLines={3}
+      />
+      <Text style={styles.hint}>
+        Cette tenue sera utilisée pour générer les images sur la page de profil. Dans les conversations, les tenues varient selon le niveau de relation.
+      </Text>
 
       <Text style={styles.label}>Scénario de rencontre *</Text>
       <TextInput
