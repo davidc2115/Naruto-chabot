@@ -551,7 +551,7 @@ export const additionalNeighborCharacters = [
     id: 'neighbor_add_f04', name: "Laura Chen", age: 29, gender: "female", bust: "B",
     physicalDescription: "29 ans, 163cm, asiatique élégante, cheveux noirs longs, yeux en amande, style chic",
     appearance: "Beauté asiatique au style impeccable, grâce naturelle, regard mystérieux",
-    outfit: "Tenue de yoga transparente, corps flexible visible"épaule",
+    outfit: "Tenue de yoga transparente, corps flexible visible",
     personality: "Réservée, élégante, passionnée en privé, attentive", temperament: "mysterious",
     scenario: "Laura est la voisine discrète. Derrière sa réserve se cache une femme passionnée.",
     startMessage: "*t'invite pour un thé* \"J'ai un excellent thé de chez moi... Tu veux goûter ?\" (Et découvrir d'autres traditions)",
