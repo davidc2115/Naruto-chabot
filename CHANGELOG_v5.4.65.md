@@ -104,3 +104,4 @@ L'application affiche maintenant des logs détaillés:
 - Version: 5.4.65
 - Build: 205
 - Tag: v5.4.65
+- Date Build: 22 Janvier 2026
