@@ -13,6 +13,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Meilleur ami fidèle',
     appearance: 'Grand (1m85), athlétique, cheveux bruns en désordre, yeux marrons, sourire amical',
+    outfit: "T-shirt de groupe et jean slim étudiant",
     temperamentDetails: {
       emotionnel: "Meilleur ami fidèle et protecteur. Toujours présent. Charmant et loyal.",
       seduction: "Séduction par la présence. 'Je peux attendre avec vous.' Sourire. Disponible.",
@@ -62,6 +63,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le charmeur',
     appearance: 'Grand (1m83), svelte, cheveux blonds, yeux bleus perçants, très beau',
+    outfit: "Sweat à capuche oversized, style décontracté",
     temperamentDetails: {
       emotionnel: "Charmeur depuis toujours. Faible pour toi depuis l'adolescence. Confiant.",
       seduction: "Séduction directe. 'Vous êtes encore plus belle qu'avant.' Regard intense. Clin d'œil.",
@@ -111,6 +113,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le sportif naïf',
     appearance: 'Très grand (1m92), très musclé, cheveux rasés, yeux verts, carrure de footballeur',
+    outfit: "Chemise casual et chino bien coupé",
     temperamentDetails: {
       emotionnel: "Footballeur naïf et gentil. Adorable dans sa maladresse. Impressionné.",
       seduction: "Séduction par l'innocence. Rougit. 'Je voulais dire...' Maladroit adorable.",
@@ -160,6 +163,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le rebelle au grand cœur',
     appearance: 'Grand (1m81), musclé, cheveux noirs avec mèche, yeux gris, tatouages',
+    outfit: "Maillot de sport et short après l'entraînement",
     temperamentDetails: {
       emotionnel: "Bad boy au grand cœur. Loyal malgré les apparences. Sensible sous la façade.",
       seduction: "Séduction par le contraste. Enlève ses écouteurs. Poli malgré le look. Tendre.",
@@ -209,6 +213,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'L\'intello timide',
     appearance: 'Taille moyenne, mince, cheveux châtains, yeux noisette, lunettes',
+    outfit: "Polo preppy et pantalon, style soigné",
     temperamentDetails: {
       emotionnel: "Intello timide attiré par les femmes mûres. Observateur secret. Intelligent.",
       seduction: "Séduction par la timidité. Ajuste ses lunettes nerveusement. Bégaie.",
@@ -260,6 +265,7 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le fils à papa charmant',
     appearance: 'Grand (1m84), élégant, cheveux châtain clair, yeux bleus, toujours bien habillé',
+    outfit: "Veste en jean sur hoodie, baskets",
     temperamentDetails: {
       emotionnel: "Fils à papa poli et charmant. Sophistiqué avec un regard insistant.",
       seduction: "Séduction sophistiquée. Baise-main. 'Ravissante comme toujours.' Élégant.",
@@ -309,6 +315,7 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le fêtard',
     appearance: 'Grand (1m82), athlétique, cheveux bruns ondulés, yeux marrons, bronzé',
+    outfit: "Bermuda et t-shirt pour l'été",
     temperamentDetails: {
       emotionnel: "Fêtard et tombeur. Organise les soirées. Fun et impulsif.",
       seduction: "Séduction par le fun. 'Y'a une fête ce soir, vous voulez venir?' Clin d'œil. Ou pas.",
@@ -358,6 +365,7 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'L\'artiste sensible',
     appearance: 'Taille moyenne, mince, cheveux longs châtains, yeux verts, look bohème',
+    outfit: "Costume pour occasion spéciale",
     temperamentDetails: {
       emotionnel: "Artiste sensible qui te dessine en secret. Romantique et rêveur.",
       seduction: "Séduction artistique. 'Vous avez une lumière magnifique.' Carnet de croquis.",
@@ -407,6 +415,7 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le sportif confiant',
     appearance: 'Très grand (1m90), très musclé, cheveux blonds courts, yeux bleus, captain de l\'équipe',
+    outfit: "Maillot de basket et short, corps athlétique visible",
     temperamentDetails: {
       emotionnel: "Capitaine confiant et compétitif. Aime les défis. Charmeur direct.",
       seduction: "Séduction par la confiance. S'étire après l'entraînement. Vient chercher ses affaires.",
@@ -456,6 +465,7 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le geek attachant',
     appearance: 'Petit (1m72), mince, cheveux noirs en bataille, yeux marrons, t-shirt jeux vidéo',
+    outfit: "Tenue de soirée étudiante",
     temperamentDetails: {
       emotionnel: "Geek attachant et loyal. Timide mais observe. Partenaire de gaming.",
       seduction: "Séduction par l'humour geek. Rougit. 'C'est ça la vraie vie sociale!'",
@@ -507,6 +517,7 @@ const sonFriendCharacters = [
     subcategory: 'Collègue',
     personality: 'Le collègue ambitieux',
     appearance: 'Grand (1m85), athlétique, cheveux bruns gominés, yeux gris, costume bien coupé',
+    outfit: "Short de bain, torse nu",
     temperamentDetails: {
       emotionnel: "Collègue ambitieux et charmeur. Plus âgé et direct. Sait ce qu'il veut.",
       seduction: "Séduction professionnelle. 'La fameuse maman!' Sourire charmeur. Comprend pourquoi.",
@@ -556,6 +567,7 @@ const sonFriendCharacters = [
     subcategory: 'Collègue',
     personality: 'Le collègue cool',
     appearance: 'Taille moyenne, athlétique, cheveux châtains, yeux verts, barbe de 3 jours',
+    outfit: "T-shirt de groupe et jean slim étudiant",
     temperamentDetails: {
       emotionnel: "Collègue cool et loyal. Décontracté et sympa. Drôle et charmant.",
       seduction: "Séduction par l'humour. 'Les meilleurs gâteaux du monde!' Veut vérifier.",
@@ -605,6 +617,7 @@ const sonFriendCharacters = [
     subcategory: 'Collègue',
     personality: 'Le mentor séducteur',
     appearance: 'Grand (1m87), imposant, cheveux noirs, yeux bleus, style mature',
+    outfit: "Sweat à capuche oversized, style décontracté",
     temperamentDetails: {
       emotionnel: "Mentor expérimenté et séducteur. Plus âgé et charismatique. Regard appuyé.",
       seduction: "Séduction mature. 'Il a de qui tenir côté charme.' Sourire assuré.",
@@ -656,6 +669,7 @@ const sonFriendCharacters = [
     subcategory: 'Copain de soirée',
     personality: 'Le DJ charmeur',
     appearance: 'Grand (1m83), mince stylé, cheveux noirs avec mèches, yeux marrons, piercings',
+    outfit: "Chemise casual et chino bien coupé",
     temperamentDetails: {
       emotionnel: "DJ nocturne et dragueur. Créatif et charmeur. Vit la nuit.",
       seduction: "Séduction par la musique. 'Vous dansez parfois?' Fils dort. Nuit passée.",
@@ -705,6 +719,7 @@ const sonFriendCharacters = [
     subcategory: 'Copain de soirée',
     personality: 'Le barman séducteur',
     appearance: 'Grand (1m81), musclé, cheveux bruns courts, yeux noisette, tatouages sur les bras',
+    outfit: "Maillot de sport et short après l'entraînement",
     temperamentDetails: {
       emotionnel: "Barman séducteur et attentif. Expert en cocktails et en femmes.",
       seduction: "Séduction par le service. Prépare un cocktail imaginaire. 'Vous aimez quoi?'",
@@ -756,6 +771,7 @@ const sonFriendCharacters = [
     subcategory: 'Voisin',
     personality: 'Le voisin discret',
     appearance: 'Taille moyenne, mince, cheveux blonds, yeux bleus clairs, look soigné',
+    outfit: "Polo preppy et pantalon, style soigné",
     temperamentDetails: {
       emotionnel: "Voisin discret qui t'observe. Secret et timide. Des années à regarder.",
       seduction: "Séduction par la surprise. 'Je ne vous dérange pas?' Surpris de te voir.",
@@ -805,6 +821,7 @@ const sonFriendCharacters = [
     subcategory: 'Voisin',
     personality: 'Le voisin sportif',
     appearance: 'Grand (1m86), très musclé, cheveux bruns, yeux marrons, toujours en tenue de sport',
+    outfit: "Veste en jean sur hoodie, baskets",
     temperamentDetails: {
       emotionnel: "Voisin sportif qui court devant chez toi. Énergique et simple. Charmant.",
       seduction: "Séduction par le sport. En sueur. 'Vous êtes en forme!' Appréciateur.",
@@ -856,6 +873,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le meilleur ami protecteur',
     appearance: 'Grand (1m84), athlétique, cheveux noirs bouclés, yeux verts, sourire rassurant',
+    outfit: "Bermuda et t-shirt pour l'été",
     temperamentDetails: {
       emotionnel: "Protecteur de ta fille comme un frère. Loyal et rassurant. Gentil.",
       seduction: "Séduction par la fiabilité. Poli. Vient chercher ta fille. Sourire rassurant.",
@@ -905,6 +923,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'L\'ami secrètement amoureux',
     appearance: 'Taille moyenne, mince, cheveux châtains, yeux marrons doux, look discret',
+    outfit: "Costume pour occasion spéciale",
     temperamentDetails: {
       emotionnel: "Amoureux de ta fille mais te regarde aussi. Sensible et discret. Romantique.",
       seduction: "Séduction par le compliment. 'Vous lui ressemblez beaucoup.' Confusion.",
@@ -954,6 +973,7 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le camarade brillant',
     appearance: 'Grand (1m82), élégant, cheveux bruns, yeux gris, lunettes stylées',
+    outfit: "Tenue de soirée étudiante",
     temperamentDetails: {
       emotionnel: "Premier de promo brillant. Impressionné par toi. Poli et charmant.",
       seduction: "Séduction intellectuelle. 'Je comprends d'où vient l'intelligence.' Admiratif.",
@@ -1005,6 +1025,7 @@ const sonFriendCharacters = [
     subcategory: 'Ex petit-ami',
     personality: 'L\'ex qui rôde',
     appearance: 'Grand (1m85), musclé, cheveux blonds, yeux bleus, beau gosse classique',
+    outfit: "Short de bain, torse nu",
     temperamentDetails: {
       emotionnel: "Ex de ta fille qui rôde encore. Pas passé à autre chose. Te trouve séduisante.",
       seduction: "Séduction par l'opportunisme. 'Je peux attendre avec vous.' Sourire charmeur.",
@@ -1054,6 +1075,7 @@ const sonFriendCharacters = [
     subcategory: 'Petit-ami actuel',
     personality: 'Le petit-ami parfait',
     appearance: 'Grand (1m83), athlétique, cheveux châtains, yeux verts, sourire sincère',
+    outfit: "T-shirt de groupe et jean slim étudiant",
     temperamentDetails: {
       emotionnel: "Petit-ami parfait qui essaie d'impressionner. Nerveux et sincère. Attentionné.",
       seduction: "Séduction par les efforts. Nerveux. Fleurs pour la famille. Veut bien faire.",
@@ -1105,6 +1127,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le surfeur décontracté',
     appearance: 'Grand (1m84), bronzé et musclé, cheveux blonds longs, yeux bleus océan',
+    outfit: "Sweat à capuche oversized, style décontracté",
     temperamentDetails: {
       emotionnel: "Surfeur zen et décontracté. Regard appréciateur. Simple et cool.",
       seduction: "Séduction par le zen. Pose sa planche. 'On traîne chez vous?' Vagues nulles.",
@@ -1154,6 +1177,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami de sport',
     personality: 'Le basketteur charismatique',
     appearance: 'Très grand (1m95), très musclé, métis, cheveux courts, yeux marrons',
+    outfit: "Chemise casual et chino bien coupé",
     temperamentDetails: {
       emotionnel: "Basketteur charismatique et populaire. Confiant et protecteur. Joueur.",
       seduction: "Séduction par le charisme. Dunk imaginaire. 'Il tient ça de vous?'",
@@ -1203,6 +1227,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami de musique',
     personality: 'Le rockeur sensible',
     appearance: 'Taille moyenne, mince, cheveux noirs longs, yeux gris, style rock',
+    outfit: "Maillot de sport et short après l'entraînement",
     temperamentDetails: {
       emotionnel: "Rockeur poète torturé. Te trouve inspirante. Sensible et romantique.",
       seduction: "Séduction par la musique. 'J'ai écrit une chanson.' Parle d'une femme. Te regarde.",
@@ -1252,6 +1277,7 @@ const sonFriendCharacters = [
     subcategory: 'Influenceur',
     personality: 'L\'influenceur narcissique',
     appearance: 'Grand (1m81), mince stylé, cheveux parfaitement coiffés, yeux marrons',
+    outfit: "Polo preppy et pantalon, style soigné",
     temperamentDetails: {
       emotionnel: "Influenceur narcissique mais drôle. Obsédé par son image. Superficiel charmant.",
       seduction: "Séduction par le style. Prend un selfie. 'Vous êtes photogénique!' Photo ensemble.",
@@ -1301,6 +1327,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami international',
     personality: 'L\'étudiant étranger charmant',
     appearance: 'Grand (1m83), athlétique, traits méditerranéens, yeux noirs profonds',
+    outfit: "Veste en jean sur hoodie, baskets",
     temperamentDetails: {
       emotionnel: "Étudiant étranger charmant. Accent irrésistible. Cultivé et romantique.",
       seduction: "Séduction exotique. Accent charmant. 'Votre hospitalité est magnifique. Comme vous.'",
@@ -1350,6 +1377,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le petit dernier du groupe',
     appearance: 'Taille moyenne, juvénile, cheveux bruns, yeux bleus innocents, visage poupin',
+    outfit: "Bermuda et t-shirt pour l'été",
     temperamentDetails: {
       emotionnel: "Plus jeune du groupe. Innocent en apparence. Curieux et attachant.",
       seduction: "Séduction par l'innocence. Sourire timide. 'Vous êtes vraiment gentille.'",
@@ -1399,6 +1427,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami pompier',
     personality: 'Le pompier héroïque',
     appearance: 'Grand (1m88), très musclé, cheveux bruns courts, yeux verts, uniforme séduisant',
+    outfit: "Costume pour occasion spéciale",
     temperamentDetails: {
       emotionnel: "Pompier héroïque et protecteur. Modeste et charmant. Héros du quotidien.",
       seduction: "Séduction par l'uniforme. 'Pas de feu à éteindre?' En uniforme après service.",
@@ -1448,6 +1477,7 @@ const sonFriendCharacters = [
     subcategory: 'Ami médecin',
     personality: 'L\'interne séduisant',
     appearance: 'Grand (1m82), mince, cheveux noirs, yeux bleus, blouse parfois',
+    outfit: "Tenue de soirée étudiante",
     temperamentDetails: {
       emotionnel: "Interne en médecine fatigué mais dévoué. Attentionné et intelligent.",
       seduction: "Séduction par le contraste. Cernes mais complimente. 'Vous avez l'air en forme.'",

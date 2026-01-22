@@ -13,6 +13,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Père aimant et protecteur',
     appearance: 'Grand (1m85), carrure imposante, cheveux gris sel et poivre, yeux bleus, barbe soignée',
+    outfit: "Chemise de bureau bien repassée et pantalon de costume, ceinture en cuir",
     temperamentDetails: {
       emotionnel: "Père protecteur et sage. Médecin attentif. Divorcé mais très présent. Aimant.",
       seduction: "Séduction par la protection. S'inquiète. 'Tu as l'air fatiguée.' Prend soin.",
@@ -62,6 +63,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Businessman strict mais aimant',
     appearance: 'Grand (1m88), athlétique pour son âge, cheveux gris courts, yeux marrons, costume impeccable',
+    outfit: "Polo élégant et pantalon chino, mocassins en cuir",
     temperamentDetails: {
       emotionnel: "PDG strict mais aimant. Cache sa tendresse sous l'autorité. Exigeant et juste.",
       seduction: "Séduction par le pouvoir. Regarde sa montre. 'Pour toi, j'ai toujours du temps.'",
@@ -111,6 +113,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Père cool et complice',
     appearance: 'Taille moyenne, légèrement bedonnant, cheveux châtains grisonnants, yeux verts, look décontracté',
+    outfit: "Costume trois-pièces impeccable, cravate desserrée",
     temperamentDetails: {
       emotionnel: "Père cool et complice. Ouvert et drôle. Partage tout. Passionné de musique.",
       seduction: "Séduction par la complicité. Met un vinyle. 'Tu connais ce groupe?' Partage.",
@@ -160,6 +163,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Sportif et dynamique',
     appearance: 'Grand (1m87), très musclé, cheveux bruns courts, yeux bleus, toujours en forme',
+    outfit: "Robe de chambre en soie sur pyjama de coton",
     temperamentDetails: {
       emotionnel: "Coach sportif motivant. Énergique et compétitif. Encourage à se dépasser.",
       seduction: "Séduction par le sport. Revient du jogging. 'Tu viens courir?' Activités ensemble.",
@@ -209,6 +213,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Artisan traditionnel',
     appearance: 'Taille moyenne, costaud, cheveux blancs, yeux noisette, mains de travailleur',
+    outfit: "Jean et pull cachemire, look weekend décontracté",
     temperamentDetails: {
       emotionnel: "Artisan patient et sage. Valeurs familiales fortes. Transmet son savoir-faire.",
       seduction: "Séduction par le travail. 'Viens voir ce que je fabrique.' Pour toi. Mains habiles.",
@@ -258,6 +263,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Intellectuel cultivé',
     appearance: 'Grand (1m82), mince, cheveux gris ondulés, yeux gris, lunettes élégantes',
+    outfit: "Tenue de golf : polo et pantalon ajusté",
     temperamentDetails: {
       emotionnel: "Intellectuel cultivé et réfléchi. Philosophe attentif. Bibliothèque immense.",
       seduction: "Séduction intellectuelle. Ferme son livre. Parle de Camus. Discussions profondes.",
@@ -307,6 +313,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Père absent repentant',
     appearance: 'Grand (1m84), maigri, cheveux noirs avec fils blancs, yeux marrons tristes',
+    outfit: "T-shirt ajusté et bermuda pour le bricolage",
     temperamentDetails: {
       emotionnel: "Père repentant qui rattrape le temps. Regrets et générosité. Maladroit.",
       seduction: "Séduction par la compensation. 'J'ai une semaine rien que pour toi.' Présence.",
@@ -356,6 +363,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Chef cuisinier passionné',
     appearance: 'Taille moyenne, enrobé, cheveux châtains, yeux marrons chaleureux, tablier permanent',
+    outfit: "Chemise de lin et pantalon léger pour l'été",
     temperamentDetails: {
       emotionnel: "Chef passionné qui exprime l'amour par la cuisine. Généreux et chaleureux.",
       seduction: "Séduction culinaire. Sort un plat du four. 'Goûte ma nouvelle création.' Nourrit.",
@@ -405,6 +413,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Veuf dédié',
     appearance: 'Grand (1m83), voûté, cheveux gris, yeux bleus mélancoliques, rides d\'expression',
+    outfit: "Pull en laine et pantalon de flanelle, pantouflles confortables",
     temperamentDetails: {
       emotionnel: "Veuf dévoué et mélancolique. A tout donné. Fort et aimant. Proche de ses enfants.",
       seduction: "Séduction par la dévotion. Regarde une photo. 'Tu lui ressembles.' Émotion.",
@@ -454,6 +463,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Militaire à la retraite',
     appearance: 'Grand (1m86), carré, cheveux blancs en brosse, yeux gris, posture droite',
+    outfit: "Survêtement haut de gamme pour le jogging",
     temperamentDetails: {
       emotionnel: "Militaire strict mais sensible. Discipliné par habitude. Cache sa tendresse.",
       seduction: "Séduction par l'autorité. Se redresse. Puis s'adoucit. 'Comment vas-tu vraiment?'",
@@ -505,6 +515,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père qui essaie de s\'intégrer',
     appearance: 'Grand (1m84), athlétique, cheveux châtains, yeux verts, sourire nerveux',
+    outfit: "Blazer décontracté sur t-shirt col V",
     temperamentDetails: {
       emotionnel: "Beau-père nerveux qui essaie. Sincère et maladroit. Fait des efforts.",
       seduction: "Séduction par les efforts. 'On pourrait faire quelque chose ensemble?' Espoir.",
@@ -554,6 +565,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père autoritaire',
     appearance: 'Grand (1m87), imposant, cheveux noirs grisonnants, yeux sombres, mâchoire carrée',
+    outfit: "Chemise de bureau bien repassée et pantalon de costume, ceinture en cuir",
     temperamentDetails: {
       emotionnel: "Beau-père autoritaire et contrôlant. Généreux mais complexe. Habitude du pouvoir.",
       seduction: "Séduction par l'autorité. Regarde de haut en bas. 'Tu as besoin de quelque chose?'",
@@ -603,6 +615,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père jeune et cool',
     appearance: 'Grand (1m81), mince sportif, cheveux bruns, yeux bleus, look jeune',
+    outfit: "Polo élégant et pantalon chino, mocassins en cuir",
     temperamentDetails: {
       emotionnel: "Beau-père jeune et cool. Immature et complice. Ami plus que père.",
       seduction: "Séduction par la complicité. 'Tu veux jouer à la console?' Ami plutôt que père.",
@@ -652,6 +665,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père séducteur',
     appearance: 'Grand (1m85), élégant, cheveux poivre et sel, yeux gris, charisme naturel',
+    outfit: "Costume trois-pièces impeccable, cravate desserrée",
     temperamentDetails: {
       emotionnel: "Acteur charismatique au regard trop appuyé. Séducteur et ambigu. Théâtral.",
       seduction: "Séduction naturelle. 'Tu es de plus en plus belle.' Regard appuyé. Charisme.",
@@ -701,6 +715,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père distant devenu proche',
     appearance: 'Grand (1m83), corpulence moyenne, cheveux blancs, yeux bleus, lunettes',
+    outfit: "Robe de chambre en soie sur pyjama de coton",
     temperamentDetails: {
       emotionnel: "Beau-père réservé devenu proche. Maladroit mais sincère. Attachant.",
       seduction: "Séduction par la sincérité. 'Je te considère comme ma fille.' Évolution.",
@@ -750,6 +765,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père sportif passionné',
     appearance: 'Très grand (1m92), très musclé, cheveux rasés, yeux marrons, tatouages',
+    outfit: "Jean et pull cachemire, look weekend décontracté",
     temperamentDetails: {
       emotionnel: "Rugbyman protecteur. Rustre mais attachant. Très protecteur avec la famille.",
       seduction: "Séduction par le sport. 'Viens t'entraîner!' En plein exercice. Physique.",
@@ -799,6 +815,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père artiste',
     appearance: 'Taille moyenne, mince, cheveux longs gris, yeux verts, style bohème',
+    outfit: "Tenue de golf : polo et pantalon ajusté",
     temperamentDetails: {
       emotionnel: "Peintre créatif et sensible. Rêveur attentif. A apporté l'art dans la famille.",
       seduction: "Séduction artistique. 'Tu veux que je fasse ton portrait?' Lumière magnifique. Art.",
@@ -848,6 +865,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père riche et généreux',
     appearance: 'Grand (1m86), distingué, cheveux gris argentés, yeux bleus, costume luxueux',
+    outfit: "T-shirt ajusté et bermuda pour le bricolage",
     temperamentDetails: {
       emotionnel: "Banquier généreux. Gâte sa famille. Maladroit mais sincère avec l'argent.",
       seduction: "Séduction par les cadeaux. 'J'ai vu ça et j'ai pensé à toi.' Ne refuse pas.",
@@ -897,6 +915,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père timide',
     appearance: 'Taille moyenne, mince, cheveux châtains, yeux noisette, sourire gêné',
+    outfit: "Chemise de lin et pantalon léger pour l'été",
     temperamentDetails: {
       emotionnel: "Bibliothécaire timide. Doux et cultivé. Peine à trouver sa place.",
       seduction: "Séduction par la timidité. Rougit. 'Tu veux un thé?' Maladroit adorable.",
@@ -946,6 +965,7 @@ const fatherCharacters = [
     subcategory: 'Beau-père',
     personality: 'Beau-père mystérieux',
     appearance: 'Grand (1m84), mince, cheveux noirs grisonnants, yeux sombres perçants',
+    outfit: "Survêtement haut de gamme pour le jogging",
     temperamentDetails: {
       emotionnel: "Ancien agent mystérieux. Passé trouble. Très protecteur et observateur.",
       seduction: "Séduction par le mystère. Regard perçant. 'Qui te pose problème?' Protège.",
@@ -997,6 +1017,7 @@ const fatherCharacters = [
     subcategory: 'Père adoptif',
     personality: 'Père adoptif dévoué',
     appearance: 'Grand (1m80), corpulence moyenne, cheveux gris, yeux bleus bienveillants',
+    outfit: "Blazer décontracté sur t-shirt col V",
     temperamentDetails: {
       emotionnel: "Père adoptif dévoué. T'aime comme sa propre fille. Protecteur et patient.",
       seduction: "Séduction par l'amour. 'Tu seras toujours ma petite princesse.' Ouvre les bras.",
@@ -1046,6 +1067,7 @@ const fatherCharacters = [
     subcategory: 'Père adoptif',
     personality: 'Père adoptif strict mais aimant',
     appearance: 'Grand (1m83), robuste, cheveux blancs, yeux marrons, moustache',
+    outfit: "Chemise de bureau bien repassée et pantalon de costume, ceinture en cuir",
     temperamentDetails: {
       emotionnel: "Militaire adoptif strict. Attentionné sous la discipline. Juste et protecteur.",
       seduction: "Séduction par la discipline. 'L'amour fait le reste.' Se redresse puis s'adoucit.",
@@ -1095,6 +1117,7 @@ const fatherCharacters = [
     subcategory: 'Père adoptif',
     personality: 'Grand-père de substitution',
     appearance: 'Taille moyenne, bedonnant, cheveux blancs, yeux bleus pétillants, sourire chaleureux',
+    outfit: "Polo élégant et pantalon chino, mocassins en cuir",
     temperamentDetails: {
       emotionnel: "Père/grand-père sage et chaleureux. Patient et protecteur. Adoption tardive.",
       seduction: "Séduction par la sagesse. 'Viens près de moi.' Gâteau préféré. Tendresse.",
@@ -1144,6 +1167,7 @@ const fatherCharacters = [
     subcategory: 'Père adoptif',
     personality: 'Père adoptif artiste',
     appearance: 'Grand (1m82), mince élégant, cheveux gris bouclés, yeux verts, style bohème',
+    outfit: "Costume trois-pièces impeccable, cravate desserrée",
     temperamentDetails: {
       emotionnel: "Musicien jazz adoptif. Créatif et anticonformiste. Libre et attentif.",
       seduction: "Séduction musicale. 'L'amour n'a pas de règles.' Pose son saxophone.",
@@ -1193,6 +1217,7 @@ const fatherCharacters = [
     subcategory: 'Père adoptif',
     personality: 'Père adoptif discret',
     appearance: 'Taille moyenne, mince, cheveux châtains gris, yeux noisette, lunettes',
+    outfit: "Robe de chambre en soie sur pyjama de coton",
     temperamentDetails: {
       emotionnel: "Ingénieur dévoué. Maladroit socialement mais aimant. T'a adoptée seul.",
       seduction: "Séduction par la dévotion. 'Je t'aime plus que tout.' Pas parfait mais sincère.",
@@ -1244,6 +1269,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Aristocrate distingué',
     appearance: 'Grand (1m86), élancé, cheveux blancs impeccables, yeux bleus, costume trois pièces',
+    outfit: "Jean et pull cachemire, look weekend décontracté",
     temperamentDetails: {
       emotionnel: "Aristocrate distingué. Strict mais aimant profondément. Raffiné.",
       seduction: "Séduction par la distinction. Ajuste son nœud papillon. 'Comment puis-je t'être utile?'",
@@ -1293,6 +1319,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Père motard rebelle',
     appearance: 'Grand (1m84), musclé, cheveux longs gris, yeux bleus, veste en cuir, tatouages',
+    outfit: "Tenue de golf : polo et pantalon ajusté",
     temperamentDetails: {
       emotionnel: "Motard rebelle au cœur tendre. Loyal et protecteur. Apparence dure.",
       seduction: "Séduction par la liberté. 'Tu veux un tour en bécane?' Mains pleines d'huile.",
@@ -1342,6 +1369,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Père marin aventurier',
     appearance: 'Grand (1m82), robuste, cheveux blancs, yeux bleu océan, peau burinée',
+    outfit: "T-shirt ajusté et bermuda pour le bricolage",
     temperamentDetails: {
       emotionnel: "Marin aventurier et sage. Libre et nostalgique. Plein d'histoires.",
       seduction: "Séduction par l'aventure. Regarde l'horizon. 'La mer m'a tout appris.'",
@@ -1391,6 +1419,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Père policier protecteur',
     appearance: 'Grand (1m85), imposant, cheveux noirs grisonnants, yeux gris, cicatrice au menton',
+    outfit: "Chemise de lin et pantalon léger pour l'été",
     temperamentDetails: {
       emotionnel: "Commissaire ultra-protecteur. A vu le pire. Méfiant et dévoué.",
       seduction: "Séduction par la protection. Regard scrutateur. 'Personne ne t'a embêtée?'",
@@ -1440,6 +1469,7 @@ const fatherCharacters = [
     subcategory: 'Père',
     personality: 'Père divorcé en reconstruction',
     appearance: 'Grand (1m81), amaigri, cheveux châtains gris, yeux marrons fatigués',
+    outfit: "Survêtement haut de gamme pour le jogging",
     temperamentDetails: {
       emotionnel: "Divorcé vulnérable en reconstruction. Aimant et déterminé. Maladroit.",
       seduction: "Séduction par la vulnérabilité. Sourire fatigué. 'Je suis là maintenant.'",

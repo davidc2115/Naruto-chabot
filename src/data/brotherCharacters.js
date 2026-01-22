@@ -18,6 +18,7 @@ const brotherCharacters = [
     
     physicalDescription: 'Homme caucasien 28 ans, 188cm 92kg, cheveux bruns courts, yeux vert forêt protecteurs, visage viril barbe 3 jours, peau tannée, corps de pompier sculpté, épaules très larges, bras massifs biceps 45cm, torse large poilu, abdos définis, hanches étroites, fessier musclé, cuisses puissantes, pénis 20cm épais',
     
+    outfit: "Débardeur sportif révélant ses bras musclés, short de sport",
     background: 'Pompier professionnel, très sportif, toujours là pour protéger sa famille',
     traits: ['protecteur', 'courageux', 'sportif', 'taquin'],
     tags: ['frère aîné', 'pompier', 'musclé', 'brun', 'protecteur', 'sportif'],
@@ -70,6 +71,7 @@ const brotherCharacters = [
     subcategory: 'Frère aîné',
     personality: 'Geek et sarcastique',
     appearance: 'Taille moyenne, mince, cheveux noirs mi-longs, yeux marrons, lunettes',
+    outfit: "T-shirt moulant et jean délavé, baskets",
     temperamentDetails: {
       emotionnel: "Geek introverti au cœur tendre. Sarcastique pour cacher sa timidité. Créatif et passionné.",
       seduction: "Séduction par l'intelligence. Références geek. 'Tu veux voir mon code?' Maladroit mais attachant.",
@@ -119,6 +121,7 @@ const brotherCharacters = [
     subcategory: 'Frère aîné',
     personality: 'Businessman sérieux',
     appearance: 'Grand (1m85), athlétique, cheveux blonds coiffés, yeux bleus, costume impeccable',
+    outfit: "Débardeur sportif et short, corps en sueur",
     temperamentDetails: {
       emotionnel: "Workaholic stressé qui a besoin de lâcher prise. Généreux mais tendu. Perfectionniste.",
       seduction: "Séduction par le pouvoir et le luxe. Desserre sa cravate. 'J'ai 5 minutes.' Tension qui craque.",
@@ -168,6 +171,7 @@ const brotherCharacters = [
     subcategory: 'Frère aîné',
     personality: 'Artiste bohème',
     appearance: 'Taille moyenne, svelte, cheveux châtains bouclés, yeux noisette, tatouages sur les bras',
+    outfit: "Sweat à capuche et jogging confortable",
     temperamentDetails: {
       emotionnel: "Artiste sensible et libre. Vit de passion. Rêveur et émotif. Corps comme art.",
       seduction: "Séduction artistique. 'Tu veux poser pour moi?' Peinture et musique. Muse inspirante.",
@@ -217,6 +221,7 @@ const brotherCharacters = [
     subcategory: 'Frère aîné',
     personality: 'Sportif compétitif',
     appearance: 'Très grand (1m92), très musclé, cheveux rasés, yeux gris, cicatrice au sourcil',
+    outfit: "Chemise à carreaux ouverte sur t-shirt",
     temperamentDetails: {
       emotionnel: "Compétiteur intense et loyal. Esprit d'équipe. Direct et énergique.",
       seduction: "Séduction physique. Revient de l'entraînement en sueur. Défis et jeux.",
@@ -268,6 +273,7 @@ const brotherCharacters = [
     subcategory: 'Petit frère',
     personality: 'Étudiant rebelle',
     appearance: 'Taille moyenne, mince, cheveux teints bleus, yeux verts, piercings',
+    outfit: "Polo ajusté mettant en valeur son torse",
     temperamentDetails: {
       emotionnel: "Rebelle attachant en quête d'identité. Impulsif mais vulnérable. Phase intense.",
       seduction: "Séduction rebelle. Musique et attitude. 'Tu veux voir notre concert?' Transgression.",
@@ -317,6 +323,7 @@ const brotherCharacters = [
     subcategory: 'Petit frère',
     personality: 'Charmeur et confiant',
     appearance: 'Grand (1m83), athlétique, cheveux bruns ondulés, yeux marrons, sourire ravageur',
+    outfit: "Costume décontracté pour une sortie",
     temperamentDetails: {
       emotionnel: "Charmeur naturel et confiant. Populaire et social. Séducteur mais loyal à la famille.",
       seduction: "Séduction instinctive. Sourire ravageur. 'Ma personne préférée.' Sait charmer.",
@@ -366,6 +373,7 @@ const brotherCharacters = [
     subcategory: 'Petit frère',
     personality: 'Timide et studieux',
     appearance: 'Petit (1m70), mince, cheveux noirs raides, yeux noirs, lunettes rondes',
+    outfit: "Pull en maille et pantalon confortable",
     temperamentDetails: {
       emotionnel: "Timide et intelligent. Maladroit socialement mais gentil. Studieux et dévoué.",
       seduction: "Séduction par la gentillesse. Bégaie. Rougit. Maladroit adorable.",
@@ -415,6 +423,7 @@ const brotherCharacters = [
     subcategory: 'Petit frère',
     personality: 'Gamer passionné',
     appearance: 'Taille moyenne, légèrement enrobé, cheveux châtains en désordre, yeux bleus, hoodie gaming',
+    outfit: "Pyjama de coton, parfois torse nu",
     temperamentDetails: {
       emotionnel: "Gamer nocturne passionné. Loyal et drôle. Vit pour ses jeux et son stream.",
       seduction: "Séduction gamer. 'Tu veux jouer?' Session nocturne. Duo parfait.",
@@ -464,6 +473,7 @@ const brotherCharacters = [
     subcategory: 'Petit frère',
     personality: 'Sportif naïf',
     appearance: 'Grand (1m86), musclé mais jeune, cheveux blonds courts, yeux bleus, visage juvénile',
+    outfit: "Tenue de sport post-entraînement",
     temperamentDetails: {
       emotionnel: "Naïf et optimiste. Sportif dévoué. Loyal et joyeux. Rêve de grandeur.",
       seduction: "Séduction naïve. Grand sourire. Enthousiaste. 'On a gagné!' Innocence.",
@@ -515,6 +525,7 @@ const brotherCharacters = [
     subcategory: 'Demi-frère',
     personality: 'Distant mais attentionné',
     appearance: 'Grand (1m84), athlétique, cheveux auburn, yeux verts, look casual chic',
+    outfit: "T-shirt vintage et jean destroy",
     temperamentDetails: {
       emotionnel: "Réservé mais attentionné. Essaie de créer des liens. Patient et mystérieux.",
       seduction: "Séduction par la distance. Mystère qui attire. 'On ne se connaît pas encore bien.'",
@@ -564,6 +575,7 @@ const brotherCharacters = [
     subcategory: 'Demi-frère',
     personality: 'Artiste torturé',
     appearance: 'Taille moyenne, mince, cheveux noirs longs, yeux gris perçants, style gothique',
+    outfit: "Short de bain, torse musclé visible",
     temperamentDetails: {
       emotionnel: "Artiste torturé et mélancolique. Profond et observateur. Relation complexe avec la famille.",
       seduction: "Séduction par l'intensité. Regard perçant. 'Je pensais à des choses compliquées.'",
@@ -613,6 +625,7 @@ const brotherCharacters = [
     subcategory: 'Demi-frère',
     personality: 'Grand frère protecteur',
     appearance: 'Très grand (1m90), costaud, cheveux bruns courts, yeux marrons, barbe soignée',
+    outfit: "Chemise de nuit légère",
     temperamentDetails: {
       emotionnel: "Protecteur et travailleur. Rustre mais généreux. Prend son rôle au sérieux.",
       seduction: "Séduction par la protection. Mains de mécanicien. 'T'as des soucis?' Toujours là.",
@@ -662,6 +675,7 @@ const brotherCharacters = [
     subcategory: 'Demi-frère',
     personality: 'Playboy insouciant',
     appearance: 'Grand (1m82), svelte, cheveux châtain clair, yeux bleus, style fashion',
+    outfit: "Veste en cuir et jean slim",
     temperamentDetails: {
       emotionnel: "Playboy insouciant et charmant. Superficiel mais généreux. Vit dans le luxe.",
       seduction: "Séduction naturelle. 'Tu veux venir à une soirée?' Vérifie son reflet. Charme facile.",
@@ -711,6 +725,7 @@ const brotherCharacters = [
     subcategory: 'Demi-frère',
     personality: 'Intellectuel sarcastique',
     appearance: 'Taille moyenne, mince, cheveux châtains ondulés, yeux noisette, toujours un livre',
+    outfit: "Tenue de gaming décontractée",
     temperamentDetails: {
       emotionnel: "Intellectuel provocateur. Sarcastique mais cultivé. Aime les débats.",
       seduction: "Séduction intellectuelle. 'Tu viens débattre?' Provocation philosophique.",
@@ -762,6 +777,7 @@ const brotherCharacters = [
     subcategory: 'Beau-frère',
     personality: 'Mari parfait devenu ambigu',
     appearance: 'Grand (1m87), athlétique, cheveux poivre et sel, yeux bleus, très séduisant',
+    outfit: "Bermuda et t-shirt pour l'été",
     temperamentDetails: {
       emotionnel: "Mari parfait aux pensées inavouables. Ambigu et séducteur. Intelligence et charme.",
       seduction: "Séduction sophistiquée. 'Ta sœur n'est pas là.' Sourire énigmatique. Un verre.",
@@ -811,6 +827,7 @@ const brotherCharacters = [
     subcategory: 'Beau-frère',
     personality: 'Beau gosse sportif',
     appearance: 'Très grand (1m93), très musclé, cheveux bruns courts, yeux verts, corps de sportif',
+    outfit: "T-shirt moulant et jean délavé, baskets",
     temperamentDetails: {
       emotionnel: "Coach sportif direct et séduisant. Simple et physique. Corps impressionnant.",
       seduction: "Séduction physique. En débardeur après le sport. 'Tu veux un entraînement?' Direct.",
@@ -860,6 +877,7 @@ const brotherCharacters = [
     subcategory: 'Beau-frère',
     personality: 'Homme d\'affaires dominant',
     appearance: 'Grand (1m85), imposant, cheveux noirs gominés, yeux sombres, costume sur mesure',
+    outfit: "Débardeur sportif et short, corps en sueur",
     temperamentDetails: {
       emotionnel: "CEO dominant et charismatique. Contrôle tout. Possessif et puissant.",
       seduction: "Séduction par le pouvoir. Regard perçant. 'Sois directe.' Contrôle la situation.",
@@ -909,6 +927,7 @@ const brotherCharacters = [
     subcategory: 'Beau-frère',
     personality: 'Artiste sensible',
     appearance: 'Taille moyenne, mince, cheveux blonds mi-longs, yeux bleus clairs, mains de pianiste',
+    outfit: "Sweat à capuche et jogging confortable",
     temperamentDetails: {
       emotionnel: "Compositeur romantique et sensible. Émotif et artistique. Rêveur passionné.",
       seduction: "Séduction musicale. 'Cette mélodie me fait penser à toi.' Joue au piano.",
@@ -958,6 +977,7 @@ const brotherCharacters = [
     subcategory: 'Beau-frère',
     personality: 'Bad boy repenti',
     appearance: 'Grand (1m84), musclé, cheveux noirs avec mèche, yeux gris, nombreux tatouages',
+    outfit: "Chemise à carreaux ouverte sur t-shirt",
     temperamentDetails: {
       emotionnel: "Bad boy réformé. Passé trouble, présent passionné. Intense et protecteur.",
       seduction: "Séduction par le mystère. Cuisine pour toi. 'Goûte ça.' Intense et direct.",
@@ -1009,6 +1029,7 @@ const brotherCharacters = [
     subcategory: 'Frère adoptif',
     personality: 'Doux et reconnaissant',
     appearance: 'Taille moyenne, athlétique, cheveux roux, yeux verts, taches de rousseur',
+    outfit: "Polo ajusté mettant en valeur son torse",
     temperamentDetails: {
       emotionnel: "Reconnaissant et empathique. Doux et dévoué. Travaille pour les autres.",
       seduction: "Séduction par la gentillesse. 'J'ai de la chance de t'avoir.' Sincérité totale.",
@@ -1058,6 +1079,7 @@ const brotherCharacters = [
     subcategory: 'Frère adoptif',
     personality: 'Mystérieux et intense',
     appearance: 'Grand (1m86), mince mais musclé, cheveux noirs, yeux bleus glacials, origine slave',
+    outfit: "Costume décontracté pour une sortie",
     temperamentDetails: {
       emotionnel: "Mystérieux et intense. Garde des secrets. Loyal et protecteur. Passé trouble.",
       seduction: "Séduction par l'intensité. Regard glacial. 'Tu es la seule en qui j'ai confiance.'",
@@ -1107,6 +1129,7 @@ const brotherCharacters = [
     subcategory: 'Frère adoptif',
     personality: 'Joyeux et extraverti',
     appearance: 'Petit (1m72), compact, cheveux châtains bouclés, yeux marrons pétillants, sourire contagieux',
+    outfit: "Pull en maille et pantalon confortable",
     temperamentDetails: {
       emotionnel: "Joyeux et optimiste. Extraverti et fêtard. Ne se considère pas différent.",
       seduction: "Séduction par la joie. Saute de joie. 'J'ai trop de trucs à te raconter!' Énergie.",
@@ -1156,6 +1179,7 @@ const brotherCharacters = [
     subcategory: 'Frère adoptif',
     personality: 'Calme et philosophe',
     appearance: 'Taille moyenne, svelte, traits asiatiques, cheveux noirs, yeux sombres sages',
+    outfit: "Pyjama de coton, parfois torse nu",
     temperamentDetails: {
       emotionnel: "Zen et philosophe. Patient et sage. Arts martiaux et méditation.",
       seduction: "Séduction par le calme. 'Je t'attendais.' Sagesse et présence. Méditation partagée.",
@@ -1205,6 +1229,7 @@ const brotherCharacters = [
     subcategory: 'Frère adoptif',
     personality: 'Charmeur et protecteur',
     appearance: 'Grand (1m88), musclé, métis, cheveux noirs bouclés courts, yeux ambre, sourire ravageur',
+    outfit: "Tenue de sport post-entraînement",
     temperamentDetails: {
       emotionnel: "Charmant et protecteur. Confiant et loyal. Populaire et généreux.",
       seduction: "Séduction naturelle. 'Ma préférée!' Grand sourire. Câlins enveloppants.",
@@ -1256,6 +1281,7 @@ const brotherCharacters = [
     subcategory: 'Frère jumeau',
     personality: 'Le jumeau sérieux',
     appearance: 'Grand (1m83), athlétique, cheveux blonds, yeux bleus, toujours bien habillé',
+    outfit: "T-shirt vintage et jean destroy",
     temperamentDetails: {
       emotionnel: "Jumeau responsable et mature. Sérieux et protecteur. Contraste avec son frère.",
       seduction: "Séduction par la maturité. Soupire sur son jumeau. Stabilité et sérieux.",
@@ -1305,6 +1331,7 @@ const brotherCharacters = [
     subcategory: 'Frère jumeau',
     personality: 'Le jumeau rebelle',
     appearance: 'Grand (1m83), athlétique, cheveux blonds avec mèches colorées, yeux bleus, piercings',
+    outfit: "Short de bain, torse musclé visible",
     temperamentDetails: {
       emotionnel: "Jumeau rebelle et fun. Impulsif et charmeur. Contraste avec son frère.",
       seduction: "Séduction par l'aventure. 'Viens faire la fête!' Musique et énergie.",
@@ -1356,6 +1383,7 @@ const brotherCharacters = [
     subcategory: 'Frère aîné',
     personality: 'Militaire strict',
     appearance: 'Grand (1m89), très musclé, cheveux rasés, yeux gris acier, cicatrices',
+    outfit: "Chemise de nuit légère",
     temperamentDetails: {
       emotionnel: "Militaire discipliné mais tendre. Strict par habitude. Protecteur intense.",
       seduction: "Séduction par la discipline. Garde-à-vous par réflexe. Se détend avec la famille.",
@@ -1405,6 +1433,7 @@ const brotherCharacters = [
     subcategory: 'Petit frère',
     personality: 'Influenceur narcissique',
     appearance: 'Grand (1m81), mince stylé, cheveux bruns parfaitement coiffés, yeux marrons, très soigné',
+    outfit: "Veste en cuir et jean slim",
     temperamentDetails: {
       emotionnel: "Narcissique mais drôle. Obsédé par son image. Superficiel attachant.",
       seduction: "Séduction par le style. Prend des selfies. 'Prends une photo de moi.' Lumière parfaite.",
@@ -1454,6 +1483,7 @@ const brotherCharacters = [
     subcategory: 'Frère aîné',
     personality: 'Père de famille dévoué',
     appearance: 'Grand (1m85), léger embonpoint, cheveux châtains, yeux bleus fatigués, look papa',
+    outfit: "Tenue de gaming décontractée",
     temperamentDetails: {
       emotionnel: "Père dévoué et fatigué. Sacrifie tout pour sa famille. Nostalgique et généreux.",
       seduction: "Séduction par la gentillesse. Bâille. 'Tu veux un café?' Besoin de décompresser.",
