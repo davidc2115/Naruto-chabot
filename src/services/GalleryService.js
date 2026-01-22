@@ -1,109 +1,34 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
-import AuthService from './AuthService';
-
-// v5.4.59 - Importer StorageService pour partager l'ID global
-let StorageService = null;
-try {
-  StorageService = require('./StorageService').default;
-} catch (e) {
-  console.log('StorageService non disponible pour Gallery');
-}
+import UserIdService from './UserIdService';
 
 /**
  * Service de gestion de galerie d'images
- * v5.4.59 - Stockage LOCAL avec ID partagé avec StorageService
- * FIX: Même ID utilisateur pour conversations ET galerie
+ * v5.4.60 - Utilise UserIdService centralisé pour ID cohérent
  */
 class GalleryService {
   constructor() {
-    // Répertoire de base pour stocker les images
     this.imageDirectory = `${FileSystem.documentDirectory}gallery/`;
     this.initDirectory();
-    // Cache pour l'ID utilisateur
-    this._cachedUserId = null;
   }
 
-  /**
-   * Initialise le répertoire de stockage des images
-   */
   async initDirectory() {
     try {
       const dirInfo = await FileSystem.getInfoAsync(this.imageDirectory);
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(this.imageDirectory, { intermediates: true });
-        console.log('📁 Répertoire galerie créé:', this.imageDirectory);
+        console.log('📁 [Gallery] Répertoire créé:', this.imageDirectory);
       }
     } catch (error) {
-      console.error('❌ Erreur création répertoire galerie:', error);
+      console.error('❌ [Gallery] Erreur création répertoire:', error);
     }
   }
 
   /**
-   * v5.4.59 - Récupère l'ID utilisateur PARTAGÉ avec StorageService
-   * Garantit que conversations et galerie utilisent le MÊME ID
+   * v5.4.60 - Utilise UserIdService pour ID cohérent
    */
   async getCurrentUserId() {
-    try {
-      // v5.4.59 - Utiliser le cache mémoire si disponible
-      if (this._cachedUserId) {
-        return this._cachedUserId;
-      }
-
-      // v5.4.59 - Essayer d'obtenir l'ID depuis StorageService (source de vérité)
-      if (StorageService) {
-        const globalId = StorageService.getGlobalUserId();
-        if (globalId) {
-          this._cachedUserId = globalId;
-          console.log('🔑 [Gallery] ID depuis StorageService:', globalId);
-          return globalId;
-        }
-        
-        // Sinon, demander à StorageService de le créer/récupérer
-        const storageId = await StorageService.getCurrentUserId();
-        if (storageId) {
-          this._cachedUserId = storageId;
-          console.log('🔑 [Gallery] ID créé via StorageService:', storageId);
-          return storageId;
-        }
-      }
-
-      // Fallback: récupérer directement depuis AsyncStorage
-      let deviceId = await AsyncStorage.getItem('device_user_id');
-      if (deviceId) {
-        this._cachedUserId = deviceId;
-        console.log('🔑 [Gallery] ID device direct:', deviceId);
-        return deviceId;
-      }
-
-      // Créer un nouvel ID si nécessaire
-      deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-      await AsyncStorage.setItem('device_user_id', deviceId);
-      this._cachedUserId = deviceId;
-      
-      // Informer StorageService du nouvel ID
-      if (StorageService) {
-        StorageService.setGlobalUserId(deviceId);
-      }
-      
-      console.log('📱 [Gallery] Nouvel ID device créé:', deviceId);
-      return deviceId;
-    } catch (error) {
-      console.error('❌ [Gallery] Error getting user ID:', error);
-      // Fallback ultime
-      if (!this._cachedUserId) {
-        this._cachedUserId = 'default_user';
-      }
-      return this._cachedUserId;
-    }
-  }
-
-  /**
-   * Réinitialise le cache utilisateur
-   */
-  resetUserCache() {
-    this._cachedUserId = null;
-    this._lastUserIdCheck = 0;
+    return await UserIdService.getUserId();
   }
 
   /**

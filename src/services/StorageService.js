@@ -1,109 +1,27 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import AuthService from './AuthService';
+import UserIdService from './UserIdService';
 
-// v5.4.59 - ID GLOBAL PARTAGÉ entre tous les services
-let GLOBAL_USER_ID = null;
-
+/**
+ * Service de stockage des conversations
+ * v5.4.60 - Utilise UserIdService centralisé pour ID cohérent
+ */
 class StorageService {
   constructor() {
-    // Cache pour l'ID utilisateur
-    this._cachedUserId = null;
-    this._lastUserIdCheck = 0;
+    // Plus besoin de cache local - UserIdService gère tout
   }
 
   /**
-   * v5.4.59 - Récupère l'ID utilisateur UNIQUE et PERSISTANT
-   * Cet ID est partagé avec GalleryService pour cohérence
+   * v5.4.60 - Utilise UserIdService pour ID cohérent
    */
   async getCurrentUserId() {
-    try {
-      // v5.4.59 - Si on a déjà un ID global, TOUJOURS le réutiliser
-      if (GLOBAL_USER_ID) {
-        return GLOBAL_USER_ID;
-      }
-
-      // Utiliser le cache mémoire si disponible
-      if (this._cachedUserId) {
-        GLOBAL_USER_ID = this._cachedUserId;
-        return this._cachedUserId;
-      }
-
-      // 1. PRIORITÉ: ID device persistant (ne change JAMAIS)
-      let deviceId = await AsyncStorage.getItem('device_user_id');
-      if (deviceId) {
-        console.log('🔑 [Storage] ID device existant:', deviceId);
-        this._cachedUserId = deviceId;
-        GLOBAL_USER_ID = deviceId;
-        return deviceId;
-      }
-
-      // 2. Essayer AuthService
-      const user = AuthService.getCurrentUser();
-      if (user?.id) {
-        // Sauvegarder aussi comme device ID pour persistance
-        await AsyncStorage.setItem('device_user_id', user.id);
-        this._cachedUserId = user.id;
-        GLOBAL_USER_ID = user.id;
-        console.log('🔑 [Storage] ID depuis Auth, sauvegardé:', user.id);
-        return user.id;
-      }
-
-      // 3. Essayer le token stocké
-      const storedUser = await AsyncStorage.getItem('current_user');
-      if (storedUser) {
-        try {
-          const parsed = JSON.parse(storedUser);
-          if (parsed.id) {
-            await AsyncStorage.setItem('device_user_id', parsed.id);
-            this._cachedUserId = parsed.id;
-            GLOBAL_USER_ID = parsed.id;
-            console.log('🔑 [Storage] ID depuis stored user:', parsed.id);
-            return parsed.id;
-          }
-        } catch (e) {}
-      }
-
-      // 4. Créer un nouvel ID device PERSISTANT
-      deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-      await AsyncStorage.setItem('device_user_id', deviceId);
-      this._cachedUserId = deviceId;
-      GLOBAL_USER_ID = deviceId;
-      console.log('📱 [Storage] Nouvel ID device créé:', deviceId);
-      return deviceId;
-    } catch (error) {
-      console.error('❌ [Storage] Error getting user ID:', error);
-      // Fallback ultime - créer un ID qui persiste en mémoire
-      if (!GLOBAL_USER_ID) {
-        GLOBAL_USER_ID = 'fallback_' + Date.now();
-      }
-      return GLOBAL_USER_ID;
-    }
-  }
-  
-  /**
-   * v5.4.59 - Retourne l'ID global (pour partage avec GalleryService)
-   */
-  getGlobalUserId() {
-    return GLOBAL_USER_ID;
-  }
-  
-  /**
-   * v5.4.59 - Définit l'ID global (appelé par GalleryService si besoin)
-   */
-  setGlobalUserId(id) {
-    if (id) {
-      GLOBAL_USER_ID = id;
-      this._cachedUserId = id;
-    }
+    return await UserIdService.getUserId();
   }
 
   /**
    * Réinitialise le cache utilisateur (appelé lors du logout/login)
    */
   resetUserCache() {
-    this._cachedUserId = null;
-    this._lastUserIdCheck = 0;
-    console.log('🔄 Cache utilisateur réinitialisé');
+    console.log('🔄 [Storage] Cache réinitialisé (géré par UserIdService)');
   }
 
   // Conversations - ISOLÉES PAR UTILISATEUR
