@@ -1,6 +1,6 @@
 /**
  * Service PayPal pour les paiements
- * v5.4.53 - Gestion des abonnements et paiements premium avec activation automatique
+ * v5.4.73 - Gestion des abonnements avec 3 types et expiration automatique
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,6 +10,7 @@ class PayPalService {
   constructor() {
     this.STORAGE_KEY = '@paypal_config';
     this.PREMIUM_KEY = '@premium_status';
+    this.LAST_CHECK_KEY = '@premium_last_check';
     
     // Configuration par défaut
     this.config = {
@@ -18,48 +19,171 @@ class PayPalService {
       isConfigured: false,
     };
     
-    // Tarifs premium
+    // Tarifs premium - v5.4.73
     this.premiumPlans = {
       monthly: {
         id: 'premium_monthly',
-        name: 'Premium Mensuel',
+        name: '📅 Premium Mensuel',
         price: 4.99,
         currency: 'EUR',
         period: 'month',
+        durationDays: 30,
         features: [
           'Génération d\'images illimitée',
           'Tous les personnages débloqués',
           'Pas de publicité',
           'Support prioritaire',
         ],
+        icon: '📅',
+        color: '#3b82f6',
       },
       yearly: {
         id: 'premium_yearly',
-        name: 'Premium Annuel',
+        name: '🌟 Premium Annuel',
         price: 39.99,
         currency: 'EUR',
         period: 'year',
+        durationDays: 365,
         features: [
           'Tous les avantages mensuels',
-          '2 mois gratuits',
+          '2 mois gratuits (33% d\'économie)',
           'Accès anticipé aux nouvelles fonctionnalités',
           'Personnages exclusifs',
         ],
+        icon: '🌟',
+        color: '#f59e0b',
+        recommended: true,
       },
       lifetime: {
         id: 'premium_lifetime',
-        name: 'Premium à Vie',
+        name: '👑 Premium à Vie',
         price: 99.99,
         currency: 'EUR',
         period: 'lifetime',
+        durationDays: null, // Pas d'expiration
         features: [
-          'Accès permanent',
+          'Accès PERMANENT',
           'Toutes les futures mises à jour',
-          'Badge VIP',
-          'Support prioritaire permanent',
+          'Badge VIP exclusif',
+          'Support prioritaire à vie',
         ],
+        icon: '👑',
+        color: '#10b981',
       },
     };
+    
+    // Vérification automatique au démarrage
+    this.checkAndExpirePremium();
+  }
+  
+  /**
+   * v5.4.73 - Vérifie et expire automatiquement les abonnements expirés
+   * Appelée au démarrage et peut être appelée manuellement
+   */
+  async checkAndExpirePremium() {
+    try {
+      const status = await this.getRawPremiumStatus();
+      
+      if (!status || !status.isPremium) {
+        return { isPremium: false };
+      }
+      
+      // Premium à vie = pas d'expiration
+      if (status.planId === 'lifetime' || !status.expiresAt) {
+        return status;
+      }
+      
+      const now = new Date();
+      const expiresAt = new Date(status.expiresAt);
+      
+      if (expiresAt < now) {
+        // Abonnement expiré - le désactiver
+        console.log(`⏰ Premium expiré le ${expiresAt.toLocaleDateString()}. Désactivation...`);
+        await this.deactivatePremium();
+        
+        return { 
+          isPremium: false, 
+          expired: true,
+          expiredAt: status.expiresAt,
+          previousPlan: status.planId
+        };
+      }
+      
+      // Calculer les jours restants
+      const daysRemaining = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));
+      
+      return {
+        ...status,
+        daysRemaining,
+        willExpireSoon: daysRemaining <= 7
+      };
+    } catch (error) {
+      console.error('Erreur vérification premium:', error);
+      return { isPremium: false };
+    }
+  }
+  
+  /**
+   * v5.4.73 - Récupère le statut premium brut (sans vérification d'expiration)
+   */
+  async getRawPremiumStatus() {
+    try {
+      const stored = await AsyncStorage.getItem(this.PREMIUM_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return { isPremium: false };
+    } catch (error) {
+      return { isPremium: false };
+    }
+  }
+  
+  /**
+   * v5.4.73 - Calcule la date d'expiration selon le plan
+   */
+  calculateExpirationDate(planId, startDate = new Date()) {
+    const plan = this.premiumPlans[planId];
+    if (!plan || plan.period === 'lifetime') {
+      return null; // Pas d'expiration pour lifetime
+    }
+    
+    const expiresAt = new Date(startDate);
+    
+    switch (plan.period) {
+      case 'month':
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+        break;
+      case 'year':
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+        break;
+      default:
+        expiresAt.setDate(expiresAt.getDate() + (plan.durationDays || 30));
+    }
+    
+    return expiresAt;
+  }
+  
+  /**
+   * v5.4.73 - Formate la date d'expiration pour affichage
+   */
+  formatExpirationDate(expiresAt) {
+    if (!expiresAt) return 'À vie';
+    const date = new Date(expiresAt);
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+  
+  /**
+   * v5.4.73 - Récupère les jours restants
+   */
+  getDaysRemaining(expiresAt) {
+    if (!expiresAt) return null;
+    const now = new Date();
+    const expires = new Date(expiresAt);
+    return Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
   }
   
   /**
@@ -384,69 +508,73 @@ class PayPalService {
   }
   
   /**
-   * Vérifie le statut premium de l'utilisateur
+   * Vérifie le statut premium de l'utilisateur (avec vérification d'expiration)
    */
   async checkPremiumStatus() {
-    try {
-      const stored = await AsyncStorage.getItem(this.PREMIUM_KEY);
-      if (stored) {
-        const status = JSON.parse(stored);
-        
-        // Vérifier si l'abonnement n'a pas expiré
-        if (status.expiresAt && new Date(status.expiresAt) < new Date()) {
-          // Abonnement expiré
-          await this.setPremiumStatus(false);
-          return { isPremium: false, expired: true };
-        }
-        
-        return status;
-      }
-      return { isPremium: false };
-    } catch (error) {
-      console.error('Erreur vérification premium:', error);
-      return { isPremium: false };
-    }
+    return await this.checkAndExpirePremium();
   }
   
   /**
-   * Définit le statut premium (après vérification manuelle du paiement)
+   * v5.4.73 - Définit le statut premium avec gestion complète
+   * @param {boolean} isPremium - Si premium activé
+   * @param {string} planId - 'monthly', 'yearly', ou 'lifetime'
+   * @param {string} transactionId - ID de transaction
+   * @param {Date} customExpiration - Date d'expiration personnalisée (pour admin)
    */
-  async setPremiumStatus(isPremium, planId = null, transactionId = null) {
+  async setPremiumStatus(isPremium, planId = null, transactionId = null, customExpiration = null) {
     try {
       let expiresAt = null;
+      let planName = null;
       
       if (isPremium && planId) {
         const plan = this.premiumPlans[planId];
-        if (plan) {
-          const now = new Date();
-          switch (plan.period) {
-            case 'month':
-              expiresAt = new Date(now.setMonth(now.getMonth() + 1));
-              break;
-            case 'year':
-              expiresAt = new Date(now.setFullYear(now.getFullYear() + 1));
-              break;
-            case 'lifetime':
-              expiresAt = null; // Pas d'expiration
-              break;
-          }
+        planName = plan?.name || planId;
+        
+        if (customExpiration) {
+          // Utiliser l'expiration personnalisée (donnée par admin)
+          expiresAt = customExpiration;
+        } else {
+          // Calculer l'expiration selon le plan
+          expiresAt = this.calculateExpirationDate(planId);
         }
       }
       
       const status = {
         isPremium,
         planId,
+        planName,
         transactionId,
         activatedAt: isPremium ? new Date().toISOString() : null,
         expiresAt: expiresAt ? expiresAt.toISOString() : null,
+        // v5.4.73 - Métadonnées supplémentaires
+        activatedBy: transactionId?.startsWith('ADMIN_') ? 'admin' : 'payment',
+        version: '5.4.73',
       };
       
       await AsyncStorage.setItem(this.PREMIUM_KEY, JSON.stringify(status));
+      
+      console.log(`✅ Premium ${isPremium ? 'activé' : 'désactivé'}: Plan=${planId}, Expire=${expiresAt ? expiresAt.toISOString() : 'jamais'}`);
+      
       return status;
     } catch (error) {
       console.error('Erreur définition premium:', error);
       return null;
     }
+  }
+  
+  /**
+   * v5.4.73 - Active le premium avec un type spécifique (pour admin)
+   */
+  async adminSetPremium(planId, customDurationDays = null) {
+    const transactionId = `ADMIN_${this.generateTransactionId()}`;
+    
+    let customExpiration = null;
+    if (customDurationDays) {
+      customExpiration = new Date();
+      customExpiration.setDate(customExpiration.getDate() + customDurationDays);
+    }
+    
+    return await this.setPremiumStatus(true, planId, transactionId, customExpiration);
   }
   
   /**

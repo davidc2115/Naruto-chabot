@@ -1292,22 +1292,68 @@ export default function SettingsScreen({ navigation, onLogout }) {
         </View>
       )}
 
-      {/* v5.4.49 - PAYPAL & PREMIUM */}
+      {/* v5.4.73 - PAYPAL & PREMIUM - 3 types d'abonnement */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>💳 Premium & Paiement</Text>
         
-        {/* Statut Premium */}
-        <View style={styles.premiumStatusBox}>
+        {/* Statut Premium - Amélioré */}
+        <View style={[
+          styles.premiumStatusBox,
+          premiumStatus.isPremium && { borderColor: '#10b981', backgroundColor: '#ecfdf5' }
+        ]}>
           <Text style={styles.premiumStatusTitle}>
             {premiumStatus.isPremium ? '👑 Compte Premium' : '⭐ Compte Gratuit'}
           </Text>
-          {premiumStatus.isPremium && premiumStatus.expiresAt && (
-            <Text style={styles.premiumExpiry}>
-              Expire le: {new Date(premiumStatus.expiresAt).toLocaleDateString('fr-FR')}
-            </Text>
+          
+          {premiumStatus.isPremium && (
+            <>
+              {/* Afficher le type de plan */}
+              {premiumStatus.planId && (
+                <Text style={styles.premiumPlanType}>
+                  {premiumStatus.planId === 'monthly' && '📅 Abonnement Mensuel'}
+                  {premiumStatus.planId === 'yearly' && '🌟 Abonnement Annuel'}
+                  {premiumStatus.planId === 'lifetime' && '👑 Premium à Vie'}
+                </Text>
+              )}
+              
+              {/* Date d'expiration ou Premium à vie */}
+              {premiumStatus.expiresAt ? (
+                <View style={styles.expirationBox}>
+                  <Text style={styles.premiumExpiry}>
+                    ⏰ Expire le: {new Date(premiumStatus.expiresAt).toLocaleDateString('fr-FR')}
+                  </Text>
+                  {premiumStatus.daysRemaining && (
+                    <Text style={[
+                      styles.daysRemaining,
+                      premiumStatus.daysRemaining <= 7 && { color: '#ef4444' }
+                    ]}>
+                      {premiumStatus.daysRemaining} jour{premiumStatus.daysRemaining > 1 ? 's' : ''} restant{premiumStatus.daysRemaining > 1 ? 's' : ''}
+                    </Text>
+                  )}
+                  {premiumStatus.willExpireSoon && (
+                    <Text style={styles.expirationWarning}>
+                      ⚠️ Renouveler bientôt pour garder vos avantages !
+                    </Text>
+                  )}
+                </View>
+              ) : (
+                <Text style={styles.premiumLifetime}>🎉 Premium à vie - Aucune expiration !</Text>
+              )}
+              
+              {/* Date d'activation */}
+              {premiumStatus.activatedAt && (
+                <Text style={styles.activatedDate}>
+                  Activé le: {new Date(premiumStatus.activatedAt).toLocaleDateString('fr-FR')}
+                </Text>
+              )}
+            </>
           )}
-          {premiumStatus.isPremium && !premiumStatus.expiresAt && (
-            <Text style={styles.premiumLifetime}>Premium à vie! 🎉</Text>
+          
+          {/* Si expiré récemment */}
+          {premiumStatus.expired && (
+            <Text style={styles.expiredNotice}>
+              ❌ Votre abonnement a expiré. Renouvelez pour retrouver vos avantages !
+            </Text>
           )}
         </View>
         
@@ -1333,32 +1379,99 @@ export default function SettingsScreen({ navigation, onLogout }) {
           </View>
         )}
         
-        {/* Plans Premium */}
+        {/* v5.4.73 - Plans Premium - Afficher les 3 plans */}
         {!premiumStatus.isPremium && (
           <View style={styles.premiumPlansBox}>
             <Text style={styles.premiumPlansTitle}>🌟 Passer en Premium</Text>
+            <Text style={styles.premiumPlansSubtitle}>
+              Choisissez votre formule et débloquez tous les avantages !
+            </Text>
             
-            {Object.entries(premiumPlans).map(([planId, plan]) => (
-              <TouchableOpacity 
-                key={planId}
-                style={styles.premiumPlanCard}
-                onPress={() => openPayPalPayment(planId)}
-              >
-                <View style={styles.premiumPlanHeader}>
-                  <Text style={styles.premiumPlanName}>{plan.name}</Text>
-                  <Text style={styles.premiumPlanPrice}>{plan.price}€</Text>
-                </View>
-                <View style={styles.premiumPlanFeatures}>
-                  {plan.features.map((feature, i) => (
-                    <Text key={i} style={styles.premiumPlanFeature}>✓ {feature}</Text>
-                  ))}
-                </View>
-              </TouchableOpacity>
-            ))}
+            {/* Afficher explicitement les 3 plans dans l'ordre */}
+            {['monthly', 'yearly', 'lifetime'].map((planId) => {
+              const plan = premiumPlans[planId];
+              if (!plan) return null;
+              
+              const isRecommended = plan.recommended;
+              
+              return (
+                <TouchableOpacity 
+                  key={planId}
+                  style={[
+                    styles.premiumPlanCard,
+                    isRecommended && styles.recommendedPlanCard
+                  ]}
+                  onPress={() => openPayPalPayment(planId)}
+                >
+                  {isRecommended && (
+                    <View style={styles.recommendedBadge}>
+                      <Text style={styles.recommendedText}>⭐ RECOMMANDÉ</Text>
+                    </View>
+                  )}
+                  
+                  <View style={styles.premiumPlanHeader}>
+                    <View style={styles.planTitleRow}>
+                      <Text style={styles.planIcon}>{plan.icon || '💎'}</Text>
+                      <Text style={[
+                        styles.premiumPlanName,
+                        isRecommended && { color: '#f59e0b' }
+                      ]}>
+                        {plan.name}
+                      </Text>
+                    </View>
+                    <View style={styles.priceBox}>
+                      <Text style={styles.premiumPlanPrice}>{plan.price}€</Text>
+                      <Text style={styles.pricePeriod}>
+                        {plan.period === 'month' && '/mois'}
+                        {plan.period === 'year' && '/an'}
+                        {plan.period === 'lifetime' && 'une fois'}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.premiumPlanFeatures}>
+                    {plan.features.map((feature, i) => (
+                      <Text key={i} style={styles.premiumPlanFeature}>
+                        ✓ {feature}
+                      </Text>
+                    ))}
+                  </View>
+                  
+                  <View style={[
+                    styles.selectPlanButton,
+                    { backgroundColor: plan.color || '#6366f1' }
+                  ]}>
+                    <Text style={styles.selectPlanText}>
+                      {plan.period === 'lifetime' ? '🎁 Acheter' : '📲 S\'abonner'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
             
             <Text style={styles.premiumNote}>
               💡 Après le paiement sur PayPal, confirmez dans l'app pour activer automatiquement votre Premium !
             </Text>
+            
+            <Text style={styles.premiumSecurityNote}>
+              🔒 Paiement sécurisé via PayPal • Annulation facile
+            </Text>
+          </View>
+        )}
+        
+        {/* Option de renouvellement pour les premium non-lifetime */}
+        {premiumStatus.isPremium && premiumStatus.expiresAt && premiumStatus.willExpireSoon && (
+          <View style={styles.renewBox}>
+            <Text style={styles.renewTitle}>⚡ Renouveler maintenant</Text>
+            <Text style={styles.renewDesc}>
+              Votre abonnement expire bientôt. Renouvelez pour ne pas perdre vos avantages !
+            </Text>
+            <TouchableOpacity 
+              style={styles.renewButton}
+              onPress={() => openPayPalPayment(premiumStatus.planId || 'monthly')}
+            >
+              <Text style={styles.renewButtonText}>🔄 Renouveler</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -2362,5 +2475,141 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
     fontStyle: 'italic',
+  },
+  // === v5.4.73 - Nouveaux styles Premium ===
+  premiumPlanType: {
+    fontSize: 14,
+    color: '#059669',
+    fontWeight: '600',
+    marginTop: 5,
+    textAlign: 'center',
+  },
+  expirationBox: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#d1fae5',
+  },
+  daysRemaining: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#059669',
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  expirationWarning: {
+    fontSize: 12,
+    color: '#f59e0b',
+    textAlign: 'center',
+    marginTop: 8,
+    fontWeight: '600',
+  },
+  activatedDate: {
+    fontSize: 11,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  expiredNotice: {
+    fontSize: 13,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginTop: 10,
+    fontWeight: '600',
+  },
+  premiumPlansSubtitle: {
+    fontSize: 13,
+    color: '#065f46',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  recommendedPlanCard: {
+    borderWidth: 3,
+    borderColor: '#f59e0b',
+    backgroundColor: '#fffbeb',
+  },
+  recommendedBadge: {
+    position: 'absolute',
+    top: -10,
+    right: 10,
+    backgroundColor: '#f59e0b',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 1,
+  },
+  recommendedText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  planTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  planIcon: {
+    fontSize: 24,
+    marginRight: 8,
+  },
+  priceBox: {
+    alignItems: 'flex-end',
+  },
+  pricePeriod: {
+    fontSize: 11,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  selectPlanButton: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  selectPlanText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  premiumSecurityNote: {
+    fontSize: 10,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  renewBox: {
+    backgroundColor: '#fef3c7',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 15,
+    borderWidth: 2,
+    borderColor: '#f59e0b',
+  },
+  renewTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#92400e',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  renewDesc: {
+    fontSize: 13,
+    color: '#78350f',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  renewButton: {
+    backgroundColor: '#f59e0b',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  renewButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

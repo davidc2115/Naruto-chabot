@@ -20,11 +20,37 @@ import AuthService from '../services/AuthService';
 const FREEBOX_URL = 'http://88.174.155.230:33437';
 const ADMIN_EMAIL = 'douvdouv21@gmail.com'; // Email admin principal
 
+// v5.4.73 - Types de premium disponibles
+const PREMIUM_TYPES = {
+  monthly: {
+    id: 'monthly',
+    name: '📅 Mensuel',
+    description: '30 jours',
+    durationDays: 30,
+    icon: '📅',
+  },
+  yearly: {
+    id: 'yearly',
+    name: '🌟 Annuel',
+    description: '365 jours',
+    durationDays: 365,
+    icon: '🌟',
+  },
+  lifetime: {
+    id: 'lifetime',
+    name: '👑 À Vie',
+    description: 'Pas d\'expiration',
+    durationDays: null,
+    icon: '👑',
+  },
+};
+
 /**
- * v5.4.4 - AdminPanelScreen CORRIGÉ
- * - Vérification email admin directe (pas seulement is_admin)
- * - Chargement robuste avec retry automatique
- * - Messages d'erreur détaillés
+ * v5.4.73 - AdminPanelScreen avec gestion Premium améliorée
+ * - 3 types de premium: Mensuel, Annuel, À Vie
+ * - Sélection du type lors de l'attribution
+ * - Affichage de la date d'expiration
+ * - Retrait automatique à expiration
  */
 export default function AdminPanelScreen() {
   const [users, setUsers] = useState([]);
@@ -183,44 +209,113 @@ export default function AdminPanelScreen() {
     );
   }, [loadUsers]);
 
-  const togglePremiumStatus = useCallback(async (userId, currentStatus, email) => {
+  // v5.4.73 - États pour le modal de sélection premium
+  const [premiumModalVisible, setPremiumModalVisible] = useState(false);
+  const [selectedUserForPremium, setSelectedUserForPremium] = useState(null);
+  const [selectedPremiumType, setSelectedPremiumType] = useState('monthly');
+
+  // v5.4.73 - Ouvre le modal de sélection de type premium
+  const togglePremiumStatus = useCallback(async (userId, currentStatus, email, userObj = null) => {
     if (!userId) {
       Alert.alert('Erreur', 'ID utilisateur manquant');
       return;
     }
     
-    Alert.alert(
-      '⭐ Modifier Premium',
-      `${currentStatus ? 'Retirer' : 'Donner'} le premium à ${email} ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Confirmer',
-          onPress: async () => {
-            try {
-              const response = await fetch(`${FREEBOX_URL}/admin/users/${userId}/premium`, {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
-                },
-                body: JSON.stringify({ is_premium: !currentStatus })
-              });
-              
-              if (response.ok) {
-                Alert.alert('✅ Succès', 'Premium modifié');
-                loadUsers(false);
-              } else {
-                Alert.alert('❌ Erreur', 'Impossible de modifier');
+    if (currentStatus) {
+      // Si l'utilisateur a déjà premium, demander confirmation pour le retirer
+      Alert.alert(
+        '⭐ Retirer Premium',
+        `Voulez-vous retirer le premium de ${email} ?`,
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Retirer',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                const response = await fetch(`${FREEBOX_URL}/admin/users/${userId}/premium`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+                  },
+                  body: JSON.stringify({ 
+                    is_premium: false,
+                    premium_type: null,
+                    premium_expires_at: null
+                  })
+                });
+                
+                if (response.ok) {
+                  Alert.alert('✅ Succès', 'Premium retiré');
+                  loadUsers(false);
+                } else {
+                  Alert.alert('❌ Erreur', 'Impossible de modifier');
+                }
+              } catch (e) {
+                Alert.alert('❌ Erreur', e.message);
               }
-            } catch (e) {
-              Alert.alert('❌ Erreur', e.message);
             }
           }
-        }
-      ]
-    );
+        ]
+      );
+    } else {
+      // Ouvrir le modal pour choisir le type de premium
+      setSelectedUserForPremium({ id: userId, email, ...userObj });
+      setSelectedPremiumType('monthly');
+      setPremiumModalVisible(true);
+    }
   }, [loadUsers]);
+
+  // v5.4.73 - Confirme l'attribution du premium avec le type sélectionné
+  const confirmPremiumGrant = useCallback(async () => {
+    if (!selectedUserForPremium) return;
+    
+    const premiumType = PREMIUM_TYPES[selectedPremiumType];
+    let expiresAt = null;
+    
+    if (premiumType.durationDays) {
+      const expires = new Date();
+      expires.setDate(expires.getDate() + premiumType.durationDays);
+      expiresAt = expires.toISOString();
+    }
+    
+    try {
+      const response = await fetch(`${FREEBOX_URL}/admin/users/${selectedUserForPremium.id}/premium`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Email': AuthService.getCurrentUser()?.email || ''
+        },
+        body: JSON.stringify({ 
+          is_premium: true,
+          premium_type: selectedPremiumType,
+          premium_expires_at: expiresAt,
+          granted_by: AuthService.getCurrentUser()?.email,
+          granted_at: new Date().toISOString()
+        })
+      });
+      
+      if (response.ok) {
+        const expirationText = expiresAt 
+          ? `Expire le: ${new Date(expiresAt).toLocaleDateString('fr-FR')}`
+          : 'À vie (pas d\'expiration)';
+        
+        Alert.alert(
+          '✅ Premium Accordé !',
+          `${selectedUserForPremium.email} a maintenant le premium ${premiumType.name}.\n\n${expirationText}`
+        );
+        loadUsers(false);
+      } else {
+        Alert.alert('❌ Erreur', 'Impossible d\'accorder le premium');
+      }
+    } catch (e) {
+      Alert.alert('❌ Erreur', e.message);
+    } finally {
+      setPremiumModalVisible(false);
+      setSelectedUserForPremium(null);
+    }
+  }, [selectedUserForPremium, selectedPremiumType, loadUsers]);
 
   const deleteUser = useCallback(async (userId, email) => {
     if (!userId) {
@@ -423,10 +518,19 @@ export default function AdminPanelScreen() {
     (user.username?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
 
-  // Rendu d'un utilisateur
+  // v5.4.73 - Rendu d'un utilisateur avec type de premium
   const renderUser = useCallback(({ item }) => {
     const isCurrentUser = item.email === AuthService.getCurrentUser()?.email;
     const username = item.username || item.email?.split('@')[0] || 'Sans nom';
+    
+    // v5.4.73 - Récupérer les infos premium
+    const premiumType = item.premium_type || null;
+    const premiumExpiresAt = item.premium_expires_at;
+    const premiumIcon = premiumType ? (PREMIUM_TYPES[premiumType]?.icon || '⭐') : '⭐';
+    
+    // Vérifier si expiré
+    const isExpired = premiumExpiresAt && new Date(premiumExpiresAt) < new Date();
+    const isPremiumActive = item.is_premium && !isExpired;
     
     return (
       <View style={[styles.userCard, isCurrentUser && styles.currentUserCard]}>
@@ -434,11 +538,46 @@ export default function AdminPanelScreen() {
           <Text style={styles.userName} numberOfLines={1}>{username}</Text>
           <View style={styles.badges}>
             {item.is_admin && <View style={styles.adminBadge}><Text style={styles.badgeText}>👑</Text></View>}
-            {item.is_premium && <View style={styles.premiumBadge}><Text style={styles.badgeText}>⭐</Text></View>}
+            {isPremiumActive && (
+              <View style={[styles.premiumBadge, premiumType === 'lifetime' && styles.lifetimeBadge]}>
+                <Text style={styles.badgeText}>{premiumIcon}</Text>
+              </View>
+            )}
+            {isExpired && (
+              <View style={styles.expiredBadge}>
+                <Text style={styles.badgeText}>⏰</Text>
+              </View>
+            )}
           </View>
         </View>
         
         <Text style={styles.userEmail}>{item.email}</Text>
+        
+        {/* v5.4.73 - Afficher les détails premium */}
+        {isPremiumActive && (
+          <View style={styles.premiumDetails}>
+            <Text style={styles.premiumTypeLabel}>
+              {premiumType === 'monthly' && '📅 Mensuel'}
+              {premiumType === 'yearly' && '🌟 Annuel'}
+              {premiumType === 'lifetime' && '👑 À Vie'}
+              {!premiumType && '⭐ Premium'}
+            </Text>
+            {premiumExpiresAt && premiumType !== 'lifetime' && (
+              <Text style={styles.premiumExpiresLabel}>
+                Expire: {new Date(premiumExpiresAt).toLocaleDateString('fr-FR')}
+              </Text>
+            )}
+            {premiumType === 'lifetime' && (
+              <Text style={styles.premiumLifetimeLabel}>Pas d'expiration</Text>
+            )}
+          </View>
+        )}
+        
+        {isExpired && (
+          <View style={styles.expiredDetails}>
+            <Text style={styles.expiredLabel}>⏰ Premium expiré le {new Date(premiumExpiresAt).toLocaleDateString('fr-FR')}</Text>
+          </View>
+        )}
         
         <TouchableOpacity style={styles.profileBtn} onPress={() => viewUserProfile(item)}>
           <Text style={styles.profileBtnText}>👁️ Profil</Text>
@@ -454,10 +593,10 @@ export default function AdminPanelScreen() {
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={[styles.actionBtn, item.is_premium ? styles.removeBtn : styles.addBtn]}
-              onPress={() => togglePremiumStatus(item.id, item.is_premium, item.email)}
+              style={[styles.actionBtn, isPremiumActive ? styles.removeBtn : styles.addBtn]}
+              onPress={() => togglePremiumStatus(item.id, isPremiumActive, item.email, item)}
             >
-              <Text style={styles.actionText}>{item.is_premium ? '➖⭐' : '➕⭐'}</Text>
+              <Text style={styles.actionText}>{isPremiumActive ? '➖⭐' : '➕⭐'}</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -482,7 +621,7 @@ export default function AdminPanelScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>👑 Admin Panel</Text>
-        <Text style={styles.version}>v5.4.21</Text>
+        <Text style={styles.version}>v5.4.73</Text>
         <View style={styles.statusRow}>
           <View style={[styles.statusDot, 
             serverStatus === 'online' ? styles.online : 
@@ -566,6 +705,100 @@ export default function AdminPanelScreen() {
         )}
       </View>
       
+      {/* v5.4.73 - Modal pour sélection du type de premium */}
+      <Modal
+        visible={premiumModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setPremiumModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.premiumModalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.premiumModalTitle}>
+                ⭐ Accorder Premium à
+              </Text>
+              <TouchableOpacity onPress={() => setPremiumModalVisible(false)}>
+                <Text style={styles.closeBtn}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={styles.premiumUserEmail}>
+              {selectedUserForPremium?.email}
+            </Text>
+            
+            <Text style={styles.premiumSelectLabel}>
+              Choisissez le type d'abonnement :
+            </Text>
+            
+            {/* Options de premium */}
+            {Object.entries(PREMIUM_TYPES).map(([typeId, type]) => (
+              <TouchableOpacity
+                key={typeId}
+                style={[
+                  styles.premiumTypeOption,
+                  selectedPremiumType === typeId && styles.premiumTypeOptionSelected
+                ]}
+                onPress={() => setSelectedPremiumType(typeId)}
+              >
+                <View style={styles.premiumTypeRadio}>
+                  {selectedPremiumType === typeId && (
+                    <View style={styles.premiumTypeRadioInner} />
+                  )}
+                </View>
+                <Text style={styles.premiumTypeIcon}>{type.icon}</Text>
+                <View style={styles.premiumTypeInfo}>
+                  <Text style={[
+                    styles.premiumTypeName,
+                    selectedPremiumType === typeId && styles.premiumTypeNameSelected
+                  ]}>
+                    {type.name}
+                  </Text>
+                  <Text style={styles.premiumTypeDesc}>{type.description}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+            
+            {/* Aperçu de l'expiration */}
+            <View style={styles.expirationPreview}>
+              <Text style={styles.expirationPreviewLabel}>📅 Expiration :</Text>
+              <Text style={styles.expirationPreviewValue}>
+                {selectedPremiumType === 'lifetime' 
+                  ? '♾️ Jamais (Premium à vie)'
+                  : (() => {
+                      const days = PREMIUM_TYPES[selectedPremiumType]?.durationDays || 30;
+                      const expDate = new Date();
+                      expDate.setDate(expDate.getDate() + days);
+                      return expDate.toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      });
+                    })()
+                }
+              </Text>
+            </View>
+            
+            {/* Boutons d'action */}
+            <View style={styles.premiumModalButtons}>
+              <TouchableOpacity
+                style={styles.premiumCancelBtn}
+                onPress={() => setPremiumModalVisible(false)}
+              >
+                <Text style={styles.premiumCancelText}>Annuler</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.premiumConfirmBtn}
+                onPress={confirmPremiumGrant}
+              >
+                <Text style={styles.premiumConfirmText}>✅ Accorder</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* v5.4.21 - Modal pour les personnages de l'utilisateur */}
       <Modal
         visible={selectedUser !== null}
@@ -819,6 +1052,49 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
   },
+  lifetimeBadge: {
+    backgroundColor: '#d1fae5',
+  },
+  expiredBadge: {
+    backgroundColor: '#fee2e2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  premiumDetails: {
+    backgroundColor: '#e0f2fe',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  premiumTypeLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0369a1',
+  },
+  premiumExpiresLabel: {
+    fontSize: 11,
+    color: '#0c4a6e',
+  },
+  premiumLifetimeLabel: {
+    fontSize: 11,
+    color: '#059669',
+    fontWeight: '600',
+  },
+  expiredDetails: {
+    backgroundColor: '#fee2e2',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  expiredLabel: {
+    fontSize: 11,
+    color: '#dc2626',
+    textAlign: 'center',
+  },
   badgeText: {
     fontSize: 12,
   },
@@ -1005,5 +1281,133 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  // === v5.4.73 - Styles pour le modal de sélection premium ===
+  premiumModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: '90%',
+    maxWidth: 400,
+    padding: 20,
+  },
+  premiumModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    flex: 1,
+  },
+  premiumUserEmail: {
+    fontSize: 14,
+    color: '#6366f1',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 20,
+    backgroundColor: '#e0e7ff',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  premiumSelectLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 15,
+  },
+  premiumTypeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+  },
+  premiumTypeOptionSelected: {
+    backgroundColor: '#ecfdf5',
+    borderColor: '#10b981',
+  },
+  premiumTypeRadio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#10b981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  premiumTypeRadioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#10b981',
+  },
+  premiumTypeIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  premiumTypeInfo: {
+    flex: 1,
+  },
+  premiumTypeName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  premiumTypeNameSelected: {
+    color: '#059669',
+  },
+  premiumTypeDesc: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  expirationPreview: {
+    backgroundColor: '#fef3c7',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 15,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  expirationPreviewLabel: {
+    fontSize: 13,
+    color: '#92400e',
+    fontWeight: '600',
+  },
+  expirationPreviewValue: {
+    fontSize: 13,
+    color: '#78350f',
+    fontWeight: 'bold',
+  },
+  premiumModalButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  premiumCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+  },
+  premiumCancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  premiumConfirmBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: '#10b981',
+  },
+  premiumConfirmText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
