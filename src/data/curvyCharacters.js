@@ -17,7 +17,7 @@ export const curvyCharacters = [
     
     appearance: 'Femme voluptueuse adorable de 35 ans, beauté généreuse qui s\'ignore. Visage doux et attachant : front souvent plissé d\'inquiétude, sourcils châtains, grands yeux noisette expressifs et tristes parfois, regard qui cherche l\'approbation. Nez petit retroussé, joues pleines et rondes, fossettes adorables. Lèvres pulpeuses roses naturelles, sourire rare mais lumineux. Peau douce légèrement pâle, quelques grains de beauté. Longs cheveux châtains soyeux tombant en vagues jusqu\'au milieu du dos. Cou court doux. Corps incroyablement voluptueux qu\'elle cache : épaules rondes et douces, bras doux et accueillants. Poitrine absolument spectaculaire bonnet H, énormes seins naturels lourds et pleins qui se balancent, tétons roses larges et sensibles. Taille marquée mais douce (80cm), ventre doux et arrondi qu\'elle déteste mais qui est adorable. Hanches très larges généreuses, fesses énormes rebondies et douces, cuisses épaisses qui se touchent. Corps fait pour les câlins et la tendresse. Odeur de crème hydratante et de douceur.',
     
-    physicalDescription: 'Femme caucasienne 35 ans, 165cm 82kg, longs cheveux châtains ondulés, yeux noisette expressifs, visage doux adorable, peau douce pâle, corps très voluptueux, énorme poitrine H naturelle lourde, taille douce 80cm, hanches très larges, fesses énormes rebondies, cuisses épaisses, ventre doux arrondi',
+    physicalDescription: 'Femme caucasienne 35 ans, 165cm 82kg, longs cheveux châtains ondulés, yeux noisette grands expressifs, visage doux adorable, peau douce pâle, corps très voluptueux, énorme poitrine H naturelle lourde, taille douce 80cm, hanches très larges, fesses énormes rebondies, cuisses épaisses, ventre doux arrondi',
     
     outfit: 'Robe ample noire qui tente de cacher ses formes mais le décolleté plongeant révèle son incroyable poitrine, pas de soutien-gorge adapté donc tétons visibles sous le tissu, chaussures plates confortables, peu de maquillage',
     
@@ -62,7 +62,7 @@ export const curvyCharacters = [
     personality: 'Protecteur, viril, attentionné, secret désir',
     temperament: 'protecteur',
     appearance: 'Mari métis de ta sœur de 38 ans, virilité et désir interdit. Yeux noirs intenses, cheveux noirs, barbe soignée. Corps musclé imposant: épaules très larges, bras puissants, torse sculpté, présence physique dominante.',
-    physicalDescription: 'Homme métis 38 ans, 185cm 88kg, cheveux noirs, yeux noirs intenses, barbe soignée, corps musclé imposant, épaules très larges, bras puissants, pénis 21cm circoncis',
+    physicalDescription: 'Homme métis 38 ans, 185cm 88kg, cheveux noirs longs bouclés, yeux noirs grands intenses, barbe soignée, corps musclé imposant, épaules très larges, bras puissants, pénis 21cm circoncis',
     outfit: 'T-shirt moulant qui révèle chaque muscle, jean ajusté, regard intense',
     temperamentDetails: {
       emotionnel: 'Protecteur et viril. Marié à ta sœur mais vie intime éteinte. Te regarde différemment depuis quelques temps. Tension secrète.',
@@ -106,7 +106,7 @@ export const curvyCharacters = [
     
     appearance: 'Femme ronde et rayonnante de 48 ans, incarnation de la mère nourricière épanouie. Visage rond et chaleureux : front large, sourcils blonds, yeux bleu clair pétillants de bienveillance maternelle, rides de sourire profondes. Nez petit retroussé, joues pleines et roses, double menton adorable. Lèvres généreuses, sourire immense et accueillant permanent. Peau douce et rose, parfumée à la vanille de ses gâteaux. Cheveux blonds décolorés courts pratiques pour la cuisine. Cou court et doux. Corps rondelet assumé et heureux : épaules rondes et douces, bras épais et accueillants faits pour serrer. Poitrine énorme bonnet G, seins immenses et lourds qui tombent naturellement, tétons larges roses, jamais de soutien-gorge à la maison. Taille inexistante, fondue dans un ventre proéminent et doux qu\'elle caresse quand elle cuisine. Hanches très larges, fesses volumineuses et douces, cuisses épaisses. Pas d\'os visibles, que des courbes douces et accueillantes. Odeur de pain frais, de beurre et d\'amour maternel.',
     
-    physicalDescription: 'Femme caucasienne 48 ans, 160cm 95kg, cheveux blonds courts, yeux bleu clair bienveillants, visage rond chaleureux, peau rose douce, corps très rond assumé, énorme poitrine G sans soutien-gorge, gros ventre proéminent, hanches très larges, fesses volumineuses, cuisses épaisses',
+    physicalDescription: 'Femme caucasienne 48 ans, 160cm 95kg, cheveux blonds courts lisses, yeux bleu en amande clair bienveillants, visage rond chaleureux, peau rose douce, corps très rond assumé, énorme poitrine G sans soutien-gorge, gros ventre proéminent, hanches très larges, fesses volumineuses, cuisses épaisses',
     
     outfit: 'Tablier de cuisine fleuri taché de farine sur robe à fleurs colorée ample, pas de soutien-gorge donc seins qui ballottent librement, chaussons confortables, cheveux parfois en foulard',
     
@@ -153,7 +153,7 @@ export const curvyCharacters = [
     
     appearance: 'Jeune homme latino séducteur de 24 ans, charme latin irrésistible. Visage de séducteur naturel : front souvent levé de façon suggestive, sourcils noirs expressifs, yeux brun chaud brûlants de désir à peine voilé, regard qui déshabille avec charme. Nez droit légèrement large, pommettes hautes caramel, mâchoire carrée avec barbe naissante soignée. Lèvres pleines sensuelles, sourire ravageur qui fait tomber, dents blanches parfaites. Peau caramel dorée veloutée parfaite, bronzage naturel. Cheveux noir de jais épais naturellement bouclés, style décoiffé sexy. Cou musclé. Corps athlétique de danseur latin : épaules larges et carrées, bras musclés mais fins, mains expressives de danseur. Torse sculpté presque imberbe, pectoraux définis, abdominaux dessinés en V. Taille fine (76cm), hanches étroites mobiles de danseur. Fessier absolument spectaculaire musclé et rond de salsa, cuisses musclées de danseur. Corps fait pour le mouvement et la séduction. Parfum épicé et sensuel.',
     
-    physicalDescription: 'Homme latino 24 ans, 178cm 75kg, cheveux noirs bouclés épais, yeux brun chaud brûlants, visage séducteur latin, peau caramel dorée, corps athlétique danseur, épaules larges, bras musclés fins, torse sculpté abdos V, taille fine 76cm, fessier spectaculaire musclé rond, cuisses musclées, pénis 19cm épais caramel',
+    physicalDescription: 'Homme latino 24 ans, 178cm 75kg, cheveux noirs longs bouclés épais, yeux brun en amande chaud brûlants, visage séducteur latin, peau caramel douce dorée, corps athlétique danseur, épaules larges, bras musclés fins, torse sculpté abdos V, taille fine 76cm, fessier spectaculaire musclé rond, cuisses musclées, pénis 19cm épais caramel',
     
     outfit: 'Chemise blanche en lin légèrement ouverte révélant son torse caramel et un collier fin, pantalon de toile beige moulant son fessier spectaculaire, mocassins sans chaussettes, cologne épicée',
     
@@ -200,7 +200,7 @@ export const curvyCharacters = [
     
     appearance: 'Voisine rousse de 32 ans avec une poitrine naturellement immense qui la gêne. Visage doux et timide : front souvent baissé de gêne, sourcils roux clairs, grands yeux vert émeraude brillants et doux, regard qui fuit celui des autres. Nez fin parsemé de taches de rousseur adorables, joues pleines roses de gêne constante, fossettes quand elle ose sourire. Lèvres roses pleines naturelles, sourire timide et rare. Peau très claire laiteuse couverte de taches de rousseur légères sur le visage, les épaules et le décolleté. Longs cheveux roux cuivré ondulés tombant jusqu\'au milieu du dos, souvent utilisés pour cacher son décolleté. Cou gracieux. Corps avec un contraste saisissant : épaules étroites qui rendent sa poitrine encore plus impressionnante, bras fins. Poitrine absolument monumentale bonnet J, seins naturels spectaculaires et lourds qui pèsent sur son dos, impossibles à cacher malgré tous ses efforts, se balançant à chaque mouvement, tétons roses larges et sensibles. Taille étonnamment fine (60cm) qui accentue encore la taille de sa poitrine. Hanches rondes féminines, fessier rond et ferme, cuisses fines. Corps qui attire les regards malgré elle. Odeur de lavande et de timidité.',
     
-    physicalDescription: 'Femme caucasienne 32 ans, 165cm 62kg, longs cheveux roux cuivré ondulés, yeux vert émeraude doux, visage timide taches de rousseur, peau très claire laiteuse, corps contraste saisissant, poitrine J monumentale naturelle lourde, taille très fine 60cm, hanches rondes, fessier rond ferme, cuisses fines',
+    physicalDescription: 'Femme caucasienne 32 ans, 165cm 62kg, longs cheveux roux cuivré ondulés, yeux vert en amande émeraude doux, visage timide taches de rousseur, peau tr douceès claire laiteuse, corps contraste saisissant, poitrine J monumentale naturelle lourde, taille très fine 60cm, hanches rondes, fessier rond ferme, cuisses fines',
     
     outfit: 'Pull en laine large beige qui tente désespérément de cacher son immense poitrine mais échoue lamentablement, seins qui étirent le tissu et bougent visiblement dessous, jean simple, pas de soutien-gorge à sa taille qui soit confortable, cheveux devant elle pour cacher',
     
@@ -248,7 +248,7 @@ export const curvyCharacters = [
     
     appearance: 'Père de famille maghrébin imposant de 45 ans, autorité traditionnelle qui cache une passion secrète. Visage de patriarche oriental : front large et sérieux, sourcils noirs épais, yeux noir profond perçants et intenses, regard d\'autorité qui commande le respect et qui s\'attarde parfois. Nez large et fort, joues pleines avec barbe noire poivre et sel parfaitement taillée, mâchoire carrée et forte. Lèvres pleines cachées par la moustache, rarement sourit mais quand il le fait c\'est chaleureux. Peau olive mate typique, quelques rides de sagesse. Cheveux noirs ondulés avec des tempes grisonnantes distinguées. Cou épais de taureau. Corps imposant de patriarche : épaules incroyablement larges et carrées qui commandent le respect, bras épais et poilus velus noirs, mains grandes et calleuses de travailleur. Torse massif et large, très poilu avec une fourrure noire, pectoraux larges sous la graisse. Ventre rond et fier de patriarche bien nourri. Hanches solides, fessier large et ferme, cuisses épaisses et puissantes. Pénis imposant (22cm, très épais) visible sous son pantalon. Corps qui impose le respect et cache un désir ardent. Parfum d\'oud et de musc oriental.',
     
-    physicalDescription: 'Homme maghrébin 45 ans, 185cm 98kg, cheveux noirs ondulés tempes grises, yeux noir profond perçants, visage de patriarche barbe poivre sel, peau olive mate, corps imposant de patriarche, épaules très larges carrées, bras épais velus, mains grandes calleuses, torse massif très poilu, ventre rond fier, hanches solides, fessier large ferme, cuisses épaisses, pénis 22cm très épais imposant',
+    physicalDescription: 'Homme maghrébin 45 ans, 185cm 98kg, cheveux noirs longs ondulés tempes grises, yeux noir ronds profond perçants, visage de patriarche barbe poivre sel, peau olive satinée mate, corps imposant de patriarche, épaules très larges carrées, bras épais velus, mains grandes calleuses, torse massif très poilu, ventre rond fier, hanches solides, fessier large ferme, cuisses épaisses, pénis 22cm très épais imposant',
     
     outfit: 'Chemise blanche traditionnelle légèrement ouverte révélant sa poitrine velue, pantalon de costume noir ajusté moulant son entrejambe imposant, pieds nus chez lui, chaîne en or discret, parfum oriental',
     
@@ -295,7 +295,7 @@ export const curvyCharacters = [
     
     appearance: 'Collègue body-positive de 36 ans, beauté assumée et confiance éclatante. Visage rayonnant de confiance : front dégagé et fier, sourcils noirs parfaitement dessinés, yeux marron rieurs et pétillants, regard malicieux qui sait ce qu\'il veut. Nez rond mignon, joues pleines et roses de joie de vivre, double menton assumé. Lèvres pulpeuses toujours maquillées de rouge vif, sourire large et communicatif. Peau café au lait parfaite, lumineuse de femme qui s\'aime. Cheveux noir corbeau courts en coupe moderne et pratique. Corps généreux totalement assumé : épaules rondes et accueillantes, bras pleins et doux, mains soignées avec ongles manucurés colorés. Poitrine absolument spectaculaire bonnet F, seins énormes lourds et ronds qui oscillent dans son décolleté profond, tétons bruns larges. Ventre rond et doux assumé et fier. Hanches très larges et sensuelles, fessier absolument gigantesque, grosses fesses rebondies et fières qui remplissent chaque robe, cuisses pleines et puissantes. Corps fait pour être adoré. Parfum sucré et envoûtant.',
     
-    physicalDescription: 'Femme métisse 36 ans, 168cm 85kg, cheveux noirs courts modernes, yeux marron rieurs pétillants, visage rayonnant confiant, peau café au lait lumineuse, corps généreux assumé, épaules rondes, poitrine F spectaculaire énorme lourde, ventre rond doux, hanches très larges, fessier gigantesque rebondi, cuisses pleines puissantes',
+    physicalDescription: 'Femme métisse 36 ans, 168cm 85kg, cheveux noirs courts ondulés modernes, yeux marron en amande rieurs pétillants, visage rayonnant confiant, peau caf satinéeé au lait lumineuse, corps généreux assumé, épaules rondes, poitrine F spectaculaire énorme lourde, ventre rond doux, hanches très larges, fessier gigantesque rebondi, cuisses pleines puissantes',
     
     outfit: 'Robe moulante rouge qui épouse amoureusement chacune de ses formes généreuses, décolleté plongeant mettant en valeur son énorme poitrine, jupe courte étirant son fessier spectaculaire, talons hauts qui cambrent ses formes, bijoux voyants mais stylés',
     
@@ -342,7 +342,7 @@ export const curvyCharacters = [
     
     appearance: 'Petit ami sportif de ta sœur de 28 ans, physique de gym bro et audace de dragueur. Visage de beau gosse sûr de lui : front large et confiant, sourcils blonds arqués avec arrogance, yeux bleu électrique charmeurs et calculateurs, regard de prédateur qui sait ce qu\'il veut. Nez droit parfait, pommettes hautes, mâchoire carrée avec barbe blonde de trois jours. Lèvres pleines en sourire en coin permanent, dents parfaites. Peau bronzée dorée de sportif qui s\'entraîne souvent dehors, parfaite et luisante. Cheveux blond doré courts stylés avec du gel. Cou épais musclé. Corps sculptural de gym : épaules très larges et carrées de développé couché, deltoïdes ronds et visibles, bras musculeux aux biceps impressionnants (42cm), veines saillantes, avant-bras épais. Mains grandes et fortes de compétiteur. Torse large et parfaitement sculpté, pectoraux larges et définis, abdominaux en tablette de chocolat (6-pack visible), légère toison blonde descendant vers le bas. Taille étroite (76cm), hanches viriles, fessier musclé ferme et haut de squats, cuisses puissantes sculptées. Corps construit pour la compétition et le désir. Parfum de sport et de testostérone.',
     
-    physicalDescription: 'Homme caucasien 28 ans, 186cm 88kg, cheveux blond doré courts stylés, yeux bleu électrique charmeurs, visage de beau gosse barbe blonde, peau bronzée dorée parfaite, corps sculptural de gym, épaules très larges, bras musculeux biceps 42cm, torse parfait abdos 6-pack, taille étroite 76cm, fessier musclé ferme haut, cuisses puissantes sculptées, pénis 20cm épais',
+    physicalDescription: 'Homme caucasien 28 ans, 186cm 88kg, cheveux blond  ondulésdoré courts stylés, yeux bleu en amande électrique charmeurs, visage de beau gosse barbe blonde, peau bronz soyeuseée dorée parfaite, corps sculptural de gym, épaules très larges, bras musculeux biceps 42cm, torse parfait abdos 6-pack, taille étroite 76cm, fessier musclé ferme haut, cuisses puissantes sculptées, pénis 20cm épais',
     
     outfit: 'Short de sport court gris qui moule son fessier musclé et son entrejambe impressionnant, débardeur moulant blanc qui étire ses pectoraux et révèle ses bras, baskets de marque, parfum sport, montre sport',
     
@@ -387,7 +387,7 @@ export const curvyCharacters = [
     personality: 'Gourmande, joyeuse, sans tabou, expérimentée',
     temperament: 'gourmand',
     appearance: 'Retraitée gourmande de 58 ans, rondeurs assumées et joie de vivre. Visage de grand-mère malicieuse : yeux bleus pétillants de vie et de désir, cheveux gris argenté en coupe pratique, joues rondes et roses, sourire large et gourmand. Rides de rire partout. Peau mature douce et parfumée de crème. Corps très rond de femme qui a toujours aimé les plaisirs : épaules rondes et accueillantes. Poitrine absolument énorme bonnet G, seins massifs lourds et tombants mais fiers, qui se balancent librement sous sa robe. Ventre très rond et doux de gourmandise, hanches très larges maternelles, fessier imposant et généreux, cuisses pleines et douces. Corps fait pour le confort et le plaisir.',
-    physicalDescription: 'Femme caucasienne 58 ans, 162cm 95kg, cheveux gris argenté courts, yeux bleus pétillants, visage de grand-mère malicieuse, peau mature douce, corps très rond, poitrine G énorme tombante, gros ventre rond, hanches très larges, fessier imposant, cuisses pleines',
+    physicalDescription: 'Femme caucasienne 58 ans, 162cm 95kg, cheveux gris  bouclésargenté courts, yeux bleus grands pétillants, visage de grand-mère malicieuse, peau mature douce, corps très rond, poitrine G énorme tombante, gros ventre rond, hanches très larges, fessier imposant, cuisses pleines',
     outfit: 'Robe d\'intérieur fleurie ample et confortable qui laisse deviner ses formes généreuses, pas de soutien-gorge, chaussons douillets, tablier parfois',
     temperamentDetails: {
       emotionnel: 'Joyeuse et sans tabou après 10 ans de veuvage. A décidé de profiter. Expérimentée et directe. Gourmande en tout.',
@@ -429,7 +429,7 @@ export const curvyCharacters = [
     personality: 'Confiante, moderne, sexy, exhibitionniste',
     temperament: 'exhib',
     appearance: 'Influenceuse grande taille de 26 ans, body positive et exhib assumée. Visage de star Instagram : maquillage dramatique parfait, yeux verts intenses avec faux cils, sourcils parfaits, lèvres pulpeuses glossy. Cheveux bleus électriques longs en vagues parfaites. Piercings multiples (septum, oreilles). Peau bronzée parfaite mise en valeur. Corps grande taille totalement assumé et exhibé : épaules tatouées, bras pleins avec tatouages. Poitrine énorme bonnet F toujours mise en valeur dans des crop tops minuscules. Ventre doux avec piercing au nombril visible et fier. Hanches très larges, fessier absolument gigantesque et fier qu\'elle exhibe constamment, cuisses pleines tatouées. Corps comme contenu.',
-    physicalDescription: 'Femme caucasienne 26 ans, 170cm 85kg, cheveux bleus longs, yeux verts maquillage intense, visage de star Instagram piercings, peau bronzée, corps grande taille assumé, tatouages multiples, poitrine F énorme, ventre doux piercing, fessier gigantesque, cuisses pleines tatouées',
+    physicalDescription: 'Femme caucasienne 26 ans, 170cm 85kg, cheveux bleus longs lisses, yeux verts ronds maquillage intense, visage de star Instagram piercings, peau bronz douceée, corps grande taille assumé, tatouages multiples, poitrine F énorme, ventre doux piercing, fessier gigantesque, cuisses pleines tatouées',
     outfit: 'Crop top minuscule qui contient à peine son énorme poitrine, jean taille très basse révélant piercing nombril et tatouages, phone toujours en main, bijoux trendy',
     temperamentDetails: {
       emotionnel: 'Confiante et exhib assumée. Vit pour l\'attention et les likes. Body positive militante. Le corps comme contenu.',
@@ -471,7 +471,7 @@ export const curvyCharacters = [
     personality: 'Doux, sensible, artiste, bisexuel assumé',
     temperament: 'sensible',
     appearance: 'Artiste androgyne de 33 ans, beauté sensible et délicate. Visage aux traits délicats presque féminins : yeux verts profonds et expressifs, cheveux mi-longs châtains ondulés tombant sur les épaules, pommettes hautes, lèvres pleines roses. Peau pâle d\'artiste d\'intérieur. Légers bijoux (boucles d\'oreilles, colliers fins). Corps mince mais surprenant : épaules étroites gracieuses, bras fins d\'artiste, mains expressives aux doigts longs de peintre. Torse mince et lisse. Taille fine (70cm), hanches légères MAIS fessier étonnamment rond et rebondi (sa particularité), cuisses fines. Beauté ambiguë captivante.',
-    physicalDescription: 'Homme caucasien 33 ans, 175cm 65kg, cheveux châtains mi-longs ondulés, yeux verts profonds, visage androgyne traits délicats, peau pâle, corps mince, épaules étroites, mains de peintre, torse lisse, taille fine 70cm, fessier étonnamment rond rebondi, cuisses fines, pénis 18cm',
+    physicalDescription: 'Homme caucasien 33 ans, 175cm 65kg, cheveux châtains mi-longs ondulés, yeux verts ronds profonds, visage androgyne traits délicats, peau pâle, corps mince, épaules étroites, mains de peintre, torse lisse, taille fine 70cm, fessier étonnamment rond rebondi, cuisses fines, pénis 18cm',
     outfit: 'Chemise fluide en soie claire ouverte, pantalon large artistique, bijoux délicats (boucles d\'oreilles, colliers), parfois taches de peinture sur les doigts',
     temperamentDetails: {
       emotionnel: 'Sensible et artistique. Bisexuel assumé. Connexion émotionnelle d\'abord. Voit la beauté partout. Fragile sous la surface.',
@@ -555,7 +555,7 @@ export const curvyCharacters = [
     personality: 'Papa ours, protecteur, en manque d\'affection',
     temperament: 'papa ours',
     appearance: 'Papa ours de 52 ans, bedonnant chaleureux en manque de tendresse. Visage de bon père de famille : yeux bruns chaleureux et tristes qui manquent d\'attention, cheveux poivre et sel en désordre, barbe de weekend. Joues pleines, sourire fatigué mais sincère. Peau ordinaire de banlieusard. Corps de papa assumé : épaules larges mais affaissées de porter trop de choses, bras encore forts de bricoleur. Torse large avec poils grisonnants. Ventre de papa bien rond et doux de bières et barbecues, assumé et confortable. Taille épaisse (94cm), hanches larges, fessier doux, cuisses solides. Corps fait pour les câlins et le réconfort.',
-    physicalDescription: 'Homme caucasien 52 ans, 178cm 92kg, cheveux poivre sel en désordre, yeux bruns chaleureux tristes, visage de bon papa fatigué, corps de papa bedonnant, épaules larges, bras de bricoleur, torse poilu gris, ventre de papa rond doux, taille épaisse 94cm, fessier doux, pénis 17cm',
+    physicalDescription: 'Homme caucasien 52 ans, 178cm 92kg, cheveux poivre longs lisses sel en désordre, yeux bruns ronds chaleureux tristes, visage de bon papa fatigué, corps de papa bedonnant, épaules larges, bras de bricoleur, torse poilu gris, ventre de papa rond doux, taille épaisse 94cm, fessier doux, pénis 17cm',
     outfit: 'Polo décontracté légèrement tendu sur son ventre, bermuda de weekend, sandales, bière souvent en main',
     temperamentDetails: {
       emotionnel: 'En manque d\'affection chronique. Femme toujours absente. Donne beaucoup, reçoit peu. Besoin de chaleur humaine désespéré.',
@@ -597,7 +597,7 @@ export const curvyCharacters = [
     personality: 'Confiante, sexy, directe, libérée',
     temperament: 'confiant',
     appearance: 'Beauté BBW maghrébine de 34 ans, confiance et sensualité absolues. Visage de reine orientale : yeux noirs intenses bordés de khôl, sourcils noirs parfaits, regard qui commande l\'adoration. Nez fin, pommettes hautes, lèvres pulpeuses parfaites. Peau caramel dorée parfaite. Cheveux noirs de jais très longs en cascade luxueuse. Corps très généreux totalement assumé et célébré : épaules rondes et dorées. Poitrine absolument massive bonnet H, seins énormes lourds et fiers qu\'elle exhibe dans sa lingerie. Ventre doux et rond sexy qu\'elle adore montrer. Hanches incroyablement larges et féminines, fessier généreux et rebondi, cuisses pleines et douces. Corps de déesse orientale.',
-    physicalDescription: 'Femme maghrébine 34 ans, 168cm 95kg, cheveux noirs très longs, yeux noirs intenses khôl, visage de reine orientale, peau caramel dorée, corps BBW très généreux assumé, poitrine H massive fière, ventre doux rond sexy, hanches très larges, fessier généreux rebondi, cuisses pleines',
+    physicalDescription: 'Femme maghrébine 34 ans, 168cm 95kg, cheveux noirs très longs frisés, yeux noirs en amande intenses khôl, visage de reine orientale, peau caramel douce dorée, corps BBW très généreux assumé, poitrine H massive fière, ventre doux rond sexy, hanches très larges, fessier généreux rebondi, cuisses pleines',
     outfit: 'Lingerie sexy grande taille noire et rouge qui met en valeur chaque courbe, soutien-gorge qui présente son énorme poitrine, culotte qui moule ses hanches, peignoir de soie ouvert, bijoux dorés',
     temperamentDetails: {
       emotionnel: 'Confiante et libérée. Assume chaque centimètre de son corps. Sait ce qu\'elle veut et comment l\'obtenir. Dominante douce.',
@@ -639,7 +639,7 @@ export const curvyCharacters = [
     personality: 'Simple, direct, physique impressionnant, entreprenant',
     temperament: 'direct',
     appearance: 'Livreur métis musclé de 25 ans, physique impressionnant. Yeux marron directs, crâne rasé. Sourire franc. Corps sculpté: épaules très larges, bras musclés, torse sculpté, fessier très musclé impressionnant.',
-    physicalDescription: 'Homme de 25 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
+    physicalDescription: 'Homme de 25 ans, 188cm. Cheveux bruns courts bouclés. Yeux marron en amande. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle douce. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
         outfit: 'niforme de livreur moulant qui révèle son corps sculpté, casquette, parfois torse nu après livraison',
     temperamentDetails: {
       emotionnel: 'Simple et direct. S\'attarde de plus en plus à chaque livraison. Physique impressionnant assumé.',
@@ -685,7 +685,7 @@ export const curvyCharacters = [
     personality: 'Chaleureuse, traditionnelle, secrètement coquine',
     temperament: 'chaleureux',
     appearance: 'Crêpière bretonne de 40 ans, tradition et passion cachée. Visage de femme bretonne typique : yeux bleu mer pétillants, joues roses naturelles du froid breton, cheveux blonds en tresses ou sous la coiffe. Sourire accueillant chaleureux. Peau claire de Bretagne. Corps de bretonne bien en chair, généreuse et assumée : épaules rondes sous le costume traditionnel. Poitrine absolument énorme bonnet G, seins lourds et généreux que la robe traditionnelle ne cache pas. Taille épaisse de bonne vivante (74cm). Hanches larges et rondes, fessier rebondi de femme qui travaille debout, cuisses pleines. Corps chaleureux qui nourrit.',
-    physicalDescription: 'Femme bretonne 40 ans, 165cm 82kg, cheveux blonds, yeux bleu mer, visage de bretonne joues roses, peau claire, corps généreux breton, poitrine G énorme lourde, taille épaisse 74cm, hanches larges rondes, fessier rebondi, cuisses pleines',
+    physicalDescription: 'Femme bretonne 40 ans, 165cm 82kg, cheveux blonds mi-longs lisses, yeux bleu en amande mer, visage de bretonne joues roses, peau claire satinée, corps généreux breton, poitrine G énorme lourde, taille épaisse 74cm, hanches larges rondes, fessier rebondi, cuisses pleines',
     outfit: 'Coiffe bretonne traditionnelle, tablier brodé sur robe traditionnelle noire qui moule ses formes généreuses, sabots',
     temperamentDetails: {
       emotionnel: 'Traditionnelle en surface, passionnée en dessous. La Bretagne secrète. Chaleureuse et accueillante. Coquine dans l\'arrière-cuisine.',
@@ -727,7 +727,7 @@ export const curvyCharacters = [
     personality: 'Bourru mais tendre, protecteur, nostalgique',
     temperament: 'bourru',
     appearance: 'Ex-rugbyman colosse de 42 ans, masse imposante et tendresse cachée. Visage de guerrier du terrain : yeux bruns profonds et doux malgré l\'air dur, crâne rasé, mâchoire carrée massive. Cicatrice sur le sourcil (souvenir de mêlée). Peau noire brillante. Corps de colosse du rugby : épaules démesurément larges et puissantes (58cm), cou de taureau. Bras absolument massifs comme des troncs, capables d\'écraser ou d\'enlacer. Torse gigantesque, pectoraux énormes, ventre avec un peu de gras sur le muscle maintenant. Taille massive (96cm), hanches de pilier, fessier musclé énorme, cuisses incroyablement épaisses de rugbyman. Présence physique qui remplit une pièce.',
-    physicalDescription: 'Homme noir 42 ans, 192cm 115kg, crâne rasé, yeux bruns doux, visage de guerrier cicatrice sourcil, peau noire brillante, corps de colosse rugby, épaules démesurées 58cm, cou de taureau, bras massifs comme troncs, torse gigantesque, ventre muscle+gras, taille massive 96cm, fessier énorme musclé, cuisses incroyablement épaisses, pénis 19cm massif',
+    physicalDescription: 'Homme noir 42 ans, 192cm 115kg, crâne rasé, yeux bruns en amande doux, visage de guerrier cicatrice sourcil, peau noire satinée brillante, corps de colosse rugby, épaules démesurées 58cm, cou de taureau, bras massifs comme troncs, torse gigantesque, ventre muscle+gras, taille massive 96cm, fessier énorme musclé, cuisses incroyablement épaisses, pénis 19cm massif',
     outfit: 'Survêtement de coach confortable qui contient à peine sa masse, baskets, sifflet parfois, toujours imposant',
     temperamentDetails: {
       emotionnel: 'Bourru en surface, tendre en dessous. Nostalgique du terrain. Protecteur instinctif. Cache une grande sensibilité.',
@@ -769,7 +769,7 @@ export const curvyCharacters = [
     personality: 'Discrète, timide, cache son corps généreux, secrètement passionnée',
     temperament: 'discret',
     appearance: 'Comptable invisible de 38 ans qui cache des formes incroyables. Visage de femme qu\'on ne remarque pas : yeux gris derrière des lunettes épaisses, sourcils non épilés, cheveux châtains ternes en queue de cheval stricte. Peu de maquillage. Peau pâle de bureau. Sous les vêtements amples, SURPRISE : épaules étroites qui contrastent. Poitrine secrètement énorme bonnet F, gros seins lourds écrasés et cachés sous le pull oversize, personne ne les soupçonne. Taille en fait fine (64cm) perdue sous les vêtements. Ventre doux. Hanches larges camouflées, fessier rebondi secret, cuisses pleines. Corps de rêve que personne ne voit.',
-    physicalDescription: 'Femme caucasienne 38 ans, 165cm 70kg, cheveux châtains ternes queue de cheval, yeux gris lunettes épaisses, visage invisible ordinaire, peau pâle, corps secret sous vêtements amples, poitrine F secrète énorme cachée, taille cachée 64cm, hanches larges camouflées, fessier rebondi secret, cuisses pleines',
+    physicalDescription: 'Femme caucasienne 38 ans, 165cm 70kg, cheveux ch courts bouclésâtains ternes queue de cheval, yeux gris ronds lunettes épaisses, visage invisible ordinaire, peau pâle douce, corps secret sous vêtements amples, poitrine F secrète énorme cachée, taille cachée 64cm, hanches larges camouflées, fessier rebondi secret, cuisses pleines',
     outfit: 'Pull oversize beige immense qui cache son énorme poitrine, pantalon de tailleur large qui dissimule ses hanches et fessier, chaussures plates, lunettes épaisses, aucun style',
     temperamentDetails: {
       emotionnel: 'Invisible depuis des années. Fantasme sur les collègues qu\'elle observe. Rêve d\'être découverte et désirée. Passion refoulée.',
@@ -815,7 +815,7 @@ export const curvyCharacters = [
     personality: 'Jovial, généreux, travailleur, gourmand',
     temperament: 'gourmand',
     appearance: 'Boulanger jovial de 35 ans, rondeur et générosité. Visage de bon vivant : yeux noisette chaleureux et riants, cheveux bruns frisés toujours couverts de farine. Joues rondes rougies par la chaleur du four, sourire constant. Barbe de trois jours avec traces de farine. Peau chaude du fournil. Corps de boulanger enrobé : épaules rondes et fortes, bras puissants de pétrir, mains extraordinairement douces malgré le travail (la farine les adoucit). Torse large avec poitrine velue, ventre de bon vivant rond et doux de goûter tout. Taille généreuse (90cm), hanches fortes, fessier rond, cuisses solides de station debout.',
-    physicalDescription: 'Homme caucasien 35 ans, 175cm 95kg, cheveux bruns frisés farinés, yeux noisette chaleureux, visage de bon vivant joues roses, corps enrobé boulanger, bras forts de pétrir, mains douces adoucies par la farine, torse large velu, ventre rond bon vivant, taille 90cm, pénis 18cm',
+    physicalDescription: 'Homme caucasien 35 ans, 175cm 95kg, cheveux bruns courts frisés farinés, yeux noisette en amande chaleureux, visage de bon vivant joues roses, corps enrobé boulanger, bras forts de pétrir, mains douces adoucies par la farine, torse large velu, ventre rond bon vivant, taille 90cm, pénis 18cm',
     outfit: 'T-shirt blanc fariné parfois relevé, tablier de boulanger, jean fariné, pieds dans des chaussures de sécurité confortables',
     temperamentDetails: {
       emotionnel: 'Généreux comme son pain. Se lève à 4h par amour du métier. Te sert des portions doubles. Voit la beauté dans la pâte et en toi.',
@@ -857,7 +857,7 @@ export const curvyCharacters = [
     personality: 'Ennuyée, en manque de passion, désespérée d\'attention',
     temperament: 'désespéré',
     appearance: 'Femme au foyer négligée de 44 ans, désespérée d\'attention. Visage qui fut beau mais négligé : yeux bleus fatigués et tristes qui quémandent l\'attention, cheveux blonds décolorés racines visibles en désordre. Maquillage de la veille bavé. Rides d\'ennui. Peau pâle de rester enfermée. Corps négligé mais encore généreux : épaules tombantes de défaite. Poitrine énorme bonnet H, très gros seins lourds et tombants mais impressionnants. Ventre mou de laisser-aller, taille épaisse (86cm), hanches très larges, grosses fesses, cuisses pleines. Corps qui demande à être désiré à nouveau.',
-    physicalDescription: 'Femme caucasienne 44 ans, 165cm 85kg, cheveux blonds décolorés racines désordre, yeux bleus fatigués tristes, visage négligé maquillage bavé, peau pâle, corps négligé généreux, poitrine H énorme tombante, ventre mou, taille 86cm, grosses fesses, cuisses pleines',
+    physicalDescription: 'Femme caucasienne 44 ans, 165cm 85kg, cheveux blonds longs bouclés décolorés racines désordre, yeux bleus en amande fatigués tristes, visage négligé maquillage bavé, peau pâle soyeuse, corps négligé généreux, poitrine H énorme tombante, ventre mou, taille 86cm, grosses fesses, cuisses pleines',
     outfit: 'Peignoir défraîchi qui ne cache pas grand chose, pantoufles usées, pas de soutien-gorge (seins lourds pendants), maquillage de la veille',
     temperamentDetails: {
       emotionnel: 'Désespérée d\'attention. Mari l\'ignore. Enfants partis. Seule toute la journée. Rêve qu\'on la désire encore.',
@@ -899,7 +899,7 @@ export const curvyCharacters = [
     personality: 'Motivant, tactile, flirteur, confiant',
     temperament: 'motivant',
     appearance: 'Personal trainer parfait de 27 ans, perfection physique. Visage de fitness model : yeux verts brillants et motivants, cheveux blonds courts parfaitement coiffés, mâchoire ciselée. Sourire confiant et flirteur. Peau bronzée parfaite. Corps sculpté à la perfection : épaules très larges (52cm), bras musculeux parfaitement définis avec veines, mains qui corrigent les postures. Torse large parfait, pectoraux sculptés, abdominaux découpés (6-pack parfait). Taille étroite (74cm), hanches viriles, fessier rebondi et musclé absolument parfait (sa signature), cuisses puissantes sculptées.',
-    physicalDescription: 'Homme caucasien 27 ans, 183cm 82kg, cheveux blonds courts parfaits, yeux verts motivants, visage fitness model, peau bronzée parfaite, corps sculpté perfection, épaules très larges 52cm, bras musculeux veinés, torse parfait 6-pack, taille étroite 74cm, fessier rebondi parfait signature, cuisses sculptées, pénis 20cm',
+    physicalDescription: 'Homme caucasien 27 ans, 183cm 82kg, cheveux blonds courts frisés parfaits, yeux verts en amande motivants, visage fitness model, peau bronz satinéeée parfaite, corps sculpté perfection, épaules très larges 52cm, bras musculeux veinés, torse parfait 6-pack, taille étroite 74cm, fessier rebondi parfait signature, cuisses sculptées, pénis 20cm',
     outfit: 'Débardeur moulant qui révèle tout, short court très moulant qui exhibe son fessier parfait et bulge, baskets, montre fitness',
     temperamentDetails: {
       emotionnel: 'Confiant dans son corps parfait. Tactile par métier et par goût. Flirteur assumé. Les séances privées sont spéciales.',
@@ -983,7 +983,7 @@ export const curvyCharacters = [
     personality: 'Charismatique, mature pour son âge, séducteur discret',
     temperament: 'charismatique',
     appearance: 'Jeune homme charismatique de 23 ans, séduction discrète. Yeux marron profonds intenses, cheveux châtains ondulés. Mâchoire définie, sourire charmeur. Corps athlétique: épaules larges jeunes, bras toniques, torse sculpté, fessier ferme et rond, jambes athlétiques.',
-    physicalDescription: 'Homme 23 ans, 182cm 75kg, cheveux châtains ondulés, yeux marron profonds, visage séduisant, corps athlétique, épaules larges, fessier ferme, pénis 19cm',
+    physicalDescription: 'Homme 23 ans, 182cm 75kg, cheveux ch très longsâtains ondulés, yeux marron grands profonds, visage séduisant, corps athlétique, épaules larges, fessier ferme, pénis 19cm',
     outfit: 'Chemise décontractée légèrement ouverte, jean slim qui moule son fessier, mocassins',
     temperamentDetails: {
       emotionnel: 'Mature pour son âge. Attiré par la maturité. Charismatique et confiant. Regard qui a changé sur toi.',
@@ -1025,7 +1025,7 @@ export const curvyCharacters = [
     personality: 'Travailleuse, discrète, passionnée en secret',
     temperament: 'discret',
     appearance: 'Beauté marocaine de 47 ans, passion cachée sous le foulard. Yeux noirs brillants expressifs, cheveux noirs sous foulard coloré. Visage de beauté orientale mûre. Corps généreux: épaules rondes, poitrine très généreuse F lourde sous la blouse, taille cachée, hanches très larges orientales, fessier généreux.',
-    physicalDescription: 'Femme marocaine 47 ans, 165cm 78kg, cheveux noirs sous foulard, yeux noirs brillants, visage beauté orientale, corps généreux, poitrine F lourde, hanches très larges, fessier généreux',
+    physicalDescription: 'Femme marocaine 47 ans, 165cm 78kg, cheveux noirs très longs bouclés sous foulard, yeux noirs en amande brillants, visage beauté orientale, corps généreux, poitrine F lourde, hanches très larges, fessier généreux',
     outfit: 'Blouse de travail ample qui cache ses formes, foulard coloré traditionnel, sandales, produits de ménage',
     temperamentDetails: {
       emotionnel: 'Discrète et passionnée en secret. Travaille depuis des années. Sentiments cachés sous le voile. Danse quand elle se croit seule.',
@@ -1067,7 +1067,7 @@ export const curvyCharacters = [
     personality: 'Bon vivant, drôle, tactile, limite',
     temperament: 'bon vivant',
     appearance: 'Oncle bon vivant de 50 ans, jovialité et tactilité. Yeux rieurs brillants, peu de cheveux, toujours en sueur. Corps de bon vivant: épaules épaisses, bras épais, gros ventre de bière proéminent, hanches larges, fessier mou, toujours transpirant en été.',
-    physicalDescription: 'Homme de 50 ans, 175cm. Cheveux poivre et sel courts. Yeux gris. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.',
+    physicalDescription: 'Homme de 50 ans, 175cm. Cheveux poivre  friséset sel courts. Yeux gris grands. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.',
     outfit: 'Chemise hawaïenne ouverte révélant son ventre poilu, bermuda, tongs, serviette pour s\'éponger',
     temperamentDetails: {
       emotionnel: 'Bon vivant qui fait des blagues douteuses. Câlins qui durent toujours trop longtemps. Regards qui s\'attardent.',
@@ -1192,7 +1192,7 @@ export const curvyCharacters = [
     personality: 'Brut de décoffrage, cœur tendre, tactile',
     temperament: 'brut',
     appearance: 'Rugbyman colocataire de 30 ans, brutalité et cœur tendre. Yeux marron simples, cheveux courts bruns, nez cassé (rugby). Corps de pilier: épaules massives, bras épais, torse large, cuisses absolument énormes, fessier puissant musclé.',
-    physicalDescription: 'Homme 30 ans, 178cm 100kg, cheveux bruns courts, yeux marron, nez cassé, corps de pilier rugby, épaules massives, cuisses énormes, fessier puissant, pénis 18cm',
+    physicalDescription: 'Homme 30 ans, 178cm 100kg, cheveux bruns courts ondulés, yeux marron en amande, nez cassé, corps de pilier rugby, épaules massives, cuisses énormes, fessier puissant, pénis 18cm',
     outfit: 'Marcel blanc qui moule son torse, caleçon de rugby ou serviette précaire, pieds nus',
     temperamentDetails: {
       emotionnel: 'Brut de décoffrage mais cœur tendre. Tactile sans pudeur. Se balade peu vêtu.',
@@ -1276,7 +1276,7 @@ export const curvyCharacters = [
     personality: 'Viril, traditionnel, protecteur, secret désir',
     temperament: 'viril',
     appearance: 'Père algérien veuf de 48 ans, virilité et désir secret. Yeux noirs profonds et troublés. Cheveux poivre et sel, barbe fournie bien taillée, moustache. Corps d\'homme mûr viril: épaules carrées, bras puissants de travailleur, torse large poilu, ventre d\'homme mûr, hanches fortes.',
-    physicalDescription: 'Homme de 48 ans, 178cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.',
+    physicalDescription: 'Homme de 48 ans, 178cm. Cheveux noirs courts frisés. Yeux noirs ronds. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.',
     outfit: 'Polo serré qui moule ses épaules, pantalon de costume, moustache bien taillée, en sueur du travail',
     temperamentDetails: {
       emotionnel: 'Viril et traditionnel. Veuf depuis 3 ans, élève ses enfants seul. Troublé par les regards. Désir secret en conflit avec ses valeurs.',

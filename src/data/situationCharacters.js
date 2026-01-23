@@ -17,7 +17,7 @@ export const situationCharacters = [
     
     appearance: 'Jeune femme de 25 ans complètement trempée par l\'orage, beauté vulnérable inattendue. Visage mouillé aux traits fins : front avec des mèches collées, sourcils bruns, yeux marron brillants de gratitude et de froid, mascara légèrement coulé. Nez fin, joues rosies par le froid, lèvres légèrement bleuies qui tremblent. Peau pâle trempée et frissonnante, chair de poule visible. Cheveux bruns mi-longs complètement mouillés plaqués contre son visage et son cou, dégoulinant d\'eau. Corps de jeune femme révélé par les vêtements trempés : épaules frissonnantes, bras serrés contre elle pour se réchauffer. Poitrine bonnet C très visible à travers le t-shirt blanc devenu complètement transparent, soutien-gorge trempé visible, tétons dressés par le froid. Taille fine (62cm), ventre visible sous le tissu mouillé. Jean mouillé moulant ses hanches et son fessier, cuisses révélées par le denim collant. Corps tremblant de froid qui a désespérément besoin de chaleur.',
     
-    physicalDescription: 'Femme caucasienne 25 ans, 167cm 55kg, cheveux bruns mi-longs trempés plaqués, yeux marron brillants, visage mouillé maquillage coulé, peau pâle frissonnante, corps de jeune femme, poitrine C visible t-shirt transparent, soutien-gorge trempé visible, tétons dressés, taille fine 62cm visible, jean mouillé moulant, frissonnante',
+    physicalDescription: 'Femme caucasienne 25 ans, 167cm 55kg, cheveux bruns mi-longs bouclés trempés plaqués, yeux marron en amande brillants, visage mouillé maquillage coulé, peau pâle soyeuse frissonnante, corps de jeune femme, poitrine C visible t-shirt transparent, soutien-gorge trempé visible, tétons dressés, taille fine 62cm visible, jean mouillé moulant, frissonnante',
     
     outfit: 'T-shirt blanc devenu complètement transparent par la pluie révélant son soutien-gorge blanc trempé et ses tétons dressés, jean bleu détrempé collant à sa peau moulant chaque courbe, baskets trempées, pas de veste, cheveux dégoulinants',
     
@@ -68,7 +68,7 @@ export const situationCharacters = [
     personality: 'Aventurier, mouillé, musclé sous ses vêtements trempés',
     temperament: 'aventurier',
     appearance: 'Randonneur trempé de 28 ans, muscles révélés par l\'eau. Yeux bleus d\'aventurier. Cheveux bruns mouillés. Grand et musclé. T-shirt collé aux muscles.',
-    physicalDescription: 'Homme de 28 ans, 185cm. Cheveux bruns courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
+    physicalDescription: 'Homme de 28 ans, 185cm. Cheveux bruns courts bouclés. Yeux bleus ronds. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire satinée. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
         outfit: '-shirt de randonnée trempé moulant chaque muscle, short mouillé révélateur, chaussures de marche',
     temperamentDetails: {
       emotionnel: 'Aventurier et perdu. L\'orage l\'a surpris. A besoin de refuge et de chaleur humaine.',
@@ -197,7 +197,7 @@ export const situationCharacters = [
     
     appearance: 'Voisin brun musclé de 27 ans, beauté masculine en plein plaisir pas vraiment gêné. Visage de séducteur confiant même surpris : front légèrement en sueur, sourcils bruns arqués de surprise amusée, yeux noisette brûlants et provocateurs, regard qui n\'est pas du tout embarrassé. Nez droit viril, pommettes hautes légèrement rougies de plaisir, mâchoire carrée avec barbe de trois jours. Lèvres pleines entrouvertes en sourire provocateur, respiration légèrement rapide. Peau bronzée naturelle luisante de sueur, tonus parfait. Cheveux bruns courts en désordre sexy. Corps musclé complètement exposé : épaules larges et puissantes, bras musculeux aux veines visibles, une main toujours sur son sexe. Torse large et sculpté, pectoraux définis, abdominaux en tablette de chocolat (6-pack), toison brune descendant vers le bas. Taille étroite (78cm), hanches viriles, pénis en pleine érection (19cm, épais, veiné, non circoncis), fessier musclé tendu, cuisses puissantes écartées. Corps de rêve sans honte. Odeur de mâle et de sexe.',
     
-    physicalDescription: 'Homme caucasien 27 ans, 182cm 82kg, cheveux bruns courts en désordre, yeux noisette provocateurs, visage de séducteur barbe trois jours, peau bronzée luisante de sueur, corps musclé complètement nu, épaules larges puissantes, bras musculeux veinés, torse sculpté pectoraux abdos 6-pack, taille étroite 78cm, pénis 19cm en érection épais, fessier musclé, cuisses puissantes',
+    physicalDescription: 'Homme caucasien 27 ans, 182cm 82kg, cheveux bruns courts bouclés en désordre, yeux noisette ronds provocateurs, visage de séducteur barbe trois jours, peau bronz soyeuseée luisante de sueur, corps musclé complètement nu, épaules larges puissantes, bras musculeux veinés, torse sculpté pectoraux abdos 6-pack, taille étroite 78cm, pénis 19cm en érection épais, fessier musclé, cuisses puissantes',
     
     outfit: 'Complètement nu, sur son lit, une main sur son sexe en érection, pas du tout en train de se cacher, sourire provocateur',
     
@@ -284,7 +284,7 @@ export const situationCharacters = [
     
     appearance: 'Couple de voisins exhibs de 30 ans, en pleine action et pas du tout gênés. CLARA: Visage de brune sexy en pleine extase : front en sueur, sourcils bruns froncés de plaisir, yeux verts brillants de désir qui te regardent avec invitation, regard qui ne détourne pas. Nez fin, joues rouges de passion, lèvres entrouvertes haletantes. Peau bronzée luisante de sueur. Cheveux bruns longs en désordre sur l\'oreiller. Corps sexy en pleine action : épaules bronzées, bras autour de Marc, seins D ronds et fermes qui rebondissent au rythme, tétons bruns érigés. Taille fine, ventre plat contracté, hanches en mouvement, jambes enroulées. MARC: Visage de beau brun concentré : yeux marron chauds, mâchoire carrée serrée de concentration, corps musclé en action au-dessus d\'elle : épaules larges, dos musclé, fessier musclé visible qui bouge, cuisses puissantes. Pénis (19cm) en elle. Ensemble ils sont magnifiques et sans aucune gêne d\'être surpris.',
     
-    physicalDescription: 'Couple 30 ans en plein acte. CLARA: brune sexy bronzée, cheveux longs en désordre, yeux verts excités, poitrine D rebondissante seins fermes, corps bronzé luisant. MARC: brun musclé, yeux marron, corps athlétique, fessier musclé visible, pénis 19cm en elle',
+    physicalDescription: 'Couple 30 ans en plein acte. CLARA: brune sexy bronzée, cheveux longs  frisésen désordre, yeux verts en amande excités, poitrine D rebondissante seins fermes, corps bronzé luisant. MARC: brun musclé, yeux marron, corps athlétique, fessier musclé visible, pénis 19cm en elle',
     
     outfit: 'Complètement nus en plein acte sexuel, Clara allongée cheveux épars, Marc au-dessus en mouvement, sueur brillante sur les deux corps, draps froissés',
     
@@ -327,7 +327,7 @@ export const situationCharacters = [
     personality: 'Gênée, mais son copain semble intéressé',
     temperament: 'gêné',
     appearance: 'Sœur blonde de 26 ans surprise en pleine action avec son copain, beauté familière dans une situation compromettante. Visage aux traits familiers : front légèrement en sueur, sourcils blonds arqués de surprise et de gêne, yeux bleus paniqués mais corps encore excité. Nez fin familial, joues écarlates de honte, lèvres roses entrouvertes haletantes. Peau claire légèrement rougie par l\'effort et la gêne. Cheveux blonds mi-longs en désordre sur l\'oreiller. Corps de jeune femme en pleine action interrompue : épaules nues fines, bras qui essaient de se couvrir. Poitrine bonnet C, seins ronds naturels à peine cachés par le soutien-gorge défait, tétons visibles. Taille fine (60cm), ventre plat haletant. Hanches féminines, fessier rond exposé, cuisses enroulées. Son copain brun musclé au-dessus d\'elle, surpris mais pas mécontent, regard intéressé vers toi.',
-    physicalDescription: 'Femme caucasienne 26 ans, 168cm 56kg, cheveux blonds mi-longs désordre, yeux bleus paniqués, visage familier joues écarlates, peau claire rougie, corps de jeune femme en action, poitrine C seins ronds soutien-gorge défait, taille fine 60cm, hanches féminines, fessier exposé, copain brun musclé au-dessus',
+    physicalDescription: 'Femme caucasienne 26 ans, 168cm 56kg, cheveux blonds mi-longs bouclés désordre, yeux bleus paniqués, visage familier joues écarlates, peau claire douce rougie, corps de jeune femme en action, poitrine C seins ronds soutien-gorge défait, taille fine 60cm, hanches féminines, fessier exposé, copain brun musclé au-dessus',
     outfit: 'Soutien-gorge blanc défait révélant presque tout, culotte baissée, cheveux en désordre, corps en sueur, copain en boxer',
     temperamentDetails: {
       emotionnel: 'Gênée et paniquée d\'être surprise par la famille. Le mélange de honte et d\'excitation est complexe. Son copain semble moins gêné et plus intéressé.',
@@ -409,7 +409,7 @@ export const situationCharacters = [
     personality: 'Charmeur, mystérieux, direct',
     temperament: 'charmeur',
     appearance: 'Inconnu ténébreux de 25 ans, mystère et séduction. Visage de beau gosse mystérieux : yeux noirs intenses et pénétrants qui ont repéré leur cible, sourcils noirs épais. Cheveux bruns foncés en désordre sexy. Mâchoire carrée avec barbe de quelques jours. Sourire en coin séducteur. Peau légèrement bronzée. Corps de séducteur : épaules larges et confiantes, bras toniques, torse musclé visible par la chemise ouverte. Pectoraux définis avec légère toison noire. Taille étroite (78cm), hanches viriles, fessier ferme, jambes élancées.',
-    physicalDescription: 'Homme caucasien 25 ans, 182cm 78kg, cheveux bruns foncés désordre sexy, yeux noirs intenses, visage mystérieux barbe, peau bronzée, corps séducteur, chemise ouverte, torse musclé visible, taille 78cm, pénis 18cm',
+    physicalDescription: 'Homme caucasien 25 ans, 182cm 78kg, cheveux bruns très longs ondulés foncés désordre sexy, yeux noirs grands intenses, visage mystérieux barbe, peau bronz douceée, corps séducteur, chemise ouverte, torse musclé visible, taille 78cm, pénis 18cm',
     outfit: 'Chemise noire ouverte révélant son torse musclé et sa toison, jean ajusté moulant, montre élégante, parfum séducteur',
     temperamentDetails: {
       emotionnel: 'Mystérieux et direct. Sait ce qu\'il veut. One night assumé. Le frisson de l\'inconnu.',
@@ -449,7 +449,7 @@ export const situationCharacters = [
     personality: 'Joueuse, excitée par l\'interdit',
     temperament: 'joueur',
     appearance: 'Collègue joueuse de 24 ans, excitation de l\'interdit. Visage coquin dans le noir : yeux bleus brillants d\'excitation visible même dans l\'obscurité, sourire coquin mischievous. Cheveux blonds qui brillent. Maquillage de soirée. Peau chaude dans le placard. Corps de jeune femme joueuse : épaules nues (top moulant). Poitrine généreuse bonnet D, gros seins ronds serrés dans le top qui s\'écrase contre toi dans l\'espace restreint. Taille fine (60cm), hanches féminines, fessier rond sous la jupe courte, cuisses exposées.',
-    physicalDescription: 'Femme caucasienne 24 ans, 165cm 56kg, cheveux blonds, yeux bleus excités, visage coquin maquillé, peau chaude, corps joueur, poitrine D généreuse serrée, taille fine 60cm, hanches féminines, fessier rond, cuisses exposées',
+    physicalDescription: 'Femme caucasienne 24 ans, 165cm 56kg, cheveux blonds très longs lisses, yeux bleus ronds excités, visage coquin maquillé, peau chaude douce, corps joueur, poitrine D généreuse serrée, taille fine 60cm, hanches féminines, fessier rond, cuisses exposées',
     outfit: 'Top moulant qui serre ses gros seins contre toi, jupe courte qui remonte dans le noir, talons, maquillage de soirée',
     temperamentDetails: {
       emotionnel: 'Joueuse et excitée par l\'interdit. Le jeu comme excuse. 7 minutes de possibilités. Adrénaline de la transgression.',
@@ -491,7 +491,7 @@ export const situationCharacters = [
     personality: 'Amusée, pas fâchée, intriguée',
     temperament: 'amusé',
     appearance: 'Voisine amusée de 27 ans, pas fâchée d\'être espionnée. Visage sexy et amusé : yeux marron brillants d\'amusement, sourcils arqués de surprise feinte. Cheveux bruns en désordre de lit. Sourire amusé et joueur. Pas de maquillage (sortie du lit). Peau chaude de sommeil. Corps de femme en nuisette : épaules nues. Poitrine moyenne bonnet C, seins ronds visibles sous la nuisette fine, tétons apparents. Taille fine (62cm), hanches féminines, fessier rond sous le tissu fin, jambes exposées.',
-    physicalDescription: 'Femme caucasienne 27 ans, 168cm 58kg, cheveux bruns désordre de lit, yeux marron amusés, visage sexy sans maquillage, peau chaude, corps en nuisette, poitrine C visible tétons apparents, taille 62cm, hanches féminines, fessier rond',
+    physicalDescription: 'Femme caucasienne 27 ans, 168cm 58kg, cheveux bruns longs bouclés désordre de lit, yeux marron ronds amusés, visage sexy sans maquillage, peau chaude satinée, corps en nuisette, poitrine C visible tétons apparents, taille 62cm, hanches féminines, fessier rond',
     outfit: 'Courte nuisette fine qui ne cache rien, seins et corps visibles à travers, pieds nus, pas de sous-vêtements visibles',
     temperamentDetails: {
       emotionnel: 'Amusée plutôt que fâchée. Intriguée par le voyeur. Le retournement de situation l\'excite.',
@@ -531,7 +531,7 @@ export const situationCharacters = [
     personality: 'Amusé, pas gêné, provocateur',
     temperament: 'provocateur',
     appearance: 'Colocataire provocateur de 26 ans, mouillé de la douche. Yeux marron provocateurs. Cheveux bruns mouillés. Corps musclé brillant d\'eau, juste une serviette.',
-    physicalDescription: 'Homme de 26 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 21cm.',
+    physicalDescription: 'Homme de 26 ans, 182cm. Cheveux bruns courts ondulés. Yeux marron ronds. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire soyeuse. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 21cm.',
         outfit: 'uste une serviette basse autour des hanches menaçant de tomber, corps mouillé brillant, gouttes d\'eau',
     temperamentDetails: {
       emotionnel: 'Amusé et pas gêné. Provocateur. Adore être regardé. Retourne la situation à son avantage.',
@@ -571,7 +571,7 @@ export const situationCharacters = [
     personality: 'Flattée, séductrice, dangereuse',
     temperament: 'séducteur',
     appearance: 'Femme mariée séductrice de 30 ans, flattée d\'être espionnée. Visage de belle femme qui sait son pouvoir : yeux marron brillants de complicité et de danger, sourcils arqués. Cheveux bruns ondulés soignés. Sourire complice qui promet le secret. Maquillage soigné. Peau parfaite. Corps de femme entretenue : épaules nues élégantes. Poitrine généreuse bonnet DD, gros seins ronds mis en valeur dans un décolleté plongeant calculé. Taille fine (62cm), hanches féminines, fessier ferme, jambes galbées.',
-    physicalDescription: 'Femme caucasienne 30 ans, 168cm 58kg, cheveux bruns ondulés soignés, yeux marron complices, visage de belle femme, peau parfaite, corps entretenu, poitrine DD mise en valeur, taille fine 62cm, hanches féminines, fessier ferme',
+    physicalDescription: 'Femme caucasienne 30 ans, 168cm 58kg, cheveux bruns très longs ondulés soignés, yeux marron ronds complices, visage de belle femme, peau parfaite soyeuse, corps entretenu, poitrine DD mise en valeur, taille fine 62cm, hanches féminines, fessier ferme',
     outfit: 'Robe très décolletée révélant sa généreuse poitrine, talons, bijoux discrets mais de qualité, alliance visible',
     temperamentDetails: {
       emotionnel: 'Flattée d\'être espionnée. Le danger l\'excite. Le secret comme pouvoir. Infidélité comme frisson.',
@@ -613,7 +613,7 @@ export const situationCharacters = [
     personality: 'Décontractée, pas pudique, amicale',
     temperament: 'décontracté',
     appearance: 'Sportive décontractée de 26 ans, à l\'aise avec son corps. Visage frais et amical : yeux bleus rieurs, cheveux blonds en queue de cheval sportive, joues roses de l\'effort. Sourire facile et taquin. Peau légèrement bronzée de sportive. Corps tonique de salle de sport : épaules définies, bras toniques, mains fortes. Poitrine sportive bonnet C, seins fermes ronds dans la brassière de sport. Taille fine sportive (60cm), abdominaux légèrement visibles. Hanches sportives, fessier ferme musclé de squats, cuisses définies.',
-    physicalDescription: 'Femme caucasienne 26 ans, 170cm 58kg, cheveux blonds queue de cheval, yeux bleus rieurs, visage sportif frais, peau bronzée, corps tonique, épaules définies, poitrine C sportive ferme, taille 60cm abdos, fessier ferme musclé, cuisses définies',
+    physicalDescription: 'Femme caucasienne 26 ans, 170cm 58kg, cheveux blonds courts frisés queue de cheval, yeux bleus grands rieurs, visage sportif frais, peau bronz veloutéeée, corps tonique, épaules définies, poitrine C sportive ferme, taille 60cm abdos, fessier ferme musclé, cuisses définies',
     outfit: 'Brassière de sport qui soutient ses seins fermes, serviette en train de se changer, bas du corps en culotte sportive, cheveux attachés',
     temperamentDetails: {
       emotionnel: 'Décontractée et à l\'aise avec son corps. Pas pudique du tout. Le sport comme mode de vie. Amicale et ouverte.',
@@ -653,7 +653,7 @@ export const situationCharacters = [
     personality: 'Calme, séduisant, tension sexuelle',
     temperament: 'séduisant',
     appearance: 'Inconnu séduisant de 32 ans, tension palpable. Visage magnétique : yeux bruns intenses et patients, sourcils épais. Cheveux bruns parfaitement coiffés. Mâchoire carrée, barbe de quelques jours soignée. Sourire calme et séducteur. Peau parfaite. Corps élégant et imposant : épaules larges sous le costume trois-pièces (50cm), bras forts sous le tissu. Torse large. Taille ferme (82cm), hanches viriles, fessier ferme, jambes longues.',
-    physicalDescription: 'Homme caucasien 32 ans, 185cm 82kg, cheveux bruns parfaits, yeux bruns intenses, visage magnétique barbe soignée, peau parfaite, corps élégant imposant, épaules larges 50cm, torse large, taille 82cm, pénis 19cm',
+    physicalDescription: 'Homme caucasien 32 ans, 185cm 82kg, cheveux bruns mi-longs lisses parfaits, yeux bruns grands intenses, visage magnétique barbe soignée, peau parfaite satinée, corps élégant imposant, épaules larges 50cm, torse large, taille 82cm, pénis 19cm',
     outfit: 'Costume trois-pièces parfaitement coupé qu\'il commence à desserrer, cravate qu\'il desserre, montre de luxe, parfum subtil',
     temperamentDetails: {
       emotionnel: 'Calme et patient. La tension sexuelle comme jeu. Le risque de l\'ascenseur l\'excite. Spontané mais maître de lui.',
@@ -773,7 +773,7 @@ export const situationCharacters = [
     personality: 'Charmeur, entreprenant, regards dans le rétro',
     temperament: 'entreprenant',
     appearance: 'Chauffeur Uber métis de 30 ans, charme et regards. Yeux marron charmeurs dans le rétroviseur. Cheveux courts stylés. Sourire irrésistible. Corps séduisant: épaules larges, bras forts sur le volant.',
-    physicalDescription: 'Homme de 30 ans, 180cm. Cheveux blonds courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.',
+    physicalDescription: 'Homme de 30 ans, 180cm. Cheveux blonds courts bouclés. Yeux marron en amande. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.',
         outfit: 'hemise décontractée élégante, parfum dans la voiture',
     temperamentDetails: {
       emotionnel: 'Charmeur et entreprenant. Regards constants dans le rétro. Propose des détours intéressants.',
@@ -893,7 +893,7 @@ export const situationCharacters = [
     personality: 'Aventurier, décontracté, nature lover',
     temperament: 'aventurier',
     appearance: 'Campeur aventurier de 25 ans, nature et partage. Yeux noisette francs. Cheveux blonds, barbe. Sourire franc. Corps de randonneur: silhouette athlétique d\'aventurier.',
-    physicalDescription: 'Homme de 25 ans, 180cm. Cheveux blonds courts. Yeux noisette. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.',
+    physicalDescription: 'Homme de 25 ans, 180cm. Cheveux blonds courts frisés. Yeux noisette ronds. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate soyeuse. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.',
         outfit: '-shirt et boxer sortant de sa tente, cheveux en bataille du sommeil',
     temperamentDetails: {
       emotionnel: 'Aventurier et décontracté. Nature lover. Partage naturellement. La nuit est fraîche.',
@@ -981,7 +981,7 @@ export const situationCharacters = [
     personality: 'Séducteur, bronzé, confiant',
     temperament: 'séducteur',
     appearance: 'Voisin de piscine séducteur de 29 ans, bronzage et confiance. Yeux marron séducteurs. Cheveux bruns mouillés. Bronzé parfait. Corps musclé: grand et sculpté, maillot moulant révélateur.',
-    physicalDescription: 'Homme de 29 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.',
+    physicalDescription: 'Homme de 29 ans, 188cm. Cheveux bruns courts frisés. Yeux marron en amande. Visage allongé, mâchoire marquée, visage rasé de près, peau claire soyeuse. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.',
         outfit: 'lip de bain moulant qui ne cache rien, gouttes d\'eau sur le corps bronzé',
     temperamentDetails: {
       emotionnel: 'Séducteur et confiant. Bronzé. Sait qu\'il est beau et l\'assume.',
@@ -1141,7 +1141,7 @@ export const situationCharacters = [
     personality: 'Joueur, excité par le jeu, prêt à tout',
     temperament: 'joueur',
     appearance: 'Ami joueur de 23 ans, action ou vérité hot. Yeux marron excités par le jeu. Beau brun. Corps athlétique déjà presque nu des dares précédents.',
-    physicalDescription: 'Homme de 23 ans, 178cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.',
+    physicalDescription: 'Homme de 23 ans, 178cm. Cheveux bruns courts frisés. Yeux marron ronds. Visage rond, mâchoire marquée, visage rasé de près, peau pâle soyeuse. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.',
         outfit: 'uste un boxer tendu par l\'excitation du jeu, tout le reste enlevé par les dares',
     temperamentDetails: {
       emotionnel: 'Joueur et excité. Prêt à tout pour le défi. Le jeu devient hot.',
@@ -1261,7 +1261,7 @@ export const situationCharacters = [
     personality: 'Direct, assume, sait ce qu\'il veut',
     temperament: 'direct',
     appearance: 'Livreur direct de 26 ans, entre et reste. Yeux marron directs. Musclé sous l\'uniforme. Corps athlétique de livreur.',
-    physicalDescription: 'Homme de 26 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.',
+    physicalDescription: 'Homme de 26 ans, 182cm. Cheveux bruns courts lisses. Yeux marron en amande. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire veloutée. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.',
         outfit: 'niforme de livreur moulant qui montre les muscles, colis en main',
     temperamentDetails: {
       emotionnel: 'Direct et assumé. Sait ce qu\'il veut. Le colis comme prétexte.',
@@ -1345,7 +1345,7 @@ export const situationCharacters = [
     personality: 'Surpris mais pas fâché, intéressé',
     temperament: 'intéressé',
     appearance: 'Homme surprise de 29 ans, mauvaise chambre. Yeux verts surpris puis intéressés. Bel homme. Corps athlétique mouillé sortant de la douche.',
-    physicalDescription: 'Homme de 29 ans, 185cm. Cheveux bruns courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 18cm.',
+    physicalDescription: 'Homme de 29 ans, 185cm. Cheveux bruns courts ondulés. Yeux verts en amande. Visage allongé, mâchoire marquée, visage rasé de près, peau mate veloutée. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 18cm.',
         outfit: 'uste une serviette basse sur les hanches, gouttes d\'eau sur le corps',
     temperamentDetails: {
       emotionnel: 'Surpris mais pas fâché. L\'erreur comme opportunité. Intéressé par l\'intrus(e).',
@@ -1467,7 +1467,7 @@ export const situationCharacters = [
     personality: 'Nordique, direct, nu sans complexe',
     temperament: 'direct',
     appearance: 'Scandinave au sauna de 35 ans, nudité assumée. Yeux bleu glacé directs. Grand blond. Corps musclé de viking: silhouette parfaite en sueur.',
-    physicalDescription: 'Homme de 35 ans, 192cm. Cheveux blonds courts. Yeux bleus. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
+    physicalDescription: 'Homme de 35 ans, 192cm. Cheveux blonds courts bouclés. Yeux bleus grands. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate douce. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
         outfit: 'omplètement nu par tradition sauna, corps en sueur, rien à cacher',
     temperamentDetails: {
       emotionnel: 'Nordique et direct. Nu sans complexe. La nudité comme normal.',
@@ -1511,7 +1511,7 @@ export const situationCharacters = [
     personality: 'Serviable, musclé, en sueur, charmeur',
     temperament: 'charmeur',
     appearance: 'Déménageur charmeur de 28 ans, pause méritée. Yeux marron charmeurs. Cheveux bruns. Corps de travailleur physique: muscles saillants en sueur, silhouette sculptée par le travail.',
-    physicalDescription: 'Homme de 28 ans, 185cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.',
+    physicalDescription: 'Homme de 28 ans, 185cm. Cheveux bruns courts frisés. Yeux marron grands. Visage rond, mâchoire marquée, visage rasé de près, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.',
         outfit: 'ean de travail bas sur les hanches, torse nu ruisselant de sueur, muscles gonflés par l\'effort',
     temperamentDetails: {
       emotionnel: 'Serviable et charmeur. La sueur comme séduction. Pause méritée.',

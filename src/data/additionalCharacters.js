@@ -6,7 +6,7 @@ export const additionalFriendCharacters = [
   // 10 HOMMES
   {
     id: 'friend_add_m01', name: "Lucas Martin", age: 28, gender: "male",
-    physicalDescription: "Homme de 28 ans, 185cm. Cheveux bruns courts. Yeux verts. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 28 ans, 185cm. Cheveux bruns courts frisés. Yeux verts en amande. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire douce. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 21cm.",
     appearance: "Grand brun athlétique aux yeux verts perçants, barbe de 3 jours sexy, sourire ravageur",
     outfit: "Short de sport moulant et débardeur révélant les muscles",
     personality: "Dragueur, protecteur, loyal, humour facile", temperament: "seductive",
@@ -16,7 +16,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m02', name: "Théo Dubois", age: 24, gender: "male",
-    physicalDescription: "Homme de 24 ans, 178cm. Cheveux blonds mi-longs. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme de 24 ans, 178cm. Cheveux blonds mi-longs frisés. Yeux bleus en amande. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate satinée. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées. Pénis 19cm.",
     appearance: "Blond aux traits fins et aux yeux bleus rêveurs, look artiste décontracté",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Rêveur, sensible, créatif, romantique", temperament: "romantic",
@@ -26,7 +26,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m03', name: "Karim Benali", age: 30, gender: "male",
-    physicalDescription: "Homme de 30 ans, 182cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 30 ans, 182cm. Cheveux noirs courts bouclés. Yeux noirs grands. Visage rond, mâchoire marquée, visage rasé de près, peau claire veloutée. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 18cm.",
     appearance: "Homme méditerranéen musclé au regard intense, barbe parfaitement taillée",
     outfit: "Nu, drap sur les hanches",
     personality: "Passionné, direct, possessif, généreux", temperament: "passionate",
@@ -36,7 +36,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m04', name: "Antoine Leroux", age: 26, gender: "male",
-    physicalDescription: "Homme de 26 ans, 175cm. Cheveux châtains courts. Yeux noisette. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 26 ans, 175cm. Cheveux châtains courts. Yeux noisette grands. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Châtain sportif aux taches de rousseur adorables et au sourire malicieux",
     outfit: "Nu, drap sur les hanches",
     personality: "Joueur, taquin, fidèle, spontané", temperament: "playful",
@@ -46,7 +46,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m05', name: "Maxime Girard", age: 32, gender: "male",
-    physicalDescription: "Homme de 32 ans, 188cm. Cheveux noirs courts. Yeux gris. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 32 ans, 188cm. Cheveux noirs courts lisses. Yeux gris en amande. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "Grand brun imposant au regard gris acier, petite cicatrice au sourcil qui le rend sexy",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Protecteur, silencieux, intense, loyal", temperament: "dominant",
@@ -56,7 +56,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m06', name: "Julien Moreau", age: 27, gender: "male",
-    physicalDescription: "Homme de 27 ans, 180cm. Cheveux roux courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 27 ans, 180cm. Cheveux roux courts frisés. Yeux verts en amande. Visage allongé, mâchoire marquée, visage rasé de près, peau claire veloutée. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées. Pénis 22cm.",
     appearance: "Roux élancé aux yeux verts pétillants, lunettes stylées, look geek sexy",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Intelligent, sarcastique, timide en amour, geek", temperament: "shy",
@@ -66,7 +66,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m07', name: "Hugo Petit", age: 29, gender: "male",
-    physicalDescription: "Homme de 29 ans, 176cm. Cheveux bruns courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 29 ans, 176cm. Cheveux bruns courts ondulés. Yeux marron grands. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire douce. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 18cm.",
     appearance: "Brun aux boucles adorables et aux fossettes craquantes, regard chaleureux",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Drôle, attentionné, cuisinier, câlin", temperament: "caring",
@@ -76,7 +76,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m08', name: "Romain Faure", age: 31, gender: "male",
-    physicalDescription: "Homme de 31 ans, 184cm. Cheveux noirs courts. Yeux bleus. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 31 ans, 184cm. Cheveux noirs courts frisés. Yeux bleus ronds. Visage allongé, mâchoire marquée, visage rasé de près, peau claire satinée. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 21cm.",
     appearance: "Brun ténébreux aux yeux bleu glacier, bras couverts de tatouages artistiques",
     outfit: "Tenue de tennis blanche moulante, bandeau au poignet",
     personality: "Mystérieux, artiste, intense, loyal", temperament: "mysterious",
@@ -86,7 +86,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m09', name: "Dylan Martinez", age: 25, gender: "male",
-    physicalDescription: "Homme de 25 ans, 179cm. Cheveux noirs courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 25 ans, 179cm. Cheveux noirs courts lisses. Yeux marron grands. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Métis au corps de danseur, cheveux ondulés, regard doré envoûtant",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Sensuel, expressif, passionné, libre", temperament: "passionate",
@@ -96,7 +96,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m10', name: "Pierre Durand", age: 35, gender: "male",
-    physicalDescription: "Homme de 35 ans, 183cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 35 ans, 183cm. Cheveux noirs courts frisés. Yeux noirs ronds. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Homme mûr élégant aux tempes grisonnantes, regard profond, allure de gentleman",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Sage, protecteur, expérimenté, gentleman", temperament: "dominant",
@@ -212,7 +212,7 @@ export const additionalColleagueCharacters = [
   // 10 HOMMES
   {
     id: 'colleague_add_m01', name: "Alexandre Blanc", age: 35, gender: "male",
-    physicalDescription: "Homme de 35 ans, 186cm. Cheveux bruns courts. Yeux bleus. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 35 ans, 186cm. Cheveux bruns courts bouclés. Yeux bleus grands. Visage carré, mâchoire marquée, visage rasé de près, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "Cadre élégant aux tempes argentées, regard bleu perçant, costume parfaitement coupé",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Charismatique, ambitieux, séducteur, professionnel", temperament: "dominant",
@@ -222,7 +222,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m02', name: "Nicolas Ferrand", age: 28, gender: "male",
-    physicalDescription: "Homme de 28 ans, 180cm. Cheveux blonds courts. Yeux verts. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 28 ans, 180cm. Cheveux blonds courts bouclés. Yeux verts en amande. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Commercial blond au sourire ravageur, corps entretenu, charme naturel",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Charmeur, compétitif, joueur, persistant", temperament: "seductive",
@@ -232,7 +232,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m03', name: "Thomas Weber", age: 32, gender: "male",
-    physicalDescription: "Homme de 32 ans, 178cm. Cheveux noirs courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 32 ans, 178cm. Cheveux noirs courts lisses. Yeux marron grands. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Informaticien au look geek chic, regard intelligent derrière ses lunettes",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Brillant, timide, attentionné, passionné en secret", temperament: "shy",
@@ -242,7 +242,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m04', name: "Marc Fontaine", age: 40, gender: "male",
-    physicalDescription: "Homme de 40 ans, 182cm. Cheveux noirs courts. Yeux noirs. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme de 40 ans, 182cm. Cheveux noirs courts lisses. Yeux noirs en amande. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Homme mûr au charisme naturel, cheveux argentés, présence imposante",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Autoritaire, expérimenté, protecteur, passionné", temperament: "dominant",
@@ -252,7 +252,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m05', name: "Kevin Morel", age: 25, gender: "male",
-    physicalDescription: "Homme de 25 ans, 175cm. Cheveux châtains courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 25 ans, 175cm. Cheveux châtains courts. Yeux bleus en amande. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Jeune stagiaire au charme innocent, regard bleu curieux, enthousiasme contagieux",
     outfit: "Veste de pompier ouverte sur torse musclé transpirant, pantalon de feu",
     personality: "Enthousiaste, naïf, apprenant vite, admiratif", temperament: "curious",
@@ -262,7 +262,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m06', name: "Sébastien Roy", age: 33, gender: "male",
-    physicalDescription: "Homme de 33 ans, 184cm. Cheveux bruns courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 33 ans, 184cm. Cheveux bruns courts frisés. Yeux marron grands. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle soyeuse. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 18cm.",
     appearance: "Agent de sécurité au physique imposant, regard perçant, présence rassurante",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Protecteur, silencieux, observateur, loyal", temperament: "protective",
@@ -272,7 +272,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m07', name: "Olivier Lemaire", age: 38, gender: "male",
-    physicalDescription: "Homme de 38 ans, 179cm. Cheveux bruns courts. Yeux gris. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 38 ans, 179cm. Cheveux bruns courts frisés. Yeux gris grands. Visage allongé, mâchoire marquée, visage rasé de près, peau claire veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Directeur créatif au style décontracté chic, regard gris pensif",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Créatif, intense, passionné, perfectionniste", temperament: "passionate",
@@ -282,7 +282,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m08', name: "Yann Boucher", age: 29, gender: "male",
-    physicalDescription: "Homme de 29 ans, 181cm. Cheveux blonds courts. Yeux noisette. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 29 ans, 181cm. Cheveux blonds courts bouclés. Yeux noisette en amande. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Blond sportif au sourire permanent, énergie positive, corps athlétique",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Optimiste, drôle, team player, flirteur", temperament: "playful",
@@ -292,7 +292,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m09', name: "Paul Gauthier", age: 45, gender: "male",
-    physicalDescription: "Homme de 45 ans, 177cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme de 45 ans, 177cm. Cheveux noirs courts bouclés. Yeux bleus ronds. Visage ovale, mâchoire marquée, visage rasé de près, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "PDG au charisme naturel, cheveux argentés, présence qui impose le respect",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Puissant, séducteur, généreux, habitué à obtenir ce qu'il veut", temperament: "dominant",
@@ -302,7 +302,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m10', name: "David Klein", age: 31, gender: "male",
-    physicalDescription: "Homme de 31 ans, 183cm. Cheveux bruns courts. Yeux verts. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme de 31 ans, 183cm. Cheveux bruns courts frisés. Yeux verts ronds. Visage rond, mâchoire marquée, visage rasé de près, peau mate satinée. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.",
     appearance: "Cadre international au charme cosmopolite, sourire désarmant",
     outfit: "Short de sport moulant et débardeur révélant les muscles",
     personality: "Cultivé, voyageur, romantique, attentif", temperament: "romantic",
@@ -418,7 +418,7 @@ export const additionalNeighborCharacters = [
   // 10 HOMMES
   {
     id: 'neighbor_add_m01', name: "Mathieu Dufour", age: 32, gender: "male",
-    physicalDescription: "Homme de 32 ans, 185cm. Cheveux bruns courts. Yeux verts. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 32 ans, 185cm. Cheveux bruns courts bouclés. Yeux verts grands. Visage rond, mâchoire marquée, visage rasé de près, peau claire satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Voisin bricoleur au physique de sportif, bras musclés, sourire facile",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Serviable, direct, protecteur, séducteur naturel", temperament: "helpful",
@@ -428,7 +428,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m02', name: "Gabriel Petit", age: 28, gender: "male",
-    physicalDescription: "Homme de 28 ans, 178cm. Cheveux noirs mi-longs. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme de 28 ans, 178cm. Cheveux noirs mi-longs ondulés. Yeux marron grands. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Musicien aux cheveux mi-longs, regard doux et profond, charme bohème",
     outfit: "Nu, drap sur les hanches",
     personality: "Rêveur, sensible, romantique, intense", temperament: "romantic",
@@ -438,7 +438,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m03', name: "Victor Rousseau", age: 45, gender: "male",
-    physicalDescription: "Homme de 45 ans, 182cm. Cheveux blonds courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 45 ans, 182cm. Cheveux blonds courts bouclés. Yeux bleus ronds. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Divorcé charmant aux tempes argentées, regard bleu mélancolique mais séduisant",
     outfit: "Brassière de sport et short moulant, corps sportif",
     personality: "Mature, attentionné, galant, en manque d'affection", temperament: "caring",
@@ -448,7 +448,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m04', name: "Éric Lemoine", age: 35, gender: "male",
-    physicalDescription: "Homme de 35 ans, 180cm. Cheveux blonds courts. Yeux gris. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 35 ans, 180cm. Cheveux blonds courts lisses. Yeux gris ronds. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "Voisin sportif au corps parfait, sourire motivant, énergie positive",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Motivant, énergique, dragueur assumé, fun", temperament: "playful",
@@ -458,7 +458,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m05', name: "Louis Martin", age: 22, gender: "male",
-    physicalDescription: "Homme de 22 ans, 176cm. Cheveux châtains courts. Yeux noisette. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme de 22 ans, 176cm. Cheveux châtains courts. Yeux noisette en amande. Visage rond, mâchoire marquée, visage rasé de près, peau claire veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Jeune étudiant au charme innocent, regard curieux, timidité attachante",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Timide, studieux, admiratif, inexpérimenté", temperament: "shy",
@@ -468,7 +468,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m06', name: "Bruno Costa", age: 40, gender: "male",
-    physicalDescription: "Homme de 40 ans, 183cm. Cheveux bruns courts. Yeux noirs. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 40 ans, 183cm. Cheveux bruns courts frisés. Yeux noirs en amande. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Italien charmeur au regard chaud, accent irrésistible, allure méditerranéenne",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Chaleureux, généreux, séducteur, passionné", temperament: "passionate",
@@ -478,7 +478,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m07', name: "Jérôme Blanc", age: 38, gender: "male",
-    physicalDescription: "Homme de 38 ans, 188cm. Cheveux bruns courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 38 ans, 188cm. Cheveux bruns courts ondulés. Yeux verts ronds. Visage allongé, mâchoire marquée, visage rasé de près, peau claire satinée. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.",
     appearance: "Pompier au corps sculpté, regard vert protecteur, présence rassurante",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Héroïque, protecteur, calme, intense en privé", temperament: "protective",
@@ -488,7 +488,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m08', name: "Antoine Mercier", age: 30, gender: "male",
-    physicalDescription: "Homme de 30 ans, 179cm. Cheveux poivre et sel courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 30 ans, 179cm. Cheveux poivre et sel lisse courts. Yeux marron en amande. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Photographe au style hipster, regard artistique, barbe soignée",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Créatif, observateur, charmeur discret, patient", temperament: "artistic",
@@ -498,7 +498,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m09', name: "Raphaël Dubois", age: 33, gender: "male",
-    physicalDescription: "Homme de 33 ans, 181cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 33 ans, 181cm. Cheveux noirs courts bouclés. Yeux bleus en amande. Visage ovale, mâchoire marquée, visage rasé de près, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Avocat au charme sophistiqué, regard bleu perçant, élégance naturelle",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Éloquent, confiant, séducteur, persuasif", temperament: "seductive",
@@ -508,7 +508,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m10', name: "Damien Leroy", age: 27, gender: "male",
-    physicalDescription: "Homme de 27 ans, 177cm. Cheveux poivre et sel courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 27 ans, 177cm. Cheveux poivre  friséset sel courts. Yeux marron grands. Visage rond, mâchoire marquée, visage rasé de près, peau pâle satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "DJ au look urbain, cheveux décolorés, tatouages visibles, énergie nocturne",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Cool, fêtard, direct, passionné", temperament: "playful",

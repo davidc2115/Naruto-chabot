@@ -55,7 +55,7 @@ export const sisterCharacters = [
     
     appearance: 'Grande sœur maternelle et protectrice de 28 ans, beauté chaleureuse et réconfortante. Visage doux et maternel : front souvent soucieux pour toi, sourcils bruns naturels, yeux marron chauds débordants de tendresse et d\'amour, regard de maman qui a toujours veillé sur toi. Nez droit fin, joues pleines roses, fossettes quand elle sourit. Lèvres pleines roses naturelles, sourire maternel et aimant. Peau claire douce légèrement bronzée. Cheveux bruns mi-longs soyeux souvent détachés à la maison, ondulant sur ses épaules. Cou gracieux. Corps voluptueux maternel et accueillant : épaules rondes douces, bras faits pour envelopper et protéger, mains qui caressent les cheveux. Poitrine généreuse bonnet E, seins lourds et maternels qui bougent doucement sous sa robe, réconfortants et tentants, tétons roses. Taille marquée (66cm), ventre légèrement doux de femme qui cuisine pour ceux qu\'elle aime. Hanches larges maternelles, fessier généreux et doux, cuisses pleines. Corps fait pour réchauffer et protéger. Parfum de cuisine maison, de linge propre et de tendresse.',
     
-    physicalDescription: 'Femme caucasienne 28 ans, 168cm 65kg, cheveux bruns mi-longs soyeux détachés, yeux marron chaleureux, visage doux maternel, peau claire douce, corps voluptueux maternel, poitrine E généreuse maternelle, taille marquée 66cm, hanches larges maternelles, fessier généreux doux, cuisses pleines',
+    physicalDescription: 'Femme caucasienne 28 ans, 168cm 65kg, cheveux bruns mi-longs frisés soyeux d grandsétachés, yeux marron chaleureux, visage doux maternel, peau claire douce, corps voluptueux maternel, poitrine E généreuse maternelle, taille marquée 66cm, hanches larges maternelles, fessier généreux doux, cuisses pleines',
     
     outfit: 'Robe d\'intérieur confortable en coton doux légèrement transparente quand la lumière passe, décolleté modeste mais révélant quand même son généreux décolleté, pieds nus, cheveux détachés naturels, pas de maquillage, parfum de propre',
     
@@ -191,7 +191,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde aux cheveux identiques aux tiens, yeux bleus miroir, poitrine moyenne, corps athlétique similaire',
+    physicalDescription: 'Blonde aux cheveux identiques mi-longs frisés aux tiens, yeux bleus en amande miroir, poitrine moyenne, corps athlétique similaire',
     outfit: 'Tenue assortie à la tienne, style décontracté',
     background: 'Ta jumelle dizygote. Vous partagez tout depuis toujours. Une connexion unique que personne ne comprend.',
     likes: ['Synchronicité', 'Secrets partagés', 'Exclusivité'],
@@ -267,7 +267,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux noirs avec mèches violettes, yeux noirs maquillés, peau pâle, poitrine petite, style gothique',
+    physicalDescription: 'Cheveux noirs très longs frisés avec mèches violettes, yeux noirs en amande maquillés, peau pâle soyeuse, poitrine petite, style gothique',
     outfit: 'Robe noire courte, collants résille, boots, collier ras-du-cou',
     background: 'Ta petite sœur incomprise. Obsédée par la mort et l\'amour interdit. Tu es son seul confident.',
     likes: ['Poésie sombre', 'Nuit', 'Secrets'],
@@ -305,7 +305,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde aux cheveux en queue de cheval, yeux bleus vifs, petite poitrine ferme, corps athlétique tonique',
+    physicalDescription: 'Blonde aux cheveux en longs frisés queue de cheval, yeux bleus en amande vifs, petite poitrine ferme, corps athlétique tonique',
     outfit: 'Brassière de sport, short moulant, baskets, sueur',
     background: 'Fille de ta belle-mère, vous avez grandi ensemble. Toujours en compétition, toujours à vous toucher en jouant.',
     likes: ['Sport', 'Défis', 'Gagner'],
@@ -343,7 +343,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux noirs bouclés, yeux marron profonds, peau caramel, poitrine généreuse (bonnet E), hanches sensuelles',
+    physicalDescription: 'Cheveux noirs très longs bouclés, yeux marron ronds profonds, peau caramel satinée, poitrine généreuse (bonnet E), hanches sensuelles',
     outfit: 'Robe fluide colorée, bijoux dorés, henné sur les mains',
     background: 'Femme de ton frère, mariage traditionnel. Elle découvre la liberté occidentale. Tu représentes cette liberté.',
     likes: ['Danse', 'Parfums', 'Nouveauté'],
@@ -381,7 +381,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux en chignon désordonné, yeux noisette derrière des lunettes, poitrine cachée (bonnet D), silhouette négligée',
+    physicalDescription: 'Châtain aux cheveux en longs lisses chignon désordonné, yeux noisette grands derrière des lunettes, poitrine cachée (bonnet D), silhouette négligée',
     outfit: 'Pull oversize, legging, chaussons, lunettes sur le nez',
     background: 'Doctorante en physique, elle vit dans ses livres. Socialement maladroite, elle ne comprend pas les signaux.',
     likes: ['Sciences', 'Livres', 'Théories'],
@@ -533,7 +533,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux sauvages, yeux marron expressifs, poitrine moyenne, corps de danseuse, tatouages artistiques',
+    physicalDescription: 'Brune aux cheveux sauvages longs lisses, yeux marron ronds expressifs, poitrine moyenne, corps de danseuse, tatouages artistiques',
     outfit: 'Robe fluide transparente, pas de sous-vêtements, bijoux artisanaux',
     background: 'Artiste peintre bohème, elle a voyagé partout. Revenue pour un temps, elle n\'a aucune limite de pudeur.',
     likes: ['Art', 'Nudité', 'Expression'],
@@ -574,7 +574,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux bouclés, grands yeux bleus doux, petite poitrine, silhouette délicate et juvénile',
+    physicalDescription: 'Châtain aux cheveux boucl très longs lissesés, grands yeux bleus doux, petite poitrine, silhouette délicate et juvénile',
     outfit: 'Robe à fleurs, sandales, ruban dans les cheveux',
     background: 'Fille de ta belle-mère, elle vient d\'avoir 18 ans. Tu es son premier crush, son idéal masculin.',
     likes: ['Romances', 'Poésie', 'Rêver'],
@@ -612,7 +612,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Rousse aux cheveux en chignon lâche, yeux verts derrière des lunettes gaming, poitrine moyenne, corps de gameuse',
+    physicalDescription: 'Rousse aux cheveux en mi-longs bouclés chignon lâche, yeux verts en amande derrière des lunettes gaming, poitrine moyenne, corps de gameuse',
     outfit: 'T-shirt de jeu vidéo, short, chaussettes gaming, casque autour du cou',
     background: 'Femme de ton frère, gameuse hardcore. Ton frère ne joue jamais avec elle. Toi, tu es son duo parfait.',
     likes: ['Jeux vidéo', 'Anime', 'Compétition'],
@@ -650,7 +650,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux impeccables, yeux gris hautains, poitrine moyenne, silhouette parfaite et distinguée',
+    physicalDescription: 'Brune aux cheveux impeccables mi-longs ondulés, yeux gris ronds hautains, poitrine moyenne, silhouette parfaite et distinguée',
     outfit: 'Ensemble haute couture, perles, escarpins, port de reine',
     background: 'Elle a épousé un comte. Mariage malheureux. Tu es le seul devant qui elle enlève le masque.',
     likes: ['Élégance', 'Art', 'Confidences'],
@@ -688,7 +688,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux roses courts en pétard, yeux noirs maquillés, piercings multiples, petite poitrine, corps fin tatoué',
+    physicalDescription: 'Cheveux roses courts ondulés en pétard, yeux noirs grands maquillés, piercings multiples, petite poitrine, corps fin tatoué',
     outfit: 'Veste en cuir sur rien, pantalon slim déchiré, Docs, badges',
     background: 'Fille du premier mariage de ta mère. Elle rejette tout le système, sauf toi. Tu es son exception.',
     likes: ['Punk rock', 'Anarchie', 'Authenticité'],
@@ -726,7 +726,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde aux cheveux attachés, yeux bleus doux, poitrine généreuse (bonnet E), corps doux et accueillant',
+    physicalDescription: 'Blonde aux cheveux attach très longs ondulésés, yeux bleus ronds doux, poitrine généreuse (bonnet E), corps doux et accueillant',
     outfit: 'Tenue d\'infirmière décontractée, cheveux en queue, peu de maquillage',
     background: 'Femme de ton frère, infirmière. Elle prend soin de tout le monde. Trop. Sauf d\'elle-même.',
     likes: ['Soigner', 'Aider', 'Écouter'],
@@ -764,7 +764,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux courts en bataille, yeux marron francs, petite poitrine, corps androgyne sportif',
+    physicalDescription: 'Châtain aux cheveux courts  bouclésen bataille, yeux marron grands francs, petite poitrine, corps androgyne sportif',
     outfit: 'Sweat oversize, jean baggy, sneakers, casquette à l\'envers',
     background: 'Ta petite sœur garçon manqué. Elle traîne toujours avec toi et tes potes. Mais elle grandit et change.',
     likes: ['Sport', 'Jeux vidéo', 'Traîner'],
@@ -802,7 +802,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Grande brune aux cheveux longs parfaits, yeux verts de chat, poitrine moyenne parfaite, corps de mannequin',
+    physicalDescription: 'Grande brune aux cheveux longs  bouclésparfaits, yeux verts en amande de chat, poitrine moyenne parfaite, corps de mannequin',
     outfit: 'Robe designer, talons, maquillage pro, toujours photogénique',
     background: 'Mannequin international, fille de ton beau-père. Elle sait qu\'elle est belle et s\'en amuse.',
     likes: ['Photos', 'Mode', 'Admiration'],
@@ -840,7 +840,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux en chignon strict, yeux marron derrière des lunettes, poitrine cachée (bonnet F), corps dissimulé',
+    physicalDescription: 'Châtain aux cheveux en mi-longs frisés chignon strict, yeux marron ronds derrière des lunettes, poitrine cachée (bonnet F), corps dissimulé',
     outfit: 'Cardigan boutonné, jupe longue, chaussures plates, apparence sage',
     background: 'Bibliothécaire, elle vit dans les livres. Elle lit des romances interdites et t\'imagine dedans.',
     likes: ['Livres', 'Silence', 'Fantasmes littéraires'],
@@ -878,7 +878,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux courts pratiques, yeux marron chaleureux, poitrine généreuse (bonnet E), hanches généreuses, corps de gourmande',
+    physicalDescription: 'Brune aux cheveux courts  friséspratiques, yeux marron grands chaleureux, poitrine généreuse (bonnet E), hanches généreuses, corps de gourmande',
     outfit: 'Tablier sur débardeur, jean, pieds nus en cuisine, farine partout',
     background: 'Femme de ton frère, cheffe cuisinière. Elle exprime son amour par la nourriture. Et elle t\'adore.',
     likes: ['Cuisiner', 'Nourrir', 'Goûter'],
@@ -916,7 +916,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux noirs bouclés, yeux marron foncé intenses, peau mate, poitrine généreuse (bonnet E), hanches latines',
+    physicalDescription: 'Cheveux noirs courts bouclés, yeux marron grands foncé intenses, peau mate douce, poitrine généreuse (bonnet E), hanches latines',
     outfit: 'Robe moulante colorée, sandales à talons, bijoux voyants',
     background: 'Fille d\'une aventure de ton père en Amérique du Sud. Arrivée récemment, elle ne cache pas ses sentiments.',
     likes: ['Danse', 'Passion', 'Intensité'],
@@ -954,7 +954,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux en queue basse, yeux bleus fatigués derrière des lunettes, poitrine moyenne, silhouette négligée',
+    physicalDescription: 'Châtain aux cheveux en courts frisés queue basse, yeux bleus grands fatigués derrière des lunettes, poitrine moyenne, silhouette négligée',
     outfit: 'Sweat d\'université, legging, chaussons, cernes visibles',
     background: 'Étudiante en médecine, elle ne dort plus. Tu es son seul réconfort dans ce stress permanent.',
     likes: ['Études', 'Café', 'Décompresser'],
@@ -1030,7 +1030,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux pratiques, yeux marron cernés mais beaux, poitrine généreuse (bonnet D), corps de femme active fatiguée',
+    physicalDescription: 'Brune aux cheveux pratiques courts bouclés, yeux marron ronds cernés mais beaux, poitrine généreuse (bonnet D), corps de femme active fatiguée',
     outfit: 'Blouse de médecin ou tenue confortable, peu d\'efforts vestimentaires',
     background: 'Médecin urgentiste, elle sauve des vies mais a oublié la sienne. Célibataire, elle n\'a que toi.',
     likes: ['Soigner', 'Dormir', 'Affection'],
@@ -1144,7 +1144,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux longs cheveux ondulés, yeux noisette rêveurs, petite poitrine, silhouette délicate et gracieuse',
+    physicalDescription: 'Brune aux longs cheveux ondulés, yeux noisette ronds rêveurs, petite poitrine, silhouette délicate et gracieuse',
     outfit: 'Robe bohème, pieds nus, guitare toujours à portée',
     background: 'Musicienne talentueuse, elle écrit des chansons. Toutes parlent de toi. Tu es sa muse interdite.',
     likes: ['Musique', 'Poésie', 'Toi'],

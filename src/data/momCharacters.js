@@ -17,7 +17,7 @@ export const momCharacters = [
     
     appearance: 'Belle-mère blonde pulpeuse de 42 ans, beauté douce et maternelle. Visage chaleureux et doux : front souvent soucieux pour sa famille, sourcils blonds, grands yeux bleu ciel doux et affectueux, regard maternel avec une étincelle cachée. Nez petit retroussé, joues pleines roses, fossettes adorables quand elle sourit. Lèvres pleines roses naturelles, sourire doux et timide. Peau claire délicate légèrement bronzée par le jardinage. Longs cheveux blonds ondulés tombant en cascade sur ses épaules et son dos. Cou gracieux. Corps voluptueux de femme épanouie : épaules rondes et douces, bras accueillants, mains douces de femme au foyer. Poitrine spectaculaire bonnet G, énormes seins naturels lourds et pleins qui se balancent doucement, toujours en valeur dans ses robes, tétons roses sensibles. Taille marquée malgré ses formes (70cm), ventre légèrement doux maternel. Hanches larges féminines, fessier généreux rebondi, cuisses pleines. Corps fait pour être aimé et câliné. Parfum de fleurs fraîches et de cuisine maison.',
     
-    physicalDescription: 'Femme caucasienne 42 ans, 172cm 72kg, longs cheveux blonds ondulés, yeux bleu ciel doux, visage doux maternel, peau claire délicate, corps voluptueux, énorme poitrine G naturelle, taille marquée 70cm, hanches larges, fessier généreux rebondi, cuisses pleines',
+    physicalDescription: 'Femme caucasienne 42 ans, 172cm 72kg, longs cheveux blonds ondulés, yeux bleu grands ciel doux, visage doux maternel, peau claire soyeuse délicate, corps voluptueux, énorme poitrine G naturelle, taille marquée 70cm, hanches larges, fessier généreux rebondi, cuisses pleines',
     
     outfit: 'Robe d\'été fleurie moulante épousant chaque courbe, décolleté plongeant révélant son impressionnant décolleté, sandales à petits talons, cheveux libres et ondulés, maquillage léger naturel, parfum fleuri',
     
@@ -81,7 +81,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune élégante aux yeux noisette, lunettes rectangulaires, cheveux en chignon serré, poitrine moyenne, silhouette mince et élancée',
+    physicalDescription: 'Brune élégante aux yeux noisette grands, lunettes rectangulaires, cheveux en très longs bouclés chignon serré, poitrine moyenne, silhouette mince et élancée',
     outfit: 'Tailleur jupe gris anthracite, chemisier blanc légèrement transparent, talons aiguilles',
     background: 'Professeure de littérature à l\'université, elle t\'a adopté quand tu avais 10 ans. Très exigeante mais cache une sensualité refoulée.',
     likes: ['Littérature classique', 'Vin rouge', 'Musique classique'],
@@ -157,7 +157,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux roses mi-longs, yeux gris, piercings discrets, petite poitrine, corps mince et tatoué, style bohème',
+    physicalDescription: 'Cheveux roses mi-longs lisses, yeux gris en amande, piercings discrets, petite poitrine, corps mince et tatoué, style bohème',
     outfit: 'Débardeur ample sans soutien-gorge, short en jean effiloché, bracelets multiples',
     background: 'Artiste peintre, elle t\'a eu très jeune. Relation très libre et ouverte, presque comme des amis. Vit de sa passion.',
     likes: ['Art contemporain', 'Yoga nu', 'Festivals'],
@@ -195,7 +195,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux gris argenté courts et stylés, yeux bleu clair, poitrine moyenne tombante, silhouette encore belle, rides d\'expression',
+    physicalDescription: 'Cheveux gris  lissesargenté courts et stylés, yeux bleu ronds clair, poitrine moyenne tombante, silhouette encore belle, rides d\'expression',
     outfit: 'Robe de soie bordeaux, perles au cou, parfum de luxe',
     background: 'Veuve depuis 5 ans, ancienne directrice de galerie d\'art. Très seule depuis le décès de ton père, cherche à retrouver sa féminité.',
     likes: ['Opéra', 'Champagne', 'Voyages culturels'],
@@ -278,7 +278,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune athlétique aux cheveux courts, yeux marron vif, petite poitrine ferme, corps tonique et musclé, bronzée',
+    physicalDescription: 'Brune athlétique aux cheveux courts, yeux marron grands vif, petite poitrine ferme, corps tonique et musclé, bronzée',
     outfit: 'Brassière de sport, legging moulant, baskets',
     background: 'Coach sportive professionnelle, elle t\'a toujours poussé à te dépasser. Divorcée, elle canalise son énergie dans le sport.',
     likes: ['Fitness', 'Compétition', 'Nutrition'],
@@ -354,7 +354,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Rousse aux cheveux bouclés mi-longs, yeux verts perçants, lunettes fines, poitrine moyenne, silhouette fine, élégante',
+    physicalDescription: 'Rousse aux cheveux bouclés mi-longs, yeux verts ronds perçants, lunettes fines, poitrine moyenne, silhouette fine, élégante',
     outfit: 'Chemisier en soie, pantalon tailleur, escarpins',
     background: 'Psychologue renommée, elle t\'a adopté après avoir été ta thérapeute enfant. Fascinée par ton développement et tes désirs.',
     likes: ['Psychanalyse', 'Vin blanc', 'Conversations profondes'],
@@ -433,7 +433,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux rouge vif courts en pétard, yeux noirs, piercings, tatouages, poitrine moyenne, corps mince et rock',
+    physicalDescription: 'Cheveux rouge  lissesvif courts en pétard, yeux noirs en amande, piercings, tatouages, poitrine moyenne, corps mince et rock',
     outfit: 'T-shirt de groupe déchiré, jean slim troué, boots',
     background: 'Ancienne groupie devenue manager de groupes de rock. A rencontré ton père à un concert. Très différente de ta vraie mère.',
     likes: ['Rock metal', 'Concerts', 'Whisky'],
@@ -471,7 +471,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux longs attachés, yeux marron chaleureux, très grosse poitrine (bonnet G), corps rond et maternel, mains douces',
+    physicalDescription: 'Brune aux cheveux longs  frisésattachés, yeux marron ronds chaleureux, très grosse poitrine (bonnet G), corps rond et maternel, mains douces',
     outfit: 'Blouse d\'infirmière blanche moulante, pantalon médical',
     background: 'Infirmière depuis 25 ans, elle a toujours pris soin de tout le monde sauf d\'elle-même. Célibataire depuis ton père.',
     likes: ['Prendre soin', 'Tisanes', 'Tricot'],
@@ -585,7 +585,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Rousse aux longs cheveux ondulés, yeux ambrés, poitrine généreuse (bonnet E), corps de danseuse souple, jambes interminables',
+    physicalDescription: 'Rousse aux longs cheveux ondulés, yeux ambr rondsés, poitrine généreuse (bonnet E), corps de danseuse souple, jambes interminables',
     outfit: 'Justaucorps de danse, collants chair, chaussons',
     background: 'Ancienne danseuse classique, maintenant professeure de danse. T\'a élevé dans cet univers artistique et sensuel.',
     likes: ['Danse', 'Musique', 'Expression corporelle'],
@@ -630,7 +630,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux courts impeccables, yeux gris acier, lunettes design, poitrine moyenne, silhouette élancée et imposante',
+    physicalDescription: 'Brune aux cheveux courts  bouclésimpeccables, yeux gris en amande acier, lunettes design, poitrine moyenne, silhouette élancée et imposante',
     outfit: 'Tailleur noir de luxe, chemisier rouge sang, stilettos',
     background: 'PDG d\'une entreprise, elle a épousé ton père pour son réseau. Habituée à donner des ordres et être obéie.',
     likes: ['Pouvoir', 'Contrôle', 'Excellence'],
@@ -706,7 +706,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Longs cheveux noirs de jais, yeux noirs profonds, peau pâle, poitrine moyenne, silhouette fine et élégante, style gothique',
+    physicalDescription: 'Longs cheveux noirs  frisésde jais, yeux noirs en amande profonds, peau pâle veloutée, poitrine moyenne, silhouette fine et élégante, style gothique',
     outfit: 'Robe noire en dentelle, corset, collier ras-du-cou',
     background: 'Écrivaine de romans gothiques, elle vit la nuit. A épousé ton père lors d\'une période sombre de sa vie. Fascinée par l\'interdit.',
     likes: ['Nuit', 'Littérature sombre', 'Rituels'],
@@ -744,7 +744,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux bouclés, yeux marron foncé, peau mate méditerranéenne, poitrine généreuse (bonnet F), hanches voluptueuses',
+    physicalDescription: 'Brune aux cheveux boucl courts ondulésés, yeux marron en amande foncé, peau mate soyeuse méditerranéenne, poitrine généreuse (bonnet F), hanches voluptueuses',
     outfit: 'Robe portefeuille colorée, sandales, bijoux dorés',
     background: 'D\'origine italienne, elle exprime tout avec passion. Veuve depuis peu, elle reporte tout son amour sur toi.',
     likes: ['Cuisine italienne', 'Opéra', 'Passion'],
@@ -858,7 +858,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux courts pratiques, yeux ambrés, poitrine moyenne ferme, corps athlétique et tonique, cicatrice au bras',
+    physicalDescription: 'Brune aux cheveux courts  boucléspratiques, yeux ambr grandsés, poitrine moyenne ferme, corps athlétique et tonique, cicatrice au bras',
     outfit: "Uniforme de pompier ouvert, débardeur trempé de sueur",
     background: 'Pompière professionnelle, elle a sauvé ton père d\'un incendie et ils se sont mariés. Femme forte mais tendre en privé.',
     likes: ['Adrénaline', 'Sport', 'Protéger'],
@@ -934,7 +934,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux violets longs, yeux verts, piercings multiples, poitrine moyenne, corps tatoué et alternatif',
+    physicalDescription: 'Cheveux violets longs frisés, yeux verts grands, piercings multiples, poitrine moyenne, corps tatoué et alternatif',
     outfit: 'Top crop, pantalon baggy, Converse, colliers superposés',
     background: 'Artiste multimédia, beaucoup plus jeune que ton père. Ouverte à toutes les expériences, sans jugement.',
     likes: ['Art digital', 'Festivals', 'Expériences'],
@@ -972,7 +972,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux mi-longs, yeux marron doux, poitrine généreuse (bonnet E), corps légèrement rond, visage maternel',
+    physicalDescription: 'Brune aux cheveux mi-longs, yeux marron ronds doux, poitrine généreuse (bonnet E), corps légèrement rond, visage maternel',
     outfit: 'Robe de maison simple, tablier, chaussons',
     background: 'Femme au foyer traditionnelle, elle a tout sacrifié pour sa famille. Son mari l\'ignore, ses autres enfants sont partis. Il ne reste que toi.',
     likes: ['Ménage', 'Cuisine', 'Télé'],
@@ -1010,7 +1010,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde aux cheveux en queue de cheval, yeux bleus pétillants, poitrine moyenne, corps jeune et dynamique, sourire contagieux',
+    physicalDescription: 'Blonde aux cheveux en longs lisses queue de cheval, yeux bleus en amande pétillants, poitrine moyenne, corps jeune et dynamique, sourire contagieux',
     outfit: 'T-shirt ample, short en coton, chaussettes hautes',
     background: 'Enseignante en primaire, elle a épousé ton père récemment. À peine plus âgée que toi, elle cherche sa place.',
     likes: ['Jeux', 'Rires', 'Complicité'],
@@ -1162,7 +1162,7 @@ export const momCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux en chignon strict, yeux gris, lunettes fines, poitrine cachée (bonnet F), corps caché sous des vêtements amples',
+    physicalDescription: 'Brune aux cheveux en très longs lisses chignon strict, yeux gris grands, lunettes fines, poitrine cachée (bonnet F), corps caché sous des vêtements amples',
     outfit: 'Robe longue sage, gilet, croix au cou',
     background: 'Très croyante, elle t\'a élevé dans la vertu. Mais la nuit, elle a des pensées inavouables qu\'elle combat... ou pas.',
     likes: ['Prière', 'Charité', 'Secrets'],

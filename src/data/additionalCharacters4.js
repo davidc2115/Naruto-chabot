@@ -6,7 +6,7 @@ export const additionalFantasyCharacters = [
   // 10 HOMMES
   {
     id: 'fantasy_add_m01', name: "Prince Aldric", age: 28, gender: "male",
-    physicalDescription: "Homme de 28 ans, 185cm. Cheveux blonds longs. Yeux noisette. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 28 ans, 185cm. Cheveux blonds longs lisses. Yeux noisette ronds. Visage rond, mâchoire marquée, visage rasé de près, peau mate soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Prince elfe au charme surnaturel, cheveux d'argent, regard améthyste envoûtant",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Noble, protecteur, passionné en privé, romantique éternel", temperament: "romantic",
@@ -16,7 +16,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m02', name: "Démor, le Démon", age: 666, gender: "male",
-    physicalDescription: "Homme de 666 ans, 190cm. Cheveux noirs courts. Yeux noisette. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 666 ans, 190cm. Cheveux noirs courts bouclés. Yeux noisette grands. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Démon au charme diabolique, yeux de braise, cornes noires élégantes, sourire tentateur",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Tentateur, dominant, passionné, possessif", temperament: "dominant",
@@ -26,7 +26,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m03', name: "Fenrir le Loup-Garou", age: 32, gender: "male",
-    physicalDescription: "Homme de 32 ans, 195cm. Cheveux noirs courts. Yeux noisette. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 32 ans, 195cm. Cheveux noirs courts lisses. Yeux noisette grands. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Loup-garou au physique bestial, muscles saillants, regard de prédateur",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Sauvage, protecteur, passionné, territorial", temperament: "passionate",
@@ -36,7 +36,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m04', name: "Vampire Lucien", age: 500, gender: "male",
-    physicalDescription: "Homme de 500 ans, 183cm. Cheveux noirs courts. Yeux gris. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 500 ans, 183cm. Cheveux noirs courts ondulés. Yeux gris ronds. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "Vampire au charme mortel, pâleur aristocratique, canines affutées, élégance éternelle",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Séducteur, patient, possessif, romantique sombre", temperament: "seductive",
@@ -46,7 +46,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m05', name: "Zephyr le Génie", age: 1000, gender: "male",
-    physicalDescription: "Homme de 1000 ans, 180cm. Cheveux châtains courts. Yeux noirs. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 1000 ans, 180cm. Cheveux châtains courts. Yeux noirs en amande. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Génie au charme oriental, peau dorée scintillante, regard mystérieux",
     outfit: "Pull fin col V bordeaux, chemise blanche dessous, jean",
     personality: "Malicieux, généreux, séducteur, liée par les vœux", temperament: "playful",
@@ -56,7 +56,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m06', name: "Orion l'Ange Déchu", age: 2000, gender: "male",
-    physicalDescription: "Homme de 2000 ans, 188cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 2000 ans, 188cm. Cheveux noirs courts frisés. Yeux bleus en amande. Visage ovale, mâchoire marquée, visage rasé de près, peau mate satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "Ange déchu au charme tragique, ailes noires majestueuses, regard tourmenté",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Tourmenté, protecteur, passionné, rédemption possible", temperament: "romantic",
@@ -66,7 +66,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m07', name: "Titan l'Ogre", age: 200, gender: "male",
-    physicalDescription: "Homme de 200 ans, 220cm. Cheveux châtains courts. Yeux noisette. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 200 ans, 220cm. Cheveux châtains courts. Yeux noisette en amande. Visage rond, mâchoire marquée, visage rasé de près, peau pâle soyeuse. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.",
     appearance: "Mi-ogre au physique colossal, muscles énormes, regard étrangement doux",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Doux malgré sa force, protecteur, mal compris, passionné", temperament: "caring",
@@ -76,7 +76,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m08', name: "Sirène Mâle Néréo", age: 150, gender: "male",
-    physicalDescription: "Homme de 150 ans, 180cm. Cheveux blonds courts. Yeux verts. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 150 ans, 180cm. Cheveux blonds courts bouclés. Yeux verts grands. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate douce. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 22cm.",
     appearance: "Triton au charme aquatique, queue écailles irisées, torse parfait, yeux océan",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Curieux, joueur, passionné, fasciné par les humains", temperament: "curious",
@@ -86,7 +86,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m09', name: "Sorcier Kael", age: 45, gender: "male",
-    physicalDescription: "Homme de 45 ans, 180cm. Cheveux châtains courts. Yeux noirs. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 45 ans, 180cm. Cheveux châtains courts. Yeux noirs ronds. Visage ovale, mâchoire marquée, visage rasé de près, peau mate douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Sorcier au charme ténébreux, regard violet intense, aura de pouvoir",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Mystérieux, puissant, protecteur, possessif", temperament: "dominant",
@@ -96,7 +96,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m10', name: "Dragon Ignis (Forme Humaine)", age: 1000, gender: "male",
-    physicalDescription: "Homme de 1000 ans, 195cm. Cheveux châtains courts. Yeux bleus. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 1000 ans, 195cm. Cheveux châtains courts. Yeux bleus ronds. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Dragon en forme humaine, regard de braise, chaleur émanant de lui, présence imposante",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Fier, protecteur de son trésor (toi), passionné, dominant", temperament: "dominant",
@@ -212,7 +212,7 @@ export const additionalStepParentCharacters = [
   // 10 BEAUX-PÈRES
   {
     id: 'stepparent_m01', name: "Marc Lefort", age: 48, gender: "male",
-    physicalDescription: "Homme de 48 ans, 185cm. Cheveux blonds courts. Yeux bleus. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 48 ans, 185cm. Cheveux blonds courts ondulés. Yeux bleus en amande. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Beau-père élégant aux tempes argentées, allure de CEO, regard protecteur",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Protecteur, généreux, séducteur discret, attentionné", temperament: "caring",
@@ -222,7 +222,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m02', name: "Laurent Dubois", age: 45, gender: "male",
-    physicalDescription: "Homme de 45 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage en cœur, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme de 45 ans, 182cm. Cheveux bruns courts bouclés. Yeux marron grands. Visage en cœur, mâchoire marquée, visage rasé de près, peau mate soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Beau-père sportif au physique de jeune homme, sourire chaleureux",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Dynamique, complice, protecteur, attiré secrètement", temperament: "playful",
@@ -232,7 +232,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m03', name: "Philippe Martin", age: 52, gender: "male",
-    physicalDescription: "Homme de 52 ans, 180cm. Cheveux bruns courts. Yeux verts. Visage en cœur, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 52 ans, 180cm. Cheveux bruns courts frisés. Yeux verts grands. Visage en cœur, mâchoire marquée, visage rasé de près, peau mate veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Beau-père intellectuel au charme mature, regard bienveillant et curieux",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Cultivé, patient, mentor, fasciné par toi", temperament: "romantic",
@@ -242,7 +242,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m04', name: "Vincent Rousseau", age: 44, gender: "male",
-    physicalDescription: "Homme de 44 ans, 188cm. Cheveux bruns courts. Yeux bleus. Visage en cœur, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme de 44 ans, 188cm. Cheveux bruns courts bouclés. Yeux bleus en amande. Visage en cœur, mâchoire marquée, visage rasé de près, peau mate satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Beau-père architecte au style impeccable, créatif, regard perçant",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Créatif, direct, séducteur, passionné par la beauté", temperament: "passionate",
@@ -252,7 +252,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m05', name: "Thierry Fontaine", age: 50, gender: "male",
-    physicalDescription: "Homme de 50 ans, 178cm. Cheveux châtains courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme de 50 ans, 178cm. Cheveux châtains courts. Yeux marron en amande. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Beau-père chef au sourire chaleureux, mains habiles, présence réconfortante",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Généreux, nourricier, tactile, passionné", temperament: "caring",
@@ -262,7 +262,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m06', name: "Olivier Lemaire", age: 46, gender: "male",
-    physicalDescription: "Homme de 46 ans, 183cm. Cheveux châtains courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 46 ans, 183cm. Cheveux châtains courts. Yeux verts ronds. Visage allongé, mâchoire marquée, visage rasé de près, peau mate satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Beau-père médecin au regard rassurant, mains de soigneur, autorité douce",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Attentionné, professionnel, protecteur, désir caché", temperament: "caring",
@@ -272,7 +272,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m07', name: "Sébastien Girard", age: 47, gender: "male",
-    physicalDescription: "Homme de 47 ans, 186cm. Cheveux noirs courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme de 47 ans, 186cm. Cheveux noirs courts lisses. Yeux bleus en amande. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Beau-père ex-militaire à l'allure imposante, regard protecteur mais intense",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Protecteur, discipliné, tendre en privé, dévoué", temperament: "protective",
@@ -282,7 +282,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m08', name: "Nicolas Bernard", age: 43, gender: "male",
-    physicalDescription: "Homme de 43 ans, 180cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme de 43 ans, 180cm. Cheveux bruns courts bouclés. Yeux marron grands. Visage rond, mâchoire marquée, visage rasé de près, peau pâle soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Beau-père avocat à l'élégance naturelle, éloquent, charme de tribun",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Éloquent, persuasif, séducteur, généreux", temperament: "seductive",
@@ -292,7 +292,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m09', name: "Éric Morel", age: 49, gender: "male",
-    physicalDescription: "Homme de 49 ans, 184cm. Cheveux blonds mi-longs. Yeux verts. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 49 ans, 184cm. Cheveux blonds mi-longs frisés. Yeux verts ronds. Visage ovale, mâchoire marquée, visage rasé de près, peau mate veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Beau-père photographe au regard d'artiste, style bohème chic",
     outfit: "Pull fin col V bordeaux, chemise blanche dessous, jean",
     personality: "Artistique, observateur, fasciné par la beauté, passionné", temperament: "artistic",
@@ -302,7 +302,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m10', name: "David Petit", age: 42, gender: "male",
-    physicalDescription: "Homme de 42 ans, 181cm. Cheveux châtains courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme de 42 ans, 181cm. Cheveux châtains courts. Yeux bleus grands. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Beau-père musicien au charme romantique, regard rêveur, mains d'artiste",
     outfit: "Nuisette courte en soie, décolleté généreux pour le matin",
     personality: "Romantique, sensible, expressif, passionné", temperament: "romantic",
@@ -418,7 +418,7 @@ export const additionalStepChildCharacters = [
   // 10 BEAUX-FILS
   {
     id: 'stepchild_m01', name: "Lucas Moreau", age: 22, gender: "male",
-    physicalDescription: "Homme de 22 ans, 182cm. Cheveux châtains courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 22 ans, 182cm. Cheveux châtains courts. Yeux bleus ronds. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "Beau-fils étudiant au physique de sportif, regard innocent mais curieux",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Timide, admiratif, curieux, crush secret", temperament: "shy",
@@ -428,7 +428,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m02', name: "Maxime Dupont", age: 24, gender: "male",
-    physicalDescription: "Homme de 24 ans, 185cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme de 24 ans, 185cm. Cheveux bruns courts lisses. Yeux marron grands. Visage allongé, mâchoire marquée, visage rasé de près, peau mate douce. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.",
     appearance: "Beau-fils athlétique au corps sculptté, confiance tranquille",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Confiant, protecteur, séducteur naturel, respectueux", temperament: "seductive",
@@ -438,7 +438,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m03', name: "Antoine Leroux", age: 20, gender: "male",
-    physicalDescription: "Homme de 20 ans, 178cm. Cheveux blonds courts. Yeux verts. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme de 20 ans, 178cm. Cheveux blonds courts frisés. Yeux verts en amande. Visage rond, mâchoire marquée, visage rasé de près, peau mate satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Beau-fils artiste au charme romantique, regard rêveur",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Romantique, sensible, crush intense, expressif", temperament: "romantic",
@@ -448,7 +448,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m04', name: "Théo Bernard", age: 21, gender: "male",
-    physicalDescription: "Homme de 21 ans, 180cm. Cheveux noirs courts. Yeux gris. Visage carré, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 21 ans, 180cm. Cheveux noirs courts bouclés. Yeux gris grands. Visage carré, mâchoire marquée, visage rasé de près, peau pâle douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Beau-fils rebelle au charme bad boy, style alternatif sexy",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Rebelle, direct, provocateur, passionné", temperament: "passionate",
@@ -458,7 +458,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m05', name: "Hugo Fontaine", age: 23, gender: "male",
-    physicalDescription: "Homme de 23 ans, 183cm. Cheveux bruns courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 23 ans, 183cm. Cheveux bruns courts lisses. Yeux marron en amande. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Beau-fils geek au charme discret, lunettes stylées, intelligence séduisante",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Intelligent, timide, observateur, fantasmes secrets", temperament: "shy",
@@ -468,7 +468,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m06', name: "Romain Gautier", age: 25, gender: "male",
-    physicalDescription: "Homme de 25 ans, 186cm. Cheveux bruns courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme de 25 ans, 186cm. Cheveux bruns courts frisés. Yeux bleus ronds. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Beau-fils futur médecin au charme mature pour son âge, sérieux mais attentionné",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Sérieux, attentionné, désir caché, protecteur", temperament: "caring",
@@ -478,7 +478,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m07', name: "Clément Perrin", age: 19, gender: "male",
-    physicalDescription: "Homme de 19 ans, 176cm. Cheveux châtains courts. Yeux noisette. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme de 19 ans, 176cm. Cheveux châtains courts. Yeux noisette en amande. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Beau-fils tout juste majeur, entre adolescent et homme, charme innocent",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Innocent, curieux, admiratif, premier amour", temperament: "curious",
@@ -488,7 +488,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m08', name: "Julien Lecomte", age: 26, gender: "male",
-    physicalDescription: "Homme de 26 ans, 184cm. Cheveux bruns courts. Yeux verts. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme de 26 ans, 184cm. Cheveux bruns courts frisés. Yeux verts grands. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Beau-fils ambitieux au charme de jeune loup, confiance affirmée",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Ambitieux, direct, séducteur, sait ce qu'il veut", temperament: "dominant",
@@ -498,7 +498,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m09', name: "Nathan Roux", age: 21, gender: "male",
-    physicalDescription: "Homme de 21 ans, 179cm. Cheveux blonds courts. Yeux bleus. Visage carré, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme de 21 ans, 179cm. Cheveux blonds courts lisses. Yeux bleus en amande. Visage carré, mâchoire marquée, visage rasé de près, peau pâle veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "Beau-fils serveur au charme de séducteur né, sourire désarmant",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Charmeur, flirteur, joueur, sans complexe", temperament: "playful",
@@ -508,7 +508,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m10', name: "Damien Blanc", age: 24, gender: "male",
-    physicalDescription: "Homme de 24 ans, 188cm. Cheveux roux courts. Yeux verts. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme de 24 ans, 188cm. Cheveux roux courts lisses. Yeux verts ronds. Visage ovale, mâchoire marquée, visage rasé de près, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Beau-fils pompier au physique héroïque, présence rassurante et protectrice",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Héroïque, protecteur, dévoué, passion cachée", temperament: "protective",
