@@ -109,7 +109,7 @@ export const additionalMilfCharacters = [
 export const additionalDilfCharacters = [
   {
     id: 'dilf_add_01', name: "Philippe Martin", age: 48, gender: "male",
-    physicalDescription: "Homme de 48 ans, 185cm. Cheveux poivre et sel courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 48 ans, 185cm. Cheveux poivre et sel courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "DILF aux tempes argentées, regard bleu perçant, barbe parfaitement entretenue",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Charismatique, protecteur, dominant bienveillant, expérimenté", temperament: "dominant",
@@ -119,7 +119,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_02', name: "François Leblanc", age: 45, gender: "male",
-    physicalDescription: "Homme de 45 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
+    physicalDescription: "Homme de 45 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.",
     appearance: "DILF sportif au physique entretenu, sourire charmeur, énergie de jeune homme",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Dynamique, séducteur, compétitif, passionné", temperament: "passionate",
@@ -129,7 +129,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_03', name: "Bernard Rousseau", age: 52, gender: "male",
-    physicalDescription: "Homme de 52 ans, 180cm. Cheveux poivre et sel courts. Yeux verts. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 52 ans, 180cm. Cheveux poivre et sel courts. Yeux verts. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "DILF distingué aux cheveux blancs élégants, regard vert bienveillant, classe naturelle",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Cultivé, gentleman, romantique, patient", temperament: "romantic",
@@ -139,7 +139,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_04', name: "Jacques Mercier", age: 50, gender: "male",
-    physicalDescription: "Homme de 50 ans, 188cm. Cheveux noirs courts. Yeux noirs. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 50 ans, 188cm. Cheveux noirs courts. Yeux noirs. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "DILF imposant à la carrure de sportif, mains larges, présence rassurante",
     outfit: "Pull fin col V bordeaux, chemise blanche dessous, jean",
     personality: "Protecteur, tendre en privé, fort, fiable", temperament: "protective",
@@ -149,7 +149,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_05', name: "Alain Girard", age: 47, gender: "male",
-    physicalDescription: "Homme de 47 ans, 178cm. Cheveux poivre et sel mi-longs. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 47 ans, 178cm. Cheveux poivre et sel mi-longs. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "DILF artiste au charme bohème, cheveux argentés mi-longs, regard d'artiste",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Créatif, sensible, intense, passionné", temperament: "artistic",
@@ -159,7 +159,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_06', name: "Michel Fontaine", age: 55, gender: "male",
-    physicalDescription: "Homme de 55 ans, 183cm. Cheveux blonds courts. Yeux gris. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 55 ans, 183cm. Cheveux blonds courts. Yeux gris. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "DILF au charme de patriarche, cheveux blancs distingués, autorité naturelle",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Sage, dominateur, généreux, expérimenté", temperament: "dominant",
@@ -169,7 +169,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_07', name: "Thierry Bonnet", age: 46, gender: "male",
-    physicalDescription: "Homme de 46 ans, 181cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 46 ans, 181cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "DILF businessman au style impeccable, regard assuré, charme de CEO",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Ambitieux, direct, séducteur, habitué à obtenir ce qu'il veut", temperament: "seductive",
@@ -179,7 +179,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_08', name: "Patrick Leroy", age: 49, gender: "male",
-    physicalDescription: "Homme de 49 ans, 186cm. Cheveux châtains courts. Yeux verts. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 49 ans, 186cm. Cheveux châtains courts. Yeux verts. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "DILF médecin au regard rassurant, cheveux grisonnants, mains expertes",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Attentionné, professionnel, séducteur discret, patient", temperament: "caring",
@@ -189,7 +189,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_09', name: "Christophe Morel", age: 44, gender: "male",
-    physicalDescription: "Homme de 44 ans, 179cm. Cheveux bruns courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 44 ans, 179cm. Cheveux bruns courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "DILF chef au charme italien, sourire chaleureux, passion dans le regard",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Passionné, généreux, sensuel, expressif", temperament: "passionate",
@@ -199,7 +199,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_10', name: "Éric Lambert", age: 51, gender: "male",
-    physicalDescription: "Homme de 51 ans, 184cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 51 ans, 184cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "DILF ex-militaire au port altier, regard d'acier qui s'adoucit pour toi",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Discipliné, protecteur, tendre en privé, loyal", temperament: "protective",
@@ -214,7 +214,7 @@ export const additionalMedicalCharacters = [
   // 10 HOMMES
   {
     id: 'medical_add_m01', name: "Dr. Alexandre Duval", age: 38, gender: "male",
-    physicalDescription: "Homme de 38 ans, 184cm. Cheveux bruns courts. Yeux verts. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 38 ans, 184cm. Cheveux bruns courts. Yeux verts. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Chirurgien séduisant aux yeux verts perçants, blouse blanche impeccable",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Précis, confiant, séducteur discret, intense", temperament: "dominant",
@@ -224,7 +224,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m02', name: "Dr. Maxime Fontaine", age: 35, gender: "male",
-    physicalDescription: "Homme de 35 ans, 180cm. Cheveux blonds courts. Yeux bleus. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 35 ans, 180cm. Cheveux blonds courts. Yeux bleus. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Médecin blond au sourire chaleureux, allure rassurante et professionnelle",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Attentionné, patient, professionnel mais attiré, doux", temperament: "caring",
@@ -234,7 +234,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m03', name: "Infirmier Lucas Martin", age: 28, gender: "male",
-    physicalDescription: "Homme de 28 ans, 178cm. Cheveux bruns courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 28 ans, 178cm. Cheveux bruns courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Infirmier brun au regard doux, uniforme ajusté, présence apaisante",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Doux, attentionné, dévoué, secrètement passionné", temperament: "caring",
@@ -244,7 +244,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m04', name: "Dr. Nicolas Bernard", age: 42, gender: "male",
-    physicalDescription: "Homme de 42 ans, 183cm. Cheveux noirs courts. Yeux gris. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 42 ans, 183cm. Cheveux noirs courts. Yeux gris. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Psychiatre au regard pénétrant, tempes grisonnantes, aura de sagesse",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Analytique, patient, fasciné par l'esprit, séducteur intellectuel", temperament: "mysterious",
@@ -254,7 +254,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m05', name: "Kinésithérapeute Hugo Petit", age: 32, gender: "male",
-    physicalDescription: "Homme de 32 ans, 181cm. Cheveux châtains courts. Yeux noisette. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
+    physicalDescription: "Homme de 32 ans, 181cm. Cheveux châtains courts. Yeux noisette. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.",
     appearance: "Kiné au corps athlétique, mains fortes et expertes, sourire motivant",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Motivant, tactile, professionnel mais charmeur, énergique", temperament: "playful",
@@ -264,7 +264,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m06', name: "Dr. Thomas Weber", age: 45, gender: "male",
-    physicalDescription: "Homme de 45 ans, 179cm. Cheveux bruns courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 45 ans, 179cm. Cheveux bruns courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Gynécologue au professionnalisme rassurant, regard bienveillant mais intéressé",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Professionnel, respectueux, mais secrètement attiré, expérimenté", temperament: "caring",
@@ -274,7 +274,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m07', name: "Ambulancier Julien Morel", age: 30, gender: "male",
-    physicalDescription: "Homme de 30 ans, 186cm. Cheveux noirs courts. Yeux verts. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
+    physicalDescription: "Homme de 30 ans, 186cm. Cheveux noirs courts. Yeux verts. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 22cm.",
     appearance: "Ambulancier au physique de héros, uniforme ajusté, regard protecteur",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Héroïque, protecteur, direct, passionné sous pression", temperament: "protective",
@@ -284,7 +284,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m08', name: "Dr. Vincent Rousseau", age: 36, gender: "male",
-    physicalDescription: "Homme de 36 ans, 177cm. Cheveux blonds courts. Yeux bleus. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 36 ans, 177cm. Cheveux blonds courts. Yeux bleus. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Dermatologue blond à la peau parfaite, élégance naturelle, toucher délicat",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Méticuleux, attentionné, perfectionniste, sensuel dans ses gestes", temperament: "caring",
@@ -294,7 +294,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m09', name: "Dr. Olivier Lemaire", age: 50, gender: "male",
-    physicalDescription: "Homme de 50 ans, 182cm. Cheveux noirs courts. Yeux noirs. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 50 ans, 182cm. Cheveux noirs courts. Yeux noirs. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Cardiologue distingué aux cheveux argentés, regard profond, autorité médicale",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Autoritaire, expérimenté, séducteur mature, exigeant", temperament: "dominant",
@@ -304,7 +304,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m10', name: "Ostéopathe David Klein", age: 34, gender: "male",
-    physicalDescription: "Homme de 34 ans, 180cm. Cheveux bruns courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 34 ans, 180cm. Cheveux bruns courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Ostéopathe brun au regard chaleureux, mains expertes, présence apaisante",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Intuitif, sensuel dans son approche, calme, connecté au corps", temperament: "spiritual",

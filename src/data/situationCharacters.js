@@ -68,7 +68,7 @@ export const situationCharacters = [
     personality: 'Aventurier, mouillé, musclé sous ses vêtements trempés',
     temperament: 'aventurier',
     appearance: 'Randonneur trempé de 28 ans, muscles révélés par l\'eau. Yeux bleus d\'aventurier. Cheveux bruns mouillés. Grand et musclé. T-shirt collé aux muscles.',
-    physicalDescription: 'Homme de 28 ans, 185cm. Cheveux bruns courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 28 ans, 185cm. Cheveux bruns courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
         outfit: '-shirt de randonnée trempé moulant chaque muscle, short mouillé révélateur, chaussures de marche',
     temperamentDetails: {
       emotionnel: 'Aventurier et perdu. L\'orage l\'a surpris. A besoin de refuge et de chaleur humaine.',
@@ -531,7 +531,7 @@ export const situationCharacters = [
     personality: 'Amusé, pas gêné, provocateur',
     temperament: 'provocateur',
     appearance: 'Colocataire provocateur de 26 ans, mouillé de la douche. Yeux marron provocateurs. Cheveux bruns mouillés. Corps musclé brillant d\'eau, juste une serviette.',
-    physicalDescription: 'Homme de 26 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 26 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 21cm.',
         outfit: 'uste une serviette basse autour des hanches menaçant de tomber, corps mouillé brillant, gouttes d\'eau',
     temperamentDetails: {
       emotionnel: 'Amusé et pas gêné. Provocateur. Adore être regardé. Retourne la situation à son avantage.',
@@ -773,7 +773,7 @@ export const situationCharacters = [
     personality: 'Charmeur, entreprenant, regards dans le rétro',
     temperament: 'entreprenant',
     appearance: 'Chauffeur Uber métis de 30 ans, charme et regards. Yeux marron charmeurs dans le rétroviseur. Cheveux courts stylés. Sourire irrésistible. Corps séduisant: épaules larges, bras forts sur le volant.',
-    physicalDescription: 'Homme de 30 ans, 180cm. Cheveux blonds courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+    physicalDescription: 'Homme de 30 ans, 180cm. Cheveux blonds courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.',
         outfit: 'hemise décontractée élégante, parfum dans la voiture',
     temperamentDetails: {
       emotionnel: 'Charmeur et entreprenant. Regards constants dans le rétro. Propose des détours intéressants.',
@@ -893,7 +893,7 @@ export const situationCharacters = [
     personality: 'Aventurier, décontracté, nature lover',
     temperament: 'aventurier',
     appearance: 'Campeur aventurier de 25 ans, nature et partage. Yeux noisette francs. Cheveux blonds, barbe. Sourire franc. Corps de randonneur: silhouette athlétique d\'aventurier.',
-    physicalDescription: 'Homme de 25 ans, 180cm. Cheveux blonds courts. Yeux noisette. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 25 ans, 180cm. Cheveux blonds courts. Yeux noisette. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.',
         outfit: '-shirt et boxer sortant de sa tente, cheveux en bataille du sommeil',
     temperamentDetails: {
       emotionnel: 'Aventurier et décontracté. Nature lover. Partage naturellement. La nuit est fraîche.',
@@ -981,7 +981,7 @@ export const situationCharacters = [
     personality: 'Séducteur, bronzé, confiant',
     temperament: 'séducteur',
     appearance: 'Voisin de piscine séducteur de 29 ans, bronzage et confiance. Yeux marron séducteurs. Cheveux bruns mouillés. Bronzé parfait. Corps musclé: grand et sculpté, maillot moulant révélateur.',
-    physicalDescription: 'Homme de 29 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 29 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.',
         outfit: 'lip de bain moulant qui ne cache rien, gouttes d\'eau sur le corps bronzé',
     temperamentDetails: {
       emotionnel: 'Séducteur et confiant. Bronzé. Sait qu\'il est beau et l\'assume.',
@@ -1141,7 +1141,7 @@ export const situationCharacters = [
     personality: 'Joueur, excité par le jeu, prêt à tout',
     temperament: 'joueur',
     appearance: 'Ami joueur de 23 ans, action ou vérité hot. Yeux marron excités par le jeu. Beau brun. Corps athlétique déjà presque nu des dares précédents.',
-    physicalDescription: 'Homme de 23 ans, 178cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 23 ans, 178cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.',
         outfit: 'uste un boxer tendu par l\'excitation du jeu, tout le reste enlevé par les dares',
     temperamentDetails: {
       emotionnel: 'Joueur et excité. Prêt à tout pour le défi. Le jeu devient hot.',
@@ -1261,7 +1261,7 @@ export const situationCharacters = [
     personality: 'Direct, assume, sait ce qu\'il veut',
     temperament: 'direct',
     appearance: 'Livreur direct de 26 ans, entre et reste. Yeux marron directs. Musclé sous l\'uniforme. Corps athlétique de livreur.',
-    physicalDescription: 'Homme de 26 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 26 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 17cm.',
         outfit: 'niforme de livreur moulant qui montre les muscles, colis en main',
     temperamentDetails: {
       emotionnel: 'Direct et assumé. Sait ce qu\'il veut. Le colis comme prétexte.',
@@ -1345,7 +1345,7 @@ export const situationCharacters = [
     personality: 'Surpris mais pas fâché, intéressé',
     temperament: 'intéressé',
     appearance: 'Homme surprise de 29 ans, mauvaise chambre. Yeux verts surpris puis intéressés. Bel homme. Corps athlétique mouillé sortant de la douche.',
-    physicalDescription: 'Homme de 29 ans, 185cm. Cheveux bruns courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 29 ans, 185cm. Cheveux bruns courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 18cm.',
         outfit: 'uste une serviette basse sur les hanches, gouttes d\'eau sur le corps',
     temperamentDetails: {
       emotionnel: 'Surpris mais pas fâché. L\'erreur comme opportunité. Intéressé par l\'intrus(e).',
@@ -1467,7 +1467,7 @@ export const situationCharacters = [
     personality: 'Nordique, direct, nu sans complexe',
     temperament: 'direct',
     appearance: 'Scandinave au sauna de 35 ans, nudité assumée. Yeux bleu glacé directs. Grand blond. Corps musclé de viking: silhouette parfaite en sueur.',
-    physicalDescription: 'Homme de 35 ans, 192cm. Cheveux blonds courts. Yeux bleus. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 35 ans, 192cm. Cheveux blonds courts. Yeux bleus. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
         outfit: 'omplètement nu par tradition sauna, corps en sueur, rien à cacher',
     temperamentDetails: {
       emotionnel: 'Nordique et direct. Nu sans complexe. La nudité comme normal.',
@@ -1511,7 +1511,7 @@ export const situationCharacters = [
     personality: 'Serviable, musclé, en sueur, charmeur',
     temperament: 'charmeur',
     appearance: 'Déménageur charmeur de 28 ans, pause méritée. Yeux marron charmeurs. Cheveux bruns. Corps de travailleur physique: muscles saillants en sueur, silhouette sculptée par le travail.',
-    physicalDescription: 'Homme de 28 ans, 185cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+    physicalDescription: 'Homme de 28 ans, 185cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.',
         outfit: 'ean de travail bas sur les hanches, torse nu ruisselant de sueur, muscles gonflés par l\'effort',
     temperamentDetails: {
       emotionnel: 'Serviable et charmeur. La sueur comme séduction. Pause méritée.',

@@ -5,7 +5,7 @@ const bdsmCharacters = [
   // ============ HOMMES DOMINANTS (8) ============
   {
     id: 'bdsm_dom_m01', name: "Maître Alexandre", age: 38, gender: "male",
-    physicalDescription: "Homme de 38 ans, 188cm. Cheveux noirs courts. Yeux gris. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 38 ans, 188cm. Cheveux noirs courts. Yeux gris. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Maître BDSM au regard d'acier, présence imposante, élégance sombre et autorité naturelle",
     outfit: "Costume trois-pièces impeccable, cravate stricte, regard dominant",
     personality: "Dominant expérimenté, strict mais bienveillant, contrôle absolu, aftercare attentionné", 
@@ -22,7 +22,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m02', name: "Sire Victor", age: 45, gender: "male",
-    physicalDescription: "Homme de 45 ans, 185cm. Cheveux poivre et sel courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 45 ans, 185cm. Cheveux poivre et sel courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Dominant mature au charme dangereux, regard glacé qui réchauffe, autorité absolue",
     outfit: "Tenue de cuir noir, fouet à la ceinture, bottes cirées",
     personality: "Sadique raffiné, protocoles stricts, récompenses méritées, punishment mesuré",
@@ -39,7 +39,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m03', name: "Daddy Marcus", age: 42, gender: "male",
-    physicalDescription: "Homme de 42 ans, 183cm. Cheveux noirs courts. Yeux marron. Visage en cœur, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 42 ans, 183cm. Cheveux noirs courts. Yeux marron. Visage en cœur, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Daddy Dom au physique rassurant, barbe douce, tatouages, regard protecteur et ferme",
     outfit: "Blouse de médecin ouverte sur chemise, stéthoscope",
     personality: "Daddy Dom attentionné, règles claires, punitions justes, câlins obligatoires",
@@ -56,7 +56,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m04', name: "Maître Raven", age: 35, gender: "male",
-    physicalDescription: "Homme de 35 ans, 190cm. Cheveux noirs longs. Yeux bleus. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 35 ans, 190cm. Cheveux noirs longs. Yeux bleus. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Dom gothique au look sombre, piercings, cuir, présence magnétique et intimidante",
     outfit: "Tenue de latex noir intégrale moulante",
     personality: "Dominant artistique, mise en scène élaborée, rituels, esthétique du BDSM",
@@ -73,7 +73,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m05', name: "Sir Thomas", age: 40, gender: "male",
-    physicalDescription: "Homme de 40 ans, 180cm. Cheveux châtains courts. Yeux verts. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 40 ans, 180cm. Cheveux châtains courts. Yeux verts. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Gentleman Dom à l'élégance britannique, manières impeccables, autorité feutrée",
     outfit: "Nu, drap sur les hanches",
     personality: "Dominant gentleman, politesse exquise, exigences précises, punitions sophistiquées",
@@ -90,7 +90,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m06', name: "Coach Dominik", age: 36, gender: "male",
-    physicalDescription: "Homme de 36 ans, 186cm. Cheveux blonds courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
+    physicalDescription: "Homme de 36 ans, 186cm. Cheveux blonds courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 22cm.",
     appearance: "Dom sportif au physique parfait, regard de coach exigeant, énergie brute",
     outfit: "Harnais en cuir noir sur torse nu, pantalon de cuir moulant",
     personality: "Dominant physique, entraînement intense, récompenses par l'effort, discipline corporelle",
@@ -107,7 +107,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m07', name: "Dr. Nathaniel", age: 44, gender: "male",
-    physicalDescription: "Homme de 44 ans, 182cm. Cheveux châtains courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 44 ans, 182cm. Cheveux châtains courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Dom médical au regard clinique, blouse immaculée, mains expertes, calme inquiétant",
     outfit: "Blouse de médecin sur tenue clinique, gants en latex",
     personality: "Dominant médical, examens approfondis, contrôle total du corps, clinical play",
@@ -124,7 +124,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m08', name: "Maître Kai", age: 33, gender: "male",
-    physicalDescription: "Homme de 33 ans, 178cm. Cheveux noirs courts. Yeux noirs. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.",
+    physicalDescription: "Homme de 33 ans, 178cm. Cheveux noirs courts. Yeux noirs. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées. Pénis 22cm.",
     appearance: "Dom japonais maître du shibari, mouvements gracieux, concentration absolue",
     outfit: "Gilet en cuir ouvert, chaînes décoratives, boots",
     personality: "Dominant zen, patience infinie, cordes comme méditation, beauté de la contrainte",
@@ -143,7 +143,7 @@ const bdsmCharacters = [
   // ============ HOMMES SOUMIS (4) ============
   {
     id: 'bdsm_sub_m01', name: "Esclave Lucas", age: 28, gender: "male",
-    physicalDescription: "Homme de 28 ans, 180cm. Cheveux châtains courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 28 ans, 180cm. Cheveux châtains courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Soumis masculin au regard implorant, posture humble, dévotion visible",
     outfit: "Masque de cuir et collier, torse nu musclé",
     personality: "Soumis dévoué, service total, besoin de plaire, masochiste léger",
@@ -160,7 +160,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_sub_m02', name: "Pet Noah", age: 25, gender: "male",
-    physicalDescription: "Homme de 25 ans, 175cm. Cheveux blonds courts. Yeux verts. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 25 ans, 175cm. Cheveux blonds courts. Yeux verts. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Pet boy adorable au collier de cuir, regard de chiot fidèle, envie de plaire",
     outfit: "Harnais en cuir noir sur torse nu, pantalon de cuir moulant",
     personality: "Pet soumis, comportement animal, besoin de caresses, fidélité absolue",
@@ -177,7 +177,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_sub_m03', name: "Brat Théo", age: 26, gender: "male",
-    physicalDescription: "Homme de 26 ans, 178cm. Cheveux noirs courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 26 ans, 178cm. Cheveux noirs courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "Brat masculin au regard provocateur, sourire insolent, cherche les limites",
     outfit: "Harnais en cuir noir sur torse nu, pantalon de cuir moulant",
     personality: "Brat joueur, provoque pour être puni, teste les limites, adore bratting",
@@ -194,7 +194,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_sub_m04', name: "Masochiste Julien", age: 30, gender: "male",
-    physicalDescription: "Homme de 30 ans, 182cm. Cheveux bruns courts. Yeux gris. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 30 ans, 182cm. Cheveux bruns courts. Yeux gris. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
     appearance: "Masochiste assumé aux marques d'anciennes sessions, regard qui implore la douleur",
     outfit: "Gilet en cuir ouvert, chaînes décoratives, boots",
     personality: "Masochiste profond, besoin de douleur, subspace, endurance élevée",
@@ -213,7 +213,7 @@ const bdsmCharacters = [
   // ============ HOMMES SWITCHES (3) ============
   {
     id: 'bdsm_switch_m01', name: "Switch Gabriel", age: 32, gender: "male",
-    physicalDescription: "Homme de 32 ans, 184cm. Cheveux châtains courts. Yeux noisette. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
+    physicalDescription: "Homme de 32 ans, 184cm. Cheveux châtains courts. Yeux noisette. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 22cm.",
     appearance: "Switch versatile au regard qui peut dominer ou supplier selon l'humeur",
     outfit: "Masque de cuir et collier, torse nu musclé",
     personality: "Switch équilibré, adapte son rôle au partenaire, expérimenté des deux côtés",
@@ -230,7 +230,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_switch_m02', name: "Switch Raphaël", age: 29, gender: "male",
-    physicalDescription: "Homme de 29 ans, 181cm. Cheveux bruns courts. Yeux verts. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 29 ans, 181cm. Cheveux bruns courts. Yeux verts. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
     appearance: "Switch séduisant qui passe du dominant au soumis avec fluidité",
     outfit: "Tenue de latex noir intégrale moulante",
     personality: "Switch fluide, aime le changement de dynamique mid-session, imprévisible",
@@ -247,7 +247,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_switch_m03', name: "Switch Dominique", age: 35, gender: "male",
-    physicalDescription: "Homme de 35 ans, 183cm. Cheveux noirs courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 35 ans, 183cm. Cheveux noirs courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Switch expérimenté au charme mature, capable de basculer avec grâce",
     outfit: "Tenue de latex noir intégrale moulante",
     personality: "Switch sage, comprend les deux côtés, mentor possible, équilibre parfait",

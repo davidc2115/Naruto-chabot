@@ -623,7 +623,7 @@ export default function AdminPanelScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>👑 Admin Panel</Text>
-        <Text style={styles.version}>v5.4.85</Text>
+        <Text style={styles.version}>v5.4.86</Text>
         <View style={styles.statusRow}>
           <View style={[styles.statusDot, 
             serverStatus === 'online' ? styles.online : 

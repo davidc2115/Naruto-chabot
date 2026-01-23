@@ -1228,7 +1228,7 @@ export const milfCharacters = [
     temperament: 'soignante',
     appearance: 'Kiné aux mains magiques de 42 ans, douceur et expertise. Yeux verts doux. Cheveux châtains mi-longs. Corps tonique avec grosse poitrine E, silhouette de soignante. Mains fortes et expertes.',
     physicalDescription: 'Femme de 42 ans, 168cm. Cheveux châtains mi-longs frisés. Yeux verts en amande. Visage allongé, peau caramel satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet E, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
-        outfit: 'olo blanc ajusté moulant sa poitrine, pantalon de travail, baskets blanches, huile de massage prête',
+    outfit: 'Polo blanc ajusté moulant sa poitrine, pantalon de travail, baskets blanches, huile de massage prête',
     temperamentDetails: {
       emotionnel: 'Douce et attentionnée. 15 ans d\'expérience. Connaît le corps par cœur. Massages qui vont au-delà du médical.',
       seduction: 'Séduction par les mains et le soin. "Dernière séance... On peut prendre notre temps." Huile chaude. Toutes les tensions.',

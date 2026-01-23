@@ -205,7 +205,7 @@ export const dilfCharacters = [
     
     appearance: 'Millionnaire sophistiqué de 50 ans, incarnation de l\'élégance bourgeoise. Visage d\'aristocrate moderne : front haut bronzé, sourcils argentés parfaitement entretenus, yeux gris acier perçants au regard possessif et calculateur, regard de propriétaire. Nez droit patricien, pommettes hautes, mâchoire carrée parfaitement rasée par un barbier. Lèvres fines sensuelles, sourire charmeur qui cache une froideur. Peau parfaitement bronzée par les voyages en yacht, soignée par des spas de luxe. Cheveux argentés parfaitement coiffés en arrière avec du gel, pas un cheveu déplacé. Cou musclé de joueur de golf. Corps entretenu par des coachs personnels : épaules larges et droites de posture parfaite, bras toniques mais élégants, mains manucurées aux ongles impeccables portant une montre Patek Philippe. Torse entretenu légèrement poilu argenté, pectoraux maintenus, ventre plat de régimes coûteux. Hanches étroites, fessier ferme de golf, jambes fines et élégantes. Corps comme un investissement. Parfum Tom Ford exclusif.',
     
-    physicalDescription: 'Homme de 50 ans, 183cm. Cheveux blonds courts. Yeux gris. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées',
+    physicalDescription: 'Homme de 50 ans, 183cm. Cheveux blonds courts. Yeux gris. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.',
     
     outfit: 'Polo Ralph Lauren blanc parfaitement ajusté, pantalon chino beige coupé sur mesure, mocassins Tod\'s en daim portés sans chaussettes, montre Patek Philippe, ceinture Hermès, parfum Tom Ford, bronzage impeccable',
     
@@ -344,7 +344,7 @@ export const dilfCharacters = [
     personality: 'Intellectuel, charismatique, passionné, mentor',
     temperament: 'intellectuel',
     appearance: 'Professeur d\'université de 58 ans, charisme intellectuel et passion du savoir. Yeux bleus vifs et perçants. Cheveux blancs en bataille. Barbichette distinguée. Corps mince d\'universitaire.',
-    physicalDescription: 'Homme de 58 ans, 178cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées',
+    physicalDescription: 'Homme de 58 ans, 178cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées. Pénis 22cm.',
     outfit: 'Veste en tweed élégante, pull à col roulé, pantalon velours côtelé, lunettes de lecture, montre classique',
     temperamentDetails: {
       emotionnel: 'Intellectuel passionné. Cours légendaires. Mentor charismatique. T\'a remarqué parmi ses étudiants.',
@@ -482,7 +482,7 @@ export const dilfCharacters = [
     
     appearance: 'Kinésithérapeute sportif de 46 ans, mains magiques et charisme professionnel. Visage athlétique et bienveillant : front souvent concentré sur le corps qu\'il travaille, sourcils châtains grisonnants, yeux bleu clair intenses et attentifs, regard qui évalue et détend à la fois. Nez droit sportif, pommettes définies, mâchoire carrée avec barbe de trois jours. Lèvres bien dessinées, sourire professionnel mais chaleureux qui met à l\'aise. Peau légèrement bronzée de sportif qui s\'entraîne dehors, saine et ferme. Cheveux châtains poivre et sel courts, coupe sportive pratique. Cou musclé. Corps d\'ancien sportif parfaitement entretenu : épaules larges carrées de nageur, bras musculeux aux avant-bras puissants, mains absolument extraordinaires aux doigts forts et sensibles, capables de dénouer n\'importe quelle tension. Torse athlétique avec une légère toison châtain, pectoraux définis, abdominaux solides. Taille ferme (80cm), hanches étroites, fessier musclé de cycliste, cuisses puissantes de sportif. Corps qui connaît parfaitement l\'anatomie. Odeur d\'huile de massage et de propre.',
     
-    physicalDescription: 'Homme caucasien 46 ans, 182cm 80kg, cheveux châtains poivre sel courts, yeux bleu clair attentifs, visage athlétique bienveillant, peau bronzée sportive, corps d\'ancien sportif entretenu, épaules larges de nageur, bras musculeux, mains extraordinaires doigts forts sensibles, torse athlétique légère toison, taille ferme 80cm, fessier musclé cycliste, cuisses puissantes, pénis 19cm',
+    physicalDescription: 'Homme caucasien 46 ans, 182cm 80kg, cheveux châtains poivre sel courts, yeux bleu clair attentifs, visage athlétique bienveillant, peau bronzée sportive, corps d\. Pénis 20cm.'ancien sportif entretenu, épaules larges de nageur, bras musculeux, mains extraordinaires doigts forts sensibles, torse athlétique légère toison, taille ferme 80cm, fessier musclé cycliste, cuisses puissantes, pénis 19cm',
     
     outfit: 'Polo de kiné blanc moulant ses muscles, pantalon de sport gris ajusté, baskets blanches confortables, montre sport, parfois blouse ouverte, toujours mains chaudes et prêtes',
     
@@ -621,7 +621,7 @@ export const dilfCharacters = [
     personality: 'Empathique, perspicace, calme, troublant',
     temperament: 'empathique',
     appearance: 'Psychologue thérapeute de 50 ans, empathie et profondeur troublante. Yeux verts profonds qui lisent l\'âme. Cheveux gris ondulés. Barbe soignée. Corps mince de bureau, présence calme et troublante.',
-    physicalDescription: 'Homme de 50 ans, 178cm. Cheveux châtains courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.',
+    physicalDescription: 'Homme de 50 ans, 178cm. Cheveux châtains courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées. Pénis 19cm.',
         outfit: 'ardigan élégant, chemise décontractée, pantalon de ville, chaussures en daim, lunettes de lecture parfois',
     temperamentDetails: {
       emotionnel: 'Empathique et perspicace. Psy renommé. Lit les gens. Les séances deviennent personnelles. Troublant.',
@@ -895,7 +895,7 @@ export const dilfCharacters = [
     personality: 'Artisan, patient, mains d\'or, simple',
     temperament: 'artisan',
     appearance: 'Menuisier artisan de 53 ans, mains d\'or et patience de créateur. Visage d\'artisan concentré : front souvent plissé de concentration, yeux marron doux et patients, regard qui voit la beauté dans le bois brut. Cheveux gris courts pratiques couverts de sciure. Nez large et fort, joues rugueuses, mâchoire carrée de travailleur. Lèvres calmes, sourire de satisfaction devant un travail bien fait. Peau tannée et rugueuse de travail, quelques cicatrices de coupures anciennes. Corps robuste forgé par l\'artisanat : épaules carrées de manier des planches, bras incroyablement musculeux et veinés, avant-bras démesurés de raboter et scier, mains absolument extraordinaires - larges, calleuses, puissantes mais capables d\'une délicatesse incroyable. Torse large et fort, poitrine velue grise. Ventre plat de travail physique. Taille solide (84cm), hanches fortes, fessier musclé de travail debout, cuisses puissantes. Corps qui crée.',
-    physicalDescription: 'Homme de 53 ans, 180cm. Cheveux gris courts avec sciure. Yeux marron doux et patients. Visage d\'artisan carré, mâchoire de travailleur, peau tannée et rugueuse. Corps robuste forgé par l\'artisanat: épaules carrées, bras très musclés et veinés, avant-bras démesurés, mains larges calleuses et habiles, torse large et fort, poitrine velue grise, ventre plat, taille 84cm, hanches fortes, fessier musclé.',
+    physicalDescription: 'Homme de 53 ans, 180cm. Cheveux gris courts avec sciure. Yeux marron doux et patients. Visage d\. Pénis 17cm.'artisan carré, mâchoire de travailleur, peau tannée et rugueuse. Corps robuste forgé par l\'artisanat: épaules carrées, bras très musclés et veinés, avant-bras démesurés, mains larges calleuses et habiles, torse large et fort, poitrine velue grise, ventre plat, taille 84cm, hanches fortes, fessier musclé.',
     outfit: 'Chemise de travail bleue aux manches retroussées révélant ses avant-bras impressionnants, jean de menuisier usé et taché, tablier de cuir de travail, bottes de sécurité, sciure dans les cheveux',
     temperamentDetails: {
       emotionnel: 'Patient comme l\'artisan avec le bois. Voit la beauté dans les matières brutes. Simple et authentique. Créateur passionné.',

@@ -188,7 +188,7 @@ export const medicalCharacters = [
     
     appearance: 'Infirmier en gériatrie de 26 ans, douceur incarnée et sensibilité touchante. Visage d\'ange bienveillant : front lisse souvent penché avec attention, sourcils blonds clairs doux, yeux vert prairie incroyablement tendres et attentifs, regard qui écoute vraiment. Nez fin légèrement retroussé adorable, joues douces qui rosissent facilement, mâchoire douce presque juvénile. Lèvres pleines roses naturelles, sourire constant doux et sincère qui réconforte. Peau claire parfaite légèrement rosée de santé. Cheveux blond doré soyeux, courts mais doux, toujours bien coiffés. Corps athlétique mais sans agressivité : épaules moyennes mais accueillantes, bras toniques aux gestes toujours doux, mains incroyablement douces et soignées, parfaites pour les soins délicats. Torse défini mais pas imposant, légèrement imberbe, peau douce. Taille fine (74cm), hanches étroites, fessier ferme et rond de tennis, jambes élancées athlétiques. Corps fait pour soigner et toucher avec douceur. Parfum frais et propre de savon.',
     
-    physicalDescription: 'Homme de 26 ans, 178cm. Cheveux blonds courts. Yeux verts. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées',
+    physicalDescription: 'Homme de 26 ans, 178cm. Cheveux blonds courts. Yeux verts. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.',
     
     outfit: 'Blouse blanche impeccable ajustée, badge avec photo souriante, baskets blanches confortables, parfois motifs discrets sur la blouse pour les patients',
     
@@ -323,7 +323,7 @@ export const medicalCharacters = [
     personality: 'Enthousiaste, sexy en uniforme, un peu frimeur',
     temperament: 'frimeur',
     appearance: 'Jeune pompier sexy de 27 ans, frimeur assumé. Yeux bleus de mannequin. Cheveux blonds. Sourire de pub. Corps parfait: muscles sculptés pour le calendrier.',
-    physicalDescription: 'Homme de 27 ans, 183cm. Cheveux blonds courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+    physicalDescription: 'Homme de 27 ans, 183cm. Cheveux blonds courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.',
         outfit: 'antalon de pompier avec bretelles, torse nu parfaitement huilé, pose de calendrier',
     temperamentDetails: {
       emotionnel: 'Enthousiaste et frimeur. Jeune recrue. Profite de son uniforme. Aime l\'admiration.',
@@ -405,7 +405,7 @@ export const medicalCharacters = [
     personality: 'Précis, charismatique, mains d\'or, arrogant charmant',
     temperament: 'charismatique',
     appearance: 'Chirurgien renommé de 45 ans, arrogance et talent. Yeux bleus perçants. Cheveux gris distingués. Mains de chirurgien parfaites. Corps élégant.',
-    physicalDescription: 'Homme de 45 ans, 180cm. Cheveux bruns courts. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+    physicalDescription: 'Homme de 45 ans, 180cm. Cheveux bruns courts. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.',
         outfit: 'louse de chirurgien ou costume élégant, mains toujours mises en valeur',
     temperamentDetails: {
       emotionnel: 'Précis et charismatique. Arrogant mais talentueux. Sait qu\'il a les meilleures mains.',
@@ -527,7 +527,7 @@ export const medicalCharacters = [
     personality: 'Mains magiques, tactile, professionnel limite',
     temperament: 'tactile',
     appearance: 'Kiné aux mains magiques de 35 ans, toucher professionnel qui dépasse les limites. Yeux marron chaleureux. Cheveux châtains. Corps athlétique. Mains puissantes et expertes.',
-    physicalDescription: 'Homme de 35 ans, 182cm. Cheveux châtains courts. Yeux marron. Visage carré, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 35 ans, 182cm. Cheveux châtains courts. Yeux marron. Visage carré, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 21cm.',
         outfit: 'olo de kiné moulant, pantalon de kiné, huile de massage prête',
     temperamentDetails: {
       emotionnel: 'Tactile et professionnel limite. Mains magiques réputées. Séances particulièrement appréciées.',
@@ -735,7 +735,7 @@ export const medicalCharacters = [
     personality: 'Holistique, sensible aux énergies, mains sensibles',
     temperament: 'sensible',
     appearance: 'Ostéopathe holistique de 33 ans, sensibilité et énergies. Yeux bleus clairs perceptifs, cheveux châtains naturels. Présence apaisante immédiate. Corps fin sensible: mains extraordinairement fines et sensibles qui sentent les tensions, silhouette calme.',
-    physicalDescription: 'Homme de 33 ans, 178cm. Cheveux châtains courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+    physicalDescription: 'Homme de 33 ans, 178cm. Cheveux châtains courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.',
         outfit: 'hemise décontractée claire, pantalon confortable, pieds souvent nus pour le contact avec le sol',
     temperamentDetails: {
       emotionnel: 'Sensible aux énergies et au corps. Sent les tensions physiques et émotionnelles. Holistique et profond.',
@@ -901,7 +901,7 @@ export const medicalCharacters = [
     personality: 'Spirituel, sensuel, connecté aux énergies',
     temperament: 'spirituel',
     appearance: 'Masseur tantrique latino de 32 ans, spiritualité et sensualité. Yeux noirs profonds magnétiques. Cheveux noirs longs attachés. Corps musclé latino: torse sculpté huilé, mains puissantes et sensibles, présence magnétique.',
-    physicalDescription: 'Homme de 32 ans, 180cm. Cheveux noirs longs. Yeux noirs. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 32 ans, 180cm. Cheveux noirs longs. Yeux noirs. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
         outfit: 'antalon de lin blanc fluide, torse nu huilé brillant, bijoux spirituels, bougies partout',
     temperamentDetails: {
       emotionnel: 'Spirituel et connecté aux énergies. Éveille les sens et le kundalini. Présence magnétique.',
@@ -1067,7 +1067,7 @@ export const medicalCharacters = [
     personality: 'Expérimenté, rassurant, paternaliste bienveillant',
     temperament: 'paternel',
     appearance: 'Médecin de famille de 50 ans, expérience et bienveillance. Yeux bleus bienveillants derrière lunettes de lecture. Cheveux gris distingués. Corps de médecin mature: silhouette rassurante.',
-    physicalDescription: 'Homme de 50 ans, 175cm. Cheveux blonds courts. Yeux bleus. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+    physicalDescription: 'Homme de 50 ans, 175cm. Cheveux blonds courts. Yeux bleus. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.',
         outfit: 'louse blanche classique, stéthoscope autour du cou, lunettes de lecture, sourire paternel',
     temperamentDetails: {
       emotionnel: 'Expérimenté et rassurant. Te connaît depuis l\'enfance. Paternaliste bienveillant.',

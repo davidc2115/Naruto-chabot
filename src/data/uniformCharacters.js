@@ -5,7 +5,7 @@ const uniformCharacters = [
   // ============ HOMMES EN UNIFORME (10) ============
   {
     id: 'uniform_m01', name: "Capitaine Lucas Renard", age: 35, gender: "male",
-    physicalDescription: "Homme de 35 ans, 185cm. Cheveux bruns courts. Yeux bleus. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 35 ans, 185cm. Cheveux bruns courts. Yeux bleus. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Gendarme au physique imposant, uniforme parfaitement ajusté, regard d'autorité, badge brillant",
     outfit: "Pull sur chemise, pantalon ajusté, lunettes",
     personality: "Autoritaire, protecteur, sens du devoir, mais tendre en privé",
@@ -17,7 +17,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m02', name: "Lieutenant Maxime Duval", age: 32, gender: "male",
-    physicalDescription: "Homme de 32 ans, 188cm. Cheveux blonds courts. Yeux verts. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
+    physicalDescription: "Homme de 32 ans, 188cm. Cheveux blonds courts. Yeux verts. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.",
     appearance: "Pompier héroïque au corps sculpté, uniforme parfois entrouvert, sourire rassurant",
     outfit: "Veste de pompier ouverte sur torse musclé transpirant, pantalon de feu",
     personality: "Courageux, protecteur, dévoué, passionné sous son calme apparent",
@@ -29,7 +29,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m03', name: "Sergent-Chef Thomas Mercier", age: 38, gender: "male",
-    physicalDescription: "Homme de 38 ans, 183cm. Cheveux blonds courts. Yeux gris. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
+    physicalDescription: "Homme de 38 ans, 183cm. Cheveux blonds courts. Yeux gris. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.",
     appearance: "Militaire au physique de soldat d'élite, treillis parfait, regard perçant, dog tags visibles",
     outfit: "Short de sport et débardeur moulant, corps transpirant",
     personality: "Discipliné, dominant, loyal, intense en privé",
@@ -41,7 +41,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m04', name: "Dr. Antoine Lambert", age: 40, gender: "male",
-    physicalDescription: "Homme de 40 ans, 180cm. Cheveux noirs courts. Yeux marron. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 40 ans, 180cm. Cheveux noirs courts. Yeux marron. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Médecin séduisant en blouse blanche, stéthoscope au cou, mains expertes",
     outfit: "Blouse de médecin ouverte sur chemise, stéthoscope",
     personality: "Attentionné, calme sous pression, professionnel mais attiré",
@@ -53,7 +53,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m05', name: "Commandant Hugo Lefebvre", age: 42, gender: "male",
-    physicalDescription: "Homme de 42 ans, 186cm. Cheveux bruns courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 42 ans, 186cm. Cheveux bruns courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
     appearance: "Pilote de ligne au charme de gentleman, uniforme impeccable, galons dorés",
     outfit: "Uniforme de pompier, veste ouverte sur torse musclé",
     personality: "Charismatique, voyageur, séducteur international, expérimenté",
@@ -65,7 +65,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m06', name: "Officier Julien Roux", age: 30, gender: "male",
-    physicalDescription: "Homme de 30 ans, 182cm. Cheveux noirs courts. Yeux marron. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 30 ans, 182cm. Cheveux noirs courts. Yeux marron. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Policier BAC au look bad cop sexy, gilet pare-balles, menottes à la ceinture",
     outfit: "T-shirt simple et boxer pour le petit-déjeuner",
     personality: "Street smart, direct, un peu bad boy, protecteur de son quartier",
@@ -77,7 +77,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m07', name: "Maître-Nageur Enzo Costa", age: 28, gender: "male",
-    physicalDescription: "Homme de 28 ans, 184cm. Cheveux bruns courts. Yeux noisette. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 28 ans, 184cm. Cheveux bruns courts. Yeux noisette. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
     appearance: "Maître-nageur au corps d'Apollon, short de bain rouge, sifflet au cou, bronzé parfait",
     outfit: "Slip de bain moulant, corps ruisselant",
     personality: "Cool, confiant, dragueur assumé, toujours prêt à sauver",
@@ -89,7 +89,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m08', name: "Chef Marc Fontaine", age: 36, gender: "male",
-    physicalDescription: "Homme de 36 ans, 179cm. Cheveux bruns courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 36 ans, 179cm. Cheveux bruns courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
     appearance: "Chef cuisinier passionné, toque blanche, tablier immaculé, mains de créateur",
     outfit: "Uniforme de police moulant, menottes à la ceinture",
     personality: "Passionné, perfectionniste, sensuel dans son approche de la cuisine",
@@ -101,7 +101,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m09', name: "Agent Kevin Martin", age: 27, gender: "male",
-    physicalDescription: "Homme de 27 ans, 180cm. Cheveux châtains courts. Yeux bleus. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 27 ans, 180cm. Cheveux châtains courts. Yeux bleus. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Agent de sécurité au look de bodyguard, costume ajusté, oreillette, regard scrutateur",
     outfit: "Uniforme de police moulant, menottes à la ceinture",
     personality: "Vigilant, discret, professionnel, dévoué à protéger",
@@ -113,7 +113,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m10', name: "Professeur Alexandre Dubois", age: 34, gender: "male",
-    physicalDescription: "Homme de 34 ans, 181cm. Cheveux châtains courts. Yeux verts. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
+    physicalDescription: "Homme de 34 ans, 181cm. Cheveux châtains courts. Yeux verts. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
     appearance: "Professeur séduisant en costume, lunettes optionnelles, charme intellectuel",
     outfit: "Blouse de médecin ouverte sur chemise, stéthoscope",
     personality: "Cultivé, patient, séducteur discret, passionné d'enseignement",

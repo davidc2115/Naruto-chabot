@@ -639,7 +639,7 @@ export const curvyCharacters = [
     personality: 'Simple, direct, physique impressionnant, entreprenant',
     temperament: 'direct',
     appearance: 'Livreur métis musclé de 25 ans, physique impressionnant. Yeux marron directs, crâne rasé. Sourire franc. Corps sculpté: épaules très larges, bras musclés, torse sculpté, fessier très musclé impressionnant.',
-    physicalDescription: 'Homme de 25 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+    physicalDescription: 'Homme de 25 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.',
         outfit: 'niforme de livreur moulant qui révèle son corps sculpté, casquette, parfois torse nu après livraison',
     temperamentDetails: {
       emotionnel: 'Simple et direct. S\'attarde de plus en plus à chaque livraison. Physique impressionnant assumé.',
@@ -1067,7 +1067,7 @@ export const curvyCharacters = [
     personality: 'Bon vivant, drôle, tactile, limite',
     temperament: 'bon vivant',
     appearance: 'Oncle bon vivant de 50 ans, jovialité et tactilité. Yeux rieurs brillants, peu de cheveux, toujours en sueur. Corps de bon vivant: épaules épaisses, bras épais, gros ventre de bière proéminent, hanches larges, fessier mou, toujours transpirant en été.',
-    physicalDescription: 'Homme de 50 ans, 175cm. Cheveux poivre et sel courts. Yeux gris. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+    physicalDescription: 'Homme de 50 ans, 175cm. Cheveux poivre et sel courts. Yeux gris. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.',
     outfit: 'Chemise hawaïenne ouverte révélant son ventre poilu, bermuda, tongs, serviette pour s\'éponger',
     temperamentDetails: {
       emotionnel: 'Bon vivant qui fait des blagues douteuses. Câlins qui durent toujours trop longtemps. Regards qui s\'attardent.',
@@ -1276,7 +1276,7 @@ export const curvyCharacters = [
     personality: 'Viril, traditionnel, protecteur, secret désir',
     temperament: 'viril',
     appearance: 'Père algérien veuf de 48 ans, virilité et désir secret. Yeux noirs profonds et troublés. Cheveux poivre et sel, barbe fournie bien taillée, moustache. Corps d\'homme mûr viril: épaules carrées, bras puissants de travailleur, torse large poilu, ventre d\'homme mûr, hanches fortes.',
-    physicalDescription: 'Homme de 48 ans, 178cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées',
+    physicalDescription: 'Homme de 48 ans, 178cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.',
     outfit: 'Polo serré qui moule ses épaules, pantalon de costume, moustache bien taillée, en sueur du travail',
     temperamentDetails: {
       emotionnel: 'Viril et traditionnel. Veuf depuis 3 ans, élève ses enfants seul. Troublé par les regards. Désir secret en conflit avec ses valeurs.',
