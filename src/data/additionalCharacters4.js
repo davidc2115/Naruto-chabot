@@ -6,7 +6,7 @@ export const additionalFantasyCharacters = [
   // 10 HOMMES
   {
     id: 'fantasy_add_m01', name: "Prince Aldric", age: 28, gender: "male",
-    physicalDescription: "28 ans apparent, 185cm, prince elfe, cheveux argentés longs, yeux violets, oreilles pointues",
+    physicalDescription: "Homme de 28 ans, 185cm. Cheveux blonds longs. Yeux noisette. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Prince elfe au charme surnaturel, cheveux d'argent, regard améthyste envoûtant",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Noble, protecteur, passionné en privé, romantique éternel", temperament: "romantic",
@@ -16,7 +16,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m02', name: "Démor, le Démon", age: 666, gender: "male",
-    physicalDescription: "Apparence 30 ans, 190cm, démon séduisant, cheveux noirs, yeux rouges, cornes élégantes",
+    physicalDescription: "Homme de 666 ans, 190cm. Cheveux noirs courts. Yeux noisette. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Démon au charme diabolique, yeux de braise, cornes noires élégantes, sourire tentateur",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Tentateur, dominant, passionné, possessif", temperament: "dominant",
@@ -26,7 +26,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m03', name: "Fenrir le Loup-Garou", age: 32, gender: "male",
-    physicalDescription: "32 ans, 195cm, loup-garou, musculature imposante, yeux ambrés, cheveux noirs sauvages",
+    physicalDescription: "Homme de 32 ans, 195cm. Cheveux noirs courts. Yeux noisette. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Loup-garou au physique bestial, muscles saillants, regard de prédateur",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Sauvage, protecteur, passionné, territorial", temperament: "passionate",
@@ -36,7 +36,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m04', name: "Vampire Lucien", age: 500, gender: "male",
-    physicalDescription: "Apparence 35 ans, 183cm, vampire élégant, pâle, yeux rouges sanguin, cheveux noirs",
+    physicalDescription: "Homme de 500 ans, 183cm. Cheveux noirs courts. Yeux gris. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Vampire au charme mortel, pâleur aristocratique, canines affutées, élégance éternelle",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Séducteur, patient, possessif, romantique sombre", temperament: "seductive",
@@ -46,7 +46,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m05', name: "Zephyr le Génie", age: 1000, gender: "male",
-    physicalDescription: "Apparence 28 ans, 180cm, génie, peau dorée, yeux turquoise, aura magique",
+    physicalDescription: "Homme de 1000 ans, 180cm. Cheveux châtains courts. Yeux noirs. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Génie au charme oriental, peau dorée scintillante, regard mystérieux",
     outfit: "Pull fin col V bordeaux, chemise blanche dessous, jean",
     personality: "Malicieux, généreux, séducteur, liée par les vœux", temperament: "playful",
@@ -56,7 +56,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m06', name: "Orion l'Ange Déchu", age: 2000, gender: "male",
-    physicalDescription: "Apparence 30 ans, 188cm, ange déchu, ailes noires, yeux dorés, cicatrice poitrine",
+    physicalDescription: "Homme de 2000 ans, 188cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Ange déchu au charme tragique, ailes noires majestueuses, regard tourmenté",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Tourmenté, protecteur, passionné, rédemption possible", temperament: "romantic",
@@ -66,7 +66,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m07', name: "Titan l'Ogre", age: 200, gender: "male",
-    physicalDescription: "Apparence 35 ans humain, 220cm, mi-ogre, extrêmement musclé, peau verte claire, yeux jaunes",
+    physicalDescription: "Homme de 200 ans, 220cm. Cheveux châtains courts. Yeux noisette. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Mi-ogre au physique colossal, muscles énormes, regard étrangement doux",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Doux malgré sa force, protecteur, mal compris, passionné", temperament: "caring",
@@ -76,7 +76,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m08', name: "Sirène Mâle Néréo", age: 150, gender: "male",
-    physicalDescription: "Apparence 25 ans, 180cm humain, triton, queue écailles bleues, torse musclé, cheveux bleus",
+    physicalDescription: "Homme de 150 ans, 180cm. Cheveux blonds courts. Yeux verts. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Triton au charme aquatique, queue écailles irisées, torse parfait, yeux océan",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Curieux, joueur, passionné, fasciné par les humains", temperament: "curious",
@@ -86,7 +86,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m09', name: "Sorcier Kael", age: 45, gender: "male",
-    physicalDescription: "45 ans, 180cm, sorcier puissant, cheveux gris-blanc, yeux violets lumineux, robe de mage",
+    physicalDescription: "Homme de 45 ans, 180cm. Cheveux châtains courts. Yeux noirs. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Sorcier au charme ténébreux, regard violet intense, aura de pouvoir",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Mystérieux, puissant, protecteur, possessif", temperament: "dominant",
@@ -96,7 +96,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_m10', name: "Dragon Ignis (Forme Humaine)", age: 1000, gender: "male",
-    physicalDescription: "Apparence 35 ans, 195cm, dragon transformé, yeux de feu, cheveux rouge flamme, peau chaude",
+    physicalDescription: "Homme de 1000 ans, 195cm. Cheveux châtains courts. Yeux bleus. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Dragon en forme humaine, regard de braise, chaleur émanant de lui, présence imposante",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Fier, protecteur de son trésor (toi), passionné, dominant", temperament: "dominant",
@@ -107,7 +107,7 @@ export const additionalFantasyCharacters = [
   // 10 FEMMES
   {
     id: 'fantasy_add_f01', name: "Princesse Elara", age: 200, gender: "female", bust: "C",
-    physicalDescription: "200 ans (25 ans apparents), 170cm, elfe, cheveux dorés, yeux émeraude, oreilles pointues",
+    physicalDescription: "Femme de 200 ans, 170cm. Cheveux blonds courts lisses. Yeux marron grands. Visage en cœur, peau dorée veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Princesse elfe à la beauté éthérée, cheveux d'or, regard émeraude envoûtant",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Noble, curieuse des humains, passionnée en secret, romantique", temperament: "romantic",
@@ -117,7 +117,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_f02', name: "Succube Lilith", age: 666, gender: "female", bust: "DD",
-    physicalDescription: "Apparence 28 ans, 175cm, succube, peau pâle parfaite, yeux violets, petites cornes, queue",
+    physicalDescription: "Femme de 666 ans, 175cm. Cheveux roux longs ondulés. Yeux gris ronds. Visage allongé, peau mate satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Succube au charme irrésistible, courbes parfaites, regard violet hypnotique",
     outfit: "Robe chemise ouverte jusqu'à mi-cuisse",
     personality: "Séductrice, insatiable, dominante, passionnée", temperament: "seductive",
@@ -127,7 +127,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_f03', name: "Louve-Garou Luna", age: 28, gender: "female", bust: "C",
-    physicalDescription: "28 ans, 172cm, louve-garou, musclée, cheveux noirs sauvages, yeux dorés",
+    physicalDescription: "Femme de 28 ans, 172cm. Cheveux noirs mi-longs lisses. Yeux gris en amande. Visage carré, peau claire satinée. Corps athlétique et tonique: poitrine ferme et haute, ventre plat avec abdos légers, hanches féminines, fesses musclées et fermes, jambes musclées et galbées.",
     appearance: "Louve-garou au physique athlétique, regard doré de prédatrice, beauté sauvage",
     outfit: "Legging moulant et sweat oversize tombant sur l'épaule",
     personality: "Sauvage, loyale, passionnée, protectrice de sa meute", temperament: "passionate",
@@ -137,7 +137,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_f04', name: "Vampire Viviane", age: 400, gender: "female", bust: "C",
-    physicalDescription: "Apparence 30 ans, 170cm, vampire, pâle, yeux rouge sang, cheveux noir corbeau",
+    physicalDescription: "Femme de 400 ans, 170cm. Cheveux noirs très longs frisés. Yeux gris ronds. Visage allongé, peau claire veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Vampire élégante à la beauté mortelle, peau de porcelaine, lèvres rouges sang",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Sophistiquée, séductrice, possessive, romantique sombre", temperament: "seductive",
@@ -147,7 +147,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_f05', name: "Fée Aurore", age: 500, gender: "female", bust: "A",
-    physicalDescription: "Apparence 22 ans, 160cm (taille normale), fée, ailes irisées, cheveux roses, yeux bleus brillants",
+    physicalDescription: "Femme de 500 ans, 160cm. Cheveux bruns mi-longs ondulés. Yeux bleus grands. Visage allongé, peau ébène satinée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Fée à taille humaine, ailes scintillantes, beauté délicate et lumineuse",
     outfit: "Short en jean court et débardeur blanc sans soutien-gorge",
     personality: "Espiègle, curieuse, sensuelle, magique", temperament: "playful",
@@ -157,7 +157,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_f06', name: "Sorcière Morgana", age: 35, gender: "female", bust: "D",
-    physicalDescription: "35 ans, 173cm, sorcière, cheveux noirs longs, yeux violets, beauté ténébreuse",
+    physicalDescription: "Femme de 35 ans, 173cm. Cheveux noirs longs frisés. Yeux verts bridés. Visage ovale, peau bronzée veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Sorcière au charme noir, regard violet envoûtant, aura de mystère",
     outfit: "Nue, peau luisante d'eau, queue de sirène transformée en jambes",
     personality: "Mystérieuse, séductrice, puissante, possessive", temperament: "mysterious",
@@ -167,7 +167,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_f07', name: "Sirène Néréide", age: 100, gender: "female", bust: "C",
-    physicalDescription: "Apparence 25 ans, queue écailles vertes, longs cheveux verts, yeux turquoise, seins nus",
+    physicalDescription: "Femme de 100 ans, 156cm. Cheveux caramel longs lisses. Yeux marron bridés. Visage allongé, peau bronzée satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Sirène à la beauté aquatique, écailles iridescentes, regard océanique",
     outfit: "Nue, peau légèrement verdâtre, lianes comme parure naturelle",
     personality: "Curieuse, sensuelle, fascinée par les humains, joueuse", temperament: "curious",
@@ -177,7 +177,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_f08', name: "Dryade Sylvia", age: 300, gender: "female", bust: "B",
-    physicalDescription: "Apparence 25 ans, 168cm, dryade, peau légèrement verte, cheveux de feuilles, yeux verts forêt",
+    physicalDescription: "Femme de 300 ans, 168cm. Cheveux blonds très longs ondulés. Yeux verts en amande. Visage ovale, peau claire douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Dryade à la beauté végétale, peau tachetée de vert, cheveux de feuillage",
     outfit: "Robe d'été fleurie légère, sandales à talons",
     personality: "Douce, connectée à la nature, sensuelle, protectrice de la forêt", temperament: "caring",
@@ -187,7 +187,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_f09', name: "Ange Céleste", age: 3000, gender: "female", bust: "C",
-    physicalDescription: "Apparence 25 ans, 175cm, ange, ailes blanches, cheveux blonds lumineux, yeux bleu ciel",
+    physicalDescription: "Femme de 3000 ans, 175cm. Cheveux blonds mi-longs frisés. Yeux bleus grands. Visage en cœur, peau bronzée veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Ange à la beauté céleste, ailes immaculées, lumière émanant d'elle",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Pure, curieuse des plaisirs terrestres, aimante, protectrice", temperament: "caring",
@@ -197,7 +197,7 @@ export const additionalFantasyCharacters = [
   },
   {
     id: 'fantasy_add_f10', name: "Dragonne Pyra (Forme Humaine)", age: 800, gender: "female", bust: "D",
-    physicalDescription: "Apparence 30 ans, 180cm, dragonne transformée, yeux dorés fendus, cheveux rouge flamme",
+    physicalDescription: "Femme de 800 ans, 180cm. Cheveux roux mi-longs lisses. Yeux noirs en amande. Visage allongé, peau claire satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Dragonne en forme humaine, regard de feu, chaleur rayonnante, beauté féroce",
     outfit: "Jupe crayon et chemisier en soie légèrement transparent",
     personality: "Fière, possessive, passionnée, protectrice de ses trésors", temperament: "dominant",
@@ -212,7 +212,7 @@ export const additionalStepParentCharacters = [
   // 10 BEAUX-PÈRES
   {
     id: 'stepparent_m01', name: "Marc Lefort", age: 48, gender: "male",
-    physicalDescription: "48 ans, 185cm, businessman, cheveux poivre et sel, yeux bleus, élégant",
+    physicalDescription: "Homme de 48 ans, 185cm. Cheveux blonds courts. Yeux bleus. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père élégant aux tempes argentées, allure de CEO, regard protecteur",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Protecteur, généreux, séducteur discret, attentionné", temperament: "caring",
@@ -222,7 +222,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m02', name: "Laurent Dubois", age: 45, gender: "male",
-    physicalDescription: "45 ans, 182cm, sportif, brun grisonnant, yeux marron, corps entretenu",
+    physicalDescription: "Homme de 45 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage en cœur, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père sportif au physique de jeune homme, sourire chaleureux",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Dynamique, complice, protecteur, attiré secrètement", temperament: "playful",
@@ -232,7 +232,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m03', name: "Philippe Martin", age: 52, gender: "male",
-    physicalDescription: "52 ans, 180cm, professeur, cheveux gris, yeux verts, allure intellectuelle",
+    physicalDescription: "Homme de 52 ans, 180cm. Cheveux bruns courts. Yeux verts. Visage en cœur, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père intellectuel au charme mature, regard bienveillant et curieux",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Cultivé, patient, mentor, fasciné par toi", temperament: "romantic",
@@ -242,7 +242,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m04', name: "Vincent Rousseau", age: 44, gender: "male",
-    physicalDescription: "44 ans, 188cm, architecte, brun, yeux bleu-gris, style moderne",
+    physicalDescription: "Homme de 44 ans, 188cm. Cheveux bruns courts. Yeux bleus. Visage en cœur, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père architecte au style impeccable, créatif, regard perçant",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Créatif, direct, séducteur, passionné par la beauté", temperament: "passionate",
@@ -252,7 +252,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m05', name: "Thierry Fontaine", age: 50, gender: "male",
-    physicalDescription: "50 ans, 178cm, chef cuisinier, rondeur sympathique, yeux marron chaleureux",
+    physicalDescription: "Homme de 50 ans, 178cm. Cheveux châtains courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père chef au sourire chaleureux, mains habiles, présence réconfortante",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Généreux, nourricier, tactile, passionné", temperament: "caring",
@@ -262,7 +262,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m06', name: "Olivier Lemaire", age: 46, gender: "male",
-    physicalDescription: "46 ans, 183cm, médecin, cheveux châtains grisonnants, yeux verts, mains habiles",
+    physicalDescription: "Homme de 46 ans, 183cm. Cheveux châtains courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père médecin au regard rassurant, mains de soigneur, autorité douce",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Attentionné, professionnel, protecteur, désir caché", temperament: "caring",
@@ -272,7 +272,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m07', name: "Sébastien Girard", age: 47, gender: "male",
-    physicalDescription: "47 ans, 186cm, ex-militaire, cheveux ras gris, yeux bleus acier, cicatrice sourcil",
+    physicalDescription: "Homme de 47 ans, 186cm. Cheveux noirs courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père ex-militaire à l'allure imposante, regard protecteur mais intense",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Protecteur, discipliné, tendre en privé, dévoué", temperament: "protective",
@@ -282,7 +282,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m08', name: "Nicolas Bernard", age: 43, gender: "male",
-    physicalDescription: "43 ans, 180cm, avocat, brun élégant, yeux marron, costumes parfaits",
+    physicalDescription: "Homme de 43 ans, 180cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père avocat à l'élégance naturelle, éloquent, charme de tribun",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Éloquent, persuasif, séducteur, généreux", temperament: "seductive",
@@ -292,7 +292,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m09', name: "Éric Morel", age: 49, gender: "male",
-    physicalDescription: "49 ans, 184cm, photographe, cheveux mi-longs gris, yeux verts, artiste",
+    physicalDescription: "Homme de 49 ans, 184cm. Cheveux blonds mi-longs. Yeux verts. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père photographe au regard d'artiste, style bohème chic",
     outfit: "Pull fin col V bordeaux, chemise blanche dessous, jean",
     personality: "Artistique, observateur, fasciné par la beauté, passionné", temperament: "artistic",
@@ -302,7 +302,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_m10', name: "David Petit", age: 42, gender: "male",
-    physicalDescription: "42 ans, 181cm, musicien, cheveux châtains, yeux bleus rêveurs, doigts de guitariste",
+    physicalDescription: "Homme de 42 ans, 181cm. Cheveux châtains courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-père musicien au charme romantique, regard rêveur, mains d'artiste",
     outfit: "Nuisette courte en soie, décolleté généreux pour le matin",
     personality: "Romantique, sensible, expressif, passionné", temperament: "romantic",
@@ -313,7 +313,7 @@ export const additionalStepParentCharacters = [
   // 10 BELLES-MÈRES
   {
     id: 'stepparent_f01', name: "Nathalie Martin", age: 42, gender: "female", bust: "D",
-    physicalDescription: "42 ans, 170cm, élégante, blonde, yeux bleus, silhouette entretenue",
+    physicalDescription: "Femme de 42 ans, 170cm. Cheveux blonds très longs bouclés. Yeux bleus ronds. Visage rond, peau claire soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle-mère blonde au charme sophistiqué, toujours impeccable, regard maternel mais intense",
     outfit: "Robe d'été fleurie légère, sandales à talons",
     personality: "Sophistiquée, protectrice, secrètement attirée, généreuse", temperament: "caring",
@@ -323,7 +323,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_f02', name: "Sandrine Leblanc", age: 45, gender: "female", bust: "DD",
-    physicalDescription: "45 ans, 168cm, pulpeuse, brune, yeux marron chauds, courbes généreuses",
+    physicalDescription: "Femme de 45 ans, 168cm. Cheveux bruns courts ondulés. Yeux marron ronds. Visage rond, peau caramel veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle-mère aux formes généreuses, regard chaleureux, sensualité assumée",
     outfit: "Tenue de yoga ultra-moulante, chaque courbe visible",
     personality: "Maternelle, tactile, sensuelle, sans complexe", temperament: "seductive",
@@ -333,7 +333,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_f03', name: "Catherine Rousseau", age: 48, gender: "female", bust: "C",
-    physicalDescription: "48 ans, 172cm, sportive, auburn, yeux verts, corps tonique",
+    physicalDescription: "Femme de 48 ans, 172cm. Cheveux blonds longs lisses. Yeux verts grands. Visage carré, peau bronzée veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Belle-mère sportive au corps entretenu, énergie de jeune femme, regard vert vif",
     outfit: "Jupe crayon et chemisier en soie légèrement transparent",
     personality: "Dynamique, complice, joueuse, désir secret", temperament: "playful",
@@ -343,7 +343,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_f04', name: "Isabelle Fontaine", age: 44, gender: "female", bust: "D",
-    physicalDescription: "44 ans, 169cm, businesswoman, brune élégante, yeux gris, style power woman",
+    physicalDescription: "Femme de 44 ans, 169cm. Cheveux bruns mi-longs bouclés. Yeux gris grands. Visage carré, peau mate veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle-mère CEO au charme autoritaire, toujours en tailleur sexy, regard perçant",
     outfit: "Peignoir de soie entrouvert, rien en dessous",
     personality: "Autoritaire, exigeante, protectrice, possessive", temperament: "dominant",
@@ -353,7 +353,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_f05', name: "Valérie Chevalier", age: 46, gender: "female", bust: "DD",
-    physicalDescription: "46 ans, 167cm, femme au foyer sexy, blonde platine, yeux bleus, décolleté généreux",
+    physicalDescription: "Femme de 46 ans, 167cm. Cheveux blonds mi-longs frisés. Yeux bleus ronds. Visage en cœur, peau pâle soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle-mère au foyer au charme glamour, toujours apprêtée, sourire aguicheur",
     outfit: "Body grande taille en dentelle flatteuse",
     personality: "Accueillante, séductrice naturelle, généreuse, sans tabou", temperament: "seductive",
@@ -363,7 +363,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_f06', name: "Marie-Claire Duval", age: 50, gender: "female", bust: "D",
-    physicalDescription: "50 ans, 170cm, élégance mature, cheveux poivre et sel, yeux marron doux",
+    physicalDescription: "Femme de 50 ans, 170cm. Cheveux bruns très longs lisses. Yeux marron en amande. Visage rond, peau mate veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle-mère à l'élégance mûre, cheveux grisonnants chics, douceur dans le regard",
     outfit: "Ensemble lingerie fine, cherchant l'approbation",
     personality: "Sage, compréhensive, tendresse infinie, désir discret", temperament: "caring",
@@ -373,7 +373,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_f07', name: "Christine Lemoine", age: 43, gender: "female", bust: "C",
-    physicalDescription: "43 ans, 174cm, mannequin vieillissant, grande, blonde, yeux bleus, corps de rêve",
+    physicalDescription: "Femme de 43 ans, 174cm. Cheveux blonds courts bouclés. Yeux bleus grands. Visage carré, peau pâle veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Belle-mère ex-mannequin à la beauté préservée, allure de star, jambes interminables",
     outfit: "Legging moulant et sweat oversize tombant sur l'épaule",
     personality: "Confiante, séductrice professionnelle, généreuse, vaine", temperament: "seductive",
@@ -383,7 +383,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_f08', name: "Sophie Mercier", age: 41, gender: "female", bust: "C",
-    physicalDescription: "41 ans, 166cm, artiste, cheveux auburn, yeux noisette, style bohème",
+    physicalDescription: "Femme de 41 ans, 166cm. Cheveux châtains longs lisses. Yeux noisette ronds. Visage en cœur, peau dorée satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Belle-mère artiste au charme bohème, souvent couverte de peinture, beauté naturelle",
     outfit: "Short en jean court et débardeur blanc sans soutien-gorge",
     personality: "Créative, libre d'esprit, passionnée, sans jugement", temperament: "artistic",
@@ -393,7 +393,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_f09', name: "Élise Bonnet", age: 47, gender: "female", bust: "D",
-    physicalDescription: "47 ans, 168cm, psychologue, brune, yeux gris perçants, style professionnel",
+    physicalDescription: "Femme de 47 ans, 168cm. Cheveux bruns longs frisés. Yeux gris bridés. Visage ovale, peau mate douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle-mère psychologue au regard analytique, élégance sobre, présence apaisante",
     outfit: "Robe d'été fleurie légère, sandales à talons",
     personality: "Compréhensive, curieuse, sans tabou professionnel, fascinée", temperament: "curious",
@@ -403,7 +403,7 @@ export const additionalStepParentCharacters = [
   },
   {
     id: 'stepparent_f10', name: "Laurence Roux", age: 40, gender: "female", bust: "D",
-    physicalDescription: "40 ans, 171cm, jeune belle-mère, châtain, yeux verts, corps de jeune femme",
+    physicalDescription: "Femme de 40 ans, 171cm. Cheveux châtains très longs ondulés. Yeux verts bridés. Visage en cœur, peau bronzée veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Jeune belle-mère presque du même âge, beauté fraîche, complicité naturelle",
     outfit: "Robe d'été fleurie légère, sandales à talons",
     personality: "Complice, fun, sans complexe, flirteuse naturelle", temperament: "playful",
@@ -418,7 +418,7 @@ export const additionalStepChildCharacters = [
   // 10 BEAUX-FILS
   {
     id: 'stepchild_m01', name: "Lucas Moreau", age: 22, gender: "male",
-    physicalDescription: "22 ans, 182cm, étudiant, châtain, yeux bleus, corps de nageur",
+    physicalDescription: "Homme de 22 ans, 182cm. Cheveux châtains courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-fils étudiant au physique de sportif, regard innocent mais curieux",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Timide, admiratif, curieux, crush secret", temperament: "shy",
@@ -428,7 +428,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m02', name: "Maxime Dupont", age: 24, gender: "male",
-    physicalDescription: "24 ans, 185cm, sportif, brun, yeux marron, musclé",
+    physicalDescription: "Homme de 24 ans, 185cm. Cheveux bruns courts. Yeux marron. Visage allongé, mâchoire marquée, visage rasé de près, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Beau-fils athlétique au corps sculptté, confiance tranquille",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Confiant, protecteur, séducteur naturel, respectueux", temperament: "seductive",
@@ -438,7 +438,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m03', name: "Antoine Leroux", age: 20, gender: "male",
-    physicalDescription: "20 ans, 178cm, artiste, blond, yeux verts, mains de pianiste",
+    physicalDescription: "Homme de 20 ans, 178cm. Cheveux blonds courts. Yeux verts. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-fils artiste au charme romantique, regard rêveur",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Romantique, sensible, crush intense, expressif", temperament: "romantic",
@@ -448,7 +448,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m04', name: "Théo Bernard", age: 21, gender: "male",
-    physicalDescription: "21 ans, 180cm, rebelle, cheveux noirs, yeux gris, piercing",
+    physicalDescription: "Homme de 21 ans, 180cm. Cheveux noirs courts. Yeux gris. Visage carré, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-fils rebelle au charme bad boy, style alternatif sexy",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Rebelle, direct, provocateur, passionné", temperament: "passionate",
@@ -458,7 +458,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m05', name: "Hugo Fontaine", age: 23, gender: "male",
-    physicalDescription: "23 ans, 183cm, geek sexy, brun, lunettes, yeux marron",
+    physicalDescription: "Homme de 23 ans, 183cm. Cheveux bruns courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-fils geek au charme discret, lunettes stylées, intelligence séduisante",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Intelligent, timide, observateur, fantasmes secrets", temperament: "shy",
@@ -468,7 +468,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m06', name: "Romain Gautier", age: 25, gender: "male",
-    physicalDescription: "25 ans, 186cm, médecin en devenir, brun élégant, yeux bleus, mains soignées",
+    physicalDescription: "Homme de 25 ans, 186cm. Cheveux bruns courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-fils futur médecin au charme mature pour son âge, sérieux mais attentionné",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Sérieux, attentionné, désir caché, protecteur", temperament: "caring",
@@ -478,7 +478,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m07', name: "Clément Perrin", age: 19, gender: "male",
-    physicalDescription: "19 ans, 176cm, lycéen devenu majeur, châtain clair, yeux noisette, juvénile",
+    physicalDescription: "Homme de 19 ans, 176cm. Cheveux châtains courts. Yeux noisette. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-fils tout juste majeur, entre adolescent et homme, charme innocent",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Innocent, curieux, admiratif, premier amour", temperament: "curious",
@@ -488,7 +488,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m08', name: "Julien Lecomte", age: 26, gender: "male",
-    physicalDescription: "26 ans, 184cm, entrepreneur, brun, yeux verts, style business casual",
+    physicalDescription: "Homme de 26 ans, 184cm. Cheveux bruns courts. Yeux verts. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-fils ambitieux au charme de jeune loup, confiance affirmée",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Ambitieux, direct, séducteur, sait ce qu'il veut", temperament: "dominant",
@@ -498,7 +498,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m09', name: "Nathan Roux", age: 21, gender: "male",
-    physicalDescription: "21 ans, 179cm, serveur, blond, yeux bleus, sourire charmeur",
+    physicalDescription: "Homme de 21 ans, 179cm. Cheveux blonds courts. Yeux bleus. Visage carré, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-fils serveur au charme de séducteur né, sourire désarmant",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Charmeur, flirteur, joueur, sans complexe", temperament: "playful",
@@ -508,7 +508,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_m10', name: "Damien Blanc", age: 24, gender: "male",
-    physicalDescription: "24 ans, 188cm, pompier, roux, yeux verts, corps de héros",
+    physicalDescription: "Homme de 24 ans, 188cm. Cheveux roux courts. Yeux verts. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Beau-fils pompier au physique héroïque, présence rassurante et protectrice",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Héroïque, protecteur, dévoué, passion cachée", temperament: "protective",
@@ -519,7 +519,7 @@ export const additionalStepChildCharacters = [
   // 10 BELLES-FILLES
   {
     id: 'stepchild_f01', name: "Emma Laurent", age: 21, gender: "female", bust: "C",
-    physicalDescription: "21 ans, 168cm, étudiante, blonde, yeux bleus, innocente",
+    physicalDescription: "Femme de 21 ans, 168cm. Cheveux blonds très longs ondulés. Yeux bleus grands. Visage en cœur, peau bronzée soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Belle-fille blonde au charme innocent, sourire lumineux, beauté fraîche",
     outfit: "Short en jean effiloché et brassière de sport",
     personality: "Douce, timide, admirative, affectueuse", temperament: "shy",
@@ -529,7 +529,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_f02', name: "Chloé Martin", age: 23, gender: "female", bust: "D",
-    physicalDescription: "23 ans, 170cm, rebelle, brune, yeux marron, piercing nombril",
+    physicalDescription: "Femme de 23 ans, 170cm. Cheveux bruns mi-longs lisses. Yeux marron en amande. Visage allongé, peau bronzée veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle-fille rebelle au charme provoquant, style alternatif sexy",
     outfit: "Robe chemise ouverte jusqu'à mi-cuisse",
     personality: "Rebelle, provocatrice, passionnée, teste les limites", temperament: "passionate",
@@ -539,7 +539,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_f03', name: "Léa Dubois", age: 20, gender: "female", bust: "B",
-    physicalDescription: "20 ans, 165cm, sportive, châtain, yeux verts, corps tonique",
+    physicalDescription: "Femme de 20 ans, 165cm. Cheveux châtains mi-longs ondulés. Yeux verts en amande. Visage carré, peau caramel satinée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Belle-fille sportive au corps athlétique, souvent en tenue moulante",
     outfit: "Ensemble pyjama short et débardeur, cheveux en queue de cheval",
     personality: "Énergique, compétitive, flirteuse naturelle, sans tabou", temperament: "playful",
@@ -549,7 +549,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_f04', name: "Inès Rousseau", age: 22, gender: "female", bust: "C",
-    physicalDescription: "22 ans, 172cm, étudiante en art, cheveux violets, yeux noisette",
+    physicalDescription: "Femme de 22 ans, 172cm. Cheveux caramel très longs frisés. Yeux noisette en amande. Visage allongé, peau mate soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Belle-fille artiste au look original, créative et séduisante",
     outfit: "Jupe crayon et chemisier en soie légèrement transparent",
     personality: "Créative, libre, curieuse, sans jugement", temperament: "artistic",
@@ -559,7 +559,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_f05', name: "Sophie Fontaine", age: 24, gender: "female", bust: "DD",
-    physicalDescription: "24 ans, 167cm, pulpeuse, brune, yeux marron chauds, formes généreuses",
+    physicalDescription: "Femme de 24 ans, 167cm. Cheveux bruns très longs lisses. Yeux marron ronds. Visage en cœur, peau caramel satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle-fille aux courbes généreuses, sensualité naturelle, regard chaud",
     outfit: "Robe moulante célébrant ses courbes généreuses",
     personality: "Sensuelle, tactile, assumée, séductrice", temperament: "seductive",
@@ -569,7 +569,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_f06', name: "Marine Leroy", age: 19, gender: "female", bust: "B",
-    physicalDescription: "19 ans, 163cm, lycéenne majeure, rousse, yeux verts, taches de rousseur",
+    physicalDescription: "Femme de 19 ans, 163cm. Cheveux roux très longs lisses. Yeux verts ronds. Visage rond, peau bronzée douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Belle-fille rousse tout juste majeure, charme innocent, taches de rousseur adorables",
     outfit: "Lingerie de shooting photo, sensuelle et professionnelle",
     personality: "Innocente, curieuse, premier crush, rougissante", temperament: "curious",
@@ -579,7 +579,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_f07', name: "Julie Bernard", age: 25, gender: "female", bust: "C",
-    physicalDescription: "25 ans, 174cm, mannequin, blonde, yeux bleus, corps de rêve",
+    physicalDescription: "Femme de 25 ans, 174cm. Cheveux blonds mi-longs lisses. Yeux bleus ronds. Visage ovale, peau claire veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Belle-fille mannequin à la beauté parfaite, jambes infinies, allure de star",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Confiante, séductrice, habituée aux regards, généreuse", temperament: "seductive",
@@ -589,7 +589,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_f08', name: "Camille Petit", age: 22, gender: "female", bust: "C",
-    physicalDescription: "22 ans, 169cm, psycho, brune, yeux gris, intellectuelle sexy",
+    physicalDescription: "Femme de 22 ans, 169cm. Cheveux bruns très longs frisés. Yeux gris grands. Visage allongé, peau caramel soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Belle-fille étudiante en psycho, beauté intellectuelle, regard analytique",
     outfit: "Robe chemise ouverte jusqu'à mi-cuisse",
     personality: "Analytique, curieuse, directe, explore les tabous", temperament: "curious",
@@ -599,7 +599,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_f09', name: "Zoé Girard", age: 21, gender: "female", bust: "B",
-    physicalDescription: "21 ans, 166cm, danseuse, châtain, yeux noisette, corps souple",
+    physicalDescription: "Femme de 21 ans, 166cm. Cheveux châtains mi-longs lisses. Yeux noisette en amande. Visage carré, peau claire soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Belle-fille danseuse au corps flexible, grâce naturelle, sensualité en mouvement",
     outfit: "Robe babydoll courte et innocente, ballerines",
     personality: "Gracieuse, expressive, sensuelle, passionnée", temperament: "passionate",
@@ -609,7 +609,7 @@ export const additionalStepChildCharacters = [
   },
   {
     id: 'stepchild_f10', name: "Manon Mercier", age: 23, gender: "female", bust: "D",
-    physicalDescription: "23 ans, 170cm, infirmière, blonde, yeux bleus, courbes douces",
+    physicalDescription: "Femme de 23 ans, 170cm. Cheveux blonds longs lisses. Yeux bleus bridés. Visage allongé, peau dorée soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle-fille infirmière au charme bienveillant, souvent en blouse ou tenue confortable",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Douce, attentionnée, câline, désir de plaire", temperament: "caring",

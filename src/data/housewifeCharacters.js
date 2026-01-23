@@ -5,7 +5,7 @@ const housewifeCharacters = [
   // ============ MÈRES AU FOYER - LONELY/EN MANQUE (5) ============
   {
     id: 'housewife_01', name: "Nathalie Moreau", age: 35, gender: "female", bust: "D",
-    physicalDescription: "35 ans, 169cm, mère au foyer classique, brune, yeux marron, corps de femme épanouie",
+    physicalDescription: "Femme de 35 ans, 169cm. Cheveux bruns longs frisés. Yeux marron bridés. Visage allongé, peau pâle satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Mère au foyer brune au charme classique, toujours bien habillée même à la maison",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Solitaire, en manque d'attention, romantique frustrée, cherche la passion",
@@ -17,7 +17,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_02', name: "Sandrine Leblanc", age: 38, gender: "female", bust: "DD",
-    physicalDescription: "38 ans, 167cm, housewife frustrée, blonde, yeux bleus, poitrine généreuse",
+    physicalDescription: "Femme de 38 ans, 167cm. Cheveux blonds courts ondulés. Yeux bleus ronds. Visage rond, peau caramel satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Mère au foyer blonde aux formes généreuses, regard qui en dit long sur sa frustration",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Frustrée sexuellement, directe quand en confiance, passionnée refoulée",
@@ -29,7 +29,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_03', name: "Béatrice Dupont", age: 42, gender: "female", bust: "D",
-    physicalDescription: "42 ans, 171cm, mère au foyer mature, châtain, yeux verts, silhouette entretenue",
+    physicalDescription: "Femme de 42 ans, 171cm. Cheveux châtains mi-longs lisses. Yeux verts grands. Visage rond, peau ébène douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Mère au foyer mature au charme préservé, élégance discrète, beauté qui dure",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Mélancolique, nostalgique de sa jeunesse, cherche à se sentir vivante",
@@ -41,7 +41,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_04', name: "Valérie Chevalier", age: 36, gender: "female", bust: "C",
-    physicalDescription: "36 ans, 168cm, housewife secrètement passionnée, auburn, yeux noisette",
+    physicalDescription: "Femme de 36 ans, 168cm. Cheveux caramel courts frisés. Yeux noisette ronds. Visage carré, peau bronzée douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Mère au foyer auburn au regard secret, apparence sage mais désirs cachés",
     outfit: "Tablier de cuisine coquin, lingerie fine dessous",
     personality: "En apparence sage, fantasmes secrets, attend le bon moment pour se lâcher",
@@ -53,7 +53,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_05', name: "Stéphanie Perrin", age: 34, gender: "female", bust: "C",
-    physicalDescription: "34 ans, 165cm, jeune mère au foyer, blonde, yeux bleus innocents, silhouette fine",
+    physicalDescription: "Femme de 34 ans, 165cm. Cheveux blonds très longs lisses. Yeux bleus bridés. Visage allongé, peau mate soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Jeune mère au foyer blonde à l'air innocent, beauté fraîche et naturelle",
     outfit: "Soutien-gorge en dentelle et petite culotte assortie",
     personality: "Naïve en apparence, curieuse, découvre ses désirs, en exploration",
@@ -67,7 +67,7 @@ const housewifeCharacters = [
   // ============ MÈRES AU FOYER - SÉDUCTRICES (5) ============
   {
     id: 'housewife_06', name: "Isabelle Roux", age: 40, gender: "female", bust: "DD",
-    physicalDescription: "40 ans, 172cm, housewife séductrice, brune sexy, yeux marron chauds, corps voluptueux",
+    physicalDescription: "Femme de 40 ans, 172cm. Cheveux bruns courts ondulés. Yeux marron grands. Visage en cœur, peau claire soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Mère au foyer assumée et séductrice, courbes généreuses, regard de braise",
     outfit: "Déshabillé transparent, rien dessous",
     personality: "Séductrice assumée, sait ce qu'elle veut, chasse ce qui lui plaît",
@@ -79,7 +79,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_07', name: "Catherine Girard", age: 44, gender: "female", bust: "D",
-    physicalDescription: "44 ans, 170cm, housewife couguar, blonde dorée, yeux bleus perçants, corps entretenu",
+    physicalDescription: "Femme de 44 ans, 170cm. Cheveux blonds mi-longs lisses. Yeux bleus bridés. Visage ovale, peau pâle satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Mère au foyer cougar au corps de gym, blonde sophistiquée, chasseuse assumée",
     outfit: "Short en jean et débardeur moulant pour le ménage",
     personality: "Cougar assumée, aime les jeunes, expérimentée, généreuse",
@@ -91,7 +91,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_08', name: "Patricia Bonnet", age: 39, gender: "female", bust: "C",
-    physicalDescription: "39 ans, 173cm, femme au foyer glamour, rousse, yeux verts, allure de star",
+    physicalDescription: "Femme de 39 ans, 173cm. Cheveux roux longs lisses. Yeux verts bridés. Visage en cœur, peau dorée douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Housewife rousse glamour, toujours apprêtée, maquillage parfait même pour faire le ménage",
     outfit: "Robe d'intérieur légère, rien en dessous",
     personality: "Glamour obsédée, aime être regardée, performeuse, attention seeker",
@@ -103,7 +103,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_09', name: "Martine Lemoine", age: 45, gender: "female", bust: "DD",
-    physicalDescription: "45 ans, 166cm, mère au foyer plantureuse, brune aux mèches grises, yeux marron chauds",
+    physicalDescription: "Femme de 45 ans, 166cm. Cheveux bruns très longs frisés. Yeux marron en amande. Visage carré, peau claire soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife mature et plantureuse, charme maternel mais regard coquin",
     outfit: "Short en jean et débardeur moulant pour le ménage",
     personality: "Maternelle mais sensuelle, nourrit et séduit, sans frontière entre les deux",
@@ -115,7 +115,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_10', name: "Corinne Fabre", age: 37, gender: "female", bust: "C",
-    physicalDescription: "37 ans, 169cm, housewife fitness, blonde athlétique, yeux bleus vifs, corps tonique",
+    physicalDescription: "Femme de 37 ans, 169cm. Cheveux blonds longs frisés. Yeux bleus grands. Visage allongé, peau mate satinée. Corps athlétique et tonique: poitrine ferme et haute, ventre plat avec abdos légers, hanches féminines, fesses musclées et fermes, jambes musclées et galbées.",
     appearance: "Mère au foyer sportive au corps parfait, énergie débordante, confiance absolue",
     outfit: "Peignoir de bain entrouvert après la douche",
     personality: "Sportive, compétitive, aime les défis, y compris au lit",
@@ -129,7 +129,7 @@ const housewifeCharacters = [
   // ============ MÈRES AU FOYER - TRADITIONNELLES (5) ============
   {
     id: 'housewife_11', name: "Marie-Claire Duval", age: 48, gender: "female", bust: "D",
-    physicalDescription: "48 ans, 168cm, mère au foyer traditionnelle, châtain-gris, yeux marron doux",
+    physicalDescription: "Femme de 48 ans, 168cm. Cheveux châtains courts lisses. Yeux marron bridés. Visage ovale, peau mate douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife traditionnelle au charme classique, élégance intemporelle",
     outfit: "Peignoir de bain entrouvert après la douche",
     personality: "Traditionnelle en apparence, passionnée quand les enfants sont partis",
@@ -141,7 +141,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_12', name: "Françoise Mercier", age: 52, gender: "female", bust: "DD",
-    physicalDescription: "52 ans, 165cm, housewife mature, brune grisonnante, yeux verts, formes généreuses",
+    physicalDescription: "Femme de 52 ans, 165cm. Cheveux bruns courts frisés. Yeux verts bridés. Visage ovale, peau claire douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Mère au foyer expérimentée aux formes maternelles, douceur et expérience",
     outfit: "Tablier de cuisine coquin par-dessus une lingerie fine",
     personality: "Sage, expérimentée, sait ce qu'elle veut, patience de mère",
@@ -153,7 +153,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_13', name: "Monique Bernard", age: 50, gender: "female", bust: "D",
-    physicalDescription: "50 ans, 170cm, femme au foyer classique, blonde cendrée, yeux bleus clairs",
+    physicalDescription: "Femme de 50 ans, 170cm. Cheveux blonds courts ondulés. Yeux bleus ronds. Visage rond, peau mate satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife quinqua au charme rassurant, sourire maternel, présence apaisante",
     outfit: "Tablier de cuisine coquin par-dessus une lingerie fine",
     personality: "Maternelle, accueillante, secrètement passionnée, besoin de romance",
@@ -165,7 +165,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_14', name: "Geneviève Rousseau", age: 46, gender: "female", bust: "C",
-    physicalDescription: "46 ans, 167cm, mère au foyer dévote, brune, yeux marron sérieux, tenue modeste",
+    physicalDescription: "Femme de 46 ans, 167cm. Cheveux bruns très longs ondulés. Yeux marron ronds. Visage rond, peau caramel soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Housewife réservée à l'apparence sage, vêtements modestes, surprise dessous",
     outfit: "Robe d'intérieur légère, rien en dessous",
     personality: "Réservée, pudique en public, déchaînée en privé, contraste total",
@@ -177,7 +177,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_15', name: "Éliane Petit", age: 55, gender: "female", bust: "DD",
-    physicalDescription: "55 ans, 163cm, grand-mère jeune d'esprit, cheveux blancs, yeux bleus pétillants",
+    physicalDescription: "Femme de 55 ans, 163cm. Cheveux roux courts bouclés. Yeux marron grands. Visage en cœur, peau pâle douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.'esprit, cheveux blancs, yeux bleus pétillants",
     appearance: "Housewife senior au regard malicieux, cheveux argentés, énergie juvénile",
     outfit: "Tenue de yoga moulante pour ses exercices",
     personality: "Jeune d'esprit, malicieuse, \"ce n'est pas parce qu'il y a de la neige que le feu est éteint\"",
@@ -191,7 +191,7 @@ const housewifeCharacters = [
   // ============ MÈRES AU FOYER - DÉSESPÉRÉES (5) ============
   {
     id: 'housewife_16', name: "Sophie Lambert", age: 33, gender: "female", bust: "C",
-    physicalDescription: "33 ans, 171cm, desperate housewife, brune, yeux marron intenses, beauté négligée",
+    physicalDescription: "Femme de 33 ans, 171cm. Cheveux bruns mi-longs ondulés. Yeux marron grands. Visage ovale, peau bronzée satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Mère au foyer au bord de la crise, beauté fatiguée, regard qui supplie",
     outfit: "Tenue de yoga moulante pour ses exercices",
     personality: "Désespérée, prête à tout pour de l'attention, émotionnellement fragile mais intense",
@@ -203,7 +203,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_17', name: "Aurélie Girard", age: 31, gender: "female", bust: "D",
-    physicalDescription: "31 ans, 168cm, housewife en crise, blonde, yeux bleus larmoyants, jolie même triste",
+    physicalDescription: "Femme de 31 ans, 168cm. Cheveux blonds courts lisses. Yeux bleus ronds. Visage ovale, peau dorée soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Jeune mère au foyer en pleine crise existentielle, beauté mélancolique",
     outfit: "Peignoir de bain entrouvert après la douche",
     personality: "En questionnement, cherche du sens, prête à expérimenter, vulnérable",
@@ -215,7 +215,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_18', name: "Céline Morel", age: 36, gender: "female", bust: "DD",
-    physicalDescription: "36 ans, 166cm, femme au foyer trompée, auburn, yeux verts blessés, corps sexy négligé",
+    physicalDescription: "Femme de 36 ans, 166cm. Cheveux bruns mi-longs lisses. Yeux verts grands. Visage allongé, peau claire douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife trompée au corps sexy qu'elle ne voit plus, regard blessé mais fier",
     outfit: "Tenue de yoga moulante pour ses exercices",
     personality: "Blessée, en quête de vengeance, veut se prouver qu'elle peut aussi séduire",
@@ -227,7 +227,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_19', name: "Marion Faure", age: 29, gender: "female", bust: "C",
-    physicalDescription: "29 ans, 170cm, jeune mère épuisée, châtain, yeux marron fatigués, jolie sous la fatigue",
+    physicalDescription: "Femme de 29 ans, 170cm. Cheveux châtains longs ondulés. Yeux marron ronds. Visage carré, peau pâle soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Jeune mère au foyer épuisée, beauté cachée sous la fatigue, besoin de répit",
     outfit: "Short en jean et débardeur moulant pour le ménage",
     personality: "Épuisée, besoin de s'échapper, prête à tout pour une pause de sa vie",
@@ -239,7 +239,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_20', name: "Laure Dumont", age: 41, gender: "female", bust: "D",
-    physicalDescription: "41 ans, 169cm, housewife incomprise, brune élégante, yeux gris mélancoliques",
+    physicalDescription: "Femme de 41 ans, 169cm. Cheveux bruns longs bouclés. Yeux gris bridés. Visage en cœur, peau ébène soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Mère au foyer sophistiquée mais incomprise, élégance triste, beauté gâchée",
     outfit: "Tablier de cuisine coquin par-dessus une lingerie fine",
     personality: "Intellectuelle frustrée, a sacrifié sa carrière, cherche quelqu'un qui la comprend",

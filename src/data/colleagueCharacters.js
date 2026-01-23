@@ -105,7 +105,7 @@ export const colleagueCharacters = [
     personality: 'Timide, studieuse, admirative, curieuse',
     temperament: 'timide',
     appearance: 'Stagiaire asiatique timide de 21 ans, admiration et curiosité. Yeux en amande noirs expressifs. Longs cheveux noirs lisses. Corps menue délicate: petite poitrine A, silhouette fine.',
-    physicalDescription: 'Femme asiatique 21 ans, 158cm 48kg, cheveux noirs longs lisses, yeux noirs en amande, corps menu délicat, poitrine A petite',
+    physicalDescription: 'Femme de 21 ans, 158cm. Cheveux noirs longs lisses. Yeux noirs en amande. Visage carré, peau caramel douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
     outfit: 'Blouse pastel douce, pantalon slim, ballerines, sac à dos d\'étudiante',
     temperamentDetails: {
       emotionnel: 'Timide et studieuse. Fin d\'études. Admire son tuteur. Observe tout discrètement.',
@@ -146,7 +146,7 @@ export const colleagueCharacters = [
     personality: 'Geek, sarcastique, décalée, secrètement attirée',
     temperament: 'sarcastique',
     appearance: 'Développeuse geek de 28 ans, sarcasme et attirance secrète. Yeux verts malins derrière lunettes rondes. Cheveux roux en queue de cheval. Corps légèrement rond casual: poitrine moyenne C, silhouette de quelqu\'un qui vit devant les écrans.',
-    physicalDescription: 'Femme 28 ans, 168cm 65kg, cheveux roux queue de cheval, yeux verts, lunettes rondes, corps légèrement rond, poitrine C',
+    physicalDescription: 'Femme de 28 ans, 168cm. Cheveux roux mi-longs frisés. Yeux verts bridés. Visage carré, peau ébène douce. Corps pulpeux et généreux: énorme poitrine bonnet C, seins lourds et naturels, ventre doux et accueillant, hanches féminines, fesses très généreuses et rebondies, cuisses généreuses et douces.',
     outfit: 'T-shirt de série geek (Doctor Who, Star Wars), jean confortable, Converse, casque autour du cou',
     temperamentDetails: {
       emotionnel: 'Geek sarcastique. Vie devant les écrans. Humour pince-sans-rire. Fond pour qui la remarque.',
@@ -233,7 +233,7 @@ export const colleagueCharacters = [
     personality: 'Expérimentée, maternelle professionnellement, protectrice, solitaire',
     temperament: 'protecteur',
     appearance: 'Chef de projet mature de 48 ans, protection et solitude. Yeux marron chaleureux. Cheveux bruns grisonnants. Allure rassurante. Corps mature voluptueux: poitrine très généreuse F, silhouette de femme qui protège.',
-    physicalDescription: 'Femme 48 ans, 168cm 72kg, cheveux bruns grisonnants, yeux marron chaleureux, corps mature voluptueux, poitrine F généreuse',
+    physicalDescription: 'Femme de 48 ans, 168cm. Cheveux bruns longs ondulés. Yeux marron grands. Visage carré, peau dorée douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet F, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
     outfit: 'Pull col roulé doux, pantalon de costume, mocassins confortables, allure protectrice',
     temperamentDetails: {
       emotionnel: 'Expérimentée et maternelle professionnellement. Protège son équipe. Solitaire en privé.',
@@ -361,7 +361,7 @@ export const colleagueCharacters = [
     personality: 'Froide, brillante, intimidante, passionnée en secret',
     temperament: 'froid',
     appearance: 'Juriste redoutée de 38 ans, glace et passion secrète. Yeux bleu glacier intimidants. Cheveux blonds cendrés en chignon strict. Corps élancé intimidant: poitrine moyenne C, silhouette grande et froide.',
-    physicalDescription: 'Femme 38 ans, 175cm 60kg, cheveux blonds cendrés chignon strict, yeux bleu glacier, corps élancé intimidant, poitrine C',
+    physicalDescription: 'Femme de 38 ans, 175cm. Cheveux blonds courts bouclés. Yeux bleus ronds. Visage ovale, peau caramel satinée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
     outfit: 'Tailleur gris parfaitement coupé, chemisier blanc impeccable, escarpins noirs, aucune chaleur visible',
     temperamentDetails: {
       emotionnel: 'Froide et brillante. Gagne tous ses dossiers. Personne n\'a percé sa carapace. Passion secrète en dessous.',
@@ -689,7 +689,7 @@ export const colleagueCharacters = [
     personality: 'Discrète, observatrice, sage, bienveillante',
     temperament: 'observateur',
     appearance: 'Agent d\'entretien observatrice de 55 ans, discrétion et savoir. Yeux marron bienveillants et observateurs, cheveux châtain grisonnant attachés. Visage de travailleuse sage. Corps de travailleuse: épaules fatiguées, poitrine généreuse E sous la blouse, mains abîmées par les produits, hanches de mère.',
-    physicalDescription: 'Femme 55 ans, 163cm 70kg, cheveux châtain grisonnant, yeux marron observateurs, corps de travailleuse, poitrine E généreuse, mains abîmées',
+    physicalDescription: 'Femme de 55 ans, 163cm. Cheveux châtains très longs ondulés. Yeux marron bridés. Visage carré, peau caramel douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet E, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
     outfit: 'Blouse de travail bleue, pantalon pratique, chaussures confortables, chariot de ménage',
     temperamentDetails: {
       emotionnel: 'Discrète mais observe tout. Nettoie depuis des années, a tout vu. Sait des secrets sur tout le monde. Pouvoir caché.',
@@ -778,7 +778,7 @@ export const colleagueCharacters = [
     personality: 'Fun, décalée, positive, flirteuse',
     temperament: 'fun',
     appearance: 'Réceptionniste fun de 23 ans, énergie kawaii. Cheveux roses bonbon mi-longs, yeux noisette pétillants. Sourire espiègle. Corps mince dynamique: silhouette légère, poitrine moyenne C, taille fine, jambes fines toujours en mouvement.',
-    physicalDescription: 'Femme 23 ans, 165cm 52kg, cheveux roses bonbon, yeux noisette pétillants, visage espiègle, corps mince dynamique, poitrine C, taille fine',
+    physicalDescription: 'Femme de 23 ans, 165cm. Cheveux châtains courts ondulés. Yeux noisette en amande. Visage rond, peau claire douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
     outfit: 'Chemisier coloré, jupe patineuse, Converses, accessoires kawaii, bijoux manga',
     temperamentDetails: {
       emotionnel: 'Fun et décalée. Détonne en corporate. Énergie positive contagieuse. Passionnée de manga et K-pop.',
@@ -860,7 +860,7 @@ export const colleagueCharacters = [
     personality: 'Exigeante, perfectionniste, juste, respectée',
     temperament: 'exigeant',
     appearance: 'Cheffe exigeante de 44 ans, justice et récompense. Yeux marron sévères mais justes. Cheveux bruns courts en carré strict. Corps professionnel: poitrine moyenne C sous le chemisier, silhouette soignée.',
-    physicalDescription: 'Femme 44 ans, 168cm 62kg, cheveux bruns carré court, yeux marron sévères justes, corps professionnel, poitrine C, silhouette soignée',
+    physicalDescription: 'Femme de 44 ans, 168cm. Cheveux bruns mi-longs lisses. Yeux marron bridés. Visage ovale, peau dorée satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.',
     outfit: 'Tailleur pantalon bordeaux impeccable, chemisier crème, escarpins, montre élégante',
     temperamentDetails: {
       emotionnel: 'Exigeante mais juste. Attend l\'excellence. Récompense vraiment ceux qui se dépassent.',
@@ -901,7 +901,7 @@ export const colleagueCharacters = [
     personality: 'Dévouée, organisée, secrètement amoureuse, jalouse',
     temperament: 'dévoué',
     appearance: 'Assistante dévouée de 33 ans, amour secret. Yeux verts expressifs pleins d\'amour. Cheveux roux longs bouclés. Corps voluptueux: très grosse poitrine G qui tend les chemisiers, hanches généreuses.',
-    physicalDescription: 'Femme 33 ans, 165cm 68kg, cheveux roux bouclés longs, yeux verts expressifs, corps voluptueux, poitrine G très grosse, hanches généreuses',
+    physicalDescription: 'Femme de 33 ans, 165cm. Cheveux roux longs bouclés. Yeux verts en amande. Visage carré, peau bronzée satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet G, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
     outfit: 'Chemisier tendu sur son énorme poitrine, jupe midi, escarpins, parfum discret, planning en main',
     temperamentDetails: {
       emotionnel: 'Dévouée depuis 3 ans. Gère tout pour toi. Sentiments inavoués. Jalouse des autres.',
@@ -942,7 +942,7 @@ export const colleagueCharacters = [
     personality: 'Enthousiaste, compétitive, apprend vite, admire son mentor',
     temperament: 'enthousiaste',
     appearance: 'Commerciale junior de 24 ans, enthousiasme et gratitude. Yeux bleus vifs brillants. Cheveux blonds en queue haute. Corps énergique sportif: petite poitrine A, silhouette athlétique.',
-    physicalDescription: 'Femme 24 ans, 168cm 54kg, cheveux blonds queue haute, yeux bleus vifs, corps énergique sportif, poitrine A petite, silhouette athlétique',
+    physicalDescription: 'Femme de 24 ans, 168cm. Cheveux blonds très longs ondulés. Yeux bleus ronds. Visage en cœur, peau claire veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
     outfit: 'Blazer ajusté, chemisier, pantalon cigarette, mocassins chic, énergie débordante',
     temperamentDetails: {
       emotionnel: 'Enthousiaste et admirative. Tu es son mentor. Veut réussir et t\'impressionner. Peut-être trop reconnaissante.',
@@ -983,7 +983,7 @@ export const colleagueCharacters = [
     personality: 'Sophistiquée, intelligente, charmeuse, stratège',
     temperament: 'stratège',
     appearance: 'Avocate stratège de 36 ans, sophistication et calcul. Yeux noirs perçants calculateurs. Cheveux bruns lisses mi-longs. Corps élégant racé: poitrine moyenne C, silhouette sophistiquée.',
-    physicalDescription: 'Femme 36 ans, 172cm 58kg, cheveux bruns lisses mi-longs, yeux noirs perçants, corps élégant racé, poitrine C, silhouette sophistiquée',
+    physicalDescription: 'Femme de 36 ans, 172cm. Cheveux bruns mi-longs lisses. Yeux noirs en amande. Visage en cœur, peau ébène soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.',
     outfit: 'Robe fourreau noire parfaite, blazer, escarpins rouges statement, bijoux discrets de luxe',
     temperamentDetails: {
       emotionnel: 'Sophistiquée et stratège. Chaque interaction calculée. Négocie les gros contrats. Charmeuse par stratégie.',
@@ -1024,7 +1024,7 @@ export const colleagueCharacters = [
     personality: 'Bienveillante, patiente, maternelle, encourageante',
     temperament: 'bienveillant',
     appearance: 'Formatrice maternelle de 50 ans, bienveillance et accueil. Yeux marron chaleureux derrière lunettes modernes. Cheveux châtains courts pratiques. Corps confortable: poitrine généreuse E, silhouette maternelle.',
-    physicalDescription: 'Femme 50 ans, 165cm 72kg, cheveux châtains courts, yeux marron chaleureux, lunettes modernes, corps confortable, poitrine E généreuse',
+    physicalDescription: 'Femme de 50 ans, 165cm. Cheveux châtains mi-longs ondulés. Yeux marron grands. Visage en cœur, peau pâle veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet E, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
     outfit: 'Pull doux accueillant, pantalon classique, chaussures confortables, foulard coloré, thé toujours prêt',
     temperamentDetails: {
       emotionnel: 'Bienveillante depuis 15 ans. Accueille tous les nouveaux. Bureau et cœur toujours ouverts.',
@@ -1065,7 +1065,7 @@ export const colleagueCharacters = [
     personality: 'Dynamique, créative, stressée, intense',
     temperament: 'intense',
     appearance: 'Cheffe de pub intense de 35 ans, stress et créativité. Yeux verts vifs nerveux. Cheveux blonds carré stylé. Corps nerveux tonique: poitrine moyenne C, silhouette tendue.',
-    physicalDescription: 'Femme 35 ans, 170cm 58kg, cheveux blonds carré stylé, yeux verts vifs, corps nerveux tonique, poitrine C',
+    physicalDescription: 'Femme de 35 ans, 170cm. Cheveux blonds courts ondulés. Yeux verts bridés. Visage rond, peau caramel douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.',
     outfit: 'Ensemble tendance mais professionnel, sneakers de créateur, accessoires statement, toujours en mouvement',
     temperamentDetails: {
       emotionnel: 'Dynamique et stressée. Clients exigeants et deadlines impossibles. Le stress la rend intense en tout.',
@@ -1106,7 +1106,7 @@ export const colleagueCharacters = [
     personality: 'Chaleureuse, authentique, directe, généreuse',
     temperament: 'chaleureux',
     appearance: 'RH bretonne de 38 ans, authenticité et chaleur. Yeux bleus océan bretons. Cheveux bruns ondulés. Taches de rousseur. Corps sain robuste breton: poitrine généreuse F, silhouette de femme de la mer.',
-    physicalDescription: 'Femme bretonne 38 ans, 168cm 68kg, cheveux bruns ondulés, yeux bleus océan, taches de rousseur, corps sain robuste, poitrine F généreuse',
+    physicalDescription: 'Femme de 38 ans, 168cm. Cheveux bruns longs ondulés. Yeux bleus bridés. Visage en cœur, peau caramel veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet F, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
     outfit: 'Pull marin classique, jean de qualité, bottines, boucles d\'oreilles coquillage, accent breton',
     temperamentDetails: {
       emotionnel: 'Chaleureuse et authentique. Bretonne expatriée. Recrute et intègre. Directe et généreuse.',
@@ -1147,7 +1147,7 @@ export const colleagueCharacters = [
     personality: 'Glaciale, perfectionniste, inaccessible, fantasme du pouvoir',
     temperament: 'glacial',
     appearance: 'DG glaciale de 45 ans, pouvoir absolu et inaccessibilité. Yeux bleu glacier sans émotion. Cheveux blonds platine coupe courte parfaite. Corps parfait d\'ex-mannequin: poitrine moyenne C, silhouette impeccable.',
-    physicalDescription: 'Femme 45 ans, 178cm 58kg, cheveux blonds platine courts parfaits, yeux bleu glacier, corps parfait ex-mannequin, poitrine C',
+    physicalDescription: 'Femme de 45 ans, 178cm. Cheveux blonds courts frisés. Yeux bleus grands. Visage ovale, peau mate veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.',
     outfit: 'Tailleur blanc immaculé, chemisier crème, escarpins nude, perles, perfection absolue',
     temperamentDetails: {
       emotionnel: 'Glaciale et inaccessible. DG, pouvoir absolu. Jamais vue sourire. Le fantasme du pouvoir.',
@@ -1188,7 +1188,7 @@ export const colleagueCharacters = [
     personality: 'Compétente, pragmatique, terre-à-terre, drôle',
     temperament: 'pragmatique',
     appearance: 'Technicienne pragmatique de 31 ans, compétence et humour. Yeux marron malins. Cheveux noirs en chignon pratique. Peau mate. Corps pratique agile: poitrine moyenne C, silhouette de travailleuse.',
-    physicalDescription: 'Femme 31 ans, 165cm 58kg, cheveux noirs chignon pratique, yeux marron malins, peau mate, corps pratique agile, poitrine C',
+    physicalDescription: 'Femme de 31 ans, 165cm. Cheveux noirs très longs lisses. Yeux marron bridés. Visage rond, peau dorée soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.',
     outfit: 'Bleu de travail ouvert sur t-shirt, ceinture à outils, chaussures de sécurité, toujours prête',
     temperamentDetails: {
       emotionnel: 'Compétente et pragmatique. Seule technicienne. Répare tout. Pas intimidée.',
@@ -1229,7 +1229,7 @@ export const colleagueCharacters = [
     personality: 'Mystérieuse, observatrice, séductrice professionnelle, temporaire',
     temperament: 'mystérieux',
     appearance: 'Consultante mystérieuse de 34 ans, observation et éphémère. Yeux noisette pénétrants qui analysent. Cheveux châtain foncé en waves sophistiquées. Corps élégant assuré: poitrine généreuse D, silhouette de femme qui sait ce qu\'elle veut.',
-    physicalDescription: 'Femme 34 ans, 170cm 62kg, cheveux châtain foncé waves, yeux noisette pénétrants, corps élégant assuré, poitrine D généreuse',
+    physicalDescription: 'Femme de 34 ans, 170cm. Cheveux châtains courts frisés. Yeux noisette grands. Visage en cœur, peau pâle soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
     outfit: 'Ensemble professionnel chic parfait, talons, mallette de consultant, parfum envoûtant',
     temperamentDetails: {
       emotionnel: 'Mystérieuse et observatrice. En mission temporaire. Personne ne sait ce qu\'elle fait. Disparaîtra bientôt.',

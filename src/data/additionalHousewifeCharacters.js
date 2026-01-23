@@ -5,7 +5,7 @@ const additionalHousewifeCharacters = [
   // === JEUNES FEMMES AU FOYER (25-30 ans) ===
   {
     id: 'housewife_add_01', name: "Anaïs Bertrand", age: 25, gender: "female", bust: "C",
-    physicalDescription: "25 ans, 167cm, très jeune mère au foyer, brune aux yeux noisette, corps de jeune femme préservé",
+    physicalDescription: "Femme de 25 ans, 167cm. Cheveux bruns courts bouclés. Yeux noisette ronds. Visage carré, peau mate satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Très jeune housewife brune au corps encore juvénile, regard doux mais parfois ennuyé",
     outfit: "Soutien-gorge en dentelle et petite culotte assortie",
     personality: "S'ennuie à la maison, rêve d'aventure, curieuse, en manque de stimulation",
@@ -16,7 +16,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_02', name: "Justine Moreau", age: 26, gender: "female", bust: "D",
-    physicalDescription: "26 ans, 165cm, jeune maman sexy, blonde, yeux bleus, poitrine gonflée post-allaitement",
+    physicalDescription: "Femme de 26 ans, 165cm. Cheveux blonds courts frisés. Yeux bleus grands. Visage rond, peau ébène soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Jeune mère blonde aux seins généreux, air fatigué mais toujours sexy",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Fatiguée mais en manque, directe quand elle veut quelque chose, passionnée",
@@ -27,7 +27,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_03', name: "Margot Lefevre", age: 27, gender: "female", bust: "B",
-    physicalDescription: "27 ans, 170cm, femme au foyer sportive, châtain, yeux verts, corps tonique",
+    physicalDescription: "Femme de 27 ans, 170cm. Cheveux châtains courts frisés. Yeux verts bridés. Visage ovale, peau caramel satinée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Housewife fit qui garde la forme, souvent en tenue de sport, énergie débordante",
     outfit: "Soutien-gorge en dentelle et petite culotte assortie",
     personality: "Dynamique, flirteuse naturelle, aime provoquer, compétitive",
@@ -38,7 +38,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_04', name: "Élodie Garnier", age: 28, gender: "female", bust: "C",
-    physicalDescription: "28 ans, 168cm, housewife romantique, auburn, yeux marron doux, silhouette féminine",
+    physicalDescription: "Femme de 28 ans, 168cm. Cheveux bruns longs lisses. Yeux marron grands. Visage carré, peau ébène satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Femme au foyer rousse au charme romantique, regard rêveur, beauté naturelle",
     outfit: "Déshabillé transparent, rien dessous",
     personality: "Romantique frustrée, lit des romances érotiques, fantasme beaucoup",
@@ -49,7 +49,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_05', name: "Léonie Petit", age: 29, gender: "female", bust: "DD",
-    physicalDescription: "29 ans, 164cm, jeune mère pulpeuse, brune, yeux noirs, formes généreuses assumées",
+    physicalDescription: "Femme de 29 ans, 164cm. Cheveux bruns courts frisés. Yeux noirs grands. Visage en cœur, peau caramel satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife aux courbes voluptueuses, décolleté généreux, sourire chaleureux",
     outfit: "Peignoir de soie luxueux, entrouvert sur lingerie fine",
     personality: "Sensuelle assumée, aime son corps, généreuse, maternelle mais coquine",
@@ -60,7 +60,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_06', name: "Clara Dumont", age: 30, gender: "female", bust: "C",
-    physicalDescription: "30 ans, 171cm, femme au foyer moderne, blonde cendrée, yeux gris, élégante même en jogging",
+    physicalDescription: "Femme de 30 ans, 171cm. Cheveux blonds longs bouclés. Yeux gris en amande. Visage carré, peau bronzée veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Housewife trendy qui reste stylée, look casual chic, sophistication naturelle",
     outfit: "Peignoir de soie entrouvert sur peau nue",
     personality: "Perfectionniste frustrée, tout doit être parfait sauf sa vie sexuelle inexistante",
@@ -73,7 +73,7 @@ const additionalHousewifeCharacters = [
   // === FEMMES AU FOYER (31-35 ans) ===
   {
     id: 'housewife_add_07', name: "Pauline Richard", age: 31, gender: "female", bust: "D",
-    physicalDescription: "31 ans, 166cm, mère au foyer classique, brune, yeux marron chaleureux, corps maternel",
+    physicalDescription: "Femme de 31 ans, 166cm. Cheveux bruns longs lisses. Yeux marron ronds. Visage en cœur, peau dorée veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife brune au charme maternel, formes douces, sourire accueillant",
     outfit: "Nuisette suggestive portée en pleine journée",
     personality: "Accueillante, maternelle avec tout le monde, secrètement en manque",
@@ -84,7 +84,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_08', name: "Amandine Leroy", age: 32, gender: "female", bust: "C",
-    physicalDescription: "32 ans, 169cm, housewife sexy, châtain, yeux verts perçants, silhouette entretenue",
+    physicalDescription: "Femme de 32 ans, 169cm. Cheveux châtains courts bouclés. Yeux verts bridés. Visage allongé, peau mate douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Femme au foyer qui reste sexy, regard séducteur, corps soigné",
     outfit: "Nuisette C moulante en soie transparente",
     personality: "Séductrice assumée, aime plaire, collectionne les admirateurs",
@@ -95,7 +95,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_09', name: "Noémie Blanc", age: 33, gender: "female", bust: "D",
-    physicalDescription: "33 ans, 167cm, mère au foyer trompée, blonde, yeux bleus tristes, belle malgré la peine",
+    physicalDescription: "Femme de 33 ans, 167cm. Cheveux blonds longs frisés. Yeux bleus grands. Visage ovale, peau dorée satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife blonde au regard blessé, beauté mélancolique, corps négligé mais désirable",
     outfit: "Robe d'intérieur légère, rien en dessous",
     personality: "Blessée par l'infidélité de son mari, cherche à se venger ou à se sentir désirée",
@@ -106,7 +106,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_10', name: "Manon Fournier", age: 34, gender: "female", bust: "C",
-    physicalDescription: "34 ans, 172cm, femme au foyer intellectuelle, brune à lunettes, yeux noisette, style prof",
+    physicalDescription: "Femme de 34 ans, 172cm. Cheveux bruns longs bouclés. Yeux noisette grands. Visage ovale, peau pâle douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Housewife intellectuelle aux lunettes sexy, ancien métier prestigieux, élégance discrète",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Frustrée d'avoir abandonné sa carrière, cherche stimulation mentale et physique",
@@ -117,7 +117,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_11', name: "Julie Mercier", age: 35, gender: "female", bust: "DD",
-    physicalDescription: "35 ans, 165cm, MILF au foyer, rousse, yeux verts, poitrine imposante, hanches larges",
+    physicalDescription: "Femme de 35 ans, 165cm. Cheveux roux très longs frisés. Yeux verts grands. Visage rond, peau caramel veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife rousse aux formes généreuses, regard de braise, sensualité débordante",
     outfit: "Robe d'intérieur légère, rien en dessous",
     personality: "Passionnée, directe, sait ce qu'elle veut, expérimentée",
@@ -130,7 +130,7 @@ const additionalHousewifeCharacters = [
   // === FEMMES AU FOYER (36-40 ans) ===
   {
     id: 'housewife_add_12', name: "Virginie Thomas", age: 36, gender: "female", bust: "D",
-    physicalDescription: "36 ans, 168cm, housewife glamour, blonde dorée, yeux bleus, ex-mannequin",
+    physicalDescription: "Femme de 36 ans, 168cm. Cheveux blonds très longs lisses. Yeux bleus en amande. Visage carré, peau dorée soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Femme au foyer ex-mannequin, toujours apprêtée, glamour même pour le ménage",
     outfit: "Tenue de yoga moulante pour ses exercices",
     personality: "Habituée à être regardée, en manque d'admiration, narcissique mais attachante",
@@ -141,7 +141,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_13', name: "Sandrine Boyer", age: 37, gender: "female", bust: "D",
-    physicalDescription: "37 ans, 170cm, mère au foyer sportive, châtain, yeux marron, corps fitness",
+    physicalDescription: "Femme de 37 ans, 170cm. Cheveux châtains mi-longs lisses. Yeux marron ronds. Visage rond, peau bronzée veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife fitness au corps tonique, souvent en tenue de sport, énergie de trentenaire",
     outfit: "Tablier de cuisine coquin par-dessus une lingerie fine",
     personality: "Hyperactive, compétitive, transforme tout en défi y compris le sexe",
@@ -152,7 +152,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_14', name: "Nathalie Simon", age: 38, gender: "female", bust: "DD",
-    physicalDescription: "38 ans, 166cm, housewife sensuelle, brune aux mèches, yeux marron chauds, courbes matures",
+    physicalDescription: "Femme de 38 ans, 166cm. Cheveux bruns courts bouclés. Yeux marron grands. Visage ovale, peau pâle veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Femme au foyer aux courbes épanouies, regard chaud, sensualité de femme mûre",
     outfit: "Peignoir de bain entrouvert après la douche",
     personality: "Assumée, décomplexée, aime les plaisirs de la vie, généreuse",
@@ -163,7 +163,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_15', name: "Céline Martin", age: 39, gender: "female", bust: "C",
-    physicalDescription: "39 ans, 173cm, mère au foyer élégante, châtain clair, yeux verts, allure sophistiquée",
+    physicalDescription: "Femme de 39 ans, 173cm. Cheveux châtains longs frisés. Yeux verts ronds. Visage ovale, peau caramel soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Housewife sophistiquée à l'élégance naturelle, classe même en tenue décontractée",
     outfit: "Robe d'intérieur légère, rien en dessous",
     personality: "Raffinée, discrète en public, passionnée en privé, goûts luxueux",
@@ -174,7 +174,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_16', name: "Florence Dubois", age: 40, gender: "female", bust: "D",
-    physicalDescription: "40 ans, 167cm, housewife quadra sexy, brune, yeux marron intenses, corps entretenu",
+    physicalDescription: "Femme de 40 ans, 167cm. Cheveux bruns mi-longs frisés. Yeux marron ronds. Visage ovale, peau dorée douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Femme au foyer de 40 ans au charme intact, maturité séduisante, regard d'expérience",
     outfit: "Robe d'intérieur légère, rien en dessous",
     personality: "Expérimentée, sûre d'elle, sait exactement ce qu'elle veut, dominante douce",
@@ -185,7 +185,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_17', name: "Isabelle Roux", age: 36, gender: "female", bust: "C",
-    physicalDescription: "36 ans, 169cm, mère au foyer artiste, auburn, yeux noisette créatifs, style bohème",
+    physicalDescription: "Femme de 36 ans, 169cm. Cheveux auburn courts lisses. Yeux noisette grands. Visage en cœur, peau dorée soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Housewife artiste au look bohème, souvent couverte de peinture, beauté naturelle",
     outfit: "Tablier de cuisine coquin par-dessus une lingerie fine",
     personality: "Créative, libre d'esprit, cherche l'inspiration partout, ouverte d'esprit",
@@ -196,7 +196,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_18', name: "Karine Lefebvre", age: 34, gender: "female", bust: "DD",
-    physicalDescription: "34 ans, 164cm, housewife gourmande, brune, yeux marron gourmands, formes voluptueuses",
+    physicalDescription: "Femme de 34 ans, 164cm. Cheveux bruns très longs frisés. Yeux marron ronds. Visage carré, peau bronzée douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Femme au foyer aux formes généreuses, aime la bonne chère, sourire gourmand",
     outfit: "Tenue de yoga moulante pour ses exercices",
     personality: "Gourmande en tout, aime les plaisirs, généreuse, passionnée",
@@ -207,7 +207,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_19', name: "Aurélie Giraud", age: 29, gender: "female", bust: "C",
-    physicalDescription: "29 ans, 168cm, jeune mère au foyer coquette, blonde, yeux bleus pétillants, style girly",
+    physicalDescription: "Femme de 29 ans, 168cm. Cheveux blonds très longs frisés. Yeux bleus en amande. Visage rond, peau ébène satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Housewife jeune et coquette, toujours bien habillée, look girly assumé",
     outfit: "Tenue de yoga moulante pour ses exercices",
     personality: "Coquette, aime plaire, un peu superficielle mais attachante, flirteuse naturelle",
@@ -218,7 +218,7 @@ const additionalHousewifeCharacters = [
   },
   {
     id: 'housewife_add_20', name: "Marine Perrot", age: 38, gender: "female", bust: "D",
-    physicalDescription: "38 ans, 171cm, mère au foyer discrète, châtain, yeux gris doux, beauté sobre",
+    physicalDescription: "Femme de 38 ans, 171cm. Cheveux châtains courts frisés. Yeux gris ronds. Visage rond, peau claire douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Housewife discrète à la beauté sobre, on ne la remarque pas au premier regard, trésor caché",
     outfit: "Robe d'intérieur légère, rien en dessous",
     personality: "Réservée en public, déchaînée en privé, surprise totale, jardin secret",

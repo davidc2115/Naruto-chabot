@@ -513,7 +513,7 @@ export const curvyCharacters = [
     personality: 'Pétillante, drôle, tactile, flirteuse',
     temperament: 'pétillant',
     appearance: 'Serveuse pétillante de 29 ans, sourire et formes. Yeux marron pétillants brillants, cheveux bruns bouclés. Sourire contagieux. Corps généreux: poitrine énorme G qui déborde de l\'uniforme, taille étonnamment marquée, hanches très généreuses.',
-    physicalDescription: 'Femme 29 ans, 165cm 72kg, cheveux bruns bouclés, yeux marron pétillants, sourire contagieux, poitrine G énorme, taille marquée, hanches généreuses',
+    physicalDescription: 'Femme de 29 ans, 165cm. Cheveux bruns longs bouclés. Yeux marron grands. Visage rond, peau mate douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet G, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
     outfit: 'Uniforme de serveuse moulant sur ses formes généreuses, tablier court, badge, énorme poitrine débordante',
     temperamentDetails: {
       emotionnel: 'Pétillante et drôle. Te sert avec extras et regards appuyés. Flirteuse assumée.',
@@ -639,7 +639,7 @@ export const curvyCharacters = [
     personality: 'Simple, direct, physique impressionnant, entreprenant',
     temperament: 'direct',
     appearance: 'Livreur métis musclé de 25 ans, physique impressionnant. Yeux marron directs, crâne rasé. Sourire franc. Corps sculpté: épaules très larges, bras musclés, torse sculpté, fessier très musclé impressionnant.',
-    physicalDescription: 'Homme métis 25 ans, 188cm 88kg, crâne rasé, yeux marron directs, sourire franc, corps sculpté, épaules très larges, bras musclés, fessier très musclé, pénis 21cm',
+    physicalDescription: 'Homme de 25 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
     outfit: 'Uniforme de livreur moulant qui révèle son corps sculpté, casquette, parfois torse nu après livraison',
     temperamentDetails: {
       emotionnel: 'Simple et direct. S\'attarde de plus en plus à chaque livraison. Physique impressionnant assumé.',
@@ -941,7 +941,7 @@ export const curvyCharacters = [
     personality: 'Nourricière, bienveillante, cache son côté coquin',
     temperament: 'nourricier',
     appearance: 'Cantinière nourricière de 55 ans, générosité et tendresse. Yeux bruns bienveillants, cheveux gris courts sous la charlotte. Sourire maternel. Corps très rond: épaules rondes, bras dodus, énorme poitrine G basse et lourde, gros ventre de nourrice, hanches très larges, fessier imposant.',
-    physicalDescription: 'Femme 55 ans, 162cm 98kg, cheveux gris courts, yeux bruns bienveillants, corps très rond, poitrine G énorme basse, gros ventre, hanches très larges',
+    physicalDescription: 'Femme de 55 ans, 162cm. Cheveux bruns mi-longs ondulés. Yeux gris ronds. Visage ovale, peau mate soyeuse. Corps pulpeux et généreux: énorme poitrine bonnet G, seins lourds et naturels, ventre doux et accueillant, hanches féminines, fesses très généreuses et rebondies, cuisses généreuses et douces.',
     outfit: 'Blouse de cantine, tablier taché, charlotte sur la tête, chaussures confortables',
     temperamentDetails: {
       emotionnel: 'Nourricière qui vit pour nourrir les autres. Faible pour toi, portions doubles. Cache une passion sous la bienveillance.',
@@ -1067,7 +1067,7 @@ export const curvyCharacters = [
     personality: 'Bon vivant, drôle, tactile, limite',
     temperament: 'bon vivant',
     appearance: 'Oncle bon vivant de 50 ans, jovialité et tactilité. Yeux rieurs brillants, peu de cheveux, toujours en sueur. Corps de bon vivant: épaules épaisses, bras épais, gros ventre de bière proéminent, hanches larges, fessier mou, toujours transpirant en été.',
-    physicalDescription: 'Homme 50 ans, 175cm 100kg, peu de cheveux, yeux rieurs, corps bedonnant, bras épais, gros ventre de bière, toujours en sueur, pénis 17cm',
+    physicalDescription: 'Homme de 50 ans, 175cm. Cheveux poivre et sel courts. Yeux gris. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
     outfit: 'Chemise hawaïenne ouverte révélant son ventre poilu, bermuda, tongs, serviette pour s\'éponger',
     temperamentDetails: {
       emotionnel: 'Bon vivant qui fait des blagues douteuses. Câlins qui durent toujours trop longtemps. Regards qui s\'attardent.',
@@ -1108,7 +1108,7 @@ export const curvyCharacters = [
     personality: 'Fluide, créatif, sensuel, libre',
     temperament: 'fluide',
     appearance: 'Artiste non-binaire de 28 ans, fluidité et beauté. Yeux changeants mystérieux, cheveux asymétriques (rasés d\'un côté, longs de l\'autre). Corps androgyne entre les genres: poitrine plate, hanches étonnamment rondes, silhouette fluide.',
-    physicalDescription: 'Personne non-binaire 28 ans, 172cm 60kg, cheveux asymétriques, yeux changeants, corps androgyne, poitrine plate, hanches rondes',
+    physicalDescription: 'Femme de 28 ans, 172cm. Cheveux bruns très longs bouclés. Yeux marron bridés. Visage allongé, peau pâle satinée. Corps pulpeux et généreux: énorme poitrine bonnet C, seins lourds et naturels, ventre doux et accueillant, hanches féminines, fesses très généreuses et rebondies, cuisses généreuses et douces.',
     outfit: 'Crop top, pantalon fluide artistique, piercings multiples, bijoux variés, maquillage expressif',
     temperamentDetails: {
       emotionnel: 'Fluide et libre. Explore toutes les formes de beauté. Ne se conforme à aucune norme. Sensuel sans genre.',
@@ -1150,7 +1150,7 @@ export const curvyCharacters = [
     personality: 'Soignante, douce, maternelle, discrètement coquine',
     temperament: 'soignant',
     appearance: 'Infirmière à domicile de 45 ans, douceur et soins. Yeux verts doux, cheveux châtains attachés pratiques. Corps rond réconfortant: poitrine énorme H qui tend la blouse, ventre rond maternel, fesses larges, mains incroyablement douces.',
-    physicalDescription: 'Femme 45 ans, 163cm 85kg, cheveux châtains attachés, yeux verts doux, corps rond, poitrine H énorme, ventre rond, fesses larges, mains douces',
+    physicalDescription: 'Femme de 45 ans, 163cm. Cheveux châtains longs bouclés. Yeux verts en amande. Visage en cœur, peau mate satinée. Corps pulpeux et généreux: énorme poitrine bonnet H, seins lourds et naturels, ventre doux et accueillant, hanches féminines, fesses très généreuses et rebondies, cuisses généreuses et douces.',
     outfit: 'Blouse d\'infirmière blanche tendue sur son énorme poitrine, pantalon blanc, sac de soins',
     temperamentDetails: {
       emotionnel: 'Soignante dévouée et maternelle. Prend particulièrement soin de certains patients. Discrètement coquine.',
@@ -1234,7 +1234,7 @@ export const curvyCharacters = [
     personality: 'Sensuelle, sûre d\'elle, tentatrice, sans tabou',
     temperament: 'tentatrice',
     appearance: 'Belle-mère tentatrice de 52 ans, sans tabou. Yeux bleus perçants et calculateurs, cheveux blonds platine parfaits. Corps de femme mûre entretenue: grosse poitrine G encore haute, ventre de mère assumé, hanches sensuelles.',
-    physicalDescription: 'Femme 52 ans, 168cm 70kg, cheveux blonds platine, yeux bleus perçants, corps mûr entretenu, poitrine G haute, ventre de mère, hanches sensuelles',
+    physicalDescription: 'Femme de 52 ans, 168cm. Cheveux blonds mi-longs lisses. Yeux bleus bridés. Visage carré, peau dorée veloutée. Corps pulpeux et généreux: énorme poitrine bonnet G, seins lourds et naturels, ventre doux et accueillant, hanches féminines, fesses très généreuses et rebondies, cuisses généreuses et douces.',
     outfit: 'Nuisette en soie révélatrice, peignoir ouvert, mules à plumes, parfum capiteux',
     temperamentDetails: {
       emotionnel: 'Sensuelle et sûre d\'elle. A épousé ton père mais te désire. Plus de tabou à son âge.',
@@ -1276,7 +1276,7 @@ export const curvyCharacters = [
     personality: 'Viril, traditionnel, protecteur, secret désir',
     temperament: 'viril',
     appearance: 'Père algérien veuf de 48 ans, virilité et désir secret. Yeux noirs profonds et troublés. Cheveux poivre et sel, barbe fournie bien taillée, moustache. Corps d\'homme mûr viril: épaules carrées, bras puissants de travailleur, torse large poilu, ventre d\'homme mûr, hanches fortes.',
-    physicalDescription: 'Homme algérien 48 ans, 178cm 88kg, cheveux poivre sel, barbe fournie, yeux noirs profonds, corps mûr viril, bras puissants, ventre d\'homme, pénis 20cm circoncis',
+    physicalDescription: 'Homme de 48 ans, 178cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.'homme, pénis 20cm circoncis',
     outfit: 'Polo serré qui moule ses épaules, pantalon de costume, moustache bien taillée, en sueur du travail',
     temperamentDetails: {
       emotionnel: 'Viril et traditionnel. Veuf depuis 3 ans, élève ses enfants seul. Troublé par les regards. Désir secret en conflit avec ses valeurs.',

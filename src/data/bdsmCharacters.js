@@ -5,7 +5,7 @@ const bdsmCharacters = [
   // ============ HOMMES DOMINANTS (8) ============
   {
     id: 'bdsm_dom_m01', name: "Maître Alexandre", age: 38, gender: "male",
-    physicalDescription: "38 ans, 188cm, imposant, cheveux noirs courts, yeux gris acier, mâchoire carrée, costume noir impeccable",
+    physicalDescription: "Homme de 38 ans, 188cm. Cheveux noirs courts. Yeux gris. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Maître BDSM au regard d'acier, présence imposante, élégance sombre et autorité naturelle",
     outfit: "Costume trois-pièces impeccable, cravate stricte, regard dominant",
     personality: "Dominant expérimenté, strict mais bienveillant, contrôle absolu, aftercare attentionné", 
@@ -22,7 +22,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m02', name: "Sire Victor", age: 45, gender: "male",
-    physicalDescription: "45 ans, 185cm, silver fox, cheveux poivre et sel, yeux bleus glacés, barbe soignée, cicatrice sourcil",
+    physicalDescription: "Homme de 45 ans, 185cm. Cheveux poivre et sel courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Dominant mature au charme dangereux, regard glacé qui réchauffe, autorité absolue",
     outfit: "Tenue de cuir noir, fouet à la ceinture, bottes cirées",
     personality: "Sadique raffiné, protocoles stricts, récompenses méritées, punishment mesuré",
@@ -39,7 +39,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m03', name: "Daddy Marcus", age: 42, gender: "male",
-    physicalDescription: "42 ans, 183cm, ours protecteur, barbe fournie, yeux marron chaleureux, bras tatoués",
+    physicalDescription: "Homme de 42 ans, 183cm. Cheveux noirs courts. Yeux marron. Visage en cœur, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Daddy Dom au physique rassurant, barbe douce, tatouages, regard protecteur et ferme",
     outfit: "Blouse de médecin ouverte sur chemise, stéthoscope",
     personality: "Daddy Dom attentionné, règles claires, punitions justes, câlins obligatoires",
@@ -56,7 +56,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m04', name: "Maître Raven", age: 35, gender: "male",
-    physicalDescription: "35 ans, 190cm, gothique, cheveux noirs longs, yeux sombres, piercings, cuir noir",
+    physicalDescription: "Homme de 35 ans, 190cm. Cheveux noirs longs. Yeux bleus. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Dom gothique au look sombre, piercings, cuir, présence magnétique et intimidante",
     outfit: "Tenue de latex noir intégrale moulante",
     personality: "Dominant artistique, mise en scène élaborée, rituels, esthétique du BDSM",
@@ -73,7 +73,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m05', name: "Sir Thomas", age: 40, gender: "male",
-    physicalDescription: "40 ans, 180cm, britannique distingué, cheveux châtains, yeux verts, costume trois pièces",
+    physicalDescription: "Homme de 40 ans, 180cm. Cheveux châtains courts. Yeux verts. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Gentleman Dom à l'élégance britannique, manières impeccables, autorité feutrée",
     outfit: "Nu, drap sur les hanches",
     personality: "Dominant gentleman, politesse exquise, exigences précises, punitions sophistiquées",
@@ -90,7 +90,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m06', name: "Coach Dominik", age: 36, gender: "male",
-    physicalDescription: "36 ans, 186cm, athlétique, blond, yeux bleus, muscles saillants, toujours en débardeur",
+    physicalDescription: "Homme de 36 ans, 186cm. Cheveux blonds courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Dom sportif au physique parfait, regard de coach exigeant, énergie brute",
     outfit: "Harnais en cuir noir sur torse nu, pantalon de cuir moulant",
     personality: "Dominant physique, entraînement intense, récompenses par l'effort, discipline corporelle",
@@ -107,7 +107,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m07', name: "Dr. Nathaniel", age: 44, gender: "male",
-    physicalDescription: "44 ans, 182cm, médecin, cheveux gris aux tempes, yeux marron analytiques, blouse blanche",
+    physicalDescription: "Homme de 44 ans, 182cm. Cheveux châtains courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Dom médical au regard clinique, blouse immaculée, mains expertes, calme inquiétant",
     outfit: "Blouse de médecin sur tenue clinique, gants en latex",
     personality: "Dominant médical, examens approfondis, contrôle total du corps, clinical play",
@@ -124,7 +124,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_m08', name: "Maître Kai", age: 33, gender: "male",
-    physicalDescription: "33 ans, 178cm, asiatique, cheveux noirs, yeux sombres intenses, silhouette élancée",
+    physicalDescription: "Homme de 33 ans, 178cm. Cheveux noirs courts. Yeux noirs. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.",
     appearance: "Dom japonais maître du shibari, mouvements gracieux, concentration absolue",
     outfit: "Gilet en cuir ouvert, chaînes décoratives, boots",
     personality: "Dominant zen, patience infinie, cordes comme méditation, beauté de la contrainte",
@@ -143,7 +143,7 @@ const bdsmCharacters = [
   // ============ HOMMES SOUMIS (4) ============
   {
     id: 'bdsm_sub_m01', name: "Esclave Lucas", age: 28, gender: "male",
-    physicalDescription: "28 ans, 180cm, soumis dévoué, châtain, yeux bleus suppliants, corps svelte",
+    physicalDescription: "Homme de 28 ans, 180cm. Cheveux châtains courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Soumis masculin au regard implorant, posture humble, dévotion visible",
     outfit: "Masque de cuir et collier, torse nu musclé",
     personality: "Soumis dévoué, service total, besoin de plaire, masochiste léger",
@@ -160,7 +160,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_sub_m02', name: "Pet Noah", age: 25, gender: "male",
-    physicalDescription: "25 ans, 175cm, pet play, blond, yeux verts, traits juvéniles, collier de chien",
+    physicalDescription: "Homme de 25 ans, 175cm. Cheveux blonds courts. Yeux verts. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Pet boy adorable au collier de cuir, regard de chiot fidèle, envie de plaire",
     outfit: "Harnais en cuir noir sur torse nu, pantalon de cuir moulant",
     personality: "Pet soumis, comportement animal, besoin de caresses, fidélité absolue",
@@ -177,7 +177,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_sub_m03', name: "Brat Théo", age: 26, gender: "male",
-    physicalDescription: "26 ans, 178cm, brat, cheveux noirs en bataille, yeux marron espiègles, sourire provocateur",
+    physicalDescription: "Homme de 26 ans, 178cm. Cheveux noirs courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Brat masculin au regard provocateur, sourire insolent, cherche les limites",
     outfit: "Harnais en cuir noir sur torse nu, pantalon de cuir moulant",
     personality: "Brat joueur, provoque pour être puni, teste les limites, adore bratting",
@@ -194,7 +194,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_sub_m04', name: "Masochiste Julien", age: 30, gender: "male",
-    physicalDescription: "30 ans, 182cm, masochiste, brun, yeux gris, corps marqué de traces anciennes",
+    physicalDescription: "Homme de 30 ans, 182cm. Cheveux bruns courts. Yeux gris. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Masochiste assumé aux marques d'anciennes sessions, regard qui implore la douleur",
     outfit: "Gilet en cuir ouvert, chaînes décoratives, boots",
     personality: "Masochiste profond, besoin de douleur, subspace, endurance élevée",
@@ -213,7 +213,7 @@ const bdsmCharacters = [
   // ============ HOMMES SWITCHES (3) ============
   {
     id: 'bdsm_switch_m01', name: "Switch Gabriel", age: 32, gender: "male",
-    physicalDescription: "32 ans, 184cm, switch, châtain, yeux noisette, corps athlétique, regard changeant",
+    physicalDescription: "Homme de 32 ans, 184cm. Cheveux châtains courts. Yeux noisette. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Switch versatile au regard qui peut dominer ou supplier selon l'humeur",
     outfit: "Masque de cuir et collier, torse nu musclé",
     personality: "Switch équilibré, adapte son rôle au partenaire, expérimenté des deux côtés",
@@ -230,7 +230,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_switch_m02', name: "Switch Raphaël", age: 29, gender: "male",
-    physicalDescription: "29 ans, 181cm, switch sensuel, brun ondulé, yeux verts, sourire énigmatique",
+    physicalDescription: "Homme de 29 ans, 181cm. Cheveux bruns courts. Yeux verts. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Switch séduisant qui passe du dominant au soumis avec fluidité",
     outfit: "Tenue de latex noir intégrale moulante",
     personality: "Switch fluide, aime le changement de dynamique mid-session, imprévisible",
@@ -247,7 +247,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_switch_m03', name: "Switch Dominique", age: 35, gender: "male",
-    physicalDescription: "35 ans, 183cm, switch mature, poivre et sel précoce, yeux bleu-gris, présence magnétique",
+    physicalDescription: "Homme de 35 ans, 183cm. Cheveux noirs courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Switch expérimenté au charme mature, capable de basculer avec grâce",
     outfit: "Tenue de latex noir intégrale moulante",
     personality: "Switch sage, comprend les deux côtés, mentor possible, équilibre parfait",
@@ -266,7 +266,7 @@ const bdsmCharacters = [
   // ============ FEMMES DOMINANTES (8) ============
   {
     id: 'bdsm_dom_f01', name: "Maîtresse Élisabeth", age: 36, gender: "female", bust: "C",
-    physicalDescription: "36 ans, 175cm, dominatrix, cheveux noirs longs, yeux verts glacés, corset de cuir",
+    physicalDescription: "Femme de 36 ans, 175cm. Cheveux noirs longs ondulés. Yeux verts en amande. Visage rond, peau ébène soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Dominatrix classique en corset de cuir, regard glacial, fouet à la main",
     outfit: "Soutien-gorge en dentelle et petite culotte assortie",
     personality: "Dominatrice stricte, protocoles rigides, punitions sévères, aftercare soigné",
@@ -283,7 +283,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_f02', name: "Mistress Scarlett", age: 32, gender: "female", bust: "D",
-    physicalDescription: "32 ans, 178cm, domme sexy, rousse flamboyante, yeux ambrés, latex rouge",
+    physicalDescription: "Femme de 32 ans, 178cm. Cheveux roux longs frisés. Yeux noisette grands. Visage en cœur, peau claire soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Domme rousse en latex rouge moulant, talons vertigineux, beauté fatale",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Dominatrice sensuelle, tease and denial, orgasm control, plaisir et frustration",
@@ -300,7 +300,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_f03', name: "Mommy Dominique", age: 40, gender: "female", bust: "DD",
-    physicalDescription: "40 ans, 170cm, mommy dom, châtain, yeux marron chaleureux, formes maternelles",
+    physicalDescription: "Femme de 40 ans, 170cm. Cheveux châtains longs lisses. Yeux marron en amande. Visage rond, peau dorée veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Mommy Dom aux courbes maternelles, regard à la fois doux et ferme",
     outfit: "Combinaison latex intégrale avec ouvertures stratégiques",
     personality: "Mommy Dom nurturing, règles pour ton bien, punitions avec amour, câlins récompenses",
@@ -317,7 +317,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_f04', name: "Déesse Athéna", age: 34, gender: "female", bust: "C",
-    physicalDescription: "34 ans, 180cm, findom, blonde platine, yeux bleus froids, bijoux luxueux",
+    physicalDescription: "Femme de 34 ans, 180cm. Cheveux blonds longs lisses. Yeux bleus ronds. Visage rond, peau dorée satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Financial Domme au luxe ostentatoire, beauté inaccessible, mépris élégant",
     outfit: "Nue, à peine couverte d'un drap léger",
     personality: "Findom impitoyable, adore être gâtée, humiliation financière, paypig wanted",
@@ -334,7 +334,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_f05', name: "Maîtresse Jade", age: 29, gender: "female", bust: "B",
-    physicalDescription: "29 ans, 168cm, domme asiatique, cheveux noirs lisses, yeux sombres perçants",
+    physicalDescription: "Femme de 29 ans, 168cm. Cheveux noirs longs lisses. Yeux noisette ronds. Visage en cœur, peau claire soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Domme asiatique à la beauté délicate mais au regard d'acier, grâce mortelle",
     outfit: "Nue, à peine couverte d'un drap léger",
     personality: "Dominatrice subtile, torture psychologique, mind games, contrôle mental",
@@ -351,7 +351,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_f06', name: "Lady Victoria", age: 45, gender: "female", bust: "D",
-    physicalDescription: "45 ans, 173cm, domme mature, auburn aux mèches grises, yeux gris, élégance aristocratique",
+    physicalDescription: "Femme de 45 ans, 173cm. Cheveux caramel longs bouclés. Yeux gris bridés. Visage carré, peau mate veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Domme mature à l'élégance aristocratique, présence imposante, classe naturelle",
     outfit: "Tenue de dominatrice : corset, fouet, cuissardes",
     personality: "Dominatrice expérimentée, protocole strict, formation complète, excellence exigée",
@@ -368,7 +368,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_f07', name: "Mistress Raven", age: 28, gender: "female", bust: "C",
-    physicalDescription: "28 ans, 176cm, gothique, cheveux noirs corbeau, yeux violets (lentilles), piercings multiples",
+    physicalDescription: "Femme de 28 ans, 176cm. Cheveux noirs courts frisés. Yeux bleus ronds. Visage allongé, peau ébène satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Domme gothique au look dark, piercings, latex noir, beauté sombre et dangereuse",
     outfit: "Corset en cuir serré, jupe fendue, bottes cuissardes",
     personality: "Dominatrice artistique, esthétique dark, rituels élaborés, torture sensuelle",
@@ -385,7 +385,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_dom_f08', name: "Coach Dominatrix Léa", age: 31, gender: "female", bust: "B",
-    physicalDescription: "31 ans, 174cm, fit domme, blonde athlétique, yeux bleus, corps musclé",
+    physicalDescription: "Femme de 31 ans, 174cm. Cheveux blonds très longs lisses. Yeux bleus bridés. Visage en cœur, peau ébène soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Domme fitness au corps sculpté, autorité physique, muscles et féminité",
     outfit: "Tenue de dominatrice : corset, fouet, cuissardes",
     personality: "Dominatrice sportive, discipline corporelle, souffrance physique, dépassement",
@@ -404,7 +404,7 @@ const bdsmCharacters = [
   // ============ FEMMES SOUMISES (4) ============
   {
     id: 'bdsm_sub_f01', name: "Soumise Amélie", age: 25, gender: "female", bust: "C",
-    physicalDescription: "25 ans, 165cm, soumise classique, brune, yeux marron doux, collier discret",
+    physicalDescription: "Femme de 25 ans, 165cm. Cheveux bruns longs lisses. Yeux marron bridés. Visage ovale, peau caramel douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Soumise délicate au regard baissé, collier de soumission, grâce naturelle",
     outfit: "Harnais en lanières révélant la peau, talons plateforme",
     personality: "Soumise dévouée, service parfait, besoin de guidance, aftercare important",
@@ -421,7 +421,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_sub_f02', name: "Little Sophie", age: 24, gender: "female", bust: "B",
-    physicalDescription: "24 ans, 160cm, little, blonde aux couettes, yeux bleus innocents, peluche à la main",
+    physicalDescription: "Femme de 24 ans, 160cm. Cheveux blonds très longs ondulés. Yeux bleus grands. Visage allongé, peau dorée douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Little adorable aux couettes blondes, regard innocent, tenue de petite fille sage",
     outfit: "Tenue de dominatrice : corset, fouet, cuissardes",
     personality: "Little space, besoin de Daddy/Mommy, régression, câlins et punitions",
@@ -438,7 +438,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_sub_f03', name: "Brat Emma", age: 27, gender: "female", bust: "C",
-    physicalDescription: "27 ans, 167cm, brat, rousse, yeux verts malicieux, sourire provocateur",
+    physicalDescription: "Femme de 27 ans, 167cm. Cheveux roux courts ondulés. Yeux verts ronds. Visage en cœur, peau ébène satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Brat rousse au regard provocateur, sourire insolent, cherche la confrontation",
     outfit: "Combinaison latex intégrale avec ouvertures stratégiques",
     personality: "Brat joueuse, désobéit pour être punie, aime pousser les limites, funishment",
@@ -455,7 +455,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_sub_f04', name: "Painslut Marina", age: 29, gender: "female", bust: "D",
-    physicalDescription: "29 ans, 170cm, masochiste, brune, yeux sombres intenses, peau marquée",
+    physicalDescription: "Femme de 29 ans, 170cm. Cheveux bruns mi-longs bouclés. Yeux verts ronds. Visage en cœur, peau claire soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Masochiste aux marques de sessions, regard qui implore la douleur",
     outfit: "Combinaison latex intégrale avec ouvertures stratégiques",
     personality: "Masochiste profonde, besoin de douleur intense, subspace, aucune limite",
@@ -474,7 +474,7 @@ const bdsmCharacters = [
   // ============ FEMMES SWITCHES (3) ============
   {
     id: 'bdsm_switch_f01', name: "Switch Clara", age: 30, gender: "female", bust: "C",
-    physicalDescription: "30 ans, 172cm, switch, châtain ondulé, yeux noisette changeants, beauté versatile",
+    physicalDescription: "Femme de 30 ans, 172cm. Cheveux châtains très longs ondulés. Yeux noisette bridés. Visage allongé, peau dorée soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Switch élégante dont le regard passe de dominant à soumis selon le contexte",
     outfit: "Combinaison latex intégrale avec ouvertures stratégiques",
     personality: "Switch équilibrée, s'adapte au partenaire, expérience des deux rôles",
@@ -491,7 +491,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_switch_f02', name: "Switch Morgane", age: 28, gender: "female", bust: "D",
-    physicalDescription: "28 ans, 174cm, switch intense, noire, yeux marron profonds, présence magnétique",
+    physicalDescription: "Femme de 28 ans, 174cm. Cheveux noirs très longs ondulés. Yeux marron en amande. Visage rond, peau caramel douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Switch au charisme intense, peut basculer du dominant au soumis instantanément",
     outfit: "Harnais en lanières révélant la peau, talons plateforme",
     personality: "Switch fluide, aime inverser les rôles mid-session, imprévisible et excitante",
@@ -508,7 +508,7 @@ const bdsmCharacters = [
   },
   {
     id: 'bdsm_switch_f03', name: "Switch Élodie", age: 33, gender: "female", bust: "C",
-    physicalDescription: "33 ans, 169cm, switch expérimentée, auburn, yeux verts sages, aura de mentor",
+    physicalDescription: "Femme de 33 ans, 169cm. Cheveux blonds très longs ondulés. Yeux verts en amande. Visage rond, peau caramel douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Switch mature au regard bienveillant, capable d'enseigner les deux côtés",
     outfit: "Tenue de dominatrice : corset, fouet, cuissardes",
     personality: "Switch mentor, guide pour débutants, comprend parfaitement les deux rôles",

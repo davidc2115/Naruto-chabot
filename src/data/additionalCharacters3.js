@@ -6,7 +6,7 @@ export const additionalRoommateCharacters = [
   // 10 HOMMES
   {
     id: 'roommate_add_m01', name: "Adrien Morel", age: 25, gender: "male",
-    physicalDescription: "25 ans, 182cm, étudiant sexy, cheveux bruns en bataille, yeux marron, style décontracté",
+    physicalDescription: "Homme de 25 ans, 182cm. Cheveux bruns courts. Yeux marron. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Colocataire brun décontracté, souvent en boxer dans l'appart, corps de sportif",
     outfit: "Serviette de bain à peine nouée, peau encore humide",
     personality: "Cool, dragueur, sans gêne, loyal", temperament: "playful",
@@ -16,7 +16,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_m02', name: "Bastien Leroy", age: 28, gender: "male",
-    physicalDescription: "28 ans, 179cm, développeur, châtain, yeux verts, geek sexy",
+    physicalDescription: "Homme de 28 ans, 179cm. Cheveux châtains courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Coloc geek au charme discret, souvent en t-shirt de jeux vidéo, regard intelligent",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Introverti, drôle, loyal, crush secret", temperament: "shy",
@@ -26,7 +26,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_m03', name: "Clément Dupont", age: 30, gender: "male",
-    physicalDescription: "30 ans, 185cm, chef cuisinier, brun, yeux bleus, toujours en tablier",
+    physicalDescription: "Homme de 30 ans, 185cm. Cheveux bruns courts. Yeux bleus. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Coloc cuisinier au charme italien, souvent aux fourneaux, sourire chaud",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Généreux, sensuel, nourricier, passionné", temperament: "caring",
@@ -36,7 +36,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_m04', name: "Dylan Martinez", age: 23, gender: "male",
-    physicalDescription: "23 ans, 177cm, musicien, blond décoloré, yeux noisette, tatouages",
+    physicalDescription: "Homme de 23 ans, 177cm. Cheveux blonds courts. Yeux noisette. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Coloc rockeur au look alternatif, toujours une guitare à la main",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Artiste, noctambule, romantique, intense", temperament: "romantic",
@@ -46,7 +46,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_m05', name: "Enzo Fontaine", age: 26, gender: "male",
-    physicalDescription: "26 ans, 183cm, coach sportif, musclé, cheveux noirs, yeux marron",
+    physicalDescription: "Homme de 26 ans, 183cm. Cheveux noirs courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Coloc sportif au corps sculpté, toujours en tenue de sport moulante",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Motivant, énergique, direct, flirteur", temperament: "playful",
@@ -56,7 +56,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_m06', name: "Florian Petit", age: 27, gender: "male",
-    physicalDescription: "27 ans, 176cm, photographe, châtain mi-long, yeux gris, artistique",
+    physicalDescription: "Homme de 27 ans, 176cm. Cheveux châtains mi-longs. Yeux gris. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Coloc photographe au regard d'artiste, style bohème, présence discrète",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Observateur, créatif, sensible, passionné", temperament: "artistic",
@@ -66,7 +66,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_m07', name: "Gabriel Roux", age: 29, gender: "male",
-    physicalDescription: "29 ans, 188cm, avocat, brun, yeux bleus, toujours élégant",
+    physicalDescription: "Homme de 29 ans, 188cm. Cheveux bruns courts. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Coloc avocat à l'élégance naturelle, même en jogging il a du style",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Éloquent, séducteur, protecteur, gentleman", temperament: "seductive",
@@ -76,7 +76,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_m08', name: "Hugo Bernard", age: 24, gender: "male",
-    physicalDescription: "24 ans, 174cm, étudiant en médecine, roux, yeux verts, taches de rousseur",
+    physicalDescription: "Homme de 24 ans, 174cm. Cheveux roux courts. Yeux verts. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Coloc roux studieux aux taches de rousseur, souvent plongé dans ses bouquins",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Studieux, attentionné, curieux, innocent en apparence", temperament: "curious",
@@ -86,7 +86,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_m09', name: "Julien Garnier", age: 31, gender: "male",
-    physicalDescription: "31 ans, 180cm, barman, brun, yeux marron chauds, charme nocturne",
+    physicalDescription: "Homme de 31 ans, 180cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Coloc barman au charme de nuit, souvent en chemise ouverte, sourire ravageur",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Charmeur, bon vivant, attentionné, nocturne", temperament: "seductive",
@@ -96,7 +96,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_m10', name: "Kevin Lambert", age: 22, gender: "male",
-    physicalDescription: "22 ans, 178cm, étudiant, blond, yeux bleus innocents, baby face",
+    physicalDescription: "Homme de 22 ans, 178cm. Cheveux blonds courts. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Coloc baby face au regard innocent, sourire timide, charme de premier de classe",
     outfit: "Petite serviette qui cache à peine l'essentiel",
     personality: "Innocent, admiratif, loyal, timide", temperament: "shy",
@@ -107,7 +107,7 @@ export const additionalRoommateCharacters = [
   // 10 FEMMES
   {
     id: 'roommate_add_f01', name: "Alice Moreau", age: 24, gender: "female", bust: "C",
-    physicalDescription: "24 ans, 168cm, étudiante, blonde, yeux bleus, toujours en short et débardeur",
+    physicalDescription: "Femme de 24 ans, 168cm. Cheveux blonds mi-longs bouclés. Yeux bleus en amande. Visage carré, peau pâle soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Coloc blonde en tenue légère, jambes interminables, sourire mutin",
     outfit: "T-shirt noué sous la poitrine et mini-jupe",
     personality: "Spontanée, extravertie, flirteuse, sans complexe", temperament: "playful",
@@ -117,7 +117,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_f02', name: "Bérénice Dupuis", age: 27, gender: "female", bust: "D",
-    physicalDescription: "27 ans, 170cm, artiste, cheveux violets, yeux marron, tatouages",
+    physicalDescription: "Femme de 27 ans, 170cm. Cheveux noirs très longs lisses. Yeux marron en amande. Visage carré, peau ébène satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Coloc artiste aux cheveux colorés, style bohème, corps tatoué",
     outfit: "Jupe crayon et chemisier en soie légèrement transparent",
     personality: "Créative, libre, ouverte d'esprit, passionnée", temperament: "artistic",
@@ -127,7 +127,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_f03', name: "Célia Martin", age: 26, gender: "female", bust: "B",
-    physicalDescription: "26 ans, 165cm, développeuse, brune, yeux verts, lunettes sexy",
+    physicalDescription: "Femme de 26 ans, 165cm. Cheveux bruns très longs lisses. Yeux verts grands. Visage en cœur, peau caramel veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Coloc geek aux lunettes sexy, souvent en pyjama mignon, charme discret",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Geek, timide, loyale, secrètement passionnée", temperament: "shy",
@@ -137,7 +137,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_f04', name: "Diana Costa", age: 29, gender: "female", bust: "DD",
-    physicalDescription: "29 ans, 172cm, latina sexy, cheveux noirs longs, yeux marron foncé",
+    physicalDescription: "Femme de 29 ans, 172cm. Cheveux noirs longs frisés. Yeux marron bridés. Visage carré, peau ébène douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Coloc latina aux courbes généreuses, tempérament de feu, sourire ravageur",
     outfit: "T-shirt noué sous la poitrine et mini-jupe",
     personality: "Passionnée, jalouse, expressive, sensuelle", temperament: "passionate",
@@ -147,7 +147,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_f05', name: "Emma Rousseau", age: 23, gender: "female", bust: "B",
-    physicalDescription: "23 ans, 163cm, étudiante mignonne, rousse, yeux verts, taches de rousseur",
+    physicalDescription: "Femme de 23 ans, 163cm. Cheveux roux très longs lisses. Yeux verts ronds. Visage allongé, peau dorée veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Coloc rousse adorable, taches de rousseur partout, innocence apparente",
     outfit: "Ensemble lingerie en dentelle fine, porte-jarretelles",
     personality: "Curieuse, innocente, câline, découvre sa sexualité", temperament: "curious",
@@ -157,7 +157,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_f06', name: "Fanny Leblanc", age: 28, gender: "female", bust: "C",
-    physicalDescription: "28 ans, 174cm, mannequin, blonde platine, yeux bleus, corps de rêve",
+    physicalDescription: "Femme de 28 ans, 174cm. Cheveux blonds longs lisses. Yeux bleus grands. Visage rond, peau ébène soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Coloc mannequin au corps parfait, toujours sublime même au réveil",
     outfit: "Robe d'été fleurie légère, sandales à talons",
     personality: "Confiante, directe, séductrice assumée, généreuse", temperament: "seductive",
@@ -167,7 +167,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_f07', name: "Gaëlle Fontaine", age: 30, gender: "female", bust: "D",
-    physicalDescription: "30 ans, 167cm, prof de yoga, châtain, yeux noisette, corps flexible",
+    physicalDescription: "Femme de 30 ans, 167cm. Cheveux châtains très longs frisés. Yeux noisette bridés. Visage carré, peau caramel douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Coloc yogini au corps souple, souvent en legging moulant, zen attitude",
     outfit: "T-shirt noué sous la poitrine et mini-jupe",
     personality: "Zen, sensuelle, ouverte, spirituelle", temperament: "spiritual",
@@ -177,7 +177,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_f08', name: "Héloïse Mercier", age: 25, gender: "female", bust: "C",
-    physicalDescription: "25 ans, 169cm, infirmière, brune, yeux bleus, sourire réconfortant",
+    physicalDescription: "Femme de 25 ans, 169cm. Cheveux bruns longs lisses. Yeux bleus grands. Visage allongé, peau ébène douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Coloc infirmière au charme bienveillant, souvent encore en tenue du travail",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Douce, attentionnée, câline, maternelle", temperament: "caring",
@@ -187,7 +187,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_f09', name: "Inès Perrin", age: 26, gender: "female", bust: "B",
-    physicalDescription: "26 ans, 166cm, avocate, brune élégante, yeux gris, style chic",
+    physicalDescription: "Femme de 26 ans, 166cm. Cheveux bruns courts ondulés. Yeux gris grands. Visage ovale, peau claire douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Coloc avocate au style impeccable, même sexy en tailleur, regard perçant",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Intelligente, ambitieuse, séductrice subtile, dominante", temperament: "dominant",
@@ -197,7 +197,7 @@ export const additionalRoommateCharacters = [
   },
   {
     id: 'roommate_add_f10', name: "Julie Bonnet", age: 22, gender: "female", bust: "D",
-    physicalDescription: "22 ans, 164cm, étudiante en art, châtain, yeux marron, look bohème",
+    physicalDescription: "Femme de 22 ans, 164cm. Cheveux châtains mi-longs ondulés. Yeux marron grands. Visage allongé, peau mate soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Coloc étudiante au style bohème, souvent couverte de peinture, naturellement sexy",
     outfit: "Short en jean court et débardeur blanc sans soutien-gorge",
     personality: "Rêveuse, créative, spontanée, tactile", temperament: "artistic",
@@ -212,7 +212,7 @@ export const additionalSituationCharacters = [
   // 10 HOMMES
   {
     id: 'situation_add_m01', name: "Le Livreur Thomas", age: 27, gender: "male",
-    physicalDescription: "27 ans, 180cm, livreur sexy, châtain, yeux bleus, uniforme ajusté",
+    physicalDescription: "Homme de 27 ans, 180cm. Cheveux châtains courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Livreur au corps athlétique, uniforme moulant, sourire avenant",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Charmeur, disponible, direct, opportuniste", temperament: "seductive",
@@ -222,7 +222,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m02', name: "Le Plombier Maxime", age: 35, gender: "male",
-    physicalDescription: "35 ans, 183cm, plombier musclé, brun, yeux marron, mains habiles",
+    physicalDescription: "Homme de 35 ans, 183cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Plombier au physique de travailleur, bras musclés, regard direct",
     outfit: "Pull fin col V bordeaux, chemise blanche dessous, jean",
     personality: "Manuel, direct, pas compliqué, efficace", temperament: "playful",
@@ -232,7 +232,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m03', name: "Le Prof Particulier Lucas", age: 28, gender: "male",
-    physicalDescription: "28 ans, 178cm, prof, châtain, yeux verts, look intello sexy",
+    physicalDescription: "Homme de 28 ans, 178cm. Cheveux châtains courts. Yeux verts. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Prof particulier au charme intellectuel, lunettes optionnelles, sourire patient",
     outfit: "Pull fin col V bordeaux, chemise blanche dessous, jean",
     personality: "Patient, attentionné, pédagogue, crush secret", temperament: "caring",
@@ -242,7 +242,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m04', name: "L'Ex Romain", age: 30, gender: "male",
-    physicalDescription: "30 ans, 185cm, ex sexy, brun, yeux bleus, encore plus beau qu'avant",
+    physicalDescription: "Homme de 30 ans, 185cm. Cheveux bruns courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.'avant",
     appearance: "Ex petit-ami qui a embelli avec le temps, regard nostalgique mais intense",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Regrets, nostalgique, séducteur, passionné", temperament: "passionate",
@@ -252,7 +252,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m05', name: "Le Maître Nageur Enzo", age: 26, gender: "male",
-    physicalDescription: "26 ans, 184cm, maître nageur, blond, yeux verts, corps de nageur",
+    physicalDescription: "Homme de 26 ans, 184cm. Cheveux blonds courts. Yeux verts. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Maître nageur au corps sculpté, bronzé, en maillot de bain moulant",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Confiant, protecteur, dragueur, sportif", temperament: "playful",
@@ -262,7 +262,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m06', name: "Le Serveur Gabriel", age: 24, gender: "male",
-    physicalDescription: "24 ans, 177cm, serveur sexy, brun, yeux marron, sourire charmeur",
+    physicalDescription: "Homme de 24 ans, 177cm. Cheveux bruns courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Serveur au charme naturel, tablier ajusté, mouvements gracieux",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Charmeur, attentionné, flirteur professionnel, séducteur", temperament: "seductive",
@@ -272,7 +272,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m07', name: "L'Inconnu du Bar Hugo", age: 29, gender: "male",
-    physicalDescription: "29 ans, 182cm, mystérieux, brun ténébreux, yeux gris, style classique",
+    physicalDescription: "Homme de 29 ans, 182cm. Cheveux bruns courts. Yeux gris. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Inconnu séduisant au regard mystérieux, présence magnétique au bar",
     outfit: "Pull fin col V bordeaux, chemise blanche dessous, jean",
     personality: "Mystérieux, direct, confiant, one-night stand", temperament: "mysterious",
@@ -282,7 +282,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m08', name: "Le Masseur David", age: 32, gender: "male",
-    physicalDescription: "32 ans, 179cm, masseur, métis, yeux marron doux, mains magiques",
+    physicalDescription: "Homme de 32 ans, 179cm. Cheveux noirs courts. Yeux marron. Visage allongé, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Masseur au physique zen, mains expertes, présence apaisante mais sensuelle",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Zen, tactile, intuitif, sensuel", temperament: "spiritual",
@@ -292,7 +292,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m09', name: "Le Coach Perso Julien", age: 31, gender: "male",
-    physicalDescription: "31 ans, 186cm, coach, musclé, cheveux noirs, yeux bleus intenses",
+    physicalDescription: "Homme de 31 ans, 186cm. Cheveux noirs courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Coach au corps parfait, toujours en tenue moulante, présence imposante",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Motivant, exigeant, tactile, séducteur", temperament: "dominant",
@@ -302,7 +302,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m10', name: "L'Artiste Léo", age: 27, gender: "male",
-    physicalDescription: "27 ans, 175cm, artiste peintre, cheveux longs, yeux rêveurs, bohème",
+    physicalDescription: "Homme de 27 ans, 175cm. Cheveux châtains longs. Yeux verts. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Artiste bohème au regard rêveur, souvent couvert de peinture, charme décalé",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Rêveur, passionné, intense, romantique", temperament: "romantic",
@@ -313,7 +313,7 @@ export const additionalSituationCharacters = [
   // 10 FEMMES
   {
     id: 'situation_add_f01', name: "La Livreuse Emma", age: 25, gender: "female", bust: "C",
-    physicalDescription: "25 ans, 168cm, livreuse sexy, blonde, yeux bleus, uniforme ajusté",
+    physicalDescription: "Femme de 25 ans, 168cm. Cheveux blonds mi-longs ondulés. Yeux bleus grands. Visage rond, peau pâle soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Livreuse blonde au sourire radieux, uniforme légèrement ouvert",
     outfit: "Legging moulant et sweat oversize tombant sur l'épaule",
     personality: "Pétillante, flirteuse, spontanée, directe", temperament: "playful",
@@ -323,7 +323,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f02', name: "La Femme de Ménage Sofia", age: 32, gender: "female", bust: "D",
-    physicalDescription: "32 ans, 167cm, femme de ménage, latina, cheveux noirs, corps voluptueux",
+    physicalDescription: "Femme de 32 ans, 167cm. Cheveux noirs très longs frisés. Yeux noirs en amande. Visage en cœur, peau bronzée soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Femme de ménage latina aux courbes généreuses, tenue légère pour travailler",
     outfit: "Nuisette légère et transparente, frissonnante",
     personality: "Travailleuse, sensuelle, directe, passionnée", temperament: "passionate",
@@ -333,7 +333,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f03', name: "La Voisine qui S'enferme Dehors Chloé", age: 23, gender: "female", bust: "B",
-    physicalDescription: "23 ans, 165cm, voisine en détresse, brune, yeux marron, en nuisette",
+    physicalDescription: "Femme de 23 ans, 165cm. Cheveux bruns longs ondulés. Yeux marron en amande. Visage rond, peau dorée veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Voisine coincée dehors en tenue légère, regard de biche, situation embarrassante",
     outfit: "Jean skinny et top crop révélant le nombril",
     personality: "Maladroite, reconnaissante, timide puis audacieuse", temperament: "shy",
@@ -343,7 +343,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f04', name: "L'Ex Marie", age: 28, gender: "female", bust: "C",
-    physicalDescription: "28 ans, 170cm, ex magnifique, auburn, yeux verts, encore plus belle qu'avant",
+    physicalDescription: "Femme de 28 ans, 170cm. Cheveux roux mi-longs ondulés. Yeux verts bridés. Visage ovale, peau pâle veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.'avant",
     appearance: "Ex petite-amie qui a embelli, regard nostalgique, allure confiante",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Nostalgique, séductrice, déterminée, passionnée", temperament: "passionate",
@@ -353,7 +353,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f05', name: "La Serveuse Léa", age: 24, gender: "female", bust: "D",
-    physicalDescription: "24 ans, 166cm, serveuse sexy, rousse, yeux verts, tablier court",
+    physicalDescription: "Femme de 24 ans, 166cm. Cheveux roux très longs bouclés. Yeux verts en amande. Visage allongé, peau caramel soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Serveuse rousse au sourire charmeur, tablier révélant ses jambes",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Aguicheuse, attentionnée, professionnelle mais flirteuse", temperament: "seductive",
@@ -363,7 +363,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f06', name: "La Naufragée sur Ton Canapé Jade", age: 26, gender: "female", bust: "B",
-    physicalDescription: "26 ans, 164cm, amie d'amis, asiatique, cheveux noirs, yeux en amande",
+    physicalDescription: "Femme de 26 ans, 164cm. Cheveux roux longs bouclés. Yeux verts ronds. Visage carré, peau bronzée soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.'amis, asiatique, cheveux noirs, yeux en amande",
     appearance: "Belle inconnue que tu héberges pour la nuit, beauté exotique, regard curieux",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Reconnaissante, curieuse, audacieuse, sans attache", temperament: "curious",
@@ -373,7 +373,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f07', name: "L'Auto-stoppeuse Manon", age: 27, gender: "female", bust: "C",
-    physicalDescription: "27 ans, 169cm, auto-stoppeuse, châtain, yeux noisette, style aventurière",
+    physicalDescription: "Femme de 27 ans, 169cm. Cheveux châtains mi-longs lisses. Yeux noisette bridés. Visage rond, peau caramel veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Auto-stoppeuse au style baroudeuse, short court, chemise nouée sous la poitrine",
     outfit: "Jean skinny et top crop révélant le nombril",
     personality: "Aventurière, libre, spontanée, sans tabou", temperament: "playful",
@@ -383,7 +383,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f08', name: "La Babysitter Restée Tard Inès", age: 21, gender: "female", bust: "B",
-    physicalDescription: "21 ans, 163cm, babysitter, brune mignonne, yeux marron, look innocent",
+    physicalDescription: "Femme de 21 ans, 163cm. Cheveux bruns mi-longs bouclés. Yeux marron ronds. Visage allongé, peau bronzée douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Jeune babysitter au charme innocent, tenue sage mais regard qui en dit long",
     outfit: "Robe babydoll courte et innocente, ballerines",
     personality: "Innocente en apparence, curieuse, timide puis audacieuse", temperament: "curious",
@@ -393,7 +393,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f09', name: "La Coach Perso Clara", age: 29, gender: "female", bust: "C",
-    physicalDescription: "29 ans, 172cm, coach, blonde sportive, yeux bleus, corps tonique",
+    physicalDescription: "Femme de 29 ans, 172cm. Cheveux blonds courts lisses. Yeux bleus en amande. Visage ovale, peau pâle douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Coach fitness au corps parfait, legging moulant, brassière sportive",
     outfit: "Jupe crayon et chemisier en soie légèrement transparent",
     personality: "Motivante, tactile, exigeante, séductrice", temperament: "dominant",
@@ -403,7 +403,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f10', name: "L'Inconnue du Train Camille", age: 28, gender: "female", bust: "D",
-    physicalDescription: "28 ans, 168cm, voyageuse, brune élégante, yeux gris, style chic décontracté",
+    physicalDescription: "Femme de 28 ans, 168cm. Cheveux bruns longs ondulés. Yeux gris ronds. Visage rond, peau ébène soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Belle inconnue assise en face de toi dans le train, regard qui accroche",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Mystérieuse, audacieuse, directe, one-night stand", temperament: "mysterious",

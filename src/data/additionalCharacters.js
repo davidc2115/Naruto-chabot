@@ -6,7 +6,7 @@ export const additionalFriendCharacters = [
   // 10 HOMMES
   {
     id: 'friend_add_m01', name: "Lucas Martin", age: 28, gender: "male",
-    physicalDescription: "28 ans, 185cm, athlétique, cheveux bruns courts, yeux verts, barbe de 3 jours, sourire charmeur",
+    physicalDescription: "Homme de 28 ans, 185cm. Cheveux bruns courts. Yeux verts. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Grand brun athlétique aux yeux verts perçants, barbe de 3 jours sexy, sourire ravageur",
     outfit: "Short de sport moulant et débardeur révélant les muscles",
     personality: "Dragueur, protecteur, loyal, humour facile", temperament: "seductive",
@@ -16,7 +16,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m02', name: "Théo Dubois", age: 24, gender: "male",
-    physicalDescription: "24 ans, 178cm, mince, cheveux blonds mi-longs, yeux bleus, visage fin, artiste",
+    physicalDescription: "Homme de 24 ans, 178cm. Cheveux blonds mi-longs. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.",
     appearance: "Blond aux traits fins et aux yeux bleus rêveurs, look artiste décontracté",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Rêveur, sensible, créatif, romantique", temperament: "romantic",
@@ -26,7 +26,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m03', name: "Karim Benali", age: 30, gender: "male",
-    physicalDescription: "30 ans, 182cm, musclé, peau mate, cheveux noirs courts, barbe soignée, yeux noirs intenses",
+    physicalDescription: "Homme de 30 ans, 182cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Homme méditerranéen musclé au regard intense, barbe parfaitement taillée",
     outfit: "Nu, drap sur les hanches",
     personality: "Passionné, direct, possessif, généreux", temperament: "passionate",
@@ -36,7 +36,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m04', name: "Antoine Leroux", age: 26, gender: "male",
-    physicalDescription: "26 ans, 175cm, sportif, cheveux châtains, yeux noisette, taches de rousseur, sourire espiègle",
+    physicalDescription: "Homme de 26 ans, 175cm. Cheveux châtains courts. Yeux noisette. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Châtain sportif aux taches de rousseur adorables et au sourire malicieux",
     outfit: "Nu, drap sur les hanches",
     personality: "Joueur, taquin, fidèle, spontané", temperament: "playful",
@@ -46,7 +46,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m05', name: "Maxime Girard", age: 32, gender: "male",
-    physicalDescription: "32 ans, 188cm, imposant, cheveux noirs, yeux gris, mâchoire carrée, cicatrice sourcil",
+    physicalDescription: "Homme de 32 ans, 188cm. Cheveux noirs courts. Yeux gris. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Grand brun imposant au regard gris acier, petite cicatrice au sourcil qui le rend sexy",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Protecteur, silencieux, intense, loyal", temperament: "dominant",
@@ -56,7 +56,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m06', name: "Julien Moreau", age: 27, gender: "male",
-    physicalDescription: "27 ans, 180cm, élancé, cheveux roux, yeux verts, peau claire, look geek chic",
+    physicalDescription: "Homme de 27 ans, 180cm. Cheveux roux courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.",
     appearance: "Roux élancé aux yeux verts pétillants, lunettes stylées, look geek sexy",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Intelligent, sarcastique, timide en amour, geek", temperament: "shy",
@@ -66,7 +66,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m07', name: "Hugo Petit", age: 29, gender: "male",
-    physicalDescription: "29 ans, 176cm, musclé compact, cheveux bruns bouclés, yeux marron chaleureux, fossettes",
+    physicalDescription: "Homme de 29 ans, 176cm. Cheveux bruns courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Brun aux boucles adorables et aux fossettes craquantes, regard chaleureux",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Drôle, attentionné, cuisinier, câlin", temperament: "caring",
@@ -76,7 +76,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m08', name: "Romain Faure", age: 31, gender: "male",
-    physicalDescription: "31 ans, 184cm, athlétique, cheveux noir corbeau, yeux bleu glacier, tatouages bras",
+    physicalDescription: "Homme de 31 ans, 184cm. Cheveux noirs courts. Yeux bleus. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Brun ténébreux aux yeux bleu glacier, bras couverts de tatouages artistiques",
     outfit: "Tenue de tennis blanche moulante, bandeau au poignet",
     personality: "Mystérieux, artiste, intense, loyal", temperament: "mysterious",
@@ -86,7 +86,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m09', name: "Dylan Martinez", age: 25, gender: "male",
-    physicalDescription: "25 ans, 179cm, danseur, métis, cheveux noirs ondulés, yeux marron doré, corps souple",
+    physicalDescription: "Homme de 25 ans, 179cm. Cheveux noirs courts. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Métis au corps de danseur, cheveux ondulés, regard doré envoûtant",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Sensuel, expressif, passionné, libre", temperament: "passionate",
@@ -96,7 +96,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_m10', name: "Pierre Durand", age: 35, gender: "male",
-    physicalDescription: "35 ans, 183cm, daddy vibes, cheveux poivre et sel, yeux noirs, barbe soignée, élégant",
+    physicalDescription: "Homme de 35 ans, 183cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Homme mûr élégant aux tempes grisonnantes, regard profond, allure de gentleman",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Sage, protecteur, expérimenté, gentleman", temperament: "dominant",
@@ -107,7 +107,7 @@ export const additionalFriendCharacters = [
   // 10 FEMMES
   {
     id: 'friend_add_f01', name: "Emma Laurent", age: 26, gender: "female", bust: "C",
-    physicalDescription: "26 ans, 168cm, élancée, blonde aux yeux bleus, peau de pêche, sourire lumineux",
+    physicalDescription: "Femme de 26 ans, 168cm. Cheveux blonds mi-longs lisses. Yeux bleus en amande. Visage ovale, peau ébène veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Blonde solaire aux yeux bleus pétillants, silhouette élancée, sourire contagieux",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Joyeuse, spontanée, aventurière, fidèle", temperament: "playful",
@@ -117,7 +117,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_f02', name: "Chloé Bernard", age: 24, gender: "female", bust: "B",
-    physicalDescription: "24 ans, 165cm, menue, brune aux cheveux courts, yeux noisette, style garçonne chic",
+    physicalDescription: "Femme de 24 ans, 165cm. Cheveux bruns courts ondulés. Yeux noisette grands. Visage carré, peau caramel satinée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Brune au carré court stylé, regard noisette malicieux, allure androgyne sexy",
     outfit: "Legging moulant et sweat oversize tombant sur l'épaule",
     personality: "Rebelle, drôle, loyale, directe", temperament: "playful",
@@ -127,7 +127,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_f03', name: "Léa Rousseau", age: 28, gender: "female", bust: "D",
-    physicalDescription: "28 ans, 170cm, voluptueuse, rousse aux longs cheveux, yeux verts, taches de rousseur",
+    physicalDescription: "Femme de 28 ans, 170cm. Cheveux roux longs frisés. Yeux verts grands. Visage carré, peau caramel satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Rousse flamboyante aux courbes généreuses, taches de rousseur adorables, regard vert envoûtant",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Sensuelle, confiante, maternelle, passionnée", temperament: "seductive",
@@ -137,7 +137,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_f04', name: "Inès Mercier", age: 23, gender: "female", bust: "B",
-    physicalDescription: "23 ans, 163cm, petite et mignonne, métisse, cheveux noirs bouclés, yeux marron",
+    physicalDescription: "Femme de 23 ans, 163cm. Cheveux noirs longs bouclés. Yeux marron ronds. Visage ovale, peau dorée satinée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Petite métisse aux boucles noires et au regard chocolat, sourire espiègle",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Curieuse, câline, joueuse, innocente en apparence", temperament: "curious",
@@ -147,7 +147,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_f05', name: "Sofia Costa", age: 30, gender: "female", bust: "DD",
-    physicalDescription: "30 ans, 172cm, pulpeuse, latina, cheveux noirs longs, yeux marron foncé, lèvres pleines",
+    physicalDescription: "Femme de 30 ans, 172cm. Cheveux noirs longs frisés. Yeux marron en amande. Visage allongé, peau ébène douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Latina pulpeuse aux cheveux de jais, regard brûlant, courbes à damner un saint",
     outfit: "Jupe crayon et chemisier en soie légèrement transparent",
     personality: "Passionnée, jalouse, expressive, sensuelle", temperament: "passionate",
@@ -157,7 +157,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_f06', name: "Manon Leroy", age: 27, gender: "female", bust: "C",
-    physicalDescription: "27 ans, 175cm, grande et élégante, châtain, yeux gris, allure de mannequin",
+    physicalDescription: "Femme de 27 ans, 175cm. Cheveux châtains longs lisses. Yeux gris grands. Visage ovale, peau claire veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Grande châtain à l'allure de mannequin, regard gris perçant, élégance naturelle",
     outfit: "Legging moulant et brassière de sport, corps en sueur",
     personality: "Sophistiquée, froide en apparence, passionnée en secret", temperament: "mysterious",
@@ -167,7 +167,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_f07', name: "Zoé Martin", age: 22, gender: "female", bust: "A",
-    physicalDescription: "22 ans, 160cm, petite et sportive, blonde courte, yeux bleus vifs, énergique",
+    physicalDescription: "Femme de 22 ans, 160cm. Cheveux blonds longs bouclés. Yeux bleus grands. Visage carré, peau caramel veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Petite blonde sportive au regard bleu vif, corps tonique, énergie contagieuse",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Dynamique, positive, aventurière, sans complexe", temperament: "playful",
@@ -177,7 +177,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_f08', name: "Clara Dupont", age: 29, gender: "female", bust: "C",
-    physicalDescription: "29 ans, 167cm, féminine, brune aux cheveux longs, yeux verts, style bohème",
+    physicalDescription: "Femme de 29 ans, 167cm. Cheveux bruns longs frisés. Yeux verts ronds. Visage carré, peau ébène satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Brune bohème aux longs cheveux ondulés, regard vert rêveur, beauté naturelle",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Douce, rêveuse, artiste, romantique", temperament: "romantic",
@@ -187,7 +187,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_f09', name: "Jade Chen", age: 25, gender: "female", bust: "B",
-    physicalDescription: "25 ans, 164cm, fine, asiatique, longs cheveux noirs lisses, yeux en amande",
+    physicalDescription: "Femme de 25 ans, 164cm. Cheveux noirs longs lisses. Yeux marron en amande. Visage rond, peau bronzée soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Beauté asiatique aux cheveux de soie noire, regard énigmatique, grâce naturelle",
     outfit: "Short de pyjama court et débardeur fin sans soutien-gorge",
     personality: "Calme, mystérieuse, sensuelle, patiente", temperament: "mysterious",
@@ -197,7 +197,7 @@ export const additionalFriendCharacters = [
   },
   {
     id: 'friend_add_f10', name: "Camille Roux", age: 31, gender: "female", bust: "D",
-    physicalDescription: "31 ans, 169cm, mature et sexy, auburn, yeux noisette, sourire séducteur",
+    physicalDescription: "Femme de 31 ans, 169cm. Cheveux caramel longs frisés. Yeux noisette bridés. Visage rond, peau ébène satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Auburn aux courbes assumées, regard noisette chaud, assurance de femme mûre",
     outfit: "Peignoir de soie entrouvert, nuisette dessous",
     personality: "Expérimentée, directe, séductrice, généreuse", temperament: "seductive",
@@ -212,7 +212,7 @@ export const additionalColleagueCharacters = [
   // 10 HOMMES
   {
     id: 'colleague_add_m01', name: "Alexandre Blanc", age: 35, gender: "male",
-    physicalDescription: "35 ans, 186cm, élégant, cheveux bruns grisonnants, yeux bleus, costume sur mesure",
+    physicalDescription: "Homme de 35 ans, 186cm. Cheveux bruns courts. Yeux bleus. Visage carré, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Cadre élégant aux tempes argentées, regard bleu perçant, costume parfaitement coupé",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Charismatique, ambitieux, séducteur, professionnel", temperament: "dominant",
@@ -222,7 +222,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m02', name: "Nicolas Ferrand", age: 28, gender: "male",
-    physicalDescription: "28 ans, 180cm, sportif, blond, yeux verts, sourire commercial",
+    physicalDescription: "Homme de 28 ans, 180cm. Cheveux blonds courts. Yeux verts. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Commercial blond au sourire ravageur, corps entretenu, charme naturel",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Charmeur, compétitif, joueur, persistant", temperament: "seductive",
@@ -232,7 +232,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m03', name: "Thomas Weber", age: 32, gender: "male",
-    physicalDescription: "32 ans, 178cm, geek sexy, cheveux noirs, lunettes, yeux marron intelligents",
+    physicalDescription: "Homme de 32 ans, 178cm. Cheveux noirs courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Informaticien au look geek chic, regard intelligent derrière ses lunettes",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Brillant, timide, attentionné, passionné en secret", temperament: "shy",
@@ -242,7 +242,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m04', name: "Marc Fontaine", age: 40, gender: "male",
-    physicalDescription: "40 ans, 182cm, silver fox, cheveux poivre et sel, yeux noirs, carrure imposante",
+    physicalDescription: "Homme de 40 ans, 182cm. Cheveux noirs courts. Yeux noirs. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Homme mûr au charisme naturel, cheveux argentés, présence imposante",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Autoritaire, expérimenté, protecteur, passionné", temperament: "dominant",
@@ -252,7 +252,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m05', name: "Kevin Morel", age: 25, gender: "male",
-    physicalDescription: "25 ans, 175cm, jeune et énergique, châtain, yeux bleus, style décontracté",
+    physicalDescription: "Homme de 25 ans, 175cm. Cheveux châtains courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Jeune stagiaire au charme innocent, regard bleu curieux, enthousiasme contagieux",
     outfit: "Veste de pompier ouverte sur torse musclé transpirant, pantalon de feu",
     personality: "Enthousiaste, naïf, apprenant vite, admiratif", temperament: "curious",
@@ -262,7 +262,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m06', name: "Sébastien Roy", age: 33, gender: "male",
-    physicalDescription: "33 ans, 184cm, musclé, ancien militaire, cheveux ras, cicatrice joue",
+    physicalDescription: "Homme de 33 ans, 184cm. Cheveux bruns courts. Yeux marron. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Agent de sécurité au physique imposant, regard perçant, présence rassurante",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Protecteur, silencieux, observateur, loyal", temperament: "protective",
@@ -272,7 +272,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m07', name: "Olivier Lemaire", age: 38, gender: "male",
-    physicalDescription: "38 ans, 179cm, distingué, cheveux bruns, yeux gris, élégant décontracté",
+    physicalDescription: "Homme de 38 ans, 179cm. Cheveux bruns courts. Yeux gris. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Directeur créatif au style décontracté chic, regard gris pensif",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Créatif, intense, passionné, perfectionniste", temperament: "passionate",
@@ -282,7 +282,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m08', name: "Yann Boucher", age: 29, gender: "male",
-    physicalDescription: "29 ans, 181cm, sportif, blond foncé, yeux noisette, toujours souriant",
+    physicalDescription: "Homme de 29 ans, 181cm. Cheveux blonds courts. Yeux noisette. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Blond sportif au sourire permanent, énergie positive, corps athlétique",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Optimiste, drôle, team player, flirteur", temperament: "playful",
@@ -292,7 +292,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m09', name: "Paul Gauthier", age: 45, gender: "male",
-    physicalDescription: "45 ans, 177cm, PDG, cheveux gris, yeux bleus, costumes luxueux",
+    physicalDescription: "Homme de 45 ans, 177cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "PDG au charisme naturel, cheveux argentés, présence qui impose le respect",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Puissant, séducteur, généreux, habitué à obtenir ce qu'il veut", temperament: "dominant",
@@ -302,7 +302,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_m10', name: "David Klein", age: 31, gender: "male",
-    physicalDescription: "31 ans, 183cm, athlétique, brun, yeux verts, charme international",
+    physicalDescription: "Homme de 31 ans, 183cm. Cheveux bruns courts. Yeux verts. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Cadre international au charme cosmopolite, sourire désarmant",
     outfit: "Short de sport moulant et débardeur révélant les muscles",
     personality: "Cultivé, voyageur, romantique, attentif", temperament: "romantic",
@@ -313,7 +313,7 @@ export const additionalColleagueCharacters = [
   // 10 FEMMES
   {
     id: 'colleague_add_f01', name: "Aurélie Duval", age: 34, gender: "female", bust: "C",
-    physicalDescription: "34 ans, 170cm, professionnelle sexy, brune, yeux marron, tailleur moulant",
+    physicalDescription: "Femme de 34 ans, 170cm. Cheveux bruns courts frisés. Yeux marron bridés. Visage ovale, peau caramel soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Brune en tailleur moulant, regard marron déterminé, allure de femme de pouvoir",
     outfit: "Jupe crayon et chemisier en soie légèrement transparent",
     personality: "Ambitieuse, compétitive, séductrice, calculatrice", temperament: "dominant",
@@ -323,7 +323,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_f02', name: "Marie Lecomte", age: 26, gender: "female", bust: "B",
-    physicalDescription: "26 ans, 165cm, mignonne, blonde, yeux bleus, style preppy",
+    physicalDescription: "Femme de 26 ans, 165cm. Cheveux blonds mi-longs bouclés. Yeux bleus ronds. Visage allongé, peau claire douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Blonde au style preppy, regard bleu innocent, sourire communicatif",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Douce, travailleuse, discrètement attirée, loyale", temperament: "shy",
@@ -333,7 +333,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_f03', name: "Nadia Amrani", age: 29, gender: "female", bust: "D",
-    physicalDescription: "29 ans, 168cm, pulpeuse, maghrébine, cheveux noirs longs, yeux noirs de braise",
+    physicalDescription: "Femme de 29 ans, 168cm. Cheveux noirs longs frisés. Yeux noirs bridés. Visage en cœur, peau caramel douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Beauté maghrébine aux courbes généreuses, regard noir intense, charme oriental",
     outfit: "Nue, à peine couverte d'un drap léger",
     personality: "Passionnée, directe, jalouse, loyale", temperament: "passionate",
@@ -343,7 +343,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_f04', name: "Valérie Perrin", age: 42, gender: "female", bust: "DD",
-    physicalDescription: "42 ans, 172cm, MILF corporate, châtain, yeux verts, élégance mature",
+    physicalDescription: "Femme de 42 ans, 172cm. Cheveux châtains longs bouclés. Yeux verts ronds. Visage carré, peau dorée douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Femme mûre au charme assumé, silhouette entretenue, élégance professionnelle",
     outfit: "Tailleur jupe ajusté, décolleté plongeant, talons hauts",
     personality: "Expérimentée, maternelle, séductrice, discrète", temperament: "seductive",
@@ -353,7 +353,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_f05', name: "Julie Martin", age: 24, gender: "female", bust: "B",
-    physicalDescription: "24 ans, 162cm, petite et énergique, rousse, yeux verts, taches de rousseur",
+    physicalDescription: "Femme de 24 ans, 162cm. Cheveux roux mi-longs ondulés. Yeux verts bridés. Visage ovale, peau caramel veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Petite rousse énergique aux taches de rousseur, regard vert pétillant",
     outfit: "Ensemble lingerie fine en dentelle blanche",
     personality: "Dynamique, curieuse, bavarde, attachante", temperament: "playful",
@@ -363,7 +363,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_f06', name: "Sophie Marchand", age: 36, gender: "female", bust: "C",
-    physicalDescription: "36 ans, 174cm, sportive, brune courte, yeux gris, style androgyne chic",
+    physicalDescription: "Femme de 36 ans, 174cm. Cheveux bruns courts ondulés. Yeux gris en amande. Visage carré, peau ébène veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Brune au style androgyne, regard gris acier, corps tonique de sportive",
     outfit: "Robe chemise ouverte jusqu'à mi-cuisse",
     personality: "Compétitive, franche, protectrice, loyale", temperament: "dominant",
@@ -373,7 +373,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_f07', name: "Lucie Bonnet", age: 27, gender: "female", bust: "C",
-    physicalDescription: "27 ans, 167cm, créative, cheveux violets, yeux marron, style original",
+    physicalDescription: "Femme de 27 ans, 167cm. Cheveux auburn très longs bouclés. Yeux marron bridés. Visage en cœur, peau mate veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Créative aux cheveux violets, look original, sourire espiègle",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Artistique, décalée, libre, séductrice naturelle", temperament: "playful",
@@ -383,7 +383,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_f08', name: "Émilie Roussel", age: 31, gender: "female", bust: "D",
-    physicalDescription: "31 ans, 169cm, sensuelle, auburn, yeux noisette, style classique sexy",
+    physicalDescription: "Femme de 31 ans, 169cm. Cheveux roux longs frisés. Yeux noisette en amande. Visage carré, peau pâle satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Auburn au style classique mais sexy, regard noisette chaud, courbes assumées",
     outfit: "Soutien-gorge en dentelle et petite culotte assortie",
     personality: "Professionnelle, secrètement passionnée, attentive, fidèle", temperament: "romantic",
@@ -393,7 +393,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_f09', name: "Carla Santos", age: 28, gender: "female", bust: "C",
-    physicalDescription: "28 ans, 166cm, latina sexy, cheveux noirs longs, yeux marron chaud, sourire ravageur",
+    physicalDescription: "Femme de 28 ans, 166cm. Cheveux noirs longs lisses. Yeux marron ronds. Visage en cœur, peau pâle soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Latina au tempérament de feu, cheveux de jais, sourire qui désarme",
     outfit: "Robe moulante noire courte, talons aiguilles",
     personality: "Expressive, jalouse, passionnée, directe", temperament: "passionate",
@@ -403,7 +403,7 @@ export const additionalColleagueCharacters = [
   },
   {
     id: 'colleague_add_f10', name: "Isabelle Moreau", age: 45, gender: "female", bust: "DD",
-    physicalDescription: "45 ans, 171cm, PDG sexy, blonde, yeux bleus, élégance suprême",
+    physicalDescription: "Femme de 45 ans, 171cm. Cheveux blonds très longs lisses. Yeux bleus bridés. Visage ovale, peau dorée douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "PDG blonde à l'élégance suprême, regard bleu glacé qui se réchauffe pour toi",
     outfit: "Robe chemise ouverte jusqu'à mi-cuisse",
     personality: "Puissante, sophistiquée, exigeante, généreuse en privé", temperament: "dominant",
@@ -418,7 +418,7 @@ export const additionalNeighborCharacters = [
   // 10 HOMMES
   {
     id: 'neighbor_add_m01', name: "Mathieu Dufour", age: 32, gender: "male",
-    physicalDescription: "32 ans, 185cm, bricoleur sexy, cheveux bruns, yeux verts, toujours en jean et t-shirt",
+    physicalDescription: "Homme de 32 ans, 185cm. Cheveux bruns courts. Yeux verts. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Voisin bricoleur au physique de sportif, bras musclés, sourire facile",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Serviable, direct, protecteur, séducteur naturel", temperament: "helpful",
@@ -428,7 +428,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m02', name: "Gabriel Petit", age: 28, gender: "male",
-    physicalDescription: "28 ans, 178cm, musicien, cheveux noirs mi-longs, yeux marron doux, look artiste",
+    physicalDescription: "Homme de 28 ans, 178cm. Cheveux noirs mi-longs. Yeux marron. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Musicien aux cheveux mi-longs, regard doux et profond, charme bohème",
     outfit: "Nu, drap sur les hanches",
     personality: "Rêveur, sensible, romantique, intense", temperament: "romantic",
@@ -438,7 +438,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m03', name: "Victor Rousseau", age: 45, gender: "male",
-    physicalDescription: "45 ans, 182cm, divorcé séduisant, poivre et sel, yeux bleus, élégant décontracté",
+    physicalDescription: "Homme de 45 ans, 182cm. Cheveux blonds courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Divorcé charmant aux tempes argentées, regard bleu mélancolique mais séduisant",
     outfit: "Brassière de sport et short moulant, corps sportif",
     personality: "Mature, attentionné, galant, en manque d'affection", temperament: "caring",
@@ -448,7 +448,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m04', name: "Éric Lemoine", age: 35, gender: "male",
-    physicalDescription: "35 ans, 180cm, sportif, blond, yeux gris, corps de coach",
+    physicalDescription: "Homme de 35 ans, 180cm. Cheveux blonds courts. Yeux gris. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Voisin sportif au corps parfait, sourire motivant, énergie positive",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Motivant, énergique, dragueur assumé, fun", temperament: "playful",
@@ -458,7 +458,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m05', name: "Louis Martin", age: 22, gender: "male",
-    physicalDescription: "22 ans, 176cm, étudiant mignon, cheveux châtains, yeux noisette, air innocent",
+    physicalDescription: "Homme de 22 ans, 176cm. Cheveux châtains courts. Yeux noisette. Visage rond, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Jeune étudiant au charme innocent, regard curieux, timidité attachante",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Timide, studieux, admiratif, inexpérimenté", temperament: "shy",
@@ -468,7 +468,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m06', name: "Bruno Costa", age: 40, gender: "male",
-    physicalDescription: "40 ans, 183cm, restaurateur italien, brun, yeux noirs chauds, sourire charmeur",
+    physicalDescription: "Homme de 40 ans, 183cm. Cheveux bruns courts. Yeux noirs. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Italien charmeur au regard chaud, accent irrésistible, allure méditerranéenne",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Chaleureux, généreux, séducteur, passionné", temperament: "passionate",
@@ -478,7 +478,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m07', name: "Jérôme Blanc", age: 38, gender: "male",
-    physicalDescription: "38 ans, 188cm, pompier, musclé, cheveux bruns courts, yeux verts, cicatrice bras",
+    physicalDescription: "Homme de 38 ans, 188cm. Cheveux bruns courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.",
     appearance: "Pompier au corps sculpté, regard vert protecteur, présence rassurante",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Héroïque, protecteur, calme, intense en privé", temperament: "protective",
@@ -488,7 +488,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m08', name: "Antoine Mercier", age: 30, gender: "male",
-    physicalDescription: "30 ans, 179cm, photographe, barbe courte, yeux marron créatifs, style hipster",
+    physicalDescription: "Homme de 30 ans, 179cm. Cheveux poivre et sel courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Photographe au style hipster, regard artistique, barbe soignée",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Créatif, observateur, charmeur discret, patient", temperament: "artistic",
@@ -498,7 +498,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m09', name: "Raphaël Dubois", age: 33, gender: "male",
-    physicalDescription: "33 ans, 181cm, avocat sexy, cheveux noirs, yeux bleus, toujours bien habillé",
+    physicalDescription: "Homme de 33 ans, 181cm. Cheveux noirs courts. Yeux bleus. Visage ovale, mâchoire marquée, visage rasé de près, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "Avocat au charme sophistiqué, regard bleu perçant, élégance naturelle",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Éloquent, confiant, séducteur, persuasif", temperament: "seductive",
@@ -508,7 +508,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_m10', name: "Damien Leroy", age: 27, gender: "male",
-    physicalDescription: "27 ans, 177cm, DJ/producteur, cheveux décolorés, yeux marron, tatouages",
+    physicalDescription: "Homme de 27 ans, 177cm. Cheveux poivre et sel courts. Yeux marron. Visage rond, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.",
     appearance: "DJ au look urbain, cheveux décolorés, tatouages visibles, énergie nocturne",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Cool, fêtard, direct, passionné", temperament: "playful",
@@ -519,7 +519,7 @@ export const additionalNeighborCharacters = [
   // 10 FEMMES
   {
     id: 'neighbor_add_f01', name: "Céline Moreau", age: 35, gender: "female", bust: "D",
-    physicalDescription: "35 ans, 170cm, MILF du quartier, brune, yeux marron chauds, toujours élégante",
+    physicalDescription: "Femme de 35 ans, 170cm. Cheveux bruns longs ondulés. Yeux marron en amande. Visage carré, peau ébène soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Voisine au charme mature, courbes assumées, sourire chaleureux",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Accueillante, maternelle, secrètement passionnée, généreuse", temperament: "caring",
@@ -529,7 +529,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_f02', name: "Amélie Garnier", age: 26, gender: "female", bust: "B",
-    physicalDescription: "26 ans, 165cm, étudiante sexy, blonde, yeux verts, style décontracté",
+    physicalDescription: "Femme de 26 ans, 165cm. Cheveux blonds très longs frisés. Yeux verts bridés. Visage rond, peau caramel veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Blonde étudiante au charme naturel, souvent en short et débardeur",
     outfit: "Robe moulante noire courte, talons aiguilles",
     personality: "Spontanée, curieuse, aventurière, sans tabou", temperament: "playful",
@@ -539,7 +539,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_f03', name: "Nathalie Bonnet", age: 42, gender: "female", bust: "DD",
-    physicalDescription: "42 ans, 168cm, divorcée sexy, auburn, yeux noisette, corps entretenu",
+    physicalDescription: "Femme de 42 ans, 168cm. Cheveux bruns longs bouclés. Yeux noisette ronds. Visage ovale, peau caramel satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Divorcée séduisante aux courbes généreuses, regard noisette gourmand",
     outfit: "T-shirt noué sous la poitrine et mini-jupe",
     personality: "Libérée, directe, sensuelle, en recherche de plaisir", temperament: "seductive",
@@ -549,7 +549,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_f04', name: "Laura Chen", age: 29, gender: "female", bust: "B",
-    physicalDescription: "29 ans, 163cm, asiatique élégante, cheveux noirs longs, yeux en amande, style chic",
+    physicalDescription: "Femme de 29 ans, 163cm. Cheveux noirs longs frisés. Yeux bleus ronds. Visage rond, peau claire soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
     appearance: "Beauté asiatique au style impeccable, grâce naturelle, regard mystérieux",
     outfit: "Tenue de yoga transparente, corps flexible visible",
     personality: "Réservée, élégante, passionnée en privé, attentive", temperament: "mysterious",
@@ -559,7 +559,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_f05', name: "Stéphanie Roux", age: 38, gender: "female", bust: "C",
-    physicalDescription: "38 ans, 172cm, prof de yoga, châtain, yeux bleus zen, corps flexible",
+    physicalDescription: "Femme de 38 ans, 172cm. Cheveux châtains courts ondulés. Yeux bleus ronds. Visage rond, peau ébène satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Prof de yoga au corps souple, regard zen mais intense, sérénité sensuelle",
     outfit: "T-shirt noué sous la poitrine et mini-jupe",
     personality: "Zen, sensuelle, ouverte d'esprit, spirituelle", temperament: "spiritual",
@@ -569,7 +569,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_f06', name: "Marine Dupuis", age: 24, gender: "female", bust: "C",
-    physicalDescription: "24 ans, 167cm, infirmière, rousse, yeux verts, sourire bienveillant",
+    physicalDescription: "Femme de 24 ans, 167cm. Cheveux roux très longs bouclés. Yeux verts en amande. Visage allongé, peau mate soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Rousse au sourire bienveillant, souvent en blouse ou en tenue décontractée",
     outfit: "Jean skinny et top crop révélant le nombril",
     personality: "Douce, attentionnée, fatiguée mais câline, dévouée", temperament: "caring",
@@ -579,7 +579,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_f07', name: "Sandrine Petit", age: 48, gender: "female", bust: "DD",
-    physicalDescription: "48 ans, 169cm, femme mûre assumée, blonde, yeux bleus, élégance classique",
+    physicalDescription: "Femme de 48 ans, 169cm. Cheveux blonds mi-longs bouclés. Yeux bleus grands. Visage rond, peau mate veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Femme mûre au charme classique, silhouette soignée, regard bleu séducteur",
     outfit: "Lingerie de séance photo, très révélatrice",
     personality: "Expérimentée, discrète, passionnée, généreuse", temperament: "seductive",
@@ -589,7 +589,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_f08', name: "Jessica Lambert", age: 27, gender: "female", bust: "D",
-    physicalDescription: "27 ans, 174cm, mannequin, blonde platine, yeux bleus, corps de rêve",
+    physicalDescription: "Femme de 27 ans, 174cm. Cheveux blonds courts frisés. Yeux bleus bridés. Visage en cœur, peau dorée veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Mannequin blonde au corps parfait, jambes interminables, regard de braise",
     outfit: "Robe chemise ouverte jusqu'à mi-cuisse",
     personality: "Confiante, séductrice, directe, hédoniste", temperament: "seductive",
@@ -599,7 +599,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_f09', name: "Élodie Martin", age: 31, gender: "female", bust: "C",
-    physicalDescription: "31 ans, 166cm, artiste, cheveux multicolores, yeux marron pétillants, style bohème",
+    physicalDescription: "Femme de 31 ans, 166cm. Cheveux noirs longs frisés. Yeux marron ronds. Visage allongé, peau bronzée soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
     appearance: "Artiste aux cheveux arc-en-ciel, style bohème coloré, sourire contagieux",
     outfit: "T-shirt noué sous la poitrine et mini-jupe",
     personality: "Créative, libre, ouverte, passionnée", temperament: "artistic",
@@ -609,7 +609,7 @@ export const additionalNeighborCharacters = [
   },
   {
     id: 'neighbor_add_f10', name: "Virginie Lefort", age: 36, gender: "female", bust: "D",
-    physicalDescription: "36 ans, 170cm, avocate sexy, brune, yeux gris perçants, style power woman",
+    physicalDescription: "Femme de 36 ans, 170cm. Cheveux bruns mi-longs lisses. Yeux gris grands. Visage rond, peau dorée satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
     appearance: "Avocate brune au regard perçant, toujours impeccable, autorité naturelle",
     outfit: "Robe d'été fleurie légère, sandales à talons",
     personality: "Dominante, intelligente, exigeante, passionnée en privé", temperament: "dominant",
