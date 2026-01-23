@@ -1,7 +1,10 @@
 /**
  * Service de file d'attente pour la génération d'images
- * v5.4.56 - Gère les requêtes multiples sans rate limit
- * FIX: File d'attente améliorée pour Freebox sans fallback Pollinations
+ * v5.4.77 - File d'attente robuste pour Freebox SD
+ * - Gère les requêtes multiples séquentiellement
+ * - PAS de fallback vers Pollinations (évite les rate limits)
+ * - Retry automatique avec backoff exponentiel
+ * - Messages utilisateur clairs
  */
 
 class ImageQueueService {
@@ -9,26 +12,33 @@ class ImageQueueService {
     this.queue = [];
     this.isProcessing = false;
     this.currentRequest = null;
-    this.listeners = new Map();
     this.requestIdCounter = 0;
     
-    // Configuration v5.4.56 - Délai plus long pour éviter rate limits
-    this.minDelayBetweenRequests = 3000; // 3 secondes entre chaque requête
-    this.maxConcurrent = 1; // Une seule requête à la fois pour Freebox
+    // v5.4.77 - Configuration optimisée pour Freebox SD
+    this.minDelayBetweenRequests = 4000; // 4 secondes entre chaque requête
+    this.maxConcurrent = 1; // Une seule requête à la fois
     this.lastRequestTime = 0;
-    this.maxRetries = 2; // Retry en cas d'échec
+    this.maxRetries = 3; // 3 tentatives avant échec
+    this.retryDelays = [5000, 10000, 15000]; // Délais progressifs
     
     // Statistiques
     this.stats = {
       totalProcessed: 0,
       successful: 0,
       failed: 0,
+      queued: 0,
     };
+    
+    // v5.4.77 - État global pour éviter les messages d'erreur Pollinations
+    this.lastError = null;
+    this.serverStatus = 'ready'; // 'ready', 'busy', 'error'
   }
   
   /**
-   * Ajoute une requête à la file d'attente avec fonction de génération
-   * v5.4.56 - Nouvelle signature avec generateFunction
+   * v5.4.77 - Ajoute une requête à la file d'attente
+   * @param {string} prompt - Le prompt de génération
+   * @param {object} character - Le personnage (optionnel)
+   * @param {function} generateFunction - La fonction de génération Freebox
    */
   addRequest(prompt, character, generateFunction) {
     return new Promise((resolve, reject) => {
@@ -36,9 +46,9 @@ class ImageQueueService {
       
       const queueItem = {
         id: requestId,
-        prompt,
-        character,
-        generateFunction, // La fonction qui génère vraiment l'image
+        prompt: prompt.substring(0, 100), // Pour les logs
+        character: character?.name || 'Unknown',
+        generateFunction,
         timestamp: Date.now(),
         resolve,
         reject,
@@ -47,13 +57,16 @@ class ImageQueueService {
       };
       
       this.queue.push(queueItem);
+      this.stats.queued++;
       
       const position = this.queue.length;
       const estimatedWait = position * (this.minDelayBetweenRequests / 1000);
       
-      console.log(`📋 Requête #${requestId} ajoutée - Position: ${position} - Attente estimée: ~${estimatedWait}s`);
+      console.log(`📋 [Queue] Requête #${requestId} ajoutée`);
+      console.log(`   📍 Position: ${position}/${this.queue.length + (this.isProcessing ? 1 : 0)}`);
+      console.log(`   ⏱️ Attente estimée: ~${Math.round(estimatedWait)}s`);
       
-      // Démarrer le traitement si pas en cours
+      // Démarrer le traitement si pas déjà en cours
       if (!this.isProcessing) {
         this.processQueue();
       }
@@ -61,7 +74,8 @@ class ImageQueueService {
   }
   
   /**
-   * v5.4.56 - Traite la file d'attente séquentiellement
+   * v5.4.77 - Traite la file d'attente séquentiellement
+   * SANS fallback vers Pollinations
    */
   async processQueue() {
     if (this.isProcessing || this.queue.length === 0) {
@@ -69,7 +83,8 @@ class ImageQueueService {
     }
     
     this.isProcessing = true;
-    console.log(`🚀 Démarrage traitement file d'attente (${this.queue.length} requêtes)`);
+    this.serverStatus = 'busy';
+    console.log(`🚀 [Queue] Démarrage traitement (${this.queue.length} en attente)`);
     
     while (this.queue.length > 0) {
       const request = this.queue.shift();
@@ -77,39 +92,58 @@ class ImageQueueService {
       request.status = 'processing';
       
       const remaining = this.queue.length;
-      console.log(`🔄 [${request.id}] En cours... (${remaining} en attente)`);
+      console.log(`\n🔄 [Queue] Traitement #${request.id} (${request.character})`);
+      console.log(`   📋 ${remaining} requête(s) restante(s)`);
       
-      try {
-        // Attendre le délai minimum entre les requêtes
-        await this.waitForDelay();
-        
-        // Appeler la fonction de génération fournie
-        const imageUrl = await request.generateFunction();
-        
-        if (imageUrl && !imageUrl.includes('error')) {
-          request.status = 'completed';
-          request.resolve(imageUrl);
-          this.stats.successful++;
-          console.log(`✅ [${request.id}] Succès!`);
-        } else {
-          throw new Error('Image invalide ou erreur');
+      let success = false;
+      let imageUrl = null;
+      let lastError = null;
+      
+      // v5.4.77 - Tentatives multiples SANS fallback Pollinations
+      for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+        try {
+          // Attendre le délai minimum entre les requêtes
+          await this.waitForDelay();
+          
+          console.log(`   🎨 Tentative ${attempt + 1}/${this.maxRetries + 1}...`);
+          
+          // Appeler la fonction de génération Freebox
+          imageUrl = await request.generateFunction();
+          
+          // Valider le résultat
+          if (imageUrl && this.isValidImageUrl(imageUrl)) {
+            success = true;
+            console.log(`   ✅ Succès!`);
+            break;
+          } else {
+            throw new Error('URL image invalide');
+          }
+          
+        } catch (error) {
+          lastError = error;
+          console.log(`   ⚠️ Échec tentative ${attempt + 1}: ${error.message}`);
+          
+          // Si encore des tentatives, attendre avant de réessayer
+          if (attempt < this.maxRetries) {
+            const delay = this.retryDelays[attempt] || 10000;
+            console.log(`   ⏳ Nouvelle tentative dans ${delay/1000}s...`);
+            await new Promise(r => setTimeout(r, delay));
+          }
         }
-        
-      } catch (error) {
-        // Retry si possible
-        if (request.retries < this.maxRetries) {
-          request.retries++;
-          request.status = 'retry';
-          this.queue.unshift(request); // Remettre en tête de file
-          console.log(`🔁 [${request.id}] Retry ${request.retries}/${this.maxRetries}...`);
-          await new Promise(r => setTimeout(r, 5000)); // Attente plus longue avant retry
-        } else {
-          request.status = 'error';
-          this.stats.failed++;
-          // NE PAS rejeter avec erreur Pollinations, donner un message clair
-          request.reject(new Error(`Génération en file d'attente - Réessayez dans quelques secondes`));
-          console.log(`❌ [${request.id}] Échec après ${this.maxRetries} tentatives`);
-        }
+      }
+      
+      // Résoudre ou rejeter la promesse
+      if (success && imageUrl) {
+        request.status = 'completed';
+        request.resolve(imageUrl);
+        this.stats.successful++;
+      } else {
+        request.status = 'error';
+        this.stats.failed++;
+        // v5.4.77 - Message d'erreur SANS mentionner Pollinations ou rate limit
+        const errorMsg = 'Serveur d\'images occupé. Veuillez réessayer dans quelques instants.';
+        request.reject(new Error(errorMsg));
+        this.lastError = lastError?.message || errorMsg;
       }
       
       this.currentRequest = null;
@@ -117,11 +151,42 @@ class ImageQueueService {
     }
     
     this.isProcessing = false;
-    console.log(`📋 File d'attente vide - Stats: ${this.stats.successful} succès, ${this.stats.failed} échecs`);
+    this.serverStatus = 'ready';
+    console.log(`\n📋 [Queue] File vide - ${this.stats.successful} succès, ${this.stats.failed} échecs`);
   }
   
   /**
-   * Attend le délai minimum entre les requêtes
+   * v5.4.77 - Valide qu'une URL d'image est correcte
+   */
+  isValidImageUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    
+    const lowerUrl = url.toLowerCase();
+    
+    // Patterns d'erreur à rejeter
+    const errorPatterns = [
+      'error', 'failed', 'invalid', 'blocked', 
+      'rate_limit', 'rate-limit', 'too_many',
+      '429', '503', '502', 'undefined', 'null'
+    ];
+    
+    for (const pattern of errorPatterns) {
+      if (lowerUrl.includes(pattern)) {
+        return false;
+      }
+    }
+    
+    // Vérifier que c'est une URL valide
+    try {
+      new URL(url);
+      return url.startsWith('http://') || url.startsWith('https://');
+    } catch {
+      return false;
+    }
+  }
+  
+  /**
+   * v5.4.77 - Attend le délai minimum entre les requêtes
    */
   async waitForDelay() {
     const now = Date.now();
@@ -129,7 +194,7 @@ class ImageQueueService {
     
     if (timeSinceLastRequest < this.minDelayBetweenRequests) {
       const waitTime = this.minDelayBetweenRequests - timeSinceLastRequest;
-      console.log(`⏳ Attente ${Math.round(waitTime/1000)}s avant prochaine génération...`);
+      console.log(`   ⏳ Pause ${Math.round(waitTime/1000)}s (anti-surcharge)...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
     
@@ -137,73 +202,81 @@ class ImageQueueService {
   }
   
   /**
-   * Obtient le statut de la file d'attente (pour UI)
+   * v5.4.77 - Obtient le statut de la file d'attente (pour UI)
    */
   getQueueStatus() {
+    const totalPending = this.queue.length + (this.isProcessing ? 1 : 0);
+    
     return {
       queueLength: this.queue.length,
+      totalPending,
       isProcessing: this.isProcessing,
+      serverStatus: this.serverStatus,
       currentRequest: this.currentRequest ? {
         id: this.currentRequest.id,
+        character: this.currentRequest.character,
         status: this.currentRequest.status,
       } : null,
-      estimatedWaitSeconds: this.queue.length * (this.minDelayBetweenRequests / 1000),
+      estimatedWaitSeconds: totalPending * (this.minDelayBetweenRequests / 1000),
       stats: { ...this.stats },
     };
   }
   
   /**
-   * Obtient la position dans la file d'attente
-   */
-  getPosition(requestId) {
-    if (this.currentRequest && this.currentRequest.id === requestId) {
-      return 0;
-    }
-    const index = this.queue.findIndex(r => r.id === requestId);
-    return index >= 0 ? index + 1 : -1;
-  }
-  
-  /**
-   * Message d'attente pour l'utilisateur
+   * v5.4.77 - Message d'attente pour l'utilisateur (sans mention de rate limit)
    */
   getWaitMessage() {
     if (!this.isProcessing && this.queue.length === 0) {
       return null;
     }
     
-    const position = this.queue.length + (this.isProcessing ? 1 : 0);
-    const waitSeconds = position * (this.minDelayBetweenRequests / 1000);
+    const totalPending = this.queue.length + (this.isProcessing ? 1 : 0);
+    const waitSeconds = totalPending * (this.minDelayBetweenRequests / 1000);
     
-    if (position === 1 && this.isProcessing) {
+    if (this.isProcessing && this.queue.length === 0) {
       return "🖼️ Génération en cours...";
-    } else if (position > 0) {
-      return `📋 File d'attente: ${position} image(s) - ~${Math.round(waitSeconds)}s`;
+    } else if (totalPending === 1) {
+      return "🖼️ Génération en cours...";
+    } else if (totalPending <= 3) {
+      return `📋 ${totalPending} image(s) en attente (~${Math.round(waitSeconds)}s)`;
+    } else {
+      return `📋 File d'attente: ${totalPending} images (~${Math.round(waitSeconds)}s)`;
     }
-    return null;
   }
   
   /**
-   * Annule une requête en attente
+   * v5.4.77 - Position d'une requête dans la file
+   */
+  getPosition(requestId) {
+    if (this.currentRequest && this.currentRequest.id === requestId) {
+      return 0; // En cours de traitement
+    }
+    const index = this.queue.findIndex(r => r.id === requestId);
+    return index >= 0 ? index + 1 : -1;
+  }
+  
+  /**
+   * v5.4.77 - Annule une requête en attente
    */
   cancelRequest(requestId) {
     const index = this.queue.findIndex(r => r.id === requestId);
     if (index >= 0) {
       const request = this.queue.splice(index, 1)[0];
-      request.reject(new Error('Requête annulée'));
-      console.log(`🚫 Requête #${requestId} annulée`);
+      request.reject(new Error('Génération annulée'));
+      console.log(`🚫 [Queue] Requête #${requestId} annulée`);
       return true;
     }
     return false;
   }
   
   /**
-   * Vide la file d'attente
+   * v5.4.77 - Vide la file d'attente
    */
   clearQueue() {
     const count = this.queue.length;
     this.queue.forEach(r => r.reject(new Error('File d\'attente vidée')));
     this.queue = [];
-    console.log(`🗑️ ${count} requêtes supprimées de la file`);
+    console.log(`🗑️ [Queue] ${count} requêtes supprimées`);
     return count;
   }
   
@@ -211,7 +284,7 @@ class ImageQueueService {
    * Reset les statistiques
    */
   resetStats() {
-    this.stats = { totalProcessed: 0, successful: 0, failed: 0 };
+    this.stats = { totalProcessed: 0, successful: 0, failed: 0, queued: 0 };
   }
 }
 

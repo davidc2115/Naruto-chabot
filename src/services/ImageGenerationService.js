@@ -5265,7 +5265,13 @@ class ImageGenerationService {
       return await this.generateImage(prompt, retryCount + 1, character);
     }
     
-    // Dernière tentative: fallback sur Pollinations
+    // v5.4.77 - Dernier retry selon la stratégie (PAS de fallback Pollinations pour Freebox)
+    if (strategy === 'freebox') {
+      console.log('⚠️ Échec génération Freebox après plusieurs tentatives');
+      throw new Error('Génération temporairement indisponible. Veuillez réessayer.');
+    }
+    
+    // Pour les autres stratégies, fallback sur Pollinations
     console.log('🔄 Fallback sur Pollinations AI...');
     return await this.generateWithPollinations(prompt, character);
   }
@@ -7226,52 +7232,40 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.4.57 - Génération Freebox avec fallback automatique vers Pollinations
-   * FIX: En cas d'erreur Freebox, utilise Pollinations automatiquement
+   * v5.4.77 - Génération Freebox via file d'attente
+   * SANS fallback vers Pollinations (évite les rate limits)
+   * La file d'attente gère les retries automatiquement
    */
   async generateWithFreeboxQueued(prompt, character = null) {
-    // Obtenir le statut de la file d'attente
+    // Obtenir et afficher le statut de la file d'attente
     const queueStatus = ImageQueueService.getQueueStatus();
     
-    if (queueStatus.queueLength > 0 || queueStatus.isProcessing) {
+    if (queueStatus.totalPending > 0) {
       const waitMsg = ImageQueueService.getWaitMessage();
-      console.log(`📋 ${waitMsg || 'En attente...'}`);
+      console.log(`📋 ${waitMsg || 'File d\'attente active...'}`);
     }
     
-    // Créer la fonction de génération qui sera appelée par la queue
+    // v5.4.77 - Fonction de génération SANS fallback Pollinations
     const generateFunction = async () => {
-      try {
-        // Appel direct à generateWithFreeboxSD
-        const imageUrl = await this.generateWithFreeboxSD(prompt, character);
-        
-        // v5.4.57 - Vérifier que l'URL est valide
-        if (!imageUrl || imageUrl.includes('error') || imageUrl.includes('undefined')) {
-          console.log('⚠️ URL Freebox invalide, fallback Pollinations...');
-          return await this.generateWithPollinations(prompt, character);
-        }
-        
-        return imageUrl;
-      } catch (error) {
-        console.error('❌ Erreur génération Freebox:', error.message);
-        // v5.4.57 - Fallback automatique vers Pollinations en cas d'erreur
-        console.log('🔄 Fallback automatique vers Pollinations AI...');
-        return await this.generateWithPollinations(prompt, character);
+      // Appel direct à generateWithFreeboxSD
+      const imageUrl = await this.generateWithFreeboxSD(prompt, character);
+      
+      // Vérifier que l'URL est valide
+      if (!imageUrl || imageUrl.includes('error') || imageUrl.includes('undefined')) {
+        throw new Error('URL Freebox invalide');
       }
+      
+      return imageUrl;
     };
     
-    // Utiliser la méthode addRequest du service de queue
+    // v5.4.77 - Utiliser la file d'attente (avec retries intégrés)
     try {
       const result = await ImageQueueService.addRequest(prompt, character, generateFunction);
       return result;
     } catch (error) {
-      // v5.4.57 - En cas d'erreur queue, générer directement avec Pollinations
-      console.log('⚠️ Erreur queue, génération directe Pollinations...');
-      try {
-        return await this.generateWithPollinations(prompt, character);
-      } catch (pollError) {
-        console.error('❌ Erreur Pollinations aussi:', pollError.message);
-        throw new Error('Impossible de générer l\'image. Veuillez réessayer.');
-      }
+      // v5.4.77 - Message d'erreur SANS mentionner Pollinations
+      console.error('❌ Erreur génération Freebox:', error.message);
+      throw new Error('Génération temporairement indisponible. Veuillez réessayer.');
     }
   }
   
@@ -7327,7 +7321,8 @@ class ImageGenerationService {
   }
 
   /**
-   * Génère une image avec Stable Diffusion Local
+   * v5.4.77 - Génère une image avec Stable Diffusion Local
+   * Fallback vers Freebox (pas Pollinations)
    */
   async generateWithLocal(prompt) {
     console.log('📱 Tentative génération locale SD...');
@@ -7336,8 +7331,8 @@ class ImageGenerationService {
       const availability = await StableDiffusionLocalService.checkAvailability();
       
       if (!availability.available || !availability.modelDownloaded || !availability.canRunSD) {
-        console.log('⚠️ SD Local non disponible - Utilisation de Freebox');
-        return await this.generateWithFreebox(prompt);
+        console.log('⚠️ SD Local non disponible - Utilisation de Freebox via queue');
+        return await this.generateWithFreeboxQueued(prompt, null);
       }
 
       const fullPrompt = `${prompt}, ${this.anatomyStrictPrompt}, masterpiece, best quality, ultra detailed`;
@@ -7346,8 +7341,8 @@ class ImageGenerationService {
       
       const result = await StableDiffusionLocalService.generateImage(fullPrompt, {
         negativePrompt: this.negativePromptFull,
-        steps: 4, // Plus d'étapes pour meilleure qualité
-        guidanceScale: 7.5, // Plus de guidance pour respecter le prompt
+        steps: 4,
+        guidanceScale: 7.5,
       });
 
       if (result && result.imagePath) {
@@ -7355,12 +7350,12 @@ class ImageGenerationService {
         return result.imagePath;
       }
       
-      console.log('⚠️ Pas de résultat SD Local, fallback Freebox');
-      return await this.generateWithFreebox(prompt);
+      console.log('⚠️ Pas de résultat SD Local, fallback Freebox via queue');
+      return await this.generateWithFreeboxQueued(prompt, null);
       
     } catch (error) {
       console.error('❌ Erreur génération locale:', error.message);
-      return await this.generateWithFreebox(prompt);
+      return await this.generateWithFreeboxQueued(prompt, null);
     }
   }
 }
