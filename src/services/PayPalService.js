@@ -1,10 +1,14 @@
 /**
  * Service PayPal pour les paiements
- * v5.4.77 - Tarification dynamique avec calcul automatique du prix annuel
+ * v5.4.80 - Tarification dynamique CENTRALISÉE sur serveur Freebox
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Alert } from 'react-native';
+import axios from 'axios';
+
+// URL du serveur Freebox pour la tarification centralisée
+const FREEBOX_URL = 'http://88.174.155.230:33437';
 
 class PayPalService {
   constructor() {
@@ -12,6 +16,7 @@ class PayPalService {
     this.PREMIUM_KEY = '@premium_status';
     this.LAST_CHECK_KEY = '@premium_last_check';
     this.PRICING_KEY = '@premium_pricing';
+    this.PRICING_CACHE_KEY = '@premium_pricing_cache';
     
     // Configuration par défaut
     this.config = {
@@ -20,7 +25,7 @@ class PayPalService {
       isConfigured: false,
     };
     
-    // v5.4.77 - Prix de base (modifiable par admin)
+    // v5.4.80 - Prix de base (modifiable par admin, stocké sur serveur)
     this.basePricing = {
       monthlyPrice: 4.99,        // Prix mensuel de base
       lifetimeMultiplier: 20,    // À vie = mensuel × 20
@@ -31,8 +36,8 @@ class PayPalService {
     // Tarifs premium - calculés dynamiquement
     this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
     
-    // Charger les tarifs personnalisés au démarrage
-    this.loadPricing();
+    // v5.4.80 - Charger les tarifs depuis le serveur au démarrage
+    this.loadPricingFromServer();
     
     // Vérification automatique au démarrage
     this.checkAndExpirePremium();
@@ -100,26 +105,68 @@ class PayPalService {
   }
   
   /**
-   * v5.4.77 - Charge les tarifs personnalisés
+   * v5.4.80 - Charge les tarifs depuis le serveur Freebox (centralisé)
    */
-  async loadPricing() {
+  async loadPricingFromServer() {
     try {
-      const stored = await AsyncStorage.getItem(this.PRICING_KEY);
+      console.log('🔄 Chargement tarifs depuis serveur Freebox...');
+      
+      const response = await axios.get(`${FREEBOX_URL}/pricing`, {
+        timeout: 5000,
+      });
+      
+      if (response.data && response.data.monthlyPrice) {
+        const pricing = response.data;
+        this.basePricing = {
+          monthlyPrice: pricing.monthlyPrice || 4.99,
+          lifetimeMultiplier: pricing.lifetimeMultiplier || 20,
+          yearlyMonths: pricing.yearlyMonths || 10,
+          currency: pricing.currency || 'EUR',
+        };
+        this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
+        
+        // Mettre en cache local pour fallback
+        await AsyncStorage.setItem(this.PRICING_CACHE_KEY, JSON.stringify(this.basePricing));
+        
+        console.log(`💰 Tarifs serveur: Mensuel=${this.basePricing.monthlyPrice}€, Annuel=${this.premiumPlans.yearly.price}€, À vie=${this.premiumPlans.lifetime.price}€`);
+        return this.basePricing;
+      }
+    } catch (error) {
+      console.log('⚠️ Serveur tarifs indisponible, utilisation cache local...');
+    }
+    
+    // Fallback: charger depuis le cache local
+    return await this.loadPricingFromCache();
+  }
+  
+  /**
+   * v5.4.80 - Charge les tarifs depuis le cache local (fallback)
+   */
+  async loadPricingFromCache() {
+    try {
+      const stored = await AsyncStorage.getItem(this.PRICING_CACHE_KEY);
       if (stored) {
         const pricing = JSON.parse(stored);
         this.basePricing = { ...this.basePricing, ...pricing };
         this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
-        console.log(`💰 Tarifs chargés: Mensuel=${this.basePricing.monthlyPrice}€`);
+        console.log(`💰 Tarifs cache: Mensuel=${this.basePricing.monthlyPrice}€`);
       }
       return this.basePricing;
     } catch (error) {
-      console.error('Erreur chargement tarifs:', error);
+      console.error('Erreur chargement cache tarifs:', error);
       return this.basePricing;
     }
   }
   
   /**
-   * v5.4.77 - Modifie le prix mensuel de base (recalcule tous les autres)
+   * v5.4.80 - Alias pour compatibilité
+   */
+  async loadPricing() {
+    return await this.loadPricingFromServer();
+  }
+  
+  /**
+   * v5.4.80 - Modifie le prix mensuel de base (stocké sur serveur)
    * @param {number} newMonthlyPrice - Nouveau prix mensuel
    */
   async setBasePrice(newMonthlyPrice) {
@@ -128,10 +175,31 @@ class PayPalService {
         throw new Error('Prix mensuel invalide');
       }
       
-      this.basePricing.monthlyPrice = parseFloat(newMonthlyPrice.toFixed(2));
+      const newPricing = {
+        monthlyPrice: parseFloat(newMonthlyPrice.toFixed(2)),
+        lifetimeMultiplier: this.basePricing.lifetimeMultiplier,
+        yearlyMonths: this.basePricing.yearlyMonths,
+        currency: this.basePricing.currency,
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Sauvegarder sur le serveur Freebox
+      try {
+        await axios.post(`${FREEBOX_URL}/pricing`, newPricing, {
+          timeout: 5000,
+          headers: { 'Content-Type': 'application/json' },
+        });
+        console.log('✅ Tarifs sauvegardés sur serveur Freebox');
+      } catch (serverError) {
+        console.log('⚠️ Serveur indisponible, sauvegarde locale uniquement');
+      }
+      
+      // Mettre à jour localement
+      this.basePricing = newPricing;
       this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
       
-      await AsyncStorage.setItem(this.PRICING_KEY, JSON.stringify(this.basePricing));
+      // Mettre en cache local
+      await AsyncStorage.setItem(this.PRICING_CACHE_KEY, JSON.stringify(this.basePricing));
       
       console.log(`💰 Prix mis à jour: Mensuel=${this.basePricing.monthlyPrice}€, Annuel=${this.premiumPlans.yearly.price}€, À vie=${this.premiumPlans.lifetime.price}€`);
       
@@ -148,7 +216,7 @@ class PayPalService {
   }
   
   /**
-   * v5.4.77 - Modifie le prix à vie séparément (multiplicateur personnalisé)
+   * v5.4.80 - Modifie le prix à vie séparément (stocké sur serveur)
    */
   async setLifetimePrice(newLifetimePrice) {
     try {
@@ -157,13 +225,32 @@ class PayPalService {
       }
       
       // Calculer le nouveau multiplicateur
-      this.basePricing.lifetimeMultiplier = newLifetimePrice / this.basePricing.monthlyPrice;
-      this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
+      const newMultiplier = newLifetimePrice / this.basePricing.monthlyPrice;
       
-      // Override le prix lifetime
+      const newPricing = {
+        ...this.basePricing,
+        lifetimeMultiplier: newMultiplier,
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Sauvegarder sur le serveur Freebox
+      try {
+        await axios.post(`${FREEBOX_URL}/pricing`, newPricing, {
+          timeout: 5000,
+          headers: { 'Content-Type': 'application/json' },
+        });
+        console.log('✅ Prix à vie sauvegardé sur serveur Freebox');
+      } catch (serverError) {
+        console.log('⚠️ Serveur indisponible, sauvegarde locale uniquement');
+      }
+      
+      // Mettre à jour localement
+      this.basePricing = newPricing;
+      this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
       this.premiumPlans.lifetime.price = parseFloat(newLifetimePrice.toFixed(2));
       
-      await AsyncStorage.setItem(this.PRICING_KEY, JSON.stringify(this.basePricing));
+      // Mettre en cache local
+      await AsyncStorage.setItem(this.PRICING_CACHE_KEY, JSON.stringify(this.basePricing));
       
       return { success: true, lifetime: this.premiumPlans.lifetime.price };
     } catch (error) {
@@ -297,7 +384,7 @@ class PayPalService {
   }
   
   /**
-   * Charge la configuration PayPal
+   * v5.4.80 - Charge la configuration PayPal et les tarifs depuis le serveur
    */
   async loadConfig() {
     try {
@@ -305,8 +392,8 @@ class PayPalService {
       if (stored) {
         this.config = JSON.parse(stored);
       }
-      // Charger aussi les tarifs
-      await this.loadPricing();
+      // v5.4.80 - Charger les tarifs depuis le serveur (centralisé)
+      await this.loadPricingFromServer();
       return this.config;
     } catch (error) {
       console.error('Erreur chargement config PayPal:', error);
@@ -660,7 +747,7 @@ class PayPalService {
         expiresAt: expiresAt ? expiresAt.toISOString() : null,
         // v5.4.73 - Métadonnées supplémentaires
         activatedBy: transactionId?.startsWith('ADMIN_') ? 'admin' : 'payment',
-        version: '5.4.77',
+        version: '5.4.80',
       };
       
       await AsyncStorage.setItem(this.PREMIUM_KEY, JSON.stringify(status));

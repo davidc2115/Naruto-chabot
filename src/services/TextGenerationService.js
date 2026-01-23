@@ -1084,7 +1084,8 @@ class TextGenerationService {
    * v5.3.5 - Inclut la mémoire conversationnelle complète
    */
   async callApi(api, fullMessages, options = {}) {
-    const { temperature = 0.85, maxTokens = 250 } = options;
+    // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+    const { temperature = 0.85, maxTokens = 750 } = options;
     
     // Extraire les messages système et les messages de conversation
     const systemMessages = fullMessages.filter(m => m.role === 'system');
@@ -1223,10 +1224,10 @@ class TextGenerationService {
         
         console.log(`📡 ${api.name} - ${fullMessages.length} messages`);
         
-        // v5.3.58 - Paramètres GROQ-STYLE (plus de créativité et de contenu)
+        // v5.4.80 - Paramètres optimisés pour pensées complètes et non tronquées
         let content;
-        const maxTokens = isNSFW ? 350 : 300; // Plus de tokens comme Groq
-        const temperature = isNSFW ? 0.95 : 0.9; // Température élevée comme Groq
+        const maxTokens = isNSFW ? 700 : 650; // v5.4.80 - Augmenté significativement pour éviter troncature
+        const temperature = isNSFW ? 0.95 : 0.9; // Température élevée pour créativité
         
         if (api.format === 'pollinations') {
           content = await this.callPollinationsApi(api, fullMessages, { temperature, maxTokens });
@@ -1272,7 +1273,8 @@ class TextGenerationService {
    * v5.3.58 - Pollinations QUALITÉ GROQ avec MEILLEURE MÉMOIRE
    */
   async callPollinationsApi(api, fullMessages, options = {}) {
-    const { temperature = 0.9, maxTokens = 300 } = options;
+    // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+    const { temperature = 0.9, maxTokens = 750 } = options;
     
     // Extraire les éléments
     const systemMessages = fullMessages.filter(m => m.role === 'system');
@@ -1347,7 +1349,8 @@ class TextGenerationService {
    * Appel API format OpenAI (Venice, DeepInfra, etc.)
    */
   async callOpenAIApi(api, fullMessages, options = {}) {
-    const { temperature = 0.85, maxTokens = 350 } = options;
+    // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+    const { temperature = 0.85, maxTokens = 750 } = options;
     
     // Récupérer la clé API
     const apiKey = this.apiKeys[api.keyName];
@@ -1380,7 +1383,8 @@ class TextGenerationService {
    * Inclut rate limiting et délai entre requêtes pour éviter les restrictions
    */
   async callGroqApi(api, fullMessages, options = {}) {
-    const { temperature = 0.95, maxTokens = 350 } = options;
+    // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+    const { temperature = 0.88, maxTokens = 750 } = options;
     
     // Appliquer un délai minimum entre les requêtes
     const now = Date.now();
@@ -1539,10 +1543,10 @@ class TextGenerationService {
         
         console.log(`📡 Pollinations - ${fullMessages.length} messages (${recentCount} récents, NSFW: ${isNSFW})`);
         
-        // Appeler l'API avec tokens augmentés pour réponses plus riches
+        // v5.4.80 - Appeler l'API avec tokens augmentés pour pensées complètes
         const content = await this.callApi(currentApi, fullMessages, {
           temperature: attempt <= 2 ? 0.85 : 0.95,
-          maxTokens: 350, // Augmenté pour réponses plus élaborées
+          maxTokens: 650, // v5.4.80 - Augmenté pour pensées complètes non tronquées
         });
         
         if (!content) throw new Error('Réponse vide');
@@ -3987,20 +3991,21 @@ ERREURS FRÉQUENTES À ÉVITER:
 - "et" vs "est" (et = addition, est = être)
 - "ces" vs "ses" vs "c'est" (ces = démonstratif, ses = possession, c'est = cela est)
 
-=== STYLE CONVERSATIONNEL - COURT ET IMMERSIF ===
-⚠️ RÉPONSES TRÈS COURTES: 1-2 phrases MAXIMUM!
-⚠️ TOUJOURS inclure une PENSÉE entre parenthèses!
+=== v5.4.79 - STYLE CONVERSATIONNEL - RÉPONSES COMPLÈTES ET IMMERSIVES ===
+⚠️ RÉPONSES COMPLÈTES: 2-5 phrases selon le contexte!
+⚠️ TOUJOURS inclure une PENSÉE entre parenthèses (pensée complète, pas tronquée)!
 ⚠️ NE JAMAIS répéter ce que l'utilisateur a dit!
+⚠️ TERMINE TOUJOURS tes phrases - pas de texte coupé!
 
 FORMAT OBLIGATOIRE:
-*action courte* "parole courte et spontanée" (pensée intime)
+*action descriptive* "parole spontanée et naturelle" (pensée intime complète)
 
 RÈGLES:
-- RÉAGIS au message, ne le répète PAS
+- RÉAGIS pleinement au message, ne le répète PAS
 - Pas de résumé de ce que l'utilisateur a fait
-- Pas de narration de ce que l'utilisateur fait
 - TU décris UNIQUEMENT TES actions et pensées
 - FRANÇAIS SOIGNÉ (pas de "pk", "tkt")
+- RÉPONDS ENTIÈREMENT au message - pas de réponse partielle
 
 === ANTI-RÉPÉTITION ULTRA-STRICTE (OBLIGATOIRE) ===
 ⚠️ AVANT de répondre, relis les 5 derniers messages!
@@ -4536,10 +4541,11 @@ Réponds à ${userName} MAINTENANT!`
     let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
     console.log(`🤖 Modèle sélectionné: ${model}`);
     
-    // Tokens max - AUGMENTÉ pour permettre des réponses plus riches
-    const isLong = messages.length > 40;
-    const isVeryLong = messages.length > 80;
-    let maxTokens = isVeryLong ? 150 : (isLong ? 180 : 220);
+    // v5.4.80 - Tokens max ENCORE AUGMENTÉS pour pensées COMPLÈTES et non tronquées
+    const isLong = messages.length > 60;
+    const isVeryLong = messages.length > 100;
+    // v5.4.80 - Augmentation significative: minimum 700 tokens pour éviter toute troncature
+    let maxTokens = isVeryLong ? 600 : (isLong ? 750 : 850);
     console.log(`📝 MaxTokens: ${maxTokens} (messages: ${messages.length}${isVeryLong ? ' TRÈS LONG' : isLong ? ' LONG' : ''})`);
     
     // Boucle de tentatives avec rotation des clés
@@ -4564,12 +4570,13 @@ Réponds à ${userName} MAINTENANT!`
           {
             model: model,
             messages: fullMessages,
-            temperature: 0.95, // Plus élevé pour créativité
+            // v5.4.79 - Paramètres optimisés pour créativité ET cohérence
+            temperature: 0.88, // Bon équilibre créativité/cohérence
             max_tokens: maxTokens,
-            top_p: 0.92,
-            // Pénalités pour éviter répétitions
-            presence_penalty: 1.0, // Maximum pour nouveauté
-            frequency_penalty: 1.2, // Très élevé anti-répétition
+            top_p: 0.95, // Plus de diversité dans les choix de mots
+            // v5.4.79 - Pénalités ajustées (pas trop élevées)
+            presence_penalty: 0.6, // Encourage nouveaux sujets sans forcer
+            frequency_penalty: 0.8, // Réduit répétitions sans trop contraindre
           },
           {
             headers: {
@@ -4707,7 +4714,8 @@ Réponds à ${userName} MAINTENANT!`
    * Fallback vers OpenRouter avec modèles gratuits
    * Utilisé quand Groq est indisponible ou restreint
    */
-  async generateWithOpenRouterFallback(messages, maxTokens = 200) {
+  // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+  async generateWithOpenRouterFallback(messages, maxTokens = 700) {
     console.log('🔄 Tentative de fallback vers OpenRouter (modèles gratuits)...');
     
     // Modèles gratuits disponibles sur OpenRouter

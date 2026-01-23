@@ -13,8 +13,9 @@ class CustomImageAPIService {
   constructor() {
     // URL Freebox par défaut pour SD sur Freebox
     this.freeboxUrl = 'http://88.174.155.230:33437/generate';
-    this.apiType = 'pollinations'; // 'pollinations', 'freebox' ou 'local'
-    this.strategy = 'pollinations'; // Par défaut: Pollinations AI
+    // v5.4.80 - FREEBOX PAR DÉFAUT pour éviter les rate limits Pollinations
+    this.apiType = 'freebox'; // 'pollinations', 'freebox' ou 'local'
+    this.strategy = 'freebox'; // v5.4.80 - Par défaut: Freebox SD (pas de rate limit)
     this.currentUserId = null;
   }
 
@@ -88,17 +89,18 @@ class CustomImageAPIService {
         });
         console.log(`🎯 STRATÉGIE ACTIVE: ${this.strategy.toUpperCase()}`);
       } else {
-        console.log(`📸 Aucune config images (user: ${userId}), utilisation par défaut: Pollinations AI`);
+        // v5.4.80 - Freebox par défaut pour éviter rate limits Pollinations
+        console.log(`📸 Aucune config images (user: ${userId}), utilisation par défaut: Freebox SD`);
         this.freeboxUrl = 'http://88.174.155.230:33437/generate';
-        this.apiType = 'pollinations';
-        this.strategy = 'pollinations';
+        this.apiType = 'freebox';
+        this.strategy = 'freebox';
       }
     } catch (error) {
       console.error('Error loading custom API config:', error);
-      // Fallback sur Pollinations
+      // v5.4.80 - Fallback sur Freebox (pas Pollinations pour éviter rate limits)
       this.freeboxUrl = 'http://88.174.155.230:33437/generate';
-      this.apiType = 'pollinations';
-      this.strategy = 'pollinations';
+      this.apiType = 'freebox';
+      this.strategy = 'freebox';
     }
   }
 
@@ -140,7 +142,7 @@ class CustomImageAPIService {
   }
 
   /**
-   * Supprimer la configuration (revenir à Pollinations par défaut)
+   * v5.4.80 - Supprimer la configuration (revenir à Freebox par défaut)
    */
   async clearConfig() {
     try {
@@ -149,9 +151,10 @@ class CustomImageAPIService {
       await AsyncStorage.removeItem(userKey);
       await AsyncStorage.removeItem('custom_image_api');
       
+      // v5.4.80 - Freebox par défaut pour éviter rate limits
       this.freeboxUrl = 'http://88.174.155.230:33437/generate';
-      this.apiType = 'pollinations';
-      this.strategy = 'pollinations';
+      this.apiType = 'freebox';
+      this.strategy = 'freebox';
       return true;
     } catch (error) {
       console.error('Error clearing custom API config:', error);

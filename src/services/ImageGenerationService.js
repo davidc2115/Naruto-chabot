@@ -1807,24 +1807,74 @@ class ImageGenerationService {
       }
     }
     
-    // === DÉTECTION DE LA TENUE ===
+    // === v5.4.80 - DÉTECTION DE LA TENUE ULTRA-ÉTENDUE ===
     const outfits = {
-      'nue?|naked|nu ': 'completely naked, nude',
-      'lingerie|sous-vêtements|underwear': 'wearing sexy lingerie',
+      // Nudité (PRIORITÉ HAUTE - ordre important)
+      'complètement nue?|totalement nue?|entièrement nue?': 'completely naked, nude, fully exposed body, nothing on',
+      'toute nue?|je suis nue?|elle est nue?': 'completely naked, nude, fully exposed body',
+      'naked|nude|nu(e)? et ': 'completely naked, nude body',
+      'topless|seins nus|poitrine nue|torse nu|sans haut': 'topless, bare breasts, exposed chest',
+      'ne porte rien|sans vêtements|déshabillée|sans rien|rien sur': 'wearing nothing, nude, naked',
+      'torse nu|poitrine à l\'air': 'topless, bare chest',
+      // Lingerie (PRIORITÉ HAUTE)
+      'en lingerie|porte de la lingerie|sa lingerie|ma lingerie': 'wearing sexy lingerie only, bra and panties, sensual',
+      'en sous-vêtements?|ses sous-vêtements?|mes sous-vêtements?': 'wearing underwear only, bra and panties',
+      'culotte|string|tanga|slip': 'wearing panties only, minimal underwear',
+      'soutien.?gorge|bra': 'wearing bra, breast support',
+      'porte-jarretelles|bas résille|bas|stockings|jarretières|garter': 'wearing stockings and garter belt, sexy hosiery',
+      'nuisette|baby.?doll|déshabillé|negligee': 'wearing sexy negligee, sheer nightgown',
+      'body|bodysuit|teddy|combinaison sexy': 'wearing sexy bodysuit, tight lingerie',
+      'guêpière|corset|bustier': 'wearing corset, cinched waist, sexy bustier',
+      // Déshabillage/Ouverture (PRIORITÉ MOYENNE-HAUTE)
+      'enlève (sa|ma|ta)|retire (sa|ma|ta)|ôte (sa|ma|ta)': 'removing clothes, undressing',
+      'déboutonne|ouvre (sa|ma|ta)|descend (sa|ma|ta)': 'unbuttoning, opening clothes',
+      'baisse (sa|ma|ta)|relève (sa|ma|ta)|remonte (sa|ma|ta)': 'pulling clothes up/down, exposing skin',
+      'écarte (sa|ma|ta)|soulève (sa|ma|ta)': 'moving clothes aside, revealing body',
+      'se déshabille|se dévêt|se met (toute )?nue?': 'undressing completely',
+      // Robes
+      'robe de soirée|evening dress|robe longue|robe élégante': 'wearing elegant evening gown, formal dress',
+      'robe moulante|tight dress|robe sexy|robe courte': 'wearing tight sexy dress, hugging curves',
+      'mini.?robe|mini.?jupe|miniskirt|jupe courte': 'wearing mini skirt, short dress, showing legs',
+      'robe fendue|robe décolletée': 'wearing dress with slit/cleavage, revealing',
       'robe|dress': 'wearing a dress',
+      // Tenues provocantes
+      'décolleté|plongeant|cleavage': 'showing cleavage, low cut top',
+      'crop.?top|ventre nu|nombril à l\'air': 'wearing crop top, exposed midriff',
+      'dos nu|backless': 'wearing backless top, exposed back',
+      'épaule(s)? dénudée(s)?|épaule(s)? nue(s)?': 'showing bare shoulders, off-shoulder',
+      'legging|yoga pants|pantalon moulant': 'wearing tight leggings, form-fitting pants',
+      // Autres vêtements
       'jupe|skirt': 'wearing a skirt',
-      'jean|pantalon|pants': 'wearing jeans/pants',
-      'maillot|bikini|swimsuit': 'wearing bikini/swimsuit',
-      'pyjama|nuisette|nightgown': 'wearing nightwear',
-      'uniforme|uniform': 'wearing uniform',
-      'costume|suit': 'wearing formal suit',
-      'topless|seins nus': 'topless, bare breasts',
+      'jean|pantalon|pants|jogging': 'wearing jeans/pants',
+      'short|shorts|mini.?short': 'wearing shorts, showing legs',
+      'débardeur|tank.?top|caraco': 'wearing tank top, showing arms',
+      't.?shirt|tee.?shirt|haut': 'wearing t-shirt',
+      'chemise|blouse|shirt|chemisier': 'wearing shirt/blouse',
+      'veste|jacket|blazer': 'wearing jacket',
+      'pull|sweater|gilet': 'wearing sweater/cardigan',
+      // Tenues spéciales
+      'maillot|bikini|swimsuit|maillot de bain': 'wearing bikini/swimsuit, beach attire',
+      'pyjama|tenue de nuit|nightgown': 'wearing nightwear, pajamas',
+      'uniforme|uniform|tenue de travail': 'wearing uniform, work attire',
+      'costume|suit|tailleur|ensemble': 'wearing formal suit',
+      'tablier seul|naked apron|tablier nu': 'wearing apron only, naked apron',
+      'tablier|apron': 'wearing apron',
+      'kimono|yukata|tenue japonaise': 'wearing kimono, japanese clothing',
+      'latex|cuir|leather|vinyle': 'wearing leather/latex/vinyl clothing, shiny',
+      'transparent|see.?through|maille|résille': 'wearing see-through/mesh clothing, revealing',
+      'mouillé|wet|trempé': 'wet clothes clinging to body, see-through when wet',
+      // États vestimentaires
+      'à moitié nue?|semi.?nue?|partiellement dévêtue?': 'partially nude, half naked, semi-clothed',
+      'vêtements défait(s)?|tenue froissée': 'disheveled clothing, wrinkled outfit',
+      'ouverte?|déboutonné(e)?': 'clothing open/unbuttoned, showing skin',
     };
     
     let detectedOutfit = null;
+    // v5.4.79 - Parcourir du plus spécifique au plus général
     for (const [keywords, outfit] of Object.entries(outfits)) {
       if (new RegExp(keywords, 'i').test(lastMessages)) {
         detectedOutfit = outfit;
+        console.log(`👔 Tenue détectée dans conversation: "${outfit}"`);
         break;
       }
     }
@@ -4867,10 +4917,11 @@ class ImageGenerationService {
       console.log(`🎭 Position conversation: ${conversationContext.position}`);
     }
     
-    // Tenue détectée (pour SFW/NSFW)
-    if (conversationContext.outfit && isNSFW) {
+    // v5.4.79 - Tenue détectée dans la conversation (priorité sur tenue aléatoire)
+    // S'applique en SFW ET NSFW pour respecter le contexte de la conversation
+    if (conversationContext.outfit) {
       prompt += `, ${conversationContext.outfit}`;
-      console.log(`👗 Tenue conversation: ${conversationContext.outfit}`);
+      console.log(`👗 Tenue conversation PRIORITAIRE: ${conversationContext.outfit}`);
     }
     
     // Action en cours
@@ -5999,26 +6050,40 @@ class ImageGenerationService {
     
     const identityParts = [];
     
-    // Visage et expression de base
-    identityParts.push('same face throughout, consistent facial features');
+    // v5.4.80 - CHEVEUX EN PRIORITÉ (résout le problème queue de cheval)
+    // Les cheveux sont l'élément le plus important pour l'identité visuelle
+    const hairParts = [];
     
-    // Cheveux (ne changent pas)
+    // Couleur de cheveux (très importante)
     if (character.hairColor) {
       const hairColorEn = this.translateHairColor(character.hairColor);
-      identityParts.push(`${hairColorEn} hair color`);
+      hairParts.push(`((${hairColorEn} hair))`);
     }
+    
+    // Style de coiffure (PRIORITAIRE - traduit maintenant)
+    if (character.hairStyle) {
+      const hairStyleEn = this.translateHairStyle(character.hairStyle);
+      hairParts.push(`((${hairStyleEn}))`);
+    }
+    
+    // Longueur de cheveux
     if (character.hairLength) {
       const hairLengthEn = this.translateHairLength(character.hairLength);
-      identityParts.push(`${hairLengthEn} hair`);
+      hairParts.push(`((${hairLengthEn} hair))`);
     }
-    if (character.hairStyle) {
-      identityParts.push(`${character.hairStyle} hairstyle`);
+    
+    // v5.4.80 - Ajouter les cheveux en premier avec double emphase
+    if (hairParts.length > 0) {
+      identityParts.push(hairParts.join(', '));
     }
+    
+    // Visage et expression de base
+    identityParts.push('same face throughout, consistent facial features');
     
     // Yeux (ne changent pas)
     if (character.eyeColor) {
       const eyeColorEn = this.translateEyeColor(character.eyeColor);
-      identityParts.push(`${eyeColorEn} eyes`);
+      identityParts.push(`((${eyeColorEn} eyes))`);
     }
     
     // Peau (ne change pas)
@@ -6039,6 +6104,72 @@ class ImageGenerationService {
     }
     
     return identityParts.length > 0 ? identityParts.join(', ') : '';
+  }
+  
+  /**
+   * v5.4.80 - Traduit les styles de coiffure français en anglais
+   */
+  translateHairStyle(style) {
+    const map = {
+      // Queue de cheval
+      'queue de cheval': 'ponytail hairstyle, hair tied back',
+      'queue-de-cheval': 'ponytail hairstyle, hair tied back',
+      'queue': 'ponytail',
+      'ponytail': 'ponytail hairstyle, hair tied back',
+      
+      // Chignon
+      'chignon': 'bun hairstyle, hair in bun',
+      'chignon haut': 'high bun hairstyle',
+      'chignon bas': 'low bun hairstyle',
+      'bun': 'bun hairstyle',
+      
+      // Tresses
+      'tresse': 'braided hair, braid hairstyle',
+      'tresses': 'braided hair, braids hairstyle',
+      'nattes': 'pigtails, twin braids',
+      'couettes': 'twintails, pigtails hairstyle',
+      'tresse africaine': 'cornrows, African braids',
+      'dreadlocks': 'dreadlocks hairstyle',
+      'dreads': 'dreadlocks',
+      
+      // Lâchés
+      'lâché': 'loose hair, hair down',
+      'lache': 'loose hair, hair down',
+      'détaché': 'loose hair, hair down',
+      'libre': 'loose hair flowing',
+      'au vent': 'windswept hair, flowing hair',
+      
+      // Franges
+      'frange': 'bangs, fringe hairstyle',
+      'frange droite': 'straight bangs',
+      'frange de côté': 'side swept bangs',
+      
+      // Coupes
+      'carré': 'bob cut hairstyle',
+      'carré plongeant': 'angled bob haircut',
+      'dégradé': 'layered haircut',
+      'effilé': 'thinned out layered hair',
+      'rasé sur les côtés': 'undercut, shaved sides',
+      'mohawk': 'mohawk hairstyle',
+      'iroquois': 'mohawk hairstyle',
+      
+      // Ondulés/bouclés
+      'ondulé': 'wavy hair, waves',
+      'bouclé': 'curly hair, curls',
+      'frisé': 'curly hair, tight curls',
+      'afro': 'afro hairstyle',
+      'lisse': 'straight sleek hair',
+      'raide': 'straight hair',
+      
+      // Autres
+      'attaché': 'tied up hair, updo',
+      'relevé': 'updo hairstyle, hair up',
+      'mi-attaché': 'half up half down hairstyle',
+      'demi-queue': 'half ponytail',
+    };
+    
+    const lowerStyle = style?.toLowerCase()?.trim();
+    return map[lowerStyle] || style;
   }
   
   /**

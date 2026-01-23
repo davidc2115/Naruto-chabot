@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AuthService from '../services/AuthService';
 import PayPalService from '../services/PayPalService';
 
@@ -88,6 +89,13 @@ export default function PremiumScreen({ navigation }) {
     loadPremiumStatus();
     loadPricing();
   }, []);
+
+  // v5.4.79 - Recharger les tarifs quand l'écran revient au premier plan
+  useFocusEffect(
+    useCallback(() => {
+      loadPricing();
+    }, [])
+  );
 
   const loadPricing = async () => {
     try {
@@ -274,7 +282,7 @@ export default function PremiumScreen({ navigation }) {
         {/* ========== LES 3 PLANS ========== */}
         <View style={styles.plansContainer}>
           
-          {/* PLAN MENSUEL */}
+          {/* PLAN MENSUEL - v5.4.79 Prix dynamiques */}
           <TouchableOpacity
             style={[
               styles.planCard,
@@ -288,7 +296,7 @@ export default function PremiumScreen({ navigation }) {
               <Text style={styles.planName}>Mensuel</Text>
             </View>
             <View style={styles.planPriceRow}>
-              <Text style={[styles.planPrice, { color: '#3b82f6' }]}>4.99€</Text>
+              <Text style={[styles.planPrice, { color: '#3b82f6' }]}>{pricing.monthlyPrice.toFixed(2)}€</Text>
               <Text style={styles.planPeriod}>/mois</Text>
             </View>
             <View style={styles.planFeatures}>
@@ -305,7 +313,7 @@ export default function PremiumScreen({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          {/* PLAN ANNUEL - RECOMMANDÉ */}
+          {/* PLAN ANNUEL - RECOMMANDÉ - v5.4.79 Prix dynamiques */}
           <TouchableOpacity
             style={[
               styles.planCard,
@@ -323,7 +331,7 @@ export default function PremiumScreen({ navigation }) {
               <Text style={[styles.planName, { color: '#f59e0b' }]}>Annuel</Text>
             </View>
             <View style={styles.planPriceRow}>
-              <Text style={[styles.planPrice, { color: '#f59e0b' }]}>39.99€</Text>
+              <Text style={[styles.planPrice, { color: '#f59e0b' }]}>{pricing.yearlyPrice.toFixed(2)}€</Text>
               <Text style={styles.planPeriod}>/an</Text>
             </View>
             <View style={styles.savingsBadge}>
@@ -344,7 +352,7 @@ export default function PremiumScreen({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          {/* PLAN À VIE */}
+          {/* PLAN À VIE - v5.4.79 Prix dynamiques */}
           <TouchableOpacity
             style={[
               styles.planCard,
@@ -358,7 +366,7 @@ export default function PremiumScreen({ navigation }) {
               <Text style={styles.planName}>À Vie</Text>
             </View>
             <View style={styles.planPriceRow}>
-              <Text style={[styles.planPrice, { color: '#10b981' }]}>99.99€</Text>
+              <Text style={[styles.planPrice, { color: '#10b981' }]}>{pricing.lifetimePrice.toFixed(2)}€</Text>
               <Text style={styles.planPeriod}>une fois</Text>
             </View>
             <View style={styles.planFeatures}>
