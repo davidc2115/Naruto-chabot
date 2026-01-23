@@ -747,7 +747,7 @@ class PayPalService {
         expiresAt: expiresAt ? expiresAt.toISOString() : null,
         // v5.4.73 - Métadonnées supplémentaires
         activatedBy: transactionId?.startsWith('ADMIN_') ? 'admin' : 'payment',
-        version: '5.4.80',
+        version: '5.4.81',
       };
       
       await AsyncStorage.setItem(this.PREMIUM_KEY, JSON.stringify(status));

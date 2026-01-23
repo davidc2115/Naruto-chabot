@@ -1,9 +1,10 @@
 /**
  * Écran Admin Support
- * v5.4.77 - Permet aux admins de voir et répondre aux tickets de support
+ * v5.4.81 - Permet aux admins de voir et répondre aux tickets de support
+ * v5.4.81 - Tarification rafraîchie automatiquement depuis le serveur
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -19,6 +20,7 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import SupportService from '../services/SupportService';
 import PayPalService from '../services/PayPalService';
 
@@ -44,6 +46,21 @@ export default function AdminSupportScreen({ navigation }) {
     loadTickets();
     loadPricing();
   }, []);
+  
+  // v5.4.81 - Recharger les tarifs depuis le serveur quand l'écran est affiché
+  useFocusEffect(
+    useCallback(() => {
+      const refreshPricing = async () => {
+        console.log('🔄 AdminSupport: Rechargement tarifs depuis serveur...');
+        await PayPalService.loadPricingFromServer();
+        const pricing = PayPalService.getCurrentPricing();
+        setCurrentPricing(pricing);
+        setNewMonthlyPrice(pricing.monthlyPrice.toString());
+        console.log('✅ Tarifs admin rafraîchis:', pricing);
+      };
+      refreshPricing();
+    }, [])
+  );
 
   const loadTickets = async () => {
     setLoading(true);
@@ -58,10 +75,12 @@ export default function AdminSupportScreen({ navigation }) {
   };
 
   const loadPricing = async () => {
-    await PayPalService.loadConfig();
+    // v5.4.81 - Charger depuis le serveur Freebox pour avoir les tarifs à jour
+    await PayPalService.loadPricingFromServer();
     const pricing = PayPalService.getCurrentPricing();
     setCurrentPricing(pricing);
     setNewMonthlyPrice(pricing.monthlyPrice.toString());
+    console.log('💰 Admin: Tarifs chargés:', pricing);
   };
 
   const handleSavePricing = async () => {
@@ -75,16 +94,28 @@ export default function AdminSupportScreen({ navigation }) {
     try {
       const result = await PayPalService.setBasePrice(price);
       if (result.success) {
-        setCurrentPricing({
+        // v5.4.81 - Mettre à jour l'état local immédiatement
+        const newPricing = {
           monthlyPrice: result.monthly,
           yearlyPrice: result.yearly,
           lifetimePrice: result.lifetime,
           yearlyMonths: 10,
           currency: 'EUR',
-        });
+        };
+        setCurrentPricing(newPricing);
+        setNewMonthlyPrice(result.monthly.toString());
+        
+        // v5.4.81 - Forcer le rechargement depuis le serveur pour vérifier
+        setTimeout(async () => {
+          await PayPalService.loadPricingFromServer();
+          const refreshedPricing = PayPalService.getCurrentPricing();
+          setCurrentPricing(refreshedPricing);
+          console.log('✅ Tarifs rafraîchis depuis serveur:', refreshedPricing);
+        }, 500);
+        
         Alert.alert(
           '✅ Tarifs mis à jour',
-          `Mensuel: ${result.monthly}€\nAnnuel: ${result.yearly}€ (2 mois gratuits)\nÀ vie: ${result.lifetime}€`
+          `Mensuel: ${result.monthly}€\nAnnuel: ${result.yearly}€ (2 mois gratuits)\nÀ vie: ${result.lifetime}€\n\nLes tarifs sont maintenant visibles pour tous les utilisateurs.`
         );
         setShowPricingModal(false);
       } else {

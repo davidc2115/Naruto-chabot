@@ -1751,11 +1751,20 @@ class ImageGenerationService {
    */
   extractConversationContext(recentMessages = []) {
     if (!recentMessages || recentMessages.length === 0) {
+      console.log('⚠️ extractConversationContext: Aucun message récent');
       return { location: null, position: null, outfit: null, action: null };
     }
     
-    // Analyser les 5 derniers messages
-    const lastMessages = recentMessages.slice(-5).map(m => m.content?.toLowerCase() || '').join(' ');
+    // v5.4.81 - Analyser les 10 derniers messages pour meilleure détection
+    const messagesToAnalyze = recentMessages.slice(-10);
+    const lastMessages = messagesToAnalyze.map(m => {
+      // Extraire le contenu texte de différentes façons possibles
+      const content = m.content || m.text || m.message || '';
+      return typeof content === 'string' ? content.toLowerCase() : '';
+    }).join(' ');
+    
+    console.log(`🔍 extractConversationContext: Analyse de ${messagesToAnalyze.length} messages`);
+    console.log(`📝 Texte analysé (${lastMessages.length} chars): "${lastMessages.substring(0, 200)}..."`)
     
     // === DÉTECTION DU LIEU ===
     const locations = {
@@ -1870,13 +1879,20 @@ class ImageGenerationService {
     };
     
     let detectedOutfit = null;
-    // v5.4.79 - Parcourir du plus spécifique au plus général
+    // v5.4.81 - Parcourir du plus spécifique au plus général avec logging amélioré
     for (const [keywords, outfit] of Object.entries(outfits)) {
-      if (new RegExp(keywords, 'i').test(lastMessages)) {
+      const regex = new RegExp(keywords, 'i');
+      if (regex.test(lastMessages)) {
         detectedOutfit = outfit;
-        console.log(`👔 Tenue détectée dans conversation: "${outfit}"`);
+        console.log(`✅ TENUE DÉTECTÉE dans conversation!`);
+        console.log(`   Keywords: "${keywords}"`);
+        console.log(`   Traduction: "${outfit}"`);
         break;
       }
+    }
+    
+    if (!detectedOutfit) {
+      console.log(`⚠️ Aucune tenue détectée dans le texte analysé`);
     }
     
     // === DÉTECTION DE L'ACTION ===
@@ -4917,11 +4933,17 @@ class ImageGenerationService {
       console.log(`🎭 Position conversation: ${conversationContext.position}`);
     }
     
-    // v5.4.79 - Tenue détectée dans la conversation (priorité sur tenue aléatoire)
+    // v5.4.81 - Tenue détectée dans la conversation (PRIORITÉ MAXIMALE)
     // S'applique en SFW ET NSFW pour respecter le contexte de la conversation
+    // Double parenthèses pour emphase maximale auprès du modèle
     if (conversationContext.outfit) {
-      prompt += `, ${conversationContext.outfit}`;
-      console.log(`👗 Tenue conversation PRIORITAIRE: ${conversationContext.outfit}`);
+      // Ajouter au début du prompt pour priorité maximale
+      prompt = `((${conversationContext.outfit})), ` + prompt;
+      // Et aussi à la fin pour renforcement
+      prompt += `, ((${conversationContext.outfit}))`;
+      console.log(`👗 ===== TENUE CONVERSATION APPLIQUÉE =====`);
+      console.log(`👗 Tenue: ${conversationContext.outfit}`);
+      console.log(`👗 Ajoutée en DÉBUT et FIN du prompt pour priorité maximale`);
     }
     
     // Action en cours
