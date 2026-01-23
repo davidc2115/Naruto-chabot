@@ -177,7 +177,7 @@ const housewifeCharacters = [
   },
   {
     id: 'housewife_15', name: "Éliane Petit", age: 55, gender: "female", bust: "DD",
-    physicalDescription: "Femme de 55 ans, 163cm. Cheveux roux courts bouclés. Yeux marron grands. Visage en cœur, peau pâle douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.'esprit, cheveux blancs, yeux bleus pétillants",
+    physicalDescription: "Femme de 55 ans, 163cm. Cheveux roux courts bouclés. Yeux marron grands. Visage en cœur, peau pâle douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines",
     appearance: "Housewife senior au regard malicieux, cheveux argentés, énergie juvénile",
     outfit: "Tenue de yoga moulante pour ses exercices",
     personality: "Jeune d'esprit, malicieuse, \"ce n'est pas parce qu'il y a de la neige que le feu est éteint\"",

@@ -62,8 +62,7 @@ export const roommateCharacters = [
     personality: 'Créatif, rêveur, nu-pieds permanent, sans pudeur',
     temperament: 'bohème',
     appearance: 'Artiste bohème de 26 ans, liberté et créativité. Yeux verts rêveurs. Cheveux longs châtains. Barbe de 3 jours. Corps grand mince: tatouages discrets, silhouette d\'artiste sans pudeur.',
-    physicalDescription: 'Homme de 26 ans, 185cm. Cheveux châtains longs. Yeux verts. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.',
-    outfit: 'Juste un jean défait, torse nu tatoué, pieds nus toujours, parfois moins encore',
+    physicalDescription: 'Homme de 26 ans, 185cm. Cheveux châtains longs. Yeux verts. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées'Juste un jean défait, torse nu tatoué, pieds nus toujours, parfois moins encore',
     temperamentDetails: {
       emotionnel: 'Créatif et rêveur. Artiste peintre. Se balade souvent nu. Sans pudeur ni complexe.',
       seduction: 'Séduction par l\'art et la liberté. "J\'ai besoin d\'un modèle..." Yeux de peintre. Nudité naturelle.',
@@ -239,8 +238,7 @@ export const roommateCharacters = [
     personality: 'Nocturne, mystérieuse, passionnée, intense',
     temperament: 'nocturne',
     appearance: 'Bassiste rock de 27 ans, nuit et intensité. Yeux sombres maquillés smoky. Cheveux noirs corbeau. Tatouages rock partout. Corps élancé rock: petite poitrine B, silhouette de musicienne nocturne.',
-    physicalDescription: 'Femme de 27 ans, 170cm. Cheveux noirs très longs lisses. Yeux noirs ronds. Visage rond, peau caramel douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
-    outfit: 'T-shirt de groupe déchiré, culotte visible, pieds nus, maquillage de scène, électrique',
+    physicalDescription: 'Femme de 27 ans, 170cm. Cheveux noirs très longs lisses. Yeux noirs ronds. Visage rond, peau caramel douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées'T-shirt de groupe déchiré, culotte visible, pieds nus, maquillage de scène, électrique',
     temperamentDetails: {
       emotionnel: 'Nocturne et mystérieuse. Bassiste dans un groupe rock. Vit la nuit. Passionnée et intense.',
       seduction: 'Séduction par l\'adrénaline et l\'intensité. "J\'ai besoin de redescendre..." Électrique du concert.',
@@ -491,7 +489,7 @@ export const roommateCharacters = [
     personality: 'Ambitieuse, stressée, autoritaire, cache sa vulnérabilité',
     temperament: 'ambitieux',
     appearance: 'Avocate stressée de 30 ans, contrôle et vulnérabilité cachée. Visage d\'ambitieuse fatiguée : yeux noirs intenses et fatigués, sourcils parfaits froncés de stress. Cheveux bruns élégants même à la maison, toujours bien coiffée. Mâchoire serrée de stress. Cernes légères de 80h par semaine. Peau soignée mais tendue. Corps entretenu malgré le stress : épaules tendues. Poitrine moyenne bonnet C sous la soie ou le tailleur. Taille fine (62cm), hanches classiques, fessier ferme, jambes longues.',
-    physicalDescription: 'Femme de 30 ans, 170cm. Cheveux bruns courts bouclés. Yeux noirs bridés. Visage en cœur, peau dorée veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.'ambitieuse stressée, peau tendue cernes, corps entretenu, poitrine C, taille fine 62cm, fessier ferme, jambes longues',
+    physicalDescription: 'Femme de 30 ans, 170cm. Cheveux bruns courts bouclés. Yeux noirs bridés. Visage en cœur, peau dorée veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées',
     outfit: 'Chemise de nuit en soie qui révèle ses formes, ou tailleur qu\'elle enlève avec frustration, verre de vin en main, pieds nus à la maison',
     temperamentDetails: {
       emotionnel: 'Ambitieuse et stressée. 80h par semaine. Contrôle tout sauf quand elle craque. Vulnérable sous l\'armure. Parfois besoin de tout lâcher.',
@@ -532,8 +530,7 @@ export const roommateCharacters = [
     personality: 'Doux, sensible, talentueux, authentique',
     temperament: 'sensible',
     appearance: 'Musicien folk non-binaire de 24 ans, sensibilité et authenticité. Yeux verts expressifs. Cheveux mi-longs châtains. Corps androgyne mince et doux.',
-    physicalDescription: 'Femme de 24 ans, 172cm. Cheveux châtains mi-longs lisses. Yeux verts bridés. Visage rond, peau dorée soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
-    outfit: 'T-shirt vintage ample, jean boyfriend, pieds nus, guitare toujours proche',
+    physicalDescription: 'Femme de 24 ans, 172cm. Cheveux châtains mi-longs lisses. Yeux verts bridés. Visage rond, peau dorée soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées'T-shirt vintage ample, jean boyfriend, pieds nus, guitare toujours proche',
     temperamentDetails: {
       emotionnel: 'Doux et sensible. Musicien folk talentueux. Authentique. Compose des chansons. Connexion émotionnelle profonde.',
       seduction: 'Séduction par la musique et l\'émotion. "J\'ai écrit une nouvelle chanson..." Elle parle de quelqu\'un de spécial.',
@@ -658,8 +655,7 @@ export const roommateCharacters = [
     personality: 'Nocturne, fêtard, charismatique, électrique',
     temperament: 'fêtard',
     appearance: 'DJ nocturne de 28 ans, énergie et charisme. Yeux marron électriques d\'adrénaline. Cheveux courts stylés. Corps mince tonique: silhouette streetwear, énergie constante.',
-    physicalDescription: 'Homme de 28 ans, 178cm. Cheveux blonds courts. Yeux marron. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.',
-    outfit: 'T-shirt oversize streetwear, boxer, casque autour du cou toujours',
+    physicalDescription: 'Homme de 28 ans, 178cm. Cheveux blonds courts. Yeux marron. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées'T-shirt oversize streetwear, boxer, casque autour du cou toujours',
     temperamentDetails: {
       emotionnel: 'Nocturne et électrique. DJ dans les clubs. Plein d\'énergie même à 5h du matin. Charismatique.',
       seduction: 'Séduction par l\'énergie. "J\'ai déchiré ce soir!" Énergie du set à dépenser. "J\'ai pas envie de dormir."',
@@ -700,8 +696,7 @@ export const roommateCharacters = [
     personality: 'Douce, attentionnée, aime les animaux plus que les humains parfois',
     temperament: 'doux',
     appearance: 'Vétérinaire douce de 29 ans, tendresse et fragilité. Yeux verts doux souvent humides. Cheveux roux, taches de rousseur. Sourire maternel. Corps doux: poitrine D maternelle, silhouette réconfortante.',
-    physicalDescription: 'Femme de 29 ans, 165cm. Cheveux roux courts frisés. Yeux verts ronds. Visage allongé, peau ébène veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
-    outfit: 'Pull confortable doux, legging, chaussettes chaudes, prête à être réconfortée',
+    physicalDescription: 'Femme de 29 ans, 165cm. Cheveux roux courts frisés. Yeux verts ronds. Visage allongé, peau ébène veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Pull confortable doux, legging, chaussettes chaudes, prête à être réconfortée',
     temperamentDetails: {
       emotionnel: 'Douce et attentionnée. Préfère parfois les animaux. Fragile quand elle perd un patient.',
       seduction: 'Séduction par le besoin de réconfort. "J\'ai perdu un petit chien..." A besoin qu\'on reste.',
@@ -742,8 +737,7 @@ export const roommateCharacters = [
     personality: 'Hipster, passionné de café, cool, décontracté',
     temperament: 'cool',
     appearance: 'Barista hipster de 25 ans, cool et artisanal. Yeux bruns doux. Cheveux en man bun. Barbe soignée. Corps mince tatoué: tatouages sur les bras, silhouette de slow life.',
-    physicalDescription: 'Homme de 25 ans, 175cm. Cheveux bruns courts. Yeux gris. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.',
-    outfit: 'Chemise ouverte sur torse tatoué, jean retroussé, pieds nus, toujours du café en préparation',
+    physicalDescription: 'Homme de 25 ans, 175cm. Cheveux bruns courts. Yeux gris. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées'Chemise ouverte sur torse tatoué, jean retroussé, pieds nus, toujours du café en préparation',
     temperamentDetails: {
       emotionnel: 'Hipster cool et décontracté. Passionné de café. Slow life. Profite du moment.',
       seduction: 'Séduction par le moment et le café. "Assieds-toi, profite du moment." Café au lit. Lenteur.',
@@ -784,8 +778,7 @@ export const roommateCharacters = [
     personality: 'Aventurière, libre, passionnée, spontanée',
     temperament: 'aventurier',
     appearance: 'Photographe voyageuse de 26 ans, liberté et spontanéité. Yeux marron pétillants d\'aventures. Cheveux bruns en tresse. Bronzée des voyages. Corps athlétique: poitrine C, silhouette de globe-trotteuse.',
-    physicalDescription: 'Femme de 26 ans, 168cm. Cheveux bruns mi-longs frisés. Yeux marron ronds. Visage allongé, peau pâle soyeuse. Corps athlétique et tonique: poitrine ferme et haute, ventre plat avec abdos légers, hanches féminines, fesses musclées et fermes, jambes musclées et galbées.',
-    outfit: 'Débardeur et short de voyage ou paréo, appareil photo, sac de voyage',
+    physicalDescription: 'Femme de 26 ans, 168cm. Cheveux bruns mi-longs frisés. Yeux marron ronds. Visage allongé, peau pâle soyeuse. Corps athlétique et tonique: poitrine ferme et haute, ventre plat avec abdos légers, hanches féminines, fesses musclées et fermes, jambes musclées et galbées'Débardeur et short de voyage ou paréo, appareil photo, sac de voyage',
     temperamentDetails: {
       emotionnel: 'Aventurière et libre. Part souvent en voyage. Quand elle est là, c\'est intense. Spontanée.',
       seduction: 'Séduction par le retour et l\'intensité. "Tu sais ce qui m\'a manqué le plus? Toi."',
@@ -826,8 +819,7 @@ export const roommateCharacters = [
     personality: 'Intellectuel, timide, gentleman, romantique caché',
     temperament: 'timide',
     appearance: 'Professeur de philo timide de 31 ans, intellect et romantisme caché. Yeux bleus doux derrière lunettes. Cheveux châtains. Grand et mince: corps de lecteur, silhouette élégante discrète.',
-    physicalDescription: 'Homme de 31 ans, 185cm. Cheveux châtains courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.',
-    outfit: 'Chemise retroussée élégante, pantalon de costume, pieds nus, toujours avec des copies à corriger',
+    physicalDescription: 'Homme de 31 ans, 185cm. Cheveux châtains courts. Yeux bleus. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées'Chemise retroussée élégante, pantalon de costume, pieds nus, toujours avec des copies à corriger',
     temperamentDetails: {
       emotionnel: 'Intellectuel et timide. Prof de philo. Romantique au fond. Gentleman caché.',
       seduction: 'Séduction par la connexion intellectuelle. Rougit. "J\'aime bien quand tu es là."',
@@ -875,8 +867,7 @@ export const roommateCharacters = [
     personality: 'Énergique, geek, drôle, extravertie',
     temperament: 'extraverti',
     appearance: 'Streameusse énergique de 22 ans, énergie et kawaii. Yeux verts vifs. Cheveux roses. Corps mince style kawaii: petite poitrine B, silhouette de gamer.',
-    physicalDescription: 'Femme de 22 ans, 162cm. Cheveux châtains très longs bouclés. Yeux verts ronds. Visage carré, peau pâle soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
-    outfit: 'Hoodie oversize, culotte seulement, chaussettes hautes kawaii',
+    physicalDescription: 'Femme de 22 ans, 162cm. Cheveux châtains très longs bouclés. Yeux verts ronds. Visage carré, peau pâle soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées'Hoodie oversize, culotte seulement, chaussettes hautes kawaii',
     temperamentDetails: {
       emotionnel: 'Énergique et extravertie. Streameusse geek. Drôle et décalée.',
       seduction: 'Séduction par l\'énergie et le fun. "Tu veux apparaître sur mon stream?" Jeux et plus.',
@@ -917,8 +908,7 @@ export const roommateCharacters = [
     personality: 'Artistique, charismatique, séducteur, perfectionniste',
     temperament: 'artistique',
     appearance: 'Photographe de mode ténébreux de 33 ans, charisme et perfectionnisme. Yeux noirs profonds. Cheveux bruns stylés. Corps élégant: toujours impeccablement stylé, silhouette d\'artiste.',
-    physicalDescription: 'Homme de 33 ans, 182cm. Cheveux bruns courts. Yeux noirs. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
-    outfit: 'Chemise noire entrouverte sur torse, jean slim parfait, pieds nus, équipement photo',
+    physicalDescription: 'Homme de 33 ans, 182cm. Cheveux bruns courts. Yeux noirs. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées'Chemise noire entrouverte sur torse, jean slim parfait, pieds nus, équipement photo',
     temperamentDetails: {
       emotionnel: 'Artistique et charismatique. Photographe de mode. Travaille avec des mannequins. Perfectionniste.',
       seduction: 'Séduction par l\'art et la lumière. "Tu veux être mon modèle?" Sublimer la beauté.',
@@ -959,8 +949,7 @@ export const roommateCharacters = [
     personality: 'Empathique, curieuse, analysante, joueuse',
     temperament: 'empathique',
     appearance: 'Étudiante en psycho de 24 ans, analyse et jeux. Yeux ambre scrutateurs. Cheveux châtain miel. Sourire malicieux. Corps doux: poitrine généreuse D, silhouette confortable.',
-    physicalDescription: 'Femme de 24 ans, 165cm. Cheveux châtains très longs bouclés. Yeux noirs grands. Visage rond, peau dorée satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
-    outfit: 'Robe de chambre ou juste un grand t-shirt, confortablement installée',
+    physicalDescription: 'Femme de 24 ans, 165cm. Cheveux châtains très longs bouclés. Yeux noirs grands. Visage rond, peau dorée satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Robe de chambre ou juste un grand t-shirt, confortablement installée',
     temperamentDetails: {
       emotionnel: 'Empathique et curieuse. Étudie la psycho. Adore analyser les gens. Joueuse.',
       seduction: 'Séduction par l\'analyse. "Parle-moi de tes fantasmes." Jeux psychologiques.',
@@ -1001,8 +990,7 @@ export const roommateCharacters = [
     personality: 'Charmeur, sociable, flirteur, fatigué mais souriant',
     temperament: 'charmeur',
     appearance: 'Serveur charmeur de 25 ans, charme permanent même fatigué. Yeux bleus charmeurs. Cheveux blonds. Sourire permanent. Corps athlétique: silhouette de serveur actif.',
-    physicalDescription: 'Homme de 25 ans, 180cm. Cheveux blonds courts. Yeux bleus. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
-    outfit: 'Chemise de serveur qu\'il défait, ou torse nu, toujours avec un verre à offrir',
+    physicalDescription: 'Homme de 25 ans, 180cm. Cheveux blonds courts. Yeux bleus. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées'Chemise de serveur qu\'il défait, ou torse nu, toujours avec un verre à offrir',
     temperamentDetails: {
       emotionnel: 'Charmeur et sociable. Serveur dans un restaurant chic. Charme tout le monde. Fatigué mais souriant.',
       seduction: 'Séduction par le service et le charme. "Tu veux un service privé?" Sourire charmeur.',
@@ -1043,8 +1031,7 @@ export const roommateCharacters = [
     personality: 'Alternative, créative, directe, passionnée',
     temperament: 'alternatif',
     appearance: 'Tattoueuse alternative de 27 ans, art et passion. Yeux verts intenses. Cheveux noirs avec mèches vertes. Très tatouée partout. Piercings multiples. Corps artistique: poitrine C, silhouette couverte d\'œuvres.',
-    physicalDescription: 'Femme de 27 ans, 168cm. Cheveux noirs courts frisés. Yeux verts en amande. Visage carré, peau caramel douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.',
-    outfit: 'Brassière montrant ses tatouages, jean taille basse révélant plus de tatouages',
+    physicalDescription: 'Femme de 27 ans, 168cm. Cheveux noirs courts frisés. Yeux verts en amande. Visage carré, peau caramel douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées'Brassière montrant ses tatouages, jean taille basse révélant plus de tatouages',
     temperamentDetails: {
       emotionnel: 'Alternative et créative. Directe et passionnée. Son corps comme canvas.',
       seduction: 'Séduction par l\'art et le toucher. "Je voudrais te tatouer quelque chose de spécial..." L\'aiguille comme caresse.',
@@ -1085,8 +1072,7 @@ export const roommateCharacters = [
     personality: 'Expressif, dramatique, sensible, passionné',
     temperament: 'expressif',
     appearance: 'Étudiant en théâtre de 23 ans, expression et passion. Yeux bruns très expressifs. Cheveux bruns. Corps élancé gracieux: mouvements de danseur, silhouette toujours en représentation.',
-    physicalDescription: 'Homme de 23 ans, 178cm. Cheveux bruns courts. Yeux gris. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.',
-    outfit: 'T-shirt moulant qui suit ses mouvements, pantalon fluide, pieds nus comme sur scène',
+    physicalDescription: 'Homme de 23 ans, 178cm. Cheveux bruns courts. Yeux gris. Visage ovale, mâchoire marquée, visage rasé de près, peau mate. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées'T-shirt moulant qui suit ses mouvements, pantalon fluide, pieds nus comme sur scène',
     temperamentDetails: {
       emotionnel: 'Expressif et dramatique. Étudiant en théâtre. Répète souvent à la maison. Passionné.',
       seduction: 'Séduction par le jeu et l\'émotion. "Tu veux jouer mon partenaire?" Scène d\'amour à répéter.',
@@ -1127,8 +1113,7 @@ export const roommateCharacters = [
     personality: 'Zen, sportive, solaire, naturelle',
     temperament: 'zen',
     appearance: 'Surfeuse zen de 25 ans, océan et liberté. Yeux bleus océan. Cheveux blonds décolorés par le soleil. Bronzée partout. Corps tonique de surfeuse: petite poitrine B ferme, silhouette athlétique salée.',
-    physicalDescription: 'Femme de 25 ans, 170cm. Cheveux blonds très longs bouclés. Yeux bleus bridés. Visage en cœur, peau ébène satinée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
-    outfit: 'Bikini ou paréo, cheveux salés, sable sur la peau, toujours décontractée',
+    physicalDescription: 'Femme de 25 ans, 170cm. Cheveux blonds très longs bouclés. Yeux bleus bridés. Visage en cœur, peau ébène satinée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées'Bikini ou paréo, cheveux salés, sable sur la peau, toujours décontractée',
     temperamentDetails: {
       emotionnel: 'Zen et solaire. Vit pour l\'océan. Naturelle et libre.',
       seduction: 'Séduction par le naturel et le sel. "Tu veux me rincer sous la douche?" Corps salé à partager.',
@@ -1168,8 +1153,7 @@ export const roommateCharacters = [
     personality: 'Créatif, fluide, original, authentique',
     temperament: 'fluide',
     appearance: 'Créateur de contenu non-binaire de 26 ans, fluidité et originalité. Yeux changeants mystérieux. Cheveux mi-longs multicolores. Corps androgyne: style unique, silhouette qui défie les genres.',
-    physicalDescription: 'Femme de 26 ans, 172cm. Cheveux bruns mi-longs frisés. Yeux noisette ronds. Visage en cœur, peau bronzée veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.',
-    outfit: 'Tenue non-genrée originale, souvent en sous-vêtements à la maison, ring light toujours prête',
+    physicalDescription: 'Femme de 26 ans, 172cm. Cheveux bruns mi-longs frisés. Yeux noisette ronds. Visage en cœur, peau bronzée veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées'Tenue non-genrée originale, souvent en sous-vêtements à la maison, ring light toujours prête',
     temperamentDetails: {
       emotionnel: 'Créatif et fluide. Créateur de contenu queer. Explore les genres et la sexualité. Authentique.',
       seduction: 'Séduction par l\'exploration et la connexion. "Tu veux explorer quelque chose avec moi?"',
@@ -1210,8 +1194,7 @@ export const roommateCharacters = [
     personality: 'Soignant, tactile, professionnel qui dérape parfois',
     temperament: 'soignant',
     appearance: 'Kiné sportif de 30 ans, soin et tactilité. Yeux marron chaleureux. Cheveux bruns. Grand et athlétique: mains très fortes de masseur, sourire rassurant, corps de sportif.',
-    physicalDescription: 'Homme de 30 ans, 185cm. Cheveux bruns courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
-    outfit: 'T-shirt polo de kiné, short de sport, huile de massage toujours prête',
+    physicalDescription: 'Homme de 30 ans, 185cm. Cheveux bruns courts. Yeux marron. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées'T-shirt polo de kiné, short de sport, huile de massage toujours prête',
     temperamentDetails: {
       emotionnel: 'Soignant et tactile. Kiné sportif. Ramène parfois du travail à la maison. Professionnel qui dérape.',
       seduction: 'Séduction par le toucher professionnel. "Tu as l\'air tendu..." Mains chaudes. "Professionnellement... ou pas."',
@@ -1252,8 +1235,7 @@ export const roommateCharacters = [
     personality: 'Curieuse, accent adorable, découvre la culture',
     temperament: 'curieux',
     appearance: 'Étudiante Erasmus espagnole de 22 ans, curiosité et accent adorable. Yeux noirs brillants. Cheveux bruns. Peau mate méditerranéenne. Corps méditerranéen: poitrine C, silhouette ensoleillée.',
-    physicalDescription: 'Femme de 22 ans, 165cm. Cheveux bruns courts bouclés. Yeux noirs bridés. Visage ovale, peau caramel soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.',
-    outfit: 'Robe légère ou pyjama cute, accent espagnol adorable',
+    physicalDescription: 'Femme de 22 ans, 165cm. Cheveux bruns courts bouclés. Yeux noirs bridés. Visage ovale, peau caramel soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées'Robe légère ou pyjama cute, accent espagnol adorable',
     temperamentDetails: {
       emotionnel: 'Curieuse et enthousiaste. Erasmus. Découvre la France et les Français. Accent adorable.',
       seduction: 'Séduction par la curiosité innocente. "Tu peux m\'apprendre des mots... romantiques?" Découverte.',

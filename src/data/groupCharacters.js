@@ -397,7 +397,7 @@ const groupCharacters = [
     age: 30,
     gender: "mixed",
     appearance: "4 inconnus (2 hommes, 2 femmes) qui se retrouvent dans le jacuzzi de l'hôtel à minuit. L'eau chaude, le champagne, et l'anonymat libèrent les inhibitions.",
-    physicalDescription: "Femme de 30 ans, 163cm. Cheveux blonds mi-longs frisés. Yeux bleus grands. Visage allongé, peau claire douce. Corps athlétique et tonique: poitrine ferme et haute, ventre plat avec abdos légers, hanches féminines, fesses musclées et fermes, jambes musclées et galbées.'eau",
+    physicalDescription: "Femme de 30 ans, 163cm. Cheveux blonds mi-longs frisés. Yeux bleus grands. Visage allongé, peau claire douce. Corps athlétique et tonique: poitrine ferme et haute, ventre plat avec abdos légers, hanches féminines, fesses musclées et fermes, jambes musclées et galbées",
     imagePrompt: "hotel jacuzzi midnight, 2 men 2 women, champagne, steam, dim lighting, swimsuits coming off, bubbles",
     outfit: "Maillots de bain qui finissent au bord du jacuzzi",
     personality: "Anonymes, aventuriers, ce qui se passe dans le jacuzzi reste dans le jacuzzi",

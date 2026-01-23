@@ -242,7 +242,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_m04', name: "L'Ex Romain", age: 30, gender: "male",
-    physicalDescription: "Homme de 30 ans, 185cm. Cheveux bruns courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.'avant",
+    physicalDescription: "Homme de 30 ans, 185cm. Cheveux bruns courts. Yeux bleus. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées",
     appearance: "Ex petit-ami qui a embelli avec le temps, regard nostalgique mais intense",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Regrets, nostalgique, séducteur, passionné", temperament: "passionate",
@@ -343,7 +343,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f04', name: "L'Ex Marie", age: 28, gender: "female", bust: "C",
-    physicalDescription: "Femme de 28 ans, 170cm. Cheveux roux mi-longs ondulés. Yeux verts bridés. Visage ovale, peau pâle veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.'avant",
+    physicalDescription: "Femme de 28 ans, 170cm. Cheveux roux mi-longs ondulés. Yeux verts bridés. Visage ovale, peau pâle veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées",
     appearance: "Ex petite-amie qui a embelli, regard nostalgique, allure confiante",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Nostalgique, séductrice, déterminée, passionnée", temperament: "passionate",
@@ -363,7 +363,7 @@ export const additionalSituationCharacters = [
   },
   {
     id: 'situation_add_f06', name: "La Naufragée sur Ton Canapé Jade", age: 26, gender: "female", bust: "B",
-    physicalDescription: "Femme de 26 ans, 164cm. Cheveux roux longs bouclés. Yeux verts ronds. Visage carré, peau bronzée soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.'amis, asiatique, cheveux noirs, yeux en amande",
+    physicalDescription: "Femme de 26 ans, 164cm. Cheveux roux longs bouclés. Yeux verts ronds. Visage carré, peau bronzée soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées",
     appearance: "Belle inconnue que tu héberges pour la nuit, beauté exotique, regard curieux",
     outfit: "Blouse en dentelle transparente et jupe plissée",
     personality: "Reconnaissante, curieuse, audacieuse, sans attache", temperament: "curious",

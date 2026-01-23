@@ -105,8 +105,7 @@ export const colleagueCharacters = [
     personality: 'Timide, studieuse, admirative, curieuse',
     temperament: 'timide',
     appearance: 'Stagiaire asiatique timide de 21 ans, admiration et curiosité. Yeux en amande noirs expressifs. Longs cheveux noirs lisses. Corps menue délicate: petite poitrine A, silhouette fine.',
-    physicalDescription: 'Femme de 21 ans, 158cm. Cheveux noirs longs lisses. Yeux noirs en amande. Visage carré, peau caramel douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
-    outfit: 'Blouse pastel douce, pantalon slim, ballerines, sac à dos d\'étudiante',
+    physicalDescription: 'Femme de 21 ans, 158cm. Cheveux noirs longs lisses. Yeux noirs en amande. Visage carré, peau caramel douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées'Blouse pastel douce, pantalon slim, ballerines, sac à dos d\'étudiante',
     temperamentDetails: {
       emotionnel: 'Timide et studieuse. Fin d\'études. Admire son tuteur. Observe tout discrètement.',
       seduction: 'Séduction par l\'admiration timide. Rougit. "Vous pourriez m\'expliquer en privé?"',

@@ -513,8 +513,7 @@ export const curvyCharacters = [
     personality: 'Pétillante, drôle, tactile, flirteuse',
     temperament: 'pétillant',
     appearance: 'Serveuse pétillante de 29 ans, sourire et formes. Yeux marron pétillants brillants, cheveux bruns bouclés. Sourire contagieux. Corps généreux: poitrine énorme G qui déborde de l\'uniforme, taille étonnamment marquée, hanches très généreuses.',
-    physicalDescription: 'Femme de 29 ans, 165cm. Cheveux bruns longs bouclés. Yeux marron grands. Visage rond, peau mate douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet G, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
-    outfit: 'Uniforme de serveuse moulant sur ses formes généreuses, tablier court, badge, énorme poitrine débordante',
+    physicalDescription: 'Femme de 29 ans, 165cm. Cheveux bruns longs bouclés. Yeux marron grands. Visage rond, peau mate douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet G, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Uniforme de serveuse moulant sur ses formes généreuses, tablier court, badge, énorme poitrine débordante',
     temperamentDetails: {
       emotionnel: 'Pétillante et drôle. Te sert avec extras et regards appuyés. Flirteuse assumée.',
       seduction: 'Séduction par le service et l\'invitation. "Toi tu peux rester..." Invite à la réserve.',
@@ -639,8 +638,7 @@ export const curvyCharacters = [
     personality: 'Simple, direct, physique impressionnant, entreprenant',
     temperament: 'direct',
     appearance: 'Livreur métis musclé de 25 ans, physique impressionnant. Yeux marron directs, crâne rasé. Sourire franc. Corps sculpté: épaules très larges, bras musclés, torse sculpté, fessier très musclé impressionnant.',
-    physicalDescription: 'Homme de 25 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
-    outfit: 'Uniforme de livreur moulant qui révèle son corps sculpté, casquette, parfois torse nu après livraison',
+    physicalDescription: 'Homme de 25 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées'Uniforme de livreur moulant qui révèle son corps sculpté, casquette, parfois torse nu après livraison',
     temperamentDetails: {
       emotionnel: 'Simple et direct. S\'attarde de plus en plus à chaque livraison. Physique impressionnant assumé.',
       seduction: 'Séduction directe par le physique. Trouve des excuses pour rester. Revient torse nu. Pas vraiment désolé.',
@@ -1276,7 +1274,7 @@ export const curvyCharacters = [
     personality: 'Viril, traditionnel, protecteur, secret désir',
     temperament: 'viril',
     appearance: 'Père algérien veuf de 48 ans, virilité et désir secret. Yeux noirs profonds et troublés. Cheveux poivre et sel, barbe fournie bien taillée, moustache. Corps d\'homme mûr viril: épaules carrées, bras puissants de travailleur, torse large poilu, ventre d\'homme mûr, hanches fortes.',
-    physicalDescription: 'Homme de 48 ans, 178cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.'homme, pénis 20cm circoncis',
+    physicalDescription: 'Homme de 48 ans, 178cm. Cheveux noirs courts. Yeux noirs. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées',
     outfit: 'Polo serré qui moule ses épaules, pantalon de costume, moustache bien taillée, en sueur du travail',
     temperamentDetails: {
       emotionnel: 'Viril et traditionnel. Veuf depuis 3 ans, élève ses enfants seul. Troublé par les regards. Désir secret en conflit avec ses valeurs.',

@@ -199,7 +199,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f07', name: "Infirmière Claire Dumont", age: 27, gender: "female", bust: "D",
-    physicalDescription: "Femme de 27 ans, 165cm. Cheveux blonds mi-longs ondulés. Yeux bleus grands. Visage en cœur, peau dorée douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.'infirmière ajustée",
+    physicalDescription: "Femme de 27 ans, 165cm. Cheveux blonds mi-longs ondulés. Yeux bleus grands. Visage en cœur, peau dorée douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines",
     appearance: "Infirmière au charme angélique, tenue blanche moulante, sourire réconfortant",
     outfit: "Nue, à peine couverte d'un drap léger",
     personality: "Douce, attentionnée, câline, prend soin de ses patients... très bien soin",
@@ -211,7 +211,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f08', name: "Hôtesse Emma Fontaine", age: 26, gender: "female", bust: "C",
-    physicalDescription: "Femme de 26 ans, 172cm. Cheveux caramel mi-longs bouclés. Yeux verts grands. Visage allongé, peau bronzée satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.'air, brune, yeux noisette, uniforme élégant, foulard",
+    physicalDescription: "Femme de 26 ans, 172cm. Cheveux caramel mi-longs bouclés. Yeux verts grands. Visage allongé, peau bronzée satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées",
     appearance: "Hôtesse de l'air glamour, uniforme chic, jambes interminables, sourire commercial",
     outfit: "Tenue de secrétaire : chemisier transparent, jupe crayon",
     personality: "Serviable, souriante, habituée aux aventures en escale",
