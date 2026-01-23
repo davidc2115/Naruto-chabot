@@ -1423,7 +1423,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
           </View>
         )}
         
-        {/* v5.4.73 - Plans Premium - Afficher les 3 plans */}
+        {/* v5.4.75 - Plans Premium - Affichage EXPLICITE des 3 plans */}
         {!premiumStatus.isPremium && (
           <View style={styles.premiumPlansBox}>
             <Text style={styles.premiumPlansTitle}>🌟 Passer en Premium</Text>
@@ -1431,70 +1431,86 @@ export default function SettingsScreen({ navigation, onLogout }) {
               Choisissez votre formule et débloquez tous les avantages !
             </Text>
             
-            {/* v5.4.74 - Afficher explicitement les 3 plans dans l'ordre */}
-            {['monthly', 'yearly', 'lifetime'].map((planId) => {
-              const plan = premiumPlans[planId];
-              if (!plan) {
-                console.warn(`⚠️ Plan ${planId} non trouvé dans premiumPlans`);
-                return null;
-              }
-              
-              const isRecommended = plan.recommended;
-              
-              return (
-                <TouchableOpacity 
-                  key={planId}
-                  style={[
-                    styles.premiumPlanCard,
-                    isRecommended && styles.recommendedPlanCard
-                  ]}
-                  onPress={() => openPayPalPayment(planId)}
-                >
-                  {isRecommended && (
-                    <View style={styles.recommendedBadge}>
-                      <Text style={styles.recommendedText}>⭐ RECOMMANDÉ</Text>
-                    </View>
-                  )}
-                  
-                  <View style={styles.premiumPlanHeader}>
-                    <View style={styles.planTitleRow}>
-                      <Text style={styles.planIcon}>{plan.icon || '💎'}</Text>
-                      <Text style={[
-                        styles.premiumPlanName,
-                        isRecommended && { color: '#f59e0b' }
-                      ]}>
-                        {plan.name}
-                      </Text>
-                    </View>
-                    <View style={styles.priceBox}>
-                      <Text style={styles.premiumPlanPrice}>{plan.price}€</Text>
-                      <Text style={styles.pricePeriod}>
-                        {plan.period === 'month' && '/mois'}
-                        {plan.period === 'year' && '/an'}
-                        {plan.period === 'lifetime' && 'une fois'}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.premiumPlanFeatures}>
-                    {plan.features.map((feature, i) => (
-                      <Text key={i} style={styles.premiumPlanFeature}>
-                        ✓ {feature}
-                      </Text>
-                    ))}
-                  </View>
-                  
-                  <View style={[
-                    styles.selectPlanButton,
-                    { backgroundColor: plan.color || '#6366f1' }
-                  ]}>
-                    <Text style={styles.selectPlanText}>
-                      {plan.period === 'lifetime' ? '🎁 Acheter' : '📲 S\'abonner'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+            {/* ========== PLAN MENSUEL ========== */}
+            <TouchableOpacity 
+              style={styles.premiumPlanCard}
+              onPress={() => openPayPalPayment('monthly')}
+            >
+              <View style={styles.premiumPlanHeader}>
+                <View style={styles.planTitleRow}>
+                  <Text style={styles.planIcon}>📅</Text>
+                  <Text style={styles.premiumPlanName}>Premium Mensuel</Text>
+                </View>
+                <View style={styles.priceBox}>
+                  <Text style={styles.premiumPlanPrice}>4.99€</Text>
+                  <Text style={styles.pricePeriod}>/mois</Text>
+                </View>
+              </View>
+              <View style={styles.premiumPlanFeatures}>
+                <Text style={styles.premiumPlanFeature}>✓ Génération d'images illimitée</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Tous les personnages débloqués</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Pas de publicité</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Support prioritaire</Text>
+              </View>
+              <View style={[styles.selectPlanButton, { backgroundColor: '#3b82f6' }]}>
+                <Text style={styles.selectPlanText}>📲 S'abonner</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* ========== PLAN ANNUEL (RECOMMANDÉ) ========== */}
+            <TouchableOpacity 
+              style={[styles.premiumPlanCard, styles.recommendedPlanCard]}
+              onPress={() => openPayPalPayment('yearly')}
+            >
+              <View style={styles.recommendedBadge}>
+                <Text style={styles.recommendedText}>⭐ RECOMMANDÉ</Text>
+              </View>
+              <View style={styles.premiumPlanHeader}>
+                <View style={styles.planTitleRow}>
+                  <Text style={styles.planIcon}>🌟</Text>
+                  <Text style={[styles.premiumPlanName, { color: '#f59e0b' }]}>Premium Annuel</Text>
+                </View>
+                <View style={styles.priceBox}>
+                  <Text style={styles.premiumPlanPrice}>39.99€</Text>
+                  <Text style={styles.pricePeriod}>/an</Text>
+                </View>
+              </View>
+              <View style={styles.premiumPlanFeatures}>
+                <Text style={styles.premiumPlanFeature}>✓ Tous les avantages mensuels</Text>
+                <Text style={[styles.premiumPlanFeature, { color: '#f59e0b', fontWeight: 'bold' }]}>✓ 2 mois GRATUITS (33% d'économie)</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Accès anticipé aux nouvelles fonctionnalités</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Personnages exclusifs</Text>
+              </View>
+              <View style={[styles.selectPlanButton, { backgroundColor: '#f59e0b' }]}>
+                <Text style={styles.selectPlanText}>📲 S'abonner</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* ========== PLAN À VIE ========== */}
+            <TouchableOpacity 
+              style={styles.premiumPlanCard}
+              onPress={() => openPayPalPayment('lifetime')}
+            >
+              <View style={styles.premiumPlanHeader}>
+                <View style={styles.planTitleRow}>
+                  <Text style={styles.planIcon}>👑</Text>
+                  <Text style={styles.premiumPlanName}>Premium à Vie</Text>
+                </View>
+                <View style={styles.priceBox}>
+                  <Text style={styles.premiumPlanPrice}>99.99€</Text>
+                  <Text style={styles.pricePeriod}>une fois</Text>
+                </View>
+              </View>
+              <View style={styles.premiumPlanFeatures}>
+                <Text style={[styles.premiumPlanFeature, { fontWeight: 'bold' }]}>✓ Accès PERMANENT</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Toutes les futures mises à jour</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Badge VIP exclusif</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Support prioritaire à vie</Text>
+              </View>
+              <View style={[styles.selectPlanButton, { backgroundColor: '#10b981' }]}>
+                <Text style={styles.selectPlanText}>🎁 Acheter à vie</Text>
+              </View>
+            </TouchableOpacity>
             
             <Text style={styles.premiumNote}>
               💡 Après le paiement sur PayPal, confirmez dans l'app pour activer automatiquement votre Premium !
