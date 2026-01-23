@@ -15,6 +15,7 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import AuthService from '../services/AuthService';
 
 const FREEBOX_URL = 'http://88.174.155.230:33437';
@@ -53,6 +54,7 @@ const PREMIUM_TYPES = {
  * - Retrait automatique à expiration
  */
 export default function AdminPanelScreen() {
+  const navigation = useNavigation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -621,7 +623,7 @@ export default function AdminPanelScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>👑 Admin Panel</Text>
-        <Text style={styles.version}>v5.4.73</Text>
+        <Text style={styles.version}>v5.4.77</Text>
         <View style={styles.statusRow}>
           <View style={[styles.statusDot, 
             serverStatus === 'online' ? styles.online : 
@@ -651,6 +653,16 @@ export default function AdminPanelScreen() {
             <Text style={styles.statLabel}>Premium</Text>
           </View>
         </View>
+        
+        {/* Bouton Support Admin */}
+        <TouchableOpacity 
+          style={styles.supportAdminBtn}
+          onPress={() => navigation.navigate('AdminSupport')}
+        >
+          <Text style={styles.supportAdminBtnIcon}>🎫</Text>
+          <Text style={styles.supportAdminBtnText}>Support & Tickets</Text>
+          <Text style={styles.supportAdminBtnArrow}>→</Text>
+        </TouchableOpacity>
         
         {/* Recherche */}
         <TextInput
@@ -948,6 +960,34 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 11,
     color: '#666',
+  },
+  supportAdminBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#10b981',
+    marginHorizontal: 15,
+    marginBottom: 10,
+    padding: 14,
+    borderRadius: 12,
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  supportAdminBtnIcon: {
+    fontSize: 22,
+    marginRight: 10,
+  },
+  supportAdminBtnText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  supportAdminBtnArrow: {
+    fontSize: 18,
+    color: '#fff',
   },
   search: {
     backgroundColor: '#fff',

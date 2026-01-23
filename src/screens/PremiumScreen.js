@@ -17,10 +17,8 @@ import PayPalService from '../services/PayPalService';
 const FREEBOX_URL = 'http://88.174.155.230:33437';
 
 /**
- * v5.4.75 - PremiumScreen avec 3 types d'abonnement
- * - Mensuel: 4.99€/mois
- * - Annuel: 39.99€/an (RECOMMANDÉ)
- * - À Vie: 99.99€ une fois
+ * v5.4.77 - PremiumScreen avec tarification dynamique
+ * Les prix sont chargés depuis PayPalService et peuvent être modifiés par l'admin
  */
 export default function PremiumScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
@@ -28,14 +26,19 @@ export default function PremiumScreen({ navigation }) {
   const [premiumStatus, setPremiumStatus] = useState({});
   const [purchasing, setPurchasing] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [pricing, setPricing] = useState({
+    monthlyPrice: 4.99,
+    yearlyPrice: 49.90,
+    lifetimePrice: 99.80,
+  });
 
-  // Les 3 plans disponibles
-  const plans = {
+  // Les 3 plans avec tarifs dynamiques
+  const getPlans = () => ({
     monthly: {
       id: 'monthly',
       name: 'Mensuel',
       icon: '📅',
-      price: 4.99,
+      price: pricing.monthlyPrice,
       period: '/mois',
       color: '#3b82f6',
       features: [
@@ -50,7 +53,7 @@ export default function PremiumScreen({ navigation }) {
       id: 'yearly',
       name: 'Annuel',
       icon: '🌟',
-      price: 39.99,
+      price: pricing.yearlyPrice,
       period: '/an',
       color: '#f59e0b',
       recommended: true,
@@ -66,7 +69,7 @@ export default function PremiumScreen({ navigation }) {
       id: 'lifetime',
       name: 'À Vie',
       icon: '👑',
-      price: 99.99,
+      price: pricing.lifetimePrice,
       period: 'une fois',
       color: '#10b981',
       features: [
@@ -77,11 +80,28 @@ export default function PremiumScreen({ navigation }) {
       ],
       description: 'Paiement unique, accès illimité',
     },
-  };
+  });
+
+  const plans = getPlans();
 
   useEffect(() => {
     loadPremiumStatus();
+    loadPricing();
   }, []);
+
+  const loadPricing = async () => {
+    try {
+      await PayPalService.loadConfig();
+      const currentPricing = PayPalService.getCurrentPricing();
+      setPricing({
+        monthlyPrice: currentPricing.monthlyPrice,
+        yearlyPrice: currentPricing.yearlyPrice,
+        lifetimePrice: currentPricing.lifetimePrice,
+      });
+    } catch (error) {
+      console.error('Erreur chargement tarifs:', error);
+    }
+  };
 
   const loadPremiumStatus = async () => {
     try {

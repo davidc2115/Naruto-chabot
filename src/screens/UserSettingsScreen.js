@@ -875,6 +875,25 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
         </TouchableOpacity>
       </View>
 
+      {/* SUPPORT */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🎫 Aide & Support</Text>
+        
+        <TouchableOpacity
+          style={styles.supportButton}
+          onPress={() => navigation.navigate('Support')}
+        >
+          <Text style={styles.supportButtonIcon}>📩</Text>
+          <View style={styles.supportButtonContent}>
+            <Text style={styles.supportButtonTitle}>Contacter le Support</Text>
+            <Text style={styles.supportButtonSubtitle}>
+              Un problème ? Une question ? Envoyez un message
+            </Text>
+          </View>
+          <Text style={styles.supportButtonArrow}>→</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* DÉCONNEXION */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🚪 Session</Text>
@@ -1162,6 +1181,35 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   discordButtonArrow: {
+    fontSize: 20,
+    color: '#fff',
+  },
+  // Support button
+  supportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#10b981',
+    padding: 15,
+    borderRadius: 12,
+  },
+  supportButtonIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  supportButtonContent: {
+    flex: 1,
+  },
+  supportButtonTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  supportButtonSubtitle: {
+    fontSize: 12,
+    color: '#d1fae5',
+    marginTop: 2,
+  },
+  supportButtonArrow: {
     fontSize: 20,
     color: '#fff',
   },

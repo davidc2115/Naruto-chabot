@@ -1,6 +1,6 @@
 /**
  * Service PayPal pour les paiements
- * v5.4.73 - Gestion des abonnements avec 3 types et expiration automatique
+ * v5.4.77 - Tarification dynamique avec calcul automatique du prix annuel
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,6 +11,7 @@ class PayPalService {
     this.STORAGE_KEY = '@paypal_config';
     this.PREMIUM_KEY = '@premium_status';
     this.LAST_CHECK_KEY = '@premium_last_check';
+    this.PRICING_KEY = '@premium_pricing';
     
     // Configuration par défaut
     this.config = {
@@ -19,13 +20,37 @@ class PayPalService {
       isConfigured: false,
     };
     
-    // Tarifs premium - v5.4.73
-    this.premiumPlans = {
+    // v5.4.77 - Prix de base (modifiable par admin)
+    this.basePricing = {
+      monthlyPrice: 4.99,        // Prix mensuel de base
+      lifetimeMultiplier: 20,    // À vie = mensuel × 20
+      yearlyMonths: 10,          // Annuel = mensuel × 10 (2 mois gratuits)
+      currency: 'EUR',
+    };
+    
+    // Tarifs premium - calculés dynamiquement
+    this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
+    
+    // Charger les tarifs personnalisés au démarrage
+    this.loadPricing();
+    
+    // Vérification automatique au démarrage
+    this.checkAndExpirePremium();
+  }
+  
+  /**
+   * v5.4.77 - Calcule les plans à partir du prix mensuel de base
+   */
+  calculatePlans(monthlyPrice) {
+    const yearlyPrice = parseFloat((monthlyPrice * this.basePricing.yearlyMonths).toFixed(2));
+    const lifetimePrice = parseFloat((monthlyPrice * this.basePricing.lifetimeMultiplier).toFixed(2));
+    
+    return {
       monthly: {
         id: 'premium_monthly',
         name: '📅 Premium Mensuel',
-        price: 4.99,
-        currency: 'EUR',
+        price: monthlyPrice,
+        currency: this.basePricing.currency,
         period: 'month',
         durationDays: 30,
         features: [
@@ -40,8 +65,8 @@ class PayPalService {
       yearly: {
         id: 'premium_yearly',
         name: '🌟 Premium Annuel',
-        price: 39.99,
-        currency: 'EUR',
+        price: yearlyPrice,
+        currency: this.basePricing.currency,
         period: 'year',
         durationDays: 365,
         features: [
@@ -53,12 +78,13 @@ class PayPalService {
         icon: '🌟',
         color: '#f59e0b',
         recommended: true,
+        savings: `${parseFloat((monthlyPrice * 12 - yearlyPrice).toFixed(2))}€ d'économie`,
       },
       lifetime: {
         id: 'premium_lifetime',
         name: '👑 Premium à Vie',
-        price: 99.99,
-        currency: 'EUR',
+        price: lifetimePrice,
+        currency: this.basePricing.currency,
         period: 'lifetime',
         durationDays: null, // Pas d'expiration
         features: [
@@ -71,9 +97,93 @@ class PayPalService {
         color: '#10b981',
       },
     };
-    
-    // Vérification automatique au démarrage
-    this.checkAndExpirePremium();
+  }
+  
+  /**
+   * v5.4.77 - Charge les tarifs personnalisés
+   */
+  async loadPricing() {
+    try {
+      const stored = await AsyncStorage.getItem(this.PRICING_KEY);
+      if (stored) {
+        const pricing = JSON.parse(stored);
+        this.basePricing = { ...this.basePricing, ...pricing };
+        this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
+        console.log(`💰 Tarifs chargés: Mensuel=${this.basePricing.monthlyPrice}€`);
+      }
+      return this.basePricing;
+    } catch (error) {
+      console.error('Erreur chargement tarifs:', error);
+      return this.basePricing;
+    }
+  }
+  
+  /**
+   * v5.4.77 - Modifie le prix mensuel de base (recalcule tous les autres)
+   * @param {number} newMonthlyPrice - Nouveau prix mensuel
+   */
+  async setBasePrice(newMonthlyPrice) {
+    try {
+      if (typeof newMonthlyPrice !== 'number' || newMonthlyPrice <= 0) {
+        throw new Error('Prix mensuel invalide');
+      }
+      
+      this.basePricing.monthlyPrice = parseFloat(newMonthlyPrice.toFixed(2));
+      this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
+      
+      await AsyncStorage.setItem(this.PRICING_KEY, JSON.stringify(this.basePricing));
+      
+      console.log(`💰 Prix mis à jour: Mensuel=${this.basePricing.monthlyPrice}€, Annuel=${this.premiumPlans.yearly.price}€, À vie=${this.premiumPlans.lifetime.price}€`);
+      
+      return {
+        success: true,
+        monthly: this.basePricing.monthlyPrice,
+        yearly: this.premiumPlans.yearly.price,
+        lifetime: this.premiumPlans.lifetime.price,
+      };
+    } catch (error) {
+      console.error('Erreur modification prix:', error);
+      return { success: false, error: error.message };
+    }
+  }
+  
+  /**
+   * v5.4.77 - Modifie le prix à vie séparément (multiplicateur personnalisé)
+   */
+  async setLifetimePrice(newLifetimePrice) {
+    try {
+      if (typeof newLifetimePrice !== 'number' || newLifetimePrice <= 0) {
+        throw new Error('Prix à vie invalide');
+      }
+      
+      // Calculer le nouveau multiplicateur
+      this.basePricing.lifetimeMultiplier = newLifetimePrice / this.basePricing.monthlyPrice;
+      this.premiumPlans = this.calculatePlans(this.basePricing.monthlyPrice);
+      
+      // Override le prix lifetime
+      this.premiumPlans.lifetime.price = parseFloat(newLifetimePrice.toFixed(2));
+      
+      await AsyncStorage.setItem(this.PRICING_KEY, JSON.stringify(this.basePricing));
+      
+      return { success: true, lifetime: this.premiumPlans.lifetime.price };
+    } catch (error) {
+      console.error('Erreur modification prix à vie:', error);
+      return { success: false, error: error.message };
+    }
+  }
+  
+  /**
+   * v5.4.77 - Obtient les tarifs actuels
+   */
+  getCurrentPricing() {
+    return {
+      monthlyPrice: this.basePricing.monthlyPrice,
+      yearlyPrice: this.premiumPlans.yearly.price,
+      lifetimePrice: this.premiumPlans.lifetime.price,
+      yearlyMonths: this.basePricing.yearlyMonths,
+      yearlySavings: this.premiumPlans.yearly.savings,
+      currency: this.basePricing.currency,
+    };
   }
   
   /**
@@ -195,6 +305,8 @@ class PayPalService {
       if (stored) {
         this.config = JSON.parse(stored);
       }
+      // Charger aussi les tarifs
+      await this.loadPricing();
       return this.config;
     } catch (error) {
       console.error('Erreur chargement config PayPal:', error);
@@ -548,7 +660,7 @@ class PayPalService {
         expiresAt: expiresAt ? expiresAt.toISOString() : null,
         // v5.4.73 - Métadonnées supplémentaires
         activatedBy: transactionId?.startsWith('ADMIN_') ? 'admin' : 'payment',
-        version: '5.4.73',
+        version: '5.4.77',
       };
       
       await AsyncStorage.setItem(this.PREMIUM_KEY, JSON.stringify(status));
