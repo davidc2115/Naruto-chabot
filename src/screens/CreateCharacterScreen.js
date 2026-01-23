@@ -25,6 +25,10 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const isEditing = !!characterToEdit;
   const isEditingBuiltIn = isBuiltIn && isEditing; // v5.4.20 - Modification d'un personnage intégré
 
+  // v5.4.77 - Vérifier si l'utilisateur est admin (pour modifier les personnages intégrés)
+  const user = AuthService.getCurrentUser();
+  const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+
   // === INFORMATIONS DE BASE ===
   const [name, setName] = useState(characterToEdit?.name || '');
   const [age, setAge] = useState(characterToEdit?.age?.toString() || '');
@@ -74,6 +78,15 @@ export default function CreateCharacterScreen({ navigation, route }) {
   // Vérifier le statut premium au montage
   React.useEffect(() => {
     checkPremiumStatus();
+    
+    // v5.4.77 - Bloquer les non-admins qui tentent de modifier des personnages intégrés
+    if (isEditingBuiltIn && !isAdmin) {
+      Alert.alert(
+        '🔒 Accès refusé',
+        'Seuls les administrateurs peuvent modifier les personnages de l\'application.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    }
   }, []);
 
   // v5.4.21 - Extraire les données des personnages intégrés lors de l'édition
@@ -896,6 +909,15 @@ export default function CreateCharacterScreen({ navigation, route }) {
   };
 
   const handleSave = async () => {
+    // v5.4.77 - Sécurité: Seuls les admins peuvent modifier les personnages intégrés
+    if (isEditingBuiltIn && !isAdmin) {
+      Alert.alert(
+        '🔒 Accès refusé',
+        'Seuls les administrateurs peuvent modifier les personnages de l\'application.\n\nVous pouvez créer vos propres personnages personnalisés.'
+      );
+      return;
+    }
+
     // v5.4.20 - Validation plus souple pour modifications de personnages intégrés
     if (!isEditingBuiltIn && (!name || !age || !personality || !scenario || !startMessage)) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
