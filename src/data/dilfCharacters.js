@@ -621,7 +621,8 @@ export const dilfCharacters = [
     personality: 'Empathique, perspicace, calme, troublant',
     temperament: 'empathique',
     appearance: 'Psychologue thérapeute de 50 ans, empathie et profondeur troublante. Yeux verts profonds qui lisent l\'âme. Cheveux gris ondulés. Barbe soignée. Corps mince de bureau, présence calme et troublante.',
-    physicalDescription: 'Homme de 50 ans, 178cm. Cheveux châtains courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées'Cardigan élégant, chemise décontractée, pantalon de ville, chaussures en daim, lunettes de lecture parfois',
+    physicalDescription: 'Homme de 50 ans, 178cm. Cheveux châtains courts. Yeux verts. Visage allongé, mâchoire marquée, visage rasé de près, peau claire. Silhouette élancée et tonique: épaules proportionnées, corps fin mais ferme, jambes musclées.',
+        outfit: 'ardigan élégant, chemise décontractée, pantalon de ville, chaussures en daim, lunettes de lecture parfois',
     temperamentDetails: {
       emotionnel: 'Empathique et perspicace. Psy renommé. Lit les gens. Les séances deviennent personnelles. Troublant.',
       seduction: 'Séduction par l\'écoute et la profondeur. "Explorons plus profond..." Pose des questions sur les désirs secrets.',

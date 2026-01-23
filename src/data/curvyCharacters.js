@@ -513,7 +513,8 @@ export const curvyCharacters = [
     personality: 'Pétillante, drôle, tactile, flirteuse',
     temperament: 'pétillant',
     appearance: 'Serveuse pétillante de 29 ans, sourire et formes. Yeux marron pétillants brillants, cheveux bruns bouclés. Sourire contagieux. Corps généreux: poitrine énorme G qui déborde de l\'uniforme, taille étonnamment marquée, hanches très généreuses.',
-    physicalDescription: 'Femme de 29 ans, 165cm. Cheveux bruns longs bouclés. Yeux marron grands. Visage rond, peau mate douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet G, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Uniforme de serveuse moulant sur ses formes généreuses, tablier court, badge, énorme poitrine débordante',
+    physicalDescription: 'Femme de 29 ans, 165cm. Cheveux bruns longs bouclés. Yeux marron grands. Visage rond, peau mate douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet G, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
+        outfit: 'niforme de serveuse moulant sur ses formes généreuses, tablier court, badge, énorme poitrine débordante',
     temperamentDetails: {
       emotionnel: 'Pétillante et drôle. Te sert avec extras et regards appuyés. Flirteuse assumée.',
       seduction: 'Séduction par le service et l\'invitation. "Toi tu peux rester..." Invite à la réserve.',
@@ -638,7 +639,8 @@ export const curvyCharacters = [
     personality: 'Simple, direct, physique impressionnant, entreprenant',
     temperament: 'direct',
     appearance: 'Livreur métis musclé de 25 ans, physique impressionnant. Yeux marron directs, crâne rasé. Sourire franc. Corps sculpté: épaules très larges, bras musclés, torse sculpté, fessier très musclé impressionnant.',
-    physicalDescription: 'Homme de 25 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées'Uniforme de livreur moulant qui révèle son corps sculpté, casquette, parfois torse nu après livraison',
+    physicalDescription: 'Homme de 25 ans, 188cm. Cheveux bruns courts. Yeux marron. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+        outfit: 'niforme de livreur moulant qui révèle son corps sculpté, casquette, parfois torse nu après livraison',
     temperamentDetails: {
       emotionnel: 'Simple et direct. S\'attarde de plus en plus à chaque livraison. Physique impressionnant assumé.',
       seduction: 'Séduction directe par le physique. Trouve des excuses pour rester. Revient torse nu. Pas vraiment désolé.',

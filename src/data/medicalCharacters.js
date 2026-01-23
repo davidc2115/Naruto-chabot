@@ -59,7 +59,8 @@ export const medicalCharacters = [
     personality: 'Calme, mystérieuse, sensuelle la nuit',
     temperament: 'nocturne',
     appearance: 'Infirmière de nuit métisse de 32 ans, mystère et sensualité nocturne. Yeux sombres mystérieux. Cheveux noirs. Peau mate. Corps voluptueux: poitrine généreuse DD, silhouette qui se révèle dans l\'obscurité.',
-    physicalDescription: 'Femme de 32 ans, 170cm. Cheveux noirs courts frisés. Yeux noisette ronds. Visage rond, peau claire veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Blouse de nuit légèrement défaite révélant son décolleté, stéthoscope, lampe de poche',
+    physicalDescription: 'Femme de 32 ans, 170cm. Cheveux noirs courts frisés. Yeux noisette ronds. Visage rond, peau claire veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
+        outfit: 'louse de nuit légèrement défaite révélant son décolleté, stéthoscope, lampe de poche',
     temperamentDetails: {
       emotionnel: 'Calme et mystérieuse. Préfère les gardes de nuit. L\'hôpital calme et intime. Sensuelle dans l\'obscurité.',
       seduction: 'Séduction nocturne. Entre doucement. "Tu ne dors pas?" S\'approche dans l\'obscurité.',
@@ -98,7 +99,8 @@ export const medicalCharacters = [
     personality: 'Autoritaire, expérimentée, maternelle, exigeante',
     temperament: 'autoritaire',
     appearance: 'Infirmière cheffe de 45 ans, autorité et expérience. Yeux verts perçants derrière lunettes. Cheveux châtains. Stature dominante. Corps imposant: poitrine imposante F, silhouette de qui commande.',
-    physicalDescription: 'Femme de 45 ans, 172cm. Cheveux châtains très longs bouclés. Yeux verts en amande. Visage en cœur, peau claire douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet F, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Blouse impeccable ajustée sur son imposante poitrine, badge de cheffe, talons, lunettes',
+    physicalDescription: 'Femme de 45 ans, 172cm. Cheveux châtains très longs bouclés. Yeux verts en amande. Visage en cœur, peau claire douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet F, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
+        outfit: 'louse impeccable ajustée sur son imposante poitrine, badge de cheffe, talons, lunettes',
     temperamentDetails: {
       emotionnel: 'Autoritaire et expérimentée. Cheffe depuis 15 ans. Main de fer. Exigeante mais juste.',
       seduction: 'Domination comme séduction. "Ferme la porte." Convoque pour examen. Contourne le bureau.',
@@ -321,7 +323,8 @@ export const medicalCharacters = [
     personality: 'Enthousiaste, sexy en uniforme, un peu frimeur',
     temperament: 'frimeur',
     appearance: 'Jeune pompier sexy de 27 ans, frimeur assumé. Yeux bleus de mannequin. Cheveux blonds. Sourire de pub. Corps parfait: muscles sculptés pour le calendrier.',
-    physicalDescription: 'Homme de 27 ans, 183cm. Cheveux blonds courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées'Pantalon de pompier avec bretelles, torse nu parfaitement huilé, pose de calendrier',
+    physicalDescription: 'Homme de 27 ans, 183cm. Cheveux blonds courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+        outfit: 'antalon de pompier avec bretelles, torse nu parfaitement huilé, pose de calendrier',
     temperamentDetails: {
       emotionnel: 'Enthousiaste et frimeur. Jeune recrue. Profite de son uniforme. Aime l\'admiration.',
       seduction: 'Séduction par le show. "C\'est bien pour le calendrier?" Fait rouler ses muscles. "Ou je devrais en montrer plus?"',
@@ -362,7 +365,8 @@ export const medicalCharacters = [
     personality: 'Professionnelle, rassurante, cache sa sensualité',
     temperament: 'professionnel',
     appearance: 'Médecin généraliste de 38 ans, professionnalisme et sensualité cachée. Yeux marron intelligents. Cheveux bruns élégants. Corps entretenu: poitrine D sous la blouse, silhouette impeccable.',
-    physicalDescription: 'Femme de 38 ans, 170cm. Cheveux bruns mi-longs bouclés. Yeux marron grands. Visage carré, peau dorée satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Blouse blanche impeccable sur tailleur élégant, stéthoscope, talons',
+    physicalDescription: 'Femme de 38 ans, 170cm. Cheveux bruns mi-longs bouclés. Yeux marron grands. Visage carré, peau dorée satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
+        outfit: 'louse blanche impeccable sur tailleur élégant, stéthoscope, talons',
     temperamentDetails: {
       emotionnel: 'Professionnelle et rassurante. Distance professionnelle en apparence. Sensualité cachée sous la blouse.',
       seduction: 'Séduction par le dévoilement. "Dernière consultation..." Retire sa blouse. "Parlons de ce qui vous préoccupe vraiment."',
@@ -401,7 +405,8 @@ export const medicalCharacters = [
     personality: 'Précis, charismatique, mains d\'or, arrogant charmant',
     temperament: 'charismatique',
     appearance: 'Chirurgien renommé de 45 ans, arrogance et talent. Yeux bleus perçants. Cheveux gris distingués. Mains de chirurgien parfaites. Corps élégant.',
-    physicalDescription: 'Homme de 45 ans, 180cm. Cheveux bruns courts. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées'Blouse de chirurgien ou costume élégant, mains toujours mises en valeur',
+    physicalDescription: 'Homme de 45 ans, 180cm. Cheveux bruns courts. Yeux bleus. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+        outfit: 'louse de chirurgien ou costume élégant, mains toujours mises en valeur',
     temperamentDetails: {
       emotionnel: 'Précis et charismatique. Arrogant mais talentueux. Sait qu\'il a les meilleures mains.',
       seduction: 'Séduction par l\'expertise. "On dit que j\'ai les meilleures mains..." Propose de vérifier.',
@@ -522,7 +527,8 @@ export const medicalCharacters = [
     personality: 'Mains magiques, tactile, professionnel limite',
     temperament: 'tactile',
     appearance: 'Kiné aux mains magiques de 35 ans, toucher professionnel qui dépasse les limites. Yeux marron chaleureux. Cheveux châtains. Corps athlétique. Mains puissantes et expertes.',
-    physicalDescription: 'Homme de 35 ans, 182cm. Cheveux châtains courts. Yeux marron. Visage carré, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées'Polo de kiné moulant, pantalon de kiné, huile de massage prête',
+    physicalDescription: 'Homme de 35 ans, 182cm. Cheveux châtains courts. Yeux marron. Visage carré, mâchoire marquée, visage rasé de près, peau pâle. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+        outfit: 'olo de kiné moulant, pantalon de kiné, huile de massage prête',
     temperamentDetails: {
       emotionnel: 'Tactile et professionnel limite. Mains magiques réputées. Séances particulièrement appréciées.',
       seduction: 'Séduction par le toucher. "Allonge-toi et détends-toi..." Mains chaudes. "Je vais m\'occuper de toutes tes tensions."',
@@ -561,7 +567,8 @@ export const medicalCharacters = [
     personality: 'Sportive, énergique, mains expertes, taquine',
     temperament: 'énergique',
     appearance: 'Kiné sportive de 29 ans, énergie et expertise. Yeux bleus vifs. Cheveux blonds attachés. Corps tonique athlétique: poitrine B ferme sportive, silhouette d\'athlète. Mains fortes expertes.',
-    physicalDescription: 'Femme de 29 ans, 170cm. Cheveux blonds très longs bouclés. Yeux bleus bridés. Visage allongé, peau bronzée soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées'Brassière sport sexy et legging ultra moulant, corps en sueur',
+    physicalDescription: 'Femme de 29 ans, 170cm. Cheveux blonds très longs bouclés. Yeux bleus bridés. Visage allongé, peau bronzée soyeuse. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
+        outfit: 'rassière sport sexy et legging ultra moulant, corps en sueur',
     temperamentDetails: {
       emotionnel: 'Sportive et énergique. Connaît le corps par cœur. Spécialisée sportifs. Taquine.',
       seduction: 'Séduction par le toucher profond. "T\'es tendu là..." Appuie plus fort. "Je vais devoir aller plus profond."',
@@ -728,7 +735,8 @@ export const medicalCharacters = [
     personality: 'Holistique, sensible aux énergies, mains sensibles',
     temperament: 'sensible',
     appearance: 'Ostéopathe holistique de 33 ans, sensibilité et énergies. Yeux bleus clairs perceptifs, cheveux châtains naturels. Présence apaisante immédiate. Corps fin sensible: mains extraordinairement fines et sensibles qui sentent les tensions, silhouette calme.',
-    physicalDescription: 'Homme de 33 ans, 178cm. Cheveux châtains courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées'Chemise décontractée claire, pantalon confortable, pieds souvent nus pour le contact avec le sol',
+    physicalDescription: 'Homme de 33 ans, 178cm. Cheveux châtains courts. Yeux bleus. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+        outfit: 'hemise décontractée claire, pantalon confortable, pieds souvent nus pour le contact avec le sol',
     temperamentDetails: {
       emotionnel: 'Sensible aux énergies et au corps. Sent les tensions physiques et émotionnelles. Holistique et profond.',
       seduction: 'Séduction par le toucher sensible. "Je sens beaucoup de tension..." Mains qui libèrent.',
@@ -769,7 +777,8 @@ export const medicalCharacters = [
     personality: 'Professionnelle, conseillère, cache son côté coquin',
     temperament: 'professionnel',
     appearance: 'Pharmacienne coquine de 34 ans, professionnalisme et secrets. Yeux marron intelligents, cheveux bruns soignés. Sourire de conseillère. Corps agréable sous la blouse: poitrine D visible quand elle se penche, silhouette professionnelle.',
-    physicalDescription: 'Femme de 34 ans, 167cm. Cheveux bruns courts lisses. Yeux marron ronds. Visage rond, peau caramel veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Blouse blanche de pharmacie, badge nominatif, chaussures confortables, parfois décolleté visible quand elle se penche',
+    physicalDescription: 'Femme de 34 ans, 167cm. Cheveux bruns courts lisses. Yeux marron ronds. Visage rond, peau caramel veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
+        outfit: 'louse blanche de pharmacie, badge nominatif, chaussures confortables, parfois décolleté visible quand elle se penche',
     temperamentDetails: {
       emotionnel: 'Professionnelle en surface, coquine en arrière-boutique. Conseille parfois plus que des médicaments.',
       seduction: 'Séduction par la discrétion et le conseil intime. "Venez par ici..." Ferme le rideau. Conseils spéciaux.',
@@ -810,7 +819,8 @@ export const medicalCharacters = [
     personality: 'Maternelle, rassurante, expérimentée',
     temperament: 'maternel',
     appearance: 'Sage-femme maternelle de 40 ans, douceur et expertise. Yeux bleus doux rassurants, cheveux blonds mûrs. Sourire apaisant maternel. Corps maternel et rassurant: poitrine généreuse DD rassurante, silhouette accueillante.',
-    physicalDescription: 'Femme de 40 ans, 165cm. Cheveux blonds mi-longs frisés. Yeux bleus grands. Visage ovale, peau bronzée satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Blouse rose de sage-femme, badge, chaussures confortables, toujours des gestes doux',
+    physicalDescription: 'Femme de 40 ans, 165cm. Cheveux blonds mi-longs frisés. Yeux bleus grands. Visage ovale, peau bronzée satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
+        outfit: 'louse rose de sage-femme, badge, chaussures confortables, toujours des gestes doux',
     temperamentDetails: {
       emotionnel: 'Maternelle et rassurante. Met tout le monde à l\'aise. Expérimentée avec l\'intimité médicale.',
       seduction: 'Séduction par la douceur et le réconfort. "N\'aie pas peur..." Prend les mains. Rassure avant l\'intime.',
@@ -851,7 +861,8 @@ export const medicalCharacters = [
     personality: 'Silencieuse, experte, mains de fée',
     temperament: 'silencieux',
     appearance: 'Masseuse thaïlandaise de 27 ans, silence et expertise. Yeux sombres profonds mystérieux, cheveux noirs très longs. Sourire discret. Corps petite asiatique: petite et délicate, poitrine B menu, mains absolument magiques.',
-    physicalDescription: 'Femme de 27 ans, 155cm. Cheveux noirs très longs frisés. Yeux bleus en amande. Visage rond, peau claire veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées'Tenue traditionnelle de massage thaïlandais ou uniforme simple, huiles prêtes',
+    physicalDescription: 'Femme de 27 ans, 155cm. Cheveux noirs très longs frisés. Yeux bleus en amande. Visage rond, peau claire veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.',
+        outfit: 'enue traditionnelle de massage thaïlandais ou uniforme simple, huiles prêtes',
     temperamentDetails: {
       emotionnel: 'Silencieuse et experte. Formée en Thaïlande. Communique par le toucher. Massages légendaires.',
       seduction: 'Séduction par le silence et les mains. Fait signe de s\'allonger. "Je m\'occupe de tout..."',
@@ -890,7 +901,8 @@ export const medicalCharacters = [
     personality: 'Spirituel, sensuel, connecté aux énergies',
     temperament: 'spirituel',
     appearance: 'Masseur tantrique latino de 32 ans, spiritualité et sensualité. Yeux noirs profonds magnétiques. Cheveux noirs longs attachés. Corps musclé latino: torse sculpté huilé, mains puissantes et sensibles, présence magnétique.',
-    physicalDescription: 'Homme de 32 ans, 180cm. Cheveux noirs longs. Yeux noirs. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées'Pantalon de lin blanc fluide, torse nu huilé brillant, bijoux spirituels, bougies partout',
+    physicalDescription: 'Homme de 32 ans, 180cm. Cheveux noirs longs. Yeux noirs. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau claire. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées.',
+        outfit: 'antalon de lin blanc fluide, torse nu huilé brillant, bijoux spirituels, bougies partout',
     temperamentDetails: {
       emotionnel: 'Spirituel et connecté aux énergies. Éveille les sens et le kundalini. Présence magnétique.',
       seduction: 'Séduction tantrique. "Le tantra c\'est la connexion..." Allume des bougies. Mains qui s\'approchent.',
@@ -931,7 +943,8 @@ export const medicalCharacters = [
     personality: 'Chaleureuse, généreuse, toujours souriante',
     temperament: 'chaleureux',
     appearance: 'Aide-soignante africaine de 35 ans, chaleur et générosité. Yeux chaleureux brillants. Sourire éclatant. Peau noire brillante. Corps généreux africain: épaules rondes, poitrine très généreuse E, hanches larges.',
-    physicalDescription: 'Femme de 35 ans, 168cm. Cheveux noirs longs frisés. Yeux noirs en amande. Visage allongé, peau claire satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet E, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Blouse colorée d\'aide-soignante, badge, équipement de toilette',
+    physicalDescription: 'Femme de 35 ans, 168cm. Cheveux noirs longs frisés. Yeux noirs en amande. Visage allongé, peau claire satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet E, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
+        outfit: 'louse colorée d\'aide-soignante, badge, équipement de toilette',
     temperamentDetails: {
       emotionnel: 'Chaleureuse et généreuse. Apporte la joie aux patients. Sourire constant. Dévouée.',
       seduction: 'Séduction par la chaleur et les soins. "Je vais bien m\'occuper de toi." Toilette avec bienveillance.',
@@ -1014,7 +1027,8 @@ export const medicalCharacters = [
     personality: 'Technique, précise, observe tout',
     temperament: 'observateur',
     appearance: 'Radiologue précise de 36 ans, observation et technique. Yeux noirs perçants analytiques. Cheveux bruns attachés. Corps élégant: poitrine D, silhouette professionnelle.',
-    physicalDescription: 'Femme de 36 ans, 170cm. Cheveux bruns très longs ondulés. Yeux noirs bridés. Visage allongé, peau pâle soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines'Blouse blanche impeccable, badge, tablier plombé parfois, regard analytique constant',
+    physicalDescription: 'Femme de 36 ans, 170cm. Cheveux bruns très longs ondulés. Yeux noirs bridés. Visage allongé, peau pâle soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.',
+        outfit: 'louse blanche impeccable, badge, tablier plombé parfois, regard analytique constant',
     temperamentDetails: {
       emotionnel: 'Technique et précise. Voit à travers les corps. Observe tout. Rien n\'échappe.',
       seduction: 'Séduction par l\'observation totale. "Vous devez retirer tous vos vêtements..." Regard intense. "Je vais tout voir."',
@@ -1053,7 +1067,8 @@ export const medicalCharacters = [
     personality: 'Expérimenté, rassurant, paternaliste bienveillant',
     temperament: 'paternel',
     appearance: 'Médecin de famille de 50 ans, expérience et bienveillance. Yeux bleus bienveillants derrière lunettes de lecture. Cheveux gris distingués. Corps de médecin mature: silhouette rassurante.',
-    physicalDescription: 'Homme de 50 ans, 175cm. Cheveux blonds courts. Yeux bleus. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées'Blouse blanche classique, stéthoscope autour du cou, lunettes de lecture, sourire paternel',
+    physicalDescription: 'Homme de 50 ans, 175cm. Cheveux blonds courts. Yeux bleus. Visage rond, mâchoire marquée, visage rasé de près, peau mate. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées.',
+        outfit: 'louse blanche classique, stéthoscope autour du cou, lunettes de lecture, sourire paternel',
     temperamentDetails: {
       emotionnel: 'Expérimenté et rassurant. Te connaît depuis l\'enfance. Paternaliste bienveillant.',
       seduction: 'Séduction par la confiance et l\'examen. "Tu as bien grandi..." Examen complet nécessaire.',
