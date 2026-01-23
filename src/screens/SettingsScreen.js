@@ -65,10 +65,43 @@ export default function SettingsScreen({ navigation, onLogout }) {
   const [syncing, setSyncing] = useState(false);
   const [serverStats, setServerStats] = useState(null);
   
-  // v5.4.49 - PayPal
+  // v5.4.73 - PayPal avec 3 types de plans
   const [paypalEmail, setPaypalEmail] = useState('');
   const [premiumStatus, setPremiumStatus] = useState({ isPremium: false });
-  const [premiumPlans, setPremiumPlans] = useState({});
+  // Initialiser avec les 3 plans par défaut pour éviter les problèmes d'affichage
+  const [premiumPlans, setPremiumPlans] = useState({
+    monthly: {
+      id: 'premium_monthly',
+      name: '📅 Premium Mensuel',
+      price: 4.99,
+      currency: 'EUR',
+      period: 'month',
+      features: ['Génération d\'images illimitée', 'Tous les personnages débloqués', 'Pas de publicité', 'Support prioritaire'],
+      icon: '📅',
+      color: '#3b82f6',
+    },
+    yearly: {
+      id: 'premium_yearly',
+      name: '🌟 Premium Annuel',
+      price: 39.99,
+      currency: 'EUR',
+      period: 'year',
+      features: ['Tous les avantages mensuels', '2 mois gratuits (33% d\'économie)', 'Accès anticipé aux nouvelles fonctionnalités', 'Personnages exclusifs'],
+      icon: '🌟',
+      color: '#f59e0b',
+      recommended: true,
+    },
+    lifetime: {
+      id: 'premium_lifetime',
+      name: '👑 Premium à Vie',
+      price: 99.99,
+      currency: 'EUR',
+      period: 'lifetime',
+      features: ['Accès PERMANENT', 'Toutes les futures mises à jour', 'Badge VIP exclusif', 'Support prioritaire à vie'],
+      icon: '👑',
+      color: '#10b981',
+    },
+  });
 
   useEffect(() => {
     loadAllSettings();
@@ -107,16 +140,27 @@ export default function SettingsScreen({ navigation, onLogout }) {
     }
   };
   
-  // v5.4.49 - Charger la configuration PayPal
+  // v5.4.73 - Charger la configuration PayPal avec les 3 plans
   const loadPayPalConfig = async () => {
     try {
       const config = await PayPalService.loadConfig();
       setPaypalEmail(config.paypalEmail || '');
-      setPremiumPlans(PayPalService.getPremiumPlans());
+      
+      // Charger les plans depuis le service (ou garder les valeurs par défaut)
+      const servicePlans = PayPalService.getPremiumPlans();
+      if (servicePlans && Object.keys(servicePlans).length >= 3) {
+        setPremiumPlans(servicePlans);
+        console.log('💳 Plans premium chargés:', Object.keys(servicePlans));
+      } else {
+        console.log('💳 Utilisation des plans par défaut');
+      }
+      
       const status = await PayPalService.checkPremiumStatus();
       setPremiumStatus(status);
+      console.log('💳 Statut premium:', status);
     } catch (error) {
       console.error('Erreur chargement PayPal:', error);
+      // Garder les plans par défaut en cas d'erreur
     }
   };
   
@@ -1387,10 +1431,13 @@ export default function SettingsScreen({ navigation, onLogout }) {
               Choisissez votre formule et débloquez tous les avantages !
             </Text>
             
-            {/* Afficher explicitement les 3 plans dans l'ordre */}
+            {/* v5.4.74 - Afficher explicitement les 3 plans dans l'ordre */}
             {['monthly', 'yearly', 'lifetime'].map((planId) => {
               const plan = premiumPlans[planId];
-              if (!plan) return null;
+              if (!plan) {
+                console.warn(`⚠️ Plan ${planId} non trouvé dans premiumPlans`);
+                return null;
+              }
               
               const isRecommended = plan.recommended;
               
