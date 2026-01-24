@@ -5338,7 +5338,7 @@ class ImageGenerationService {
       return await this.generateImage(prompt, retryCount + 1, character);
     }
     
-    // v5.4.90 - PAS de fallback automatique vers Pollinations
+    // v5.4.91 - PAS de fallback automatique vers Pollinations
     // Respecter la stratégie choisie par l'utilisateur
     if (strategy === 'freebox' || strategy === 'local') {
       console.log(`⚠️ Échec génération ${strategy.toUpperCase()} après plusieurs tentatives`);
@@ -5356,38 +5356,49 @@ class ImageGenerationService {
   async validateImageUrl(imageUrl) {
     if (!imageUrl) return false;
     
-    // Vérifier les patterns d'erreur connus (sauf pollinations.ai qui est valide)
-    const errorPatterns = [
-      'error',
-      'failed',
-      'invalid',
-      'blocked',
-      'nsfw_blocked',
-      'rate_limit',
-      'rate-limit',
-      'too_many_requests',
-      '429',
-      '503',
-      '502'
-    ];
-    
-    const lowerUrl = imageUrl.toLowerCase();
-    
-    // Ne pas rejeter pollinations.ai car c'est une source valide
-    const isPollinations = lowerUrl.includes('pollinations.ai');
-    
-    for (const pattern of errorPatterns) {
-      if (lowerUrl.includes(pattern)) {
-        console.log(`⚠️ URL contient pattern d'erreur: ${pattern}`);
-        return false;
-      }
-    }
+    // v5.4.91 - FIX: Ne pas valider les patterns d'erreur dans les URLs avec prompt encodé
+    // Les URLs Freebox/Pollinations contiennent le prompt dans les query params
+    // Le prompt peut contenir "error", "invalid", etc. qui sont des mots normaux
     
     // Vérifier que c'est une URL valide
     try {
-      new URL(imageUrl);
+      const parsedUrl = new URL(imageUrl);
+      
+      // Les URLs avec prompt encodé (Freebox, Pollinations) sont toujours valides si bien formées
+      if (parsedUrl.searchParams.has('prompt') || 
+          imageUrl.includes('pollinations.ai') || 
+          imageUrl.includes('/generate')) {
+        console.log('✅ URL valide (génération avec prompt)');
+        return true;
+      }
+      
+      // Pour les autres URLs (résultats d'API), vérifier les patterns d'erreur
+      // Mais seulement dans le pathname, pas dans les query params
+      const pathOnly = parsedUrl.pathname.toLowerCase();
+      
+      const errorPatterns = [
+        'error',
+        'failed',
+        'blocked',
+        'nsfw_blocked',
+        'rate_limit',
+        'rate-limit',
+        'too_many_requests',
+        '429',
+        '503',
+        '502'
+      ];
+      
+      for (const pattern of errorPatterns) {
+        if (pathOnly.includes(pattern)) {
+          console.log(`⚠️ URL path contient pattern d'erreur: ${pattern}`);
+          return false;
+        }
+      }
+      
       return true;
     } catch {
+      console.log('⚠️ URL invalide (mal formée)');
       return false;
     }
   }

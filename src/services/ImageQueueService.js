@@ -156,31 +156,50 @@ class ImageQueueService {
   }
   
   /**
-   * v5.4.77 - Valide qu'une URL d'image est correcte
+   * v5.4.91 - Valide qu'une URL d'image est correcte
+   * FIX: Ne pas vérifier les patterns dans les query params (ex: negative_prompt contient "error")
    */
   isValidImageUrl(url) {
     if (!url || typeof url !== 'string') return false;
     
-    const lowerUrl = url.toLowerCase();
-    
-    // Patterns d'erreur à rejeter
-    const errorPatterns = [
-      'error', 'failed', 'invalid', 'blocked', 
-      'rate_limit', 'rate-limit', 'too_many',
-      '429', '503', '502', 'undefined', 'null'
-    ];
-    
-    for (const pattern of errorPatterns) {
-      if (lowerUrl.includes(pattern)) {
+    // Vérifier que c'est une URL valide d'abord
+    try {
+      const parsedUrl = new URL(url);
+      
+      // Extraire seulement le hostname et pathname (SANS les query params)
+      // Les query params peuvent contenir "error" dans negative_prompt, c'est normal
+      const baseUrl = (parsedUrl.origin + parsedUrl.pathname).toLowerCase();
+      
+      // Patterns d'erreur à rejeter (seulement dans l'URL de base, pas les paramètres)
+      const errorPatterns = [
+        '/error', '/failed', '/invalid', '/blocked', 
+        '/rate_limit', '/rate-limit', '/too_many',
+        '/429', '/503', '/502'
+      ];
+      
+      for (const pattern of errorPatterns) {
+        if (baseUrl.includes(pattern)) {
+          console.log(`⚠️ URL base contient pattern d'erreur: ${pattern}`);
+          return false;
+        }
+      }
+      
+      // Vérifier le protocole
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
         return false;
       }
-    }
-    
-    // Vérifier que c'est une URL valide
-    try {
-      new URL(url);
-      return url.startsWith('http://') || url.startsWith('https://');
-    } catch {
+      
+      // v5.4.91 - Accepter les URLs Freebox (avec generate et query params)
+      if (baseUrl.includes('/generate') || baseUrl.includes('88.174.155.230')) {
+        console.log('✅ URL Freebox valide détectée');
+        return true;
+      }
+      
+      // Pour les autres URLs (Pollinations, etc.), accepter si format correct
+      return true;
+      
+    } catch (e) {
+      console.log(`⚠️ URL invalide: ${e.message}`);
       return false;
     }
   }
