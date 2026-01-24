@@ -7417,10 +7417,10 @@ class ImageGenerationService {
     console.log(`🏠 URL Freebox SD (seed: ${seed}, NSFW: ${nsfwLevel})`);
     console.log(`📝 Prompt Freebox (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
     
-    // v5.4.94 - VÉRIFIER que le serveur retourne une image (pas JSON d'erreur)
-    // Timeout augmenté à 120s car le serveur Freebox génère via Pollinations
+    // v5.4.95 - TÉLÉCHARGER L'IMAGE ET RETOURNER EN BASE64
+    // Évite la double requête (fetch + Image component)
     try {
-      console.log('🔍 Génération image via serveur Freebox (peut prendre 30-60s)...');
+      console.log('🔍 Génération image via serveur Freebox...');
       
       const headers = {};
       if (authToken) {
@@ -7430,12 +7430,12 @@ class ImageGenerationService {
         headers['X-User-ID'] = userId;
       }
       
-      // v5.4.94 - Timeout correct avec AbortController (React Native ne supporte pas timeout dans fetch)
+      // Timeout avec AbortController
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
-        console.log('⏱️ Timeout 120s atteint, annulation...');
+        console.log('⏱️ Timeout 90s atteint, annulation...');
         controller.abort();
-      }, 120000); // 120 secondes pour Freebox (génère via Pollinations)
+      }, 90000); // 90 secondes suffisent maintenant (pas de double requête)
       
       try {
         const response = await fetch(imageUrl, { 
@@ -7449,13 +7449,7 @@ class ImageGenerationService {
         const contentType = response.headers.get('content-type') || '';
         console.log(`📡 Réponse Freebox: status=${response.status}, content-type=${contentType}`);
         
-        // Vérifier si c'est une image
-        if (response.ok && contentType.includes('image')) {
-          console.log('✅ Serveur Freebox a retourné une image valide');
-          return imageUrl;
-        }
-        
-        // Si c'est du JSON, c'est probablement une erreur
+        // Si c'est du JSON, c'est une erreur
         if (contentType.includes('json')) {
           const errorData = await response.json();
           console.log('❌ Erreur Freebox:', JSON.stringify(errorData));
@@ -7466,12 +7460,31 @@ class ImageGenerationService {
           throw new Error(errorData.message || errorData.error || 'Erreur serveur Freebox');
         }
         
+        // Vérifier si c'est une image
+        if (response.ok && contentType.includes('image')) {
+          // v5.4.95 - Convertir en base64 pour éviter une seconde requête
+          const imageBlob = await response.blob();
+          
+          // Convertir blob en base64
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64data = reader.result;
+              console.log(`✅ Image Freebox convertie en base64 (${Math.round(imageBlob.size/1024)}KB)`);
+              resolve(base64data); // data:image/jpeg;base64,....
+            };
+            reader.onerror = () => reject(new Error('Erreur conversion base64'));
+            reader.readAsDataURL(imageBlob);
+          });
+        }
+        
         // Autre erreur
         if (!response.ok) {
           throw new Error(`Erreur serveur: ${response.status}`);
         }
         
-        // Si on arrive ici, on retourne l'URL et on espère que ça marche
+        // Fallback: retourner l'URL si on ne peut pas convertir
+        console.log('⚠️ Fallback sur URL directe');
         return imageUrl;
         
       } catch (fetchInnerError) {
@@ -7482,17 +7495,16 @@ class ImageGenerationService {
     } catch (fetchError) {
       console.error('❌ Erreur requête Freebox:', fetchError.message);
       
-      // Propager l'erreur avec un message clair
       if (fetchError.message.includes('Premium')) {
         throw fetchError;
       }
       if (fetchError.name === 'AbortError' || fetchError.message.includes('aborted')) {
-        throw new Error('Génération trop longue (>120s). Le serveur est peut-être surchargé.');
+        throw new Error('Génération trop longue (>90s). Réessayez.');
       }
-      if (fetchError.message.includes('Network') || fetchError.message.includes('timeout')) {
-        throw new Error('Serveur Freebox inaccessible. Vérifiez votre connexion.');
+      if (fetchError.message.includes('Network')) {
+        throw new Error('Serveur Freebox inaccessible.');
       }
-      throw new Error(`Erreur Freebox: ${fetchError.message}`);
+      throw new Error(`Erreur: ${fetchError.message}`);
     }
   }
   
