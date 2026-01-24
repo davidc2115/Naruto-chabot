@@ -7386,22 +7386,27 @@ class ImageGenerationService {
     const shortPrompt = finalPrompt.substring(0, 2000);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // v5.4.92 - Récupérer l'ID utilisateur pour l'authentification Freebox
+    // v5.4.93 - Récupérer l'ID utilisateur ET le token pour l'authentification Freebox
     let userId = '';
+    let authToken = '';
     try {
       const currentUser = AuthService.getCurrentUser();
       if (currentUser?.id) {
         userId = currentUser.id;
       }
+      // Essayer aussi de récupérer le token
+      if (AuthService.token) {
+        authToken = AuthService.token;
+      }
     } catch (e) {
-      console.log('⚠️ Impossible de récupérer user_id pour Freebox');
+      console.log('⚠️ Impossible de récupérer authentification pour Freebox');
     }
     
-    // Construire l'URL avec les paramètres ET l'authentification
+    // Construire l'URL avec les paramètres
     const separator = freeboxUrl.includes('?') ? '&' : '?';
     let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=576&height=1024&seed=${seed}&negative_prompt=${encodeURIComponent(this.negativePromptBase)}`;
     
-    // v5.4.92 - Ajouter user_id pour authentification Premium sur le serveur
+    // v5.4.93 - Ajouter user_id pour authentification Premium sur le serveur
     if (userId) {
       imageUrl += `&user_id=${encodeURIComponent(userId)}`;
       console.log(`🔐 Authentification Freebox avec user_id: ${userId.substring(0, 8)}...`);
@@ -7412,7 +7417,64 @@ class ImageGenerationService {
     console.log(`🏠 URL Freebox SD (seed: ${seed}, NSFW: ${nsfwLevel})`);
     console.log(`📝 Prompt Freebox (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
     
-    return imageUrl;
+    // v5.4.93 - VÉRIFIER que le serveur retourne une image (pas JSON d'erreur)
+    try {
+      console.log('🔍 Vérification de la réponse serveur Freebox...');
+      
+      const headers = {};
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      if (userId) {
+        headers['X-User-ID'] = userId;
+      }
+      
+      const response = await fetch(imageUrl, { 
+        method: 'GET',
+        headers: headers,
+        timeout: 90000 
+      });
+      
+      const contentType = response.headers.get('content-type') || '';
+      console.log(`📡 Réponse Freebox: status=${response.status}, content-type=${contentType}`);
+      
+      // Vérifier si c'est une image
+      if (response.ok && contentType.includes('image')) {
+        console.log('✅ Serveur Freebox a retourné une image valide');
+        return imageUrl;
+      }
+      
+      // Si c'est du JSON, c'est probablement une erreur
+      if (contentType.includes('json')) {
+        const errorData = await response.json();
+        console.log('❌ Erreur Freebox:', JSON.stringify(errorData));
+        
+        if (errorData.premium_required) {
+          throw new Error('Fonctionnalité Premium requise. Vérifiez votre abonnement.');
+        }
+        throw new Error(errorData.message || errorData.error || 'Erreur serveur Freebox');
+      }
+      
+      // Autre erreur
+      if (!response.ok) {
+        throw new Error(`Erreur serveur: ${response.status}`);
+      }
+      
+      // Si on arrive ici, on retourne l'URL et on espère que ça marche
+      return imageUrl;
+      
+    } catch (fetchError) {
+      console.error('❌ Erreur requête Freebox:', fetchError.message);
+      
+      // Propager l'erreur avec un message clair
+      if (fetchError.message.includes('Premium')) {
+        throw fetchError;
+      }
+      if (fetchError.message.includes('Network') || fetchError.message.includes('timeout')) {
+        throw new Error('Serveur Freebox inaccessible. Vérifiez votre connexion.');
+      }
+      throw new Error(`Erreur Freebox: ${fetchError.message}`);
+    }
   }
   
   /**
