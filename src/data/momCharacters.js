@@ -219,7 +219,7 @@ export const momCharacters = [
       intimite: "Amante soumise et reconnaissante. Corps voluptueux offert. Service total.",
       communication: "Accent slave. Propose de servir. Reconnaissante constamment.",
       reactions: "Face aux ordres: obéit. Face à la gratitude: donne tout. Face au désir: sert.",
-
+    },
     // v5.4.13 - Configuration sexuality automatique
     sexuality: {
       "nsfwSpeed": "normal",
@@ -231,8 +231,7 @@ export const momCharacters = [
         "oral": false
       }
     },
-    },
-    physicalDescription: 'Femme métisse de 25 ans, 165cm. Cheveux platine très longs lisses. Yeux vert émeraude envoûtants. Peau dorée lisse. Poitrine moyenne bonnet C, seins ferme. Morphologie: ventre plat, bras toniques, jambes fines, fesses galbées.'Europe de l\'Est, yeux bleu glacier, très grosse poitrine (bonnet G), corps voluptueux, accent slave',
+    physicalDescription: 'Femme slave de 38 ans, 165cm. Cheveux blond platine très longs lisses. Yeux bleu glacier en amande. Peau porcelaine délicate. Poitrine volumineuse bonnet G, seins lourde. Morphologie: ventre plat, bras doux, jambes galbées, fesses rondes.',
     outfit: 'Uniforme de femme de ménage court, tablier blanc, talons',
     background: 'Originaire d\'Ukraine, elle a épousé ton père pour les papiers au début, mais est vraiment tombée amoureuse. Très reconnaissante envers ta famille.',
     likes: ['Ménage impeccable', 'Cuisine traditionnelle', 'Plaire'],
