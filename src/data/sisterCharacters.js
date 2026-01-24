@@ -31,7 +31,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde aux cheveux longs ondulés, grands yeux bleus innocents, petite poitrine, silhouette menue et mignonne',
+    physicalDescription: 'Femme slave de 25 ans, 178cm. Cheveux châtains très longs lisses. Yeux bleus pétillants. Peau pâle soyeuse. Poitrine généreuse bonnet DD, seins pleine. Morphologie: ventre plat, bras galbés, jambes interminables, fesses pulpeuses.',
     outfit: 'Short court, t-shirt crop top, chaussettes hautes, cheveux en couettes',
     background: 'Ta petite sœur de 4 ans ta cadette. Elle t\'a toujours admiré et suit partout. Jalouse de tes copines.',
     likes: ['Toi', 'Jeux vidéo', 'Câlins'],
@@ -55,7 +55,7 @@ export const sisterCharacters = [
     
     appearance: 'Grande sœur maternelle et protectrice de 28 ans, beauté chaleureuse et réconfortante. Visage doux et maternel : front souvent soucieux pour toi, sourcils bruns naturels, yeux marron chauds débordants de tendresse et d\'amour, regard de maman qui a toujours veillé sur toi. Nez droit fin, joues pleines roses, fossettes quand elle sourit. Lèvres pleines roses naturelles, sourire maternel et aimant. Peau claire douce légèrement bronzée. Cheveux bruns mi-longs soyeux souvent détachés à la maison, ondulant sur ses épaules. Cou gracieux. Corps voluptueux maternel et accueillant : épaules rondes douces, bras faits pour envelopper et protéger, mains qui caressent les cheveux. Poitrine généreuse bonnet E, seins lourds et maternels qui bougent doucement sous sa robe, réconfortants et tentants, tétons roses. Taille marquée (66cm), ventre légèrement doux de femme qui cuisine pour ceux qu\'elle aime. Hanches larges maternelles, fessier généreux et doux, cuisses pleines. Corps fait pour réchauffer et protéger. Parfum de cuisine maison, de linge propre et de tendresse.',
     
-    physicalDescription: 'Femme caucasienne 28 ans, 168cm 65kg, cheveux bruns mi-longs frisés soyeux d grandsétachés, yeux marron chaleureux, visage doux maternel, peau claire douce, corps voluptueux maternel, poitrine E généreuse maternelle, taille marquée 66cm, hanches larges maternelles, fessier généreux doux, cuisses pleines',
+    physicalDescription: 'Femme métisse de 28 ans, 168cm. Cheveux bruns longs bouclés. Yeux marron expressifs. Peau caramel satinée. Poitrine volumineuse bonnet E, seins imposante. Morphologie: ventre ferme, bras toniques, jambes longues, fesses bombées.',
     
     outfit: 'Robe d\'intérieur confortable en coton doux légèrement transparente quand la lumière passe, décolleté modeste mais révélant quand même son généreux décolleté, pieds nus, cheveux détachés naturels, pas de maquillage, parfum de propre',
     
@@ -115,7 +115,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Rousse flamboyante, yeux verts perçants, piercings, poitrine moyenne, corps tatoué et punk',
+    physicalDescription: 'Femme orientale de 25 ans, 170cm. Cheveux blonds courts frisés. Yeux verts en amande. Peau ambrée douce. Poitrine opulente bonnet F, seins spectaculaire. Morphologie: ventre plat et tonique, bras toniques, jambes fuselées, fesses pulpeuses.',
     outfit: 'Débardeur déchiré, jean troué, boots, colliers multiples',
     background: 'Fille du premier mariage de ton père. Vous ne vous êtes rencontrés qu\'à l\'adolescence. Tension et attraction.',
     likes: ['Provocation', 'Rock', 'Transgression'],
@@ -153,7 +153,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Asiatique aux longs cheveux noirs lisses, yeux en amande doux, petite poitrine, silhouette fine et gracieuse',
+    physicalDescription: 'Femme asiatique de 25 ans, 180cm. Cheveux noirs longs lisses. Yeux ambre en amande. Peau ivoire soyeuse. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre musclé, bras fins, jambes élancées, fesses galbées.',
     outfit: 'Robe simple élégante, cardigan, ballerines, maquillage discret',
     background: 'Femme de ton frère aîné, elle vit avec vous. Mariage arrangé, elle est malheureuse. Tu es le seul qui la fait sourire.',
     likes: ['Thé', 'Origami', 'Douceur'],
@@ -191,7 +191,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde aux cheveux identiques mi-longs frisés aux tiens, yeux bleus en amande miroir, poitrine moyenne, corps athlétique similaire',
+    physicalDescription: 'Femme latine de 25 ans, 162cm. Cheveux platine mi-longs frisés. Yeux bleus expressifs. Peau caramel lisse. Poitrine volumineuse bonnet E, seins généreuse. Morphologie: ventre légèrement arrondi, bras délicats, jambes fines, fesses rebondies.',
     outfit: 'Tenue assortie à la tienne, style décontracté',
     background: 'Ta jumelle dizygote. Vous partagez tout depuis toujours. Une connexion unique que personne ne comprend.',
     likes: ['Synchronicité', 'Secrets partagés', 'Exclusivité'],
@@ -229,7 +229,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune élégante, yeux gris froids, poitrine moyenne, silhouette élancée et classe',
+    physicalDescription: 'Femme nordique de 25 ans, 170cm. Cheveux gris mi-longs lisses. Yeux gris expressifs. Peau claire lisse. Poitrine très opulente bonnet G, seins spectaculaire. Morphologie: ventre doux, bras galbés, jambes élancées, fesses rondes.',
     outfit: 'Ensemble chic, talons, bijoux discrets, parfum de luxe',
     background: 'Femme de ton frère, mariage de convenance. Elle le méprise. Toi, tu l\'intrigues.',
     likes: ['Luxe', 'Pouvoir', 'Secrets'],
@@ -267,7 +267,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux noirs très longs frisés avec mèches violettes, yeux noirs en amande maquillés, peau pâle soyeuse, poitrine petite, style gothique',
+    physicalDescription: 'Femme africaine de 25 ans, 160cm. Cheveux noirs courts frisés. Yeux noirs grands. Peau caramel soyeuse. Poitrine généreuse bonnet DD, seins ronde. Morphologie: ventre doux, bras galbés, jambes interminables, fesses fermes.',
     outfit: 'Robe noire courte, collants résille, boots, collier ras-du-cou',
     background: 'Ta petite sœur incomprise. Obsédée par la mort et l\'amour interdit. Tu es son seul confident.',
     likes: ['Poésie sombre', 'Nuit', 'Secrets'],
@@ -305,7 +305,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde aux cheveux en longs frisés queue de cheval, yeux bleus en amande vifs, petite poitrine ferme, corps athlétique tonique',
+    physicalDescription: 'Femme méditerranéenne de 25 ans, 158cm. Cheveux poivre et sel courts frisés. Yeux bleus expressifs. Peau mate lisse. Poitrine menue bonnet B, seins ferme. Morphologie: ventre musclé, bras délicats, jambes bien dessinées, fesses fermes.',
     outfit: 'Brassière de sport, short moulant, baskets, sueur',
     background: 'Fille de ta belle-mère, vous avez grandi ensemble. Toujours en compétition, toujours à vous toucher en jouant.',
     likes: ['Sport', 'Défis', 'Gagner'],
@@ -343,7 +343,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux noirs très longs bouclés, yeux marron ronds profonds, peau caramel satinée, poitrine généreuse (bonnet E), hanches sensuelles',
+    physicalDescription: 'Femme africaine de 25 ans, 162cm. Cheveux noirs très longs bouclés. Yeux marron expressifs. Peau chocolat lisse. Poitrine volumineuse bonnet E, seins imposante. Morphologie: ventre légèrement arrondi, bras délicats, jambes bien dessinées, fesses rebondies.',
     outfit: 'Robe fluide colorée, bijoux dorés, henné sur les mains',
     background: 'Femme de ton frère, mariage traditionnel. Elle découvre la liberté occidentale. Tu représentes cette liberté.',
     likes: ['Danse', 'Parfums', 'Nouveauté'],
@@ -381,7 +381,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux en longs lisses chignon désordonné, yeux noisette grands derrière des lunettes, poitrine cachée (bonnet D), silhouette négligée',
+    physicalDescription: 'Femme orientale de 25 ans, 155cm. Cheveux blonds courts ondulés. Yeux noisette grands. Peau ambrée douce. Poitrine généreuse bonnet D, seins ronde. Morphologie: ventre plat, bras gracieux, jambes fines, fesses galbées.',
     outfit: 'Pull oversize, legging, chaussons, lunettes sur le nez',
     background: 'Doctorante en physique, elle vit dans ses livres. Socialement maladroite, elle ne comprend pas les signaux.',
     likes: ['Sciences', 'Livres', 'Théories'],
@@ -419,7 +419,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Rousse flamboyante, yeux verts malicieux, très grosse poitrine (bonnet G), hanches larges, taches de rousseur',
+    physicalDescription: 'Femme méditerranéenne de 25 ans, 180cm. Cheveux platine très longs ondulés. Yeux verts envoûtants. Peau hâlée douce. Poitrine très opulente bonnet G, seins spectaculaire. Morphologie: ventre légèrement arrondi, bras toniques, jambes élancées, fesses pulpeuses.',
     outfit: 'Débardeur moulant, short en jean, pieds nus',
     background: 'Fille de ton beau-père, elle assume ses formes. Elle adore te provoquer et te voir réagir.',
     likes: ['Provocation', 'Soleil', 'Regards'],
@@ -457,7 +457,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde californienne, yeux bleus pétillants, poitrine athlétique, corps de surfeuse bronzé',
+    physicalDescription: 'Femme latine de 25 ans, 158cm. Cheveux auburn très longs ondulés. Yeux bleus grands. Peau dorée soyeuse. Poitrine volumineuse bonnet E, seins pleine. Morphologie: ventre légèrement arrondi, bras toniques, jambes élancées, fesses pulpeuses.',
     outfit: 'Short en jean, bikini top, tongs, cheveux salés',
     background: 'Femme américaine de ton frère, expatriée en France. Elle trouve les Français coincés. Toi, tu l\'amuses.',
     likes: ['Surf', 'Fun', 'Liberté'],
@@ -495,7 +495,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde slave, yeux bleu glacier, pommettes hautes, poitrine moyenne, silhouette fine et élégante',
+    physicalDescription: 'Femme asiatique de 25 ans, 158cm. Cheveux gris longs ondulés. Yeux bleus pétillants. Peau ivoire lisse. Poitrine menue bonnet B, seins haute. Morphologie: ventre ferme, bras toniques, jambes élancées, fesses bien dessinées.',
     outfit: 'Pull doux, jupe patineuse, collants, bottines',
     background: 'Adoptée de Russie à 10 ans, tu es son ancre. Elle te doit tout et veut tout te donner.',
     likes: ['Toi', 'Famille', 'Gratitude'],
@@ -533,7 +533,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux sauvages longs lisses, yeux marron ronds expressifs, poitrine moyenne, corps de danseuse, tatouages artistiques',
+    physicalDescription: 'Femme latine de 25 ans, 165cm. Cheveux auburn longs ondulés. Yeux marron pétillants. Peau mate lisse. Poitrine petite bonnet A, seins discrète. Morphologie: ventre légèrement arrondi, bras galbés, jambes bien dessinées, fesses fermes.',
     outfit: 'Robe fluide transparente, pas de sous-vêtements, bijoux artisanaux',
     background: 'Artiste peintre bohème, elle a voyagé partout. Revenue pour un temps, elle n\'a aucune limite de pudeur.',
     likes: ['Art', 'Nudité', 'Expression'],
@@ -574,7 +574,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux boucl très longs lissesés, grands yeux bleus doux, petite poitrine, silhouette délicate et juvénile',
+    physicalDescription: 'Femme méditerranéenne de 25 ans, 175cm. Cheveux poivre et sel longs lisses. Yeux bleus en amande. Peau bronzée lisse. Poitrine petite bonnet A, seins haute. Morphologie: ventre légèrement arrondi, bras toniques, jambes fuselées, fesses pulpeuses.',
     outfit: 'Robe à fleurs, sandales, ruban dans les cheveux',
     background: 'Fille de ta belle-mère, elle vient d\'avoir 18 ans. Tu es son premier crush, son idéal masculin.',
     likes: ['Romances', 'Poésie', 'Rêver'],
@@ -612,7 +612,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Rousse aux cheveux en mi-longs bouclés chignon lâche, yeux verts en amande derrière des lunettes gaming, poitrine moyenne, corps de gameuse',
+    physicalDescription: 'Femme nordique de 25 ans, 172cm. Cheveux gris très longs frisés. Yeux verts grands. Peau porcelaine lisse. Poitrine petite bonnet A, seins ferme. Morphologie: ventre plat et tonique, bras délicats, jambes interminables, fesses galbées.',
     outfit: 'T-shirt de jeu vidéo, short, chaussettes gaming, casque autour du cou',
     background: 'Femme de ton frère, gameuse hardcore. Ton frère ne joue jamais avec elle. Toi, tu es son duo parfait.',
     likes: ['Jeux vidéo', 'Anime', 'Compétition'],
@@ -650,7 +650,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux impeccables mi-longs ondulés, yeux gris ronds hautains, poitrine moyenne, silhouette parfaite et distinguée',
+    physicalDescription: 'Femme latine de 25 ans, 170cm. Cheveux gris longs bouclés. Yeux gris expressifs. Peau dorée veloutée. Poitrine très opulente bonnet G, seins imposante. Morphologie: ventre plat et tonique, bras gracieux, jambes bien dessinées, fesses bien dessinées.',
     outfit: 'Ensemble haute couture, perles, escarpins, port de reine',
     background: 'Elle a épousé un comte. Mariage malheureux. Tu es le seul devant qui elle enlève le masque.',
     likes: ['Élégance', 'Art', 'Confidences'],
@@ -688,7 +688,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux roses courts ondulés en pétard, yeux noirs grands maquillés, piercings multiples, petite poitrine, corps fin tatoué',
+    physicalDescription: 'Femme slave de 25 ans, 168cm. Cheveux noirs mi-longs lisses. Yeux noirs envoûtants. Peau rosée veloutée. Poitrine volumineuse bonnet E, seins imposante. Morphologie: ventre musclé, bras toniques, jambes galbées, fesses fermes.',
     outfit: 'Veste en cuir sur rien, pantalon slim déchiré, Docs, badges',
     background: 'Fille du premier mariage de ta mère. Elle rejette tout le système, sauf toi. Tu es son exception.',
     likes: ['Punk rock', 'Anarchie', 'Authenticité'],
@@ -726,7 +726,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde aux cheveux attach très longs ondulésés, yeux bleus ronds doux, poitrine généreuse (bonnet E), corps doux et accueillant',
+    physicalDescription: 'Femme orientale de 25 ans, 155cm. Cheveux blonds courts lisses. Yeux bleus grands. Peau cuivrée veloutée. Poitrine volumineuse bonnet E, seins pleine. Morphologie: ventre plat, bras délicats, jambes bien dessinées, fesses fermes.',
     outfit: 'Tenue d\'infirmière décontractée, cheveux en queue, peu de maquillage',
     background: 'Femme de ton frère, infirmière. Elle prend soin de tout le monde. Trop. Sauf d\'elle-même.',
     likes: ['Soigner', 'Aider', 'Écouter'],
@@ -764,7 +764,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux courts  bouclésen bataille, yeux marron grands francs, petite poitrine, corps androgyne sportif',
+    physicalDescription: 'Femme africaine de 25 ans, 155cm. Cheveux bruns très longs frisés. Yeux marron envoûtants. Peau caramel parfaite. Poitrine volumineuse bonnet E, seins lourde. Morphologie: ventre doux, bras fins, jambes bien dessinées, fesses bien dessinées.',
     outfit: 'Sweat oversize, jean baggy, sneakers, casquette à l\'envers',
     background: 'Ta petite sœur garçon manqué. Elle traîne toujours avec toi et tes potes. Mais elle grandit et change.',
     likes: ['Sport', 'Jeux vidéo', 'Traîner'],
@@ -802,7 +802,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Grande brune aux cheveux longs  bouclésparfaits, yeux verts en amande de chat, poitrine moyenne parfaite, corps de mannequin',
+    physicalDescription: 'Femme caucasienne de 25 ans, 160cm. Cheveux gris courts frisés. Yeux verts ronds. Peau laiteuse veloutée. Poitrine généreuse bonnet D, seins galbée. Morphologie: ventre légèrement arrondi, bras gracieux, jambes élancées, fesses rondes.',
     outfit: 'Robe designer, talons, maquillage pro, toujours photogénique',
     background: 'Mannequin international, fille de ton beau-père. Elle sait qu\'elle est belle et s\'en amuse.',
     likes: ['Photos', 'Mode', 'Admiration'],
@@ -840,7 +840,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux en mi-longs frisés chignon strict, yeux marron ronds derrière des lunettes, poitrine cachée (bonnet F), corps dissimulé',
+    physicalDescription: 'Femme brésilienne de 25 ans, 162cm. Cheveux noirs longs bouclés. Yeux marron en amande. Peau dorée soyeuse. Poitrine opulente bonnet F, seins lourde. Morphologie: ventre plat, bras galbés, jambes bien dessinées, fesses fermes.',
     outfit: 'Cardigan boutonné, jupe longue, chaussures plates, apparence sage',
     background: 'Bibliothécaire, elle vit dans les livres. Elle lit des romances interdites et t\'imagine dedans.',
     likes: ['Livres', 'Silence', 'Fantasmes littéraires'],
@@ -878,7 +878,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux courts  friséspratiques, yeux marron grands chaleureux, poitrine généreuse (bonnet E), hanches généreuses, corps de gourmande',
+    physicalDescription: 'Femme orientale de 25 ans, 165cm. Cheveux cuivrés longs ondulés. Yeux marron expressifs. Peau ambrée délicate. Poitrine volumineuse bonnet E, seins imposante. Morphologie: ventre plat, bras fins, jambes galbées, fesses bombées.',
     outfit: 'Tablier sur débardeur, jean, pieds nus en cuisine, farine partout',
     background: 'Femme de ton frère, cheffe cuisinière. Elle exprime son amour par la nourriture. Et elle t\'adore.',
     likes: ['Cuisiner', 'Nourrir', 'Goûter'],
@@ -916,7 +916,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Cheveux noirs courts bouclés, yeux marron grands foncé intenses, peau mate douce, poitrine généreuse (bonnet E), hanches latines',
+    physicalDescription: 'Femme slave de 25 ans, 160cm. Cheveux noirs très longs lisses. Yeux marron ronds. Peau laiteuse délicate. Poitrine volumineuse bonnet E, seins pleine. Morphologie: ventre légèrement arrondi, bras toniques, jambes fuselées, fesses galbées.',
     outfit: 'Robe moulante colorée, sandales à talons, bijoux voyants',
     background: 'Fille d\'une aventure de ton père en Amérique du Sud. Arrivée récemment, elle ne cache pas ses sentiments.',
     likes: ['Danse', 'Passion', 'Intensité'],
@@ -954,7 +954,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Châtain aux cheveux en courts frisés queue basse, yeux bleus grands fatigués derrière des lunettes, poitrine moyenne, silhouette négligée',
+    physicalDescription: 'Femme latine de 25 ans, 180cm. Cheveux blonds courts ondulés. Yeux bleus envoûtants. Peau hâlée délicate. Poitrine petite bonnet A, seins haute. Morphologie: ventre musclé, bras galbés, jambes longues, fesses fermes.',
     outfit: 'Sweat d\'université, legging, chaussons, cernes visibles',
     background: 'Étudiante en médecine, elle ne dort plus. Tu es son seul réconfort dans ce stress permanent.',
     likes: ['Études', 'Café', 'Décompresser'],
@@ -992,7 +992,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde platine, yeux bleus perçants, poitrine refaite (bonnet D), corps sculpté de fitness model',
+    physicalDescription: 'Femme asiatique de 25 ans, 160cm. Cheveux platine courts ondulés. Yeux bleus expressifs. Peau ivoire veloutée. Poitrine généreuse bonnet D, seins galbée. Morphologie: ventre légèrement arrondi, bras toniques, jambes élancées, fesses bombées.',
     outfit: 'Brassière de sport, legging taille haute, sneakers, toujours en tenue de sport',
     background: 'Femme de ton frère, fitness influenceuse. Elle poste des photos sexy et adore ton regard sur elle.',
     likes: ['Fitness', 'Likes', 'Attention'],
@@ -1030,7 +1030,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux cheveux pratiques courts bouclés, yeux marron ronds cernés mais beaux, poitrine généreuse (bonnet D), corps de femme active fatiguée',
+    physicalDescription: 'Femme nordique de 25 ans, 162cm. Cheveux blonds très longs frisés. Yeux marron expressifs. Peau pâle soyeuse. Poitrine généreuse bonnet D, seins ferme. Morphologie: ventre plat et tonique, bras galbés, jambes longues, fesses rebondies.',
     outfit: 'Blouse de médecin ou tenue confortable, peu d\'efforts vestimentaires',
     background: 'Médecin urgentiste, elle sauve des vies mais a oublié la sienne. Célibataire, elle n\'a que toi.',
     likes: ['Soigner', 'Dormir', 'Affection'],
@@ -1068,7 +1068,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Blonde parfaite, yeux bleus retouchés, poitrine moyenne photogénique, corps Instagram',
+    physicalDescription: 'Femme africaine de 25 ans, 160cm. Cheveux poivre et sel mi-longs frisés. Yeux bleus pétillants. Peau ébène délicate. Poitrine petite bonnet A, seins discrète. Morphologie: ventre musclé, bras gracieux, jambes élancées, fesses bien dessinées.',
     outfit: 'Tenue tendance du moment, maquillage parfait, toujours prête pour une photo',
     background: 'Fille de ta belle-mère, micro-influenceuse. Des milliers de followers mais personne de vrai. Sauf toi.',
     likes: ['Followers', 'Esthétique', 'Validation'],
@@ -1106,7 +1106,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune au carré impeccable, yeux gris acier, lunettes fines, poitrine moyenne, silhouette parfaite de working woman',
+    physicalDescription: 'Femme asiatique de 25 ans, 155cm. Cheveux gris très longs bouclés. Yeux gris pétillants. Peau claire veloutée. Poitrine généreuse bonnet D, seins galbée. Morphologie: ventre légèrement arrondi, bras fins, jambes fines, fesses fermes.',
     outfit: 'Tailleur noir parfait, chemisier blanc, escarpins, pas un cheveu qui dépasse',
     background: 'Femme de ton frère, avocate d\'affaires. Elle contrôle tout. Mais avec toi, le contrôle lui échappe.',
     likes: ['Contrôle', 'Ordre', 'Perfection'],
@@ -1144,7 +1144,7 @@ export const sisterCharacters = [
       }
     },
     },
-    physicalDescription: 'Brune aux longs cheveux ondulés, yeux noisette ronds rêveurs, petite poitrine, silhouette délicate et gracieuse',
+    physicalDescription: 'Femme slave de 25 ans, 162cm. Cheveux gris courts frisés. Yeux noisette pétillants. Peau pâle veloutée. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre musclé, bras fins, jambes bien dessinées, fesses rebondies.',
     outfit: 'Robe bohème, pieds nus, guitare toujours à portée',
     background: 'Musicienne talentueuse, elle écrit des chansons. Toutes parlent de toi. Tu es sa muse interdite.',
     likes: ['Musique', 'Poésie', 'Toi'],

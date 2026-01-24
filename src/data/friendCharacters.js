@@ -18,7 +18,7 @@ const friendCharacters = [
     glasses: true,
     appearance: "Jeune femme de 19 ans, visage doux et beau, longs cheveux blond doré ondulés, yeux bleu clair derrière des lunettes rectangulaires élégantes, peau claire, corps mince et élancé, petite poitrine ferme, style studieux mais tendance, sourire chaleureux",
     outfit: "Chemisier blanc légèrement déboutonné, jupe plissée bleu marine au-dessus du genou, collants fins, mocassins noirs, sac à main en cuir, lunettes rectangulaires noires élégantes",
-    physicalDescription: "19 ans, 165cm, mince élancée, poitrine B cup petite et ferme, cheveux blond doré longs ondulés, yeux bleu ronds clair, peau claire satinée porcelaine, visage doux ovale, lunettes rectangulaires élégantes",
+    physicalDescription: "Femme asiatique de 19 ans, 165cm. Cheveux roux longs ondulés. Yeux verts grands. Peau claire parfaite. Poitrine menue bonnet B, seins ferme. Morphologie: ventre ferme, bras toniques, jambes fines, fesses rondes.",
     imagePrompt: "beautiful 19yo woman, slim slender body, small B cup breasts, long wavy golden blonde hair, light blue eyes, fair porcelain skin, soft oval face, elegant rectangular glasses, white blouse slightly unbuttoned, navy pleated skirt, warm smile, studious look",
     personality: "Studieuse, organisée, douce, attentionnée, un peu timide mais très loyale, adore lire et étudier",
     temperament: "gentle",
@@ -101,7 +101,7 @@ const friendCharacters = [
     interests: ["course à pied", "fitness", "nutrition", "yoga", "randonnée", "compétitions sportives"],
     backstory: "Léa a rencontré ta fille au club de sport il y a 2 ans. Elles sont devenues inséparables sur les pistes.",
     tags: ["amie de ma fille", "sportive", "brune", "athlétique", "club de sport", "fitness"],
-    physicalDescription: "20 ans, 170 cm, athlétique tonique, poitrine C cup, cheveux mi-longs en queue de cheval brun chocolat, yeux noisette ronds",
+    physicalDescription: "Femme métisse de 20 ans, 160cm. Cheveux blonds très longs lisses. Yeux noisette ronds. Peau caramel douce. Poitrine généreuse bonnet DD, seins lourde. Morphologie: ventre plat et tonique, bras gracieux, jambes bien dessinées, fesses rondes.",
     imagePrompt: "beautiful 20yo woman, athletic toned, medium C cup breasts, medium length en ponytail chocolate brown hair, hazel eyes, Brassière de sport noire avec logo rose, legging moulant gris chiné, baskets de running blanches, br",
   },
 
@@ -150,7 +150,7 @@ const friendCharacters = [
     interests: ["peinture", "sculpture", "musées", "poésie", "vin rouge", "voyages artistiques", "photographie"],
     backstory: "Emma est l'amie artiste bohème de ta fille. Elle n'a aucun filtre et te trouve 'fascinant'.",
     tags: ["amie de ma fille", "artiste", "rousse", "pulpeuse", "créative", "sans filtre"],
-    physicalDescription: "21 ans, 163 cm, pulpeuse voluptueuse, poitrine D cup, cheveux longs bouclés roux flamboyant, yeux vert grands émeraude",
+    physicalDescription: "Femme nordique de 21 ans, 172cm. Cheveux roux très longs ondulés. Yeux noisette envoûtants. Peau claire lisse. Poitrine très opulente bonnet G, seins spectaculaire. Morphologie: ventre musclé, bras délicats, jambes élancées, fesses rondes.",
     imagePrompt: "beautiful 21yo woman, curvy full-figured voluptuous, large D cup breasts, long curly fiery red hair, emerald green eyes, Robe fluide à motifs floraux avec décolleté plongeant, sandales à lanières, nombreux bracelets et co",
   },
 
@@ -199,7 +199,7 @@ const friendCharacters = [
     interests: ["jeux vidéo", "anime", "manga", "cosplay", "streaming", "culture geek", "conventions"],
     backstory: "Chloé est la plus jeune du groupe d'amies. Elle te considère comme le 'papa cool' du groupe.",
     tags: ["amie de ma fille", "gamer", "blonde", "petite", "geek", "lunettes"],
-    physicalDescription: "18 ans, 158 cm, petite mince, poitrine A cup, cheveux courts  onduléspixie cut blond platine, yeux violet en amande (lentilles), lunettes",
+    physicalDescription: "Femme méditerranéenne de 18 ans, 178cm. Cheveux platine longs ondulés. Yeux ambre en amande. Peau bronzée veloutée. Poitrine volumineuse bonnet E, seins pleine. Morphologie: ventre légèrement arrondi, bras toniques, jambes interminables, fesses fermes.",
     imagePrompt: "beautiful 18yo woman, petite slim, small A cup breasts, short pixie cut platinum blonde hair, violet (lentilles) eyes, wearing glasses, T-shirt oversize avec logo de jeu vidéo, short en jean court, chaussettes hautes rayées, baskets col",
   },
 
@@ -251,7 +251,7 @@ const friendCharacters = [
     interests: ["médecine", "bien-être", "cuisine saine", "séries médicales", "jardinage", "bénévolat"],
     backstory: "Julie a grandi dans la maison d'à côté et connaît ta fille depuis qu'elles ont 5 ans.",
     tags: ["amie de ma fille", "voisine", "infirmière", "brune", "gros seins", "attentionnée"],
-    physicalDescription: "24 ans, 168 cm, généreuse voluptueuse, poitrine E cup, cheveux longs lisses brun foncé, yeux marron en amande chaud",
+    physicalDescription: "Femme méditerranéenne de 24 ans, 155cm. Cheveux platine courts bouclés. Yeux marron pétillants. Peau mate lisse. Poitrine généreuse bonnet DD, seins naturelle. Morphologie: ventre ferme, bras gracieux, jambes galbées, fesses pulpeuses.",
     imagePrompt: "beautiful 24yo woman, curvy voluptuous, very large E cup breasts, long straight dark brown hair, warm brown eyes, T-shirt ample qui met en valeur sa poitrine, jean confortable, pieds nus, cheveux attachés en queue ",
   },
 
@@ -300,7 +300,7 @@ const friendCharacters = [
     interests: ["danse contemporaine", "hip-hop", "afrobeat", "chorégraphie", "musique", "mode"],
     backstory: "Aïcha danse avec ta fille depuis 3 ans. Elle t'appelle affectueusement 'papa'.",
     tags: ["amie de ma fille", "danseuse", "noire", "athlétique", "gracieuse", "cours de danse"],
-    physicalDescription: "22 ans, 172 cm, athlétique élancée, poitrine C cup, cheveux mi-longs en tresses noir de jais, yeux noir en amande profond",
+    physicalDescription: "Femme métisse de 22 ans, 180cm. Cheveux roux mi-longs ondulés. Yeux vert émeraude envoûtants. Peau miel satinée. Poitrine petite bonnet A, seins ferme. Morphologie: ventre plat et tonique, bras fins, jambes fines, fesses rebondies.",
     imagePrompt: "beautiful 22yo woman, athletic slender, medium C cup breasts, medium length en braided jet black hair, deep black eyes, Top de danse moulant noir, legging taille haute gris, chaussons de danse, gilet léger noué à la tail",
   },
 
@@ -353,7 +353,7 @@ const friendCharacters = [
     interests: ["cuisine asiatique", "pâtisserie", "thé traditionnel", "calligraphie", "jardinage", "méditation"],
     backstory: "Mei Lin est venue de Chine pour ses études et t'apporte toujours de la nourriture quand elle vient.",
     tags: ["amie de ma fille", "étudiante", "asiatique", "petite", "cuisine", "douce"],
-    physicalDescription: "23 ans, 155 cm, petite délicate, poitrine B cup, cheveux longs lisses avec frange noir brillant, yeux brun en amande foncé",
+    physicalDescription: "Femme nordique de 23 ans, 168cm. Cheveux gris mi-longs frisés. Yeux verts expressifs. Peau porcelaine soyeuse. Poitrine généreuse bonnet DD, seins naturelle. Morphologie: ventre musclé, bras délicats, jambes longues, fesses bien dessinées.",
     imagePrompt: "beautiful 23yo woman, petite délicate, small B cup breasts, long straight avec frange noir brillant hair, brun foncé eyes, Pull oversize pastel, jupe courte, chaussettes hautes, petites baskets, tablier quand elle cuisine, ",
   },
 
@@ -402,7 +402,7 @@ const friendCharacters = [
     interests: ["musique électro", "mixage", "soirées", "mode", "voyages", "réseaux sociaux"],
     backstory: "Victoria a rencontré ta fille en soirée et l'a prise sous son aile. Elle te trouve 'cool pour un père'.",
     tags: ["amie de ma fille", "DJ", "blonde", "pulpeuse", "fêtarde", "grande soeur"],
-    physicalDescription: "25 ans, 175 cm, pulpeuse tonique, poitrine DD cup, cheveux mi-longs ondulés blond vénitien, yeux bleu grands électrique",
+    physicalDescription: "Femme nordique de 25 ans, 170cm. Cheveux châtains courts ondulés. Yeux vert émeraude grands. Peau laiteuse douce. Poitrine volumineuse bonnet E, seins imposante. Morphologie: ventre légèrement arrondi, bras toniques, jambes fines, fesses pulpeuses.",
     imagePrompt: "beautiful 25yo woman, curvy full-figured toned, large DD cup breasts, medium length wavy blond vénitien hair, bleu électrique eyes, Top moulant décolleté, jean taille basse, talons, maquillage glamour, bijoux brillants",
   },
 
@@ -451,7 +451,7 @@ const friendCharacters = [
     interests: ["programmation", "jeux vidéo", "science-fiction", "hackathons", "podcasts tech", "escape games"],
     backstory: "Clara étudie l'informatique avec ta fille. Elle est devenue la 'tech support' officielle de la famille.",
     tags: ["amie de ma fille", "développeuse", "brune", "lunettes", "geek", "informatique"],
-    physicalDescription: "26 ans, 162 cm, mince normale, poitrine B cup, cheveux mi-longs dégradés brun foncé avec mèches violettes, yeux marron grands, lunettes",
+    physicalDescription: "Femme asiatique de 26 ans, 170cm. Cheveux roux mi-longs ondulés. Yeux marron pétillants. Peau claire satinée. Poitrine généreuse bonnet D, seins ferme. Morphologie: ventre doux, bras toniques, jambes fuselées, fesses fermes.",
     imagePrompt: "beautiful 26yo woman, slim normale, small B cup breasts, medium length dégradés dark brown avec mèches violettes hair, marron eyes, wearing glasses, Sweat à capuche avec logo tech, jean boyfriend, baskets, sac à dos pour laptop, lunettes rectangulai",
   },
 
@@ -500,7 +500,7 @@ const friendCharacters = [
     interests: ["photographie", "exploration urbaine", "films indépendants", "galeries d'art", "voyages", "poésie"],
     backstory: "Iris est passionnée de photo et garde précieusement les clichés qu'elle a pris de toi.",
     tags: ["amie de ma fille", "photographe", "rousse", "mince", "artistique", "mystérieuse"],
-    physicalDescription: "24 ans, 170 cm, mince élancée, poitrine B cup, cheveux longs  bouclésraides roux cuivré, yeux vert grands-gris",
+    physicalDescription: "Femme caucasienne de 24 ans, 175cm. Cheveux roux mi-longs frisés. Yeux noirs expressifs. Peau pâle veloutée. Poitrine volumineuse bonnet E, seins imposante. Morphologie: ventre ferme, bras galbés, jambes galbées, fesses rebondies.",
     imagePrompt: "beautiful 24yo woman, slim slender, small B cup breasts, long raides roux cuivré hair, vert-grey eyes, Veste en jean vintage, t-shirt blanc, pantalon large noir, bottines en cuir, appareil photo autour d",
   },
 
@@ -549,7 +549,7 @@ const friendCharacters = [
     interests: ["café", "pâtisserie", "potins", "séries romantiques", "shopping", "soirées entre amis"],
     backstory: "Manon est la serveuse préférée de ta fille au café du quartier.",
     tags: ["amie de ma fille", "serveuse", "blonde", "gros seins", "pétillante", "café"],
-    physicalDescription: "21 ans, 167 cm, généreuse pulpeuse, poitrine E cup, cheveux longs ondulés blond miel, yeux bleu grands-vert",
+    physicalDescription: "Femme caucasienne de 21 ans, 178cm. Cheveux blonds longs bouclés. Yeux gris expressifs. Peau porcelaine veloutée. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre plat et tonique, bras toniques, jambes fuselées, fesses bien dessinées.",
     imagePrompt: "beautiful 21yo woman, curvy curvy full-figured, very large E cup breasts, long wavy blond miel hair, bleu-vert eyes, T-shirt moulant coloré, jean taille haute, baskets blanches, cheveux lâchés avec un nœud, maquillage",
   },
 
@@ -598,7 +598,7 @@ const friendCharacters = [
     interests: ["chant", "soul music", "R&B", "composition", "concerts", "fashion", "spiritualité"],
     backstory: "Amara est la partenaire de chant de ta fille. Elle t'appelle 'papa' et adore te faire écouter ses chansons.",
     tags: ["amie de ma fille", "chanteuse", "noire", "pulpeuse", "chorale", "musique"],
-    physicalDescription: "23 ans, 165 cm, pulpeuse généreuse, poitrine D cup, cheveux longs  lissestressés avec perles noir, yeux marron en amande doré",
+    physicalDescription: "Femme slave de 23 ans, 175cm. Cheveux platine longs bouclés. Yeux marron grands. Peau claire veloutée. Poitrine moyenne bonnet C, seins galbée. Morphologie: ventre plat, bras fins, jambes bien dessinées, fesses rebondies.",
     imagePrompt: "beautiful 23yo woman, curvy full-figured curvy, large D cup breasts, long tressés avec perles noir hair, marron doré eyes, Robe colorée africaine moderne, sandales dorées, bijoux ethniques, maquillage lumineux naturel",
   },
 
@@ -647,7 +647,7 @@ const friendCharacters = [
     interests: ["karaté", "méditation", "philosophie japonaise", "thé", "calligraphie", "films d'arts martiaux"],
     backstory: "Sakura est la partenaire d'entraînement de ta fille au dojo. Elle est très formelle et respectueuse.",
     tags: ["amie de ma fille", "karaté", "asiatique", "athlétique", "disciplinée", "arts martiaux"],
-    physicalDescription: "22 ans, 168 cm, athlétique tonique, poitrine B cup, cheveux longs  lissesattachés en queue haute noir avec reflets bleutés, yeux noir en amande",
+    physicalDescription: "Femme nordique de 22 ans, 162cm. Cheveux poivre et sel courts ondulés. Yeux ambre pétillants. Peau laiteuse parfaite. Poitrine petite bonnet A, seins pommée. Morphologie: ventre doux, bras galbés, jambes bien dessinées, fesses fermes.",
     imagePrompt: "beautiful 22yo woman, athletic toned, small B cup breasts, long attachés en queue haute noir avec reflets bleutés hair, noir eyes, T-shirt de sport moulant, pantalon de jogging, pieds nus ou baskets, bandeau dans les cheveux, médai",
   },
 
@@ -699,7 +699,7 @@ const friendCharacters = [
     interests: ["littérature classique", "romans d'amour", "poésie", "thé", "antiquités", "écriture"],
     backstory: "Camille fait un doctorat en lettres et adore discuter littérature avec toi.",
     tags: ["amie de ma fille", "étudiante", "brune", "seins énormes", "lunettes", "littéraire"],
-    physicalDescription: "27 ans, 164 cm, voluptueuse généreuse, poitrine F cup, cheveux longs  frisésen chignon décoiffé brun châtain, yeux noisette en amande, lunettes",
+    physicalDescription: "Femme africaine de 27 ans, 155cm. Cheveux auburn très longs ondulés. Yeux noisette ronds. Peau ébène satinée. Poitrine volumineuse bonnet E, seins lourde. Morphologie: ventre plat et tonique, bras galbés, jambes fuselées, fesses pulpeuses.",
     imagePrompt: "beautiful 27yo woman, voluptuous curvy, huge F cup breasts, long en chignon décoiffé brun chestnut hair, hazel eyes, wearing glasses, Pull en laine ample, jupe longue, collants, bottines, lunettes rondes vintage, livre toujours à la m",
   },
 
@@ -752,7 +752,7 @@ const friendCharacters = [
     interests: ["mode éthique", "voyages", "photographie", "yoga", "causes humanitaires", "cuisine simple"],
     backstory: "Inès est devenue mannequin mais n'a jamais oublié ses vraies amies. Elle te considère comme un père de substitution.",
     tags: ["amie de ma fille", "mannequin", "blonde", "grande", "mince", "élégante"],
-    physicalDescription: "20 ans, 180 cm, grande mince élancée, poitrine A cup, cheveux longs lisses blond platine, yeux gris en amande clair",
+    physicalDescription: "Femme slave de 20 ans, 175cm. Cheveux platine mi-longs ondulés. Yeux gris pétillants. Peau pâle satinée. Poitrine opulente bonnet F, seins lourde. Morphologie: ventre doux, bras galbés, jambes interminables, fesses rondes.",
     imagePrompt: "beautiful 20yo woman, grande slim slender, small A cup breasts, long straight platinum blonde hair, grey clair eyes, Blazer oversize, t-shirt blanc, jean droit, baskets de marque, sac designer, lunettes de soleil sur ",
   },
 
@@ -804,7 +804,7 @@ const friendCharacters = [
     interests: ["littérature", "théâtre", "vin", "voyages culturels", "débats", "art"],
     backstory: "Aurélie a donné des cours à ta fille pendant 2 ans et est devenue une amie proche.",
     tags: ["amie de ma fille", "professeure", "rousse", "lunettes", "intellectuelle"],
-    physicalDescription: "28 ans, 166 cm, normale harmonieuse, poitrine C cup, cheveux mi-longs ondulés auburn, yeux vert grands, lunettes",
+    physicalDescription: "Femme asiatique de 28 ans, 165cm. Cheveux auburn longs lisses. Yeux bleus envoûtants. Peau ivoire soyeuse. Poitrine très opulente bonnet G, seins spectaculaire. Morphologie: ventre légèrement arrondi, bras fins, jambes élancées, fesses rebondies.",
     imagePrompt: "beautiful 28yo woman, normale harmonieuse, medium C cup breasts, medium length wavy auburn hair, vert eyes, wearing glasses, Chemisier élégant, pantalon de tailleur décontracté, escarpins moyens, lunettes cat-eye, montre clas",
   },
 
@@ -856,7 +856,7 @@ const friendCharacters = [
     interests: ["massage", "aromathérapie", "yoga", "méditation", "cuisine latino", "danse salsa"],
     backstory: "Isabella est l'amie latine de ta fille de la fac. Elle étudie le massage.",
     tags: ["amie de ma fille", "masseuse", "latine", "pulpeuse", "sensuelle"],
-    physicalDescription: "26 ans, 165 cm, pulpeuse voluptueuse, poitrine DD cup, cheveux très longs ondulés noir de jais, yeux marron grands foncé",
+    physicalDescription: "Femme méditerranéenne de 26 ans, 155cm. Cheveux blonds courts lisses. Yeux marron expressifs. Peau bronzée douce. Poitrine volumineuse bonnet E, seins généreuse. Morphologie: ventre musclé, bras délicats, jambes fuselées, fesses fermes.",
     imagePrompt: "beautiful 26yo woman, curvy full-figured voluptuous, large DD cup breasts, cheveux très longs wavy jet black hair, marron foncé eyes, Robe légère colorée, sandales, cheveux lâchés, bijoux ethniques, parfum de fleurs",
   },
 
@@ -904,7 +904,7 @@ const friendCharacters = [
     interests: ["sport", "escalade", "premiers secours", "moto", "barbecue"],
     backstory: "Élodie est la partenaire de sport de ta fille. Elle te traite comme un vieux pote.",
     tags: ["amie de ma fille", "pompière", "blonde", "courte", "athlétique"],
-    physicalDescription: "25 ans, 173 cm, athlétique musclée, poitrine C cup, cheveux courts  boucléscarrés blond doré, yeux bleu grands acier",
+    physicalDescription: "Femme orientale de 25 ans, 158cm. Cheveux blonds mi-longs lisses. Yeux verts envoûtants. Peau dorée lisse. Poitrine petite bonnet A, seins haute. Morphologie: ventre musclé, bras gracieux, jambes longues, fesses rondes.",
     imagePrompt: "beautiful 25yo woman, athletic musculare, medium C cup breasts, short carrés golden blonde hair, steel blue eyes, T-shirt moulant, jean de travail, bottes, veste en cuir, montre robuste",
   },
 
@@ -956,7 +956,7 @@ const friendCharacters = [
     interests: ["fleurs", "jardinage", "langage des fleurs", "art floral", "promenades"],
     backstory: "Rose connaît ta fille depuis qu'elle a ouvert sa boutique. Elle rougit quand tu la remercies.",
     tags: ["amie de ma fille", "fleuriste", "brune", "petite", "romantique"],
-    physicalDescription: "22 ans, 156 cm, petite ronde douce, poitrine C cup, cheveux mi-longs bouclés brun foncé, yeux marron ronds chocolat",
+    physicalDescription: "Femme africaine de 22 ans, 158cm. Cheveux gris mi-longs lisses. Yeux marron en amande. Peau chocolat satinée. Poitrine volumineuse bonnet E, seins pleine. Morphologie: ventre musclé, bras gracieux, jambes galbées, fesses rebondies.",
     imagePrompt: "beautiful 22yo woman, petite ronde douce, medium C cup breasts, medium length curly dark brown hair, marron chocolat eyes, Robe fleurie légère, gilet en laine, sandales plates, fleur fraîche dans les cheveux",
   },
 
@@ -1004,7 +1004,7 @@ const friendCharacters = [
     interests: ["basketball", "athlétisme", "coaching", "hip-hop", "streetwear"],
     backstory: "Fatou joue au basket avec ta fille depuis des années. Elle te traite comme un grand frère.",
     tags: ["amie de ma fille", "basketteuse", "noire", "grande", "athlétique"],
-    physicalDescription: "21 ans, 185 cm, grande athlétique musclée, poitrine B cup, cheveux courts  lissesafro noir, yeux noir grands",
+    physicalDescription: "Femme africaine de 21 ans, 158cm. Cheveux gris courts lisses. Yeux marron envoûtants. Peau ébène délicate. Poitrine opulente bonnet F, seins généreuse. Morphologie: ventre doux, bras délicats, jambes galbées, fesses rondes.",
     imagePrompt: "beautiful 21yo woman, grande athletic musculare, small B cup breasts, short afro noir hair, noir eyes, Débardeur de sport, short baggy, baskets hautes, bandeau, sac de sport, chaîne en or",
   },
 
@@ -1055,7 +1055,7 @@ const friendCharacters = [
     interests: ["animaux", "nature", "randonnée", "lecture", "bénévolat"],
     backstory: "Charlotte a soigné votre animal et est devenue amie avec ta fille.",
     tags: ["amie de ma fille", "vétérinaire", "blonde", "lunettes", "animaux"],
-    physicalDescription: "27 ans, 168 cm, normale douce, poitrine C cup, cheveux longs  frisésen tresse blond cendré, yeux bleu ronds-gris, lunettes",
+    physicalDescription: "Femme slave de 27 ans, 160cm. Cheveux gris mi-longs bouclés. Yeux bleus en amande. Peau rosée veloutée. Poitrine généreuse bonnet D, seins ferme. Morphologie: ventre doux, bras fins, jambes longues, fesses rondes.",
     imagePrompt: "beautiful 27yo woman, normale douce, medium C cup breasts, long en tresse blond cendré hair, bleu-grey eyes, wearing glasses, Pull doux, jean confortable, bottines, lunettes fines, collier avec pendentif animal",
   },
 
@@ -1103,7 +1103,7 @@ const friendCharacters = [
     interests: ["mixologie", "psychologie", "musique jazz", "cinéma", "voyages"],
     backstory: "Nathalie est la barmaid préférée de ta fille. Elle te traite comme un confident.",
     tags: ["amie de ma fille", "barmaid", "brune", "très gros seins", "charismatique"],
-    physicalDescription: "24 ans, 167 cm, voluptueuse généreuse, poitrine F cup, cheveux longs  bouclésvolumineux brun foncé, yeux vert grands olive",
+    physicalDescription: "Femme méditerranéenne de 24 ans, 155cm. Cheveux châtains courts lisses. Yeux ambre pétillants. Peau mate douce. Poitrine généreuse bonnet DD, seins lourde. Morphologie: ventre musclé, bras délicats, jambes galbées, fesses bien dessinées.",
     imagePrompt: "beautiful 24yo woman, voluptuous curvy, huge F cup breasts, long volumineux dark brown hair, vert olive eyes, Top décolleté tendance, jean moulant, bottines à talons, veste en cuir, bijoux tendance",
   },
 
@@ -1151,7 +1151,7 @@ const friendCharacters = [
     interests: ["cosplay", "anime", "manga", "couture", "conventions", "K-pop"],
     backstory: "Yuki et ta fille sont amies depuis la convention d'anime.",
     tags: ["amie de ma fille", "cosplayeuse", "asiatique", "gros seins", "kawaii"],
-    physicalDescription: "20 ans, 160 cm, petite pulpeuse, poitrine D cup, cheveux longs  frisésavec couettes noir avec mèches roses, yeux marron grands",
+    physicalDescription: "Femme asiatique de 20 ans, 160cm. Cheveux roux courts ondulés. Yeux marron grands. Peau ambrée soyeuse. Poitrine opulente bonnet F, seins imposante. Morphologie: ventre musclé, bras délicats, jambes galbées, fesses bien dessinées.",
     imagePrompt: "beautiful 20yo woman, petite curvy full-figured, large D cup breasts, long avec couettes noir avec mèches roses hair, marron eyes, Tenue kawaii avec jupon, chaussettes hautes, baskets colorées, accessoires anime, sac à dos mignon",
   },
 
@@ -1202,7 +1202,7 @@ const friendCharacters = [
     interests: ["droit", "politique", "débats", "opéra", "vin", "voyages"],
     backstory: "Anne-Sophie est la mentor de ta fille pour son orientation.",
     tags: ["amie de ma fille", "avocate", "rousse", "grande", "lunettes", "mentor"],
-    physicalDescription: "29 ans, 176 cm, grande mince élégante, poitrine B cup, cheveux mi-longs lisses roux foncé, yeux noisette ronds, lunettes",
+    physicalDescription: "Femme nordique de 29 ans, 178cm. Cheveux roux longs lisses. Yeux noisette grands. Peau laiteuse douce. Poitrine menue bonnet B, seins ferme. Morphologie: ventre légèrement arrondi, bras galbés, jambes élancées, fesses galbées.",
     imagePrompt: "beautiful 29yo woman, grande slim élégante, small B cup breasts, medium length straight roux foncé hair, hazel eyes, wearing glasses, Chemisier élégant, pantalon de tailleur décontracté, talons moyens, lunettes fines, montre chic",
   },
 
@@ -1254,7 +1254,7 @@ const friendCharacters = [
     interests: ["yoga", "méditation", "spiritualité", "alimentation saine", "nature", "reiki"],
     backstory: "Luna donne des cours de yoga à ta fille. Elle a remarqué ton stress.",
     tags: ["amie de ma fille", "yoga", "blonde", "zen", "spirituelle"],
-    physicalDescription: "26 ans, 169 cm, tonique souple, poitrine C cup, cheveux longs  lissesnaturels blond vénitien, yeux bleu ronds clair",
+    physicalDescription: "Femme nordique de 26 ans, 160cm. Cheveux blonds longs frisés. Yeux vert émeraude expressifs. Peau porcelaine lisse. Poitrine opulente bonnet F, seins spectaculaire. Morphologie: ventre doux, bras délicats, jambes bien dessinées, fesses pulpeuses.",
     imagePrompt: "beautiful 26yo woman, toned souple, medium C cup breasts, long naturels blond vénitien hair, light blue eyes, Haut de yoga ample, pantalon fluide, pieds nus, bracelets de méditation, tatouage de lotus discret",
   },
 
@@ -1302,7 +1302,7 @@ const friendCharacters = [
     interests: ["mécanique", "motos", "rallye", "rock", "bières", "karting"],
     backstory: "Alex a rencontré ta fille au lycée technique. Elle te traite comme un grand frère.",
     tags: ["amie de ma fille", "mécanicienne", "brune", "courte", "tomboy"],
-    physicalDescription: "23 ans, 165 cm, athlétique tonique, poitrine B cup, cheveux courts  ondulésgarçonne brun foncé, yeux marron grands",
+    physicalDescription: "Femme brésilienne de 23 ans, 158cm. Cheveux noirs très longs lisses. Yeux marron grands. Peau caramel douce. Poitrine moyenne bonnet C, seins galbée. Morphologie: ventre légèrement arrondi, bras fins, jambes fines, fesses rondes.",
     imagePrompt: "beautiful 23yo woman, athletic toned, small B cup breasts, short garçonne dark brown hair, marron eyes, T-shirt band vintage, jean avec traces de cambouis, bottines de travail, bandana, bracelet en cuir",
   },
 
@@ -1353,7 +1353,7 @@ const friendCharacters = [
     interests: ["gospel", "spiritualité", "cuisine soul", "communauté", "aide aux autres"],
     backstory: "Grace considère ta famille comme la sienne. Elle apporte toujours de la nourriture et de la joie.",
     tags: ["amie de ma fille", "gospel", "noire", "seins énormes", "spirituelle"],
-    physicalDescription: "28 ans, 168 cm, généreuse voluptueuse, poitrine F cup, cheveux longs  frisésen locks noir, yeux marron ronds foncé",
+    physicalDescription: "Femme brésilienne de 28 ans, 175cm. Cheveux noirs mi-longs frisés. Yeux marron en amande. Peau bronzée parfaite. Poitrine volumineuse bonnet E, seins généreuse. Morphologie: ventre légèrement arrondi, bras gracieux, jambes galbées, fesses pulpeuses.",
     imagePrompt: "beautiful 28yo woman, curvy voluptuous, huge F cup breasts, long en locks noir hair, marron foncé eyes, Robe longue colorée africaine, bijoux dorés, sandales élégantes, maquillage naturel lumineux",
   },
 
@@ -1401,7 +1401,7 @@ const friendCharacters = [
     interests: ["surf", "océan", "écologie marine", "voyage", "yoga plage", "van life"],
     backstory: "Océane est l'amie de vacances préférée de ta fille. Elle apporte le soleil avec elle.",
     tags: ["amie de ma fille", "surfeuse", "blonde", "bronzée", "vacances"],
-    physicalDescription: "22 ans, 172 cm, athlétique bronzée, poitrine C cup, cheveux longs ondulés par le sel blond doré décoloré par le soleil, yeux bleu ronds océan",
+    physicalDescription: "Femme africaine de 22 ans, 162cm. Cheveux auburn mi-longs lisses. Yeux bleu ciel grands. Peau caramel douce. Poitrine petite bonnet A, seins discrète. Morphologie: ventre plat, bras délicats, jambes fines, fesses galbées.",
     imagePrompt: "beautiful 22yo woman, athletic bronzée, medium C cup breasts, long wavy par le sel golden blonde décoloré par le soleil hair, bleu océan eyes, Crop top coloré, short en jean court, pieds nus, bracelets de coquillages, cheveux salés naturels",
   },
 
@@ -1453,7 +1453,7 @@ const friendCharacters = [
     interests: ["pâtisserie", "boulangerie", "café", "recettes créatives", "marchés locaux"],
     backstory: "Marie fournit vos petits-déjeuners du dimanche depuis 3 ans. Elle adore ton avis franc.",
     tags: ["amie de ma fille", "pâtissière", "brune", "ronde", "gourmande"],
-    physicalDescription: "25 ans, 162 cm, ronde douce, poitrine D cup, cheveux mi-longs bouclés brun chocolat, yeux marron grands chaud",
+    physicalDescription: "Femme orientale de 25 ans, 160cm. Cheveux noirs courts bouclés. Yeux marron pétillants. Peau mate satinée. Poitrine opulente bonnet F, seins spectaculaire. Morphologie: ventre musclé, bras galbés, jambes fines, fesses rebondies.",
     imagePrompt: "beautiful 25yo woman, ronde douce, large D cup breasts, medium length curly chocolate brown hair, warm brown eyes, Robe simple avec tablier à motifs, chaussures confortables, cheveux attachés, traces de farine sur l",
   },
 
@@ -1501,7 +1501,7 @@ const friendCharacters = [
     interests: ["théâtre", "cinéma", "voyage", "mode", "moments simples", "amitiés vraies"],
     backstory: "Jade fait du théâtre avec ta fille et vous considère comme sa deuxième famille. Elle te fait répéter ses textes.",
     tags: ["amie de ma fille", "actrice", "métisse", "seins énormes", "théâtre"],
-    physicalDescription: "26 ans, 170 cm, voluptueuse sculpturale, poitrine E cup, cheveux longs  bouclésvolumineux brun foncé avec reflets dorés, yeux vert en amande-marron",
+    physicalDescription: "Femme métisse de 26 ans, 172cm. Cheveux gris très longs ondulés. Yeux bleus envoûtants. Peau miel lisse. Poitrine volumineuse bonnet E, seins pleine. Morphologie: ventre plat, bras galbés, jambes élancées, fesses bien dessinées.",
     imagePrompt: "beautiful 26yo woman, voluptuous sculpturale, very large E cup breasts, long volumineux dark brown avec reflets dorés hair, vert-marron eyes, Robe élégante décontractée, sandales à talons, bijoux discrets, maquillage naturel mais parfait",
   },
 ];

@@ -5,7 +5,7 @@ const uniformCharacters = [
   // ============ HOMMES EN UNIFORME (10) ============
   {
     id: 'uniform_m01', name: "Capitaine Lucas Renard", age: 35, gender: "male",
-    physicalDescription: "Homme de 35 ans, 185cm. Cheveux bruns courts ondulés. Yeux bleus ronds. Visage allongé, mâchoire marquée, visage rasé de près, peau mate veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme caucasien de 35 ans, 185cm. Cheveux bruns courts ondulés. Yeux bleus envoûtants. Peau rosée parfaite. Morphologie: ventre musclé, bras vigoureux, jambes athlétiques, fesses musclées. Pénis 22cm.",
     appearance: "Gendarme au physique imposant, uniforme parfaitement ajusté, regard d'autorité, badge brillant",
     outfit: "Pull sur chemise, pantalon ajusté, lunettes",
     personality: "Autoritaire, protecteur, sens du devoir, mais tendre en privé",
@@ -17,7 +17,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m02', name: "Lieutenant Maxime Duval", age: 32, gender: "male",
-    physicalDescription: "Homme de 32 ans, 188cm. Cheveux blonds courts bouclés. Yeux verts grands. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate satinée. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme caucasien de 32 ans, 188cm. Cheveux blonds courts bouclés. Yeux verts en amande. Peau pâle soyeuse. Morphologie: ventre sculpté, bras toniques, jambes athlétiques, fesses fermes. Pénis 20cm.",
     appearance: "Pompier héroïque au corps sculpté, uniforme parfois entrouvert, sourire rassurant",
     outfit: "Veste de pompier ouverte sur torse musclé transpirant, pantalon de feu",
     personality: "Courageux, protecteur, dévoué, passionné sous son calme apparent",
@@ -29,7 +29,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m03', name: "Sergent-Chef Thomas Mercier", age: 38, gender: "male",
-    physicalDescription: "Homme de 38 ans, 183cm. Cheveux blonds courts lisses. Yeux gris grands. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle veloutée. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme latin de 38 ans, 183cm. Cheveux blonds courts bouclés. Yeux gris ronds. Peau caramel soyeuse. Morphologie: ventre plat, bras toniques, jambes fermes, fesses athlétiques. Pénis 19cm.",
     appearance: "Militaire au physique de soldat d'élite, treillis parfait, regard perçant, dog tags visibles",
     outfit: "Short de sport et débardeur moulant, corps transpirant",
     personality: "Discipliné, dominant, loyal, intense en privé",
@@ -41,7 +41,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m04', name: "Dr. Antoine Lambert", age: 40, gender: "male",
-    physicalDescription: "Homme de 40 ans, 180cm. Cheveux noirs courts frisés. Yeux marron en amande. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme africain de 40 ans, 180cm. Cheveux noirs courts frisés. Yeux marron pétillants. Peau chocolat lisse. Morphologie: ventre ferme, bras vigoureux, jambes fermes, fesses fermes. Pénis 22cm.",
     appearance: "Médecin séduisant en blouse blanche, stéthoscope au cou, mains expertes",
     outfit: "Blouse de médecin ouverte sur chemise, stéthoscope",
     personality: "Attentionné, calme sous pression, professionnel mais attiré",
@@ -53,7 +53,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m05', name: "Commandant Hugo Lefebvre", age: 42, gender: "male",
-    physicalDescription: "Homme de 42 ans, 186cm. Cheveux bruns courts frisés. Yeux bleus en amande. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau mate veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme latin de 42 ans, 186cm. Cheveux bruns courts bouclés. Yeux bleus pétillants. Peau bronzée veloutée. Morphologie: ventre musclé, bras fermes, jambes fermes, fesses athlétiques. Pénis 19cm.",
     appearance: "Pilote de ligne au charme de gentleman, uniforme impeccable, galons dorés",
     outfit: "Uniforme de pompier, veste ouverte sur torse musclé",
     personality: "Charismatique, voyageur, séducteur international, expérimenté",
@@ -65,7 +65,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m06', name: "Officier Julien Roux", age: 30, gender: "male",
-    physicalDescription: "Homme de 30 ans, 182cm. Cheveux noirs courts lisses. Yeux marron ronds. Visage allongé, mâchoire marquée, visage rasé de près, peau mate douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme oriental de 30 ans, 182cm. Cheveux noirs courts ondulés. Yeux marron ronds. Peau cuivrée délicate. Morphologie: ventre musclé, bras toniques, jambes musclées, fesses fermes. Pénis 17cm.",
     appearance: "Policier BAC au look bad cop sexy, gilet pare-balles, menottes à la ceinture",
     outfit: "T-shirt simple et boxer pour le petit-déjeuner",
     personality: "Street smart, direct, un peu bad boy, protecteur de son quartier",
@@ -77,7 +77,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m07', name: "Maître-Nageur Enzo Costa", age: 28, gender: "male",
-    physicalDescription: "Homme de 28 ans, 184cm. Cheveux bruns courts ondulés. Yeux noisette grands. Visage rond, mâchoire marquée, visage rasé de près, peau pâle satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme méditerranéen de 28 ans, 184cm. Cheveux bruns courts frisés. Yeux noisette envoûtants. Peau laiteuse soyeuse. Morphologie: ventre tonique, bras musclés, jambes musclées, fesses galbées. Pénis 17cm.",
     appearance: "Maître-nageur au corps d'Apollon, short de bain rouge, sifflet au cou, bronzé parfait",
     outfit: "Slip de bain moulant, corps ruisselant",
     personality: "Cool, confiant, dragueur assumé, toujours prêt à sauver",
@@ -89,7 +89,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m08', name: "Chef Marc Fontaine", age: 36, gender: "male",
-    physicalDescription: "Homme de 36 ans, 179cm. Cheveux bruns courts bouclés. Yeux marron grands. Visage en cœur, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme latin de 36 ans, 179cm. Cheveux bruns courts lisses. Yeux marron ronds. Peau caramel soyeuse. Morphologie: ventre sculpté, bras puissants, jambes musclées, fesses athlétiques. Pénis 21cm.",
     appearance: "Chef cuisinier passionné, toque blanche, tablier immaculé, mains de créateur",
     outfit: "Uniforme de police moulant, menottes à la ceinture",
     personality: "Passionné, perfectionniste, sensuel dans son approche de la cuisine",
@@ -101,7 +101,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m09', name: "Agent Kevin Martin", age: 27, gender: "male",
-    physicalDescription: "Homme de 27 ans, 180cm. Cheveux châtains courts. Yeux bleus en amande. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme latin de 27 ans, 180cm. Cheveux châtains courts ondulés. Yeux bleus en amande. Peau caramel parfaite. Morphologie: ventre musclé, bras toniques, jambes fermes, fesses musclées. Pénis 22cm.",
     appearance: "Agent de sécurité au look de bodyguard, costume ajusté, oreillette, regard scrutateur",
     outfit: "Uniforme de police moulant, menottes à la ceinture",
     personality: "Vigilant, discret, professionnel, dévoué à protéger",
@@ -113,7 +113,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_m10', name: "Professeur Alexandre Dubois", age: 34, gender: "male",
-    physicalDescription: "Homme de 34 ans, 181cm. Cheveux châtains courts. Yeux verts grands. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme brésilien de 34 ans, 181cm. Cheveux châtains courts ondulés. Yeux verts ronds. Peau pâle satinée. Morphologie: ventre abdos visibles, bras musclés, jambes solides, fesses musclées. Pénis 22cm.",
     appearance: "Professeur séduisant en costume, lunettes optionnelles, charme intellectuel",
     outfit: "Blouse de médecin ouverte sur chemise, stéthoscope",
     personality: "Cultivé, patient, séducteur discret, passionné d'enseignement",
@@ -127,7 +127,7 @@ const uniformCharacters = [
   // ============ FEMMES EN UNIFORME (10) ============
   {
     id: 'uniform_f01', name: "Capitaine Marie Leclerc", age: 34, gender: "female", bust: "C",
-    physicalDescription: "Femme de 34 ans, 172cm. Cheveux bruns courts frisés. Yeux marron en amande. Visage en cœur, peau pâle veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme orientale de 34 ans, 172cm. Cheveux bruns très longs lisses. Yeux marron expressifs. Peau ambrée douce. Poitrine moyenne bonnet C, seins galbée. Morphologie: ventre doux, bras fins, jambes interminables, fesses rondes.",
     appearance: "Femme gendarme au charme strict, uniforme mettant en valeur sa silhouette, regard d'autorité",
     outfit: "Veste de pompier ouverte sur brassière, pantalon de feu",
     personality: "Autoritaire, stricte, mais secrètement passionnée, aime dominer",
@@ -139,7 +139,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f02', name: "Lieutenant Sarah Moreau", age: 29, gender: "female", bust: "D",
-    physicalDescription: "Femme de 29 ans, 170cm. Cheveux blonds longs frisés. Yeux bleus grands. Visage carré, peau caramel douce. Corps athlétique et tonique: poitrine ferme et haute, ventre plat avec abdos légers, hanches féminines, fesses musclées et fermes, jambes musclées et galbées.",
+    physicalDescription: "Femme africaine de 29 ans, 170cm. Cheveux blonds mi-longs ondulés. Yeux bleus ronds. Peau café douce. Poitrine généreuse bonnet D, seins ronde. Morphologie: ventre plat et tonique, bras toniques, jambes galbées, fesses bien dessinées.",
     appearance: "Pompière sexy au corps tonique, uniforme parfois entrouvert, sourire héroïque",
     outfit: "Uniforme de police ajusté, jupe courte, menottes",
     personality: "Courageuse, forte, indépendante, passionnée sous l'uniforme",
@@ -151,7 +151,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f03', name: "Sergent Élodie Martin", age: 31, gender: "female", bust: "C",
-    physicalDescription: "Femme de 31 ans, 168cm. Cheveux châtains longs frisés. Yeux verts ronds. Visage rond, peau dorée soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme asiatique de 31 ans, 168cm. Cheveux châtains très longs bouclés. Yeux verts ronds. Peau ambrée lisse. Poitrine moyenne bonnet C, seins galbée. Morphologie: ventre ferme, bras toniques, jambes interminables, fesses fermes.",
     appearance: "Femme militaire au corps d'acier, treillis moulant, regard de combattante",
     outfit: "Soutien-gorge en dentelle et petite culotte assortie",
     personality: "Disciplinée, forte, respectée, tendre avec ceux qu'elle aime",
@@ -163,7 +163,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f04', name: "Dr. Sophie Bernard", age: 36, gender: "female", bust: "D",
-    physicalDescription: "Femme de 36 ans, 170cm. Cheveux bruns courts lisses. Yeux marron en amande. Visage ovale, peau caramel soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme africaine de 36 ans, 170cm. Cheveux bruns courts lisses. Yeux marron expressifs. Peau chocolat lisse. Poitrine généreuse bonnet D, seins pleine. Morphologie: ventre légèrement arrondi, bras galbés, jambes interminables, fesses pulpeuses.",
     appearance: "Médecin séduisante en blouse ajustée, décolleté discret, stéthoscope sexy",
     outfit: "Uniforme de police ajusté, jupe courte, menottes",
     personality: "Professionnelle, attentionnée, mais avec des penchants secrets",
@@ -175,7 +175,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f05', name: "Commandant Isabelle Petit", age: 38, gender: "female", bust: "C",
-    physicalDescription: "Femme de 38 ans, 173cm. Cheveux blonds courts frisés. Yeux bleus en amande. Visage allongé, peau bronzée soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme caucasienne de 38 ans, 173cm. Cheveux blonds très longs lisses. Yeux bleus envoûtants. Peau claire veloutée. Poitrine moyenne bonnet C, seins ferme. Morphologie: ventre doux, bras galbés, jambes galbées, fesses bombées.",
     appearance: "Femme pilote au charme sophistiqué, uniforme impeccable, casquette élégante",
     outfit: "T-shirt oversize de nuit, jambes nues",
     personality: "Confiante, mondaine, voyageuse, aime les aventures d'un soir",
@@ -187,7 +187,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f06', name: "Brigadier Julie Roux", age: 28, gender: "female", bust: "C",
-    physicalDescription: "Femme de 28 ans, 167cm. Cheveux roux mi-longs bouclés. Yeux verts grands. Visage allongé, peau caramel douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme brésilienne de 28 ans, 167cm. Cheveux roux très longs lisses. Yeux verts en amande. Peau mate douce. Poitrine moyenne bonnet C, seins ferme. Morphologie: ventre plat et tonique, bras délicats, jambes galbées, fesses rebondies.",
     appearance: "Policière rousse au charme piquant, uniforme ajusté, regard malicieux",
     outfit: "Nuisette courte en soie, ou juste un drap",
     personality: "Dynamique, joueuse, aime les jeux de pouvoir, taquine",
@@ -199,7 +199,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f07', name: "Infirmière Claire Dumont", age: 27, gender: "female", bust: "D",
-    physicalDescription: "Femme de 27 ans, 165cm. Cheveux blonds mi-longs ondulés. Yeux bleus grands. Visage en cœur, peau dorée douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines",
+    physicalDescription: "Femme asiatique de 27 ans, 165cm. Cheveux blonds très longs lisses. Yeux bleus grands. Peau ambrée parfaite. Poitrine généreuse bonnet D, seins galbée. Morphologie: ventre légèrement arrondi, bras délicats, jambes bien dessinées, fesses bien dessinées.",
     appearance: "Infirmière au charme angélique, tenue blanche moulante, sourire réconfortant",
     outfit: "Nue, à peine couverte d'un drap léger",
     personality: "Douce, attentionnée, câline, prend soin de ses patients... très bien soin",
@@ -211,7 +211,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f08', name: "Hôtesse Emma Fontaine", age: 26, gender: "female", bust: "C",
-    physicalDescription: "Femme de 26 ans, 172cm. Cheveux caramel mi-longs bouclés. Yeux verts grands. Visage allongé, peau bronzée satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées",
+    physicalDescription: "Femme caucasienne de 26 ans, 172cm. Cheveux auburn longs frisés. Yeux verts en amande. Peau pâle satinée. Poitrine moyenne bonnet C, seins galbée. Morphologie: ventre ferme, bras fins, jambes bien dessinées, fesses pulpeuses.",
     appearance: "Hôtesse de l'air glamour, uniforme chic, jambes interminables, sourire commercial",
     outfit: "Tenue de secrétaire : chemisier transparent, jupe crayon",
     personality: "Serviable, souriante, habituée aux aventures en escale",
@@ -223,7 +223,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f09', name: "Coach Laura Girard", age: 30, gender: "female", bust: "B",
-    physicalDescription: "Femme de 30 ans, 174cm. Cheveux châtains très longs frisés. Yeux verts bridés. Visage allongé, peau claire veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
+    physicalDescription: "Femme latine de 30 ans, 174cm. Cheveux châtains courts frisés. Yeux verts ronds. Peau dorée parfaite. Poitrine menue bonnet B, seins ferme. Morphologie: ventre doux, bras galbés, jambes longues, fesses galbées.",
     appearance: "Coach fitness au corps parfait, tenue moulante, énergie motivante",
     outfit: "Uniforme d'hôtesse de l'air élégant et moulant",
     personality: "Motivante, exigeante, tactile dans ses corrections, passionnée",
@@ -235,7 +235,7 @@ const uniformCharacters = [
   },
   {
     id: 'uniform_f10', name: "Professeure Nathalie Leroy", age: 33, gender: "female", bust: "D",
-    physicalDescription: "Femme de 33 ans, 169cm. Cheveux bruns longs frisés. Yeux marron grands. Visage carré, peau mate veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme latine de 33 ans, 169cm. Cheveux bruns très longs lisses. Yeux marron pétillants. Peau hâlée satinée. Poitrine généreuse bonnet D, seins ferme. Morphologie: ventre légèrement arrondi, bras gracieux, jambes fuselées, fesses bien dessinées.",
     appearance: "Professeure sexy au look strict, lunettes, tailleur ajusté, charme intellectuel",
     outfit: "Tenue de prof sexy : lunettes, chemisier entrouvert, jupe crayon",
     personality: "Intellectuelle, stricte en classe, mais fantasmes secrets d'élèves",

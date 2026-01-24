@@ -5,7 +5,7 @@
 export const additionalMilfCharacters = [
   {
     id: 'milf_add_01', name: "Catherine Dubois", age: 42, gender: "female", bust: "DD",
-    physicalDescription: "Femme de 42 ans, 170cm. Cheveux châtains courts ondulés. Yeux verts grands. Visage rond, peau mate veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme asiatique de 42 ans, 170cm. Cheveux châtains longs lisses. Yeux verts ronds. Peau ambrée satinée. Poitrine généreuse bonnet DD, seins lourde. Morphologie: ventre musclé, bras délicats, jambes bien dessinées, fesses bien dessinées.",
     appearance: "MILF châtain aux courbes généreuses, regard vert séducteur, charme classique français",
     outfit: "Legging de yoga ultra-moulant et brassière de sport révélant son corps",
     personality: "Sophistiquée, séductrice naturelle, maternelle mais coquine", temperament: "seductive",
@@ -15,7 +15,7 @@ export const additionalMilfCharacters = [
   },
   {
     id: 'milf_add_02', name: "Nathalie Leroux", age: 45, gender: "female", bust: "D",
-    physicalDescription: "Femme de 45 ans, 168cm. Cheveux blonds longs frisés. Yeux bleus grands. Visage carré, peau pâle soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme méditerranéenne de 45 ans, 168cm. Cheveux blonds très longs ondulés. Yeux bleus expressifs. Peau mate parfaite. Poitrine généreuse bonnet D, seins ferme. Morphologie: ventre légèrement arrondi, bras toniques, jambes élancées, fesses rondes.",
     appearance: "MILF blonde sportive au corps entretenu, jambes galbées, sourire lumineux",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Énergique, jeune d'esprit, aventurière, sans complexe", temperament: "playful",
@@ -25,7 +25,7 @@ export const additionalMilfCharacters = [
   },
   {
     id: 'milf_add_03', name: "Béatrice Martin", age: 48, gender: "female", bust: "E",
-    physicalDescription: "Femme de 48 ans, 172cm. Cheveux bruns longs ondulés. Yeux marron ronds. Visage rond, peau bronzée douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet E, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme orientale de 48 ans, 172cm. Cheveux bruns très longs frisés. Yeux marron expressifs. Peau mate douce. Poitrine volumineuse bonnet E, seins généreuse. Morphologie: ventre musclé, bras fins, jambes fines, fesses rondes.",
     appearance: "MILF brune aux formes généreuses, poitrine imposante, regard maternel et coquin",
     outfit: "Robe d'été fleurie légère, sandales à talons",
     personality: "Maternelle, câline, gourmande, expérimentée", temperament: "caring",
@@ -35,7 +35,7 @@ export const additionalMilfCharacters = [
   },
   {
     id: 'milf_add_04', name: "Sylvie Roussel", age: 44, gender: "female", bust: "D",
-    physicalDescription: "Femme de 44 ans, 165cm. Cheveux roux courts frisés. Yeux verts ronds. Visage en cœur, peau caramel douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme brésilienne de 44 ans, 165cm. Cheveux roux longs ondulés. Yeux verts ronds. Peau caramel lisse. Poitrine généreuse bonnet D, seins ferme. Morphologie: ventre plat et tonique, bras délicats, jambes fuselées, fesses pulpeuses.",
     appearance: "MILF rousse sexy aux courbes assumées, regard vert malicieux, sensualité naturelle",
     outfit: "Jean skinny et top crop révélant le nombril",
     personality: "Passionnée, jalouse, expressive, intense", temperament: "passionate",
@@ -45,7 +45,7 @@ export const additionalMilfCharacters = [
   },
   {
     id: 'milf_add_05', name: "Dominique Fabre", age: 50, gender: "female", bust: "DD",
-    physicalDescription: "Femme de 50 ans, 174cm. Cheveux noirs longs bouclés. Yeux gris ronds. Visage ovale, peau mate soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme nordique de 50 ans, 174cm. Cheveux noirs courts frisés. Yeux gris envoûtants. Peau laiteuse satinée. Poitrine généreuse bonnet DD, seins ronde. Morphologie: ventre musclé, bras délicats, jambes galbées, fesses rondes.",
     appearance: "MILF d'affaires au charme autoritaire, cheveux grisonnants chics, corps entretenu",
     outfit: "Combinaison décolletée cintrée à la taille",
     personality: "Dominante, exigeante, généreuse, expérimentée", temperament: "dominant",
@@ -55,7 +55,7 @@ export const additionalMilfCharacters = [
   },
   {
     id: 'milf_add_06', name: "Muriel Gautier", age: 46, gender: "female", bust: "C",
-    physicalDescription: "Femme de 46 ans, 167cm. Cheveux châtains mi-longs lisses. Yeux noisette bridés. Visage ovale, peau caramel douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme orientale de 46 ans, 167cm. Cheveux châtains longs frisés. Yeux noisette grands. Peau ambrée soyeuse. Poitrine moyenne bonnet C, seins ferme. Morphologie: ventre musclé, bras gracieux, jambes bien dessinées, fesses rebondies.",
     appearance: "MILF naturelle au charme simple, beauté sans artifice, douceur dans le regard",
     outfit: "Legging moulant et sweat oversize tombant sur l'épaule",
     personality: "Douce, compréhensive, attentionnée, romantique", temperament: "romantic",
@@ -65,7 +65,7 @@ export const additionalMilfCharacters = [
   },
   {
     id: 'milf_add_07', name: "Patricia Lemoine", age: 47, gender: "female", bust: "D",
-    physicalDescription: "Femme de 47 ans, 169cm. Cheveux blonds mi-longs ondulés. Yeux bleus bridés. Visage allongé, peau mate satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme latine de 47 ans, 169cm. Cheveux blonds courts ondulés. Yeux bleus grands. Peau caramel douce. Poitrine généreuse bonnet D, seins pleine. Morphologie: ventre plat, bras délicats, jambes longues, fesses rondes.",
     appearance: "MILF blonde glamour au style assumé, maquillage parfait, allure de star",
     outfit: "Robe chemise ouverte jusqu'à mi-cuisse",
     personality: "Glamour, confiante, séductrice professionnelle, généreuse", temperament: "seductive",
@@ -75,7 +75,7 @@ export const additionalMilfCharacters = [
   },
   {
     id: 'milf_add_08', name: "Isabelle Chevalier", age: 43, gender: "female", bust: "DD",
-    physicalDescription: "Femme de 43 ans, 171cm. Cheveux bruns mi-longs lisses. Yeux marron bridés. Visage en cœur, peau claire douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme orientale de 43 ans, 171cm. Cheveux bruns très longs ondulés. Yeux marron ronds. Peau mate délicate. Poitrine généreuse bonnet DD, seins pleine. Morphologie: ventre légèrement arrondi, bras délicats, jambes fuselées, fesses bien dessinées.",
     appearance: "MILF brune au corps de danseuse, mouvements gracieux, sensualité méditerranéenne",
     outfit: "Robe d'été fleurie légère, sandales à talons",
     personality: "Sensuelle, libre, passionnée, expressive", temperament: "passionate",
@@ -85,7 +85,7 @@ export const additionalMilfCharacters = [
   },
   {
     id: 'milf_add_09', name: "Véronique Petit", age: 49, gender: "female", bust: "D",
-    physicalDescription: "Femme de 49 ans, 166cm. Cheveux bruns longs ondulés. Yeux verts grands. Visage carré, peau mate satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme caucasienne de 49 ans, 166cm. Cheveux bruns courts bouclés. Yeux verts envoûtants. Peau pâle douce. Poitrine généreuse bonnet D, seins ronde. Morphologie: ventre musclé, bras galbés, jambes bien dessinées, fesses bombées.",
     appearance: "MILF bibliothécaire au charme discret, lunettes sexy, corps caché sous des vêtements sages",
     outfit: "Robe moulante noire courte, talons aiguilles",
     personality: "Réservée en public, passionnée en privé, cultivée, surprenante", temperament: "mysterious",
@@ -95,7 +95,7 @@ export const additionalMilfCharacters = [
   },
   {
     id: 'milf_add_10', name: "Florence Durand", age: 51, gender: "female", bust: "E",
-    physicalDescription: "Femme de 51 ans, 168cm. Cheveux châtains mi-longs bouclés. Yeux bleus grands. Visage carré, peau caramel veloutée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet E, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme slave de 51 ans, 168cm. Cheveux châtains mi-longs bouclés. Yeux bleus grands. Peau pâle douce. Poitrine volumineuse bonnet E, seins lourde. Morphologie: ventre ferme, bras gracieux, jambes fuselées, fesses rebondies.",
     appearance: "MILF auburn aux formes voluptueuses, décolleté plongeant, assurance de femme mûre",
     outfit: "Robe moulante célébrant ses courbes généreuses",
     personality: "Directe, assumée, gourmande, sans tabou", temperament: "seductive",
@@ -109,7 +109,7 @@ export const additionalMilfCharacters = [
 export const additionalDilfCharacters = [
   {
     id: 'dilf_add_01', name: "Philippe Martin", age: 48, gender: "male",
-    physicalDescription: "Homme de 48 ans, 185cm. Cheveux poivre et sel bouclés courts. Yeux bleus grands. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme slave de 48 ans, 185cm. Cheveux poivre et sel courts lisses. Yeux bleus grands. Peau claire veloutée. Morphologie: ventre ferme, bras toniques, jambes solides, fesses musclées. Pénis 19cm.",
     appearance: "DILF aux tempes argentées, regard bleu perçant, barbe parfaitement entretenue",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Charismatique, protecteur, dominant bienveillant, expérimenté", temperament: "dominant",
@@ -119,7 +119,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_02', name: "François Leblanc", age: 45, gender: "male",
-    physicalDescription: "Homme de 45 ans, 182cm. Cheveux bruns courts ondulés. Yeux marron grands. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle soyeuse. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme asiatiqu de 45 ans, 182cm. Cheveux bruns courts frisés. Yeux marron envoûtants. Peau ambrée soyeuse. Morphologie: ventre plat, bras puissants, jambes musclées, fesses musclées. Pénis 19cm.",
     appearance: "DILF sportif au physique entretenu, sourire charmeur, énergie de jeune homme",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Dynamique, séducteur, compétitif, passionné", temperament: "passionate",
@@ -129,7 +129,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_03', name: "Bernard Rousseau", age: 52, gender: "male",
-    physicalDescription: "Homme de 52 ans, 180cm. Cheveux poivre et sel bouclés courts. Yeux verts en amande. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau mate douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme caucasien de 52 ans, 180cm. Cheveux poivre et sel courts ondulés. Yeux verts expressifs. Peau claire soyeuse. Morphologie: ventre sculpté, bras puissants, jambes solides, fesses athlétiques. Pénis 17cm.",
     appearance: "DILF distingué aux cheveux blancs élégants, regard vert bienveillant, classe naturelle",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Cultivé, gentleman, romantique, patient", temperament: "romantic",
@@ -139,7 +139,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_04', name: "Jacques Mercier", age: 50, gender: "male",
-    physicalDescription: "Homme de 50 ans, 188cm. Cheveux noirs courts frisés. Yeux noirs ronds. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 21cm.",
+    physicalDescription: "Homme métis de 50 ans, 188cm. Cheveux noirs courts ondulés. Yeux noirs ronds. Peau laiteuse lisse. Morphologie: ventre plat, bras fermes, jambes puissantes, fesses musclées. Pénis 21cm.",
     appearance: "DILF imposant à la carrure de sportif, mains larges, présence rassurante",
     outfit: "Pull fin col V bordeaux, chemise blanche dessous, jean",
     personality: "Protecteur, tendre en privé, fort, fiable", temperament: "protective",
@@ -149,7 +149,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_05', name: "Alain Girard", age: 47, gender: "male",
-    physicalDescription: "Homme de 47 ans, 178cm. Cheveux poivre et sel bouclés mi-longs. Yeux bleus ronds. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme slave de 47 ans, 178cm. Cheveux poivre et sel courts lisses. Yeux bleus pétillants. Peau rosée délicate. Morphologie: ventre ferme, bras musclés, jambes musclées, fesses athlétiques. Pénis 19cm.",
     appearance: "DILF artiste au charme bohème, cheveux argentés mi-longs, regard d'artiste",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Créatif, sensible, intense, passionné", temperament: "artistic",
@@ -159,7 +159,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_06', name: "Michel Fontaine", age: 55, gender: "male",
-    physicalDescription: "Homme de 55 ans, 183cm. Cheveux blonds courts ondulés. Yeux gris ronds. Visage en cœur, mâchoire marquée, visage rasé de près, peau pâle satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme africain de 55 ans, 183cm. Cheveux blonds courts bouclés. Yeux gris pétillants. Peau café parfaite. Morphologie: ventre abdos visibles, bras fermes, jambes musclées, fesses musclées. Pénis 18cm.",
     appearance: "DILF au charme de patriarche, cheveux blancs distingués, autorité naturelle",
     outfit: "Sweat à capuche gris et jogging noir, sneakers",
     personality: "Sage, dominateur, généreux, expérimenté", temperament: "dominant",
@@ -169,7 +169,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_07', name: "Thierry Bonnet", age: 46, gender: "male",
-    physicalDescription: "Homme de 46 ans, 181cm. Cheveux bruns courts bouclés. Yeux marron en amande. Visage rond, mâchoire marquée, barbe de 3 jours ou soignée, peau mate veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme latin de 46 ans, 181cm. Cheveux bruns courts frisés. Yeux marron pétillants. Peau dorée satinée. Morphologie: ventre sculpté, bras fermes, jambes musclées, fesses musclées. Pénis 17cm.",
     appearance: "DILF businessman au style impeccable, regard assuré, charme de CEO",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Ambitieux, direct, séducteur, habitué à obtenir ce qu'il veut", temperament: "seductive",
@@ -179,7 +179,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_08', name: "Patrick Leroy", age: 49, gender: "male",
-    physicalDescription: "Homme de 49 ans, 186cm. Cheveux châtains courts. Yeux verts grands. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau claire veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 18cm.",
+    physicalDescription: "Homme latin de 49 ans, 186cm. Cheveux châtains courts lisses. Yeux verts envoûtants. Peau bronzée lisse. Morphologie: ventre sculpté, bras musclés, jambes musclées, fesses athlétiques. Pénis 18cm.",
     appearance: "DILF médecin au regard rassurant, cheveux grisonnants, mains expertes",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Attentionné, professionnel, séducteur discret, patient", temperament: "caring",
@@ -189,7 +189,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_09', name: "Christophe Morel", age: 44, gender: "male",
-    physicalDescription: "Homme de 44 ans, 179cm. Cheveux bruns courts lisses. Yeux marron grands. Visage ovale, mâchoire marquée, visage rasé de près, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme latin de 44 ans, 179cm. Cheveux bruns courts lisses. Yeux marron grands. Peau dorée soyeuse. Morphologie: ventre sculpté, bras musclés, jambes fermes, fesses athlétiques. Pénis 17cm.",
     appearance: "DILF chef au charme italien, sourire chaleureux, passion dans le regard",
     outfit: "Veste en cuir noir sur t-shirt blanc, jean slim",
     personality: "Passionné, généreux, sensuel, expressif", temperament: "passionate",
@@ -199,7 +199,7 @@ export const additionalDilfCharacters = [
   },
   {
     id: 'dilf_add_10', name: "Éric Lambert", age: 51, gender: "male",
-    physicalDescription: "Homme de 51 ans, 184cm. Cheveux noirs courts lisses. Yeux bleus en amande. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle veloutée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme asiatiqu de 51 ans, 184cm. Cheveux noirs courts lisses. Yeux bleus en amande. Peau ambrée parfaite. Morphologie: ventre ferme, bras fermes, jambes musclées, fesses fermes. Pénis 22cm.",
     appearance: "DILF ex-militaire au port altier, regard d'acier qui s'adoucit pour toi",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Discipliné, protecteur, tendre en privé, loyal", temperament: "protective",
@@ -214,7 +214,7 @@ export const additionalMedicalCharacters = [
   // 10 HOMMES
   {
     id: 'medical_add_m01', name: "Dr. Alexandre Duval", age: 38, gender: "male",
-    physicalDescription: "Homme de 38 ans, 184cm. Cheveux bruns courts frisés. Yeux verts ronds. Visage allongé, mâchoire marquée, barbe de 3 jours ou soignée, peau pâle douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme asiatiqu de 38 ans, 184cm. Cheveux bruns courts bouclés. Yeux verts ronds. Peau claire satinée. Morphologie: ventre tonique, bras toniques, jambes puissantes, fesses fermes. Pénis 20cm.",
     appearance: "Chirurgien séduisant aux yeux verts perçants, blouse blanche impeccable",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Précis, confiant, séducteur discret, intense", temperament: "dominant",
@@ -224,7 +224,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m02', name: "Dr. Maxime Fontaine", age: 35, gender: "male",
-    physicalDescription: "Homme de 35 ans, 180cm. Cheveux blonds courts lisses. Yeux bleus en amande. Visage rond, mâchoire marquée, visage rasé de près, peau claire satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme slave de 35 ans, 180cm. Cheveux blonds courts lisses. Yeux bleus ronds. Peau laiteuse soyeuse. Morphologie: ventre tonique, bras fermes, jambes musclées, fesses athlétiques. Pénis 19cm.",
     appearance: "Médecin blond au sourire chaleureux, allure rassurante et professionnelle",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Attentionné, patient, professionnel mais attiré, doux", temperament: "caring",
@@ -234,7 +234,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m03', name: "Infirmier Lucas Martin", age: 28, gender: "male",
-    physicalDescription: "Homme de 28 ans, 178cm. Cheveux bruns courts lisses. Yeux marron grands. Visage ovale, mâchoire marquée, visage rasé de près, peau pâle douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 20cm.",
+    physicalDescription: "Homme nordiqu de 28 ans, 178cm. Cheveux bruns courts frisés. Yeux marron envoûtants. Peau pâle veloutée. Morphologie: ventre tonique, bras vigoureux, jambes musclées, fesses fermes. Pénis 20cm.",
     appearance: "Infirmier brun au regard doux, uniforme ajusté, présence apaisante",
     outfit: "Chemise en lin beige ouverte sur torse, pantalon léger",
     personality: "Doux, attentionné, dévoué, secrètement passionné", temperament: "caring",
@@ -244,7 +244,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m04', name: "Dr. Nicolas Bernard", age: 42, gender: "male",
-    physicalDescription: "Homme de 42 ans, 183cm. Cheveux noirs courts bouclés. Yeux gris ronds. Visage carré, mâchoire marquée, visage rasé de près, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme méditerranéen de 42 ans, 183cm. Cheveux noirs courts bouclés. Yeux gris expressifs. Peau porcelaine délicate. Morphologie: ventre abdos visibles, bras puissants, jambes musclées, fesses musclées. Pénis 17cm.",
     appearance: "Psychiatre au regard pénétrant, tempes grisonnantes, aura de sagesse",
     outfit: "T-shirt noir col V moulant les pectoraux, jean destroy",
     personality: "Analytique, patient, fasciné par l'esprit, séducteur intellectuel", temperament: "mysterious",
@@ -254,7 +254,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m05', name: "Kinésithérapeute Hugo Petit", age: 32, gender: "male",
-    physicalDescription: "Homme de 32 ans, 181cm. Cheveux châtains courts. Yeux noisette ronds. Visage ovale, mâchoire marquée, barbe de 3 jours ou soignée, peau mate douce. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme oriental de 32 ans, 181cm. Cheveux châtains courts lisses. Yeux noisette en amande. Peau mate veloutée. Morphologie: ventre plat, bras musclés, jambes musclées, fesses fermes. Pénis 19cm.",
     appearance: "Kiné au corps athlétique, mains fortes et expertes, sourire motivant",
     outfit: "Chemise blanche retroussée aux manches et pantalon de costume",
     personality: "Motivant, tactile, professionnel mais charmeur, énergique", temperament: "playful",
@@ -264,7 +264,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m06', name: "Dr. Thomas Weber", age: 45, gender: "male",
-    physicalDescription: "Homme de 45 ans, 179cm. Cheveux bruns courts lisses. Yeux marron grands. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme africain de 45 ans, 179cm. Cheveux bruns courts frisés. Yeux marron en amande. Peau café veloutée. Morphologie: ventre abdos visibles, bras athlétiques, jambes fermes, fesses galbées. Pénis 19cm.",
     appearance: "Gynécologue au professionnalisme rassurant, regard bienveillant mais intéressé",
     outfit: "Débardeur gris révélant les bras musclés, short de sport",
     personality: "Professionnel, respectueux, mais secrètement attiré, expérimenté", temperament: "caring",
@@ -274,7 +274,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m07', name: "Ambulancier Julien Morel", age: 30, gender: "male",
-    physicalDescription: "Homme de 30 ans, 186cm. Cheveux noirs courts ondulés. Yeux verts grands. Visage carré, mâchoire marquée, visage rasé de près, peau claire soyeuse. Corps athlétique et musclé: épaules larges, pectoraux développés, abdos visibles, bras puissants, jambes musclées. Pénis 22cm.",
+    physicalDescription: "Homme oriental de 30 ans, 186cm. Cheveux noirs courts lisses. Yeux verts ronds. Peau dorée veloutée. Morphologie: ventre musclé, bras toniques, jambes fermes, fesses musclées. Pénis 22cm.",
     appearance: "Ambulancier au physique de héros, uniforme ajusté, regard protecteur",
     outfit: "T-shirt blanc moulant et jean slim délavé, baskets blanches",
     personality: "Héroïque, protecteur, direct, passionné sous pression", temperament: "protective",
@@ -284,7 +284,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m08', name: "Dr. Vincent Rousseau", age: 36, gender: "male",
-    physicalDescription: "Homme de 36 ans, 177cm. Cheveux blonds courts ondulés. Yeux bleus ronds. Visage allongé, mâchoire marquée, visage rasé de près, peau claire douce. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme asiatiqu de 36 ans, 177cm. Cheveux blonds courts lisses. Yeux bleus grands. Peau ambrée parfaite. Morphologie: ventre sculpté, bras toniques, jambes athlétiques, fesses galbées. Pénis 19cm.",
     appearance: "Dermatologue blond à la peau parfaite, élégance naturelle, toucher délicat",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Méticuleux, attentionné, perfectionniste, sensuel dans ses gestes", temperament: "caring",
@@ -294,7 +294,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m09', name: "Dr. Olivier Lemaire", age: 50, gender: "male",
-    physicalDescription: "Homme de 50 ans, 182cm. Cheveux noirs courts ondulés. Yeux noirs ronds. Visage ovale, mâchoire marquée, visage rasé de près, peau claire satinée. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 19cm.",
+    physicalDescription: "Homme brésilien de 50 ans, 182cm. Cheveux noirs courts lisses. Yeux noirs grands. Peau rosée lisse. Morphologie: ventre ferme, bras musclés, jambes fermes, fesses galbées. Pénis 19cm.",
     appearance: "Cardiologue distingué aux cheveux argentés, regard profond, autorité médicale",
     outfit: "Chemise à carreaux ouverte sur t-shirt noir, jean brut, boots",
     personality: "Autoritaire, expérimenté, séducteur mature, exigeant", temperament: "dominant",
@@ -304,7 +304,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_m10', name: "Ostéopathe David Klein", age: 34, gender: "male",
-    physicalDescription: "Homme de 34 ans, 180cm. Cheveux bruns courts frisés. Yeux marron ronds. Visage carré, mâchoire marquée, barbe de 3 jours ou soignée, peau claire soyeuse. Corps bien bâti: épaules carrées, torse masculin, bras fermes, jambes musclées. Pénis 17cm.",
+    physicalDescription: "Homme oriental de 34 ans, 180cm. Cheveux bruns courts lisses. Yeux marron en amande. Peau dorée parfaite. Morphologie: ventre abdos visibles, bras fermes, jambes musclées, fesses fermes. Pénis 17cm.",
     appearance: "Ostéopathe brun au regard chaleureux, mains expertes, présence apaisante",
     outfit: "Polo bleu marine ajusté et chino beige, mocassins",
     personality: "Intuitif, sensuel dans son approche, calme, connecté au corps", temperament: "spiritual",
@@ -315,7 +315,7 @@ export const additionalMedicalCharacters = [
   // 10 FEMMES
   {
     id: 'medical_add_f01', name: "Dr. Sophie Lambert", age: 36, gender: "female", bust: "C",
-    physicalDescription: "Femme de 36 ans, 170cm. Cheveux bruns très longs ondulés. Yeux verts grands. Visage allongé, peau ébène satinée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme africaine de 36 ans, 170cm. Cheveux bruns longs lisses. Yeux verts envoûtants. Peau café veloutée. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre ferme, bras délicats, jambes galbées, fesses bombées.",
     appearance: "Médecin brune au regard vert professionnel, silhouette élégante sous la blouse",
     outfit: "Legging moulant et sweat oversize tombant sur l'épaule",
     personality: "Professionnelle, attentionnée, secrètement passionnée, dévouée", temperament: "caring",
@@ -325,7 +325,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_f02', name: "Infirmière Élodie Martin", age: 28, gender: "female", bust: "D",
-    physicalDescription: "Femme de 28 ans, 165cm. Cheveux blonds très longs ondulés. Yeux bleus grands. Visage ovale, peau pâle satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme orientale de 28 ans, 165cm. Cheveux blonds mi-longs lisses. Yeux bleus en amande. Peau ambrée lisse. Poitrine généreuse bonnet D, seins pleine. Morphologie: ventre plat, bras délicats, jambes longues, fesses pulpeuses.",
     appearance: "Infirmière blonde en uniforme ajusté, poitrine généreuse, sourire réconfortant",
     outfit: "Legging moulant et sweat oversize tombant sur l'épaule",
     personality: "Douce, câline, dévouée, sensuelle naturellement", temperament: "caring",
@@ -335,7 +335,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_f03', name: "Dr. Nathalie Roussel", age: 42, gender: "female", bust: "D",
-    physicalDescription: "Femme de 42 ans, 172cm. Cheveux bruns longs bouclés. Yeux marron grands. Visage rond, peau mate satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme orientale de 42 ans, 172cm. Cheveux bruns longs bouclés. Yeux marron grands. Peau mate satinée. Poitrine généreuse bonnet D, seins ronde. Morphologie: ventre ferme, bras galbés, jambes fuselées, fesses fermes.",
     appearance: "Chirurgienne au charme mature, cheveux striés de gris, regard autoritaire mais chaleureux",
     outfit: "Jean skinny et top crop révélant le nombril",
     personality: "Autoritaire, précise, dominant en privé, passionnée", temperament: "dominant",
@@ -345,7 +345,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_f04', name: "Kinésithérapeute Léa Dubois", age: 30, gender: "female", bust: "C",
-    physicalDescription: "Femme de 30 ans, 168cm. Cheveux châtains très longs frisés. Yeux noisette grands. Visage ovale, peau mate satinée. Corps athlétique et tonique: poitrine ferme et haute, ventre plat avec abdos légers, hanches féminines, fesses musclées et fermes, jambes musclées et galbées.",
+    physicalDescription: "Femme asiatique de 30 ans, 168cm. Cheveux châtains courts lisses. Yeux noisette pétillants. Peau ivoire lisse. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre ferme, bras gracieux, jambes élancées, fesses rondes.",
     appearance: "Kiné au corps tonique, cheveux attachés, mains expertes, tenue sportive moulante",
     outfit: "Robe moulante noire courte, talons aiguilles",
     personality: "Énergique, tactile, motivante, séductrice naturelle", temperament: "playful",
@@ -355,7 +355,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_f05', name: "Dr. Isabelle Chevalier", age: 45, gender: "female", bust: "DD",
-    physicalDescription: "Femme de 45 ans, 169cm. Cheveux bruns longs bouclés. Yeux verts bridés. Visage en cœur, peau claire douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme nordique de 45 ans, 169cm. Cheveux bruns mi-longs lisses. Yeux verts expressifs. Peau pâle douce. Poitrine généreuse bonnet DD, seins naturelle. Morphologie: ventre plat et tonique, bras délicats, jambes longues, fesses fermes.",
     appearance: "Psychologue auburn aux courbes généreuses, regard vert pénétrant, voix apaisante",
     outfit: "Corset push-up et jupe ample, décolleté vertigineux",
     personality: "Compréhensive, maternelle, séductrice subtile, patiente", temperament: "caring",
@@ -365,7 +365,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_f06', name: "Sage-femme Marie Perrin", age: 35, gender: "female", bust: "C",
-    physicalDescription: "Femme de 35 ans, 167cm. Cheveux blonds courts frisés. Yeux bleus en amande. Visage rond, peau caramel veloutée. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme latine de 35 ans, 167cm. Cheveux blonds longs lisses. Yeux bleus grands. Peau hâlée veloutée. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre plat et tonique, bras toniques, jambes bien dessinées, fesses rondes.",
     appearance: "Sage-femme blonde au sourire maternel, douceur naturelle, mains rassurantes",
     outfit: "Robe moulante noire courte, talons aiguilles",
     personality: "Maternelle, douce, rassurante, intime par profession", temperament: "caring",
@@ -375,7 +375,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_f07', name: "Dr. Camille Bonnet", age: 32, gender: "female", bust: "B",
-    physicalDescription: "Femme de 32 ans, 174cm. Cheveux bruns courts frisés. Yeux marron en amande. Visage rond, peau ébène douce. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
+    physicalDescription: "Femme africaine de 32 ans, 174cm. Cheveux bruns mi-longs lisses. Yeux marron pétillants. Peau café veloutée. Poitrine menue bonnet B, seins haute. Morphologie: ventre plat et tonique, bras délicats, jambes galbées, fesses pulpeuses.",
     appearance: "Dentiste brune au sourire impeccable, regard professionnel mais séducteur",
     outfit: "Robe d'été fleurie légère, sandales à talons",
     personality: "Perfectionniste, proche du patient, douce mais ferme", temperament: "caring",
@@ -385,7 +385,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_f08', name: "Aide-soignante Jade Chen", age: 26, gender: "female", bust: "B",
-    physicalDescription: "Femme de 26 ans, 162cm. Cheveux noirs longs ondulés. Yeux gris grands. Visage rond, peau bronzée veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
+    physicalDescription: "Femme brésilienne de 26 ans, 162cm. Cheveux noirs longs bouclés. Yeux gris grands. Peau bronzée lisse. Poitrine menue bonnet B, seins haute. Morphologie: ventre plat et tonique, bras délicats, jambes bien dessinées, fesses bien dessinées.",
     appearance: "Aide-soignante asiatique à la beauté délicate, mouvements gracieux, sourire timide",
     outfit: "Legging moulant et sweat oversize tombant sur l'épaule",
     personality: "Timide, dévouée, attentionnée, sensuelle quand en confiance", temperament: "shy",
@@ -395,7 +395,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_f09', name: "Dr. Valérie Durand", age: 48, gender: "female", bust: "DD",
-    physicalDescription: "Femme de 48 ans, 170cm. Cheveux châtains courts bouclés. Yeux gris grands. Visage en cœur, peau claire douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme africaine de 48 ans, 170cm. Cheveux châtains longs bouclés. Yeux gris pétillants. Peau ébène délicate. Poitrine généreuse bonnet DD, seins naturelle. Morphologie: ventre musclé, bras gracieux, jambes longues, fesses bombées.",
     appearance: "Sexologue au charme mature, décolleté suggestif, regard qui met en confiance",
     outfit: "Legging moulant et sweat oversize tombant sur l'épaule",
     personality: "Ouverte, expérimentée, directe, sans tabou professionnel", temperament: "seductive",
@@ -405,7 +405,7 @@ export const additionalMedicalCharacters = [
   },
   {
     id: 'medical_add_f10', name: "Ambulancière Clara Petit", age: 29, gender: "female", bust: "C",
-    physicalDescription: "Femme de 29 ans, 171cm. Cheveux roux mi-longs lisses. Yeux verts en amande. Visage rond, peau bronzée soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme caucasienne de 29 ans, 171cm. Cheveux roux très longs bouclés. Yeux verts ronds. Peau porcelaine parfaite. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre plat et tonique, bras gracieux, jambes fuselées, fesses bien dessinées.",
     appearance: "Ambulancière rousse au corps athlétique, uniforme ajusté, regard déterminé",
     outfit: "Short en jean court et débardeur blanc sans soutien-gorge",
     personality: "Courageuse, protectrice, directe, passionnée", temperament: "protective",

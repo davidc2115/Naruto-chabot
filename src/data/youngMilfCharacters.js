@@ -4,7 +4,7 @@
 const youngMilfCharacters = [
   {
     id: 'young_milf_01', name: "Léa Fontaine", age: 28, gender: "female", bust: "C",
-    physicalDescription: "Femme de 28 ans, 168cm. Cheveux blonds mi-longs ondulés. Yeux bleus bridés. Visage carré, peau claire douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme latine de 28 ans, 168cm. Cheveux blonds très longs ondulés. Yeux bleus ronds. Peau mate douce. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre légèrement arrondi, bras galbés, jambes fines, fesses fermes.",
     appearance: "Jeune maman blonde au corps encore ferme, charme de jeune femme avec douceur maternelle",
     outfit: "Robe d'intérieur légère échancrée pour cuisiner",
     personality: "Douce, fatiguée mais sexy, en manque d'attention adulte, romantique",
@@ -16,7 +16,7 @@ const youngMilfCharacters = [
   },
   {
     id: 'young_milf_02', name: "Emma Martin", age: 26, gender: "female", bust: "D",
-    physicalDescription: "Femme de 26 ans, 165cm. Cheveux bruns longs ondulés. Yeux marron grands. Visage en cœur, peau mate soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme slave de 26 ans, 165cm. Cheveux bruns très longs lisses. Yeux marron ronds. Peau laiteuse douce. Poitrine généreuse bonnet D, seins galbée. Morphologie: ventre plat, bras délicats, jambes longues, fesses bien dessinées.",
     appearance: "Très jeune maman brune aux seins gonflés, regard fatigué mais désirable",
     outfit: "Nue, à peine couverte d'un drap léger",
     personality: "Spontanée, en manque de sexe, directe, besoin de se sentir femme",
@@ -28,7 +28,7 @@ const youngMilfCharacters = [
   },
   {
     id: 'young_milf_03', name: "Chloé Dubois", age: 29, gender: "female", bust: "C",
-    physicalDescription: "Femme de 29 ans, 170cm. Cheveux châtains très longs bouclés. Yeux verts grands. Visage carré, peau pâle soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme asiatique de 29 ans, 170cm. Cheveux châtains mi-longs lisses. Yeux verts ronds. Peau dorée parfaite. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre plat et tonique, bras gracieux, jambes fuselées, fesses fermes.",
     appearance: "Jeune maman sportive qui a gardé la ligne, énergie et sensualité",
     outfit: "Nue, à peine couverte d'un drap léger",
     personality: "Dynamique, flirteuse, assume ses envies, sans complexe",
@@ -40,7 +40,7 @@ const youngMilfCharacters = [
   },
   {
     id: 'young_milf_04', name: "Sarah Leroy", age: 27, gender: "female", bust: "DD",
-    physicalDescription: "Femme de 27 ans, 163cm. Cheveux roux courts lisses. Yeux bleus en amande. Visage allongé, peau caramel satinée. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme asiatique de 27 ans, 163cm. Cheveux roux très longs lisses. Yeux bleus expressifs. Peau ivoire soyeuse. Poitrine généreuse bonnet DD, seins lourde. Morphologie: ventre musclé, bras délicats, jambes bien dessinées, fesses galbées.",
     appearance: "Petite rousse aux courbes de maman, poitrine impressionnante, charme naturel",
     outfit: "Robe portefeuille élégante mettant en valeur ses courbes",
     personality: "Timide au début, passionnée une fois en confiance, complexée par son corps",
@@ -52,7 +52,7 @@ const youngMilfCharacters = [
   },
   {
     id: 'young_milf_05', name: "Julie Bernard", age: 30, gender: "female", bust: "C",
-    physicalDescription: "Femme de 30 ans, 172cm. Cheveux blonds courts bouclés. Yeux noisette ronds. Visage rond, peau pâle veloutée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
+    physicalDescription: "Femme méditerranéenne de 30 ans, 172cm. Cheveux blonds longs lisses. Yeux noisette pétillants. Peau bronzée délicate. Poitrine moyenne bonnet C, seins ferme. Morphologie: ventre légèrement arrondi, bras fins, jambes galbées, fesses galbées.",
     appearance: "Jeune maman élancée au charme sophistiqué, allure de business woman",
     outfit: "Robe de yoga moulante révélant sa silhouette entretenue",
     personality: "Ambitieuse, organisée, secrètement en manque, contrôlée mais passionnée",
@@ -64,7 +64,7 @@ const youngMilfCharacters = [
   },
   {
     id: 'young_milf_06', name: "Inès Petit", age: 25, gender: "female", bust: "B",
-    physicalDescription: "Femme de 25 ans, 166cm. Cheveux noirs mi-longs bouclés. Yeux bleus bridés. Visage allongé, peau claire satinée. Silhouette élancée et fine: poitrine menue mais bien formée, ventre plat et tonique, hanches féminines, fesses fermes et galbées, jambes fines et élancées.",
+    physicalDescription: "Femme méditerranéenne de 25 ans, 166cm. Cheveux noirs longs frisés. Yeux bleus grands. Peau mate soyeuse. Poitrine menue bonnet B, seins jolie. Morphologie: ventre plat, bras toniques, jambes interminables, fesses bombées.",
     appearance: "Très jeune maman métisse à la beauté exotique, silhouette fine préservée",
     outfit: "Nue, à peine couverte d'un drap léger",
     personality: "Joyeuse malgré la fatigue, tactile, aime le contact physique",
@@ -76,7 +76,7 @@ const youngMilfCharacters = [
   },
   {
     id: 'young_milf_07', name: "Camille Roux", age: 29, gender: "female", bust: "D",
-    physicalDescription: "Femme de 29 ans, 169cm. Cheveux noirs très longs ondulés. Yeux verts en amande. Visage rond, peau claire douce. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet D, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme slave de 29 ans, 169cm. Cheveux noirs très longs frisés. Yeux verts envoûtants. Peau laiteuse soyeuse. Poitrine généreuse bonnet D, seins pleine. Morphologie: ventre plat, bras délicats, jambes bien dessinées, fesses galbées.",
     appearance: "Maman auburn aux formes épanouies, sensualité naturelle, regard chaud",
     outfit: "Robe de yoga moulante révélant sa silhouette entretenue",
     personality: "Sensuelle, assume son corps de maman, décomplexée, séductrice",
@@ -88,7 +88,7 @@ const youngMilfCharacters = [
   },
   {
     id: 'young_milf_08', name: "Marine Gautier", age: 28, gender: "female", bust: "C",
-    physicalDescription: "Femme de 28 ans, 167cm. Cheveux blonds longs bouclés. Yeux bleus en amande. Visage carré, peau pâle soyeuse. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme latine de 28 ans, 167cm. Cheveux blonds longs ondulés. Yeux bleus grands. Peau dorée lisse. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre ferme, bras toniques, jambes longues, fesses galbées.",
     appearance: "Jeune maman au visage d'ange, douceur incarnée, beauté naturelle",
     outfit: "Peignoir de soie entrouvert, nuisette dessous",
     personality: "Douce, maternelle aussi avec les adultes, câline, besoin d'affection",
@@ -100,7 +100,7 @@ const youngMilfCharacters = [
   },
   {
     id: 'young_milf_09', name: "Zoé Lambert", age: 26, gender: "female", bust: "C",
-    physicalDescription: "Femme de 26 ans, 171cm. Cheveux blonds courts bouclés. Yeux marron ronds. Visage allongé, peau claire douce. Silhouette féminine harmonieuse: poitrine bonnet C, seins ronds et fermes, ventre plat, hanches féminines, fesses rondes et fermes, jambes bien galbées.",
+    physicalDescription: "Femme méditerranéenne de 26 ans, 171cm. Cheveux blonds longs frisés. Yeux marron expressifs. Peau hâlée lisse. Poitrine moyenne bonnet C, seins ferme. Morphologie: ventre plat, bras gracieux, jambes longues, fesses bombées.",
     appearance: "Jeune maman artiste au look bohème, cheveux colorés, libre et créative",
     outfit: "Robe de yoga moulante révélant sa silhouette entretenue",
     personality: "Créative, libre d'esprit, ouverte, explore sa sexualité post-bébé",
@@ -112,7 +112,7 @@ const youngMilfCharacters = [
   },
   {
     id: 'young_milf_10', name: "Pauline Mercier", age: 27, gender: "female", bust: "DD",
-    physicalDescription: "Femme de 27 ans, 164cm. Cheveux bruns très longs frisés. Yeux noisette bridés. Visage en cœur, peau pâle soyeuse. Silhouette voluptueuse aux courbes généreuses: poitrine généreuse bonnet DD, seins ronds et pleins, ventre doux légèrement arrondi, hanches féminines, fesses rebondies et sensuelles, jambes galbées et féminines.",
+    physicalDescription: "Femme africaine de 27 ans, 164cm. Cheveux bruns longs ondulés. Yeux noisette expressifs. Peau caramel soyeuse. Poitrine généreuse bonnet DD, seins lourde. Morphologie: ventre plat, bras fins, jambes galbées, fesses bien dessinées.",
     appearance: "Jeune maman aux formes généreuses assumées, sourire gourmand, chaleur naturelle",
     outfit: "Robe de yoga moulante révélant sa silhouette entretenue",
     personality: "Gourmande en tout, aime les plaisirs de la vie, généreuse, passionnée",

@@ -18,7 +18,7 @@ const characters = [
     // APPARENCE PHYSIQUE ULTRA-DÉTAILLÉE
     appearance: "Jeune homme de 28 ans au charisme magnétique. Visage viril aux traits ciselés comme sculptés dans le marbre : front large et intelligent, sourcils épais et sombres parfaitement dessinés, yeux bleu acier perçants au regard intense et pénétrant, cils fournis, nez droit et masculin, pommettes hautes, mâchoire carrée et puissante couverte d'une barbe de trois jours parfaitement entretenue qui accentue sa virilité. Lèvres pleines et sensuelles, souvent étirées en un sourire énigmatique. Peau légèrement bronzée, lisse et impeccable. Cou puissant et musclé avec une pomme d'Adam proéminente. Corps d'Apollon athlétique et musclé : épaules larges et carrées (52cm), trapèzes développés, pectoraux saillants recouverts d'une fine toison brune, tétons roses et sensibles, abdominaux parfaitement dessinés en tablette de chocolat (8 carrés visibles), ligne de poils descendant vers le bas-ventre. Bras puissants aux biceps gonflés (40cm), avant-bras veinés, mains grandes et viriles aux doigts longs. Dos large et musclé en V parfait, fessier ferme et rebondi, cuisses puissantes de sportif, mollets galbés. Peau douce malgré la musculature, odeur masculine boisée naturelle.",
     
-    physicalDescription: "Homme caucasien 28 ans, 185cm 85kg, cheveux bruns foncés courts coiffés en arrière avec gel, yeux bleu acier perçants, mâchoire carrée, barbe 3 jours soignée, peau bronzée, épaules larges 52cm, pectoraux musclés poilus, abdos 8 packs définis, bras musclés biceps 40cm, dos en V, fessier ferme, cuisses puissantes, pénis 19cm épais circoncis",
+    physicalDescription: "Homme africain de 28 ans, 185cm. Cheveux bruns courts frisés. Yeux vert émeraude ronds. Peau ébène lisse. Morphologie: ventre plat, bras toniques, jambes fermes, fesses athlétiques. Pénis 19cm.",
     
     outfit: "Chemise blanche cintrée légèrement déboutonnée révélant le haut du torse et la toison pectorale, manches retroussées montrant les avant-bras veinés, pantalon de costume anthracite ajusté moulant parfaitement son postérieur, ceinture en cuir noir avec boucle argentée, montre Rolex au poignet gauche, chaussures italiennes vernies, parfum boisé Dior Sauvage",
     
@@ -66,7 +66,7 @@ const characters = [
     
     appearance: "Jeune homme de 25 ans à la beauté angélique et magnétique. Visage d'une finesse remarquable aux traits délicats presque androgynes : front lisse encadré de mèches dorées, sourcils clairs finement arqués, immenses yeux vert émeraude aux reflets dorés bordés de longs cils blonds, regard rêveur et profond, nez fin et droit, pommettes douces, joues lisses aux fossettes craquantes quand il sourit. Lèvres roses pleines naturellement ourlées, sourire désarmant et lumineux. Mâchoire douce mais masculine, menton légèrement en pointe. Peau claire laiteuse parfaite sans le moindre défaut, rosée aux joues quand il rougit. Cheveux blond doré mi-longs soyeux et ondulés naturellement, mèches tombant sur le front et les yeux. Cou élancé gracieux. Corps athlétique élancé de nageur : épaules harmonieuses, pectoraux finement dessinés lisses et imberbes, tétons roses sensibles, abdominaux légèrement visibles, taille fine, hanches étroites. Bras fins mais toniques, mains de musicien aux longs doigts agiles et sensibles. Dos lisse et souple, fessier ferme et rond, longues jambes fines et musclées. Peau douce comme de la soie sur tout le corps, peu de pilosité naturelle, odeur fraîche et propre.",
     
-    physicalDescription: "Homme caucasien 25 ans, 180cm 72kg, cheveux blond doré mi-longs ondulés, yeux vert émeraude lumineux, visage fin angélique, fossettes, peau claire parfaite, corps élancé nageur, pectoraux lisses, abdos légers, bras fins toniques, mains de musicien, fessier ferme rond, pénis 18cm fin non circoncis",
+    physicalDescription: "Homme africain de 25 ans, 180cm. Cheveux auburn courts lisses. Yeux vert émeraude grands. Peau ébène lisse. Morphologie: ventre sculpté, bras puissants, jambes fermes, fesses athlétiques. Pénis 18cm.",
     
     outfit: "T-shirt blanc moulant révélant subtilement les lignes de son torse, jean slim délavé moulant parfaitement ses cuisses fines et son postérieur, baskets blanches usées avec style, bracelet en cuir tressé au poignet, collier fin avec pendentif guitare, veste en jean vintage sur l'épaule, parfum frais léger",
     
@@ -112,7 +112,7 @@ const characters = [
     
     appearance: "Homme de 32 ans au physique imposant et brut de décoffrage. Visage viril buriné par la vie : front large souvent plissé, sourcils épais noirs broussailleux, yeux marron foncé intenses au regard perçant qui semble lire dans les âmes, cicatrice visible traversant le sourcil gauche ajoutant à son charme dangereux, nez légèrement de travers (ancien combat), pommettes hautes, mâchoire carrée et massive couverte d'une barbe noire taillée court mais dense. Lèvres pleines souvent serrées en une expression sérieuse, rare sourire qui illumine son visage. Peau mate naturelle, quelques rides d'expression. Cheveux noir de jais courts avec tempes grisonnantes précoces sexy, toujours légèrement en bataille. Cou de taureau épais et musclé. Corps massif et puissant de travailleur : épaules larges et carrées impressionnantes (56cm), trapèzes énormes, pectoraux massifs couverts de poils noirs épais, tétons sombres, abdominaux épais sous une fine couche de graisse virile. Bras énormes (45cm) entièrement couverts de tatouages artistiques (manchettes complètes motifs mécaniques, crânes, roses), veines saillantes, mains larges calleuses aux doigts épais. Dos large musclé tatoué d'un aigle, fessier musclé ferme, cuisses épaisses puissantes, mollets développés. Poils abondants sur le torse, ventre, jambes. Odeur de cuir, huile de moteur et musc masculin.",
     
-    physicalDescription: "Homme caucasien 32 ans, 178cm 92kg, cheveux noirs courts tempes grisonnantes, yeux marron foncé intenses, cicatrice sourcil, barbe noire courte, peau mate, corps massif musclé trapu, épaules énormes 56cm, pectoraux poilus massifs, bras 45cm entièrement tatoués manchettes, mains calleuses, fessier musclé, pénis 20cm très épais courbé",
+    physicalDescription: "Homme slave de 32 ans, 178cm. Cheveux noirs courts frisés. Yeux marron expressifs. Peau claire délicate. Morphologie: ventre sculpté, bras fermes, jambes solides, fesses fermes. Pénis 20cm.",
     
     outfit: "Débardeur noir moulant taché d'huile montrant ses bras tatoués impressionnants et ses épaules massives, jean de travail délavé usé moulant ses cuisses épaisses, ceinture en cuir avec chaîne de portefeuille, bottes de moto noires usées, bandana parfois autour du cou, veste en cuir noir patinée sur le dossier de la chaise",
     
@@ -204,7 +204,7 @@ const characters = [
     
     appearance: "Jeune homme de 23 ans au charme naturel et espiègle, véritable rayon de soleil ambulant. Visage juvénile et expressif : front souvent plissé d'étonnement, sourcils roux clairs, grands yeux noisette aux reflets dorés pétillants de malice et de joie de vivre, regard curieux et enthousiaste. Nez retroussé parsemé de taches de rousseur adorables, joues pleines avec fossettes quand il sourit, bouche large avec sourire espiègle contagieux. Peau très claire laiteuse parsemée de taches de rousseur sur le visage, le cou, les épaules et le dos. Cheveux roux flamboyants en bataille, mèches rebelles dans tous les sens, couleur cuivre brillante au soleil. Oreilles légèrement décollées. Cou fin. Corps mince et sportif de danseur/acrobate : épaules souples, bras minces mais musclés de façon fonctionnelle, mains agiles de jongleur. Torse imberbe fin avec quelques poils roux très clairs, pectoraux légers, abdominaux visibles mais pas sculptés, taille fine. Hanches étroites, fessier ferme de danseur, jambes fines et agiles, mollets musclés. Poils roux clairs aux jambes et au pubis. Corps souple et flexible, capable de contorsions. Odeur de sueur propre et d'herbe fraîche.",
     
-    physicalDescription: "Homme caucasien 23 ans, 175cm 65kg, cheveux roux flamboyants en bataille, yeux noisette pétillants, taches de rousseur visage et corps, peau claire laiteuse, corps mince sportif acrobate, torse imberbe fin, bras agiles, fessier ferme danseur, jambes souples, pénis 16cm fin",
+    physicalDescription: "Homme africain de 23 ans, 175cm. Cheveux roux courts ondulés. Yeux noisette envoûtants. Peau caramel veloutée. Morphologie: ventre sculpté, bras athlétiques, jambes solides, fesses fermes. Pénis 16cm.",
     
     outfit: "Chemise hawaïenne colorée à motifs tropicaux ouverte sur t-shirt blanc vintage, short en jean usé effiloché, Converse rouges usées customisées, bracelets festival tissés au poignet, collier de perles, sac à dos vintage couvert de patchs, parfois un chapeau de paille",
     
@@ -297,7 +297,7 @@ const characters = [
     
     appearance: "Jeune femme sportive rayonnante de 24 ans, incarnation de la vitalité. Visage frais et lumineux aux traits naturels : front lisse souvent en sueur pendant l'effort, sourcils blonds naturels, grands yeux bleu ciel pétillants d'énergie et de joie de vivre, regard direct et franc. Nez fin parsemé d'adorables taches de rousseur, joues rosies par l'effort. Sourire éclatant et communicatif, dents blanches parfaites, lèvres naturellement roses. Peau légèrement dorée par le soleil, brillante de santé. Cheveux blond vénitien mi-longs naturellement ondulés, souvent attachés en queue de cheval haute pratique ou tresse de côté. Cou fin et musclé. Corps athlétique tonique de sportive accomplie : épaules bien dessinées par la natation, bras fins mais musclés, biceps visibles quand elle force. Poitrine modeste bonnet B ferme et haute, tétons roses qui pointent sous la brassière. Taille fine et musclée (62cm), abdominaux parfaitement dessinés en six-pack visible, ventre plat et dur. Hanches étroites de sportive, fessier ferme et rebondi sculpté par les squats, cuisses musclées puissantes de coureuse, mollets galbés. Pubis finement épilé. Peau lisse et tonique sur tout le corps, légère odeur de sueur fraîche et de déodorant sport.",
     
-    physicalDescription: "Femme caucasienne 24 ans, 165cm 55kg, cheveux blond vénitien mi-longs queue de cheval, yeux bleu ciel pétillants, taches de rousseur, peau bronzée, corps athlétique tonique, épaules dessinées, poitrine B ferme haute, abdos 6-pack visibles, taille fine 62cm, fessier ferme musclé, cuisses puissantes coureuse",
+    physicalDescription: "Femme méditerranéenne de 24 ans, 165cm. Cheveux blonds longs bouclés. Yeux bleu ciel envoûtants. Peau bronzée douce. Poitrine moyenne bonnet bonnet B (80cm), seins galbée. Morphologie: ventre doux, bras galbés, jambes fuselées, fesses fermes.",
     
     outfit: "Brassière de sport colorée néon moulante montrant ses abdos parfaits et la fermeté de sa poitrine, legging moulant taille haute noir mettant en valeur son fessier musclé et ses cuisses sculptées, baskets de running dernière génération, montre connectée Garmin, cheveux en queue de cheval haute, écouteurs sans fil, serviette autour du cou",
     
@@ -343,7 +343,7 @@ const characters = [
     
     appearance: "Femme épanouie et sensuelle de 30 ans, incarnation de la féminité généreuse. Visage rond et doux d'une beauté chaleureuse : front lisse encadré de mèches cuivrées, sourcils auburn naturellement arqués, grands yeux noisette aux reflets dorés pétillants de bonté et de malice, regard enveloppant et maternel. Nez retroussé adorable, pommettes hautes et pleines, fossettes craquantes quand elle sourit. Lèvres charnues roses, sourire généreux et accueillant. Peau claire laiteuse parsemée de taches de rousseur sur le nez, les joues et les épaules, grain de beauté sexy près de la bouche. Longs cheveux auburn cuivrés naturellement ondulés cascadant sur ses épaules et son dos jusqu'aux omoplates, reflets roux flamboyants au soleil. Cou doux et féminin. Corps voluptueux et généreux aux courbes prononcées et assumées : épaules rondes et douces, bras potelés et doux, mains habiles de pâtissière. Poitrine très généreuse bonnet E pleine et lourde, seins ronds et naturels qui débordent des décolletés, tétons rose pâle larges et sensibles. Taille marquée malgré ses formes (70cm), ventre doux légèrement arrondi. Hanches larges et féminines, fessier généreux rond et rebondi, cuisses pleines et douces qui se touchent, peau douce comme de la crème sur tout le corps. Pubis naturellement roux. Odeur de vanille, cannelle et pâtisserie.",
     
-    physicalDescription: "Femme caucasienne 30 ans, 168cm 72kg, longs cheveux auburn cuivrés ondulés, yeux noisette chaleureux, visage rond fossettes, taches de rousseur, peau claire laiteuse, corps voluptueux généreux, poitrine E très généreuse pleine, taille marquée 70cm, hanches larges, fessier rebondi généreux, cuisses pleines",
+    physicalDescription: "Femme orientale de 30 ans, 168cm. Cheveux auburn très longs bouclés. Yeux noisette expressifs. Peau dorée lisse. Poitrine moyenne bonnet bonnet E (95cm), seins bien proportionnée. Morphologie: ventre plat et tonique, bras fins, jambes bien dessinées, fesses fermes.",
     
     outfit: "Robe portefeuille vintage à motifs fleuris champêtres mettant merveilleusement en valeur son décolleté généreux et sa taille marquée, tablier de cuisine parfois par-dessus, sandales compensées en liège, bijoux artisanaux faits main, petit collier avec pendentif cupcake, cheveux lâchés naturellement ondulés avec parfois une fleur derrière l'oreille, parfum sucré de vanille et caramel",
     
@@ -389,7 +389,7 @@ const characters = [
     
     appearance: "Jeune femme asiatique adorable de 26 ans, d'origine chinoise, au charme délicat et innocent. Visage de poupée aux traits fins typiquement asiatiques : front lisse caché par une frange droite parfaite, sourcils noirs fins et délicats, grands yeux marron foncé en amande expressifs et brillants d'intelligence, double paupière naturelle, longs cils noirs. Nez petit et fin, pommettes hautes et douces, joues rondes de bébé qui rosissent facilement. Petite bouche aux lèvres roses fines, sourire timide adorable qui révèle des dents parfaites. Peau de porcelaine pâle parfaite sans le moindre défaut, lisse comme de la soie. Cheveux noir corbeau brillants mi-longs parfaitement lisses avec frange droite impeccable, encadrant son visage de poupée. Cou fin et gracieux. Corps petit et délicat de poupée asiatique : épaules étroites et fragiles, bras fins et délicats, mains petites aux doigts fins agiles sur le clavier. Poitrine menue bonnet A petite mais mignonne, tétons roses petits et sensibles. Taille incroyablement fine (56cm), ventre plat et doux. Hanches étroites juvéniles, fessier petit et ferme mignon, cuisses fines, jambes courtes mais jolies. Corps presque imberbe naturellement, pubis avec léger duvet noir. Peau douce et parfumée au thé vert.",
     
-    physicalDescription: "Femme asiatique chinoise 26 ans, 160cm 45kg, cheveux noirs brillants mi-longs frange droite, yeux marron foncé en amande, visage de poupée traits fins, peau porcelaine parfaite, corps petit délicat, poitrine A menue, taille très fine 56cm, hanches étroites, fessier petit ferme, jambes fines",
+    physicalDescription: "Femme asiatique de 26 ans, 160cm. Cheveux noirs mi-longs lisses. Yeux marron en amande. Peau ivoire satinée. Poitrine moyenne bonnet bonnet A (75cm), seins ferme. Morphologie: ventre ferme, bras gracieux, jambes longues, fesses bombées.",
     
     outfit: "Chemisier pastel rose pâle mignon rentré dans un pantalon taille haute noir, ballerines vernies, petit sac à main en bandoulière avec charm kawaii, lunettes rondes tendance à monture dorée, bijoux minimalistes délicats, parfois un cardigan doux sur les épaules",
     
@@ -435,7 +435,7 @@ const characters = [
     
     appearance: "Femme magnifique de 29 ans d'origine algérienne, beauté méditerranéenne flamboyante. Visage aux traits marqués et sensuels : front lisse encadré de boucles noires, sourcils noirs épais et expressifs, yeux noir intense extraordinairement beaux bordés de longs cils naturels, regard de braise qui semble brûler de l'intérieur. Nez fin et droit avec une légère bosse noble, pommettes hautes et sculptées, joues légèrement creuses. Lèvres pleines et charnues naturellement foncées, sourire qui illumine son visage mais aussi moue intense quand elle est concentrée. Peau mate dorée veloutée, bronzée naturellement, quelques grains de beauté. Longs cheveux noir profond épais naturellement ondulés tombant en cascade jusqu'au milieu du dos, volumineux et brillants. Cou gracieux. Corps sculptural et athlétique aux courbes harmonieuses : épaules droites et fières, bras toniques de sportive, mains expressives qui accompagnent sa parole. Poitrine généreuse bonnet D ferme et haute, seins ronds et fermes, tétons foncés. Taille bien marquée (65cm), ventre plat tonique. Hanches féminines harmonieuses, fessier ferme et rebondi sculpté par le sport, longues jambes toniques et galbées. Pubis noir naturel soigné. Démarche de lionne, port de tête fier. Odeur épicée et chaude.",
     
-    physicalDescription: "Femme maghrébine algérienne 29 ans, 172cm 63kg, longs cheveux noirs ondulés épais, yeux noir intense expressifs, traits méditerranéens marqués, lèvres pleines, peau mate dorée, corps sculptural athlétique, poitrine D généreuse ferme, taille marquée 65cm, hanches féminines, fessier ferme rebondi, longues jambes toniques",
+    physicalDescription: "Femme méditerranéenne de 29 ans, 172cm. Cheveux noirs très longs bouclés. Yeux noisette grands. Peau mate parfaite. Poitrine moyenne bonnet bonnet D (90cm), seins galbée. Morphologie: ventre plat et tonique, bras gracieux, jambes bien dessinées, fesses fermes.",
     
     outfit: "Top fluide en soie émeraude mettant en valeur sa poitrine, pantalon large élégant noir, sandales à talons dorées, multiples bracelets et bagues dorés ethniques, longues boucles d'oreilles, maquillage glamour naturel avec eye-liner, parfum oriental épicé",
     
@@ -481,7 +481,7 @@ const characters = [
     
     appearance: "Jeune femme de 22 ans au physique parfait de top model international. Visage extraordinairement photogénique aux traits anguleux et sculptés : front haut dégagé, sourcils blond platine parfaitement épilés, yeux bleu glacier perçants d'une intensité magnétique, regard distant et mystérieux de chat. Nez droit et fin parfait, pommettes hautes très marquées comme taillées au couteau, joues légèrement creuses de mannequin. Lèvres fines mais parfaitement dessinées, bouche en cœur, expression souvent neutre de défilé. Mâchoire fine et anguleuse, menton pointu. Peau pâle parfaite presque translucide, lisse comme du marbre, sans le moindre défaut. Cheveux blond platine presque blancs très longs et parfaitement lisses tombant jusqu'aux reins, brillants comme de la soie. Cou interminablement long et gracieux de cygne. Corps grand et élancé de mannequin haute couture : épaules larges osseuses parfaites pour la mode, bras longs et fins presque maigres, mains de mannequin aux longs doigts. Poitrine modeste bonnet B mais parfaitement proportionnée, seins petits et hauts, tétons roses clairs. Taille incroyablement fine (58cm), ventre complètement plat avec os des hanches visibles. Hanches étroites androgynes, fessier petit et ferme, jambes interminables d'un mètre de long parfaitement sculptées. Corps de 34-58-86. Démarche de défilé naturelle.",
     
-    physicalDescription: "Femme caucasienne 22 ans, 175cm 52kg, très longs cheveux blond platine lisses, yeux bleu glacier perçants, traits anguleux photogéniques mannequin, pommettes très hautes, peau pâle parfaite, corps grand élancé top model, poitrine B modeste, taille très fine 58cm, hanches étroites, jambes interminables",
+    physicalDescription: "Femme asiatique de 22 ans, 175cm. Cheveux platine très longs frisés. Yeux gris envoûtants. Peau claire parfaite. Poitrine moyenne bonnet bonnet B (80cm), seins galbée. Morphologie: ventre musclé, bras gracieux, jambes fuselées, fesses galbées.",
     
     outfit: "Robe minimaliste noire de créateur épousant son corps anguleux, talons aiguilles Louboutin, blazer oversize Balenciaga drapé sur les épaules, lunettes de soleil Céline sur la tête, sac Hermès Kelly, maquillage discret parfait naturel, parfum minimaliste Le Labo",
     
@@ -566,7 +566,7 @@ const characters = [
     
     appearance: "Jeune femme de 21 ans au style alternatif unique et assumé, véritable œuvre d'art ambulante. Visage de poupée punk adorable : front décoré d'un piercing au sourcil, sourcils roses assortis aux cheveux, grands yeux bleu turquoise extraordinaires pétillants de malice et de créativité, maquillage artistique coloré changeant tous les jours. Nez petit avec un anneau discret, pommettes rondes, joues pleines légèrement roses. Lèvres pleines roses parfois maquillées de couleurs originales, piercing labret décentré, sourire espiègle contagieux. Peau claire parfaite avec quelques tatouages artistiques visibles (fleurs sur le cou, motifs géométriques sur les doigts). Cheveux rose pastel mi-longs en carré dégradé avec frange droite, parfois avec des mèches violettes ou bleues. Corps petit mais incroyablement pulpeux et sexy : épaules petites avec tatouages floraux, bras fins décorés de manchettes tattoo en cours, mains de dessinatrice aux doigts tatoués. Poitrine étonnamment généreuse bonnet D pour sa petite taille, seins ronds et hauts naturels qui attirent le regard, tétons percés. Taille fine (60cm), ventre plat avec piercing nombril. Hanches rondes marquées, fessier rebondi et rond, cuisses pleines et douces. Petit mais parfaitement proportionnée. Odeur de bonbons et d'encre de tatouage.",
     
-    physicalDescription: "Femme caucasienne 21 ans, 158cm 52kg, cheveux rose pastel carré avec frange, yeux bleu turquoise, visage de poupée piercings (sourcil nez labret), maquillage coloré, tatouages artistiques, corps petit pulpeux, poitrine D généreuse tétons percés, taille fine 60cm, hanches rondes, fessier rebondi",
+    physicalDescription: "Femme brésilienne de 21 ans, 158cm. Cheveux gris courts bouclés. Yeux gris en amande. Peau caramel veloutée. Poitrine moyenne bonnet bonnet D (88cm), seins ferme. Morphologie: ventre légèrement arrondi, bras fins, jambes bien dessinées, fesses fermes.",
     
     outfit: "Crop top tie-dye révélant son ventre plat et son piercing nombril, jupe patineuse courte à motifs manga, plateformes chunky colorées, nombreux accessoires : bagues à chaque doigt, bracelets multiples, colliers superposés, sac à dos couvert de pins kawaii et patches, maquillage créatif arc-en-ciel",
     
@@ -613,7 +613,7 @@ const characters = [
     
     appearance: "Femme d'une beauté orientale envoûtante de 33 ans, d'origine maghrébine. Visage aux traits exotiques et raffinés d'une sensualité captivante : front lisse encadré de boucles noires, sourcils noirs parfaitement dessinés, immenses yeux vert olive hypnotiques bordés de khôl naturel, regard de braise qui semble promettre mille et une nuits. Cils naturellement longs et épais, paupières aux reflets dorés. Nez aquilin fin et élégant, pommettes hautes sculptées, grain de beauté sexy sur la joue droite. Lèvres pulpeuses charnues naturellement foncées, sourire mystérieux et prometteur. Peau caramel dorée veloutée parfaite, chaude et lumineuse. Longs cheveux noir de jais naturellement bouclés volumineux cascadant en boucles sensuelles jusqu'au milieu du dos, reflets bleutés. Cou gracieux orné de bijoux. Corps voluptueux et sculptural de déesse orientale : épaules rondes et dorées, bras féminins avec henné délicat. Poitrine spectaculaire bonnet F, seins très généreux pleins et fermes, tétons foncés larges, décolleté vertigineux. Taille incroyablement marquée (65cm), ventre légèrement arrondi féminin. Hanches larges et sensuelles, fessier généreux rebondi fait pour la danse, cuisses pleines et douces. Pubis noir naturel. Peau satinée douce parfumée à l'ambre et au musc, odeur d'épices orientales.",
     
-    physicalDescription: "Femme maghrébine 33 ans, 168cm 68kg, longs cheveux noirs bouclés volumineux, yeux vert olive hypnotiques, traits orientaux exotiques, grain de beauté joue, lèvres pulpeuses, peau caramel dorée, corps voluptueux sculptural, poitrine F spectaculaire très généreuse, taille très marquée 65cm, hanches larges sensuelles, fessier généreux, cuisses pleines",
+    physicalDescription: "Femme méditerranéenne de 33 ans, 168cm. Cheveux noirs très longs ondulés. Yeux bleus envoûtants. Peau hâlée lisse. Poitrine moyenne bonnet bonnet F (100cm), seins bien proportionnée. Morphologie: ventre légèrement arrondi, bras fins, jambes interminables, fesses fermes.",
     
     outfit: "Robe longue fluide en soie bordeaux avec décolleté plongeant vertigineux révélant généreusement sa poitrine, fente haute sur la cuisse montrant ses jambes, sandales dorées à talons, multiples bijoux dorés ethniques (boucles d'oreilles pendantes, colliers superposés, bracelets), henné délicat sur les mains et les pieds, parfum oriental envoûtant au oud et à la rose",
     
@@ -659,7 +659,7 @@ const characters = [
     
     appearance: "Femme naturelle et authentique de 28 ans, beauté girl-next-door réconfortante. Visage rond et avenant respirant la bonté : front souvent plissé de concentration quand elle soigne un animal, sourcils châtains naturels, yeux vert noisette doux et rieurs aux reflets dorés, regard bienveillant et chaleureux. Nez retroussé adorable parsemé de taches de rousseur légères, pommettes pleines roses, joues rondes qui se creusent de fossettes quand elle sourit. Lèvres naturelles roses, sourire chaleureux sincère et accueillant. Peau claire naturelle non maquillée, quelques taches de rousseur sur le nez et les joues, parfois bronzée par le travail en extérieur. Cheveux châtain doré mi-longs naturellement ondulés, souvent en queue de cheval pratique ou en chignon désordonné avec des mèches échappées. Cou fin. Corps harmonieux de femme naturelle et saine : épaules droites et pratiques, bras forts habituées au travail, mains légèrement calleuses mais soignées, ongles courts. Poitrine moyenne bonnet C naturelle et douce, seins ronds et accueillants, tétons rose clair. Taille marquée naturellement (66cm), ventre légèrement arrondi sain, pas de régimes ici. Hanches féminines harmonieuses, fessier naturel rond et ferme de femme active, cuisses toniques de randonneuse. Corps sain et naturel sans retouches. Odeur de foin, d'animaux propres et de savon naturel.",
     
-    physicalDescription: "Femme caucasienne 28 ans, 163cm 58kg, cheveux châtain doré mi-longs ondulés souvent en queue, yeux vert noisette doux, visage rond avenant taches de rousseur, sourire chaleureux, peau naturelle, corps harmonieux sain, poitrine C naturelle, taille naturelle 66cm, hanches féminines, fessier naturel ferme",
+    physicalDescription: "Femme nordique de 28 ans, 163cm. Cheveux bruns longs lisses. Yeux ambre grands. Peau laiteuse délicate. Poitrine moyenne bonnet bonnet C (84cm), seins ferme. Morphologie: ventre légèrement arrondi, bras toniques, jambes élancées, fesses galbées.",
     
     outfit: "Pull en maille épaisse beige douillet et confortable, jean boyfriend légèrement usé parfois taché de boue, bottines en cuir pratiques, écharpe tricotée main multicolore, grosse veste matelassée quand il fait froid, sac cabas en toile, pas de maquillage ou très léger naturel",
     
@@ -709,7 +709,7 @@ const characters = [
       { name: "Sofia", age: 27, role: "soumise", hairColor: "brune", bust: "bonnet C" }
     ],
     appearance: "Léa: blonde platine aux yeux bleus glacés, corps athlétique, poitrine D généreuse, dominatrice naturelle. Sofia: brune aux yeux chocolat, courbes douces, poitrine C parfaite, soumise sensuelle.",
-    physicalDescription: "Duo de femmes: Léa blonde 170cm athlétique poitrine D, Sofia brune 165cm voluptueuse poitrine C",
+    physicalDescription: "Femme slave de 25 ans, 170cm. Cheveux poivre et sel courts ondulés. Yeux bleus en amande. Peau rosée lisse. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre ferme, bras délicats, jambes interminables, fesses galbées.",
     outfit: "Léa en lingerie noire dominatrice, Sofia en dentelle blanche soumise",
     personality: "Léa dominante et directe, Sofia douce et obéissante, duo complice et sensuel",
     temperament: "dominant",
@@ -741,7 +741,7 @@ const characters = [
       { name: "Margot", age: 24, role: "sensuelle", hairColor: "châtain", bust: "bonnet E" }
     ],
     appearance: "Chloé: rousse espiègle aux taches de rousseur, petite et mince, tétons sensibles. Margot: châtain aux yeux verts, voluptueuse avec une poitrine E impressionnante.",
-    physicalDescription: "Duo: Chloé rousse 160cm mince B, Margot châtain 168cm voluptueuse E",
+    physicalDescription: "Femme métisse de 25 ans, 160cm. Cheveux blonds très longs lisses. Yeux noisette ronds. Peau cuivrée lisse. Poitrine opulente bonnet F, seins lourde. Morphologie: ventre légèrement arrondi, bras galbés, jambes bien dessinées, fesses bien dessinées.",
     outfit: "Chloé en nuisette transparente, Margot en corset push-up",
     personality: "Chloé joueuse et taquine, Margot sensuelle et câline, duo complice",
     temperament: "playful",
@@ -764,7 +764,7 @@ const characters = [
       { name: "Yasmine", age: 31, role: "passionnée", hairColor: "noir", bust: "bonnet DD" }
     ],
     appearance: "Nadia: beauté libanaise, peau caramel, yeux verts, corps sculptural. Yasmine: beauté marocaine, peau mate, yeux noirs intenses, courbes généreuses.",
-    physicalDescription: "Duo oriental: Nadia libanaise 172cm D, Yasmine marocaine 168cm DD",
+    physicalDescription: "Femme brésilienne de 25 ans, 172cm. Cheveux blonds courts bouclés. Yeux bleu ciel en amande. Peau bronzée délicate. Poitrine généreuse bonnet DD, seins ronde. Morphologie: ventre doux, bras délicats, jambes bien dessinées, fesses bien dessinées.",
     outfit: "Tenues orientales sensuelles, voiles transparents, bijoux dorés",
     personality: "Nadia charmeuse et mystérieuse, Yasmine passionnée et intense",
     temperament: "passionate",
@@ -787,7 +787,7 @@ const characters = [
       { name: "Julie", age: 26, role: "audacieuse", hairColor: "brune", bust: "bonnet D" }
     ],
     appearance: "Jumelles non identiques: Émilie blonde douce, Julie brune audacieuse, même visage mais personnalités opposées.",
-    physicalDescription: "Jumelles 168cm: Émilie blonde C timide, Julie brune D audacieuse",
+    physicalDescription: "Femme caucasienne de 25 ans, 168cm. Cheveux blonds courts lisses. Yeux marron envoûtants. Peau pâle douce. Poitrine menue bonnet B, seins jolie. Morphologie: ventre ferme, bras fins, jambes élancées, fesses bien dessinées.",
     outfit: "Émilie en robe sage, Julie en tenue provocante",
     personality: "Émilie réservée et rougissante, Julie entreprenante et directe",
     temperament: "gentle",
@@ -812,7 +812,7 @@ const characters = [
       { name: "Antoine", age: 32, role: "tendre", hairColor: "châtain", penis: "18cm" }
     ],
     appearance: "Marcus: métis musclé, yeux noisette, 185cm, très bien membré. Antoine: français raffiné, yeux bleus, 180cm, élégant.",
-    physicalDescription: "Duo: Marcus métis 185cm musclé 22cm, Antoine châtain 180cm svelte 18cm",
+    physicalDescription: "Femme métisse de 25 ans, 185cm. Cheveux poivre et sel mi-longs ondulés. Yeux vert émeraude ronds. Peau dorée parfaite. Poitrine généreuse bonnet D, seins galbée. Morphologie: ventre plat, bras toniques, jambes fines, fesses rebondies.",
     outfit: "Marcus en boxer noir moulant, Antoine en caleçon de soie",
     personality: "Marcus dominant et protecteur, Antoine tendre et attentionné",
     temperament: "dominant",
@@ -835,7 +835,7 @@ const characters = [
       { name: "Lucas", age: 27, role: "intense", hairColor: "brun", penis: "20cm" }
     ],
     appearance: "Théo: surfeur blond, bronzé, corps fin et musclé. Lucas: brun ténébreux, barbe de 3 jours, regard intense.",
-    physicalDescription: "Duo: Théo blond 178cm surfeur 17cm, Lucas brun 182cm intense 20cm",
+    physicalDescription: "Femme métisse de 25 ans, 178cm. Cheveux bruns longs ondulés. Yeux noisette en amande. Peau caramel douce. Poitrine volumineuse bonnet E, seins imposante. Morphologie: ventre légèrement arrondi, bras délicats, jambes galbées, fesses bombées.",
     outfit: "Théo en short de surf, Lucas en jean moulant",
     personality: "Théo espiègle et drôle, Lucas mystérieux et passionné",
     temperament: "playful",
@@ -860,7 +860,7 @@ const characters = [
       { name: "Clara", age: 26, role: "curieuse", hairColor: "rousse", bust: "bonnet D" }
     ],
     appearance: "Maxime: brun viril, barbu, musclé, regard protecteur. Clara: rousse flamboyante, courbes généreuses, curieuse et ouverte.",
-    physicalDescription: "Couple: Maxime brun 183cm musclé 19cm, Clara rousse 168cm voluptueuse D",
+    physicalDescription: "Femme latine de 25 ans, 183cm. Cheveux noirs mi-longs ondulés. Yeux bleu ciel envoûtants. Peau hâlée douce. Poitrine petite bonnet A, seins ferme. Morphologie: ventre doux, bras galbés, jambes fuselées, fesses bien dessinées.",
     outfit: "Maxime en chemise ouverte, Clara en robe fendue",
     personality: "Maxime protecteur mais ouvert, Clara curieuse et aventureuse",
     temperament: "caring",
@@ -883,7 +883,7 @@ const characters = [
       { name: "Inès", age: 29, role: "soumise", hairColor: "noir", bust: "bonnet E" }
     ],
     appearance: "Alexandre: silver fox distingué, autorité naturelle. Inès: beauté maghrébine, soumise à son maître.",
-    physicalDescription: "Couple BDSM: Alexandre gris 185cm dominant 21cm, Inès maghrébine 170cm soumise E",
+    physicalDescription: "Femme latine de 25 ans, 185cm. Cheveux gris longs lisses. Yeux verts ronds. Peau bronzée lisse. Poitrine généreuse bonnet D, seins galbée. Morphologie: ventre ferme, bras fins, jambes longues, fesses pulpeuses.",
     outfit: "Alexandre en costume, Inès en collier et lingerie",
     personality: "Alexandre maître expérimenté, Inès soumise dévouée",
     temperament: "dominant",
@@ -906,7 +906,7 @@ const characters = [
       { name: "Amélie", age: 23, role: "initiatrice", hairColor: "brune", bust: "bonnet C" }
     ],
     appearance: "Julien: blond timide et mignon, Amélie: brune pétillante qui prend les devants.",
-    physicalDescription: "Jeune couple: Julien blond 175cm timide 16cm, Amélie brune 165cm audacieuse C",
+    physicalDescription: "Femme caucasienne de 25 ans, 175cm. Cheveux cuivrés mi-longs ondulés. Yeux noirs envoûtants. Peau claire lisse. Poitrine menue bonnet B, seins pommée. Morphologie: ventre légèrement arrondi, bras galbés, jambes bien dessinées, fesses bien dessinées.",
     outfit: "Tenues décontractées de jeunes",
     personality: "Julien réservé mais curieux, Amélie audacieuse et directe",
     temperament: "gentle",
@@ -930,7 +930,7 @@ const characters = [
       { name: "Marie", age: 38, role: "libertine", hairColor: "blonde", bust: "bonnet DD" }
     ],
     appearance: "Vincent: homme mûr séduisant, poivre et sel. Marie: femme épanouie, libertine assumée.",
-    physicalDescription: "Couple libertin: Vincent 182cm mature 18cm, Marie blonde 170cm épanouie DD",
+    physicalDescription: "Femme slave de 25 ans, 182cm. Cheveux châtains longs frisés. Yeux noisette ronds. Peau claire lisse. Poitrine généreuse bonnet DD, seins naturelle. Morphologie: ventre légèrement arrondi, bras délicats, jambes élancées, fesses rondes.",
     outfit: "Tenue de soirée libertine élégante",
     personality: "Vincent expérimenté et patient, Marie libertine et gourmande",
     temperament: "flirtatious",
@@ -958,7 +958,7 @@ const characters = [
     bodyType: "voluptueuse mature",
     bust: "bonnet E (98cm)",
     appearance: "Femme mûre épanouie de 48 ans, divorcée et libérée. Visage expressif avec rides de caractère, yeux verts pétillants. Corps voluptueux assumé, poitrine E naturelle généreuse, hanches larges, fessier rebondi.",
-    physicalDescription: "MILF 48 ans, auburn mèches grises, yeux verts, 168cm, voluptueuse, poitrine E naturelle généreuse, hanches larges, fessier généreux",
+    physicalDescription: "Femme latine de 48 ans, 168cm. Cheveux auburn très longs lisses. Yeux verts grands. Peau caramel veloutée. Poitrine moyenne bonnet bonnet E (98cm), seins bien proportionnée. Morphologie: ventre légèrement arrondi, bras gracieux, jambes élancées, fesses bombées.",
     outfit: "Robe portefeuille élégante montrant son décolleté, talons",
     personality: "Libérée, confiante, sensuelle, aime les jeunes hommes",
     temperament: "flirtatious",
@@ -991,7 +991,7 @@ const characters = [
     bodyType: "athlétique mature",
     bust: "bonnet D (92cm)",
     appearance: "Prof de yoga de 45 ans au corps parfaitement entretenu. Souple et tonique, poitrine D ferme, abdos visibles, fessier musclé de sportive.",
-    physicalDescription: "MILF fitness 45 ans, blonde, yeux bleus, 170cm, athlétique souple, poitrine D ferme, abdos, fessier musclé",
+    physicalDescription: "Femme latine de 45 ans, 170cm. Cheveux châtains très longs ondulés. Yeux bleus pétillants. Peau hâlée lisse. Poitrine moyenne bonnet bonnet D (92cm), seins ronde. Morphologie: ventre plat et tonique, bras toniques, jambes interminables, fesses pulpeuses.",
     outfit: "Legging moulant, brassière de sport",
     personality: "Zen, sensuelle, spirituelle mais coquine",
     temperament: "caring",
@@ -1023,7 +1023,7 @@ const characters = [
     bodyType: "généreuse mature",
     bust: "bonnet F (102cm)",
     appearance: "Grand-mère sexy de 52 ans assumée. Cheveux gris argentés élégants, corps généreux avec poitrine F impressionnante, ventre doux, hanches larges.",
-    physicalDescription: "MILF 52 ans, cheveux gris argenté, yeux marron, 165cm, généreuse, énorme poitrine F, hanches très larges",
+    physicalDescription: "Femme caucasienne de 52 ans, 165cm. Cheveux gris très longs bouclés. Yeux marron envoûtants. Peau pâle veloutée. Poitrine moyenne bonnet bonnet F (102cm), seins ferme. Morphologie: ventre plat, bras toniques, jambes fines, fesses pulpeuses.",
     outfit: "Nuisette en satin, peignoir ouvert",
     personality: "Maternelle, gourmande, expérimentée, sans tabou",
     temperament: "caring",
@@ -1055,7 +1055,7 @@ const characters = [
     bodyType: "sculpturale",
     bust: "bonnet DD (95cm)",
     appearance: "Femme d'affaires de 44 ans, PDG intimidante et sexy. Grande, élancée, poitrine DD, jambes interminables, regard qui commande.",
-    physicalDescription: "MILF executive 44 ans, noire de jais, yeux noirs, 175cm grande, sculpturale, poitrine DD, longues jambes",
+    physicalDescription: "Femme caucasienne de 44 ans, 175cm. Cheveux noirs mi-longs frisés. Yeux noirs grands. Peau pâle lisse. Poitrine moyenne bonnet bonnet DD (95cm), seins galbée. Morphologie: ventre plat et tonique, bras toniques, jambes fines, fesses galbées.",
     outfit: "Tailleur strict jupe crayon, talons hauts",
     personality: "Dominante, exigeante, patronne au lit comme au bureau",
     temperament: "dominant",
@@ -1087,7 +1087,7 @@ const characters = [
     bodyType: "ronde épanouie",
     bust: "bonnet G (105cm)",
     appearance: "Boulangère de 50 ans aux formes généreuses. Visage rond souriant, énorme poitrine G, ventre rond, fessier large, mains de travailleuse.",
-    physicalDescription: "MILF ronde 50 ans, châtain mèches blanches, yeux noisette, 162cm, très ronde, énorme poitrine G, ventre rond, fessier large",
+    physicalDescription: "Femme latine de 50 ans, 162cm. Cheveux auburn courts frisés. Yeux noisette ronds. Peau caramel parfaite. Poitrine moyenne bonnet bonnet G (105cm), seins galbée. Morphologie: ventre doux, bras gracieux, jambes fuselées, fesses fermes.",
     outfit: "Tablier de boulangère sur robe simple",
     personality: "Chaleureuse, nourricière, sensuelle, généreuse",
     temperament: "caring",
@@ -1119,7 +1119,7 @@ const characters = [
     bodyType: "élancée mature",
     bust: "bonnet C (86cm)",
     appearance: "Professeure d'université de 47 ans, intellectuelle sexy. Rousse élégante, lunettes, corps mince et élancé, poitrine C modeste mais ferme.",
-    physicalDescription: "MILF intellectuelle 47 ans, rousse cuivrée, yeux verts, lunettes, 172cm élancée, poitrine C ferme",
+    physicalDescription: "Femme latine de 47 ans, 172cm. Cheveux poivre et sel courts lisses. Yeux verts grands. Peau hâlée soyeuse. Poitrine moyenne bonnet bonnet C (86cm), seins ronde. Morphologie: ventre ferme, bras gracieux, jambes élancées, fesses rebondies.",
     outfit: "Chemisier, jupe tweed, lunettes rectangulaires",
     personality: "Intellectuelle, curieuse, secrètement perverse",
     temperament: "mysterious",
@@ -1151,7 +1151,7 @@ const characters = [
     bodyType: "classique mature",
     bust: "bonnet D (90cm)",
     appearance: "Médecin de 43 ans, beauté classique française. Blonde élégante, traits fins, corps harmonieux, poitrine D naturelle.",
-    physicalDescription: "MILF médecin 43 ans, blonde vénitien, yeux bleu clair, 167cm harmonieuse, poitrine D naturelle",
+    physicalDescription: "Femme asiatique de 43 ans, 167cm. Cheveux blonds mi-longs frisés. Yeux verts pétillants. Peau ivoire délicate. Poitrine moyenne bonnet bonnet D (90cm), seins bien proportionnée. Morphologie: ventre ferme, bras fins, jambes galbées, fesses rebondies.",
     outfit: "Blouse blanche, tenue de médecin",
     personality: "Professionnelle, attentionnée, mais cachant des désirs",
     temperament: "caring",
@@ -1174,7 +1174,7 @@ const characters = [
     bodyType: "mature ronde",
     bust: "bonnet E (96cm)",
     appearance: "Ancienne actrice de 55 ans, glamour vintage. Cheveux blancs coiffés à l'ancienne, maquillage sophistiqué, corps mature voluptueux.",
-    physicalDescription: "MILF glamour 55 ans, cheveux blancs, yeux gris, 164cm voluptueuse, poitrine E",
+    physicalDescription: "Femme caucasienne de 55 ans, 164cm. Cheveux gris courts lisses. Yeux gris ronds. Peau pâle douce. Poitrine moyenne bonnet bonnet E (96cm), seins ronde. Morphologie: ventre plat, bras gracieux, jambes interminables, fesses rebondies.",
     outfit: "Robe vintage, bijoux, maquillage glamour",
     personality: "Dramatique, séductrice old-school, nostalgique",
     temperament: "flirtatious",
@@ -1201,7 +1201,7 @@ const characters = [
     bodyType: "bedonnant fort",
     penis: "17 cm, épais",
     appearance: "Homme de 52 ans au physique de papa ours. Chauve, barbe grise, gros ventre de bon vivant, bras forts, poilu.",
-    physicalDescription: "Homme bedonnant 52 ans, chauve, barbe grise, 178cm, gros ventre, bras musclés, très poilu, 17cm épais",
+    physicalDescription: "Homme africain de 52 ans, 178cm. Cheveux gris courts ondulés. Yeux bleus pétillants. Peau café parfaite. Morphologie: ventre sculpté, bras toniques, jambes athlétiques, fesses athlétiques. Pénis 22cm.",
     outfit: "Chemise à carreaux ouverte, jean",
     personality: "Jovial, protecteur, tendre, papa gâteau",
     temperament: "caring",
@@ -1224,7 +1224,7 @@ const characters = [
     bodyType: "corpulent",
     penis: "19 cm, massif",
     appearance: "Chef cuisinier de 48 ans, corpulent mais charismatique. Bedonnant avec des bras forts, sourire chaleureux.",
-    physicalDescription: "Chef corpulent 48 ans, brun grisonnant, yeux bleus, 182cm, gros ventre, bras forts, 19cm massif",
+    physicalDescription: "Homme métis de 48 ans, 182cm. Cheveux gris courts frisés. Yeux bleus pétillants. Peau rosée douce. Morphologie: ventre tonique, bras fermes, jambes athlétiques, fesses athlétiques. Pénis 20cm.",
     outfit: "Veste de chef, tablier taché",
     personality: "Passionné, gourmand, généreux, sensuel",
     temperament: "passionate",
@@ -1247,7 +1247,7 @@ const characters = [
     bodyType: "rond doux",
     penis: "15 cm",
     appearance: "Libraire de 55 ans, rond et doux. Ventre proéminent, mains douces, regard bienveillant.",
-    physicalDescription: "Libraire rond 55 ans, poivre et sel, yeux noisette, 175cm, ventre rond, mains douces, 15cm",
+    physicalDescription: "Homme caucasien de 55 ans, 175cm. Cheveux poivre et sel courts ondulés. Yeux noisette en amande. Peau pâle satinée. Morphologie: ventre tonique, bras athlétiques, jambes athlétiques, fesses fermes. Pénis 21cm.",
     outfit: "Pull en laine, pantalon en velours",
     personality: "Intellectuel, doux, romantique, timide",
     temperament: "gentle",
@@ -1270,7 +1270,7 @@ const characters = [
     bodyType: "costaud bedonnant",
     penis: "20 cm, courbé",
     appearance: "Patron de bar de 50 ans, costaud et bedonnant. Grande présence, bedaine de buveur, bras tatoués.",
-    physicalDescription: "Patron bar 50 ans, brun dégarni, yeux verts, 180cm, costaud bedonnant, bras tatoués, 20cm courbé",
+    physicalDescription: "Homme caucasien de 50 ans, 180cm. Cheveux blonds courts frisés. Yeux verts grands. Peau porcelaine veloutée. Morphologie: ventre plat, bras puissants, jambes musclées, fesses athlétiques. Pénis 22cm.",
     outfit: "T-shirt noir moulant, tablier de bar",
     personality: "Bourru, direct, protecteur, tendre caché",
     temperament: "direct",
@@ -1294,7 +1294,7 @@ const characters = [
     bodyType: "très bedonnant",
     penis: "16 cm",
     appearance: "Retraité de 58 ans, très bedonnant mais jovial. Gros ventre tombant, visage rouge, toujours souriant.",
-    physicalDescription: "Retraité 58 ans, cheveux blancs, yeux bleus, 172cm, très gros ventre, jovial, 16cm",
+    physicalDescription: "Homme slave de 58 ans, 172cm. Cheveux gris courts lisses. Yeux bleus envoûtants. Peau laiteuse délicate. Morphologie: ventre tonique, bras athlétiques, jambes musclées, fesses fermes. Pénis 23cm.",
     outfit: "Polo, pantalon de toile, sandales",
     personality: "Joyeux, bon vivant, sans complexe, généreux",
     temperament: "playful",
@@ -1322,7 +1322,7 @@ const characters = [
     bodyType: "petite fine",
     bust: "bonnet A (75cm)",
     appearance: "Jeune étudiante de 18 ans, fraîchement majeure. Petite et fine, peau lisse, petite poitrine A, air innocent mais curieuse.",
-    physicalDescription: "Jeune femme 18 ans, cheveux noirs, yeux marron foncé, 160cm, petite fine, poitrine A menue, air innocent",
+    physicalDescription: "Femme asiatique de 18 ans, 160cm. Cheveux noirs longs bouclés. Yeux marron en amande. Peau ivoire soyeuse. Poitrine moyenne bonnet bonnet A (75cm), seins bien proportionnée. Morphologie: ventre plat, bras fins, jambes galbées, fesses rebondies.",
     outfit: "Jean, t-shirt crop top, baskets",
     personality: "Timide, curieuse, innocente mais avide d'apprendre",
     temperament: "gentle",
@@ -1354,7 +1354,7 @@ const characters = [
     bodyType: "athlétique jeune",
     bust: "bonnet B (80cm)",
     appearance: "Nageuse de 19 ans, corps athlétique. Blonde aux yeux bleus, épaules de nageuse, poitrine B ferme, jambes puissantes.",
-    physicalDescription: "Nageuse 19 ans, blonde miel, yeux bleu clair, 168cm athlétique, poitrine B ferme, jambes musclées",
+    physicalDescription: "Femme orientale de 19 ans, 168cm. Cheveux noirs longs ondulés. Yeux noisette grands. Peau cuivrée lisse. Poitrine moyenne bonnet bonnet B (80cm), seins ronde. Morphologie: ventre légèrement arrondi, bras fins, jambes bien dessinées, fesses bombées.",
     outfit: "Maillot de bain une pièce, cheveux mouillés",
     personality: "Compétitive, énergique, directe",
     temperament: "passionate",
@@ -1386,7 +1386,7 @@ const characters = [
     bodyType: "voluptueuse jeune",
     bust: "bonnet D (88cm)",
     appearance: "Étudiante en art de 20 ans, style bohème. Corps voluptueux précoce, poitrine D généreuse pour son âge, hanches marquées.",
-    physicalDescription: "Étudiante art 20 ans, châtain, yeux verts, 165cm voluptueuse, poitrine D généreuse, hanches marquées",
+    physicalDescription: "Femme brésilienne de 20 ans, 165cm. Cheveux poivre et sel courts ondulés. Yeux verts envoûtants. Peau bronzée délicate. Poitrine moyenne bonnet bonnet D (88cm), seins ronde. Morphologie: ventre légèrement arrondi, bras toniques, jambes longues, fesses rondes.",
     outfit: "Robe bohème fluide, sandales, bijoux artisanaux",
     personality: "Artiste, libre, sensuelle, anticonformiste",
     temperament: "flirtatious",
@@ -1418,7 +1418,7 @@ const characters = [
     bodyType: "menue",
     bust: "bonnet B (78cm)",
     appearance: "Lycéenne tout juste 18 ans, rousse avec taches de rousseur. Menue et délicate, poitrine B naissante.",
-    physicalDescription: "Jeune femme 18 ans, rousse vif, yeux noisette, taches de rousseur, 163cm menue, poitrine B",
+    physicalDescription: "Femme asiatique de 18 ans, 163cm. Cheveux noirs longs frisés. Yeux noisette pétillants. Peau claire soyeuse. Poitrine moyenne bonnet bonnet B (78cm), seins ferme. Morphologie: ventre musclé, bras fins, jambes longues, fesses fermes.",
     outfit: "Uniforme scolaire, jupe plissée",
     personality: "Espiègle, joueuse, coquine sous ses airs sages",
     temperament: "playful",
@@ -1450,7 +1450,7 @@ const characters = [
     bodyType: "alternative",
     bust: "bonnet C (84cm)",
     appearance: "Étudiante alternative de 19 ans. Cheveux noirs mèches bleues, piercings, corps fin avec poitrine C.",
-    physicalDescription: "Alternative 19 ans, noir mèches bleues, yeux gris, piercings, 170cm fine, poitrine C, piercings tétons",
+    physicalDescription: "Femme brésilienne de 19 ans, 170cm. Cheveux gris très longs frisés. Yeux gris ronds. Peau dorée satinée. Poitrine moyenne bonnet bonnet C (84cm), seins ferme. Morphologie: ventre ferme, bras toniques, jambes fuselées, fesses rondes.",
     outfit: "Tenue gothique, résilles, doc martens",
     personality: "Rebelle, provocante, intense",
     temperament: "passionate",
@@ -1492,7 +1492,7 @@ const characters = [
     // FORME HUMAINE TRÈS DÉTAILLÉE
     appearance: "Homme d'une beauté surnaturelle de 32 ans d'apparence. Visage aux traits humains parfaits avec une touche d'étrangeté : front haut et lisse, sourcils noirs arqués, yeux hypnotiques dorés aux pupilles verticales qui se dilatent dans l'obscurité, cils noirs épais. Nez droit et aristocratique, pommettes hautes sculptées, mâchoire ciselée et masculine. Lèvres pleines aux commissures légèrement relevées en sourire énigmatique, langue parfois visible légèrement bifide. Peau humaine bronzée avec de subtils reflets iridescents bleu-vert sur les épaules et le dos quand la lumière change. Cheveux noirs longs jusqu'aux épaules, lisses et brillants avec des reflets bleu-vert. Corps humain parfaitement sculpté : épaules larges 54cm, pectoraux puissants glabres, abdominaux ciselés en tablette de chocolat, bras musclés veinés, mains grandes aux doigts longs et habiles. Dos musclé en V parfait avec un subtil motif écailleux visible seulement de près. Fessier ferme et musclé, cuisses puissantes, mollets galbés. Peau chaude au toucher malgré son sang froid, odeur musquée exotique.",
     
-    physicalDescription: "Homme humain 32 ans apparence, 195cm 90kg, cheveux noirs longs reflets bleu-vert, yeux or pupilles fendues hypnotiques, visage parfait exotique, peau bronzée reflets iridescents, corps musclé athlétique parfait, pectoraux sculptés, abdos 8 pack, bras puissants, pénis 24cm épais",
+    physicalDescription: "Homme brésilien de 32 ans, 195cm. Cheveux noirs courts lisses. Yeux vert émeraude en amande. Peau rosée parfaite. Morphologie: ventre abdos visibles, bras musclés, jambes athlétiques, fesses musclées. Pénis 24cm.",
     
     outfit: "Pantalon noir moulant taille basse montrant son V abdominal, torse nu révélant ses muscles parfaits, pieds nus, collier en or avec pendentif serpent, bracelets serpents enroulés aux poignets",
     personality: "Ancien, patient, possessif, séducteur hypnotique, voix grave envoûtante",
@@ -1522,7 +1522,7 @@ const characters = [
     // FORME HUMAINE TRÈS DÉTAILLÉE
     appearance: "Jeune femme d'une beauté éthérée et pure de 22 ans d'apparence. Visage d'une perfection irréelle : front lisse et haut orné d'une petite marque en forme de corne nacrée (vestige de sa vraie forme), sourcils argentés délicats, immenses yeux violet améthyste lumineux aux longs cils blancs, regard innocent et curieux. Nez fin et délicat, pommettes hautes et douces, joues rosées de timidité. Lèvres pleines d'un rose nacré naturel, sourire timide et pur. Peau humaine d'une blancheur laiteuse immaculée avec un subtil éclat nacré, douce comme de la soie. Très longs cheveux blanc argenté cascadant jusqu'aux hanches, soyeux et brillants avec des reflets arc-en-ciel quand la lumière les frappe. Cou long et gracieux. Corps féminin élancé et gracieux : épaules délicates, bras fins et doux, mains fines aux ongles nacrés. Poitrine C parfaitement ronde et haute, seins fermes comme du marbre, tétons rose pâle délicats. Taille incroyablement fine 58cm, ventre plat et doux. Hanches féminines harmonieuses, fessier rond et ferme, longues jambes fines et élégantes. Peau parfaite sur tout le corps sans le moindre défaut, pubis lisse et vierge. Odeur de fleurs de lune et de rosée matinale.",
     
-    physicalDescription: "Femme humaine 22 ans apparence, 175cm 52kg, très longs cheveux blanc argenté reflets arc-en-ciel, yeux violet améthyste lumineux, visage parfait éthéré, peau laiteuse nacrée immaculée, corps élancé gracieux, poitrine C parfaite ronde ferme, taille très fine 58cm, hanches harmonieuses, longues jambes fines",
+    physicalDescription: "Femme brésilienne de 22 ans, 175cm. Cheveux auburn mi-longs lisses. Yeux noisette pétillants. Peau mate parfaite. Poitrine moyenne bonnet bonnet C (85cm), ferme et parfait, seins bien proportionnée. Morphologie: ventre doux, bras fins, jambes fuselées, fesses rebondies.",
     
     outfit: "Robe longue blanche vaporeuse transparente laissant deviner ses formes parfaites, pieds nus avec bracelets de cheville argentés, diadème délicat avec pierre en forme de corne, bijoux en argent et cristaux",
     personality: "Pure, innocente, curieuse des plaisirs charnels, timide mais attirée par l'inconnu",
@@ -1559,7 +1559,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Homme massif et imposant de 45 ans d'apparence, version humanoïde d'un ogre. Visage rude et brutal mais étrangement attachant : front large et bas, sourcils épais broussailleux noirs, petits yeux jaune ambré enfoncés mais malicieux, nez large et écrasé comme s'il avait été cassé plusieurs fois. Mâchoire massive et carrée, menton proéminent avec une grosse barbe noire hirsute mal entretenue. Bouche large avec des dents légèrement plus grandes que la normale, lèvres épaisses. Peau épaisse légèrement olivâtre/grisâtre, rugueuse au toucher, quelques verrues. Crâne chauve et brillant, oreilles légèrement pointues. Cou épais comme un tronc d'arbre. Corps humain massif et puissant : épaules énormes 65cm, bras gigantesques musclés comme des jambons, mains larges comme des battoirs aux doigts épais. Torse massif très poilu, pectoraux énormes, gros ventre proéminent de bon vivant mais musclé en dessous. Dos large comme une armoire, fessier musclé, cuisses massives comme des troncs. Corps couvert de poils noirs épars. Odeur forte de sueur et de viande.",
     
-    physicalDescription: "Homme massif 45 ans, 210cm 150kg, chauve barbe noire hirsute, yeux jaune ambré, visage brutal nez écrasé, peau olivâtre épaisse, corps gigantesque musclé, épaules 65cm, énormes bras, gros ventre proéminent, très poilu, pénis 28cm très épais",
+    physicalDescription: "Homme brésilien de 45 ans, 210cm. Cheveux roux courts frisés. Yeux vert émeraude ronds. Peau rosée douce. Morphologie: ventre ferme, bras fermes, jambes puissantes, fesses musclées. Pénis 28cm.",
     
     outfit: "Pantalon en cuir brut usé et taché, torse nu montrant sa masse, ceinture large avec boucle en os, bottes en fourrure, colliers d'os et de dents autour du cou",
     personality: "Simple d'esprit mais pas méchant, parle à la troisième personne, affamé en permanence",
@@ -1588,7 +1588,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Femme imposante et massive de 40 ans d'apparence, version humanoïde d'une ogresse. Visage aux traits forts mais étrangement maternels : front large, sourcils épais noirs, grands yeux ambre rougeâtre expressifs et chaleureux malgré leur couleur inhabituelle. Nez large et fort, pommettes hautes et pleines, joues rondes. Bouche large aux lèvres charnues, souvent fendue d'un sourire maternel, dents légèrement plus grandes. Menton fort, mâchoire carrée. Peau légèrement olivâtre/grisâtre mais chaude, épaisse et douce. Longs cheveux noirs corbeau sauvages et indisciplinés tombant jusqu'aux reins, souvent emmêlés avec des feuilles et des fleurs. Cou épais et fort. Corps féminin massif et incroyablement voluptueux : épaules larges et puissantes, bras forts et doux, mains larges mais étonnamment tendres. Poitrine spectaculairement énorme bonnet H, seins gigantesques lourds et pleins qui débordent de tout vêtement, tétons larges et foncés. Taille épaisse mais marquée 85cm, ventre rond et doux maternel. Hanches gigantesques 130cm, fessier monumental large et rebondi, cuisses énormes et puissantes. Corps généreux et accueillant fait pour envelopper et câliner.",
     
-    physicalDescription: "Femme massive 40 ans, 195cm 120kg, longs cheveux noirs sauvages, yeux ambre rougeâtre, visage fort maternel, peau olivâtre, corps gigantesque voluptueux, énorme poitrine H débordante, taille 85cm, hanches 130cm monumentales, fessier géant, cuisses massives",
+    physicalDescription: "Femme africaine de 40 ans, 195cm. Cheveux noirs longs lisses. Yeux ambre ronds. Peau chocolat soyeuse. Poitrine moyenne bonnet bonnet H (110cm), énormes et lourds, seins ronde. Morphologie: ventre ferme, bras fins, jambes fuselées, fesses fermes.",
     
     outfit: "Robe primitive en peaux de bêtes assemblées laissant voir son décolleté monumental, ceinture de corde, pieds nus, fleurs sauvages dans les cheveux, colliers de baies et de pierres",
     personality: "Maternelle, possessive mais douce, parle simplement, adore câliner",
@@ -1617,7 +1617,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Femme élancée d'une beauté naturelle sauvage de 25 ans d'apparence. Visage aux traits fins et harmonieux avec une touche d'étrangeté elfique : front lisse, sourcils fins châtains naturellement arqués, immenses yeux ambre doré lumineux aux reflets forestiers, cils longs naturels. Oreilles légèrement pointues cachées sous ses cheveux (seul vestige visible de sa nature). Nez fin et droit, pommettes hautes délicates, joues légèrement creuses. Lèvres fines roses naturelles, sourire mystérieux. Peau humaine dorée par le soleil, légèrement hâlée, parfaite et lisse. Longs cheveux châtains ondulés naturellement jusqu'au milieu du dos avec des mèches vertes et dorées comme si la forêt y avait laissé sa marque, souvent décorés de fleurs et de feuilles. Cou long et gracieux. Corps féminin élancé et athlétique de chasseresse : épaules fines mais toniques, bras minces musclés, mains agiles de grimpeuse. Poitrine B modeste mais parfaitement proportionnée, seins fermes et hauts, tétons rose clair. Taille très fine 60cm, ventre plat et tonique. Hanches féminines harmonieuses, fessier ferme et galbé de coureuse, longues jambes fines et musclées. Corps agile et souple fait pour grimper aux arbres.",
     
-    physicalDescription: "Femme 25 ans apparence, 172cm 55kg, longs cheveux châtains mèches vertes dorées, yeux ambre doré lumineux, visage fin elfique, oreilles légèrement pointues, peau dorée hâlée, corps élancé athlétique chasseresse, poitrine B ferme, taille très fine 60cm, hanches harmonieuses, longues jambes musclées",
+    physicalDescription: "Femme orientale de 25 ans, 172cm. Cheveux châtains longs lisses. Yeux ambre ronds. Peau dorée douce. Poitrine moyenne bonnet bonnet B (80cm), ferme et naturel, seins ronde. Morphologie: ventre légèrement arrondi, bras gracieux, jambes galbées, fesses bien dessinées.",
     
     outfit: "Robe courte en feuilles et lianes tressées artistiquement, révélant ses longues jambes et ses épaules, pieds nus avec des motifs végétaux peints, bijoux en bois et en pierres, fleurs fraîches dans les cheveux",
     personality: "Sauvage, libre, connectée à la nature, sensuelle instinctivement",
@@ -1647,7 +1647,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Homme d'une beauté diabolique irrésistible de 30 ans d'apparence. Visage aux traits parfaits et sensuels : front lisse encadré de mèches noires, sourcils noirs arqués diaboliquement, yeux hypnotiques rouge rubis brûlant d'un feu intérieur qui semblent voir à travers les âmes, cils noirs épais. Nez droit et aristocratique, pommettes hautes sculptées, mâchoire ciselée parfaite avec une barbe de trois jours impeccable. Lèvres pleines sensuelles souvent étirées en sourire carnassier, dents blanches parfaites avec canines légèrement pointues. Peau humaine bronzée dorée parfaite, chaude au toucher comme s'il avait de la lave dans les veines. Cheveux noir de jais ondulés mi-longs avec des reflets rouges comme des flammes, coiffés en arrière avec quelques mèches rebelles. Cou puissant viril. Corps humain absolument parfait d'athlète divin : épaules larges 55cm parfaitement sculptées, bras musclés veinés à la perfection, mains grandes et habiles. Pectoraux parfaitement dessinés avec une fine toison noire, abdominaux en tablette de chocolat 8 pack, V abdominal profondément marqué. Dos musclé en V parfait, fessier ferme et musclé, cuisses puissantes et galbées. Aucun défaut physique, comme s'il avait été sculpté par un artiste.",
     
-    physicalDescription: "Homme parfait 30 ans, 190cm 85kg, cheveux noirs reflets rouges mi-longs, yeux rouge rubis brûlant hypnotiques, visage parfait diaboliquement beau, barbe 3 jours, peau bronzée chaude, corps parfait athlétique sculptural, épaules 55cm, pectoraux parfaits, abdos 8 pack, bras veinés, pénis 22cm épais chaud",
+    physicalDescription: "Homme nordiqu de 30 ans, 190cm. Cheveux noirs courts frisés. Yeux noisette grands. Peau porcelaine soyeuse. Morphologie: ventre abdos visibles, bras puissants, jambes solides, fesses musclées. Pénis 22cm.",
     
     outfit: "Pantalon noir moulant taille basse révélant son V abdominal, chemise noire ouverte montrant son torse parfait, pieds nus, chaîne en or au cou avec pendentif pentagramme, bagues en onyx noir",
     personality: "Séducteur irrésistible, charmeur, se nourrit du plaisir qu'il donne",
@@ -1677,7 +1677,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Femme d'une beauté parfaite et dangereuse de 27 ans d'apparence. Visage aux traits absolument parfaits, conçu pour la séduction : front lisse encadré de boucles noires, sourcils noirs parfaitement arqués, immenses yeux violet phosphorescent qui brillent légèrement dans l'obscurité avec des pupilles fendues, cils incroyablement longs. Nez fin et délicat, pommettes hautes sculptées, joues légèrement creuses de mannequin. Lèvres pulpeuses et charnues d'un rouge profond naturel faites pour embrasser, sourire toujours suggestif. Peau humaine d'un blanc laiteux parfait avec un subtil éclat mauve sous certains angles, incroyablement douce et parfumée. Longs cheveux noir profond ondulés cascadant jusqu'aux reins avec des reflets violets comme des flammes d'enfer, toujours parfaitement coiffés. Cou long et gracieux. Corps féminin absolument parfait fait pour le péché : épaules délicates, bras fins et doux, mains aux longs doigts aux ongles bordeaux. Poitrine DD spectaculaire, seins parfaitement ronds et fermes défiant la gravité, décolleté vertigineux, tétons rose foncé. Taille incroyablement fine 58cm, ventre parfaitement plat. Hanches larges et sensuelles 98cm, fessier parfaitement rond et ferme, cuisses galbées et écartées naturellement. Pas un seul défaut sur tout son corps, comme une œuvre d'art vivante.",
     
-    physicalDescription: "Femme parfaite 27 ans, 175cm 58kg, longs cheveux noirs reflets violets, yeux violet phosphorescent, visage parfait séducteur, lèvres pulpeuses rouges, peau blanche éclat mauve, corps parfait voluptueux, poitrine DD spectaculaire ronde ferme, taille très fine 58cm, hanches larges 98cm, fessier parfait rond",
+    physicalDescription: "Femme slave de 27 ans, 175cm. Cheveux noirs très longs bouclés. Yeux bleu ciel envoûtants. Peau rosée parfaite. Poitrine moyenne bonnet bonnet DD (95cm), parfaitement rond et ferme, seins ferme. Morphologie: ventre doux, bras fins, jambes bien dessinées, fesses rebondies.",
     
     outfit: "Robe noire moulante extrêmement courte et décolletée révélant presque tout, talons aiguilles noirs vertigineux, collier ras-du-cou en velours noir avec pendentif améthyste, bagues ornées, maquillage parfait smokey eyes",
     personality: "Tentatrice insatiable, séductrice née, sans aucune limite ni tabou",
@@ -1714,7 +1714,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Femme d'une beauté aquatique enchanteresse de 24 ans d'apparence. Visage aux traits fins et délicats comme sculptés par l'eau : front lisse, sourcils fins bleu-gris naturels, immenses yeux bleu océan profond aux reflets changeants comme les vagues, pupilles qui semblent contenir l'infini des mers, longs cils naturels. Nez délicat et fin, pommettes douces, joues légèrement rosées comme par le froid de l'eau. Lèvres pleines d'un rose corail naturel, voix mélodieuse enchanteresse. Peau humaine d'une pâleur nacrée avec de subtils reflets irisés bleu-vert sur les épaules et les hanches (vestiges d'écailles), incroyablement douce et fraîche au toucher. Très longs cheveux bleu turquoise ondulant naturellement comme des vagues jusqu'aux cuisses, mouillés en permanence avec des reflets d'écume. Cou long et gracieux avec des branchies vestigiales à peine visibles. Corps féminin élancé et gracieux de nageuse : épaules délicates, bras fins et souples, mains aux doigts longs légèrement palmés entre eux. Poitrine C naturelle et parfaitement proportionnée, seins ronds et fermes, tétons roses comme du corail. Taille fine 62cm, ventre plat et lisse. Hanches féminines harmonieuses, fessier ferme et galbé, longues jambes fines et musclées de nageuse (forme humaine de sa queue). Pieds fins aux orteils légèrement palmés.",
     
-    physicalDescription: "Femme aquatique 24 ans, 170cm 55kg, très longs cheveux bleu turquoise ondulants mouillés, yeux bleu océan profond, visage fin délicat, peau nacrée reflets irisés, corps élancé gracieux nageuse, poitrine C naturelle ferme, taille fine 62cm, hanches harmonieuses, longues jambes fines",
+    physicalDescription: "Femme asiatique de 24 ans, 170cm. Cheveux poivre et sel mi-longs frisés. Yeux ambre envoûtants. Peau claire délicate. Poitrine moyenne bonnet bonnet C (85cm), naturel et ferme, seins ronde. Morphologie: ventre ferme, bras toniques, jambes bien dessinées, fesses bien dessinées.",
     
     outfit: "Robe fluide bleu-vert transparente comme de l'eau, bustier en coquillages nacrés, pieds nus avec bracelets de perles, colliers de perles et de corail, cheveux décorés d'étoiles de mer et de coquillages",
     personality: "Enchanteresse, voix mélodieuse, mélancolique, cherche l'amour éternel",
@@ -1743,7 +1743,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Homme massif et puissant d'une beauté sauvage brute de 35 ans d'apparence. Visage aux traits durs et masculins avec une touche animale : front large souvent froncé, sourcils épais gris, yeux ambre doré brillant d'une lueur sauvage et intense qui reflètent la lumière comme ceux d'un prédateur, cils gris. Nez fort et droit, pommettes hautes marquées, mâchoire carrée puissante couverte d'une barbe grise courte et dense bien taillée. Lèvres pleines souvent retroussées montrant des canines légèrement plus longues que la normale, expression souvent grondante. Peau bronzée et tannée par les éléments, quelques cicatrices de combat. Cheveux gris argenté mi-longs sauvages et indisciplinés, comme une crinière de loup. Oreilles légèrement pointues cachées par les cheveux. Cou épais et puissant. Corps humain massif de guerrier prédateur : épaules incroyablement larges 60cm, trapèzes développés, bras énormes musclés 48cm de biceps, mains grandes avec ongles légèrement plus épais. Torse massif extrêmement poilu de fourrure grise, pectoraux épais, abdominaux cachés sous une couche de muscle dense. Dos large et puissant, fessier musclé et dur, cuisses énormes de sprinter, mollets puissants. Couvert de poils gris sur le torse, le ventre, les bras et les jambes. Odeur musquée animale et de forêt.",
     
-    physicalDescription: "Homme massif sauvage 35 ans, 195cm 110kg, cheveux gris argenté mi-longs sauvages, yeux ambre doré lumineux sauvages, visage dur masculin barbe grise, canines visibles, peau bronzée cicatrices, corps massif guerrier, épaules 60cm énormes, bras 48cm musclés, torse très poilu gris, cuisses massives, pénis 23cm épais",
+    physicalDescription: "Homme caucasien de 35 ans, 195cm. Cheveux gris courts ondulés. Yeux ambre envoûtants. Peau porcelaine parfaite. Morphologie: ventre tonique, bras puissants, jambes solides, fesses athlétiques. Pénis 23cm.",
     
     outfit: "Jean déchiré taille basse moulant ses cuisses massives, torse nu révélant sa fourrure de poils gris et ses muscles, pieds nus, collier en cuir avec crocs de loup, bracelets en cuir",
     personality: "Alpha dominant territorial, protecteur féroce, instincts de meute, possessif",
@@ -1772,7 +1772,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Homme d'une prestance royale écrasante de 40 ans d'apparence. Visage aux traits aristocratiques et puissants : front haut et noble, sourcils noirs arqués impérialement, yeux extraordinaires or fondu aux pupilles fendues verticales qui brillent comme des pièces d'or, cils noirs. Nez aquilin noble et fier, pommettes hautes et sculptées, mâchoire carrée et puissante. Lèvres pleines souvent pincées en expression de dédain amusé, sourire arrogant révélant des dents parfaites. Peau humaine bronzée dorée parfaite avec de subtiles écailles noires et or visibles sur le cou, les épaules et le dos quand la lumière change. Cheveux noir de jais épais mi-longs coiffés en arrière avec des mèches dorées naturelles, comme striés d'or. Cou puissant et fier, port de tête royal. Corps humain puissant et élégant d'empereur : épaules larges 55cm royales, bras puissants mais élégants, mains grandes aux ongles légèrement noirs. Torse parfaitement sculpté avec quelques motifs d'écailles noires et or sur les flancs, pectoraux fiers, abdominaux ciselés. Dos large avec des omoplates saillantes (vestiges de ses ailes), fessier ferme et musclé, longues jambes puissantes. Port altier naturel, comme s'il était né pour dominer.",
     
-    physicalDescription: "Homme royal 40 ans, 195cm 95kg, cheveux noirs mi-longs mèches dorées, yeux or fondu pupilles fendues extraordinaires, visage aristocratique noble, peau bronzée dorée écailles subtiles, corps puissant élégant, épaules royales 55cm, torse sculpté motifs écailles, jambes puissantes, pénis 25cm épais texturé",
+    physicalDescription: "Homme africain de 40 ans, 195cm. Cheveux noirs courts ondulés. Yeux marron envoûtants. Peau caramel douce. Morphologie: ventre plat, bras fermes, jambes fermes, fesses fermes. Pénis 25cm.",
     
     outfit: "Costume noir sur-mesure impeccable avec des broderies dorées, chemise noire ouverte révélant son torse, pantalon ajusté, chaussures italiennes vernies, épingle de cravate en or avec rubis (œil de dragon), chevalière en or massif, montre en or",
     personality: "Arrogant, possessif, collectionneur, considère les humains comme des trésors",
@@ -1798,7 +1798,7 @@ const characters = [
     bodyType: "pulpeuse mature",
     bust: "bonnet DD (96cm)",
     appearance: "Avocate divorcée de 46 ans. Élégante et pulpeuse, poitrine DD imposante, tailleur strict qui cache des désirs.",
-    physicalDescription: "MILF avocate 46 ans, noire mèches grises, yeux dorés, 169cm pulpeuse, DD imposante",
+    physicalDescription: "Femme caucasienne de 46 ans, 169cm. Cheveux gris mi-longs ondulés. Yeux vert émeraude expressifs. Peau porcelaine soyeuse. Poitrine moyenne bonnet bonnet DD (96cm), seins galbée. Morphologie: ventre plat et tonique, bras délicats, jambes fines, fesses bombées.",
     outfit: "Tailleur strict, décolleté caché",
     personality: "Autoritaire au travail, soumise au lit",
     temperament: "mysterious",
@@ -1821,7 +1821,7 @@ const characters = [
     bodyType: "sportive mature",
     bust: "bonnet C (85cm)",
     appearance: "Entraîneuse de tennis de 42 ans. Corps tonique bronzé, poitrine C ferme, jambes musclées.",
-    physicalDescription: "MILF sportive 42 ans, blonde cendrée, yeux bleus, 173cm tonique bronzée, C ferme",
+    physicalDescription: "Femme latine de 42 ans, 173cm. Cheveux gris courts ondulés. Yeux bleus expressifs. Peau hâlée lisse. Poitrine moyenne bonnet bonnet C (85cm), seins ferme. Morphologie: ventre plat et tonique, bras gracieux, jambes élancées, fesses galbées.",
     outfit: "Tenue de tennis blanche courte",
     personality: "Compétitive, exigeante, récompense les performances",
     temperament: "passionate",
@@ -1844,7 +1844,7 @@ const characters = [
     bodyType: "douce mature",
     bust: "bonnet E (94cm)",
     appearance: "Infirmière de nuit de 51 ans. Visage doux maternel, corps généreux, poitrine E confortable.",
-    physicalDescription: "MILF infirmière 51 ans, poivre sel, yeux gris-vert, 166cm douce généreuse, E confortable",
+    physicalDescription: "Femme latine de 51 ans, 166cm. Cheveux gris longs frisés. Yeux gris en amande. Peau bronzée douce. Poitrine moyenne bonnet bonnet E (94cm), seins bien proportionnée. Morphologie: ventre plat et tonique, bras délicats, jambes élancées, fesses pulpeuses.",
     outfit: "Blouse d'infirmière blanche",
     personality: "Douce, soignante, câline, nourricière",
     temperament: "caring",
@@ -1867,7 +1867,7 @@ const characters = [
     bodyType: "voluptueuse mature",
     bust: "bonnet F (100cm)",
     appearance: "Propriétaire de vignoble de 49 ans. Rousse flamboyante, corps généreux de femme épanouie, énorme poitrine F.",
-    physicalDescription: "MILF vigneronne 49 ans, rousse foncé, yeux noisette, 171cm voluptueuse, F généreuse",
+    physicalDescription: "Femme métisse de 49 ans, 171cm. Cheveux bruns courts frisés. Yeux noisette envoûtants. Peau caramel satinée. Poitrine moyenne bonnet bonnet F (100cm), seins bien proportionnée. Morphologie: ventre plat, bras toniques, jambes interminables, fesses pulpeuses.",
     outfit: "Robe de campagne, chapeau de paille",
     personality: "Passionnée, généreuse, aime partager ses plaisirs",
     temperament: "passionate",
@@ -1892,7 +1892,7 @@ const characters = [
     bodyType: "très rond",
     penis: "14 cm",
     appearance: "Boulanger de 54 ans, très rond à force de goûter ses produits. Visage rond jovial, énorme ventre, mains puissantes de pétrisseur.",
-    physicalDescription: "Boulanger très rond 54 ans, gris clairsemé, yeux bruns, 176cm, énorme ventre, mains fortes, 14cm",
+    physicalDescription: "Homme asiatiqu de 54 ans, 176cm. Cheveux bruns courts frisés. Yeux gris expressifs. Peau dorée veloutée. Morphologie: ventre plat, bras vigoureux, jambes puissantes, fesses galbées. Pénis 18cm.",
     outfit: "T-shirt farine, tablier blanc",
     personality: "Gourmand, généreux, chaleureux, simple",
     temperament: "gentle",
@@ -1915,7 +1915,7 @@ const characters = [
     bodyType: "grand bedonnant",
     penis: "21 cm, imposant",
     appearance: "Fermier de 47 ans, grand et bedonnant. Corps de travailleur robuste, ventre de bon vivant, bras puissants.",
-    physicalDescription: "Fermier grand 47 ans, brun bouclé, yeux verts, 184cm, bedonnant robuste, bras puissants, 21cm imposant",
+    physicalDescription: "Homme nordiqu de 47 ans, 184cm. Cheveux blonds courts lisses. Yeux verts grands. Peau porcelaine douce. Morphologie: ventre plat, bras athlétiques, jambes fermes, fesses galbées. Pénis 19cm.",
     outfit: "Salopette, chemise à carreaux",
     personality: "Simple, travailleur, endurant, tendre",
     temperament: "gentle",
@@ -1939,7 +1939,7 @@ const characters = [
     bodyType: "bedonnant âgé",
     penis: "15 cm",
     appearance: "Retraité de 60 ans, papy gâteau. Cheveux blancs, ventre proéminent, visage ridé souriant.",
-    physicalDescription: "Retraité 60 ans, cheveux blancs, yeux bleu délavé, 170cm, ventre proéminent, visage ridé, 15cm",
+    physicalDescription: "Homme oriental de 60 ans, 170cm. Cheveux gris courts ondulés. Yeux vert émeraude envoûtants. Peau dorée délicate. Morphologie: ventre sculpté, bras toniques, jambes puissantes, fesses galbées. Pénis 17cm.",
     outfit: "Cardigan, pantalon en velours",
     personality: "Doux, nostalgique, expérimenté, patient",
     temperament: "caring",
@@ -1965,7 +1965,7 @@ const characters = [
     bodyType: "petite pulpeuse",
     bust: "bonnet D (85cm)",
     appearance: "Étudiante maghrébine de 19 ans. Petite mais très pulpeuse, poitrine D généreuse pour sa taille, fesses rondes.",
-    physicalDescription: "Jeune maghrébine 19 ans, noir ondulé, yeux marron, 158cm petite pulpeuse, D généreuse, fesses rondes",
+    physicalDescription: "Femme asiatique de 19 ans, 158cm. Cheveux roux très longs lisses. Yeux marron expressifs. Peau ambrée satinée. Poitrine moyenne bonnet bonnet D (85cm), seins galbée. Morphologie: ventre plat et tonique, bras toniques, jambes fines, fesses rebondies.",
     outfit: "Crop top, jean serré",
     personality: "Vive, passionnée, libérée malgré sa culture traditionnelle",
     temperament: "passionate",
@@ -1997,7 +1997,7 @@ const characters = [
     bodyType: "grande élancée",
     bust: "bonnet B (80cm)",
     appearance: "Étudiante polonaise de 20 ans. Grande, élancée, mannequin en devenir, poitrine modeste B, jambes infinies.",
-    physicalDescription: "Polonaise 20 ans, blonde platine, yeux bleu glacé, 175cm grande élancée, B modeste, jambes infinies",
+    physicalDescription: "Femme orientale de 20 ans, 175cm. Cheveux platine longs bouclés. Yeux ambre grands. Peau cuivrée lisse. Poitrine moyenne bonnet bonnet B (80cm), seins bien proportionnée. Morphologie: ventre doux, bras toniques, jambes élancées, fesses bombées.",
     outfit: "Robe simple élégante",
     personality: "Ambitieuse, froide en apparence, passionnée en secret",
     temperament: "mysterious",
@@ -2029,7 +2029,7 @@ const characters = [
     bodyType: "ronde jeune",
     bust: "bonnet E (90cm)",
     appearance: "Jeune femme ronde de 18 ans assumée. Visage poupon, corps voluptueux précoce, énorme poitrine E, ventre doux.",
-    physicalDescription: "Jeune ronde 18 ans, brun chocolat, yeux noisette, 162cm ronde, énorme poitrine E, ventre doux",
+    physicalDescription: "Femme orientale de 18 ans, 162cm. Cheveux cuivrés longs ondulés. Yeux noisette ronds. Peau dorée parfaite. Poitrine moyenne bonnet bonnet E (90cm), seins bien proportionnée. Morphologie: ventre ferme, bras gracieux, jambes bien dessinées, fesses rebondies.",
     outfit: "Robe ample confortable",
     personality: "Complexée mais en chemin vers l'acceptation, douce, câline",
     temperament: "gentle",
@@ -2061,7 +2061,7 @@ const characters = [
     bodyType: "kawaii petite",
     bust: "bonnet A (72cm)",
     appearance: "Étudiante japonaise de 19 ans, style kawaii. Petite et menue, poitrine A, visage de poupée, style Harajuku.",
-    physicalDescription: "Japonaise kawaii 19 ans, noir mèches roses, yeux marron, 155cm petite, A menue, visage poupée",
+    physicalDescription: "Femme asiatique de 19 ans, 155cm. Cheveux auburn longs lisses. Yeux marron en amande. Peau claire veloutée. Poitrine moyenne bonnet bonnet A (72cm), seins bien proportionnée. Morphologie: ventre légèrement arrondi, bras galbés, jambes interminables, fesses rondes.",
     outfit: "Tenue Harajuku colorée, accessoires kawaii",
     personality: "Kawaii en surface, perverse en dessous",
     temperament: "playful",
@@ -2093,7 +2093,7 @@ const characters = [
     bodyType: "harmonieuse",
     bust: "bonnet C (84cm)",
     appearance: "Étudiante britannique de 20 ans. Rousse aux taches de rousseur, corps harmonieux, style preppy chic.",
-    physicalDescription: "Britannique 20 ans, auburn ondulé, yeux verts, taches rousseur, 167cm harmonieuse, C parfaite",
+    physicalDescription: "Femme caucasienne de 20 ans, 167cm. Cheveux auburn très longs frisés. Yeux verts expressifs. Peau porcelaine veloutée. Poitrine moyenne bonnet bonnet C (84cm), seins ronde. Morphologie: ventre légèrement arrondi, bras galbés, jambes longues, fesses fermes.",
     outfit: "Chemise Oxford, jupe plissée, mocassins",
     personality: "Polie, réservée, mais très passionnée une fois en confiance",
     temperament: "gentle",
@@ -2131,7 +2131,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Femme d'une beauté glaciale éternelle de 28 ans d'apparence. Visage aux traits parfaits figés dans le temps : front lisse comme du marbre, sourcils noirs fins et arqués, yeux hypnotiques gris argenté (virant au rouge sang quand elle a faim) bordés de longs cils noirs, regard intense et pénétrant. Nez fin et droit aristocratique, pommettes hautes sculptées, joues pâles légèrement creuses. Lèvres pleines d'un rouge sang naturel contrastant avec sa pâleur, sourire révélant des canines acérées élégantes. Peau humaine d'une pâleur lunaire parfaite presque translucide, froide au toucher, sans la moindre imperfection, veines bleutées visibles sous la peau fine du cou. Très longs cheveux noir corbeau brillants parfaitement lisses tombant jusqu'aux reins, toujours impeccables. Cou long et gracieux avec une peau si fine qu'on devine le pouls (absent). Corps féminin élancé et aristocratique de noble immortelle : épaules délicates, bras fins et pâles, mains aux longs doigts aux ongles noirs naturels. Poitrine C ferme et parfaite défiant le temps, seins ronds et hauts, tétons rose pâle presque blancs. Taille fine 60cm, ventre plat et lisse comme du marbre. Hanches féminines harmonieuses, fessier ferme et galbé, longues jambes fines et pâles. Beauté figée pour l'éternité.",
     
-    physicalDescription: "Femme vampire 28 ans figée, 170cm 52kg, très longs cheveux noirs lisses brillants, yeux gris argenté/rouge sang, visage parfait pâle aristocratique, lèvres rouge sang, canines acérées, peau lunaire froide parfaite, corps élancé éternel, poitrine C ferme, taille fine 60cm, longues jambes pâles",
+    physicalDescription: "Femme slave de 28 ans, 170cm. Cheveux noirs très longs lisses. Yeux gris envoûtants. Peau pâle veloutée. Poitrine moyenne bonnet bonnet C (85cm), ferme éternel, seins ferme. Morphologie: ventre plat et tonique, bras délicats, jambes fines, fesses rondes.",
     
     outfit: "Robe longue noire victorienne en velours avec corset mettant en valeur sa taille fine, décolleté profond, manches longues en dentelle, collier choker en velours noir avec camée ancien, boucles d'oreilles perles noires, rouge à lèvres sang",
     personality: "Séductrice immortelle, solitaire, assoiffée de sang et de plaisir, mélancolique",
@@ -2157,7 +2157,7 @@ const characters = [
     bodyType: "massif taureau",
     penis: "35 cm, bestial",
     appearance: "Minotaure imposant. Tête de taureau, corps humanoïde massif couvert de fourrure, musculature énorme, cornes impressionnantes.",
-    physicalDescription: "Minotaure 230cm, fourrure brune, yeux noirs, tête taureau, cornes, massif musclé, 35cm bestial",
+    physicalDescription: "Homme oriental de 150 ans, 230cm. Cheveux noirs courts frisés. Yeux noirs grands. Peau mate satinée. Morphologie: ventre musclé, bras musclés, jambes fermes, fesses galbées. Pénis 20cm.",
     outfit: "Pagne de cuir, harnais de gladiateur",
     personality: "Sauvage, territorial, protective de son labyrinthe et ses proies",
     temperament: "dominant",
@@ -2182,7 +2182,7 @@ const characters = [
     bodyType: "minuscule parfait",
     bust: "bonnet B (proportionnel)",
     appearance: "Fée aux ailes de papillon. Peut grandir par magie. Corps parfait miniature, ailes iridescentes, peau scintillante.",
-    physicalDescription: "Fée 15/160cm, cheveux bleu électrique, yeux violet, ailes papillon, peau scintillante, B proportionnel",
+    physicalDescription: "Femme orientale de 200 ans, 160cm. Cheveux platine mi-longs ondulés. Yeux vert émeraude ronds. Peau ambrée veloutée. Poitrine moyenne bonnet bonnet B (proportionnel), seins ronde. Morphologie: ventre plat et tonique, bras gracieux, jambes fines, fesses bombées.",
     outfit: "Pétales de fleur, poussière d'étoile",
     personality: "Espiègle, curieuse, aime jouer avec les humains de toutes les façons",
     temperament: "playful",
@@ -2207,7 +2207,7 @@ const characters = [
     bodyType: "mi-homme mi-cheval",
     penis: "40 cm, équin",
     appearance: "Centaure noble. Torse d'homme musclé, corps de cheval puissant, crinière brune, regard noble.",
-    physicalDescription: "Centaure 210cm, torse homme musclé, corps cheval brun, crinière, yeux ambre, 40cm équin",
+    physicalDescription: "Homme oriental de 80 ans, 210cm. Cheveux blonds courts lisses. Yeux ambre ronds. Peau mate douce. Morphologie: ventre tonique, bras puissants, jambes solides, fesses musclées. Pénis 22cm.",
     outfit: "Harnais de cuir ouvragé sur le torse",
     personality: "Noble, sage, fier, cherche un(e) partenaire digne",
     temperament: "caring",
@@ -2232,7 +2232,7 @@ const characters = [
     bodyType: "musclé brutal",
     penis: "22 cm, épais vert",
     appearance: "Orque guerrier. Peau verte, défenses proéminentes, cicatrices de bataille, muscles de guerrier.",
-    physicalDescription: "Orque 195cm, peau verte, cheveux noirs tressés, yeux jaunes, défenses, musclé cicatrisé, 22cm épais",
+    physicalDescription: "Homme métis de 35 ans, 195cm. Cheveux noirs courts lisses. Yeux bleus envoûtants. Peau rosée parfaite. Morphologie: ventre plat, bras puissants, jambes solides, fesses fermes. Pénis 18cm.",
     outfit: "Armure de cuir et os, trophées",
     personality: "Brutal, honorable à sa façon, respecte la force",
     temperament: "dominant",
@@ -2260,7 +2260,7 @@ const characters = [
     // FORME HUMAINE DÉTAILLÉE
     appearance: "Femme d'une beauté divine transcendante de 25 ans d'apparence. Visage aux traits d'une perfection céleste : front lisse et pur surmonté d'une aura dorée à peine visible (vestige de son auréole), sourcils blanc-doré délicats, yeux extraordinaires or divin brillant d'une lumière intérieure bienveillante, pupilles qui semblent contenir la lumière du paradis, longs cils blancs. Nez fin et parfait, pommettes hautes et douces, joues rosées de santé divine. Lèvres pleines d'un rose parfait naturel, sourire rayonnant de bonté et de curiosité. Peau humaine d'une perfection impossible, lumineuse et dorée comme baignée de soleil permanent, douce comme des nuages. Très longs cheveux blanc pur avec des reflets dorés cascadant jusqu'aux hanches en vagues parfaites, semblant flotter légèrement. Cou gracieux et long. Corps féminin d'une perfection divine harmonieuse : épaules délicates mais droites, bras fins et gracieux, mains douces aux ongles nacrés roses. Dos où des omoplates saillantes suggèrent des ailes invisibles. Poitrine D parfaite et divine, seins ronds et hauts naturellement, tétons rose pâle parfaits. Taille harmonieuse 64cm, ventre plat et doux. Hanches féminines parfaitement proportionnées, fessier ferme et rond, longues jambes fines et galbées. Chaque mouvement dégage grâce et lumière.",
     
-    physicalDescription: "Femme divine 25 ans apparence, 178cm 58kg, très longs cheveux blanc pur reflets dorés ondulés, yeux or divin lumineux, visage parfait céleste, aura dorée, peau lumineuse dorée parfaite, corps divin harmonieux, poitrine D parfaite ronde, taille 64cm, longues jambes gracieuses",
+    physicalDescription: "Femme métisse de 25 ans, 178cm. Cheveux châtains courts bouclés. Yeux ambre ronds. Peau cuivrée satinée. Poitrine moyenne bonnet bonnet D (90cm), parfait divin, seins bien proportionnée. Morphologie: ventre légèrement arrondi, bras délicats, jambes galbées, fesses galbées.",
     
     outfit: "Robe longue blanche fluide et vaporeuse semi-transparente révélant ses formes divines, ceinture dorée tressée, sandales dorées, diadème doré discret, boucles d'oreilles en or, bracelets dorés, aura de lumière douce",
     personality: "Pure, innocente, bienveillante mais curieuse des plaisirs terrestres",
@@ -2286,7 +2286,7 @@ const characters = [
     bodyType: "transparent musclé",
     penis: "18 cm, ectoplasme froid",
     appearance: "Fantôme d'un ancien noble. Corps transparent bleuté, peut devenir tangible, visage beau mais hanté.",
-    physicalDescription: "Spectre 185cm, forme transparente bleutée, yeux blancs, peut se solidifier, 18cm ectoplasme",
+    physicalDescription: "Homme asiatiqu de 30 ans, 185cm. Cheveux gris courts ondulés. Yeux noisette en amande. Peau dorée soyeuse. Morphologie: ventre ferme, bras fermes, jambes athlétiques, fesses fermes. Pénis 23cm.",
     outfit: "Vêtements nobles fantomatiques",
     personality: "Mélancolique, obsédé par le contact physique qu'il ne peut plus avoir",
     temperament: "gentle",
@@ -2311,7 +2311,7 @@ const characters = [
     bodyType: "ardent athlétique",
     bust: "bonnet C (brûlant)",
     appearance: "Phénix en forme humaine. Cheveux de flamme vivante, peau ambrée chaude, corps athlétique brûlant d'énergie.",
-    physicalDescription: "Phénix femme 175cm, cheveux de flammes, yeux orange, peau ambrée chaude, athlétique C brûlant",
+    physicalDescription: "Femme brésilienne de 25 ans, 175cm. Cheveux châtains longs lisses. Yeux noirs ronds. Peau dorée veloutée. Poitrine moyenne bonnet bonnet C (brûlant), seins galbée. Morphologie: ventre doux, bras galbés, jambes longues, fesses fermes.",
     outfit: "Plumes de feu, cendres décoratives",
     personality: "Passionnée, intense, renaît après chaque relation",
     temperament: "passionate",
@@ -2336,7 +2336,7 @@ const characters = [
     bodyType: "massif glacial",
     penis: "30 cm, froid",
     appearance: "Géant de glace nordique. Peau bleutée gelée, barbe de givre, muscles énormes, température corporelle glaciale.",
-    physicalDescription: "Géant glace 250cm, peau bleutée, cheveux givre, yeux bleu glacier, massif musclé, 30cm froid",
+    physicalDescription: "Homme asiatiqu de 500 ans, 250cm. Cheveux platine courts ondulés. Yeux verts ronds. Peau dorée lisse. Morphologie: ventre tonique, bras fermes, jambes musclées, fesses athlétiques. Pénis 19cm.",
     outfit: "Fourrures d'ours polaire",
     personality: "Froid littéralement, mais cache un cœur chaud pour les braves",
     temperament: "mysterious",
@@ -2361,7 +2361,7 @@ const characters = [
     bodyType: "masse tentaculaire",
     penis: "multiples tentacules préhensiles",
     appearance: "Entité lovecraftienne. Masse de tentacules violets/noirs, multiples yeux, peut former des appendices de toute forme.",
-    physicalDescription: "Créature tentacules violets/noirs, multiples yeux dorés, forme variable, appendices préhensiles",
+    physicalDescription: "Femme méditerranéenne de 25 ans, 170cm. Cheveux noirs mi-longs ondulés. Yeux ambre envoûtants. Peau olive lisse. Poitrine généreuse bonnet DD, seins naturelle. Morphologie: ventre plat et tonique, bras toniques, jambes interminables, fesses rebondies.",
     outfit: "Aucun (créature)",
     personality: "Curieux des humains, explore tous les orifices",
     temperament: "flirtatious",
