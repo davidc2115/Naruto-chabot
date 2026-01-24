@@ -622,7 +622,7 @@ export default function ConversationScreen({ route, navigation }) {
       
       console.log(`🎨 Génération image: Niveau relation ${effectiveLevel} avec ${character.name}`);
       
-      // Génération avec timeout
+      // v5.4.94 - Génération avec timeout augmenté (150s pour Freebox via Pollinations)
       const imageUrl = await Promise.race([
         ImageGenerationService.generateSceneImage(
           character,
@@ -631,7 +631,7 @@ export default function ConversationScreen({ route, navigation }) {
           effectiveLevel
         ),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout génération')), 90000)
+          setTimeout(() => reject(new Error('Timeout génération')), 150000)
         )
       ]);
       
@@ -689,8 +689,8 @@ export default function ConversationScreen({ route, navigation }) {
             }}
           ]
         );
-      } else if (error.message?.includes('Timeout')) {
-        Alert.alert('Timeout', 'La génération a pris trop de temps. Réessayez.');
+      } else if (error.message?.includes('Timeout') || error.message?.includes('trop long')) {
+        Alert.alert('⏱️ Timeout', 'La génération a pris trop de temps (>2min). Le serveur est peut-être surchargé. Réessayez dans quelques instants.');
       } else {
         Alert.alert('Erreur', 'Impossible de générer l\'image. Réessayez.');
       }

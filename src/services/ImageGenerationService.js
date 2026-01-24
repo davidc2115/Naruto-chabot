@@ -7417,9 +7417,10 @@ class ImageGenerationService {
     console.log(`🏠 URL Freebox SD (seed: ${seed}, NSFW: ${nsfwLevel})`);
     console.log(`📝 Prompt Freebox (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
     
-    // v5.4.93 - VÉRIFIER que le serveur retourne une image (pas JSON d'erreur)
+    // v5.4.94 - VÉRIFIER que le serveur retourne une image (pas JSON d'erreur)
+    // Timeout augmenté à 120s car le serveur Freebox génère via Pollinations
     try {
-      console.log('🔍 Vérification de la réponse serveur Freebox...');
+      console.log('🔍 Génération image via serveur Freebox (peut prendre 30-60s)...');
       
       const headers = {};
       if (authToken) {
@@ -7429,39 +7430,54 @@ class ImageGenerationService {
         headers['X-User-ID'] = userId;
       }
       
-      const response = await fetch(imageUrl, { 
-        method: 'GET',
-        headers: headers,
-        timeout: 90000 
-      });
+      // v5.4.94 - Timeout correct avec AbortController (React Native ne supporte pas timeout dans fetch)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.log('⏱️ Timeout 120s atteint, annulation...');
+        controller.abort();
+      }, 120000); // 120 secondes pour Freebox (génère via Pollinations)
       
-      const contentType = response.headers.get('content-type') || '';
-      console.log(`📡 Réponse Freebox: status=${response.status}, content-type=${contentType}`);
-      
-      // Vérifier si c'est une image
-      if (response.ok && contentType.includes('image')) {
-        console.log('✅ Serveur Freebox a retourné une image valide');
-        return imageUrl;
-      }
-      
-      // Si c'est du JSON, c'est probablement une erreur
-      if (contentType.includes('json')) {
-        const errorData = await response.json();
-        console.log('❌ Erreur Freebox:', JSON.stringify(errorData));
+      try {
+        const response = await fetch(imageUrl, { 
+          method: 'GET',
+          headers: headers,
+          signal: controller.signal
+        });
         
-        if (errorData.premium_required) {
-          throw new Error('Fonctionnalité Premium requise. Vérifiez votre abonnement.');
+        clearTimeout(timeoutId);
+        
+        const contentType = response.headers.get('content-type') || '';
+        console.log(`📡 Réponse Freebox: status=${response.status}, content-type=${contentType}`);
+        
+        // Vérifier si c'est une image
+        if (response.ok && contentType.includes('image')) {
+          console.log('✅ Serveur Freebox a retourné une image valide');
+          return imageUrl;
         }
-        throw new Error(errorData.message || errorData.error || 'Erreur serveur Freebox');
+        
+        // Si c'est du JSON, c'est probablement une erreur
+        if (contentType.includes('json')) {
+          const errorData = await response.json();
+          console.log('❌ Erreur Freebox:', JSON.stringify(errorData));
+          
+          if (errorData.premium_required) {
+            throw new Error('Fonctionnalité Premium requise. Vérifiez votre abonnement.');
+          }
+          throw new Error(errorData.message || errorData.error || 'Erreur serveur Freebox');
+        }
+        
+        // Autre erreur
+        if (!response.ok) {
+          throw new Error(`Erreur serveur: ${response.status}`);
+        }
+        
+        // Si on arrive ici, on retourne l'URL et on espère que ça marche
+        return imageUrl;
+        
+      } catch (fetchInnerError) {
+        clearTimeout(timeoutId);
+        throw fetchInnerError;
       }
-      
-      // Autre erreur
-      if (!response.ok) {
-        throw new Error(`Erreur serveur: ${response.status}`);
-      }
-      
-      // Si on arrive ici, on retourne l'URL et on espère que ça marche
-      return imageUrl;
       
     } catch (fetchError) {
       console.error('❌ Erreur requête Freebox:', fetchError.message);
@@ -7469,6 +7485,9 @@ class ImageGenerationService {
       // Propager l'erreur avec un message clair
       if (fetchError.message.includes('Premium')) {
         throw fetchError;
+      }
+      if (fetchError.name === 'AbortError' || fetchError.message.includes('aborted')) {
+        throw new Error('Génération trop longue (>120s). Le serveur est peut-être surchargé.');
       }
       if (fetchError.message.includes('Network') || fetchError.message.includes('timeout')) {
         throw new Error('Serveur Freebox inaccessible. Vérifiez votre connexion.');
