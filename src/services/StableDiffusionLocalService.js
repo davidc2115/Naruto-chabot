@@ -1,13 +1,16 @@
 /**
  * Service Stable Diffusion Local (génération sur smartphone)
- * Version 4.1 - URLs corrigées et meilleure gestion des erreurs
+ * Version 5.0 - Diagnostic ONNX amélioré et support multi-appareil
  * 
  * STATUT:
- * ✅ Module natif avec ONNX Runtime
+ * ✅ Module natif avec ONNX Runtime v5.0
  * ✅ Détection automatique des modèles
  * ✅ Événements de progression
  * ✅ URLs multiples avec fallback
  * ✅ Validation des téléchargements
+ * ✅ Diagnostic ONNX détaillé
+ * ✅ Support réinitialisation ONNX
+ * ✅ Compatibilité Xiaomi/MediaTek/Qualcomm
  */
 
 import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
@@ -101,19 +104,24 @@ class StableDiffusionLocalService {
     this.downloadCancelled = false;
     this.customServerUrl = null;
     
-    console.log('╔════════════════════════════════════════╗');
-    console.log('║  StableDiffusionLocalService v4.1      ║');
-    console.log('╚════════════════════════════════════════╝');
+    console.log('╔════════════════════════════════════════════════════════════╗');
+    console.log('║  StableDiffusionLocalService v5.0                          ║');
+    console.log('║  Support amélioré Xiaomi/MediaTek/Qualcomm                 ║');
+    console.log('╚════════════════════════════════════════════════════════════╝');
     console.log('📱 Platform:', Platform.OS, Platform.Version);
     console.log('📱 Module natif:', this.moduleInfo.status);
     
     if (this.moduleInfo.isLoaded) {
       console.log('📱 Module version:', this.moduleInfo.version);
       console.log('📱 ONNX disponible:', this.moduleInfo.onnxAvailable);
+      console.log('📱 ONNX erreur:', this.moduleInfo.onnxError || 'Aucune');
+      console.log('📱 Appareil:', this.moduleInfo.deviceModel);
+      console.log('📱 CPU ABI:', this.moduleInfo.cpuAbi);
+      console.log('📱 ABIs supportées:', this.moduleInfo.supportedAbis);
       this._setupEventListener();
     }
     console.log('📦 Source modèles:', MODEL_SOURCES[CURRENT_SOURCE].name);
-    console.log('==========================================');
+    console.log('══════════════════════════════════════════════════════════════');
     
     // Charger les paramètres personnalisés
     this._loadCustomSettings();
@@ -217,7 +225,7 @@ class StableDiffusionLocalService {
     if (!this.isAndroid) {
       return {
         isLoaded: false,
-        status: '❌ iOS non supporté',
+        status: '❌ iOS non supporté - Utilisez Stable Diffusion Serveur',
         version: null,
         onnxAvailable: false,
       };
@@ -226,7 +234,7 @@ class StableDiffusionLocalService {
     if (!this.nativeModule) {
       return {
         isLoaded: false,
-        status: '❌ Module natif non trouvé',
+        status: '❌ Module natif non trouvé - Rebuild APK nécessaire',
         version: null,
         onnxAvailable: false,
       };
@@ -239,32 +247,103 @@ class StableDiffusionLocalService {
       
       const onnxError = constants?.ONNX_ERROR || '';
       const onnxAvailable = constants?.ONNX_AVAILABLE || false;
+      const onnxInitDetails = constants?.ONNX_INIT_DETAILS || '';
+      const onnxInitAttempts = constants?.ONNX_INIT_ATTEMPTS || 0;
+      const hasArm64 = constants?.HAS_ARM64 || false;
+      const supportedAbis = constants?.SUPPORTED_ABIS || '';
       
-      let status = '✅ Module natif chargé';
-      if (!onnxAvailable && onnxError) {
-        status = `⚠️ Module chargé, ONNX indisponible: ${onnxError}`;
-      } else if (!onnxAvailable) {
-        status = '⚠️ Module chargé, ONNX non détecté';
+      let status = '✅ Module natif et ONNX prêts';
+      let recommendation = '';
+      
+      if (!onnxAvailable) {
+        if (onnxError.includes('UnsatisfiedLinkError')) {
+          status = `❌ ONNX incompatible avec l'architecture ${constants?.CPU_ABI || 'inconnue'}`;
+          recommendation = 'Utilisez Stable Diffusion Serveur à la place';
+        } else if (onnxError.includes('NoClassDefFoundError')) {
+          status = '❌ Bibliothèque ONNX manquante dans l\'APK';
+          recommendation = 'Rebuild APK avec onnxruntime-android';
+        } else if (onnxError) {
+          status = `❌ ONNX indisponible: ${onnxError}`;
+          recommendation = 'Utilisez Stable Diffusion Serveur';
+        } else {
+          status = '⚠️ ONNX non initialisé';
+          recommendation = 'Essayez de réinitialiser ou utilisez Serveur';
+        }
       }
       
       return {
         isLoaded: true,
         status: status,
+        recommendation: recommendation,
         version: constants?.VERSION || 'unknown',
         onnxAvailable: onnxAvailable,
         onnxError: onnxError,
+        onnxInitDetails: onnxInitDetails,
+        onnxInitAttempts: onnxInitAttempts,
         pipelineReady: constants?.PIPELINE_READY || false,
         deviceModel: constants?.DEVICE_MODEL || 'unknown',
         manufacturer: constants?.MANUFACTURER || 'unknown',
+        brand: constants?.BRAND || 'unknown',
+        device: constants?.DEVICE || 'unknown',
+        board: constants?.BOARD || 'unknown',
+        hardware: constants?.HARDWARE || 'unknown',
         cpuAbi: constants?.CPU_ABI || 'unknown',
+        supportedAbis: supportedAbis,
+        hasArm64: hasArm64,
         constants: constants,
       };
     } catch (e) {
       return {
         isLoaded: true,
-        status: '⚠️ Module chargé (constantes inaccessibles)',
+        status: '⚠️ Module chargé mais erreur lecture constantes',
         version: 'unknown',
         onnxAvailable: false,
+        error: e.message,
+      };
+    }
+  }
+  
+  /**
+   * Tente de réinitialiser ONNX Runtime
+   * Utile si l'initialisation a échoué au démarrage
+   */
+  async reinitializeOnnx() {
+    if (!this.moduleInfo.isLoaded || !this.nativeModule) {
+      return {
+        success: false,
+        error: 'Module natif non disponible',
+      };
+    }
+    
+    console.log('🔄 Tentative de réinitialisation ONNX...');
+    
+    try {
+      if (typeof this.nativeModule.reinitializeOnnx !== 'function') {
+        return {
+          success: false,
+          error: 'Méthode reinitializeOnnx non disponible - Mettez à jour l\'APK',
+        };
+      }
+      
+      const result = await this.nativeModule.reinitializeOnnx();
+      
+      // Mettre à jour les infos du module
+      if (result?.onnxAvailable) {
+        this.moduleInfo.onnxAvailable = true;
+        this.moduleInfo.onnxError = '';
+        this.moduleInfo.status = '✅ ONNX réinitialisé avec succès';
+        console.log('✅ ONNX réinitialisé:', result.details);
+      } else {
+        this.moduleInfo.onnxAvailable = false;
+        this.moduleInfo.onnxError = result?.error || 'Échec réinitialisation';
+        console.log('❌ Réinitialisation échouée:', result?.error);
+      }
+      
+      return result;
+    } catch (e) {
+      console.error('❌ Erreur réinitialisation ONNX:', e);
+      return {
+        success: false,
         error: e.message,
       };
     }
@@ -431,20 +510,42 @@ class StableDiffusionLocalService {
 
   /**
    * Construit un message de statut clair
-   * v5.4.90 - Amélioration des messages d'erreur
+   * v5.0 - Diagnostic ONNX ultra-détaillé
    */
   _buildStatusMessage(modelStatus, systemInfo, modelsCheck) {
-    // Vérifier ONNX en premier - c'est le plus important
-    if (!modelStatus?.onnxAvailable && !this.moduleInfo.onnxAvailable) {
-      const onnxError = this.moduleInfo.onnxError || modelStatus?.onnxError || '';
-      if (onnxError) {
-        return `❌ ONNX indisponible: ${onnxError}. Utilisez Stable Diffusion Serveur.`;
+    // Vérifier ONNX en premier - c'est le plus critique
+    const onnxAvailable = modelStatus?.onnxAvailable || this.moduleInfo.onnxAvailable;
+    
+    if (!onnxAvailable) {
+      const onnxError = systemInfo?.onnxError || this.moduleInfo.onnxError || modelStatus?.onnxError || '';
+      const onnxDetails = systemInfo?.onnxInitDetails || this.moduleInfo.onnxInitDetails || '';
+      const attempts = systemInfo?.onnxInitAttempts || this.moduleInfo.onnxInitAttempts || 0;
+      
+      // Messages d'erreur spécifiques selon le type d'erreur
+      if (onnxError.includes('UnsatisfiedLinkError')) {
+        const cpuAbi = systemInfo?.cpuAbi || this.moduleInfo.cpuAbi || 'inconnu';
+        return `❌ ONNX incompatible avec ${cpuAbi}. Votre processeur n'est pas supporté. Utilisez Stable Diffusion Serveur.`;
       }
-      return '❌ ONNX Runtime non compatible. Utilisez Stable Diffusion Serveur à la place.';
+      
+      if (onnxError.includes('NoClassDefFoundError')) {
+        return '❌ Bibliothèque ONNX absente de l\'APK. Rebuild nécessaire. Utilisez Stable Diffusion Serveur.';
+      }
+      
+      if (onnxError.includes('ExceptionInInitializerError')) {
+        return `❌ Erreur initialisation ONNX (${attempts} tentatives). Utilisez Stable Diffusion Serveur.`;
+      }
+      
+      if (onnxError) {
+        return `❌ ONNX: ${onnxError.substring(0, 80)}${onnxError.length > 80 ? '...' : ''}. Utilisez Serveur.`;
+      }
+      
+      return '❌ ONNX Runtime non disponible. Utilisez Stable Diffusion Serveur à la place.';
     }
     
+    // ONNX est OK, vérifier les modèles
     if (!modelsCheck.allPresent) {
-      return `📥 Modèles manquants: ${modelsCheck.missingModels.join(', ')}`;
+      const missing = modelsCheck.missingModels.slice(0, 2).join(', ');
+      return `📥 Modèles à télécharger: ${missing}${modelsCheck.missingModels.length > 2 ? '...' : ''}`;
     }
     
     // Utiliser la RAM système réelle - priorité aux valeurs GB directes du module
@@ -469,23 +570,26 @@ class StableDiffusionLocalService {
     // Si RAM détectée à 0 ou très faible, c'est un problème de détection
     if (totalRamGB < 1) {
       console.log('⚠️ Problème détection RAM:', JSON.stringify(systemInfo));
-      return '⚠️ Impossible de détecter la RAM correctement. Utilisez Stable Diffusion Serveur.';
+      return '⚠️ Impossible de lire la RAM système. Utilisez Stable Diffusion Serveur.';
     }
     
+    // Vérifications RAM et stockage
     if (!systemInfo?.hasEnoughRAM) {
-      return `⚠️ RAM insuffisante (${totalRamGB.toFixed(1)} GB total, ${availableRamGB.toFixed(1)} GB dispo - besoin 4+ GB)`;
+      return `⚠️ RAM insuffisante: ${totalRamGB.toFixed(1)} GB total, ${availableRamGB.toFixed(1)} GB dispo (4 GB+ requis)`;
     }
     
     if (!systemInfo?.hasEnoughStorage) {
       const storageGB = ((systemInfo?.freeStorageMB || 0) / 1024).toFixed(1);
-      return `⚠️ Stockage insuffisant (${storageGB} GB libre, besoin 3+ GB)`;
+      return `⚠️ Stockage insuffisant: ${storageGB} GB libre (3 GB+ requis)`;
     }
     
+    // Pipeline prêt
     if (modelStatus?.pipelineReady) {
-      return `✅ Pipeline prêt! RAM: ${totalRamGB.toFixed(1)} GB (${availableRamGB.toFixed(1)} GB dispo)`;
+      return `✅ Prêt! RAM: ${totalRamGB.toFixed(1)} GB (${availableRamGB.toFixed(1)} GB libre)`;
     }
     
-    return `✅ Modèles OK. RAM: ${totalRamGB.toFixed(1)} GB. Initialisez le pipeline.`;
+    // Tout est bon, pipeline à initialiser
+    return `✅ ONNX OK, modèles OK. RAM: ${totalRamGB.toFixed(1)} GB. Cliquez pour initialiser.`;
   }
 
   /**
@@ -997,17 +1101,86 @@ class StableDiffusionLocalService {
    */
   getServiceInfo() {
     return {
-      version: '4.1',
+      version: '5.0',
       platform: Platform.OS,
       moduleLoaded: this.moduleInfo.isLoaded,
       moduleVersion: this.moduleInfo.version,
       onnxAvailable: this.moduleInfo.onnxAvailable,
+      onnxError: this.moduleInfo.onnxError || '',
+      onnxInitDetails: this.moduleInfo.onnxInitDetails || '',
+      onnxInitAttempts: this.moduleInfo.onnxInitAttempts || 0,
+      deviceModel: this.moduleInfo.deviceModel || 'unknown',
+      manufacturer: this.moduleInfo.manufacturer || 'unknown',
+      cpuAbi: this.moduleInfo.cpuAbi || 'unknown',
+      supportedAbis: this.moduleInfo.supportedAbis || 'unknown',
+      hasArm64: this.moduleInfo.hasArm64 || false,
       currentSource: CURRENT_SOURCE,
       sourceName: MODEL_SOURCES[CURRENT_SOURCE]?.name,
       customServer: this.customServerUrl,
       availableSources: this.getAvailableSources(),
       totalModelSizeMB: getTotalModelSize(),
+      status: this.moduleInfo.status,
+      recommendation: this.moduleInfo.recommendation || '',
     };
+  }
+  
+  /**
+   * Retourne un diagnostic complet pour debug/support
+   */
+  async getFullDiagnostic() {
+    console.log('🔍 Génération diagnostic complet ONNX Local...');
+    
+    const diagnostic = {
+      timestamp: new Date().toISOString(),
+      serviceVersion: '5.0',
+      moduleInfo: { ...this.moduleInfo },
+      models: await this.checkAllModels(),
+    };
+    
+    // Infos système si module disponible
+    if (this.moduleInfo.isLoaded && this.nativeModule) {
+      try {
+        diagnostic.systemInfo = await this.nativeModule.getSystemInfo();
+        diagnostic.modelStatus = await this.nativeModule.isModelAvailable();
+      } catch (e) {
+        diagnostic.systemInfoError = e.message;
+      }
+    }
+    
+    // Résumé
+    diagnostic.summary = {
+      canUseLocalSD: this.moduleInfo.onnxAvailable && diagnostic.models?.allPresent,
+      issues: [],
+      recommendations: [],
+    };
+    
+    if (!this.moduleInfo.isLoaded) {
+      diagnostic.summary.issues.push('Module natif non chargé');
+      diagnostic.summary.recommendations.push('Rebuild APK nécessaire');
+    }
+    
+    if (!this.moduleInfo.onnxAvailable) {
+      diagnostic.summary.issues.push('ONNX Runtime non disponible');
+      diagnostic.summary.recommendations.push('Utilisez Stable Diffusion Serveur');
+      
+      if (this.moduleInfo.onnxError) {
+        diagnostic.summary.issues.push(`Erreur: ${this.moduleInfo.onnxError}`);
+      }
+    }
+    
+    if (!diagnostic.models?.allPresent) {
+      diagnostic.summary.issues.push('Modèles non téléchargés');
+      diagnostic.summary.recommendations.push('Téléchargez les modèles ONNX');
+    }
+    
+    if (diagnostic.systemInfo && !diagnostic.systemInfo.hasEnoughRAM) {
+      diagnostic.summary.issues.push('RAM insuffisante');
+      diagnostic.summary.recommendations.push('Fermez d\'autres applications');
+    }
+    
+    console.log('📋 Diagnostic:', JSON.stringify(diagnostic.summary));
+    
+    return diagnostic;
   }
 }
 

@@ -116,6 +116,11 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 54
         versionName "1.7.54"
+        
+        // Support des architectures ARM pour ONNX Runtime
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
     }
     signingConfigs {
         debug {
@@ -141,8 +146,14 @@ android {
     }
     packagingOptions {
         jniLibs {
-            useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
+            useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: true)
+            // Garder les bibliothèques ONNX non compressées pour un meilleur chargement
+            keepDebugSymbols '**/*.so'
         }
+        // Éviter les conflits de fichiers
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libfbjni.so'
+        pickFirst '**/*.so'
     }
 }
 
