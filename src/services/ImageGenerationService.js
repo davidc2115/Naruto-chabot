@@ -7386,9 +7386,28 @@ class ImageGenerationService {
     const shortPrompt = finalPrompt.substring(0, 2000);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // Construire l'URL avec les paramètres
+    // v5.4.92 - Récupérer l'ID utilisateur pour l'authentification Freebox
+    let userId = '';
+    try {
+      const currentUser = AuthService.getCurrentUser();
+      if (currentUser?.id) {
+        userId = currentUser.id;
+      }
+    } catch (e) {
+      console.log('⚠️ Impossible de récupérer user_id pour Freebox');
+    }
+    
+    // Construire l'URL avec les paramètres ET l'authentification
     const separator = freeboxUrl.includes('?') ? '&' : '?';
-    const imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=576&height=1024&seed=${seed}&negative_prompt=${encodeURIComponent(this.negativePromptBase)}`;
+    let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=576&height=1024&seed=${seed}&negative_prompt=${encodeURIComponent(this.negativePromptBase)}`;
+    
+    // v5.4.92 - Ajouter user_id pour authentification Premium sur le serveur
+    if (userId) {
+      imageUrl += `&user_id=${encodeURIComponent(userId)}`;
+      console.log(`🔐 Authentification Freebox avec user_id: ${userId.substring(0, 8)}...`);
+    } else {
+      console.log('⚠️ Pas de user_id - requête sans authentification');
+    }
     
     console.log(`🏠 URL Freebox SD (seed: ${seed}, NSFW: ${nsfwLevel})`);
     console.log(`📝 Prompt Freebox (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);

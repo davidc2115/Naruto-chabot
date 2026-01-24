@@ -996,7 +996,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
               <Text style={styles.optionDescription}>
                 Génération sur téléphone. Offline, 100% privé.
               </Text>
-              <Text style={styles.optionWarning}>⚠️ Pipeline en développement</Text>
+              <Text style={styles.optionWarning}>⚠️ Requiert appareil compatible ONNX</Text>
             </View>
           </TouchableOpacity>
 
