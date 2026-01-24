@@ -554,11 +554,11 @@ export default function SettingsScreen({ navigation, onLogout }) {
           
         case 'freebox':
           if (!freeboxUrl.trim()) {
-            Alert.alert('Erreur', 'Veuillez entrer l\'URL du serveur Freebox.');
+            Alert.alert('Erreur', 'Veuillez entrer l\'URL du serveur Stable Diffusion.');
             return;
           }
           await CustomImageAPIService.saveConfig('freebox', freeboxUrl.trim());
-          Alert.alert('✅ Succès', 'Stable Diffusion Freebox configuré !\nURL: ' + freeboxUrl.substring(0, 40) + '...');
+          Alert.alert('✅ Succès', 'Stable Diffusion Serveur configuré !\nURL: ' + freeboxUrl.substring(0, 40) + '...');
           break;
           
         case 'pollinations':
@@ -579,11 +579,11 @@ export default function SettingsScreen({ navigation, onLogout }) {
     }
 
     try {
-      Alert.alert('Test en cours', 'Vérification de la connexion au serveur Freebox...');
+      Alert.alert('Test en cours', 'Vérification de la connexion au serveur Stable Diffusion...');
       const result = await CustomImageAPIService.testFreeboxConnection(freeboxUrl.trim());
       
       if (result.success) {
-        Alert.alert('✅ Succès', 'Connexion à la Freebox réussie !');
+        Alert.alert('✅ Succès', 'Connexion au serveur Stable Diffusion réussie !');
       } else {
         Alert.alert('❌ Échec', `Impossible de se connecter:\n${result.error}`);
       }
@@ -961,7 +961,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
             </View>
           </TouchableOpacity>
 
-          {/* Option 2: Stable Diffusion sur Freebox */}
+          {/* Option 2: Stable Diffusion Serveur */}
           <TouchableOpacity
             style={[
               styles.optionCard,
@@ -973,9 +973,9 @@ export default function SettingsScreen({ navigation, onLogout }) {
               {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>🏠 SD Freebox (Serveur)</Text>
+              <Text style={styles.optionTitle}>🖥️ Stable Diffusion (Serveur)</Text>
               <Text style={styles.optionDescription}>
-                Stable Diffusion sur votre serveur Freebox. Privé et illimité !
+                Stable Diffusion sur votre serveur dédié. Privé et illimité !
               </Text>
             </View>
           </TouchableOpacity>
@@ -1022,16 +1022,16 @@ export default function SettingsScreen({ navigation, onLogout }) {
             </View>
           )}
 
-          {/* Configuration Freebox SD */}
+          {/* Configuration Stable Diffusion Serveur */}
           {imageSource === 'freebox' && (
             <View style={styles.configBox}>
-              <Text style={styles.configTitle}>🏠 Stable Diffusion Freebox</Text>
+              <Text style={styles.configTitle}>🖥️ Stable Diffusion Serveur</Text>
               <Text style={styles.optionDescription}>
-                Connectez-vous à votre serveur Stable Diffusion sur Freebox.
+                Connectez-vous à votre serveur Stable Diffusion.
               </Text>
               <TextInput
                 style={styles.urlInput}
-                placeholder="http://88.174.155.230:33437/generate"
+                placeholder="http://votre-serveur:33437/generate"
                 value={freeboxUrl}
                 onChangeText={setFreeboxUrl}
                 autoCapitalize="none"
@@ -1041,7 +1041,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
                 <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
               </TouchableOpacity>
               <Text style={[styles.optionDescription, { color: '#f59e0b', marginTop: 8, fontSize: 11 }]}>
-                ⚠️ Assurez-vous que le serveur SD est démarré sur votre Freebox
+                ⚠️ Assurez-vous que le serveur SD est démarré
               </Text>
             </View>
           )}
@@ -1068,7 +1068,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
                   {!sdAvailability.onnxAvailable && (
                     <Text style={[styles.sdInfoText, { color: '#dc2626', fontSize: 11, marginLeft: 20 }]}>
                       ⚠️ La génération locale n'est pas disponible sur cet appareil.
-                      {'\n'}   Utilisez la Freebox ou l'API externe pour générer des images.
+                      {'\n'}   Utilisez Stable Diffusion Serveur ou l'API externe.
                     </Text>
                   )}
                   
@@ -1214,7 +1214,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
               </TouchableOpacity>
               
               <Text style={styles.sdNote}>
-                💡 Conseil: Utilisez la Freebox pour l'instant. Le SD Local sera fonctionnel dans une future mise à jour.
+                💡 Conseil: Utilisez Stable Diffusion Serveur pour l'instant. Le SD Local sera fonctionnel dans une future mise à jour.
               </Text>
             </View>
           )}
@@ -1267,13 +1267,13 @@ export default function SettingsScreen({ navigation, onLogout }) {
         </View>
       )}
 
-      {/* SYNCHRONISATION FREEBOX - Admin seulement */}
+      {/* SYNCHRONISATION SERVEUR - Admin seulement */}
       {isAdmin && (
         <View style={styles.section}>
           <View style={styles.adminBadge}>
             <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
           </View>
-          <Text style={styles.sectionTitle}>☁️ Synchronisation Freebox</Text>
+          <Text style={styles.sectionTitle}>☁️ Synchronisation Serveur</Text>
           
           <View style={styles.syncStatusBox}>
             <View style={styles.syncStatusRow}>
@@ -1330,7 +1330,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
           </View>
           
           <Text style={styles.syncHint}>
-            Synchronise tes personnages, conversations et paramètres avec ta Freebox.
+            Synchronise tes personnages, conversations et paramètres avec le serveur.
             Les personnages publics sont partagés avec la communauté.
           </Text>
         </View>
@@ -1547,8 +1547,8 @@ export default function SettingsScreen({ navigation, onLogout }) {
           <Text style={styles.aboutText}>Build: {appConfig.expo.android.versionCode}</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
           <Text style={styles.aboutText}>840+ personnages disponibles</Text>
-          <Text style={styles.aboutText}>Génération d'images: Freebox + Pollinations</Text>
-          <Text style={styles.aboutText}>Synchronisation Freebox + Personnages publics</Text>
+          <Text style={styles.aboutText}>Génération d'images: Stable Diffusion + Pollinations</Text>
+          <Text style={styles.aboutText}>Synchronisation Serveur + Personnages publics</Text>
           <Text style={styles.aboutText}>Mode NSFW 100% français</Text>
         </View>
       </View>
@@ -1560,7 +1560,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
           <Text style={styles.featureItem}>✓ Multi-clés Groq avec rotation</Text>
           <Text style={styles.featureItem}>✓ Personnalisation des bulles de chat</Text>
           <Text style={styles.featureItem}>✓ Mode NSFW pour adultes</Text>
-          <Text style={styles.featureItem}>✓ Génération d'images Freebox illimitée</Text>
+          <Text style={styles.featureItem}>✓ Génération d'images Stable Diffusion illimitée</Text>
           <Text style={styles.featureItem}>✓ Option SD Local sur smartphone</Text>
           <Text style={styles.featureItem}>✓ Galerie d'images par personnage</Text>
           <Text style={styles.featureItem}>✓ Sauvegarde automatique</Text>

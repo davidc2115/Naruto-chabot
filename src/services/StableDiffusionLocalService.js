@@ -431,32 +431,49 @@ class StableDiffusionLocalService {
 
   /**
    * Construit un message de statut clair
+   * v5.4.90 - Amélioration des messages d'erreur
    */
   _buildStatusMessage(modelStatus, systemInfo, modelsCheck) {
     // Vérifier ONNX en premier - c'est le plus important
     if (!modelStatus?.onnxAvailable && !this.moduleInfo.onnxAvailable) {
       const onnxError = this.moduleInfo.onnxError || modelStatus?.onnxError || '';
       if (onnxError) {
-        return `❌ ONNX indisponible: ${onnxError}. Utilisez Freebox/API externe.`;
+        return `❌ ONNX indisponible: ${onnxError}. Utilisez Stable Diffusion Serveur.`;
       }
-      return '❌ ONNX Runtime non disponible sur cet appareil. Utilisez Freebox/API externe.';
+      return '❌ ONNX Runtime non compatible. Utilisez Stable Diffusion Serveur à la place.';
     }
     
     if (!modelsCheck.allPresent) {
       return `📥 Modèles manquants: ${modelsCheck.missingModels.join(', ')}`;
     }
     
-    // Utiliser la RAM système réelle (totalRamMB) au lieu de maxMemoryMB
-    const totalRamGB = ((systemInfo?.totalRamMB || systemInfo?.maxMemoryMB || 0) / 1024).toFixed(1);
-    const availableRamGB = ((systemInfo?.availableRamMB || systemInfo?.freeMemoryMB || 0) / 1024).toFixed(1);
+    // Utiliser la RAM système réelle - priorité aux valeurs GB directes du module
+    let totalRamGB = 0;
+    let availableRamGB = 0;
     
-    // Si RAM détectée à 0, c'est un problème de détection
-    if (parseFloat(totalRamGB) < 0.5) {
-      return '⚠️ Impossible de détecter la RAM. Le module peut ne pas fonctionner correctement.';
+    // Essayer d'abord les valeurs GB directes
+    if (systemInfo?.totalRamGB && systemInfo.totalRamGB > 0) {
+      totalRamGB = systemInfo.totalRamGB;
+      availableRamGB = systemInfo.availableRamGB || 0;
+    } else if (systemInfo?.totalRamMB && systemInfo.totalRamMB > 0) {
+      totalRamGB = systemInfo.totalRamMB / 1024;
+      availableRamGB = (systemInfo.availableRamMB || 0) / 1024;
+    } else if (systemInfo?.debugTotalRam) {
+      // Utiliser les strings de debug si disponibles
+      const match = systemInfo.debugTotalRam.match(/([\d.]+)\s*GB/i);
+      if (match) totalRamGB = parseFloat(match[1]);
+      const matchAvail = (systemInfo.debugAvailRam || '').match(/([\d.]+)\s*GB/i);
+      if (matchAvail) availableRamGB = parseFloat(matchAvail[1]);
+    }
+    
+    // Si RAM détectée à 0 ou très faible, c'est un problème de détection
+    if (totalRamGB < 1) {
+      console.log('⚠️ Problème détection RAM:', JSON.stringify(systemInfo));
+      return '⚠️ Impossible de détecter la RAM correctement. Utilisez Stable Diffusion Serveur.';
     }
     
     if (!systemInfo?.hasEnoughRAM) {
-      return `⚠️ RAM insuffisante (${totalRamGB} GB total, ${availableRamGB} GB dispo - besoin 4+ GB)`;
+      return `⚠️ RAM insuffisante (${totalRamGB.toFixed(1)} GB total, ${availableRamGB.toFixed(1)} GB dispo - besoin 4+ GB)`;
     }
     
     if (!systemInfo?.hasEnoughStorage) {
@@ -465,10 +482,10 @@ class StableDiffusionLocalService {
     }
     
     if (modelStatus?.pipelineReady) {
-      return `✅ Pipeline prêt! RAM: ${totalRamGB} GB (${availableRamGB} GB dispo)`;
+      return `✅ Pipeline prêt! RAM: ${totalRamGB.toFixed(1)} GB (${availableRamGB.toFixed(1)} GB dispo)`;
     }
     
-    return `✅ Modèles OK. RAM: ${totalRamGB} GB. Initialisez le pipeline.`;
+    return `✅ Modèles OK. RAM: ${totalRamGB.toFixed(1)} GB. Initialisez le pipeline.`;
   }
 
   /**

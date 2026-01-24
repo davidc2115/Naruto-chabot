@@ -5338,14 +5338,15 @@ class ImageGenerationService {
       return await this.generateImage(prompt, retryCount + 1, character);
     }
     
-    // v5.4.77 - Dernier retry selon la stratégie (PAS de fallback Pollinations pour Freebox)
-    if (strategy === 'freebox') {
-      console.log('⚠️ Échec génération Freebox après plusieurs tentatives');
+    // v5.4.90 - PAS de fallback automatique vers Pollinations
+    // Respecter la stratégie choisie par l'utilisateur
+    if (strategy === 'freebox' || strategy === 'local') {
+      console.log(`⚠️ Échec génération ${strategy.toUpperCase()} après plusieurs tentatives`);
       throw new Error('Génération temporairement indisponible. Veuillez réessayer.');
     }
     
-    // Pour les autres stratégies, fallback sur Pollinations
-    console.log('🔄 Fallback sur Pollinations AI...');
+    // Seulement pour stratégie 'pollinations' explicitement choisie
+    console.log('🔄 Nouvelle tentative Pollinations AI...');
     return await this.generateWithPollinations(prompt, character);
   }
 
