@@ -16,7 +16,6 @@ import {
   Animated,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import GalleryService from '../services/GalleryService';
 
 const { width, height } = Dimensions.get('window');
@@ -117,19 +116,27 @@ export default function GalleryScreen({ route, navigation }) {
     }
   };
 
-  // v5.4.98 - Télécharger/Partager l'image avec expo-sharing
+  // v5.4.98 - Télécharger l'image dans le dossier de l'app
   const handleDownloadImage = async () => {
     if (!selectedImage || downloading) return;
 
     try {
       setDownloading(true);
 
+      // Créer le dossier de sauvegarde si nécessaire
+      const saveDir = `${FileSystem.documentDirectory}RolePlayChat/`;
+      const dirInfo = await FileSystem.getInfoAsync(saveDir);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(saveDir, { intermediates: true });
+      }
+
       // Générer un nom de fichier unique
       const timestamp = Date.now();
-      const fileName = `${character.name.replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}.jpg`;
-      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+      const safeName = character.name.replace(/[^a-zA-Z0-9]/g, '_');
+      const fileName = `${safeName}_${timestamp}.jpg`;
+      const fileUri = `${saveDir}${fileName}`;
 
-      // Télécharger/sauvegarder l'image localement
+      // Télécharger/sauvegarder l'image
       if (selectedImage.startsWith('data:image')) {
         // Si c'est une URL base64, l'écrire directement
         const base64Data = selectedImage.split(',')[1];
@@ -144,29 +151,24 @@ export default function GalleryScreen({ route, navigation }) {
         }
       }
 
-      // Vérifier si le partage est disponible
-      const isAvailable = await Sharing.isAvailableAsync();
-      
-      if (isAvailable) {
-        // Partager l'image (permet de sauvegarder dans la galerie)
-        await Sharing.shareAsync(fileUri, {
-          mimeType: 'image/jpeg',
-          dialogTitle: `Image de ${character.name}`,
-          UTI: 'public.jpeg',
-        });
-      } else {
+      // Vérifier que le fichier existe
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      if (fileInfo.exists) {
+        const sizeMB = (fileInfo.size / 1024 / 1024).toFixed(2);
         Alert.alert(
-          '✅ Image téléchargée',
-          `L'image a été sauvegardée dans le cache de l'application.`,
+          '✅ Image sauvegardée',
+          `L'image a été enregistrée !\n\n📁 Fichier: ${fileName}\n📦 Taille: ${sizeMB} MB\n\n💡 Utilisez un gestionnaire de fichiers pour accéder au dossier "RolePlayChat" de l'application.`,
           [{ text: 'OK' }]
         );
+      } else {
+        throw new Error('Fichier non créé');
       }
 
     } catch (error) {
       console.error('Erreur téléchargement:', error);
       Alert.alert(
         '❌ Erreur',
-        'Impossible de télécharger l\'image. Réessayez.',
+        'Impossible de sauvegarder l\'image. Réessayez.',
         [{ text: 'OK' }]
       );
     } finally {
