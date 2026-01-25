@@ -14,9 +14,13 @@ import {
   SafeAreaView,
   Platform,
   Animated,
+  PermissionsAndroid,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import GalleryService from '../services/GalleryService';
+
+const DOWNLOAD_DIR_KEY = '@gallery_download_dir';
 
 const { width, height } = Dimensions.get('window');
 
@@ -116,7 +120,7 @@ export default function GalleryScreen({ route, navigation }) {
     }
   };
 
-  // v5.5.0 - Télécharger l'image avec Storage Access Framework
+  // v5.5.1 - Télécharger l'image automatiquement (sans choisir le dossier à chaque fois)
   const handleDownloadImage = async () => {
     if (!selectedImage || downloading) return;
 
@@ -129,14 +133,12 @@ export default function GalleryScreen({ route, navigation }) {
       const safeName = character.name.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
       const fileName = `${safeName}_${timestamp}.jpg`;
 
-      // D'abord, préparer les données de l'image en base64
+      // Préparer les données de l'image en base64
       let base64Data = null;
       
       if (selectedImage.startsWith('data:image')) {
-        // Déjà en base64
         base64Data = selectedImage.split(',')[1];
       } else if (selectedImage.startsWith('http')) {
-        // Télécharger l'image et la convertir en base64
         const tempFile = `${FileSystem.cacheDirectory}temp_${timestamp}.jpg`;
         const downloadResult = await FileSystem.downloadAsync(selectedImage, tempFile);
         
@@ -144,15 +146,12 @@ export default function GalleryScreen({ route, navigation }) {
           throw new Error('Échec du téléchargement');
         }
         
-        // Lire le fichier en base64
         base64Data = await FileSystem.readAsStringAsync(tempFile, {
           encoding: FileSystem.EncodingType.Base64,
         });
         
-        // Supprimer le fichier temporaire
         await FileSystem.deleteAsync(tempFile, { idempotent: true });
       } else if (selectedImage.startsWith('file://')) {
-        // Lire le fichier local en base64
         base64Data = await FileSystem.readAsStringAsync(selectedImage, {
           encoding: FileSystem.EncodingType.Base64,
         });
@@ -162,69 +161,74 @@ export default function GalleryScreen({ route, navigation }) {
         throw new Error('Impossible de lire l\'image');
       }
 
-      // Utiliser Storage Access Framework pour Android
       if (Platform.OS === 'android') {
+        // Essayer de récupérer le dossier sauvegardé
+        let savedDirUri = await AsyncStorage.getItem(DOWNLOAD_DIR_KEY);
+        
+        // Si pas de dossier sauvegardé, demander une fois
+        if (!savedDirUri) {
+          Alert.alert(
+            '📁 Choisir le dossier de sauvegarde',
+            'Sélectionnez le dossier où sauvegarder vos images (ex: Downloads ou DCIM).\n\nCe choix sera mémorisé pour les prochaines fois.',
+            [
+              {
+                text: 'Choisir',
+                onPress: async () => {
+                  try {
+                    const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+                    
+                    if (permissions.granted) {
+                      // Sauvegarder le dossier pour les prochaines fois
+                      await AsyncStorage.setItem(DOWNLOAD_DIR_KEY, permissions.directoryUri);
+                      
+                      // Sauvegarder l'image
+                      await saveImageToDirectory(permissions.directoryUri, fileName, base64Data);
+                    } else {
+                      Alert.alert('⚠️ Permission refusée', 'Impossible de sauvegarder sans accès au stockage.');
+                    }
+                  } catch (e) {
+                    console.error('Erreur permission:', e);
+                  }
+                }
+              }
+            ]
+          );
+          return;
+        }
+        
+        // Utiliser le dossier sauvegardé
         try {
-          // Demander la permission d'accès à un dossier
-          const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
-          
-          if (permissions.granted) {
-            // Créer le fichier dans le dossier choisi par l'utilisateur
-            const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
-              permissions.directoryUri,
-              fileName,
-              'image/jpeg'
-            );
-            
-            // Écrire les données
-            await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-              encoding: FileSystem.EncodingType.Base64,
-            });
-            
-            Alert.alert(
-              '✅ Image sauvegardée',
-              `L'image "${fileName}" a été enregistrée dans le dossier que vous avez choisi.\n\n📱 Ouvrez votre galerie ou gestionnaire de fichiers pour la voir.`,
-              [{ text: 'OK' }]
-            );
-          } else {
-            // Permission refusée, sauvegarder dans le cache avec instructions
-            const cacheFile = `${FileSystem.cacheDirectory}${fileName}`;
-            await FileSystem.writeAsStringAsync(cacheFile, base64Data, {
-              encoding: FileSystem.EncodingType.Base64,
-            });
-            
-            Alert.alert(
-              '⚠️ Permission refusée',
-              `L'image a été sauvegardée dans le cache de l'app.\n\nPour sauvegarder dans votre galerie, autorisez l'accès au stockage la prochaine fois.`,
-              [{ text: 'OK' }]
-            );
-          }
+          await saveImageToDirectory(savedDirUri, fileName, base64Data);
         } catch (safError) {
-          console.error('❌ Erreur SAF:', safError);
-          // Fallback: sauvegarder dans le cache
-          const cacheFile = `${FileSystem.cacheDirectory}${fileName}`;
-          await FileSystem.writeAsStringAsync(cacheFile, base64Data, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
+          console.error('❌ Erreur avec dossier sauvegardé:', safError);
+          // Le dossier sauvegardé n'est plus valide, demander à nouveau
+          await AsyncStorage.removeItem(DOWNLOAD_DIR_KEY);
           
           Alert.alert(
-            '✅ Image sauvegardée (cache)',
-            `L'image a été enregistrée dans le cache de l'application.`,
-            [{ text: 'OK' }]
+            '⚠️ Dossier inaccessible',
+            'Le dossier de sauvegarde n\'est plus accessible. Veuillez en choisir un nouveau.',
+            [
+              {
+                text: 'Choisir',
+                onPress: async () => {
+                  const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+                  if (permissions.granted) {
+                    await AsyncStorage.setItem(DOWNLOAD_DIR_KEY, permissions.directoryUri);
+                    await saveImageToDirectory(permissions.directoryUri, fileName, base64Data);
+                  }
+                }
+              }
+            ]
           );
         }
       } else {
-        // iOS: sauvegarder dans le document directory
+        // iOS
         const fileUri = `${FileSystem.documentDirectory}${fileName}`;
         await FileSystem.writeAsStringAsync(fileUri, base64Data, {
           encoding: FileSystem.EncodingType.Base64,
         });
         
-        Alert.alert(
-          '✅ Image sauvegardée',
-          `L'image "${fileName}" a été enregistrée.`,
-          [{ text: 'OK' }]
-        );
+        Alert.alert('✅ Image sauvegardée', `"${fileName}" enregistrée.`);
       }
 
     } catch (error) {
@@ -237,6 +241,25 @@ export default function GalleryScreen({ route, navigation }) {
     } finally {
       setDownloading(false);
     }
+  };
+
+  // Fonction helper pour sauvegarder dans un dossier SAF
+  const saveImageToDirectory = async (directoryUri, fileName, base64Data) => {
+    const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
+      directoryUri,
+      fileName,
+      'image/jpeg'
+    );
+    
+    await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    
+    Alert.alert(
+      '✅ Image sauvegardée',
+      `"${fileName}" enregistrée !\n\n📱 Visible dans votre galerie.`,
+      [{ text: 'OK' }]
+    );
   };
 
   // Toggle UI visibility on tap
