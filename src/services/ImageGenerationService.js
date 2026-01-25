@@ -13,6 +13,10 @@ class ImageGenerationService {
     this.minDelay = 1000;
     this.maxRetries = 3;
     
+    // v5.5.2 - Rate limiting PAR UTILISATEUR
+    // Chaque utilisateur a son propre compteur de requêtes
+    this.userRateLimits = {}; // { odUserId: lastRequestTime }
+    
     // STYLES SÉPARÉS - Anime vs Réaliste
     // v5.4.11 - STYLES ANIME AMÉLIORÉS avec NSFW et corps entier
     this.animeStyles = [
@@ -5265,18 +5269,41 @@ class ImageGenerationService {
   }
 
   /**
-   * Attend le délai minimum entre les requêtes
+   * v5.5.2 - Récupère l'ID utilisateur courant
+   */
+  getCurrentUserId() {
+    try {
+      const user = AuthService.getCurrentUser();
+      return user?.id || user?.email || 'anonymous';
+    } catch (e) {
+      return 'anonymous';
+    }
+  }
+
+  /**
+   * v5.5.2 - Attend le délai minimum entre les requêtes PAR UTILISATEUR
+   * Chaque utilisateur a son propre rate limit indépendant
    */
   async waitForRateLimit() {
+    const userId = this.getCurrentUserId();
     const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    // Initialiser si premier appel pour cet utilisateur
+    if (!this.userRateLimits[userId]) {
+      this.userRateLimits[userId] = 0;
+    }
+    
+    const timeSinceLastRequest = now - this.userRateLimits[userId];
     
     if (timeSinceLastRequest < this.minDelay) {
       const waitTime = this.minDelay - timeSinceLastRequest;
-      console.log(`⏳ Attente de ${waitTime}ms...`);
+      console.log(`⏳ [User: ${userId.substring(0, 8)}...] Attente de ${waitTime}ms...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
     
+    this.userRateLimits[userId] = Date.now();
+    
+    // Aussi mettre à jour le global (compatibilité)
     this.lastRequestTime = Date.now();
   }
 
@@ -5631,22 +5658,26 @@ class ImageGenerationService {
    * Accepte maintenant un objet character optionnel pour les détails physiques directs
    */
   /**
-   * v5.4.19 - Génère une image avec POLLINATIONS AI (Cloud)
+   * v5.5.2 - Génère une image avec POLLINATIONS AI (Cloud)
    * URL: https://image.pollinations.ai/prompt/
    * Paramètres: model=flux, safe=false (NSFW), enhance=true
-   * FIX CRITIQUE: Si le marker [NSFW_LEVEL_X] est présent, utiliser le prompt DIRECTEMENT
-   * Le marker est AUTORITATIF - il vient de generateSceneImage avec les tenues/poses correctes
+   * CHAQUE UTILISATEUR A SA PROPRE SESSION (via userId dans le seed)
    */
   async generateWithPollinations(prompt, character = null) {
-    console.log('☁️ POLLINATIONS AI: Génération cloud (model=flux, safe=false, NSFW activé)...');
+    // v5.5.2 - Session par utilisateur
+    const userId = this.getCurrentUserId();
+    const userHash = this.hashString(userId);
+    
+    console.log(`☁️ POLLINATIONS AI: [User: ${userId.substring(0, 8)}...] Génération cloud...`);
     
     await this.waitForRateLimit();
     
-    // v5.4.24 - SEED BASÉ SUR L'IDENTITÉ DU PERSONNAGE pour cohérence d'apparence
-    // Utilise un hash du nom + caractéristiques physiques pour toujours générer la même base
+    // v5.5.2 - SEED BASÉ SUR L'UTILISATEUR + PERSONNAGE pour cohérence
+    // Chaque utilisateur a sa propre "version" du personnage
     const characterIdentityHash = this.generateCharacterIdentityHash(character);
-    const seed = characterIdentityHash + Math.floor(Math.random() * 1000); // Légère variation
-    console.log(`🎭 Seed d'identité personnage: ${characterIdentityHash} (final: ${seed})`);
+    const userSeed = (userHash % 10000); // Composante utilisateur
+    const seed = characterIdentityHash + userSeed + Math.floor(Math.random() * 1000);
+    console.log(`🎭 Seed utilisateur: ${userSeed}, personnage: ${characterIdentityHash} (final: ${seed})`);
     
     const pollinationsUrl = 'https://image.pollinations.ai/prompt/';
     const lowerPrompt = prompt.toLowerCase();
@@ -6040,6 +6071,20 @@ class ImageGenerationService {
     return imageUrl;
   }
   
+  /**
+   * v5.5.2 - Hash simple pour une chaîne de caractères
+   */
+  hashString(str) {
+    if (!str) return 0;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return Math.abs(hash);
+  }
+
   /**
    * v5.4.24 - Génère un hash d'identité unique pour un personnage
    * Ce hash est utilisé comme base du seed pour garder une apparence cohérente
@@ -7300,19 +7345,23 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.4.96 - Génère une image avec Stable Diffusion
-   * UTILISE POLLINATIONS DIRECTEMENT (plus rapide et fiable que le proxy Freebox)
-   * Le serveur Freebox faisait juste un proxy vers Pollinations de toute façon
+   * v5.5.2 - Génère une image avec Stable Diffusion
+   * UTILISE POLLINATIONS DIRECTEMENT avec session par utilisateur
    */
   async generateWithFreeboxSD(prompt, character = null) {
-    console.log('🎨 SD: Génération directe via Pollinations (mode Stable Diffusion)...');
+    // v5.5.2 - Session par utilisateur
+    const userId = this.getCurrentUserId();
+    const userHash = this.hashString(userId);
+    
+    console.log(`🎨 SD: [User: ${userId.substring(0, 8)}...] Génération via Pollinations...`);
     
     await this.waitForRateLimit();
     
-    // v5.4.96 - SEED BASÉ SUR L'IDENTITÉ DU PERSONNAGE pour cohérence d'apparence
+    // v5.5.2 - SEED BASÉ SUR L'UTILISATEUR + PERSONNAGE
     const characterIdentityHash = this.generateCharacterIdentityHash(character);
-    const seed = characterIdentityHash + Math.floor(Math.random() * 1000);
-    console.log(`🎭 Seed d'identité personnage: ${characterIdentityHash} (final: ${seed})`);
+    const userSeed = (userHash % 10000);
+    const seed = characterIdentityHash + userSeed + Math.floor(Math.random() * 1000);
+    console.log(`🎭 Seed utilisateur: ${userSeed}, personnage: ${characterIdentityHash} (final: ${seed})`);
     
     const lowerPrompt = prompt.toLowerCase();
     
