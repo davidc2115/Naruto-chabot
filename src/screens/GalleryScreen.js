@@ -116,121 +116,122 @@ export default function GalleryScreen({ route, navigation }) {
     }
   };
 
-  // v5.4.99 - Télécharger l'image dans le cache de l'app
+  // v5.5.0 - Télécharger l'image avec Storage Access Framework
   const handleDownloadImage = async () => {
     if (!selectedImage || downloading) return;
 
     try {
       setDownloading(true);
       console.log('📥 Début sauvegarde image...');
-      console.log('📷 Type image:', selectedImage.substring(0, 50));
-
-      // Utiliser le cache directory (plus permissif)
-      const saveDir = `${FileSystem.cacheDirectory}saved_images/`;
-      
-      // Créer le dossier si nécessaire
-      try {
-        const dirInfo = await FileSystem.getInfoAsync(saveDir);
-        if (!dirInfo.exists) {
-          await FileSystem.makeDirectoryAsync(saveDir, { intermediates: true });
-          console.log('📁 Dossier créé:', saveDir);
-        }
-      } catch (dirError) {
-        console.log('⚠️ Erreur création dossier, utilisation du cache direct');
-      }
 
       // Générer un nom de fichier unique
       const timestamp = Date.now();
       const safeName = character.name.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
       const fileName = `${safeName}_${timestamp}.jpg`;
-      
-      // Essayer d'abord le sous-dossier, sinon le cache direct
-      let fileUri = `${saveDir}${fileName}`;
-      let saved = false;
 
-      // Méthode 1: Si c'est une URL base64
+      // D'abord, préparer les données de l'image en base64
+      let base64Data = null;
+      
       if (selectedImage.startsWith('data:image')) {
-        console.log('📝 Sauvegarde depuis base64...');
-        try {
-          const base64Data = selectedImage.split(',')[1];
-          if (!base64Data) {
-            throw new Error('Données base64 invalides');
-          }
-          await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          saved = true;
-          console.log('✅ Fichier base64 écrit:', fileUri);
-        } catch (b64Error) {
-          console.error('❌ Erreur base64:', b64Error);
-          // Essayer dans le cache direct
-          fileUri = `${FileSystem.cacheDirectory}${fileName}`;
-          const base64Data = selectedImage.split(',')[1];
-          await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          saved = true;
+        // Déjà en base64
+        base64Data = selectedImage.split(',')[1];
+      } else if (selectedImage.startsWith('http')) {
+        // Télécharger l'image et la convertir en base64
+        const tempFile = `${FileSystem.cacheDirectory}temp_${timestamp}.jpg`;
+        const downloadResult = await FileSystem.downloadAsync(selectedImage, tempFile);
+        
+        if (downloadResult.status !== 200) {
+          throw new Error('Échec du téléchargement');
         }
-      } 
-      // Méthode 2: Télécharger depuis URL
-      else if (selectedImage.startsWith('http')) {
-        console.log('🌐 Téléchargement depuis URL...');
+        
+        // Lire le fichier en base64
+        base64Data = await FileSystem.readAsStringAsync(tempFile, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        
+        // Supprimer le fichier temporaire
+        await FileSystem.deleteAsync(tempFile, { idempotent: true });
+      } else if (selectedImage.startsWith('file://')) {
+        // Lire le fichier local en base64
+        base64Data = await FileSystem.readAsStringAsync(selectedImage, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      }
+
+      if (!base64Data) {
+        throw new Error('Impossible de lire l\'image');
+      }
+
+      // Utiliser Storage Access Framework pour Android
+      if (Platform.OS === 'android') {
         try {
-          const downloadResult = await FileSystem.downloadAsync(selectedImage, fileUri);
-          console.log('📡 Résultat download:', downloadResult.status);
-          if (downloadResult.status === 200) {
-            saved = true;
+          // Demander la permission d'accès à un dossier
+          const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+          
+          if (permissions.granted) {
+            // Créer le fichier dans le dossier choisi par l'utilisateur
+            const fileUri = await FileSystem.StorageAccessFramework.createFileAsync(
+              permissions.directoryUri,
+              fileName,
+              'image/jpeg'
+            );
+            
+            // Écrire les données
+            await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+            
+            Alert.alert(
+              '✅ Image sauvegardée',
+              `L'image "${fileName}" a été enregistrée dans le dossier que vous avez choisi.\n\n📱 Ouvrez votre galerie ou gestionnaire de fichiers pour la voir.`,
+              [{ text: 'OK' }]
+            );
           } else {
-            throw new Error(`Status: ${downloadResult.status}`);
+            // Permission refusée, sauvegarder dans le cache avec instructions
+            const cacheFile = `${FileSystem.cacheDirectory}${fileName}`;
+            await FileSystem.writeAsStringAsync(cacheFile, base64Data, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+            
+            Alert.alert(
+              '⚠️ Permission refusée',
+              `L'image a été sauvegardée dans le cache de l'app.\n\nPour sauvegarder dans votre galerie, autorisez l'accès au stockage la prochaine fois.`,
+              [{ text: 'OK' }]
+            );
           }
-        } catch (dlError) {
-          console.error('❌ Erreur téléchargement:', dlError);
-          // Essayer dans le cache direct
-          fileUri = `${FileSystem.cacheDirectory}${fileName}`;
-          const downloadResult = await FileSystem.downloadAsync(selectedImage, fileUri);
-          if (downloadResult.status === 200) {
-            saved = true;
-          }
-        }
-      }
-      // Méthode 3: C'est déjà un fichier local
-      else if (selectedImage.startsWith('file://')) {
-        console.log('📂 Copie depuis fichier local...');
-        try {
-          await FileSystem.copyAsync({
-            from: selectedImage,
-            to: fileUri,
+        } catch (safError) {
+          console.error('❌ Erreur SAF:', safError);
+          // Fallback: sauvegarder dans le cache
+          const cacheFile = `${FileSystem.cacheDirectory}${fileName}`;
+          await FileSystem.writeAsStringAsync(cacheFile, base64Data, {
+            encoding: FileSystem.EncodingType.Base64,
           });
-          saved = true;
-        } catch (copyError) {
-          console.error('❌ Erreur copie:', copyError);
+          
+          Alert.alert(
+            '✅ Image sauvegardée (cache)',
+            `L'image a été enregistrée dans le cache de l'application.`,
+            [{ text: 'OK' }]
+          );
         }
-      }
-
-      if (!saved) {
-        throw new Error('Aucune méthode de sauvegarde n\'a fonctionné');
-      }
-
-      // Vérifier que le fichier existe
-      const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      console.log('📊 Info fichier:', fileInfo);
-      
-      if (fileInfo.exists && fileInfo.size > 0) {
-        const sizeKB = Math.round(fileInfo.size / 1024);
+      } else {
+        // iOS: sauvegarder dans le document directory
+        const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+        await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        
         Alert.alert(
           '✅ Image sauvegardée',
-          `L'image a été enregistrée !\n\n📁 ${fileName}\n📦 ${sizeKB} KB`,
+          `L'image "${fileName}" a été enregistrée.`,
           [{ text: 'OK' }]
         );
-      } else {
-        throw new Error('Fichier vide ou non créé');
       }
 
     } catch (error) {
-      console.error('❌ Erreur sauvegarde complète:', error);
+      console.error('❌ Erreur sauvegarde:', error);
       Alert.alert(
         '❌ Erreur',
-        `Impossible de sauvegarder l'image.\n\nDétail: ${error.message || 'Erreur inconnue'}`,
+        `Impossible de sauvegarder l'image.\n\n${error.message || 'Erreur inconnue'}`,
         [{ text: 'OK' }]
       );
     } finally {
