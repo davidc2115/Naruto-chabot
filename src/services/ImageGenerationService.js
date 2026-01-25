@@ -7382,8 +7382,7 @@ class ImageGenerationService {
     // C'est ce que le serveur Freebox faisait de toute façon (juste un proxy)
     // Avantages: plus rapide, pas de problème d'auth, fiable
     
-    // Détecter le style pour choisir le modèle
-    const lowerPrompt = shortPrompt.toLowerCase();
+    // Détecter le style pour choisir le modèle (utilise lowerPrompt déjà déclaré)
     let model = 'flux'; // Par défaut
     if (lowerPrompt.includes('anime') || lowerPrompt.includes('manga')) {
       model = 'flux-anime';
