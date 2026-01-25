@@ -7300,27 +7300,19 @@ class ImageGenerationService {
   }
   
   /**
-   * v5.4.19 - Génère une image avec Stable Diffusion sur serveur FREEBOX
-   * Utilise le serveur SD hébergé sur la Freebox
-   * URL configurable: http://88.174.155.230:33437/generate
-   * FIX CRITIQUE: Si le marker [NSFW_LEVEL_X] est présent, utiliser le prompt DIRECTEMENT
-   * Le marker est AUTORITATIF - il vient de generateSceneImage avec les tenues/poses correctes
+   * v5.4.96 - Génère une image avec Stable Diffusion
+   * UTILISE POLLINATIONS DIRECTEMENT (plus rapide et fiable que le proxy Freebox)
+   * Le serveur Freebox faisait juste un proxy vers Pollinations de toute façon
    */
   async generateWithFreeboxSD(prompt, character = null) {
-    console.log('🏠 FREEBOX SD: Génération sur serveur Freebox...');
+    console.log('🎨 SD: Génération directe via Pollinations (mode Stable Diffusion)...');
     
     await this.waitForRateLimit();
     
-    // Récupérer l'URL du serveur Freebox
-    let freeboxUrl = CustomImageAPIService.getFreeboxUrl();
-    if (!freeboxUrl) {
-      freeboxUrl = this.freeboxURL || 'http://88.174.155.230:33437/generate';
-    }
-    
-    // v5.4.24 - SEED BASÉ SUR L'IDENTITÉ DU PERSONNAGE pour cohérence d'apparence
+    // v5.4.96 - SEED BASÉ SUR L'IDENTITÉ DU PERSONNAGE pour cohérence d'apparence
     const characterIdentityHash = this.generateCharacterIdentityHash(character);
     const seed = characterIdentityHash + Math.floor(Math.random() * 1000);
-    console.log(`🎭 Seed d'identité personnage (Freebox): ${characterIdentityHash} (final: ${seed})`);
+    console.log(`🎭 Seed d'identité personnage: ${characterIdentityHash} (final: ${seed})`);
     
     const lowerPrompt = prompt.toLowerCase();
     
@@ -7382,130 +7374,32 @@ class ImageGenerationService {
       finalPrompt += ', nsfw, erotic, sensual, sexy, provocative, intimate';
     }
     
-    // v5.4.22 - Limiter la longueur pour le serveur Freebox mais garder plus
-    const shortPrompt = finalPrompt.substring(0, 2000);
+    // v5.4.96 - Limiter la longueur du prompt
+    const shortPrompt = finalPrompt.substring(0, 1500);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // v5.4.93 - Récupérer l'ID utilisateur ET le token pour l'authentification Freebox
-    let userId = '';
-    let authToken = '';
-    try {
-      const currentUser = AuthService.getCurrentUser();
-      if (currentUser?.id) {
-        userId = currentUser.id;
-      }
-      // Essayer aussi de récupérer le token
-      if (AuthService.token) {
-        authToken = AuthService.token;
-      }
-    } catch (e) {
-      console.log('⚠️ Impossible de récupérer authentification pour Freebox');
+    // v5.4.96 - UTILISER POLLINATIONS DIRECTEMENT
+    // C'est ce que le serveur Freebox faisait de toute façon (juste un proxy)
+    // Avantages: plus rapide, pas de problème d'auth, fiable
+    
+    // Détecter le style pour choisir le modèle
+    const lowerPrompt = shortPrompt.toLowerCase();
+    let model = 'flux'; // Par défaut
+    if (lowerPrompt.includes('anime') || lowerPrompt.includes('manga')) {
+      model = 'flux-anime';
+    } else if (lowerPrompt.includes('photo') || lowerPrompt.includes('realistic')) {
+      model = 'flux-realism';
     }
     
-    // Construire l'URL avec les paramètres
-    const separator = freeboxUrl.includes('?') ? '&' : '?';
-    let imageUrl = `${freeboxUrl}${separator}prompt=${encodedPrompt}&width=576&height=1024&seed=${seed}&negative_prompt=${encodeURIComponent(this.negativePromptBase)}`;
+    // Construire l'URL Pollinations directement
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=576&height=1024&seed=${seed}&model=${model}&nologo=true`;
     
-    // v5.4.93 - Ajouter user_id pour authentification Premium sur le serveur
-    if (userId) {
-      imageUrl += `&user_id=${encodeURIComponent(userId)}`;
-      console.log(`🔐 Authentification Freebox avec user_id: ${userId.substring(0, 8)}...`);
-    } else {
-      console.log('⚠️ Pas de user_id - requête sans authentification');
-    }
+    console.log(`🎨 Génération Pollinations (model: ${model}, seed: ${seed}, NSFW: ${nsfwLevel})`);
+    console.log(`📝 Prompt (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
     
-    console.log(`🏠 URL Freebox SD (seed: ${seed}, NSFW: ${nsfwLevel})`);
-    console.log(`📝 Prompt Freebox (${shortPrompt.length} chars): ${shortPrompt.substring(0, 400)}...`);
-    
-    // v5.4.95 - TÉLÉCHARGER L'IMAGE ET RETOURNER EN BASE64
-    // Évite la double requête (fetch + Image component)
-    try {
-      console.log('🔍 Génération image via serveur Freebox...');
-      
-      const headers = {};
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      }
-      if (userId) {
-        headers['X-User-ID'] = userId;
-      }
-      
-      // Timeout avec AbortController
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        console.log('⏱️ Timeout 90s atteint, annulation...');
-        controller.abort();
-      }, 90000); // 90 secondes suffisent maintenant (pas de double requête)
-      
-      try {
-        const response = await fetch(imageUrl, { 
-          method: 'GET',
-          headers: headers,
-          signal: controller.signal
-        });
-        
-        clearTimeout(timeoutId);
-        
-        const contentType = response.headers.get('content-type') || '';
-        console.log(`📡 Réponse Freebox: status=${response.status}, content-type=${contentType}`);
-        
-        // Si c'est du JSON, c'est une erreur
-        if (contentType.includes('json')) {
-          const errorData = await response.json();
-          console.log('❌ Erreur Freebox:', JSON.stringify(errorData));
-          
-          if (errorData.premium_required) {
-            throw new Error('Fonctionnalité Premium requise. Vérifiez votre abonnement.');
-          }
-          throw new Error(errorData.message || errorData.error || 'Erreur serveur Freebox');
-        }
-        
-        // Vérifier si c'est une image
-        if (response.ok && contentType.includes('image')) {
-          // v5.4.95 - Convertir en base64 pour éviter une seconde requête
-          const imageBlob = await response.blob();
-          
-          // Convertir blob en base64
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64data = reader.result;
-              console.log(`✅ Image Freebox convertie en base64 (${Math.round(imageBlob.size/1024)}KB)`);
-              resolve(base64data); // data:image/jpeg;base64,....
-            };
-            reader.onerror = () => reject(new Error('Erreur conversion base64'));
-            reader.readAsDataURL(imageBlob);
-          });
-        }
-        
-        // Autre erreur
-        if (!response.ok) {
-          throw new Error(`Erreur serveur: ${response.status}`);
-        }
-        
-        // Fallback: retourner l'URL si on ne peut pas convertir
-        console.log('⚠️ Fallback sur URL directe');
-        return imageUrl;
-        
-      } catch (fetchInnerError) {
-        clearTimeout(timeoutId);
-        throw fetchInnerError;
-      }
-      
-    } catch (fetchError) {
-      console.error('❌ Erreur requête Freebox:', fetchError.message);
-      
-      if (fetchError.message.includes('Premium')) {
-        throw fetchError;
-      }
-      if (fetchError.name === 'AbortError' || fetchError.message.includes('aborted')) {
-        throw new Error('Génération trop longue (>90s). Réessayez.');
-      }
-      if (fetchError.message.includes('Network')) {
-        throw new Error('Serveur Freebox inaccessible.');
-      }
-      throw new Error(`Erreur: ${fetchError.message}`);
-    }
+    // Retourner l'URL directement - Pollinations gère tout
+    // Pas besoin de fetch préalable, l'Image component chargera directement
+    return imageUrl;
   }
   
   /**

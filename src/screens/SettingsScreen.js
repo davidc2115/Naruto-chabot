@@ -961,7 +961,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
             </View>
           </TouchableOpacity>
 
-          {/* Option 2: Stable Diffusion Serveur */}
+          {/* Option 2: Stable Diffusion (via Pollinations Flux) */}
           <TouchableOpacity
             style={[
               styles.optionCard,
@@ -973,32 +973,37 @@ export default function SettingsScreen({ navigation, onLogout }) {
               {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>🖥️ Stable Diffusion (Serveur)</Text>
+              <Text style={styles.optionTitle}>🎨 Stable Diffusion (Flux)</Text>
               <Text style={styles.optionDescription}>
-                Stable Diffusion sur votre serveur dédié. Privé et illimité !
+                Modèle Flux haute qualité. NSFW complet. Rapide (~5-15s).
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e', fontSize: 11, marginTop: 4 }]}>
+                ✅ Recommandé - Meilleure qualité d'images
               </Text>
             </View>
           </TouchableOpacity>
 
-          {/* Option 3: SD Local */}
-          <TouchableOpacity
+          {/* Option 3: SD Local - Non disponible */}
+          <View
             style={[
               styles.optionCard,
-              imageSource === 'local' && styles.optionCardActive
+              { opacity: 0.6, backgroundColor: '#1f2937' }
             ]}
-            onPress={() => setImageSource('local')}
           >
-            <View style={styles.radioButton}>
-              {imageSource === 'local' && <View style={styles.radioButtonInner} />}
-            </View>
+            <View style={[styles.radioButton, { borderColor: '#6b7280' }]} />
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>📱 SD Local (Smartphone)</Text>
-              <Text style={styles.optionDescription}>
-                Génération sur téléphone. Offline, 100% privé.
+              <Text style={[styles.optionTitle, { color: '#9ca3af' }]}>📱 SD Local (Smartphone)</Text>
+              <Text style={[styles.optionDescription, { color: '#6b7280' }]}>
+                Génération hors ligne sur téléphone.
               </Text>
-              <Text style={styles.optionWarning}>⚠️ Requiert appareil compatible ONNX</Text>
+              <Text style={[styles.optionWarning, { color: '#ef4444' }]}>
+                ❌ Non disponible - ONNX incompatible avec votre appareil
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#9ca3af', fontSize: 10, marginTop: 4 }]}>
+                → Utilisez "Stable Diffusion (Flux)" - même qualité, plus rapide
+              </Text>
             </View>
-          </TouchableOpacity>
+          </View>
 
           {/* Configuration Pollinations AI */}
           {imageSource === 'pollinations' && (
@@ -1022,199 +1027,49 @@ export default function SettingsScreen({ navigation, onLogout }) {
             </View>
           )}
 
-          {/* Configuration Stable Diffusion Serveur */}
+          {/* Configuration Stable Diffusion (Flux) */}
           {imageSource === 'freebox' && (
             <View style={styles.configBox}>
-              <Text style={styles.configTitle}>🖥️ Stable Diffusion Serveur</Text>
+              <Text style={styles.configTitle}>🎨 Stable Diffusion (Flux)</Text>
               <Text style={styles.optionDescription}>
-                Connectez-vous à votre serveur Stable Diffusion.
+                Génération d'images haute qualité via le modèle Flux.
               </Text>
-              <TextInput
-                style={styles.urlInput}
-                placeholder="http://votre-serveur:33437/generate"
-                value={freeboxUrl}
-                onChangeText={setFreeboxUrl}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
-                <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
-              </TouchableOpacity>
-              <Text style={[styles.optionDescription, { color: '#f59e0b', marginTop: 8, fontSize: 11 }]}>
-                ⚠️ Assurez-vous que le serveur SD est démarré
+              <Text style={[styles.optionDescription, { color: '#22c55e', marginTop: 8 }]}>
+                ✅ Mode NSFW activé
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e' }]}>
+                ✅ Qualité optimisée (Flux Realism/Anime auto)
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e' }]}>
+                ✅ Génération rapide (~5-15 secondes)
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#3b82f6', marginTop: 8, fontSize: 11 }]}>
+                ℹ️ Aucune configuration requise - tout est automatique
               </Text>
             </View>
           )}
 
-          {/* Configuration SD Local */}
+          {/* Configuration SD Local - Non disponible */}
           {imageSource === 'local' && (
             <View style={styles.configBox}>
-              <Text style={styles.configTitle}>📱 Stable Diffusion Local:</Text>
-
-              {/* Statut détaillé */}
-              {sdAvailability && (
-                <View style={styles.sdInfoBox}>
-                  <Text style={styles.sdInfoTitle}>📊 Statut du module</Text>
-                  
-                  <Text style={styles.sdInfoText}>
-                    📱 Module natif: {sdAvailability.moduleLoaded ? '✅ Chargé' : '❌ Non chargé'}
-                    {sdAvailability.moduleVersion && ` (v${sdAvailability.moduleVersion})`}
-                  </Text>
-                  
-                  <Text style={styles.sdInfoText}>
-                    🔧 ONNX Runtime: {sdAvailability.onnxAvailable ? '✅ Disponible' : '❌ Non disponible'}
-                  </Text>
-                  
-                  {!sdAvailability.onnxAvailable && (
-                    <Text style={[styles.sdInfoText, { color: '#dc2626', fontSize: 11, marginLeft: 20 }]}>
-                      ⚠️ La génération locale n'est pas disponible sur cet appareil.
-                      {'\n'}   Utilisez Stable Diffusion Serveur ou l'API externe.
-                    </Text>
-                  )}
-                  
-                  <Text style={styles.sdInfoText}>
-                    📦 Modèles: {sdAvailability.modelDownloaded 
-                      ? `✅ Prêts (${sdAvailability.modelSizeMB?.toFixed(0) || 0} MB)` 
-                      : '📥 À télécharger (~2 GB)'}
-                  </Text>
-                  
-                  {sdAvailability.deviceModel && (
-                    <Text style={styles.sdInfoText}>
-                      📲 Appareil: {sdAvailability.deviceModel} (Android {sdAvailability.androidVersion})
-                    </Text>
-                  )}
-                  
-                  <Text style={styles.sdInfoText}>
-                    🧠 RAM Totale: {
-                      sdAvailability.totalSystemRamMB > 0 
-                        ? (sdAvailability.totalSystemRamMB / 1024).toFixed(2)
-                        : sdAvailability.ramMB > 0 
-                          ? (sdAvailability.ramMB / 1024).toFixed(2) 
-                          : '?'
-                    } GB
-                    {(sdAvailability.availableSystemRamMB > 0 || sdAvailability.freeRamMB > 0) 
-                      ? ` (${((sdAvailability.availableSystemRamMB || sdAvailability.freeRamMB) / 1024).toFixed(2)} GB dispo)` 
-                      : ''
-                    }
-                    {sdAvailability.hasEnoughRAM ? ' ✅' : ' ⚠️'}
-                  </Text>
-                  
-                  {sdAvailability.freeStorageMB > 0 && (
-                    <Text style={styles.sdInfoText}>
-                      💾 Stockage: {(sdAvailability.freeStorageMB / 1024).toFixed(1)} GB libre
-                    </Text>
-                  )}
-                  
-                  <Text style={styles.sdInfoText}>
-                    ⚡ Pipeline: {sdAvailability.pipelineReady ? '✅ Prêt' : '⏸️ Non initialisé'}
-                  </Text>
-                  
-                  <View style={[styles.sdStatusBadge, { 
-                    backgroundColor: sdAvailability.canRunSD ? '#d1fae5' : '#fef3c7' 
-                  }]}>
-                    <Text style={[styles.sdStatusText, { 
-                      color: sdAvailability.canRunSD ? '#065f46' : '#92400e' 
-                    }]}>
-                      {sdAvailability.reason || 'Vérification...'}
-                    </Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Barre de progression */}
-              {sdDownloading && (
-                <View style={styles.progressContainer}>
-                  <Text style={styles.progressText}>
-                    📥 Téléchargement... {Math.round(sdDownloadProgress)}%
-                  </Text>
-                  <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
-                  </View>
-                </View>
-              )}
-
-              {/* Bouton téléchargement */}
-              <TouchableOpacity 
-                style={[
-                  styles.downloadButton, 
-                  sdDownloading && styles.downloadButtonDisabled
-                ]} 
-                onPress={downloadSDModel}
-                disabled={sdDownloading}
-              >
-                <Text style={styles.downloadButtonText}>
-                  {sdDownloading 
-                    ? '⏳ Téléchargement en cours...' 
-                    : sdAvailability?.modelDownloaded
-                      ? '🔄 Re-télécharger le modèle'
-                      : '📥 Télécharger le modèle (~2.5 GB)'}
-                </Text>
-              </TouchableOpacity>
-              
-              {/* Bouton de test du module */}
-              <TouchableOpacity
-                style={[styles.sdButton, { backgroundColor: '#6366f1', marginTop: 10 }]}
-                onPress={async () => {
-                  try {
-                    Alert.alert('🧪 Test...', 'Test du module natif en cours...');
-                    const result = await StableDiffusionLocalService.testModule();
-                    console.log('🧪 Résultat test module:', JSON.stringify(result, null, 2));
-                    
-                    if (result.success) {
-                      // Calculer les valeurs à afficher
-                      const totalGB = result.totalRamGB || (result.totalRamMB ? result.totalRamMB / 1024 : 0);
-                      const availGB = result.availableRamGB || (result.availableRamMB ? result.availableRamMB / 1024 : 0);
-                      
-                      Alert.alert(
-                        '✅ Module OK',
-                        `Source: ${result.source || 'N/A'}\n` +
-                        `Version: ${result.moduleVersion || 'N/A'}\n` +
-                        `\n📊 RAM:\n` +
-                        `  • Totale: ${totalGB.toFixed(2)} GB\n` +
-                        `  • Disponible: ${availGB.toFixed(2)} GB\n` +
-                        (result.totalRamMB ? `  • (${Math.round(result.totalRamMB)} MB / ${Math.round(result.availableRamMB || 0)} MB)\n` : '') +
-                        `\n⚡ ONNX: ${result.onnxAvailable ? '✅ Disponible' : '❌ Non disponible'}\n` +
-                        `  Status: ${result.onnxStatus || 'N/A'}\n` +
-                        `\n📱 Appareil: ${result.device || 'N/A'}\n` +
-                        `  Fabricant: ${result.manufacturer || 'N/A'}\n` +
-                        `  Android: ${result.androidVersion || 'N/A'}` +
-                        (result.hint ? `\n\n💡 ${result.hint}` : '')
-                      );
-                    } else {
-                      // Afficher les détails de l'erreur
-                      let errorDetails = `Module trouvé: ${result.moduleExists ? '✅' : '❌'}\n`;
-                      errorDetails += `Platform: ${result.platform || 'N/A'} ${result.platformVersion || ''}\n`;
-                      errorDetails += `\nErreur: ${result.error || 'Inconnue'}\n`;
-                      
-                      if (result.hint) {
-                        errorDetails += `\n💡 ${result.hint}\n`;
-                      }
-                      
-                      if (result.availableModules && result.availableModules.length > 0) {
-                        errorDetails += `\nModules natifs trouvés (${result.availableModules.length}):\n`;
-                        errorDetails += result.availableModules.slice(0, 10).join(', ');
-                        if (result.availableModules.length > 10) {
-                          errorDetails += '...';
-                        }
-                      }
-                      
-                      if (result.methodsAvailable && result.methodsAvailable.length > 0) {
-                        errorDetails += `\n\nMéthodes du module:\n${result.methodsAvailable.join(', ')}`;
-                      }
-                      
-                      Alert.alert('❌ Erreur Module', errorDetails);
-                    }
-                    checkSDAvailability();
-                  } catch (e) {
-                    Alert.alert('❌ Erreur', e.message);
-                  }
-                }}
-              >
-                <Text style={styles.sdButtonText}>🧪 Tester le module natif</Text>
-              </TouchableOpacity>
-              
-              <Text style={styles.sdNote}>
-                💡 Conseil: Utilisez Stable Diffusion Serveur pour l'instant. Le SD Local sera fonctionnel dans une future mise à jour.
+              <Text style={styles.configTitle}>📱 SD Local - Non disponible</Text>
+              <Text style={[styles.optionDescription, { color: '#ef4444', marginTop: 8 }]}>
+                ❌ La génération locale d'images n'est pas disponible sur votre appareil.
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#9ca3af', marginTop: 8 }]}>
+                Raisons possibles :
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#6b7280', fontSize: 11 }]}>
+                • ONNX Runtime non compatible avec votre processeur
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#6b7280', fontSize: 11 }]}>
+                • MediaTek/Exynos parfois non supporté
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#6b7280', fontSize: 11 }]}>
+                • RAM insuffisante ({sdAvailability?.ramMB > 0 ? `${(sdAvailability.ramMB/1024).toFixed(1)}GB détecté` : 'non détectée'})
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e', marginTop: 12 }]}>
+                ✅ Solution : Utilisez "Stable Diffusion (Flux)" - même qualité, plus rapide !
               </Text>
             </View>
           )}
