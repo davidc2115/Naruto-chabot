@@ -13,12 +13,10 @@ import {
   StatusBar,
   SafeAreaView,
   Platform,
-  FlatList,
   Animated,
-  PermissionsAndroid,
-  Share,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import GalleryService from '../services/GalleryService';
 
 const { width, height } = Dimensions.get('window');
@@ -32,9 +30,9 @@ export default function GalleryScreen({ route, navigation }) {
   const [showUI, setShowUI] = useState(true);
   const [downloading, setDownloading] = useState(false);
   
-  // Animation pour masquer/afficher l'UI
+  // Refs
+  const scrollViewRef = useRef(null);
   const uiOpacity = useRef(new Animated.Value(1)).current;
-  const flatListRef = useRef(null);
 
   useEffect(() => {
     loadGallery();
@@ -54,6 +52,32 @@ export default function GalleryScreen({ route, navigation }) {
     setGallery(images);
   };
 
+  // Ouvrir le modal à l'image sélectionnée
+  const openFullScreen = (imageUrl, index) => {
+    setSelectedImage(imageUrl);
+    setSelectedIndex(index);
+    setShowUI(true);
+    setModalVisible(true);
+    
+    // Scroll vers l'image après ouverture du modal
+    setTimeout(() => {
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ x: index * width, animated: false });
+      }
+    }, 100);
+  };
+
+  // Gestion du scroll pour mettre à jour l'index
+  const handleScroll = (event) => {
+    const contentOffset = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(contentOffset / width);
+    
+    if (newIndex !== selectedIndex && newIndex >= 0 && newIndex < gallery.length) {
+      setSelectedIndex(newIndex);
+      setSelectedImage(gallery[newIndex]);
+    }
+  };
+
   const handleDeleteImage = async (imageUrl) => {
     Alert.alert(
       'Supprimer',
@@ -65,18 +89,19 @@ export default function GalleryScreen({ route, navigation }) {
           style: 'destructive',
           onPress: async () => {
             await GalleryService.deleteImage(character.id, imageUrl);
-            await loadGallery();
+            
+            // Recharger la galerie
+            const newGallery = await GalleryService.getGallery(character.id);
+            setGallery(newGallery);
             
             // Fermer le modal si plus d'images
-            if (gallery.length <= 1) {
+            if (newGallery.length === 0) {
               setModalVisible(false);
             } else {
               // Ajuster l'index si nécessaire
-              if (selectedIndex >= gallery.length - 1) {
-                const newIndex = Math.max(0, selectedIndex - 1);
-                setSelectedIndex(newIndex);
-                setSelectedImage(gallery[newIndex]);
-              }
+              const newIndex = Math.min(selectedIndex, newGallery.length - 1);
+              setSelectedIndex(newIndex);
+              setSelectedImage(newGallery[newIndex]);
             }
             Alert.alert('Succès', 'Image supprimée');
           },
@@ -92,7 +117,7 @@ export default function GalleryScreen({ route, navigation }) {
     }
   };
 
-  // v5.4.97 - Télécharger/Partager l'image
+  // v5.4.98 - Télécharger/Partager l'image avec expo-sharing
   const handleDownloadImage = async () => {
     if (!selectedImage || downloading) return;
 
@@ -101,8 +126,8 @@ export default function GalleryScreen({ route, navigation }) {
 
       // Générer un nom de fichier unique
       const timestamp = Date.now();
-      const fileName = `${character.name.replace(/\s+/g, '_')}_${timestamp}.jpg`;
-      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+      const fileName = `${character.name.replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}.jpg`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
 
       // Télécharger/sauvegarder l'image localement
       if (selectedImage.startsWith('data:image')) {
@@ -113,46 +138,35 @@ export default function GalleryScreen({ route, navigation }) {
         });
       } else {
         // Sinon télécharger depuis l'URL
-        await FileSystem.downloadAsync(selectedImage, fileUri);
+        const downloadResult = await FileSystem.downloadAsync(selectedImage, fileUri);
+        if (downloadResult.status !== 200) {
+          throw new Error('Erreur de téléchargement');
+        }
       }
 
-      // Proposer de partager l'image (permet de sauvegarder dans la galerie)
-      if (Platform.OS === 'android') {
-        // Sur Android, proposer de partager ou de copier le chemin
-        Alert.alert(
-          '✅ Image prête',
-          'L\'image a été téléchargée. Voulez-vous la partager pour la sauvegarder dans votre galerie ?',
-          [
-            { text: 'Annuler', style: 'cancel' },
-            {
-              text: 'Partager',
-              onPress: async () => {
-                try {
-                  await Share.share({
-                    url: fileUri,
-                    title: `Image de ${character.name}`,
-                  });
-                } catch (e) {
-                  // Fallback: juste confirmer la sauvegarde locale
-                  Alert.alert('✅ Sauvegardé', `Image sauvegardée dans:\n${fileUri}`);
-                }
-              }
-            }
-          ]
-        );
-      } else {
-        // Sur iOS, utiliser Share directement
-        await Share.share({
-          url: fileUri,
-          title: `Image de ${character.name}`,
+      // Vérifier si le partage est disponible
+      const isAvailable = await Sharing.isAvailableAsync();
+      
+      if (isAvailable) {
+        // Partager l'image (permet de sauvegarder dans la galerie)
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'image/jpeg',
+          dialogTitle: `Image de ${character.name}`,
+          UTI: 'public.jpeg',
         });
+      } else {
+        Alert.alert(
+          '✅ Image téléchargée',
+          `L'image a été sauvegardée dans le cache de l'application.`,
+          [{ text: 'OK' }]
+        );
       }
 
     } catch (error) {
       console.error('Erreur téléchargement:', error);
       Alert.alert(
         '❌ Erreur',
-        'Impossible de télécharger l\'image.',
+        'Impossible de télécharger l\'image. Réessayez.',
         [{ text: 'OK' }]
       );
     } finally {
@@ -164,32 +178,6 @@ export default function GalleryScreen({ route, navigation }) {
   const toggleUI = () => {
     setShowUI(!showUI);
   };
-
-  // Rendu d'une image en plein écran (pour FlatList)
-  const renderFullScreenImage = ({ item, index }) => (
-    <TouchableWithoutFeedback onPress={toggleUI}>
-      <View style={styles.fullScreenSlide}>
-        <Image
-          source={{ uri: item }}
-          style={styles.fullScreenImage}
-          resizeMode="contain"
-        />
-      </View>
-    </TouchableWithoutFeedback>
-  );
-
-  // Changement d'image via swipe
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
-    if (viewableItems.length > 0) {
-      const newIndex = viewableItems[0].index;
-      setSelectedIndex(newIndex);
-      setSelectedImage(gallery[newIndex]);
-    }
-  }).current;
-
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50,
-  }).current;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -223,12 +211,7 @@ export default function GalleryScreen({ route, navigation }) {
               <TouchableOpacity
                 key={index}
                 style={styles.imageCard}
-                onPress={() => {
-                  setSelectedImage(imageUrl);
-                  setSelectedIndex(index);
-                  setShowUI(true);
-                  setModalVisible(true);
-                }}
+                onPress={() => openFullScreen(imageUrl, index)}
               >
                 <Image source={{ uri: imageUrl }} style={styles.thumbnail} />
               </TouchableOpacity>
@@ -246,24 +229,29 @@ export default function GalleryScreen({ route, navigation }) {
         >
           <StatusBar hidden={true} />
           <View style={styles.fullScreenContainer}>
-            {/* FlatList horizontal pour swipe */}
-            <FlatList
-              ref={flatListRef}
-              data={gallery}
-              renderItem={renderFullScreenImage}
-              keyExtractor={(item, index) => index.toString()}
+            {/* ScrollView horizontal pour swipe */}
+            <ScrollView
+              ref={scrollViewRef}
               horizontal
               pagingEnabled
               showsHorizontalScrollIndicator={false}
-              initialScrollIndex={selectedIndex}
-              getItemLayout={(data, index) => ({
-                length: width,
-                offset: width * index,
-                index,
-              })}
-              onViewableItemsChanged={onViewableItemsChanged}
-              viewabilityConfig={viewabilityConfig}
-            />
+              onMomentumScrollEnd={handleScroll}
+              scrollEventThrottle={16}
+              decelerationRate="fast"
+              style={styles.scrollView}
+            >
+              {gallery.map((imageUrl, index) => (
+                <TouchableWithoutFeedback key={index} onPress={toggleUI}>
+                  <View style={styles.fullScreenSlide}>
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.fullScreenImage}
+                      resizeMode="contain"
+                    />
+                  </View>
+                </TouchableWithoutFeedback>
+              ))}
+            </ScrollView>
 
             {/* Overlay UI (masquable au tap) */}
             <Animated.View
@@ -294,7 +282,7 @@ export default function GalleryScreen({ route, navigation }) {
                     {downloading ? '⏳' : '💾'}
                   </Text>
                   <Text style={styles.overlayActionText}>
-                    {downloading ? 'Téléchargement...' : 'Télécharger'}
+                    {downloading ? 'Chargement...' : 'Sauvegarder'}
                   </Text>
                 </TouchableOpacity>
 
@@ -315,12 +303,14 @@ export default function GalleryScreen({ route, navigation }) {
                 </TouchableOpacity>
               </View>
 
-              {/* Indicateur de swipe */}
-              <View style={styles.swipeIndicator}>
-                <Text style={styles.swipeIndicatorText}>
-                  ← Swipez pour naviguer →
-                </Text>
-              </View>
+              {/* Indicateur de swipe (disparait après premier swipe) */}
+              {gallery.length > 1 && (
+                <View style={styles.swipeIndicator}>
+                  <Text style={styles.swipeIndicatorText}>
+                    ← Glissez pour voir les autres images →
+                  </Text>
+                </View>
+              )}
             </Animated.View>
           </View>
         </Modal>
@@ -425,6 +415,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
+  scrollView: {
+    flex: 1,
+  },
   fullScreenSlide: {
     width: width,
     height: height,
@@ -440,6 +433,7 @@ const styles = StyleSheet.create({
   overlayUI: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'space-between',
+    pointerEvents: 'box-none',
   },
 
   // Boutons en haut
