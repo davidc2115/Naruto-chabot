@@ -111,18 +111,18 @@ class StorageService {
         version: '5.3.68',
       };
       
-      // v5.3.68 - TRIPLE SAUVEGARDE pour garantir la persistance
+      // v5.5.3 - SAUVEGARDE ISOLÉE PAR UTILISATEUR (plus de backup global partagé)
       const jsonData = JSON.stringify(data);
       
-      // 1. Clé principale
+      // 1. Clé principale (isolée par userId)
       await AsyncStorage.setItem(key, jsonData);
       
-      // 2. Backup global (sans userId)
-      const backupKey = `conv_backup_${characterId}`;
+      // 2. Backup isolé par utilisateur (PAS global!)
+      const backupKey = `conv_backup_${userId}_${characterId}`;
       await AsyncStorage.setItem(backupKey, jsonData);
       
-      // 3. Backup de secours
-      const fallbackKey = `conv_fallback_${characterId}`;
+      // 3. Backup de secours isolé par utilisateur
+      const fallbackKey = `conv_fallback_${userId}_${characterId}`;
       await AsyncStorage.setItem(fallbackKey, jsonData);
       
       console.log(`✅ Conversation sauvegardée: ${key} (${messages?.length || 0} messages) + 2 backups`);
@@ -216,14 +216,12 @@ class StorageService {
         return parsed;
       }
       
-      // v5.3.68 - Essayer TOUS les formats de clés possibles (dans l'ordre de priorité)
+      // v5.5.3 - Essayer les clés DE CET UTILISATEUR uniquement
       const alternativeKeys = [
-        `conv_backup_${characterId}`,         // Backup global
-        `conv_fallback_${characterId}`,       // Backup de secours v5.3.68
-        `conv_default_${characterId}`,        // Sauvegarde de secours
-        `conv_emergency_${characterId}`,      // Sauvegarde d'urgence
-        `conv_anonymous_${characterId}`,      // Legacy anonymous
-        `conversation_${characterId}`,        // Ancien format
+        `conv_backup_${userId}_${characterId}`,    // Backup utilisateur
+        `conv_fallback_${userId}_${characterId}`,  // Fallback utilisateur
+        `conv_default_${userId}_${characterId}`,   // Secours utilisateur
+        `conv_emergency_${userId}_${characterId}`, // Urgence utilisateur
       ];
       
       for (const altKey of alternativeKeys) {
@@ -271,26 +269,20 @@ class StorageService {
       
       console.log(`🚫 Conversations supprimées à ignorer: ${deletedIds.length}`);
       
-      // v5.4.21 - Chercher TOUTES les conversations possibles (tous formats)
+      // v5.5.3 - Chercher UNIQUEMENT les conversations de CET utilisateur
       const keys = await AsyncStorage.getAllKeys();
       const convKeys = keys.filter(key => {
         // Exclure les index et deleted
         if (key.includes('index') || key.includes('deleted')) return false;
         
-        // Format principal: conv_userId_characterId
+        // UNIQUEMENT les clés de cet utilisateur
         if (key.startsWith(`conv_${userId}_`)) return true;
+        if (key.startsWith(`conv_backup_${userId}_`)) return true;
+        if (key.startsWith(`conv_fallback_${userId}_`)) return true;
+        if (key.startsWith(`conv_default_${userId}_`)) return true;
+        if (key.startsWith(`conv_emergency_${userId}_`)) return true;
         
-        // v5.4.21 - Backups globaux (TOUS les formats de backup)
-        if (key.startsWith('conv_backup_')) return true;
-        if (key.startsWith('conv_fallback_')) return true;  // Ajouté v5.4.21
-        if (key.startsWith('conv_emergency_')) return true; // Ajouté v5.4.21
-        
-        // Formats legacy: conv_anonymous_, conv_device_, conversation_
-        if (key.startsWith('conv_anonymous_')) return true;
-        if (key.startsWith('conv_device_')) return true;
-        if (key.startsWith('conversation_')) return true;
-        if (key.startsWith('conv_default_')) return true;
-        
+        // NE PAS inclure les clés d'autres utilisateurs ou globales
         return false;
       });
       

@@ -241,15 +241,15 @@ class GalleryService {
           }
         }
         
-        // v5.3.68 - TRIPLE sauvegarde pour persistance garantie
+        // v5.5.3 - SAUVEGARDE ISOLÉE PAR UTILISATEUR
         const jsonData = JSON.stringify(gallery);
         
         // 1. Clé principale avec userId
         await AsyncStorage.setItem(key, jsonData);
         console.log(`🖼️ Image ajoutée à la galerie: ${key}, seed=${seed}`);
         
-        // 2. Backup global sans userId (pour récupération)
-        const backupKey = `gal_backup_${characterId}`;
+        // 2. Backup ISOLÉ par utilisateur (PAS global!)
+        const backupKey = `gal_backup_${userId}_${characterId}`;
         await AsyncStorage.setItem(backupKey, jsonData);
         
         // 3. Vérification que la sauvegarde a fonctionné
@@ -271,12 +271,13 @@ class GalleryService {
       return imageUrl;
     } catch (error) {
       console.error('Error saving image to gallery:', error);
-      // v5.3.68 - Tentative de sauvegarde de secours
+      // v5.5.3 - Tentative de sauvegarde de secours ISOLÉE par utilisateur
       try {
-        const fallbackKey = `gal_fallback_${characterId}`;
+        const userId = await this.getCurrentUserId();
+        const fallbackKey = `gal_fallback_${userId}_${characterId}`;
         const simpleData = JSON.stringify([{ url: imageUrl, savedAt: Date.now() }]);
         await AsyncStorage.setItem(fallbackKey, simpleData);
-        console.log('⚠️ Sauvegarde de secours effectuée');
+        console.log('⚠️ Sauvegarde de secours effectuée (isolée par utilisateur)');
       } catch (e2) {}
       throw error;
     }
@@ -313,18 +314,17 @@ class GalleryService {
       const key = `gal_${userId}_${characterId}`;
       let data = await AsyncStorage.getItem(key);
       
-      // v5.3.68 - Si pas de données, essayer les clés de backup
+      // v5.5.3 - Si pas de données, essayer les backups DE CET UTILISATEUR uniquement
       if (!data) {
         const backupKeys = [
-          `gal_backup_${characterId}`,
-          `gal_fallback_${characterId}`,
-          `gallery_${characterId}`,
+          `gal_backup_${userId}_${characterId}`,
+          `gal_fallback_${userId}_${characterId}`,
         ];
         
         for (const backupKey of backupKeys) {
           const backupData = await AsyncStorage.getItem(backupKey);
           if (backupData) {
-            console.log(`🔄 Galerie récupérée depuis backup: ${backupKey}`);
+            console.log(`🔄 Galerie récupérée depuis backup utilisateur: ${backupKey}`);
             data = backupData;
             // Migrer vers la clé principale
             await AsyncStorage.setItem(key, data);

@@ -1,11 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AuthService from './AuthService';
 
 /**
  * Service de gestion des niveaux et de l'XP
- * Système de progression INDIVIDUEL par personnage
+ * v5.5.3 - Système de progression INDIVIDUEL par personnage ET par utilisateur
  */
 class LevelService {
   constructor() {
+    // Cache pour l'ID utilisateur
+    this._cachedUserId = null;
+    this._lastUserIdCheck = 0;
     // Configuration des niveaux
     this.baseXP = 50; // Moins d'XP requis pour progresser plus vite
     this.exponent = 1.3;
@@ -97,11 +101,56 @@ class LevelService {
   }
 
   /**
-   * Charge les données d'un personnage spécifique
+   * v5.5.3 - Récupère l'ID utilisateur courant
+   */
+  async getCurrentUserId() {
+    try {
+      const now = Date.now();
+      if (this._cachedUserId && (now - this._lastUserIdCheck) < 5000) {
+        return this._cachedUserId;
+      }
+
+      const user = AuthService.getCurrentUser();
+      if (user?.id) {
+        this._cachedUserId = user.id;
+        this._lastUserIdCheck = now;
+        return user.id;
+      }
+
+      const storedUser = await AsyncStorage.getItem('current_user');
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed.id) {
+            this._cachedUserId = parsed.id;
+            this._lastUserIdCheck = now;
+            return parsed.id;
+          }
+        } catch (e) {}
+      }
+
+      let deviceId = await AsyncStorage.getItem('device_user_id');
+      if (!deviceId) {
+        deviceId = 'device_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+        await AsyncStorage.setItem('device_user_id', deviceId);
+      }
+
+      this._cachedUserId = deviceId;
+      this._lastUserIdCheck = now;
+      return deviceId;
+    } catch (error) {
+      return 'default';
+    }
+  }
+
+  /**
+   * v5.5.3 - Charge les données d'un personnage spécifique (isolé par utilisateur)
    */
   async getCharacterData(characterId) {
     try {
-      const allData = await AsyncStorage.getItem('character_levels_data');
+      const userId = await this.getCurrentUserId();
+      const key = `levels_${userId}`;
+      const allData = await AsyncStorage.getItem(key);
       const parsed = allData ? JSON.parse(allData) : {};
       return parsed[characterId] || this.getDefaultCharacterData(characterId);
     } catch (error) {
@@ -126,25 +175,29 @@ class LevelService {
   }
 
   /**
-   * Sauvegarde les données d'un personnage
+   * v5.5.3 - Sauvegarde les données d'un personnage (isolé par utilisateur)
    */
   async saveCharacterData(characterId, data) {
     try {
-      const allData = await AsyncStorage.getItem('character_levels_data');
+      const userId = await this.getCurrentUserId();
+      const key = `levels_${userId}`;
+      const allData = await AsyncStorage.getItem(key);
       const parsed = allData ? JSON.parse(allData) : {};
       parsed[characterId] = data;
-      await AsyncStorage.setItem('character_levels_data', JSON.stringify(parsed));
+      await AsyncStorage.setItem(key, JSON.stringify(parsed));
     } catch (error) {
       console.error('Erreur sauvegarde niveau personnage:', error);
     }
   }
 
   /**
-   * Charge les données globales utilisateur (pour compatibilité)
+   * v5.5.3 - Charge les données globales utilisateur (isolé par utilisateur)
    */
   async getUserData() {
     try {
-      const data = await AsyncStorage.getItem('user_level_data');
+      const userId = await this.getCurrentUserId();
+      const key = `user_level_${userId}`;
+      const data = await AsyncStorage.getItem(key);
       if (data) {
         return JSON.parse(data);
       }
@@ -174,11 +227,13 @@ class LevelService {
   }
 
   /**
-   * Sauvegarde les données utilisateur globales
+   * v5.5.3 - Sauvegarde les données utilisateur globales (isolé par utilisateur)
    */
   async saveUserData(data) {
     try {
-      await AsyncStorage.setItem('user_level_data', JSON.stringify(data));
+      const userId = await this.getCurrentUserId();
+      const key = `user_level_${userId}`;
+      await AsyncStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
       console.error('Erreur sauvegarde niveau:', error);
     }
@@ -558,18 +613,20 @@ class LevelService {
   }
 
   /**
-   * Réinitialise les données d'un personnage spécifique
+   * v5.5.3 - Réinitialise les données d'un personnage spécifique (isolé par utilisateur)
    */
   async resetCharacterStats(characterId) {
     try {
-      const allData = await AsyncStorage.getItem('character_levels_data');
+      const userId = await this.getCurrentUserId();
+      const key = `levels_${userId}`;
+      const allData = await AsyncStorage.getItem(key);
       const parsed = allData ? JSON.parse(allData) : {};
       
       // Réinitialiser les données de ce personnage
       parsed[characterId] = this.getDefaultCharacterData(characterId);
       
-      await AsyncStorage.setItem('character_levels_data', JSON.stringify(parsed));
-      console.log(`✅ Stats réinitialisées pour ${characterId}`);
+      await AsyncStorage.setItem(key, JSON.stringify(parsed));
+      console.log(`✅ Stats réinitialisées pour ${characterId} (user: ${userId.substring(0, 8)}...)`);
       return true;
     } catch (error) {
       console.error('Erreur reset stats personnage:', error);
