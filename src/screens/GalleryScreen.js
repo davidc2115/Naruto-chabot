@@ -16,9 +16,9 @@ import {
   FlatList,
   Animated,
   PermissionsAndroid,
+  Share,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import * as MediaLibrary from 'expo-media-library';
 import GalleryService from '../services/GalleryService';
 
 const { width, height } = Dimensions.get('window');
@@ -92,67 +92,67 @@ export default function GalleryScreen({ route, navigation }) {
     }
   };
 
-  // v5.4.97 - Télécharger l'image sur le smartphone
+  // v5.4.97 - Télécharger/Partager l'image
   const handleDownloadImage = async () => {
     if (!selectedImage || downloading) return;
 
     try {
       setDownloading(true);
 
-      // Demander la permission d'accès à la galerie
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permission requise',
-          'L\'accès à la galerie est nécessaire pour sauvegarder l\'image.',
-          [{ text: 'OK' }]
-        );
-        setDownloading(false);
-        return;
-      }
-
       // Générer un nom de fichier unique
       const timestamp = Date.now();
       const fileName = `${character.name.replace(/\s+/g, '_')}_${timestamp}.jpg`;
-      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+      const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
-      // Télécharger l'image
-      let downloadResult;
-      
-      // Si c'est une URL base64, l'écrire directement
+      // Télécharger/sauvegarder l'image localement
       if (selectedImage.startsWith('data:image')) {
+        // Si c'est une URL base64, l'écrire directement
         const base64Data = selectedImage.split(',')[1];
         await FileSystem.writeAsStringAsync(fileUri, base64Data, {
           encoding: FileSystem.EncodingType.Base64,
         });
-        downloadResult = { uri: fileUri };
       } else {
         // Sinon télécharger depuis l'URL
-        downloadResult = await FileSystem.downloadAsync(selectedImage, fileUri);
+        await FileSystem.downloadAsync(selectedImage, fileUri);
       }
 
-      // Sauvegarder dans la galerie du téléphone
-      const asset = await MediaLibrary.createAssetAsync(downloadResult.uri || fileUri);
-      
-      // Créer un album pour l'app si possible
-      let album = await MediaLibrary.getAlbumAsync('RolePlay Chat');
-      if (!album) {
-        album = await MediaLibrary.createAlbumAsync('RolePlay Chat', asset, false);
+      // Proposer de partager l'image (permet de sauvegarder dans la galerie)
+      if (Platform.OS === 'android') {
+        // Sur Android, proposer de partager ou de copier le chemin
+        Alert.alert(
+          '✅ Image prête',
+          'L\'image a été téléchargée. Voulez-vous la partager pour la sauvegarder dans votre galerie ?',
+          [
+            { text: 'Annuler', style: 'cancel' },
+            {
+              text: 'Partager',
+              onPress: async () => {
+                try {
+                  await Share.share({
+                    url: fileUri,
+                    title: `Image de ${character.name}`,
+                  });
+                } catch (e) {
+                  // Fallback: juste confirmer la sauvegarde locale
+                  Alert.alert('✅ Sauvegardé', `Image sauvegardée dans:\n${fileUri}`);
+                }
+              }
+            }
+          ]
+        );
       } else {
-        await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+        // Sur iOS, utiliser Share directement
+        await Share.share({
+          url: fileUri,
+          title: `Image de ${character.name}`,
+        });
       }
-
-      Alert.alert(
-        '✅ Image sauvegardée',
-        `L'image a été enregistrée dans votre galerie (album "RolePlay Chat").`,
-        [{ text: 'OK' }]
-      );
 
     } catch (error) {
       console.error('Erreur téléchargement:', error);
       Alert.alert(
         '❌ Erreur',
-        'Impossible de sauvegarder l\'image. Vérifiez vos permissions.',
+        'Impossible de télécharger l\'image.',
         [{ text: 'OK' }]
       );
     } finally {
