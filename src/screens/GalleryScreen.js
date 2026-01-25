@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   StyleSheet,
   Image,
   Alert,
@@ -12,7 +13,12 @@ import {
   StatusBar,
   SafeAreaView,
   Platform,
+  FlatList,
+  Animated,
+  PermissionsAndroid,
 } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 import GalleryService from '../services/GalleryService';
 
 const { width, height } = Dimensions.get('window');
@@ -23,11 +29,25 @@ export default function GalleryScreen({ route, navigation }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showUI, setShowUI] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  
+  // Animation pour masquer/afficher l'UI
+  const uiOpacity = useRef(new Animated.Value(1)).current;
+  const flatListRef = useRef(null);
 
   useEffect(() => {
     loadGallery();
-    // v5.3.70 - Ne pas utiliser setOptions pour éviter les problèmes de header
   }, [character]);
+
+  // Animation de l'UI
+  useEffect(() => {
+    Animated.timing(uiOpacity, {
+      toValue: showUI ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [showUI]);
 
   const loadGallery = async () => {
     const images = await GalleryService.getGallery(character.id);
@@ -46,7 +66,18 @@ export default function GalleryScreen({ route, navigation }) {
           onPress: async () => {
             await GalleryService.deleteImage(character.id, imageUrl);
             await loadGallery();
-            setModalVisible(false);
+            
+            // Fermer le modal si plus d'images
+            if (gallery.length <= 1) {
+              setModalVisible(false);
+            } else {
+              // Ajuster l'index si nécessaire
+              if (selectedIndex >= gallery.length - 1) {
+                const newIndex = Math.max(0, selectedIndex - 1);
+                setSelectedIndex(newIndex);
+                setSelectedImage(gallery[newIndex]);
+              }
+            }
             Alert.alert('Succès', 'Image supprimée');
           },
         },
@@ -58,17 +89,115 @@ export default function GalleryScreen({ route, navigation }) {
     if (selectedImage) {
       await GalleryService.setConversationBackground(character.id, selectedImage);
       Alert.alert('Succès', 'Image définie comme fond de conversation');
-      setModalVisible(false);
     }
   };
+
+  // v5.4.97 - Télécharger l'image sur le smartphone
+  const handleDownloadImage = async () => {
+    if (!selectedImage || downloading) return;
+
+    try {
+      setDownloading(true);
+
+      // Demander la permission d'accès à la galerie
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission requise',
+          'L\'accès à la galerie est nécessaire pour sauvegarder l\'image.',
+          [{ text: 'OK' }]
+        );
+        setDownloading(false);
+        return;
+      }
+
+      // Générer un nom de fichier unique
+      const timestamp = Date.now();
+      const fileName = `${character.name.replace(/\s+/g, '_')}_${timestamp}.jpg`;
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+
+      // Télécharger l'image
+      let downloadResult;
+      
+      // Si c'est une URL base64, l'écrire directement
+      if (selectedImage.startsWith('data:image')) {
+        const base64Data = selectedImage.split(',')[1];
+        await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        downloadResult = { uri: fileUri };
+      } else {
+        // Sinon télécharger depuis l'URL
+        downloadResult = await FileSystem.downloadAsync(selectedImage, fileUri);
+      }
+
+      // Sauvegarder dans la galerie du téléphone
+      const asset = await MediaLibrary.createAssetAsync(downloadResult.uri || fileUri);
+      
+      // Créer un album pour l'app si possible
+      let album = await MediaLibrary.getAlbumAsync('RolePlay Chat');
+      if (!album) {
+        album = await MediaLibrary.createAlbumAsync('RolePlay Chat', asset, false);
+      } else {
+        await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+      }
+
+      Alert.alert(
+        '✅ Image sauvegardée',
+        `L'image a été enregistrée dans votre galerie (album "RolePlay Chat").`,
+        [{ text: 'OK' }]
+      );
+
+    } catch (error) {
+      console.error('Erreur téléchargement:', error);
+      Alert.alert(
+        '❌ Erreur',
+        'Impossible de sauvegarder l\'image. Vérifiez vos permissions.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // Toggle UI visibility on tap
+  const toggleUI = () => {
+    setShowUI(!showUI);
+  };
+
+  // Rendu d'une image en plein écran (pour FlatList)
+  const renderFullScreenImage = ({ item, index }) => (
+    <TouchableWithoutFeedback onPress={toggleUI}>
+      <View style={styles.fullScreenSlide}>
+        <Image
+          source={{ uri: item }}
+          style={styles.fullScreenImage}
+          resizeMode="contain"
+        />
+      </View>
+    </TouchableWithoutFeedback>
+  );
+
+  // Changement d'image via swipe
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    if (viewableItems.length > 0) {
+      const newIndex = viewableItems[0].index;
+      setSelectedIndex(newIndex);
+      setSelectedImage(gallery[newIndex]);
+    }
+  }).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* v5.3.70 - Header personnalisé avec bouton retour visible */}
+        {/* Header personnalisé */}
         <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton} 
+          <TouchableOpacity
+            style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
             <Text style={styles.backButtonText}>← Retour</Text>
@@ -80,109 +209,121 @@ export default function GalleryScreen({ route, navigation }) {
           <View style={styles.headerSpacer} />
         </View>
 
-      {gallery.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🎨</Text>
-          <Text style={styles.emptyTitle}>Aucune image</Text>
-          <Text style={styles.emptyText}>
-            Générez des images dans les conversations pour les voir ici
-          </Text>
-        </View>
-      ) : (
-        <ScrollView contentContainerStyle={styles.galleryGrid}>
-          {gallery.map((imageUrl, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.imageCard}
-              onPress={() => {
-                setSelectedImage(imageUrl);
-                setSelectedIndex(index);
-                setModalVisible(true);
-              }}
-            >
-              <Image source={{ uri: imageUrl }} style={styles.thumbnail} />
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
+        {gallery.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>🎨</Text>
+            <Text style={styles.emptyTitle}>Aucune image</Text>
+            <Text style={styles.emptyText}>
+              Générez des images dans les conversations pour les voir ici
+            </Text>
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.galleryGrid}>
+            {gallery.map((imageUrl, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.imageCard}
+                onPress={() => {
+                  setSelectedImage(imageUrl);
+                  setSelectedIndex(index);
+                  setShowUI(true);
+                  setModalVisible(true);
+                }}
+              >
+                <Image source={{ uri: imageUrl }} style={styles.thumbnail} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
 
-      {/* Modal plein écran avec boutons par-dessus */}
-      <Modal
-        visible={modalVisible}
-        transparent={false}
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-        statusBarTranslucent={true}
-      >
-        <StatusBar hidden={true} />
-        <View style={styles.fullScreenContainer}>
-          {/* Image plein écran */}
-          {selectedImage && (
-            <Image 
-              source={{ uri: selectedImage }} 
-              style={styles.fullScreenImage}
-              resizeMode="contain"
+        {/* Modal plein écran avec swipe */}
+        <Modal
+          visible={modalVisible}
+          transparent={false}
+          animationType="fade"
+          onRequestClose={() => setModalVisible(false)}
+          statusBarTranslucent={true}
+        >
+          <StatusBar hidden={true} />
+          <View style={styles.fullScreenContainer}>
+            {/* FlatList horizontal pour swipe */}
+            <FlatList
+              ref={flatListRef}
+              data={gallery}
+              renderItem={renderFullScreenImage}
+              keyExtractor={(item, index) => index.toString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              initialScrollIndex={selectedIndex}
+              getItemLayout={(data, index) => ({
+                length: width,
+                offset: width * index,
+                index,
+              })}
+              onViewableItemsChanged={onViewableItemsChanged}
+              viewabilityConfig={viewabilityConfig}
             />
-          )}
-          
-          {/* Boutons par-dessus l'image */}
-          <View style={styles.overlayButtonsTop}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setModalVisible(false)}
+
+            {/* Overlay UI (masquable au tap) */}
+            <Animated.View
+              style={[styles.overlayUI, { opacity: uiOpacity }]}
+              pointerEvents={showUI ? 'auto' : 'none'}
             >
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-            <Text style={styles.imageCounter}>{selectedIndex + 1} / {gallery.length}</Text>
+              {/* Boutons en haut */}
+              <View style={styles.overlayButtonsTop}>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </TouchableOpacity>
+                <Text style={styles.imageCounter}>
+                  {selectedIndex + 1} / {gallery.length}
+                </Text>
+              </View>
+
+              {/* Boutons d'action en bas */}
+              <View style={styles.overlayButtonsBottom}>
+                <TouchableOpacity
+                  style={styles.overlayActionButton}
+                  onPress={handleDownloadImage}
+                  disabled={downloading}
+                >
+                  <Text style={styles.overlayActionIcon}>
+                    {downloading ? '⏳' : '💾'}
+                  </Text>
+                  <Text style={styles.overlayActionText}>
+                    {downloading ? 'Téléchargement...' : 'Télécharger'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.overlayActionButton}
+                  onPress={handleSetAsBackground}
+                >
+                  <Text style={styles.overlayActionIcon}>📱</Text>
+                  <Text style={styles.overlayActionText}>Fond conv.</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.overlayActionButton, styles.overlayDeleteButton]}
+                  onPress={() => handleDeleteImage(selectedImage)}
+                >
+                  <Text style={styles.overlayActionIcon}>🗑️</Text>
+                  <Text style={styles.overlayActionText}>Supprimer</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Indicateur de swipe */}
+              <View style={styles.swipeIndicator}>
+                <Text style={styles.swipeIndicatorText}>
+                  ← Swipez pour naviguer →
+                </Text>
+              </View>
+            </Animated.View>
           </View>
-          
-          {/* Boutons d'action en bas */}
-          <View style={styles.overlayButtonsBottom}>
-            <TouchableOpacity
-              style={styles.overlayActionButton}
-              onPress={handleSetAsBackground}
-            >
-              <Text style={styles.overlayActionIcon}>📱</Text>
-              <Text style={styles.overlayActionText}>Fond de conv</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.overlayActionButton, styles.overlayDeleteButton]}
-              onPress={() => handleDeleteImage(selectedImage)}
-            >
-              <Text style={styles.overlayActionIcon}>🗑️</Text>
-              <Text style={styles.overlayActionText}>Supprimer</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* Navigation gauche/droite */}
-          {selectedIndex > 0 && (
-            <TouchableOpacity
-              style={styles.navButtonLeft}
-              onPress={() => {
-                const newIndex = selectedIndex - 1;
-                setSelectedIndex(newIndex);
-                setSelectedImage(gallery[newIndex]);
-              }}
-            >
-              <Text style={styles.navButtonText}>‹</Text>
-            </TouchableOpacity>
-          )}
-          
-          {selectedIndex < gallery.length - 1 && (
-            <TouchableOpacity
-              style={styles.navButtonRight}
-              onPress={() => {
-                const newIndex = selectedIndex + 1;
-                setSelectedIndex(newIndex);
-                setSelectedImage(gallery[newIndex]);
-              }}
-            >
-              <Text style={styles.navButtonText}>›</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </Modal>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -260,7 +401,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
-  // v5.3.55 - Thumbnails en ratio 9:16
   imageCard: {
     width: thumbnailWidth,
     height: thumbnailHeight,
@@ -279,30 +419,36 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-  
+
   // ===== MODAL PLEIN ÉCRAN =====
   fullScreenContainer: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  fullScreenSlide: {
+    width: width,
+    height: height,
     justifyContent: 'center',
     alignItems: 'center',
   },
   fullScreenImage: {
     width: width,
     height: height,
-    resizeMode: 'contain',
   },
-  
-  // Boutons en haut (fermer + compteur)
+
+  // Overlay UI (masquable)
+  overlayUI: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'space-between',
+  },
+
+  // Boutons en haut
   overlayButtonsTop: {
-    position: 'absolute',
-    top: 40,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
   },
   closeButton: {
     width: 44,
@@ -326,67 +472,48 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 15,
   },
-  
+
   // Boutons d'action en bas
   overlayButtonsBottom: {
-    position: 'absolute',
-    bottom: 40,
-    left: 20,
-    right: 20,
     flexDirection: 'row',
     justifyContent: 'space-around',
+    paddingHorizontal: 10,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 30,
   },
   overlayActionButton: {
     backgroundColor: 'rgba(99, 102, 241, 0.9)',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    minWidth: 140,
+    minWidth: 100,
     justifyContent: 'center',
   },
   overlayDeleteButton: {
     backgroundColor: 'rgba(239, 68, 68, 0.9)',
   },
   overlayActionIcon: {
-    fontSize: 18,
-    marginRight: 8,
+    fontSize: 16,
+    marginRight: 6,
   },
   overlayActionText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 'bold',
   },
-  
-  // Navigation gauche/droite
-  navButtonLeft: {
+
+  // Indicateur de swipe
+  swipeIndicator: {
     position: 'absolute',
-    left: 10,
-    top: '50%',
-    marginTop: -30,
-    width: 50,
-    height: 60,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 10,
-    justifyContent: 'center',
+    bottom: Platform.OS === 'ios' ? 100 : 90,
+    left: 0,
+    right: 0,
     alignItems: 'center',
   },
-  navButtonRight: {
-    position: 'absolute',
-    right: 10,
-    top: '50%',
-    marginTop: -30,
-    width: 50,
-    height: 60,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  navButtonText: {
-    color: '#fff',
-    fontSize: 40,
-    fontWeight: '300',
+  swipeIndicatorText: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 12,
+    fontStyle: 'italic',
   },
 });
