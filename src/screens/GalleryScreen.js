@@ -116,59 +116,121 @@ export default function GalleryScreen({ route, navigation }) {
     }
   };
 
-  // v5.4.98 - Télécharger l'image dans le dossier de l'app
+  // v5.4.99 - Télécharger l'image dans le cache de l'app
   const handleDownloadImage = async () => {
     if (!selectedImage || downloading) return;
 
     try {
       setDownloading(true);
+      console.log('📥 Début sauvegarde image...');
+      console.log('📷 Type image:', selectedImage.substring(0, 50));
 
-      // Créer le dossier de sauvegarde si nécessaire
-      const saveDir = `${FileSystem.documentDirectory}RolePlayChat/`;
-      const dirInfo = await FileSystem.getInfoAsync(saveDir);
-      if (!dirInfo.exists) {
-        await FileSystem.makeDirectoryAsync(saveDir, { intermediates: true });
+      // Utiliser le cache directory (plus permissif)
+      const saveDir = `${FileSystem.cacheDirectory}saved_images/`;
+      
+      // Créer le dossier si nécessaire
+      try {
+        const dirInfo = await FileSystem.getInfoAsync(saveDir);
+        if (!dirInfo.exists) {
+          await FileSystem.makeDirectoryAsync(saveDir, { intermediates: true });
+          console.log('📁 Dossier créé:', saveDir);
+        }
+      } catch (dirError) {
+        console.log('⚠️ Erreur création dossier, utilisation du cache direct');
       }
 
       // Générer un nom de fichier unique
       const timestamp = Date.now();
-      const safeName = character.name.replace(/[^a-zA-Z0-9]/g, '_');
+      const safeName = character.name.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
       const fileName = `${safeName}_${timestamp}.jpg`;
-      const fileUri = `${saveDir}${fileName}`;
+      
+      // Essayer d'abord le sous-dossier, sinon le cache direct
+      let fileUri = `${saveDir}${fileName}`;
+      let saved = false;
 
-      // Télécharger/sauvegarder l'image
+      // Méthode 1: Si c'est une URL base64
       if (selectedImage.startsWith('data:image')) {
-        // Si c'est une URL base64, l'écrire directement
-        const base64Data = selectedImage.split(',')[1];
-        await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-      } else {
-        // Sinon télécharger depuis l'URL
-        const downloadResult = await FileSystem.downloadAsync(selectedImage, fileUri);
-        if (downloadResult.status !== 200) {
-          throw new Error('Erreur de téléchargement');
+        console.log('📝 Sauvegarde depuis base64...');
+        try {
+          const base64Data = selectedImage.split(',')[1];
+          if (!base64Data) {
+            throw new Error('Données base64 invalides');
+          }
+          await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          saved = true;
+          console.log('✅ Fichier base64 écrit:', fileUri);
+        } catch (b64Error) {
+          console.error('❌ Erreur base64:', b64Error);
+          // Essayer dans le cache direct
+          fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+          const base64Data = selectedImage.split(',')[1];
+          await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          saved = true;
         }
+      } 
+      // Méthode 2: Télécharger depuis URL
+      else if (selectedImage.startsWith('http')) {
+        console.log('🌐 Téléchargement depuis URL...');
+        try {
+          const downloadResult = await FileSystem.downloadAsync(selectedImage, fileUri);
+          console.log('📡 Résultat download:', downloadResult.status);
+          if (downloadResult.status === 200) {
+            saved = true;
+          } else {
+            throw new Error(`Status: ${downloadResult.status}`);
+          }
+        } catch (dlError) {
+          console.error('❌ Erreur téléchargement:', dlError);
+          // Essayer dans le cache direct
+          fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+          const downloadResult = await FileSystem.downloadAsync(selectedImage, fileUri);
+          if (downloadResult.status === 200) {
+            saved = true;
+          }
+        }
+      }
+      // Méthode 3: C'est déjà un fichier local
+      else if (selectedImage.startsWith('file://')) {
+        console.log('📂 Copie depuis fichier local...');
+        try {
+          await FileSystem.copyAsync({
+            from: selectedImage,
+            to: fileUri,
+          });
+          saved = true;
+        } catch (copyError) {
+          console.error('❌ Erreur copie:', copyError);
+        }
+      }
+
+      if (!saved) {
+        throw new Error('Aucune méthode de sauvegarde n\'a fonctionné');
       }
 
       // Vérifier que le fichier existe
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
-      if (fileInfo.exists) {
-        const sizeMB = (fileInfo.size / 1024 / 1024).toFixed(2);
+      console.log('📊 Info fichier:', fileInfo);
+      
+      if (fileInfo.exists && fileInfo.size > 0) {
+        const sizeKB = Math.round(fileInfo.size / 1024);
         Alert.alert(
           '✅ Image sauvegardée',
-          `L'image a été enregistrée !\n\n📁 Fichier: ${fileName}\n📦 Taille: ${sizeMB} MB\n\n💡 Utilisez un gestionnaire de fichiers pour accéder au dossier "RolePlayChat" de l'application.`,
+          `L'image a été enregistrée !\n\n📁 ${fileName}\n📦 ${sizeKB} KB`,
           [{ text: 'OK' }]
         );
       } else {
-        throw new Error('Fichier non créé');
+        throw new Error('Fichier vide ou non créé');
       }
 
     } catch (error) {
-      console.error('Erreur téléchargement:', error);
+      console.error('❌ Erreur sauvegarde complète:', error);
       Alert.alert(
         '❌ Erreur',
-        'Impossible de sauvegarder l\'image. Réessayez.',
+        `Impossible de sauvegarder l'image.\n\nDétail: ${error.message || 'Erreur inconnue'}`,
         [{ text: 'OK' }]
       );
     } finally {
