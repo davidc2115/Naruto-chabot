@@ -137,32 +137,35 @@ class ImageGenerationService {
       'body parts wrong size, arm longer than leg, tiny feet, giant feet, ' +
       'unrealistic pose, impossible contortion, broken joints, hyperextended limbs';
     
-    // PROMPT QUALITÉ PARFAITE - Pour images sans défauts
+    // v5.5.5 - PROMPT QUALITÉ PARFAITE ULTRA-AMÉLIORÉ - Pour images sans défauts
     this.perfectQualityPrompt = 
-      'masterpiece, best quality, ultra detailed, extremely detailed, ' +
-      'perfect anatomy, anatomically correct, perfect proportions, ' +
-      'perfect hands, five fingers on each hand, correct finger count, ' +
-      'perfect face, beautiful face, symmetrical face, detailed eyes, ' +
-      'flawless skin, smooth skin, clear skin, no blemishes, ' +
-      'professional lighting, studio lighting, perfect lighting, ' +
-      'sharp focus, high resolution, 8K, ultra HD, ' +
-      'single person, one character, solo, one subject only';
+      'masterpiece, best quality, ultra detailed, extremely detailed, award-winning, ' +
+      'perfect anatomy, anatomically correct, perfect proportions, medically accurate body, ' +
+      'perfect hands with exactly five fingers on each hand, correct finger count, natural hand pose, ' +
+      'perfect face, beautiful face, symmetrical face, detailed eyes with pupils and iris, ' +
+      'flawless skin, smooth skin, clear skin, no blemishes, natural skin texture, ' +
+      'professional lighting, studio lighting, perfect lighting, cinematic lighting, ' +
+      'sharp focus, high resolution, 8K, ultra HD, photorealistic quality, ' +
+      'single person, one character, solo, one subject only, ' +
+      'correct body proportions, natural limb positions, relaxed natural pose';
     
-    // PROMPT QUALITÉ ANIME PARFAIT
+    // v5.5.5 - PROMPT QUALITÉ ANIME PARFAIT AMÉLIORÉ
     this.perfectAnimePrompt = 
-      'masterpiece anime art, best quality anime, perfect anime illustration, ' +
-      'clean lineart, perfect lines, no artifacts, vibrant colors, ' +
-      'professional anime artwork, studio quality, detailed anime face, ' +
-      'beautiful anime eyes, perfect anime proportions, ' +
-      'single character, solo character, one person';
+      'masterpiece anime art, best quality anime, perfect anime illustration, award-winning, ' +
+      'clean lineart, perfect lines, no artifacts, vibrant colors, cel shading, ' +
+      'professional anime artwork, studio quality, detailed anime face, expressive, ' +
+      'beautiful anime eyes with detailed highlights, perfect anime proportions, ' +
+      'single character, solo character, one person, full body visible, ' +
+      'correct anime body anatomy, natural pose, detailed background';
     
-    // PROMPT QUALITÉ RÉALISTE PARFAIT
+    // v5.5.5 - PROMPT QUALITÉ RÉALISTE PARFAIT AMÉLIORÉ
     this.perfectRealisticPrompt = 
-      'ultra realistic photo, photorealistic, hyperrealistic, ' +
-      'professional photography, DSLR quality, 8K resolution, ' +
-      'perfect skin texture, realistic skin, natural lighting, ' +
-      'professional portrait, magazine quality, flawless, ' +
-      'single person, solo portrait, one subject';
+      'ultra realistic photo, photorealistic, hyperrealistic, lifelike, ' +
+      'professional photography, DSLR quality, 8K resolution, RAW photo quality, ' +
+      'perfect skin texture, realistic skin, natural lighting, studio lighting, ' +
+      'professional portrait, magazine quality, flawless, award-winning photography, ' +
+      'single person, solo portrait, one subject, sharp focus throughout, ' +
+      'natural body proportions, realistic anatomy, authentic pose';
     
     // === GRANDE VARIÉTÉ DE POSITIONS ===
     this.positions = {
@@ -1389,6 +1392,32 @@ class ImageGenerationService {
     };
     
     return reinforcement[size] || '';
+  }
+
+  /**
+   * v5.5.5 - Retourne un prompt ULTRA-PRIORITAIRE pour le pénis
+   * Utilisé pour les personnages masculins avec taille définie
+   */
+  getPenisUltraPriority(sizeCm) {
+    if (!sizeCm) return '';
+    const size = parseInt(sizeCm) || 15;
+    
+    // Catégories de taille avec emphases appropriées
+    if (size <= 10) {
+      return 'small penis, modest male member, below average size';
+    } else if (size <= 13) {
+      return 'average penis size, normal male member';
+    } else if (size <= 16) {
+      return '((above average penis)), ((good sized member)), visibly large';
+    } else if (size <= 19) {
+      return '(((LARGE PENIS))), (((BIG THICK MEMBER))), impressively large, well-endowed';
+    } else if (size <= 22) {
+      return '(((VERY LARGE PENIS))), (((HUGE THICK MEMBER))), extremely well-endowed, big cock';
+    } else if (size <= 25) {
+      return '(((HUGE PENIS))), (((MASSIVE THICK MEMBER))), exceptionally large, enormous cock';
+    } else {
+      return '(((GIGANTIC PENIS))), (((MASSIVE ENORMOUS MEMBER))), extraordinarily large, monster cock';
+    }
   }
 
   /**
@@ -6177,9 +6206,25 @@ class ImageGenerationService {
       identityParts.push(`${bodyTypeEn} body type`);
     }
     
-    // Poitrine pour femmes (ne change pas)
+    // v5.5.5 - POITRINE ULTRA-PRIORITAIRE pour femmes (utilise getBustUltraPriority)
     if (character.gender === 'female' && character.bust) {
-      identityParts.push(`${character.bust}-cup bust size`);
+      const bustEmphasis = this.getBustUltraPriority(character.bust, 'female');
+      if (bustEmphasis) {
+        identityParts.push(bustEmphasis);
+        console.log(`👙 Poitrine ${character.bust} avec emphase ULTRA`);
+      } else {
+        identityParts.push(`((${character.bust}-cup breasts)), ((${character.bust}-cup bust size))`);
+      }
+    }
+    
+    // v5.5.5 - PÉNIS ULTRA-PRIORITAIRE pour hommes
+    if (character.gender === 'male' && character.penis) {
+      const penisSize = parseInt(character.penis) || 15;
+      const penisEmphasis = this.getPenisUltraPriority(penisSize);
+      if (penisEmphasis) {
+        identityParts.push(penisEmphasis);
+        console.log(`🍆 Pénis ${penisSize}cm avec emphase ULTRA`);
+      }
     }
     
     return identityParts.length > 0 ? identityParts.join(', ') : '';

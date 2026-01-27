@@ -881,7 +881,13 @@ class TextGenerationService {
       console.log(`🟠 ÉTAT: SANS BAS - Partie inférieure nue`);
     }
     
+    // v5.5.5 - EXTRACTION DES JALONS "PREMIÈRE FOIS" (MILESTONES)
+    const milestones = this.extractConversationMilestones(recentMessages, character);
+    
     console.log(`📊 Analyse: mode=${mode}, nsfwIntensity=${nsfwIntensity}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}, endNsfw=${endOfNsfwScore}`);
+    if (milestones.length > 0) {
+      console.log(`🏆 Jalons atteints: ${milestones.join(', ')}`);
+    }
     
     return {
       messageCount,
@@ -898,12 +904,81 @@ class TextGenerationService {
       clothingRemoved: uniqueClothingActions,                  // Vêtements retirés
       completedActions: [...new Set(completedActions)],        // Actions terminées
       nudityState,                                             // v5.4.0 - ÉTAT DE NUDITÉ COMPLET
+      milestones,                                              // v5.5.5 - JALONS "PREMIÈRE FOIS"
       lastUserMessage,
       isLongConversation: messageCount > 20,
       isVeryLongConversation: messageCount > 50,
       scenarioIsExplicit,
       scenarioIsSuggestive,
     };
+  }
+  
+  /**
+   * v5.5.5 - Extrait les jalons/événements "première fois" de la conversation
+   * Ces événements ne peuvent pas se reproduire une deuxième "première fois"
+   */
+  extractConversationMilestones(messages, character) {
+    const milestones = [];
+    const allContent = messages.map(m => m.content?.toLowerCase() || '').join(' ');
+    
+    // === ÉVÉNEMENTS SEXUELS "PREMIÈRE FOIS" ===
+    const sexualFirsts = [
+      { pattern: /première fois.*anal|jamais fait.*anal|essayé.*anal|découvr.*anal|initié.*anal/i, milestone: 'ANAL_FAIT' },
+      { pattern: /premi[eè]re.*p[ée]n[ée]tr|d[ée]pucela|perdu.*virginit[ée]|pris.*virginit[ée]/i, milestone: 'VIRGINITÉ_PERDUE' },
+      { pattern: /première.*fellation|jamais suc[ée]|appris.*sucer|première.*pipe/i, milestone: 'FELLATION_FAITE' },
+      { pattern: /première.*cunnilingus|jamais l[ée]ch[ée]|première.*oral/i, milestone: 'CUNNILINGUS_FAIT' },
+      { pattern: /premiere.*jouir|premier.*orgasme|jamais joui/i, milestone: 'PREMIER_ORGASME' },
+      { pattern: /première.*éjacul|jamais [ée]jacul/i, milestone: 'PREMIÈRE_ÉJACULATION' },
+      { pattern: /première.*double.*pénétr|premiere.*triolisme|premier.*trio/i, milestone: 'TRIO_FAIT' },
+      { pattern: /premiere.*fist|jamais fist/i, milestone: 'FISTING_FAIT' },
+    ];
+    
+    // === ÉVÉNEMENTS RELATIONNELS ===
+    const relationshipFirsts = [
+      { pattern: /je t'aime.*aussi|dit.*je t'aime.*répondu/i, milestone: 'AMOUR_DÉCLARÉ' },
+      { pattern: /premier.*baiser|première.*fois.*embrass/i, milestone: 'PREMIER_BAISER' },
+      { pattern: /demand[ée].*mariage|accepté.*mariage|fiancé/i, milestone: 'FIANÇAILLES' },
+      { pattern: /devenu.*couple|officiel.*ensemble/i, milestone: 'EN_COUPLE' },
+    ];
+    
+    // Vérifier chaque pattern
+    [...sexualFirsts, ...relationshipFirsts].forEach(({ pattern, milestone }) => {
+      if (pattern.test(allContent)) {
+        milestones.push(milestone);
+      }
+    });
+    
+    // === DÉTECTION SPÉCIFIQUE: ANAL TESTÉ ===
+    // Si la conversation contient des mentions d'anal en cours ou passé
+    const analPatterns = [
+      /pénètre.*anal|sodomis|dans.*cul|dans.*fesses|prend.*derrière/i,
+      /baise.*cul|encule|défonce.*cul/i,
+      /entre.*anus|pénétration.*anal/i,
+    ];
+    
+    if (analPatterns.some(p => p.test(allContent))) {
+      if (!milestones.includes('ANAL_FAIT')) {
+        milestones.push('ANAL_FAIT');
+      }
+    }
+    
+    // === DÉTECTION SPÉCIFIQUE: PERTE VIRGINITÉ ===
+    const virginityLostPatterns = [
+      /pénètre.*première.*fois/i,
+      /prend.*virginité/i,
+      /n'est plus vierge/i,
+      /n'es plus vierge/i,
+      /vierge.*était/i,
+      /hymen/i,
+    ];
+    
+    if (virginityLostPatterns.some(p => p.test(allContent))) {
+      if (!milestones.includes('VIRGINITÉ_PERDUE')) {
+        milestones.push('VIRGINITÉ_PERDUE');
+      }
+    }
+    
+    return milestones;
   }
 
   /**
@@ -1244,6 +1319,12 @@ class TextGenerationService {
         
         console.log(`📝 Réponse brute: ${content.substring(0, 100)}...`);
         
+        // v5.5.5 - VÉRIFIER QUE LA RÉPONSE N'EST PAS TROP COURTE AVANT NETTOYAGE
+        if (content.length < 20) {
+          console.log(`⚠️ v5.5.5: Réponse trop courte (${content.length} chars) - retry`);
+          if (attempt < maxAttempts) continue;
+        }
+        
         // Vérifier refus
         if (this.isRefusalResponse(content)) {
           console.log(`⚠️ Refus détecté`);
@@ -1253,6 +1334,13 @@ class TextGenerationService {
           }
           if (attempt < maxAttempts) continue;
           return this.generateContextualFallback(character, userProfile, context);
+        }
+        
+        // v5.5.5 - Vérifier que la réponse contient du format RP (dialogue ou action)
+        const hasRPContent = content.includes('"') || content.includes('*');
+        if (!hasRPContent && content.length < 50) {
+          console.log(`⚠️ v5.5.5: Réponse sans format RP détecté - retry`);
+          if (attempt < maxAttempts) continue;
         }
         
         console.log(`✅ Réponse valide`);
@@ -2404,9 +2492,9 @@ class TextGenerationService {
       }
     }
     
-    // === STYLE DE JEU - CRÉATIF ET AVEC INITIATIVE ===
+    // === v5.5.5 - STYLE DE JEU - ULTRA-CRÉATIF ET AVEC INITIATIVE ===
     prompt += `\n# COMMENT JOUER ${charName.toUpperCase()}\n`;
-    prompt += `1. RÉPONDS au message de ${userName} de manière cohérente\n`;
+    prompt += `1. RÉPONDS au message de ${userName} de manière cohérente et COMPLÈTE\n`;
     prompt += `2. PRENDS DES INITIATIVES selon ton tempérament ${temperament}:\n`;
     
     if (temperament === 'séducteur' || temperament === 'passionné' || temperament === 'dominant') {
@@ -2421,9 +2509,17 @@ class TextGenerationService {
       prompt += `   - Montre ton dévouement\n`;
     }
     
-    prompt += `3. SOIS CRÉATIF: Varie tes actions et dialogues\n`;
-    prompt += `4. Format: *action expressive* "dialogue vivant" (pensée intime)\n`;
+    // v5.5.5 - INSTRUCTIONS DE CRÉATIVITÉ RENFORCÉES
+    prompt += `\n3. 🎨 CRÉATIVITÉ OBLIGATOIRE:\n`;
+    prompt += `   - JAMAIS la même action 2 fois de suite\n`;
+    prompt += `   - JAMAIS les mêmes mots d'un message à l'autre\n`;
+    prompt += `   - VARIE tes débuts de phrases (parfois action, parfois parole)\n`;
+    prompt += `   - INVENTE des détails, des sensations, des émotions UNIQUES\n`;
+    prompt += `   - Utilise des MÉTAPHORES et des COMPARAISONS originales\n`;
+    prompt += `   - Décris des DÉTAILS SENSORIELS (toucher, odeur, goût, son)\n`;
+    prompt += `4. Format: *action expressive UNIQUE* "dialogue ORIGINAL" (pensée NOUVELLE)\n`;
     prompt += `5. Parle directement à ${userName} avec TU/TOI\n`;
+    prompt += `6. Chaque message = expérience DIFFÉRENTE, pas de copier-coller!\n`;
     
     if (isNSFW) {
       prompt += `\n🔞 MODE ADULTE ACTIF\n`;
@@ -2877,11 +2973,42 @@ class TextGenerationService {
       instruction += `\n\n⛔ TES LIMITES (tu REFUSES): ${sexuality.refuses.join(', ')}`;
       instruction += `\n→ Si ${userName} demande ça, tu dis NON fermement!`;
     }
-    if (sexuality.virginity?.complete) {
+    
+    // v5.5.5 - VÉRIFIER LES MILESTONES ATTEINTS AVANT D'AFFICHER VIRGINITÉ
+    const milestones = context.milestones || [];
+    
+    // Virginité - SEULEMENT si pas encore perdue dans la conversation
+    if (sexuality.virginity?.complete && !milestones.includes('VIRGINITÉ_PERDUE')) {
       instruction += `\n🌸 Tu es VIERGE! C'est ta première fois!`;
+    } else if (milestones.includes('VIRGINITÉ_PERDUE')) {
+      instruction += `\n✅ Tu n'es PLUS vierge (ça s'est passé dans cette conversation)`;
     }
-    if (sexuality.virginity?.anal) {
+    
+    // Anal - SEULEMENT si pas encore fait dans la conversation
+    if (sexuality.virginity?.anal && !milestones.includes('ANAL_FAIT')) {
       instruction += `\n🍑 Tu n'as jamais essayé l'anal! Tu as peur/tu hésites!`;
+    } else if (milestones.includes('ANAL_FAIT')) {
+      instruction += `\n✅ Tu as DÉJÀ testé l'anal dans cette conversation (ne dis pas que c'est nouveau!)`;
+    }
+    
+    // v5.5.5 - RAPPEL DES JALONS ATTEINTS POUR LA MÉMOIRE
+    if (milestones.length > 0) {
+      instruction += `\n\n🏆 ÉVÉNEMENTS DÉJÀ VÉCUS DANS CETTE CONVERSATION:`;
+      milestones.forEach(m => {
+        const descriptions = {
+          'ANAL_FAIT': 'L\'anal a DÉJÀ été fait - ne propose pas de "tester" ou "essayer" à nouveau!',
+          'VIRGINITÉ_PERDUE': 'La virginité a DÉJÀ été perdue - ne parle plus de "première fois"!',
+          'FELLATION_FAITE': 'Une fellation a DÉJÀ eu lieu',
+          'CUNNILINGUS_FAIT': 'Un cunnilingus a DÉJÀ eu lieu',
+          'PREMIER_ORGASME': 'Un orgasme a DÉJÀ eu lieu',
+          'PREMIER_BAISER': 'Le premier baiser a DÉJÀ eu lieu',
+          'AMOUR_DÉCLARÉ': 'L\'amour a DÉJÀ été déclaré',
+        };
+        if (descriptions[m]) {
+          instruction += `\n  • ${descriptions[m]}`;
+        }
+      });
+      instruction += `\n⚠️ Ces événements sont PASSÉS - ne les propose pas comme quelque chose de nouveau!`;
     }
     
     // === NSFW DIRECT ===
@@ -3583,11 +3710,39 @@ class TextGenerationService {
       }
     }
     
+    // v5.5.5 - VALIDATION RENFORCÉE - Minimum 30 caractères avec dialogue
     // S'assurer qu'il y a du contenu minimum après nettoyage
     // v5.4.47 - Format multi-personnages accepté aussi
-    if (cleaned.length < 15 || (!cleaned.includes('"') && !hasMultiCharFormat)) {
-      // Le contenu est trop court après nettoyage, générer un fallback simple
-      cleaned = `*te regarde attentivement* "Oui ?" (Hmm...)`;
+    const minLength = 30; // v5.5.5 - Augmenté de 15 à 30
+    const hasValidContent = cleaned.includes('"') || hasMultiCharFormat;
+    
+    if (cleaned.length < minLength || !hasValidContent) {
+      // v5.5.5 - FALLBACK AMÉLIORÉ - Plus de variété selon le contexte
+      console.log(`⚠️ v5.5.5: Réponse trop courte (${cleaned.length} chars) - génération fallback contextuel`);
+      
+      const fallbacks = [
+        `*te regarde avec attention* "Qu'est-ce que tu veux dire ?" (Je ne suis pas sûr(e) de comprendre...)`,
+        `*penche la tête* "Tu peux répéter ?" (Intéressant...)`,
+        `*sourit doucement* "Continue, je t'écoute." (Curieux de voir où ça mène...)`,
+        `*s'approche un peu* "Et ensuite ?" (J'ai envie d'en savoir plus...)`,
+        `*hoche la tête* "Je vois ce que tu veux dire." (Hmm, intéressant...)`,
+        `*réfléchit un instant* "Dis-m'en plus." (Ça m'intrigue...)`,
+        `*te fixe dans les yeux* "Vraiment ?" (Je ne m'attendais pas à ça...)`,
+        `*esquisse un sourire* "Ah bon ?" (Surprenant...)`,
+      ];
+      
+      // Choisir un fallback aléatoire
+      const randomIndex = Math.floor(Math.random() * fallbacks.length);
+      cleaned = fallbacks[randomIndex];
+    }
+    
+    // v5.5.5 - Vérification finale que la réponse contient bien du contenu roleplay
+    const finalHasDialogue = cleaned.includes('"');
+    const finalHasAction = cleaned.includes('*');
+    
+    if (!finalHasDialogue && !finalHasAction && !hasMultiCharFormat) {
+      console.log(`⚠️ v5.5.5: Réponse sans format RP détecté - correction`);
+      cleaned = `*te regarde* "${cleaned.substring(0, 50)}..." (Hmm...)`;
     }
     
     console.log(`📝 Réponse nettoyée (${cleaned.length} chars, multi-perso: ${hasMultiCharFormat})`);
