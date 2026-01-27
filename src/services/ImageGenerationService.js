@@ -7427,22 +7427,14 @@ class ImageGenerationService {
     const shortPrompt = finalPrompt.substring(0, 1500);
     const encodedPrompt = encodeURIComponent(shortPrompt);
     
-    // v5.4.96 - UTILISER POLLINATIONS DIRECTEMENT
-    // C'est ce que le serveur Freebox faisait de toute façon (juste un proxy)
-    // Avantages: plus rapide, pas de problème d'auth, fiable
+    // v5.5.4 - UTILISER POLLINATIONS DIRECTEMENT AVEC LES MÊMES PARAMÈTRES
+    // Cohérence totale avec generateWithPollinations
     
-    // Détecter le style pour choisir le modèle (utilise lowerPrompt déjà déclaré)
-    let model = 'flux'; // Par défaut
-    if (lowerPrompt.includes('anime') || lowerPrompt.includes('manga')) {
-      model = 'flux-anime';
-    } else if (lowerPrompt.includes('photo') || lowerPrompt.includes('realistic')) {
-      model = 'flux-realism';
-    }
+    // v5.5.4 - MÊME URL ET PARAMÈTRES que generateWithPollinations pour cohérence
+    // model=flux (toujours), enhance=true, safe=false (NSFW), nofeed=true, nologo=true
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=576&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true&safe=false&nofeed=true`;
     
-    // Construire l'URL Pollinations directement
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=576&height=1024&seed=${seed}&model=${model}&nologo=true`;
-    
-    console.log(`🎨 Génération Pollinations (model: ${model}, seed: ${seed}, NSFW: ${nsfwLevel})`);
+    console.log(`🎨 SD Génération Pollinations (model: flux, seed: ${seed}, NSFW: ${nsfwLevel})`);
     console.log(`📝 Prompt (${shortPrompt.length} chars): ${shortPrompt.substring(0, 300)}...`);
     
     // Retourner l'URL directement - Pollinations gère tout

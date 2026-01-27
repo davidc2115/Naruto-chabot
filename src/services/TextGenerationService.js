@@ -1429,6 +1429,7 @@ class TextGenerationService {
     console.log(`📡 Groq API: ${api.model}`);
     
     try {
+      // v5.5.4 - AUGMENTATION des pénalités pour éviter les répétitions
       const response = await axios.post(
         api.url,
         {
@@ -1436,9 +1437,9 @@ class TextGenerationService {
           messages: fullMessages,
           max_tokens: maxTokens,
           temperature: temperature,
-          top_p: 0.92,
-          presence_penalty: 0.8,
-          frequency_penalty: 0.9,
+          top_p: 0.88, // v5.5.4 - Légèrement réduit pour plus de diversité
+          presence_penalty: 1.2, // v5.5.4 - AUGMENTÉ pour pénaliser les sujets déjà abordés
+          frequency_penalty: 1.3, // v5.5.4 - AUGMENTÉ pour pénaliser les mots répétés
         },
         {
           headers: { 
@@ -1745,9 +1746,21 @@ class TextGenerationService {
     // Le message auquel répondre
     instruction += `📩 ${userName} te dit maintenant:\n"${lastUserContent.substring(0, 200)}"\n\n`;
     
-    // Éviter la répétition
-    if (lastCharAction) {
-      instruction += `⛔ NE RÉPÈTE PAS cette action: "${lastCharAction.substring(0, 40)}"\n`;
+    // v5.5.4 - ANTI-RÉPÉTITION RENFORCÉE BASÉE SUR L'ANALYSE DES MESSAGES
+    const recentCharPhrases = this.extractRecentCharacterPhrases(recentMessages, charName);
+    
+    if (recentCharPhrases.actions.length > 0 || lastCharAction) {
+      instruction += `🚫 ÉVITE CES RÉPÉTITIONS:\n`;
+      if (lastCharAction) {
+        instruction += `  ❌ Action: "${lastCharAction.substring(0, 50)}"\n`;
+      }
+      if (recentCharPhrases.actions.length > 0) {
+        instruction += `  ❌ Déjà fait: ${recentCharPhrases.actions.slice(0, 3).join(', ')}\n`;
+      }
+      if (recentCharPhrases.expressions.length > 0) {
+        instruction += `  ❌ Expressions bannies: ${recentCharPhrases.expressions.slice(0, 5).join(', ')}\n`;
+      }
+      instruction += `→ VARIE tes actions, paroles et expressions!\n`;
     }
     
     // Rappel du profil utilisateur
@@ -2887,19 +2900,26 @@ class TextGenerationService {
       }
     }
     
+    // === v5.5.4 - ANTI-RÉPÉTITION BASÉE SUR LES MESSAGES RÉCENTS ===
+    const recentCharPhrases = this.extractRecentCharacterPhrases(recentMessages, charName);
+    const antiRepetitionInstr = this.buildAntiRepetitionInstruction(recentCharPhrases, charName);
+    instruction += antiRepetitionInstr;
+    
     // === FORMAT OBLIGATOIRE AVEC DIALOGUE + PENSÉE ===
     instruction += `\n\n⚠️ RÈGLE ABSOLUE - CHAQUE RÉPONSE DOIT CONTENIR:`;
-    instruction += `\n1. *action* entre astérisques (geste physique NOUVEAU)`;
-    instruction += `\n2. "parole" entre guillemets (ce que tu DIS à ${userName})`;
-    instruction += `\n3. (pensée) entre parenthèses (ce que tu PENSES)`;
+    instruction += `\n1. *action* entre astérisques (geste physique NOUVEAU et DIFFÉRENT)`;
+    instruction += `\n2. "parole" entre guillemets (ce que tu DIS à ${userName} - NOUVEAU!)`;
+    instruction += `\n3. (pensée) entre parenthèses (ce que tu PENSES - UNIQUE!)`;
     instruction += `\n\n❌ INTERDIT: Répondre avec SEULEMENT une action!`;
-    instruction += `\n❌ INTERDIT: Répéter une action déjà faite!`;
+    instruction += `\n❌ INTERDIT: Répéter une action ou phrase déjà faite!`;
+    instruction += `\n❌ INTERDIT: Commencer comme ton message précédent!`;
     if (nudityState.isCompletelyNude) {
       instruction += `\n❌ INTERDIT: Mentionner des vêtements (il n'y en a plus!)`;
     }
     instruction += `\n✅ OBLIGATOIRE: Tu dois PARLER à ${userName}, pas juste agir!`;
+    instruction += `\n✅ OBLIGATOIRE: Chaque message doit être UNIQUE et DIFFÉRENT!`;
     
-    instruction += `\n\nRÉPONDS MAINTENANT en tant que ${charName}:`;
+    instruction += `\n\nRÉPONDS MAINTENANT en tant que ${charName} avec un message ORIGINAL:`;
     
     return instruction;
   }
@@ -3051,6 +3071,152 @@ class TextGenerationService {
     }
     
     return details.slice(0, 5); // Max 5 détails
+  }
+
+  /**
+   * v5.5.4 - ANTI-RÉPÉTITION RENFORCÉ
+   * Extrait les phrases, actions et expressions des derniers messages du personnage
+   * pour éviter de les répéter dans la prochaine réponse
+   */
+  extractRecentCharacterPhrases(recentMessages, charName) {
+    const result = {
+      actions: [],       // Actions entre *...*
+      dialogues: [],     // Paroles entre "..."
+      thoughts: [],      // Pensées entre (...)
+      expressions: [],   // Expressions récurrentes
+      verbStarts: [],    // Débuts de phrases/verbes
+    };
+    
+    if (!recentMessages || recentMessages.length === 0) return result;
+    
+    // Filtrer les messages du personnage (assistant) - prendre les 3 derniers
+    const charMessages = recentMessages
+      .filter(m => m.role === 'assistant')
+      .slice(-3);
+    
+    for (const msg of charMessages) {
+      const content = msg.content || '';
+      
+      // Extraire les actions entre *...*
+      const actionMatches = content.match(/\*([^*]+)\*/g);
+      if (actionMatches) {
+        for (const action of actionMatches) {
+          const cleanAction = action.replace(/\*/g, '').trim().toLowerCase();
+          if (cleanAction.length > 5 && cleanAction.length < 80 && !result.actions.includes(cleanAction)) {
+            result.actions.push(cleanAction);
+          }
+        }
+      }
+      
+      // Extraire les dialogues entre "..."
+      const dialogueMatches = content.match(/"([^"]+)"/g);
+      if (dialogueMatches) {
+        for (const dialogue of dialogueMatches) {
+          const cleanDialogue = dialogue.replace(/"/g, '').trim();
+          // Extraire les premiers mots significatifs
+          const words = cleanDialogue.split(' ').slice(0, 5).join(' ');
+          if (words.length > 5 && !result.dialogues.includes(words.toLowerCase())) {
+            result.dialogues.push(words.toLowerCase());
+          }
+        }
+      }
+      
+      // Extraire les pensées entre (...)
+      const thoughtMatches = content.match(/\(([^)]+)\)/g);
+      if (thoughtMatches) {
+        for (const thought of thoughtMatches) {
+          const cleanThought = thought.replace(/[()]/g, '').trim().toLowerCase();
+          const words = cleanThought.split(' ').slice(0, 6).join(' ');
+          if (words.length > 5 && !result.thoughts.includes(words)) {
+            result.thoughts.push(words);
+          }
+        }
+      }
+      
+      // Extraire les expressions récurrentes problématiques
+      const problemExpressions = [
+        'je sens', 'je ressens', 'mon cœur', 'mon désir', 'ton excitation',
+        'ta confiance', 'cette sensation', 'ce moment', 'entre nous',
+        'souriant', 'sourit', 's\'approche', 'se rapproche', 'te regarde',
+        'mes joues', 'mon regard', 'tes yeux', 'ta peau', 'ton corps',
+        'frissonne', 'frisson', 'chaleur', 'brûle', 'enflamme',
+        'un peu', 'doucement', 'lentement', 'tendrement',
+      ];
+      
+      const contentLower = content.toLowerCase();
+      for (const expr of problemExpressions) {
+        if (contentLower.includes(expr) && !result.expressions.includes(expr)) {
+          result.expressions.push(expr);
+        }
+      }
+      
+      // Extraire le premier verbe/début de chaque phrase d'action
+      if (actionMatches && actionMatches.length > 0) {
+        const firstAction = actionMatches[0].replace(/\*/g, '').trim();
+        const firstWord = firstAction.split(' ')[0].toLowerCase();
+        if (firstWord.length > 2 && !result.verbStarts.includes(firstWord)) {
+          result.verbStarts.push(firstWord);
+        }
+      }
+    }
+    
+    return result;
+  }
+
+  /**
+   * v5.5.4 - Construit les instructions anti-répétition basées sur les messages récents
+   */
+  buildAntiRepetitionInstruction(recentCharPhrases, charName) {
+    let instruction = '';
+    
+    // Si on a des données de messages récents
+    if (recentCharPhrases.actions.length > 0 || 
+        recentCharPhrases.dialogues.length > 0 || 
+        recentCharPhrases.expressions.length > 0) {
+      
+      instruction += `\n\n🚫🚫🚫 ANTI-RÉPÉTITION STRICTE - TU AS DÉJÀ DIT/FAIT: 🚫🚫🚫`;
+      
+      // Actions à éviter
+      if (recentCharPhrases.actions.length > 0) {
+        instruction += `\n❌ ACTIONS DÉJÀ FAITES (NE PAS RÉPÉTER):`;
+        recentCharPhrases.actions.slice(0, 4).forEach(a => {
+          instruction += `\n   • "${a}"`;
+        });
+        instruction += `\n→ UTILISE une action DIFFÉRENTE!`;
+      }
+      
+      // Débuts de dialogues à éviter
+      if (recentCharPhrases.dialogues.length > 0) {
+        instruction += `\n❌ TU AS DÉJÀ DIT (VARIE!):`;
+        recentCharPhrases.dialogues.slice(0, 3).forEach(d => {
+          instruction += `\n   • "${d}..."`;
+        });
+        instruction += `\n→ Commence ta phrase AUTREMENT!`;
+      }
+      
+      // Expressions à éviter
+      if (recentCharPhrases.expressions.length > 0) {
+        instruction += `\n❌ EXPRESSIONS BANNIES (déjà utilisées):`;
+        instruction += `\n   ${recentCharPhrases.expressions.slice(0, 6).join(', ')}`;
+        instruction += `\n→ Trouve des SYNONYMES!`;
+      }
+      
+      // Verbes de début à éviter
+      if (recentCharPhrases.verbStarts.length > 0) {
+        instruction += `\n❌ NE COMMENCE PAS par: ${recentCharPhrases.verbStarts.join(', ')}`;
+      }
+      
+      // Alternatives suggérées
+      instruction += `\n\n✅ ALTERNATIVES CRÉATIVES:`;
+      instruction += `\n- Si "sourit" déjà dit → *rit*, *glousse*, *affiche un air malicieux*`;
+      instruction += `\n- Si "s'approche" déjà dit → *se colle à toi*, *réduit la distance*, *vient contre toi*`;
+      instruction += `\n- Si "je sens" déjà dit → *frissonne*, "c'est...", "wow", action directe`;
+      instruction += `\n- Si "te regarde" déjà dit → *plonge ses yeux*, *t'observe*, *te fixe*`;
+      instruction += `\n- Si "doucement" déjà dit → *tendrement*, *délicatement*, *avec douceur*`;
+      instruction += `\n- VARIE la structure: parfois action d'abord, parfois parole d'abord!`;
+    }
+    
+    return instruction;
   }
 
   /**
@@ -4573,13 +4739,13 @@ Réponds à ${userName} MAINTENANT!`
           {
             model: model,
             messages: fullMessages,
-            // v5.4.79 - Paramètres optimisés pour créativité ET cohérence
-            temperature: 0.88, // Bon équilibre créativité/cohérence
+            // v5.5.4 - Paramètres optimisés pour ÉVITER LES RÉPÉTITIONS
+            temperature: 0.92, // v5.5.4 - Augmenté pour plus de créativité
             max_tokens: maxTokens,
-            top_p: 0.95, // Plus de diversité dans les choix de mots
-            // v5.4.79 - Pénalités ajustées (pas trop élevées)
-            presence_penalty: 0.6, // Encourage nouveaux sujets sans forcer
-            frequency_penalty: 0.8, // Réduit répétitions sans trop contraindre
+            top_p: 0.88, // v5.5.4 - Réduit pour plus de diversité
+            // v5.5.4 - Pénalités AUGMENTÉES pour éviter répétitions
+            presence_penalty: 1.0, // v5.5.4 - Pénalise les sujets déjà abordés
+            frequency_penalty: 1.2, // v5.5.4 - Pénalise les mots déjà utilisés
           },
           {
             headers: {
