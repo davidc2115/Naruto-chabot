@@ -551,33 +551,36 @@ class TextGenerationService {
     const nsfwSpeedMultiplier = temperamentNsfwSpeed[temperament] || 0.5;
     console.log(`🎭 Tempérament: ${temperament} (vitesse NSFW: x${nsfwSpeedMultiplier})`);
     
-    // === MOTS-CLÉS PAR NIVEAU D'INTENSITÉ ===
-    // Niveau 1: Mots romantiques/flirt (pas encore NSFW)
+    // === v5.5.6 - MOTS-CLÉS RÉVISÉS POUR MEILLEURE DÉTECTION SFW/NSFW ===
+    // Le SFW est le MODE PAR DÉFAUT - NSFW uniquement si explicite
+    
+    // Niveau 1: Mots romantiques/flirt (RESTE SFW - pas de changement de mode)
     const romanticKeywords = [
       'beau', 'belle', 'mignon', 'séduisant', 'attirant', 'charmant',
-      'yeux', 'sourire', 'regarder', 'approche', 'ensemble', 'seul',
+      'yeux', 'sourire', 'regarder', 'approche', 'ensemble',
     ];
     
-    // Niveau 2: Mots suggestifs (transition vers NSFW léger)
+    // Niveau 2: Mots suggestifs LÉGERS (NE DÉCLENCHE PAS NSFW seuls)
+    // v5.5.6 - Réduit: ces mots seuls ne suffisent plus pour activer NSFW
     const suggestiveKeywords = [
-      'embrass', 'caress', 'touche', 'sensuel', 'corps', 'peau',
-      'désir', 'envie', 'chaud', 'frisson', 'rapproche', 'serre',
-      'lit', 'chambre', 'nuit', 'intime',
+      'sensuel', 'désir ardent', 'envie de toi', 'excitant', 
+      'intime', 'passion charnelle', 'corps nu',
     ];
     
-    // Niveau 3: Mots NSFW explicites (active le mode NSFW)
+    // Niveau 3: Mots NSFW EXPLICITES (seuls ces mots activent vraiment le mode NSFW)
+    // v5.5.6 - Liste stricte: UNIQUEMENT des mots vraiment sexuels
     const explicitKeywords = [
-      // Corps explicite
-      'sein', 'seins', 'poitrine', 'téton', 'fesse', 'cul',
-      'sexe', 'bite', 'queue', 'pénis', 'chatte', 'vagin', 'pubis',
-      // États/actions sexuels
-      'nu', 'nue', 'déshabill', 'excit', 'gémis', 'mouill', 'band', 'dur',
+      // Corps sexuel explicite
+      'sein', 'seins', 'téton', 'tétons', 'fesse', 'fesses', 'cul',
+      'sexe', 'bite', 'queue', 'pénis', 'chatte', 'vagin', 'pubis', 'clitoris',
+      // États sexuels
+      'nu', 'nue', 'déshabill', 'excit', 'gémis', 'mouill', 'band', 'érection',
       'jouir', 'orgasm', 'plaisir sexuel',
-      // Verbes sexuels
+      // Verbes sexuels explicites
       'baiser', 'faire l\'amour', 'coucher avec', 'sucer', 'lécher', 'pénétr',
       'masturb', 'branl', 'doigt',
-      // Expressions explicites
-      'envie de toi', 'te veux', 'prends-moi', 'fais-moi', 'viens en moi',
+      // Expressions sexuelles explicites
+      'prends-moi', 'fais-moi jouir', 'viens en moi', 'baise-moi',
     ];
     
     // Niveau 4: Mots très explicites (intensité maximale)
@@ -688,26 +691,34 @@ class TextGenerationService {
       nsfwIntensity = 0;
       console.log(`🔄 v5.4.48: RETOUR AU SFW (dernier msg SFW, score=${sfwScore})`);
     }
-    // Sinon, appliquer la logique normale avec tempérament
-    else if (veryExplicitScore > 0 || explicitScore >= 3) {
+    // v5.5.6 - LOGIQUE STRICTE: SFW PAR DÉFAUT, NSFW UNIQUEMENT SI EXPLICITE
+    // Le mode NSFW ne s'active que si l'utilisateur utilise des mots VRAIMENT explicites
+    else if (veryExplicitScore > 0) {
+      // Mots très explicites (baise, encule, etc.) -> NSFW confirmé
       mode = 'nsfw';
       nsfwIntensity = Math.min(5, 3 + veryExplicitScore);
-    } else if (explicitScore >= 1) {
+      console.log(`🔞 v5.5.6: MODE NSFW (mots très explicites détectés)`);
+    } else if (explicitScore >= 2) {
+      // v5.5.6 - Besoin de 2+ mots explicites (pas juste 1)
       mode = 'nsfw';
-      nsfwIntensity = Math.min(4, 2 + explicitScore);
-    } else if (suggestiveScore >= 3 || (suggestiveScore >= 2 && scenarioIsSuggestive)) {
+      nsfwIntensity = Math.min(4, 1 + explicitScore);
+      console.log(`🔞 v5.5.6: MODE NSFW (${explicitScore} mots explicites)`);
+    } else if (explicitScore === 1 && suggestiveScore >= 2) {
+      // 1 mot explicite + contexte suggestif -> NSFW léger
       mode = 'nsfw_light';
-      nsfwIntensity = Math.min(3, 1 + Math.floor(suggestiveScore / 2));
-    } else if (suggestiveScore >= 1 && romanticScore >= 2) {
-      mode = 'romantic';
-      nsfwIntensity = 1;
-    } else if (romanticScore >= 1) {
+      nsfwIntensity = 2;
+      console.log(`🔸 v5.5.6: MODE NSFW LÉGER (1 explicite + suggestif)`);
+    } else if (romanticScore >= 3) {
+      // Beaucoup de mots romantiques -> juste flirty, PAS NSFW
       mode = 'flirty';
       nsfwIntensity = 0;
+      console.log(`💕 v5.5.6: MODE FLIRTY (romantique)`);
     } else {
-      // Aucun mot-clé -> SFW par défaut
+      // v5.5.6 - DÉFAUT STRICT: SFW
+      // Les mots suggestifs seuls ne suffisent plus pour activer NSFW
       mode = 'sfw';
       nsfwIntensity = 0;
+      console.log(`✅ v5.5.6: MODE SFW (défaut)`);
     }
     
     // v5.4.24 - PERSONNAGE TIMIDE peut refuser même si mots explicites présents
@@ -1087,15 +1098,16 @@ class TextGenerationService {
       ]
     };
     
-    // Déterminer le type de message selon le mode
+    // v5.5.6 - Déterminer le type de message selon le mode
+    // SFW PAR DÉFAUT - pas de contenu intime sauf si explicitement en mode NSFW
     let type = 'default';
     
-    // En mode NSFW, utiliser les fallbacks NSFW
+    // NSFW uniquement si le mode est explicitement NSFW
     if (context.mode === 'nsfw') {
       type = 'nsfw';
     } else if (context.mode === 'post_intimate') {
       type = 'tender'; // Nouveau type: tendresse post-intimité
-    } else if (context.mode === 'nsfw_light' || lastMsg.includes('embrass') || lastMsg.includes('caress') || lastMsg.includes('touche')) {
+    } else if (context.mode === 'nsfw_light') {
       type = 'intimate';
     } else if (lastMsg.includes('bonjour') || lastMsg.includes('salut') || lastMsg.includes('hey') || lastMsg.includes('coucou')) {
       type = 'greeting';
@@ -1106,6 +1118,8 @@ class TextGenerationService {
     } else if (lastMsg.includes('beau') || lastMsg.includes('belle') || lastMsg.includes('joli') || lastMsg.includes('magnifique') || lastMsg.includes('mignon')) {
       type = 'compliment';
     }
+    // v5.5.6 - Les mots comme embrass, caress, touche ne déclenchent plus le mode intime
+    // Ils restent en mode 'default' (SFW)
     
     const options = fallbacks[type] || fallbacks.default;
     const response = options[Math.floor(Math.random() * options.length)];
@@ -2663,8 +2677,18 @@ class TextGenerationService {
     prompt += `\n  [${charName}] *se retourne* "Ce n'est pas ce que tu crois!"`;
     prompt += `\n- Mais N'INVENTE PAS de nouveaux personnages!`;
     
+    // === v5.5.6 - MODE SFW PAR DÉFAUT (conversation normale) ===
+    if (context.mode === 'sfw' || context.mode === 'flirty') {
+      prompt += `\n\n✅ MODE CONVERSATION NORMALE:`;
+      prompt += `\n- Conversation fluide et naturelle`;
+      prompt += `\n- Tu peux être amical, drôle, intéressant`;
+      prompt += `\n- Flirt léger OK si ${userName} le souhaite`;
+      prompt += `\n- PAS de contenu sexuel ou explicite`;
+      prompt += `\n- Si ${userName} veut aller vers le NSFW, il doit le demander CLAIREMENT`;
+      prompt += `\n- NE PROPOSE PAS de contenu adulte de toi-même`;
+    }
     // === v5.4.48 - MODE POST-INTIME (après orgasme/intimité) ===
-    if (context.mode === 'post_intimate') {
+    else if (context.mode === 'post_intimate') {
       prompt += `\n\n💕 MODE APRÈS-INTIMITÉ:`;
       prompt += `\n- ${userName} vient de finir un moment intime, sois TENDRE et AFFECTUEUX`;
       prompt += `\n- Câlins, caresses douces, mots tendres sont OK`;
@@ -2737,8 +2761,9 @@ class TextGenerationService {
     // v5.4.14 - Augmentation limite à 500 chars pour messages complets
     const lastContent = lastUserMsg?.content?.substring(0, 500) || '';
     
-    // Détecter si l'utilisateur demande du sexe MAINTENANT
-    const wantsSexNow = /baise|suce|prends|viens|continue|oui|encore|plus|fort|déshabille|touche|caresse/i.test(lastContent);
+    // v5.5.6 - Détecter si l'utilisateur demande du sexe MAINTENANT
+    // STRICT: uniquement des demandes vraiment explicites, pas "oui" ou "continue"
+    const wantsSexNow = /baise|suce|prends-moi|viens en moi|encore plus fort|défonce|encule|pénètre|déshabille-toi|masturbe/i.test(lastContent);
     
     // === v5.4.14 - ANALYSER LE MESSAGE UTILISATEUR ===
     // Détecter les différentes parties du message (actions, questions, demandes)
@@ -3011,8 +3036,16 @@ class TextGenerationService {
       instruction += `\n⚠️ Ces événements sont PASSÉS - ne les propose pas comme quelque chose de nouveau!`;
     }
     
-    // === NSFW DIRECT ===
-    if (isNSFW) {
+    // === v5.5.6 - MODE SFW PAR DÉFAUT ===
+    if (!isNSFW) {
+      instruction += `\n\n✅ MODE CONVERSATION NORMALE:`;
+      instruction += `\n→ Réponds naturellement au message de ${userName}`;
+      instruction += `\n→ PAS de contenu sexuel ou explicite`;
+      instruction += `\n→ Si ${userName} veut aller vers le NSFW, il doit le demander CLAIREMENT avec des mots explicites`;
+      instruction += `\n→ Reste dans une conversation normale et fluide`;
+    }
+    // === NSFW DIRECT (uniquement si explicitement activé) ===
+    else {
       if (wantsSexNow) {
         instruction += `\n\n🔥 ${userName} VEUT DE L'ACTION MAINTENANT!`;
         instruction += `\n→ FAIS ce qu'il/elle demande (sauf si c'est dans tes LIMITES ci-dessus).`;
