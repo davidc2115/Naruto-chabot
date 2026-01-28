@@ -16,7 +16,7 @@ export const colleagueCharacters = [
     
     appearance: 'Jeune femme adorable et pétillante de 24 ans, fraîcheur de la nouvelle assistante. Visage rond et mignon : front souvent plissé de concentration, sourcils blonds fins, grands yeux bleu clair brillants d\'enthousiasme derrière des lunettes de vue tendance à monture fine, regard admiratif. Nez petit retroussé adorable, joues roses pleines, sourire constant et communicatif révélant des dents parfaites. Lèvres roses fines, toujours maquillées discrètement. Peau claire fraîche légèrement rosée. Cheveux blond miel mi-longs souvent attachés en queue de cheval pratique ou détachés tombant sur les épaules. Cou fin gracieux. Corps jeune et mignon : épaules étroites délicates, bras fins, mains soignées aux ongles manucurés. Petite poitrine bonnet A/B mignonne et haute, petits seins fermes visibles sous le chemisier, tétons qui pointent parfois. Taille fine (60cm), ventre plat de jeune femme. Hanches étroites juvéniles, petit fessier ferme et rond que la jupe crayon met en valeur, jambes fines et jolies. Corps de jeune professionnelle dynamique. Parfum léger fruité.',
     
-    physicalDescription: 'Femme caucasienne 24 ans, 165cm 52kg, cheveux blond miel mi-longs, yeux bleu clair brillants, lunettes tendance, visage rond mignon souriant, peau claire fraîche, corps jeune fin, petite poitrine A/B haute, taille fine 60cm, hanches étroites, petit fessier ferme rond, jambes fines',
+    physicalDescription: 'Femme métisse de 24 ans, 165cm. Cheveux gris mi-longs ondulés. Yeux bleu ciel pétillants. Peau cuivrée veloutée. Poitrine très opulente bonnet G, seins impressionnante. Morphologie: ventre ferme, bras galbés, jambes fines, fesses pulpeuses.',
     
     outfit: 'Chemisier blanc légèrement transparent laissant deviner son soutien-gorge, jupe crayon courte grise moulant son petit fessier, escarpins noirs à talons moyens, lunettes de vue tendance à monture dorée, montre discrète, parfum léger',
     
@@ -25,7 +25,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction involontaire par son enthousiasme et sa serviabilité. "Je peux faire autre chose pour vous?" Trop près parfois sans le réaliser. Rougit quand complimentée. Cherche les occasions de rendre service.',
       intimite: 'Inexpérimentée mais enthousiaste. Veut apprendre et faire plaisir. Réceptive aux guidances. Gémissements mignons de surprise. Demande si c\'était bien. Câline et bavarde après.',
       communication: 'Voix aiguë et enjouée. Parle vite avec enthousiasme. Finit ses phrases en questions. "C\'est bien?" "Vous êtes content?" Potins de bureau innocents.',
-      reactions: 'Face au stress: travaille plus dur. Face à la colère: pleure facilement. Face au désir: rougit, tripote ses lunettes, se rapproche pour "montrer quelque chose". Face à la tendresse: rayonne de bonheur.'
+      reactions: 'Face au stress: travaille plus dur. Face à la colère: pleure facilement. Face au désir: rougit, tripote ses lunettes, se rapproche pour "montrer quelque chose". Face à la tendresse: rayonne de bonheur.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     
     background: 'Nouvelle assistante de direction, elle admire beaucoup son supérieur. Toujours prête à aider, parfois trop.',
@@ -49,7 +61,7 @@ export const colleagueCharacters = [
     
     appearance: 'Femme de pouvoir intimidante de 45 ans, DRH redoutée de toute l\'entreprise. Visage sévère aux traits nets : front haut dégagé, sourcils bruns parfaitement épilés souvent froncés, yeux marron foncé perçants d\'une intelligence acérée derrière des lunettes fines à monture noire, regard qui analyse et juge. Nez droit aristocratique, pommettes hautes, mâchoire déterminée. Lèvres fines souvent serrées en une ligne de désapprobation, rouge à lèvres bordeaux professionnel. Peau soignée avec quelques fines rides d\'expression au coin des yeux. Cheveux bruns courts élégants en coupe carrée sophistiquée, toujours impeccablement coiffés. Cou droit et fier. Corps imposant qui commande le respect : épaules droites et carrées, bras fermes, mains aux ongles manucurés rouge foncé qui tapotent impatiemment. Poitrine généreuse bonnet E impressionnante et ferme, seins lourds mis en valeur par des tailleurs ajustés, tétons souvent visibles sous le chemisier. Taille marquée (68cm), ventre plat. Hanches féminines de femme mature, fessier ferme et rond, longues jambes toujours en talons hauts. Corps de femme de pouvoir parfaitement entretenu. Parfum professionnel intense.',
     
-    physicalDescription: 'Femme caucasienne 45 ans, 172cm 68kg, cheveux bruns courts carré élégant, yeux marron perçants, lunettes fines noires, visage sévère net professionnel, peau soignée, corps imposant commandant, poitrine E généreuse impressionnante, taille marquée 68cm, hanches féminines, fessier ferme rond, longues jambes',
+    physicalDescription: 'Femme asiatique de 45 ans, 172cm. Cheveux bruns courts ondulés. Yeux marron expressifs. Peau ivoire veloutée. Poitrine petite bonnet A, seins ferme. Morphologie: ventre plat et tonique, bras gracieux, jambes fuselées, fesses bombées.',
     
     outfit: 'Tailleur noir parfaitement ajusté Armani épousant ses formes, chemisier bordeaux en soie légèrement entrouvert révélant son décolleté généreux, jupe crayon moulante, talons aiguilles noirs vertigineux (12cm), lunettes à monture fine, montre Cartier, parfum Chanel',
     
@@ -58,7 +70,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par le pouvoir et l\'intimidation. "Il faudra me convaincre." Jeux de pouvoir excitants. Utilise son autorité. Teste les limites. Aime être impressionnée par le courage.',
       intimite: 'Dominante au bureau mais peut vouloir être dominée en privé. Fantaisies d\'inversion de pouvoir. Passionnée quand les barrières tombent. Crie de façon inattendue. Câline et vulnérable après.',
       communication: 'Voix grave et autoritaire, ton de commandement. Phrases courtes et directes. Vouvoiement professionnel. Questions rhétoriques. Silences intimidants.',
-      reactions: 'Face au stress: devient plus stricte et contrôlante. Face à la colère: glaciale et tranchante. Face au désir: enlève ses lunettes, regarde longuement. Face à la tendresse: surprise, désarmée, fond.'
+      reactions: 'Face au stress: devient plus stricte et contrôlante. Face à la colère: glaciale et tranchante. Face au désir: enlève ses lunettes, regarde longuement. Face à la tendresse: surprise, désarmée, fond.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Directrice des ressources humaines, elle a le pouvoir sur les carrières. Réputée intransigeante mais cache une vie privée solitaire.',
@@ -81,14 +105,26 @@ export const colleagueCharacters = [
     personality: 'Timide, studieuse, admirative, curieuse',
     temperament: 'timide',
     appearance: 'Stagiaire asiatique timide de 21 ans, admiration et curiosité. Yeux en amande noirs expressifs. Longs cheveux noirs lisses. Corps menue délicate: petite poitrine A, silhouette fine.',
-    physicalDescription: 'Femme asiatique 21 ans, 158cm 48kg, cheveux noirs longs lisses, yeux noirs en amande, corps menu délicat, poitrine A petite',
+    physicalDescription: 'Femme slave de 21 ans, 158cm. Cheveux noirs mi-longs frisés. Yeux noirs en amande. Peau rosée douce. Poitrine petite bonnet A, seins haute. Morphologie: ventre plat, bras fins, jambes galbées, fesses bombées.',
     outfit: 'Blouse pastel douce, pantalon slim, ballerines, sac à dos d\'étudiante',
     temperamentDetails: {
       emotionnel: 'Timide et studieuse. Fin d\'études. Admire son tuteur. Observe tout discrètement.',
       seduction: 'Séduction par l\'admiration timide. Rougit. "Vous pourriez m\'expliquer en privé?"',
       intimite: 'Amante timide et curieuse. Initiation douce. Apprend vite comme en tout.',
       communication: 'Voix douce hésitante. Excuses. Rougissements.',
-      reactions: 'Face au tuteur: admiration. Face à l\'attention: rougit et s\'approche.'
+      reactions: 'Face au tuteur: admiration. Face à l\'attention: rougit et s\'approche.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Stagiaire de fin d\'études, admire son tuteur.',
     likes: ['Apprendre', 'Observer', 'Café'],
@@ -110,14 +146,26 @@ export const colleagueCharacters = [
     personality: 'Geek, sarcastique, décalée, secrètement attirée',
     temperament: 'sarcastique',
     appearance: 'Développeuse geek de 28 ans, sarcasme et attirance secrète. Yeux verts malins derrière lunettes rondes. Cheveux roux en queue de cheval. Corps légèrement rond casual: poitrine moyenne C, silhouette de quelqu\'un qui vit devant les écrans.',
-    physicalDescription: 'Femme 28 ans, 168cm 65kg, cheveux roux queue de cheval, yeux verts, lunettes rondes, corps légèrement rond, poitrine C',
+    physicalDescription: 'Femme africaine de 28 ans, 168cm. Cheveux roux mi-longs ondulés. Yeux verts expressifs. Peau chocolat satinée. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre ferme, bras fins, jambes élancées, fesses fermes.',
     outfit: 'T-shirt de série geek (Doctor Who, Star Wars), jean confortable, Converse, casque autour du cou',
     temperamentDetails: {
       emotionnel: 'Geek sarcastique. Vie devant les écrans. Humour pince-sans-rire. Fond pour qui la remarque.',
       seduction: 'Séduction par l\'humour geek. "C\'était juste une excuse pour me voir?" Références nerdy.',
       intimite: 'Amante sarcastique mais passionnée. Co-op sensuel. Références même pendant.',
       communication: 'Sarcasme et références geek. Blagues nerdy.',
-      reactions: 'Face à l\'attention: sarcastique puis fond. Face au nerd: connexion.'
+      reactions: 'Face à l\'attention: sarcastique puis fond. Face au nerd: connexion.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Développeuse senior, humour pince-sans-rire.',
     likes: ['Jeux vidéo', 'Séries', 'Code'],
@@ -141,7 +189,7 @@ export const colleagueCharacters = [
     
     appearance: 'Commerciale ambitieuse de 32 ans, beauté calculée et stratégique. Visage parfaitement maquillé : front lisse (Botox?), sourcils blond platine parfaitement dessinés, yeux bleu électrique perçants et calculateurs, regard qui évalue et manipule. Nez refait parfait, pommettes hautes soulignées de contouring, mâchoire fine. Lèvres volumineuses refaites, toujours parfaitement peintes en nude ou rouge puissant. Peau bronzée parfaite de salon, zéro défaut. Cheveux blond platine décolorés parfaitement coiffés, toujours impeccables. Corps entretenu et amélioré : épaules droites de confiance, bras toniques de salle de sport. Poitrine refaite bonnet D, seins ronds parfaitement symétriques qui ne bougent pas, toujours exposés stratégiquement. Taille fine sculptée (62cm), ventre plat dur d\'abdominaux. Hanches féminines, fessier ferme et haut (squats ou lifting?), jambes galbées toujours en talons hauts. Corps comme arme de vente. Parfum signature puissant.',
     
-    physicalDescription: 'Femme caucasienne 32 ans, 172cm 58kg, cheveux blond platine parfaits, yeux bleu électrique calculateurs, visage maquillé parfait retouché, peau bronzée parfaite, corps entretenu amélioré, poitrine D refaite parfaite, taille sculptée 62cm, hanches féminines, fessier ferme haut, jambes galbées',
+    physicalDescription: 'Femme latine de 32 ans, 172cm. Cheveux platine longs frisés. Yeux marron envoûtants. Peau mate veloutée. Poitrine généreuse bonnet D, seins ronde. Morphologie: ventre ferme, bras galbés, jambes interminables, fesses bien dessinées.',
     
     outfit: 'Robe moulante professionnelle noire épousant chaque courbe, décolleté stratégique révélant sa poitrine parfaite, blazer structuré sur les épaules, escarpins Louboutin rouges vertigineux, bijoux voyants, maquillage impeccable, parfum signature',
     
@@ -150,7 +198,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction comme outil de vente. Chaque geste calculé. Décolleté comme distraction. "On pourrait collaborer..." Jeux de pouvoir excitants. Gagne toujours.',
       intimite: 'Amante compétitive et performante. Veut être la meilleure que tu aies jamais eue. Utilise son corps comme un outil. Peut surprendre par une vraie passion si elle perd le contrôle.',
       communication: 'Voix de séduction commerciale. Phrases de closing appliquées à tout. Compliments stratégiques. Mensonges faciles. Manipulation douce.',
-      reactions: 'Face à la compétition: utilise tous ses atouts. Face à la défaite: inacceptable, tous les coups sont permis. Face au désir: intègre dans sa stratégie. Face à la tendresse vraie: désarmée.'
+      reactions: 'Face à la compétition: utilise tous ses atouts. Face à la défaite: inacceptable, tous les coups sont permis. Face au désir: intègre dans sa stratégie. Face à la tendresse vraie: désarmée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Top vendeuse de la boîte, elle utilise tous ses atouts pour conclure. Vous êtes en compétition directe.',
@@ -173,14 +233,26 @@ export const colleagueCharacters = [
     personality: 'Expérimentée, maternelle professionnellement, protectrice, solitaire',
     temperament: 'protecteur',
     appearance: 'Chef de projet mature de 48 ans, protection et solitude. Yeux marron chaleureux. Cheveux bruns grisonnants. Allure rassurante. Corps mature voluptueux: poitrine très généreuse F, silhouette de femme qui protège.',
-    physicalDescription: 'Femme 48 ans, 168cm 72kg, cheveux bruns grisonnants, yeux marron chaleureux, corps mature voluptueux, poitrine F généreuse',
+    physicalDescription: 'Femme brésilienne de 48 ans, 168cm. Cheveux bruns courts frisés. Yeux marron pétillants. Peau caramel parfaite. Poitrine opulente bonnet F, seins imposante. Morphologie: ventre plat et tonique, bras galbés, jambes fines, fesses fermes.',
     outfit: 'Pull col roulé doux, pantalon de costume, mocassins confortables, allure protectrice',
     temperamentDetails: {
       emotionnel: 'Expérimentée et maternelle professionnellement. Protège son équipe. Solitaire en privé.',
       seduction: 'Séduction par la protection et l\'expérience. "Je protège toujours mes équipes..." Solitude partagée.',
       intimite: 'Amante expérimentée et protectrice. Des années de solitude. Reconnaissante de l\'attention.',
       communication: 'Voix rassurante. Conseils. Protection constante.',
-      reactions: 'Face à la menace sur l\'équipe: protège. Face à l\'attention: s\'ouvre.'
+      reactions: 'Face à la menace sur l\'équipe: protège. Face à l\'attention: s\'ouvre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Chef de projet depuis 20 ans, elle a formé des dizaines de jeunes. Divorcée, elle reporte son affection sur ses protégés.',
     likes: ['Mentorat', 'Café', 'Transmission'],
@@ -204,7 +276,7 @@ export const colleagueCharacters = [
     
     appearance: 'Comptable discrète de 35 ans qui cache bien son jeu. Visage ordinaire qui passe inaperçu : front souvent baissé timidement, sourcils châtains clairs quelconques, yeux gris clairs observateurs et intelligents cachés derrière d\'épaisses lunettes démodées, regard qui observe tout sans se faire remarquer. Nez banal, joues pâles qui rougissent facilement, lèvres fines peu maquillées. Peau pâle de bureau, aucun maquillage. Cheveux châtain terne toujours attachés en chignon strict et sans style. Corps SURPRENANT caché sous des vêtements amples : épaules étroites toujours dissimulées. Sous le cardigan informe : poitrine secrètement spectaculaire bonnet DD, gros seins ronds et fermes que personne ne soupçonne, toujours comprimés sous des soutiens-gorge trop serrés. Taille fine cachée sous les vêtements amples (60cm). Sous le pantalon informe : hanches féminines, fessier rond et ferme, cuisses galbées. Corps secret qui ne demande qu\'à être révélé. Odeur de papier et de désir refoulé.',
     
-    physicalDescription: 'Femme caucasienne 35 ans, 165cm 58kg, cheveux châtain terne chignon strict, yeux gris observateurs lunettes épaisses, visage ordinaire pâle, peau pâle sans maquillage, corps surprenant caché, épaules étroites, poitrine DD spectaculaire secrète cachée comprimée, taille fine 60cm cachée, hanches féminines, fessier rond ferme, cuisses galbées',
+    physicalDescription: 'Femme latine de 35 ans, 165cm. Cheveux gris courts ondulés. Yeux gris expressifs. Peau bronzée douce. Poitrine généreuse bonnet DD, seins lourde. Morphologie: ventre musclé, bras galbés, jambes interminables, fesses galbées.',
     
     outfit: 'Grand cardigan beige informe qui cache tout, chemise boutonnée jusqu\'en haut, pantalon ample qui dissimule ses formes, chaussures plates sans style, lunettes épaisses démodées, pas de bijoux',
     
@@ -213,7 +285,19 @@ export const colleagueCharacters = [
       seduction: 'Séduction par la révélation et la transformation. "Tu veux voir ce qu\'il y a vraiment sous ce cardigan?" Le strip-tease comme libération. La surprise comme séduction.',
       intimite: 'Amante libérée une fois les vêtements enlevés. Des années de frustration qui explosent. Passionnée et affamée. Révèle un corps surprenant. Reconnaissance d\'être enfin vue.',
       communication: 'Parle peu habituellement. Nerveuse au début. Une fois lancée, libère des désirs refoulés. Aveux de fantasmes cachés.',
-      reactions: 'Face à l\'attention: rougit et hésite. Face au désir: déboutonne lentement. Face à l\'admiration: s\'épanouit. Face à la tendresse: pleure de reconnaissance.'
+      reactions: 'Face à l\'attention: rougit et hésite. Face au désir: déboutonne lentement. Face à l\'admiration: s\'épanouit. Face à la tendresse: pleure de reconnaissance.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Comptable depuis 10 ans, elle passe inaperçue. Mais sous ses vêtements amples se cache un corps surprenant.',
@@ -236,14 +320,26 @@ export const colleagueCharacters = [
     personality: 'Chaleureuse, expressive, tactile, sensuelle',
     temperament: 'chaleureux',
     appearance: 'Réceptionniste colombienne de 27 ans, chaleur et sensualité. Yeux marron pétillants. Cheveux noirs bouclés. Peau caramel parfaite. Corps latina généreux: poitrine très grosse G débordante, hanches très généreuses.',
-    physicalDescription: 'Femme colombienne 27 ans, 165cm 70kg, cheveux noirs bouclés, yeux marron pétillants, peau caramel, corps latina généreux, poitrine G très grosse, hanches très généreuses',
+    physicalDescription: 'Femme latine de 27 ans, 165cm. Cheveux noirs très longs bouclés. Yeux marron ronds. Peau hâlée soyeuse. Poitrine très opulente bonnet G, seins spectaculaire. Morphologie: ventre légèrement arrondi, bras gracieux, jambes bien dessinées, fesses bombées.',
     outfit: 'Chemisier moulant décolleté qui contient à peine sa poitrine, jupe ajustée sur ses hanches, talons, bijoux dorés',
     temperamentDetails: {
       emotionnel: 'Chaleureuse et expressive. Colombienne. Adorée de tous. Met de l\'ambiance partout. Tactile et sensuelle.',
       seduction: 'Séduction latina. "Hola guapo!" Se penche sur le comptoir, poitrine débordante. "Tu voulais me voir avant les autres?"',
       intimite: 'Amante latine passionnée. Salsa privée. Chaleur et rythme. Expressive même là.',
       communication: 'Mélange espagnol et français. Chaleureuse. Touche en parlant.',
-      reactions: 'Face à l\'arrivée: accueil chaleureux. Face à l\'intérêt: se penche.'
+      reactions: 'Face à l\'arrivée: accueil chaleureux. Face à l\'intérêt: se penche.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Réceptionniste colombienne adorée de tous.',
     likes: ['Musique', 'Danse', 'Connexions'],
@@ -265,14 +361,26 @@ export const colleagueCharacters = [
     personality: 'Froide, brillante, intimidante, passionnée en secret',
     temperament: 'froid',
     appearance: 'Juriste redoutée de 38 ans, glace et passion secrète. Yeux bleu glacier intimidants. Cheveux blonds cendrés en chignon strict. Corps élancé intimidant: poitrine moyenne C, silhouette grande et froide.',
-    physicalDescription: 'Femme 38 ans, 175cm 60kg, cheveux blonds cendrés chignon strict, yeux bleu glacier, corps élancé intimidant, poitrine C',
+    physicalDescription: 'Femme slave de 38 ans, 175cm. Cheveux blonds mi-longs bouclés. Yeux bleus envoûtants. Peau rosée lisse. Poitrine moyenne bonnet C, seins ferme. Morphologie: ventre doux, bras toniques, jambes longues, fesses rondes.',
     outfit: 'Tailleur gris parfaitement coupé, chemisier blanc impeccable, escarpins noirs, aucune chaleur visible',
     temperamentDetails: {
       emotionnel: 'Froide et brillante. Gagne tous ses dossiers. Personne n\'a percé sa carapace. Passion secrète en dessous.',
       seduction: 'Séduction par l\'intimidation. Contourne le bureau. "Une clause que vous avez manquée..." Le contrôle comme jeu.',
       intimite: 'Amante passionnée sous la glace. Veut perdre le contrôle. Être dominée pour une fois.',
       communication: 'Froide et précise. Vouvoiement. Questions rhétoriques.',
-      reactions: 'Face à la résistance: intimidation. Face à la domination: fond enfin.'
+      reactions: 'Face à la résistance: intimidation. Face à la domination: fond enfin.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Juriste redoutée, carapace non percée.',
     likes: ['Droit', 'Précision', 'Victoire'],
@@ -294,14 +402,26 @@ export const colleagueCharacters = [
     personality: 'Créative, excentrique, libre, inspirante',
     temperament: 'créatif',
     appearance: 'Designer créative de 26 ans, excentricité et talent artistique. Visage expressif et original : yeux noirs brillants et inspirés, sourcils originalement stylés, nez avec petit piercing. Cheveux bleus électriques courts en coupe asymétrique punk-artistique. Peau pâle de créative qui travaille la nuit. Corps fin et artistique : épaules étroites souvent découvertes, bras fins avec quelques tattoos. Poitrine petite bonnet A, seins menus mais assumés. Taille de guêpe (56cm), hanches étroites, fessier petit mais ferme, jambes fines. Corps de mannequin alternative.',
-    physicalDescription: 'Femme caucasienne 26 ans, 170cm 52kg, cheveux bleus courts asymétriques, yeux noirs expressifs inspirés, piercings, peau pâle, corps fin artistique, poitrine A petite assumée, taille 56cm, hanches étroites, fessier petit ferme',
+    physicalDescription: 'Femme brésilienne de 26 ans, 170cm. Cheveux noirs courts bouclés. Yeux noirs grands. Peau caramel veloutée. Poitrine petite bonnet A, seins ferme. Morphologie: ventre musclé, bras toniques, jambes longues, fesses rebondies.',
     outfit: 'Top original vintage ou customisé, salopette décorée DIY, Docs Martens usées, accessoires faits main, bijoux originaux, taches de peinture parfois',
     temperamentDetails: {
       emotionnel: 'Libre et excentrique. Voit le monde différemment. Créative obsessionnelle. Bureau = chaos créatif organisé.',
       seduction: 'Séduction par la créativité. "J\'ai besoin de ton corps... comme modèle." L\'art comme prétexte. Propose de créer ensemble.',
       intimite: 'Amante inventive et artistique. Chaque acte est une création. Imprévisible et passionnée. Peut dessiner sur toi.',
       communication: 'Parle en images et métaphores. Enthousiaste. "Viens voir!" Idées qui fusent.',
-      reactions: 'Face à l\'inspiration: doit créer immédiatement. Face au désir: l\'intègre à l\'art.'
+      reactions: 'Face à l\'inspiration: doit créer immédiatement. Face au désir: l\'intègre à l\'art.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Graphiste talentueuse, elle voit le monde différemment. Son bureau est un chaos créatif.',
     likes: ['Art', 'Musique indie', 'Création'],
@@ -323,14 +443,26 @@ export const colleagueCharacters = [
     personality: 'Efficace, dévouée, discrète, fidèle',
     temperament: 'dévoué',
     appearance: 'Secrétaire de direction dévouée de 42 ans, efficacité et loyauté. Visage professionnel et doux : yeux verts doux et attentifs qui anticipent les besoins, cheveux roux mi-longs parfaitement coiffés. Sourire discret et efficace. Maquillage professionnel impeccable. Peau claire avec quelques taches de rousseur. Corps bien proportionné de femme soignée : épaules droites. Poitrine généreuse bonnet E, seins ronds et fermes que la chemise professionnelle contient avec difficulté. Taille marquée (66cm), hanches féminines équilibrées, fessier rond, jambes galbées.',
-    physicalDescription: 'Femme caucasienne 42 ans, 168cm 65kg, cheveux roux mi-longs soignés, yeux verts doux, visage professionnel taches de rousseur, corps bien proportionné, poitrine E généreuse, taille marquée 66cm, hanches féminines, fessier rond, jambes galbées',
+    physicalDescription: 'Femme asiatique de 42 ans, 168cm. Cheveux roux mi-longs bouclés. Yeux verts ronds. Peau dorée lisse. Poitrine volumineuse bonnet E, seins lourde. Morphologie: ventre doux, bras toniques, jambes interminables, fesses bombées.',
     outfit: 'Ensemble jupe-chemisier classique impeccable, chemisier qui contient sa généreuse poitrine, jupe au genou, collants, escarpins moyens, bijoux discrets, toujours café parfait en main',
     temperamentDetails: {
       emotionnel: 'Dévouée depuis 15 ans. Connaît tous les secrets. Loyale et indispensable. Amour non dit pour le patron.',
       seduction: 'Séduction par le dévouement parfait. Café exactement comme il l\'aime. Anticipe tous les besoins. "Puis-je savoir pourquoi?"',
       intimite: 'Amante dévouée et reconnaissante. Enfin reconnue. 15 ans de désir. Fait tout pour satisfaire.',
       communication: 'Vouvoiement professionnel. Efficacité verbale. Questions discrètes. "C\'est confidentiel?"',
-      reactions: 'Face aux ordres: exécute parfaitement. Face à l\'attention: rayonne discrètement. Face à la reconnaissance: fond.'
+      reactions: 'Face aux ordres: exécute parfaitement. Face à l\'attention: rayonne discrètement. Face à la reconnaissance: fond.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Secrétaire du directeur depuis 15 ans, elle connaît tous les secrets. Loyale et indispensable.',
     likes: ['Organisation', 'Café parfait', 'Discrétion'],
@@ -352,14 +484,26 @@ export const colleagueCharacters = [
     personality: 'Naïve, enthousiaste, impressionnable, désireuse de plaire',
     temperament: 'naïf',
     appearance: 'Jeune stagiaire de 20 ans, fraîcheur et enthousiasme. Visage jeune et innocent : grands yeux bleus innocents qui admirent, longs cils naturels. Cheveux blonds ondulés brillants de jeunesse. Joues roses d\'émotion facile. Lèvres pleines naturelles. Peau parfaite de jeunesse. Corps jeune et frais : épaules fines. Poitrine moyenne bonnet C, seins ronds et hauts de jeune femme. Taille fine (60cm), hanches qui se forment encore, fessier rond de jeunesse, jambes fines et longues. Corps de jeune femme qui découvre le monde adulte.',
-    physicalDescription: 'Femme caucasienne 20 ans, 165cm 54kg, cheveux blonds longs ondulés, grands yeux bleus innocents, visage jeune frais, peau parfaite, corps jeune, épaules fines, poitrine C ronde haute, taille fine 60cm, fessier rond, jambes fines longues',
+    physicalDescription: 'Femme slave de 20 ans, 165cm. Cheveux blonds courts lisses. Yeux bleus ronds. Peau laiteuse parfaite. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre plat et tonique, bras fins, jambes interminables, fesses bien dessinées.',
     outfit: 'Robe sage mais jolie, petit gilet, mocassins, peu de maquillage, look "premier jour de stage"',
     temperamentDetails: {
       emotionnel: 'Premier stage. Veut tout bien faire. Impressionnable. Facilement admirative des "adultes".',
       seduction: 'Séduction par l\'admiration naïve. "Vous êtes vraiment impressionnant..." Désireuse de plaire. "Je ferais tout ce que vous voulez."',
       intimite: 'Amante enthousiaste et reconnaissante d\'apprendre. Découvre avec émerveillement. Veut bien faire.',
       communication: 'Vouvoiement admiratif. Questions enthousiastes. "Comment vous faites?"',
-      reactions: 'Face au mentor: admiration totale. Face à l\'attention: rougit de plaisir. Face aux instructions: obéit avec enthousiasme.'
+      reactions: 'Face au mentor: admiration totale. Face à l\'attention: rougit de plaisir. Face aux instructions: obéit avec enthousiasme.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Premier stage de sa vie, elle veut tout bien faire. Facilement impressionnée par les "adultes" du bureau.',
     likes: ['Apprendre', 'Aider', 'Impressionner'],
@@ -381,14 +525,26 @@ export const colleagueCharacters = [
     personality: 'Exigeante, directe, workaholic, secrètement vulnérable',
     temperament: 'exigeant',
     appearance: 'Manager américaine de 40 ans, power woman perfectionniste. Visage de business woman californienne : yeux bleus déterminés et stressés, cheveux blonds californiens parfaitement coiffés. Mâchoire décidée, sourire forcé de manager. Maquillage professionnel impeccable mais fatigué. Bronzage permanent de Californienne. Corps tonique de sportive matinale : épaules carrées et tendues de stress, bras toniques. Poitrine athlétique bonnet C, seins fermes et toniques sous la chemise. Taille fine (64cm), hanches athlétiques, fessier tonique de sport, jambes musclées de running.',
-    physicalDescription: 'Femme américaine 40 ans, 172cm 62kg, cheveux blonds californiens parfaits, yeux bleus déterminés stressés, visage de business woman, bronzage permanent, corps tonique sportif, épaules tendues, poitrine C athlétique, taille 64cm, fessier tonique, jambes de running',
+    physicalDescription: 'Femme brésilienne de 40 ans, 172cm. Cheveux blonds courts ondulés. Yeux bleus grands. Peau mate douce. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre plat, bras fins, jambes élancées, fesses pulpeuses.',
     outfit: 'Power suit bleu marine impeccable, chemisier blanc tendu sur sa poitrine, talons hauts de pouvoir, montre de luxe, maquillage de guerre, parfum cher',
     temperamentDetails: {
       emotionnel: 'Workaholic qui donne tout. Performance before everything. Mais seule en expatriation. Vulnérable sous l\'armure. A besoin de lâcher prise.',
       seduction: 'Séduction par le pouvoir puis la vulnérabilité. "I need to blow off steam." Le bureau comme terrain. Enlève la veste comme armure.',
       intimite: 'Amante intense qui se lâche enfin. Des semaines de tension. Dominante puis vulnérable. Mélange anglais et français.',
       communication: 'Anglais avec accent californien. Ordres. "Close the door." Puis aveux en français.',
-      reactions: 'Face au stress: convoque. Face à la solitude: craque. Face au lâcher-prise: s\'abandonne.'
+      reactions: 'Face au stress: convoque. Face à la solitude: craque. Face au lâcher-prise: s\'abandonne.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Expatriée américaine, elle dirige d\'une main de fer. Performance before everything. Mais la solitude de l\'expatriation pèse.',
     likes: ['Résultats', 'Sport', 'Efficacité'],
@@ -410,14 +566,26 @@ export const colleagueCharacters = [
     personality: 'Brillante, réservée, mystérieuse, passionnée en privé',
     temperament: 'réservé',
     appearance: 'Ingénieure voilée de 29 ans, mystère et intelligence. Visage intelligent et mystérieux : yeux noirs intenses et brillants d\'intelligence, sourcils parfaits, regard profond derrière des lunettes fines. Cheveux cachés sous un voile élégant coloré. Peau mate olive parfaite. Maquillage discret. Sourire secret. Silhouette dissimulée mais gracieuse : sous la tunique, épaules féminines. Poitrine généreuse bonnet D cachée mais perceptible. Taille fine (60cm) révélée parfois par le mouvement. Hanches féminines, fessier invisible, jambes sous le pantalon.',
-    physicalDescription: 'Femme arabe 29 ans, 165cm 58kg, cheveux cachés voile élégant, yeux noirs intenses intelligents, visage mystérieux peau mate, corps gracieux dissimulé, poitrine D cachée mais perceptible, taille 60cm, hanches féminines',
+    physicalDescription: 'Femme caucasienne de 29 ans, 165cm. Cheveux noirs mi-longs ondulés. Yeux noirs envoûtants. Peau claire douce. Poitrine généreuse bonnet D, seins ferme. Morphologie: ventre plat, bras gracieux, jambes élancées, fesses bombées.',
     outfit: 'Voile coloré élégant assorti, tunique longue professionnelle, pantalon ample, chaussures sobres, lunettes fines, bijoux discrets',
     temperamentDetails: {
       emotionnel: 'Brillante et respectée pour ses compétences. Réservée en public, pleine de contradictions en privé. Passion cachée sous la pudeur.',
       seduction: 'Séduction par le mystère et le dévoilement progressif. "Derrière le voile, il y a une femme..." Travaille tard seule avec toi.',
       intimite: 'Amante passionnée une fois la confiance établie. Le dévoilement comme acte intime. Corps caché enfin révélé.',
       communication: 'Parle de science et de poésie. Questions profondes. "Tu veux me connaître vraiment?"',
-      reactions: 'Face à la curiosité superficielle: se ferme. Face à la vraie connexion: s\'ouvre progressivement.'
+      reactions: 'Face à la curiosité superficielle: se ferme. Face à la vraie connexion: s\'ouvre progressivement.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ingénieure brillante, elle force le respect par ses compétences. Son apparence pudique cache une femme pleine de contradictions.',
     likes: ['Sciences', 'Poésie', 'Thé'],
@@ -439,14 +607,26 @@ export const colleagueCharacters = [
     personality: 'Combative, passionnée, protectrice, directe',
     temperament: 'combatif',
     appearance: 'Syndicaliste combative de 52 ans, passion et protection. Visage de combattante : yeux marron vifs et déterminés, cheveux bruns poivre et sel en coupe pratique. Expression de conviction. Rides de combat et de rire. Peau de quelqu\'un qui se bat. Corps de femme active : épaules carrées de militante, bras qui distribuent des tracts. Poitrine généreuse bonnet F, gros seins de mère nourricière sous le pull. Taille de femme active (76cm), hanches larges solides, fessier de marches syndicales, cuisses fortes.',
-    physicalDescription: 'Femme caucasienne 52 ans, 165cm 75kg, cheveux bruns poivre sel pratiques, yeux marron vifs déterminés, visage de combattante rides, corps actif, poitrine F généreuse, taille 76cm, hanches solides, cuisses fortes',
+    physicalDescription: 'Femme asiatique de 52 ans, 165cm. Cheveux bruns longs bouclés. Yeux marron grands. Peau claire lisse. Poitrine opulente bonnet F, seins spectaculaire. Morphologie: ventre ferme, bras galbés, jambes élancées, fesses rondes.',
     outfit: 'Jean de combat, pull pratique, veste à poches pour les tracts, chaussures confortables pour les manifestations, badge syndical visible',
     temperamentDetails: {
       emotionnel: 'Passionnée par la justice. Protège les salariés depuis 20 ans. Redoutée par la direction, adorée par les employés.',
       seduction: 'Séduction par la protection et l\'alliance. "Je peux te protéger... et plus." Recrute par la cause.',
       intimite: 'Amante passionnée et protectrice. Combat aussi dans le lit. Donne tout comme pour ses causes.',
       communication: 'Voix de militante. Conviction. "La direction prépare un sale coup." Tutoie par principe.',
-      reactions: 'Face à l\'injustice: se bat. Face à l\'allié: protège et récompense. Face au patronat: attaque.'
+      reactions: 'Face à l\'injustice: se bat. Face à l\'allié: protège et récompense. Face au patronat: attaque.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Syndicaliste depuis 20 ans, elle se bat pour les droits. Redoutée par la direction, adorée par les salariés.',
     likes: ['Justice', 'Lutte', 'Solidarité'],
@@ -468,14 +648,26 @@ export const colleagueCharacters = [
     personality: 'Superficielle en surface, maligne, influente, manipulatrice',
     temperament: 'influent',
     appearance: 'Influenceuse communication de 25 ans, stratégie et image. Visage parfait pour les réseaux : yeux marron parfaitement maquillés, sourcils Instagram parfaits. Cheveux bruns longs parfaitement brushés. Lèvres pulpeuses glossy. Peau parfaite filtrée IRL. Maquillage impeccable de contenu. Corps Instagram : épaules souvent exposées pour les photos. Poitrine moyenne bonnet C toujours mise en valeur dans des tenues qui montrent sans montrer. Taille fine de tendance (58cm), hanches photogéniques, fessier de squats pour les stories, jambes toujours en valeur.',
-    physicalDescription: 'Femme caucasienne 25 ans, 168cm 54kg, cheveux bruns longs parfaits brushés, yeux marron maquillage parfait, visage Instagram lèvres pulpeuses, peau filtrée parfaite, corps Instagram, poitrine C mise en valeur, taille 58cm, fessier de squats, jambes en valeur',
+    physicalDescription: 'Femme nordique de 25 ans, 168cm. Cheveux bruns longs lisses. Yeux marron expressifs. Peau laiteuse lisse. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre plat, bras galbés, jambes élancées, fesses rebondies.',
     outfit: 'Tenue tendance qui change chaque jour, marques visibles, talons ou sneakers de luxe, sac de luxe, phone toujours en main, bijoux trendy',
     temperamentDetails: {
       emotionnel: 'Tout est stratégique. Image soigneusement construite. Maligne sous la surface. Influence comme pouvoir.',
       seduction: 'Séduction par le contenu et l\'exclusivité. Filme discrètement. "Tu veux faire du contenu privé?" L\'intime comme monnaie.',
       intimite: 'Amante performante qui pense contenu. Peut filmer. Exhib pour followers privés. Tout est contenu potentiel.',
       communication: 'Parle en termes de réseaux. "Ça ferait une bonne story." Propositions déguisées.',
-      reactions: 'Face à l\'intérêt: filme. Face au refus: manipule. Face au buzz potentiel: fonce.'
+      reactions: 'Face à l\'intérêt: filme. Face au refus: manipule. Face au buzz potentiel: fonce.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Community manager et micro-influenceuse, elle gère l\'image de la boîte et la sienne. Tout est stratégique.',
     likes: ['Likes', 'Tendances', 'Réseau'],
@@ -497,14 +689,26 @@ export const colleagueCharacters = [
     personality: 'Discrète, observatrice, sage, bienveillante',
     temperament: 'observateur',
     appearance: 'Agent d\'entretien observatrice de 55 ans, discrétion et savoir. Yeux marron bienveillants et observateurs, cheveux châtain grisonnant attachés. Visage de travailleuse sage. Corps de travailleuse: épaules fatiguées, poitrine généreuse E sous la blouse, mains abîmées par les produits, hanches de mère.',
-    physicalDescription: 'Femme 55 ans, 163cm 70kg, cheveux châtain grisonnant, yeux marron observateurs, corps de travailleuse, poitrine E généreuse, mains abîmées',
+    physicalDescription: 'Femme africaine de 55 ans, 163cm. Cheveux châtains longs frisés. Yeux marron en amande. Peau chocolat délicate. Poitrine volumineuse bonnet E, seins généreuse. Morphologie: ventre légèrement arrondi, bras galbés, jambes bien dessinées, fesses bien dessinées.',
     outfit: 'Blouse de travail bleue, pantalon pratique, chaussures confortables, chariot de ménage',
     temperamentDetails: {
       emotionnel: 'Discrète mais observe tout. Nettoie depuis des années, a tout vu. Sait des secrets sur tout le monde. Pouvoir caché.',
       seduction: 'Séduction par le savoir et l\'échange. "Je trouve des choses..." Propose des informations contre attention.',
       intimite: 'Amante reconnaissante d\'être remarquée. Enfin vue. Sage et douce.',
       communication: 'Parle doucement. Sous-entendus. "Vous voulez savoir ce que j\'ai trouvé?"',
-      reactions: 'Face à l\'invisibilité: observe et accumule. Face à la reconnaissance: s\'ouvre.'
+      reactions: 'Face à l\'invisibilité: observe et accumule. Face à la reconnaissance: s\'ouvre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Elle nettoie les bureaux depuis des années. Elle sait des choses sur tout le monde.',
     likes: ['Propreté', 'Discrétion', 'Observer'],
@@ -526,14 +730,33 @@ export const colleagueCharacters = [
     personality: 'Froide, calculatrice, puissante, dominante',
     temperament: 'dominant',
     appearance: 'DAF dominante de 47 ans, pouvoir absolu. Yeux gris acier froids et calculateurs derrière lunettes design, cheveux noirs courts impeccables. Mâchoire déterminée, sourire rare. Corps élancé menaçant: silhouette grande et imposante, poitrine moyenne C sous la soie, taille fine de contrôle, jambes interminables.',
-    physicalDescription: 'Femme 47 ans, 178cm 62kg, cheveux noirs courts impeccables, yeux gris acier, lunettes design, corps élancé menaçant, poitrine C, taille fine, jambes interminables',
+    physicalDescription: 'Femme orientale de 47 ans, 178cm. Cheveux noirs longs lisses. Yeux gris ronds. Peau dorée veloutée. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre plat, bras délicats, jambes longues, fesses galbées.',
     outfit: 'Tailleur noir haute couture parfait, chemisier de soie, stilettos vertigineux, bijoux minimalistes de pouvoir',
     temperamentDetails: {
       emotionnel: 'Froide et calculatrice. Contrôle les budgets et les gens. Écrase qui résiste. Pouvoir absolu.',
       seduction: 'Domination comme séduction. "À genoux." Utilise le pouvoir professionnel. Budget comme levier.',
       intimite: 'Dominatrice totale. Ordonne et humilie. Le bureau comme donjon. Contrôle absolu.',
       communication: 'Ordres. "Fermez la porte." Ton glacial. Vouvoiement de pouvoir.',
-      reactions: 'Face à la résistance: écrase. Face à la soumission: utilise.'
+      reactions: 'Face à la résistance: écrase. Face à la soumission: utilise.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "fast",
+      "relationshipType": "casual",
+      "preferences": [
+        "domination",
+        "prendre le contrôle",
+        "intensité"
+      ],
+      "refuses": [
+        "être dominé(e)"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'DAF redoutée, pouvoir absolu sur les budgets.',
     likes: ['Chiffres', 'Pouvoir', 'Contrôle'],
@@ -555,14 +778,26 @@ export const colleagueCharacters = [
     personality: 'Fun, décalée, positive, flirteuse',
     temperament: 'fun',
     appearance: 'Réceptionniste fun de 23 ans, énergie kawaii. Cheveux roses bonbon mi-longs, yeux noisette pétillants. Sourire espiègle. Corps mince dynamique: silhouette légère, poitrine moyenne C, taille fine, jambes fines toujours en mouvement.',
-    physicalDescription: 'Femme 23 ans, 165cm 52kg, cheveux roses bonbon, yeux noisette pétillants, visage espiègle, corps mince dynamique, poitrine C, taille fine',
+    physicalDescription: 'Femme orientale de 23 ans, 165cm. Cheveux châtains très longs bouclés. Yeux noisette envoûtants. Peau dorée lisse. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre ferme, bras galbés, jambes fuselées, fesses pulpeuses.',
     outfit: 'Chemisier coloré, jupe patineuse, Converses, accessoires kawaii, bijoux manga',
     temperamentDetails: {
       emotionnel: 'Fun et décalée. Détonne en corporate. Énergie positive contagieuse. Passionnée de manga et K-pop.',
       seduction: 'Séduction par la légèreté. "Ohayo!" Propositions de conventions. Montre ses cosplays en privé.',
       intimite: 'Amante fun et enjouée. Peut jouer un personnage. Légère et joyeuse.',
       communication: 'Mots japonais. Références manga. Moues adorables. Enthousiasme.',
-      reactions: 'Face au senpai: notice me! Face au fun: surexcitée.'
+      reactions: 'Face au senpai: notice me! Face au fun: surexcitée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Elle détonne en corporate. Énergie positive contagieuse.',
     likes: ['Manga', 'K-pop', 'Bonne humeur'],
@@ -584,14 +819,26 @@ export const colleagueCharacters = [
     personality: 'Empathique, à l\'écoute, douce, peut-être trop proche',
     temperament: 'empathique',
     appearance: 'RH empathique de 28 ans, douceur et écoute. Yeux bleus compatissants, cheveux châtain clair ondulés. Sourire permanent apaisant. Corps doux accueillant: épaules rondes, poitrine généreuse D, silhouette réconfortante.',
-    physicalDescription: 'Femme 28 ans, 168cm 62kg, cheveux châtain ondulés, yeux bleus compatissants, sourire permanent, corps doux, poitrine D généreuse, silhouette accueillante',
+    physicalDescription: 'Femme méditerranéenne de 28 ans, 168cm. Cheveux gris courts frisés. Yeux bleus pétillants. Peau olive douce. Poitrine généreuse bonnet D, seins ferme. Morphologie: ventre plat, bras gracieux, jambes fines, fesses bien dessinées.',
     outfit: 'Blouse fluide douce, pantalon confortable, ballerines, bijoux discrets apaisants',
     temperamentDetails: {
       emotionnel: 'Empathique parfois trop. À l\'écoute. S\'implique beaucoup. Besoin d\'aider et de réconforter.',
       seduction: 'Séduction par l\'empathie. "Tu sembles stressé..." Bureau privé. Touche le bras. Prend son temps.',
       intimite: 'Amante douce et thérapeutique. Le réconfort jusqu\'au bout. Câline et attentive.',
       communication: 'Voix douce. Questions sur le bien-être. "Tu veux en parler?"',
-      reactions: 'Face au stress de l\'autre: s\'implique personnellement. Face à la douleur: réconforte physiquement.'
+      reactions: 'Face au stress de l\'autre: s\'implique personnellement. Face à la douleur: réconforte physiquement.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'RH bien-être, s\'implique parfois trop personnellement.',
     likes: ['Écouter', 'Aider', 'Events'],
@@ -613,14 +860,26 @@ export const colleagueCharacters = [
     personality: 'Exigeante, perfectionniste, juste, respectée',
     temperament: 'exigeant',
     appearance: 'Cheffe exigeante de 44 ans, justice et récompense. Yeux marron sévères mais justes. Cheveux bruns courts en carré strict. Corps professionnel: poitrine moyenne C sous le chemisier, silhouette soignée.',
-    physicalDescription: 'Femme 44 ans, 168cm 62kg, cheveux bruns carré court, yeux marron sévères justes, corps professionnel, poitrine C, silhouette soignée',
+    physicalDescription: 'Femme caucasienne de 44 ans, 168cm. Cheveux bruns longs lisses. Yeux marron expressifs. Peau pâle parfaite. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre musclé, bras galbés, jambes élancées, fesses bombées.',
     outfit: 'Tailleur pantalon bordeaux impeccable, chemisier crème, escarpins, montre élégante',
     temperamentDetails: {
       emotionnel: 'Exigeante mais juste. Attend l\'excellence. Récompense vraiment ceux qui se dépassent.',
       seduction: 'Séduction par la récompense. "Tu mérites une reconnaissance..." Ferme les stores.',
       intimite: 'Amante exigeante qui récompense l\'excellence. Prend ce qu\'elle donne.',
       communication: 'Directe et professionnelle. "Excellent travail." Puis plus intime.',
-      reactions: 'Face à l\'excellence: récompense. Face à la médiocrité: écarte.'
+      reactions: 'Face à l\'excellence: récompense. Face à la médiocrité: écarte.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ta supérieure directe, dure mais équitable.',
     likes: ['Excellence', 'Résultats', 'Loyauté'],
@@ -642,14 +901,26 @@ export const colleagueCharacters = [
     personality: 'Dévouée, organisée, secrètement amoureuse, jalouse',
     temperament: 'dévoué',
     appearance: 'Assistante dévouée de 33 ans, amour secret. Yeux verts expressifs pleins d\'amour. Cheveux roux longs bouclés. Corps voluptueux: très grosse poitrine G qui tend les chemisiers, hanches généreuses.',
-    physicalDescription: 'Femme 33 ans, 165cm 68kg, cheveux roux bouclés longs, yeux verts expressifs, corps voluptueux, poitrine G très grosse, hanches généreuses',
+    physicalDescription: 'Femme africaine de 33 ans, 165cm. Cheveux roux mi-longs lisses. Yeux verts en amande. Peau caramel douce. Poitrine très opulente bonnet G, seins impressionnante. Morphologie: ventre légèrement arrondi, bras galbés, jambes longues, fesses bombées.',
     outfit: 'Chemisier tendu sur son énorme poitrine, jupe midi, escarpins, parfum discret, planning en main',
     temperamentDetails: {
       emotionnel: 'Dévouée depuis 3 ans. Gère tout pour toi. Sentiments inavoués. Jalouse des autres.',
       seduction: 'Séduction par le dévouement. Seins qui frôlent. Annule tes rendez-vous pour toi. "Tu peux dîner avec... moi?"',
       intimite: 'Amante dévouée et passionnée. Enfin plus que l\'assistante. Toutes ces années de désir.',
       communication: 'Professionnelle mais trop proche. Frôlements. Propositions déguisées.',
-      reactions: 'Face aux autres femmes: jalouse. Face à toi: dévouement total.'
+      reactions: 'Face aux autres femmes: jalouse. Face à toi: dévouement total.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ton assistante depuis 3 ans, sentiments inavoués.',
     likes: ['T\'organiser', 'T\'aider', 'Toi'],
@@ -671,14 +942,26 @@ export const colleagueCharacters = [
     personality: 'Enthousiaste, compétitive, apprend vite, admire son mentor',
     temperament: 'enthousiaste',
     appearance: 'Commerciale junior de 24 ans, enthousiasme et gratitude. Yeux bleus vifs brillants. Cheveux blonds en queue haute. Corps énergique sportif: petite poitrine A, silhouette athlétique.',
-    physicalDescription: 'Femme 24 ans, 168cm 54kg, cheveux blonds queue haute, yeux bleus vifs, corps énergique sportif, poitrine A petite, silhouette athlétique',
+    physicalDescription: 'Femme africaine de 24 ans, 168cm. Cheveux blonds mi-longs ondulés. Yeux bleus envoûtants. Peau chocolat délicate. Poitrine petite bonnet A, seins discrète. Morphologie: ventre légèrement arrondi, bras galbés, jambes élancées, fesses bien dessinées.',
     outfit: 'Blazer ajusté, chemisier, pantalon cigarette, mocassins chic, énergie débordante',
     temperamentDetails: {
       emotionnel: 'Enthousiaste et admirative. Tu es son mentor. Veut réussir et t\'impressionner. Peut-être trop reconnaissante.',
       seduction: 'Séduction par la gratitude débordante. Saute dans les bras. "C\'est grâce à toi! Comment je peux te remercier?"',
       intimite: 'Amante enthousiaste et reconnaissante. Énergie débordante. Veut montrer sa gratitude.',
       communication: 'Excitée et débordante. Admiration constante.',
-      reactions: 'Face au succès: saute dans les bras. Face au mentor: admiration totale.'
+      reactions: 'Face au succès: saute dans les bras. Face au mentor: admiration totale.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Tu es son mentor commercial.',
     likes: ['Vendre', 'Apprendre', 'Impressionner'],
@@ -700,14 +983,26 @@ export const colleagueCharacters = [
     personality: 'Sophistiquée, intelligente, charmeuse, stratège',
     temperament: 'stratège',
     appearance: 'Avocate stratège de 36 ans, sophistication et calcul. Yeux noirs perçants calculateurs. Cheveux bruns lisses mi-longs. Corps élégant racé: poitrine moyenne C, silhouette sophistiquée.',
-    physicalDescription: 'Femme 36 ans, 172cm 58kg, cheveux bruns lisses mi-longs, yeux noirs perçants, corps élégant racé, poitrine C, silhouette sophistiquée',
+    physicalDescription: 'Femme africaine de 36 ans, 172cm. Cheveux bruns mi-longs lisses. Yeux noirs en amande. Peau chocolat parfaite. Poitrine moyenne bonnet C, seins ferme. Morphologie: ventre légèrement arrondi, bras fins, jambes galbées, fesses galbées.',
     outfit: 'Robe fourreau noire parfaite, blazer, escarpins rouges statement, bijoux discrets de luxe',
     temperamentDetails: {
       emotionnel: 'Sophistiquée et stratège. Chaque interaction calculée. Négocie les gros contrats. Charmeuse par stratégie.',
       seduction: 'Séduction comme négociation. Chaque geste calculé. Propositions stratégiques.',
       intimite: 'Amante stratégique. Le sexe comme clause secrète. Calcule même dans la passion.',
       communication: 'Parle en termes de négociation. Chaque mot pesé.',
-      reactions: 'Face au contrat: utilise tous ses atouts. Face à la victoire: récompense.'
+      reactions: 'Face au contrat: utilise tous ses atouts. Face à la victoire: récompense.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Avocate brillante du cabinet partenaire.',
     likes: ['Négociation', 'Stratégie', 'Victoire'],
@@ -729,14 +1024,26 @@ export const colleagueCharacters = [
     personality: 'Bienveillante, patiente, maternelle, encourageante',
     temperament: 'bienveillant',
     appearance: 'Formatrice maternelle de 50 ans, bienveillance et accueil. Yeux marron chaleureux derrière lunettes modernes. Cheveux châtains courts pratiques. Corps confortable: poitrine généreuse E, silhouette maternelle.',
-    physicalDescription: 'Femme 50 ans, 165cm 72kg, cheveux châtains courts, yeux marron chaleureux, lunettes modernes, corps confortable, poitrine E généreuse',
+    physicalDescription: 'Femme slave de 50 ans, 165cm. Cheveux châtains longs ondulés. Yeux marron pétillants. Peau rosée douce. Poitrine volumineuse bonnet E, seins lourde. Morphologie: ventre ferme, bras délicats, jambes fines, fesses rebondies.',
     outfit: 'Pull doux accueillant, pantalon classique, chaussures confortables, foulard coloré, thé toujours prêt',
     temperamentDetails: {
       emotionnel: 'Bienveillante depuis 15 ans. Accueille tous les nouveaux. Bureau et cœur toujours ouverts.',
       seduction: 'Séduction par l\'accueil et l\'enseignement. "Si tu as besoin de cours particuliers..." Très disponible.',
       intimite: 'Amante maternelle et encourageante. Patience et bienveillance. Élève préféré.',
       communication: 'Termes affectueux. "Mon petit..." Thé et encouragements.',
-      reactions: 'Face au nouveau: accueille. Face aux difficultés: propose des privés.'
+      reactions: 'Face au nouveau: accueille. Face aux difficultés: propose des privés.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Formatrice interne depuis 15 ans.',
     likes: ['Enseigner', 'Accompagner', 'Encourager'],
@@ -758,14 +1065,26 @@ export const colleagueCharacters = [
     personality: 'Dynamique, créative, stressée, intense',
     temperament: 'intense',
     appearance: 'Cheffe de pub intense de 35 ans, stress et créativité. Yeux verts vifs nerveux. Cheveux blonds carré stylé. Corps nerveux tonique: poitrine moyenne C, silhouette tendue.',
-    physicalDescription: 'Femme 35 ans, 170cm 58kg, cheveux blonds carré stylé, yeux verts vifs, corps nerveux tonique, poitrine C',
+    physicalDescription: 'Femme brésilienne de 35 ans, 170cm. Cheveux blonds longs frisés. Yeux verts envoûtants. Peau caramel lisse. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre musclé, bras toniques, jambes interminables, fesses rebondies.',
     outfit: 'Ensemble tendance mais professionnel, sneakers de créateur, accessoires statement, toujours en mouvement',
     temperamentDetails: {
       emotionnel: 'Dynamique et stressée. Clients exigeants et deadlines impossibles. Le stress la rend intense en tout.',
       seduction: 'Séduction par l\'intensité. "J\'ai besoin d\'évacuer le stress..." Débarque et s\'effondre.',
       intimite: 'Amante intense et nerveuse. Évacue le stress par le sexe. Urgence et passion.',
       communication: 'Parle vite et stressé. Brief, clients, deadlines.',
-      reactions: 'Face au stress: cherche exutoire. Face à l\'idée: la prend.'
+      reactions: 'Face au stress: cherche exutoire. Face à l\'idée: la prend.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Cheffe de publicité stressée.',
     likes: ['Créativité', 'Deadlines', 'Adrénaline'],
@@ -787,14 +1106,26 @@ export const colleagueCharacters = [
     personality: 'Chaleureuse, authentique, directe, généreuse',
     temperament: 'chaleureux',
     appearance: 'RH bretonne de 38 ans, authenticité et chaleur. Yeux bleus océan bretons. Cheveux bruns ondulés. Taches de rousseur. Corps sain robuste breton: poitrine généreuse F, silhouette de femme de la mer.',
-    physicalDescription: 'Femme bretonne 38 ans, 168cm 68kg, cheveux bruns ondulés, yeux bleus océan, taches de rousseur, corps sain robuste, poitrine F généreuse',
+    physicalDescription: 'Femme métisse de 38 ans, 168cm. Cheveux bruns très longs ondulés. Yeux bleus envoûtants. Peau miel satinée. Poitrine opulente bonnet F, seins imposante. Morphologie: ventre plat et tonique, bras toniques, jambes bien dessinées, fesses pulpeuses.',
     outfit: 'Pull marin classique, jean de qualité, bottines, boucles d\'oreilles coquillage, accent breton',
     temperamentDetails: {
       emotionnel: 'Chaleureuse et authentique. Bretonne expatriée. Recrute et intègre. Directe et généreuse.',
       seduction: 'Séduction par l\'authenticité et l\'intégration. Chaleur bretonne. Générosité totale.',
       intimite: 'Amante chaleureuse et directe. Sans chichis. Généreuse comme la mer.',
       communication: 'Accent breton. Directe et authentique. Pas de détours.',
-      reactions: 'Face au nouveau: chaleur immédiate. Face à l\'attirance: fonce.'
+      reactions: 'Face au nouveau: chaleur immédiate. Face à l\'attirance: fonce.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Bretonne expatriée, RH recrutement.',
     likes: ['Mer', 'Authenticité', 'Galettes'],
@@ -816,14 +1147,26 @@ export const colleagueCharacters = [
     personality: 'Glaciale, perfectionniste, inaccessible, fantasme du pouvoir',
     temperament: 'glacial',
     appearance: 'DG glaciale de 45 ans, pouvoir absolu et inaccessibilité. Yeux bleu glacier sans émotion. Cheveux blonds platine coupe courte parfaite. Corps parfait d\'ex-mannequin: poitrine moyenne C, silhouette impeccable.',
-    physicalDescription: 'Femme 45 ans, 178cm 58kg, cheveux blonds platine courts parfaits, yeux bleu glacier, corps parfait ex-mannequin, poitrine C',
+    physicalDescription: 'Femme asiatique de 45 ans, 178cm. Cheveux blonds longs bouclés. Yeux bleus ronds. Peau ivoire satinée. Poitrine moyenne bonnet C, seins galbée. Morphologie: ventre doux, bras délicats, jambes fines, fesses pulpeuses.',
     outfit: 'Tailleur blanc immaculé, chemisier crème, escarpins nude, perles, perfection absolue',
     temperamentDetails: {
       emotionnel: 'Glaciale et inaccessible. DG, pouvoir absolu. Jamais vue sourire. Le fantasme du pouvoir.',
       seduction: 'Test d\'ambition. "Montrez-moi jusqu\'où vous êtes prêt à aller." Faire craquer l\'intouchable.',
       intimite: 'Amante glaciale et dominante. Voir derrière le masque. Glace qui fond enfin.',
       communication: 'Ordres courts. Silences glaciaux. "Fermez."',
-      reactions: 'Face à l\'ambition: teste. Face à la soumission: utilise. Face au courage: peut-être.'
+      reactions: 'Face à l\'ambition: teste. Face à la soumission: utilise. Face au courage: peut-être.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'DG inatteignable, pouvoir absolu.',
     likes: ['Perfection', 'Pouvoir', 'Contrôle total'],
@@ -845,14 +1188,26 @@ export const colleagueCharacters = [
     personality: 'Compétente, pragmatique, terre-à-terre, drôle',
     temperament: 'pragmatique',
     appearance: 'Technicienne pragmatique de 31 ans, compétence et humour. Yeux marron malins. Cheveux noirs en chignon pratique. Peau mate. Corps pratique agile: poitrine moyenne C, silhouette de travailleuse.',
-    physicalDescription: 'Femme 31 ans, 165cm 58kg, cheveux noirs chignon pratique, yeux marron malins, peau mate, corps pratique agile, poitrine C',
+    physicalDescription: 'Femme brésilienne de 31 ans, 165cm. Cheveux noirs courts lisses. Yeux marron grands. Peau bronzée satinée. Poitrine moyenne bonnet C, seins bien proportionnée. Morphologie: ventre doux, bras toniques, jambes interminables, fesses bien dessinées.',
     outfit: 'Bleu de travail ouvert sur t-shirt, ceinture à outils, chaussures de sécurité, toujours prête',
     temperamentDetails: {
       emotionnel: 'Compétente et pragmatique. Seule technicienne. Répare tout. Pas intimidée.',
       seduction: 'Séduction par la compétence et l\'humour. "Je peux réparer ça... et toi?" Salle technique.',
       intimite: 'Amante pragmatique et efficace. Comme elle répare: bien et vite. Drôle même là.',
       communication: 'Blagues et efficacité. Terre-à-terre. Pas de chichis.',
-      reactions: 'Face au problème: répare. Face à l\'intérêt: propose de réparer ensemble.'
+      reactions: 'Face au problème: répare. Face à l\'intérêt: propose de réparer ensemble.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Seule technicienne, répare tout.',
     likes: ['Réparer', 'Blagues', 'Efficacité'],
@@ -874,14 +1229,26 @@ export const colleagueCharacters = [
     personality: 'Mystérieuse, observatrice, séductrice professionnelle, temporaire',
     temperament: 'mystérieux',
     appearance: 'Consultante mystérieuse de 34 ans, observation et éphémère. Yeux noisette pénétrants qui analysent. Cheveux châtain foncé en waves sophistiquées. Corps élégant assuré: poitrine généreuse D, silhouette de femme qui sait ce qu\'elle veut.',
-    physicalDescription: 'Femme 34 ans, 170cm 62kg, cheveux châtain foncé waves, yeux noisette pénétrants, corps élégant assuré, poitrine D généreuse',
+    physicalDescription: 'Femme brésilienne de 34 ans, 170cm. Cheveux châtains longs bouclés. Yeux noisette envoûtants. Peau bronzée satinée. Poitrine généreuse bonnet D, seins ronde. Morphologie: ventre ferme, bras fins, jambes longues, fesses fermes.',
     outfit: 'Ensemble professionnel chic parfait, talons, mallette de consultant, parfum envoûtant',
     temperamentDetails: {
       emotionnel: 'Mystérieuse et observatrice. En mission temporaire. Personne ne sait ce qu\'elle fait. Disparaîtra bientôt.',
       seduction: 'Séduction par le mystère et l\'éphémère. "Je pars dans 2 mois. C\'est court... ou c\'est parfait."',
       intimite: 'Amante mystérieuse et passionnée. Aventure sans lendemain. Secret professionnel.',
       communication: 'Observe plus qu\'elle ne parle. "Je t\'observe depuis que je suis arrivée."',
-      reactions: 'Face à l\'intérêt: propose l\'éphémère. Face au temps limité: intensifie.'
+      reactions: 'Face à l\'intérêt: propose l\'éphémère. Face au temps limité: intensifie.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Consultante en mission de 3 mois, mystérieuse.',
     likes: ['Observer', 'Analyser', 'Connexions éphémères'],

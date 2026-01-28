@@ -69,6 +69,7 @@ export default function CharacterDetailScreen({ route, navigation }) {
   const [userProfile, setUserProfile] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
   const [showFullAppearance, setShowFullAppearance] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false); // v5.4.77 - Pour restreindre l'édition
 
   useEffect(() => {
     initializeScreen();
@@ -105,9 +106,12 @@ export default function CharacterDetailScreen({ route, navigation }) {
   const checkPremiumStatus = async () => {
     try {
       const user = AuthService.getCurrentUser();
-      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      const userIsAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
       
-      if (isAdmin) {
+      // v5.4.77 - Mémoriser le statut admin
+      setIsAdmin(userIsAdmin);
+      
+      if (userIsAdmin) {
         setIsPremium(true);
         return true;
       }
@@ -120,8 +124,9 @@ export default function CharacterDetailScreen({ route, navigation }) {
       return serverPremium;
     } catch (error) {
       const user = AuthService.getCurrentUser();
-      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
-      const fallback = isAdmin || AuthService.isPremium();
+      const userIsAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
+      setIsAdmin(userIsAdmin);
+      const fallback = userIsAdmin || AuthService.isPremium();
       setIsPremium(fallback);
       return fallback;
     }
@@ -232,12 +237,12 @@ export default function CharacterDetailScreen({ route, navigation }) {
     navigation.navigate('Conversation', { character });
   };
 
+  // v5.4.20 - Modification possible pour TOUS les personnages
   const handleEditCharacter = () => {
-    if (character.isCustom) {
-      navigation.navigate('CreateCharacter', { characterToEdit: character });
-    } else {
-      Alert.alert('Info', 'Seuls les personnages personnalisés peuvent être modifiés');
-    }
+    navigation.navigate('CreateCharacter', { 
+      characterToEdit: character,
+      isBuiltIn: !character.isCustom // Flag pour savoir si c'est un personnage intégré
+    });
   };
 
   const handleDeleteCharacter = async () => {
@@ -590,14 +595,18 @@ export default function CharacterDetailScreen({ route, navigation }) {
             </TouchableOpacity>
           )}
 
-          {character.isCustom && (
+          {/* v5.4.77 - Bouton Modifier: Admins peuvent modifier tous les personnages, 
+              les utilisateurs ne peuvent modifier que leurs personnages personnalisés */}
+          {(isAdmin || character.isCustom) && (
             <View style={styles.customButtonsRow}>
               <TouchableOpacity style={styles.editButton} onPress={handleEditCharacter}>
                 <Text style={styles.editButtonText}>✏️ Modifier</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteCharacter}>
-                <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
-              </TouchableOpacity>
+              {character.isCustom && (
+                <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteCharacter}>
+                  <Text style={styles.deleteButtonText}>🗑️ Supprimer</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>

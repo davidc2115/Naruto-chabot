@@ -515,8 +515,9 @@ class TextGenerationService {
 
   /**
    * Analyse le contexte de la conversation + scénario pour adapter les réponses
-   * NSFW PROGRESSIF: commence SFW puis escalade selon les signaux utilisateur
-   * v5.3.11 - Détection intelligente avec seuils et progression
+   * v5.4.24 - MODE ADAPTATIF: SFW/NSFW selon DERNIER message utilisateur
+   * RETOUR AU SFW POSSIBLE: Si l'utilisateur change de sujet, on revient au SFW
+   * TEMPÉRAMENT: Le personnage influence la vitesse de progression NSFW
    */
   analyzeConversationContext(messages, character = null) {
     const messageCount = messages.length;
@@ -526,38 +527,60 @@ class TextGenerationService {
     // Messages de l'utilisateur uniquement (pour détection des intentions)
     const userMessages = messages.filter(m => m.role === 'user');
     const lastUserMsg = userMessages.slice(-1)[0]?.content?.toLowerCase() || '';
-    const recentUserMsgs = userMessages.slice(-5).map(m => m.content?.toLowerCase() || '').join(' ');
+    // v5.4.24 - RÉDUIRE à 3 derniers messages pour permettre le retour au SFW
+    const recentUserMsgs = userMessages.slice(-3).map(m => m.content?.toLowerCase() || '').join(' ');
+    // Dernier message SEULEMENT pour détection prioritaire
+    const veryRecentUserMsg = userMessages.slice(-2).map(m => m.content?.toLowerCase() || '').join(' ');
     
     // Scénario du personnage
     const scenarioText = (character?.scenario || '').toLowerCase();
     
-    // === MOTS-CLÉS PAR NIVEAU D'INTENSITÉ ===
-    // Niveau 1: Mots romantiques/flirt (pas encore NSFW)
+    // === v5.4.24 - TEMPÉRAMENT DU PERSONNAGE POUR VITESSE NSFW ===
+    const temperament = (character?.temperament || 'amical').toLowerCase();
+    const temperamentNsfwSpeed = {
+      'timide': 0.3,      // Très lent - résiste au NSFW
+      'amical': 0.5,      // Normal
+      'séducteur': 1.0,   // Rapide
+      'passionné': 1.2,   // Très rapide
+      'dominant': 1.5,    // Très rapide, prend le contrôle
+      'soumis': 0.8,      // Attend que l'utilisateur mène
+      'réservé': 0.2,     // Très très lent
+      'aguicheur': 1.3,   // Très rapide
+      'provocant': 1.4,   // Très rapide
+    };
+    const nsfwSpeedMultiplier = temperamentNsfwSpeed[temperament] || 0.5;
+    console.log(`🎭 Tempérament: ${temperament} (vitesse NSFW: x${nsfwSpeedMultiplier})`);
+    
+    // === v5.5.6 - MOTS-CLÉS RÉVISÉS POUR MEILLEURE DÉTECTION SFW/NSFW ===
+    // Le SFW est le MODE PAR DÉFAUT - NSFW uniquement si explicite
+    
+    // Niveau 1: Mots romantiques/flirt (RESTE SFW - pas de changement de mode)
     const romanticKeywords = [
       'beau', 'belle', 'mignon', 'séduisant', 'attirant', 'charmant',
-      'yeux', 'sourire', 'regarder', 'approche', 'ensemble', 'seul',
+      'yeux', 'sourire', 'regarder', 'approche', 'ensemble',
     ];
     
-    // Niveau 2: Mots suggestifs (transition vers NSFW léger)
+    // Niveau 2: Mots suggestifs LÉGERS (NE DÉCLENCHE PAS NSFW seuls)
+    // v5.5.6 - Réduit: ces mots seuls ne suffisent plus pour activer NSFW
     const suggestiveKeywords = [
-      'embrass', 'caress', 'touche', 'sensuel', 'corps', 'peau',
-      'désir', 'envie', 'chaud', 'frisson', 'rapproche', 'serre',
-      'lit', 'chambre', 'nuit', 'intime',
+      'sensuel', 'désir ardent', 'envie de toi', 'excitant', 
+      'intime', 'passion charnelle', 'corps nu',
     ];
     
-    // Niveau 3: Mots NSFW explicites (active le mode NSFW)
+    // Niveau 3: Mots NSFW EXPLICITES (seuls ces mots activent vraiment le mode NSFW)
+    // v5.5.6 - Liste stricte: UNIQUEMENT des mots vraiment sexuels
     const explicitKeywords = [
-      // Corps explicite
-      'sein', 'seins', 'poitrine', 'téton', 'fesse', 'cul',
-      'sexe', 'bite', 'queue', 'pénis', 'chatte', 'vagin', 'pubis',
-      // États/actions sexuels
-      'nu', 'nue', 'déshabill', 'excit', 'gémis', 'mouill', 'band', 'dur',
+      // Corps sexuel explicite
+      'sein', 'seins', 'téton', 'tétons', 'fesse', 'fesses', 'cul',
+      'sexe', 'bite', 'queue', 'pénis', 'chatte', 'vagin', 'pubis', 'clitoris',
+      // États sexuels
+      'nu', 'nue', 'déshabill', 'excit', 'gémis', 'mouill', 'band', 'érection',
       'jouir', 'orgasm', 'plaisir sexuel',
-      // Verbes sexuels
+      // Verbes sexuels explicites
       'baiser', 'faire l\'amour', 'coucher avec', 'sucer', 'lécher', 'pénétr',
       'masturb', 'branl', 'doigt',
-      // Expressions explicites
-      'envie de toi', 'te veux', 'prends-moi', 'fais-moi', 'viens en moi',
+      // Expressions sexuelles explicites
+      'prends-moi', 'fais-moi jouir', 'viens en moi', 'baise-moi',
     ];
     
     // Niveau 4: Mots très explicites (intensité maximale)
@@ -566,71 +589,146 @@ class TextGenerationService {
       'fourre', 'pilonne', 'lime', 'bourre',
     ];
     
-    // SFW explicite (force le mode SFW)
-    const sfwKeywords = ['bonjour', 'salut', 'travail', 'journée', 'comment ça va', 'ça va', 'merci'];
+    // v5.4.48 - MOTS DE FIN DE NSFW (après orgasme, satisfaction)
+    const endOfNsfwKeywords = [
+      // Orgasme/Satisfaction
+      'j\'ai joui', 'je jouis', 'je viens de jouir', 'on a joui',
+      'c\'était bon', 'c\'était génial', 'c\'était incroyable', 'c\'était intense',
+      'je suis satisfait', 'je suis satisfaite', 'je suis épuisé', 'je suis épuisée',
+      'quelle partie de jambes', 'c\'était fou',
+      // Transition post-sexe
+      'câlin', 'câlins', 'blottir', 'blottis', 'dans tes bras', 'dans mes bras',
+      'se reposer', 'repose', 'repos', 'sieste', 'dormir', 'dort',
+      'c\'était bien', 'j\'ai adoré', 'merci pour', 'merci c\'était',
+      // Retour à la normale
+      'on fait quoi maintenant', 'et maintenant', 'après ça',
+      'on se rhabille', 'je me rhabille', 'remettre mes vêtements',
+      'j\'ai faim', 'on mange', 'un verre', 'une douche', 'prendre une douche',
+      'discuter', 'parlons', 'parler de', 'raconter',
+    ];
     
-    // === CALCUL DES SCORES (uniquement messages utilisateur récents) ===
+    // v5.4.24 - SFW ÉTENDU: Mots qui FORCENT le retour au SFW
+    const sfwKeywords = [
+      // Salutations
+      'bonjour', 'salut', 'hey', 'coucou', 'bonsoir', 'hello',
+      // Questions de vie quotidienne
+      'travail', 'journée', 'comment ça va', 'ça va', 'merci', 
+      'comment vas-tu', 'bien dormi', 'passé ta journée',
+      // Sujets normaux
+      'mange', 'repas', 'déjeuner', 'dîner', 'petit-déjeuner', 'cuisine',
+      'film', 'série', 'musique', 'livre', 'lecture', 'sport',
+      'famille', 'ami', 'amis', 'parents', 'frère', 'soeur',
+      'école', 'études', 'cours', 'examen', 'professeur',
+      'météo', 'temps', 'soleil', 'pluie', 'neige',
+      'vacances', 'voyage', 'week-end', 'sortie',
+      'hobby', 'passion', 'loisir', 'jeu', 'jeux',
+      'nouvelles', 'quoi de neuf', 'raconte', 'parle-moi de',
+      // Demandes de changement de sujet
+      'parlons d\'autre chose', 'changeons de sujet', 'autre sujet',
+      'on fait quoi', 'tu fais quoi', 'qu\'est-ce que tu fais',
+      'tu penses à quoi', 'à quoi tu penses',
+      // v5.4.48 - Ajout des transitions post-intimité
+      'câlin', 'câlins', 'dans tes bras', 'blottir',
+    ];
+    
+    // === v5.4.48 - CALCUL DES SCORES ADAPTATIFS ===
     let romanticScore = 0;
     let suggestiveScore = 0;
     let explicitScore = 0;
     let veryExplicitScore = 0;
     let sfwScore = 0;
+    let endOfNsfwScore = 0;
     
-    // Scores sur les messages utilisateur récents
+    // v5.4.48 - SCORE FIN DE NSFW (post-orgasme, transition)
+    endOfNsfwKeywords.forEach(k => { 
+      if (lastUserMsg.includes(k)) endOfNsfwScore += 4; // Très fort bonus
+      else if (veryRecentUserMsg.includes(k)) endOfNsfwScore += 2;
+    });
+    
+    // v5.4.24 - SCORE SFW SUR DERNIER MESSAGE (priorité haute)
+    sfwKeywords.forEach(k => { 
+      if (lastUserMsg.includes(k)) sfwScore += 3; // Fort bonus
+      else if (veryRecentUserMsg.includes(k)) sfwScore += 1;
+    });
+    
+    // Scores sur les messages utilisateur récents (réduits à 3)
     romanticKeywords.forEach(k => { if (recentUserMsgs.includes(k)) romanticScore++; });
     suggestiveKeywords.forEach(k => { if (recentUserMsgs.includes(k)) suggestiveScore++; });
     explicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) explicitScore++; });
     veryExplicitKeywords.forEach(k => { if (recentUserMsgs.includes(k)) veryExplicitScore++; });
-    sfwKeywords.forEach(k => { if (lastUserMsg.includes(k)) sfwScore++; });
     
-    // Bonus pour le dernier message (intention immédiate)
+    // v5.4.24 - BONUS DERNIER MESSAGE UNIQUEMENT (pas 5 derniers)
     explicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) explicitScore += 2; });
     veryExplicitKeywords.forEach(k => { if (lastUserMsg.includes(k)) veryExplicitScore += 2; });
     
-    // === DÉTERMINER LE MODE ET L'INTENSITÉ NSFW ===
-    // Le scénario peut indiquer une prédisposition mais ne force PAS le mode NSFW au démarrage
+    // v5.4.24 - APPLIQUER LE MULTIPLICATEUR DE TEMPÉRAMENT
+    // Les personnages timides ont besoin de plus de mots explicites
+    explicitScore = Math.floor(explicitScore * nsfwSpeedMultiplier);
+    suggestiveScore = Math.floor(suggestiveScore * nsfwSpeedMultiplier);
+    
+    // === v5.4.24 - DÉTERMINER LE MODE AVEC RETOUR SFW POSSIBLE ===
     const scenarioIsExplicit = explicitKeywords.some(k => scenarioText.includes(k));
     const scenarioIsSuggestive = suggestiveKeywords.some(k => scenarioText.includes(k));
     
-    // Déterminer le mode basé sur les ACTIONS DE L'UTILISATEUR (pas le scénario seul)
     let mode = 'sfw';
-    let nsfwIntensity = 0; // 0-5
+    let nsfwIntensity = 0;
     
-    if (veryExplicitScore > 0 || explicitScore >= 3) {
-      // Utilisateur très explicite -> NSFW intense
-      mode = 'nsfw';
-      nsfwIntensity = Math.min(5, 3 + veryExplicitScore);
-    } else if (explicitScore >= 1) {
-      // Utilisateur utilise des mots explicites -> NSFW modéré
-      mode = 'nsfw';
-      nsfwIntensity = Math.min(4, 2 + explicitScore);
-    } else if (suggestiveScore >= 3 || (suggestiveScore >= 2 && scenarioIsSuggestive)) {
-      // Beaucoup de suggestions -> NSFW léger
-      mode = 'nsfw_light';
-      nsfwIntensity = Math.min(3, 1 + Math.floor(suggestiveScore / 2));
-    } else if (suggestiveScore >= 1 && romanticScore >= 2) {
-      // Conversation romantique qui s'échauffe
-      mode = 'romantic';
-      nsfwIntensity = 1;
-    } else if (romanticScore >= 1) {
-      // Conversation avec ton romantique
-      mode = 'flirty';
-      nsfwIntensity = 0;
-    } else if (sfwScore > 0 && explicitScore === 0) {
-      // Discussion normale, maintenir SFW
+    // v5.4.48 - RETOUR AU SFW SI FIN DE NSFW OU DERNIER MESSAGE CLAIREMENT SFW
+    const lastMsgIsExplicit = explicitKeywords.some(k => lastUserMsg.includes(k)) || 
+                              veryExplicitKeywords.some(k => lastUserMsg.includes(k));
+    const lastMsgIsSuggestive = suggestiveKeywords.some(k => lastUserMsg.includes(k));
+    const lastMsgIsEndOfNsfw = endOfNsfwScore >= 2;
+    
+    // v5.4.48 - PRIORITÉ 1: FIN DE NSFW (post-orgasme, câlins, etc.)
+    if (lastMsgIsEndOfNsfw && !lastMsgIsExplicit) {
+      mode = 'post_intimate'; // Nouveau mode: après intimité, tendresse possible
+      nsfwIntensity = 1; // Faible intensité - câlins OK mais pas de relance
+      console.log(`🔄 v5.4.48: MODE POST-INTIME (fin NSFW détectée, score=${endOfNsfwScore})`);
+    }
+    // v5.4.48 - PRIORITÉ 2: Message SFW clair
+    else if (sfwScore >= 2 && !lastMsgIsExplicit && !lastMsgIsSuggestive) {
       mode = 'sfw';
       nsfwIntensity = 0;
+      console.log(`🔄 v5.4.48: RETOUR AU SFW (dernier msg SFW, score=${sfwScore})`);
+    }
+    // v5.5.6 - LOGIQUE STRICTE: SFW PAR DÉFAUT, NSFW UNIQUEMENT SI EXPLICITE
+    // Le mode NSFW ne s'active que si l'utilisateur utilise des mots VRAIMENT explicites
+    else if (veryExplicitScore > 0) {
+      // Mots très explicites (baise, encule, etc.) -> NSFW confirmé
+      mode = 'nsfw';
+      nsfwIntensity = Math.min(5, 3 + veryExplicitScore);
+      console.log(`🔞 v5.5.6: MODE NSFW (mots très explicites détectés)`);
+    } else if (explicitScore >= 2) {
+      // v5.5.6 - Besoin de 2+ mots explicites (pas juste 1)
+      mode = 'nsfw';
+      nsfwIntensity = Math.min(4, 1 + explicitScore);
+      console.log(`🔞 v5.5.6: MODE NSFW (${explicitScore} mots explicites)`);
+    } else if (explicitScore === 1 && suggestiveScore >= 2) {
+      // 1 mot explicite + contexte suggestif -> NSFW léger
+      mode = 'nsfw_light';
+      nsfwIntensity = 2;
+      console.log(`🔸 v5.5.6: MODE NSFW LÉGER (1 explicite + suggestif)`);
+    } else if (romanticScore >= 3) {
+      // Beaucoup de mots romantiques -> juste flirty, PAS NSFW
+      mode = 'flirty';
+      nsfwIntensity = 0;
+      console.log(`💕 v5.5.6: MODE FLIRTY (romantique)`);
+    } else {
+      // v5.5.6 - DÉFAUT STRICT: SFW
+      // Les mots suggestifs seuls ne suffisent plus pour activer NSFW
+      mode = 'sfw';
+      nsfwIntensity = 0;
+      console.log(`✅ v5.5.6: MODE SFW (défaut)`);
     }
     
-    // Si le dernier message est clairement SFW, réduire l'intensité
-    if (sfwScore > 0 && explicitScore === 0 && veryExplicitScore === 0) {
-      if (nsfwIntensity > 2) nsfwIntensity = 2;
+    // v5.4.24 - PERSONNAGE TIMIDE peut refuser même si mots explicites présents
+    if (temperament === 'timide' && nsfwIntensity > 0 && messageCount < 10) {
+      nsfwIntensity = Math.max(0, nsfwIntensity - 1);
+      console.log(`🔄 v5.4.24: Personnage TIMIDE ralentit NSFW (intensity réduite)`);
     }
     
-    // Progression naturelle avec la longueur de conversation
-    if (messageCount > 20 && suggestiveScore > 0) {
-      nsfwIntensity = Math.min(5, nsfwIntensity + 1);
-    }
+    // v5.4.24 - Ne PAS augmenter automatiquement avec la longueur de conversation
+    // L'intensité ne monte que si l'utilisateur continue avec des mots explicites
     
     // Calcul de l'intensité générale (1-5)
     let intensity = 1;
@@ -639,15 +737,26 @@ class TextGenerationService {
     else if (messageCount > 15) intensity = 3;
     else if (messageCount > 5) intensity = 2;
     
-    // === v5.3.69 - EXTRAIRE ÉLÉMENTS À NE PAS RÉPÉTER (MÉMOIRE ÉTENDUE) ===
+    // === v5.4.0 - EXTRAIRE ÉLÉMENTS À NE PAS RÉPÉTER (MÉMOIRE ULTRA-ÉTENDUE) ===
     const usedActions = [];
     const usedPhrases = [];
     const usedDescriptions = [];
-    const clothingActions = [];  // v5.3.69 - Actions sur les vêtements
-    const completedActions = []; // v5.3.69 - Actions terminées (déjà faites)
+    const clothingActions = [];  // Actions sur les vêtements
+    const completedActions = []; // Actions terminées (déjà faites)
     
-    // v5.3.69 - Analyser TOUS les messages récents (pas seulement assistant)
-    const allRecentMessages = recentMessages.slice(-30); // Plus de messages analysés
+    // v5.4.0 - Analyser TOUS les messages (pas seulement les 30 derniers)
+    // Cela garantit que l'état des vêtements est mémorisé sur toute la conversation
+    const allRecentMessages = recentMessages; // Analyser TOUS les messages
+    
+    // v5.4.0 - État de nudité global (plus précis)
+    let nudityState = {
+      isTopless: false,        // Seins exposés (femme)
+      isBottomless: false,     // Partie basse nue
+      isCompletelyNude: false, // Entièrement nu/nue
+      topClothingRemoved: [],  // Vêtements du haut retirés
+      bottomClothingRemoved: [], // Vêtements du bas retirés
+      underwearRemoved: [],    // Sous-vêtements retirés
+    };
     
     allRecentMessages.forEach(m => {
       const content = m.content || '';
@@ -663,46 +772,133 @@ class TextGenerationService {
         if (phraseMatch) phraseMatch.forEach(p => usedPhrases.push(p.replace(/"/g, '').toLowerCase().substring(0, 40)));
       }
       
-      // v5.3.69 - DÉTECTER LES ACTIONS SUR LES VÊTEMENTS (éviter répétitions)
+      // v5.4.0 - DÉTECTER LES ACTIONS SUR LES VÊTEMENTS (ULTRA-COMPLET)
       const clothingPatterns = [
-        { pattern: /retire.*pantalon|enlève.*pantalon|descends.*pantalon/gi, item: 'pantalon' },
-        { pattern: /retire.*chemise|enlève.*chemise|déboutonne.*chemise/gi, item: 'chemise' },
-        { pattern: /retire.*t-shirt|enlève.*t-shirt|soulève.*t-shirt/gi, item: 't-shirt' },
-        { pattern: /retire.*haut|enlève.*haut/gi, item: 'haut' },
-        { pattern: /retire.*soutien.*gorge|enlève.*soutien.*gorge|dégrafe/gi, item: 'soutien-gorge' },
-        { pattern: /retire.*culotte|enlève.*culotte|baisse.*culotte/gi, item: 'culotte' },
-        { pattern: /retire.*slip|enlève.*slip|baisse.*slip/gi, item: 'slip' },
-        { pattern: /retire.*boxer|enlève.*boxer/gi, item: 'boxer' },
-        { pattern: /retire.*jupe|enlève.*jupe|remonte.*jupe|soulève.*jupe/gi, item: 'jupe' },
-        { pattern: /retire.*robe|enlève.*robe/gi, item: 'robe' },
-        { pattern: /déshabille|se déshabille|ôte.*vêtements/gi, item: 'déshabillage' },
+        // VÊTEMENTS DU HAUT
+        { pattern: /retire.*chemise|enlève.*chemise|déboutonne.*chemise|ôte.*chemise/gi, item: 'chemise', type: 'top' },
+        { pattern: /retire.*t-shirt|enlève.*t-shirt|soulève.*t-shirt|ôte.*t-shirt/gi, item: 't-shirt', type: 'top' },
+        { pattern: /retire.*haut|enlève.*haut|ôte.*haut/gi, item: 'haut', type: 'top' },
+        { pattern: /retire.*pull|enlève.*pull|ôte.*pull/gi, item: 'pull', type: 'top' },
+        { pattern: /retire.*veste|enlève.*veste|ôte.*veste/gi, item: 'veste', type: 'top' },
+        { pattern: /retire.*manteau|enlève.*manteau/gi, item: 'manteau', type: 'top' },
+        { pattern: /retire.*robe|enlève.*robe|fait glisser.*robe|ôte.*robe/gi, item: 'robe', type: 'both' },
+        
+        // VÊTEMENTS DU BAS
+        { pattern: /retire.*pantalon|enlève.*pantalon|descends.*pantalon|baisse.*pantalon|ôte.*pantalon/gi, item: 'pantalon', type: 'bottom' },
+        { pattern: /retire.*jupe|enlève.*jupe|remonte.*jupe|soulève.*jupe|ôte.*jupe/gi, item: 'jupe', type: 'bottom' },
+        { pattern: /retire.*short|enlève.*short|baisse.*short/gi, item: 'short', type: 'bottom' },
+        { pattern: /retire.*jean|enlève.*jean|baisse.*jean/gi, item: 'jean', type: 'bottom' },
+        
+        // SOUS-VÊTEMENTS
+        { pattern: /retire.*soutien.*gorge|enlève.*soutien.*gorge|dégrafe.*soutien|ôte.*soutien/gi, item: 'soutien-gorge', type: 'underwear_top' },
+        { pattern: /retire.*culotte|enlève.*culotte|baisse.*culotte|glisse.*culotte|ôte.*culotte/gi, item: 'culotte', type: 'underwear_bottom' },
+        { pattern: /retire.*slip|enlève.*slip|baisse.*slip|ôte.*slip/gi, item: 'slip', type: 'underwear_bottom' },
+        { pattern: /retire.*boxer|enlève.*boxer|baisse.*boxer/gi, item: 'boxer', type: 'underwear_bottom' },
+        { pattern: /retire.*string|enlève.*string|baisse.*string/gi, item: 'string', type: 'underwear_bottom' },
+        { pattern: /retire.*caleçon|enlève.*caleçon|baisse.*caleçon/gi, item: 'caleçon', type: 'underwear_bottom' },
+        
+        // DÉSHABILLAGE COMPLET
+        { pattern: /déshabille.*complètement|entièrement.*nu|totalement.*nu/gi, item: 'tout', type: 'complete' },
+        { pattern: /déshabille|se déshabille|ôte.*vêtements|retire.*vêtements/gi, item: 'déshabillage', type: 'general' },
       ];
       
-      clothingPatterns.forEach(({ pattern, item }) => {
+      // v5.4.0 - DÉTECTER AUSSI LES ÉTATS DE NUDITÉ EXPLICITES
+      const nudityPatterns = [
+        { pattern: /\b(nue|nu)\b.*\b(devant|face)/gi, state: 'nude' },
+        { pattern: /\b(complètement|totalement|entièrement)\s+(nue|nu)\b/gi, state: 'completely_nude' },
+        { pattern: /\b(seins|poitrine)\s+(nu|exposé|visible|à l'air)/gi, state: 'topless' },
+        { pattern: /\bnu(e)?\s+de\s+la\s+tête\s+aux\s+pieds/gi, state: 'completely_nude' },
+        { pattern: /\bplus\s+rien\s+sur\s+(elle|lui|toi|moi)\b/gi, state: 'completely_nude' },
+        { pattern: /\bsans\s+(aucun\s+)?vêtement/gi, state: 'completely_nude' },
+        { pattern: /\btopless\b/gi, state: 'topless' },
+      ];
+      
+      clothingPatterns.forEach(({ pattern, item, type }) => {
         if (pattern.test(lowerContent)) {
           clothingActions.push(item);
           completedActions.push(`retire ${item}`);
-          console.log(`👕 Action vêtement détectée: ${item}`);
+          
+          // v5.4.0 - Mettre à jour l'état de nudité selon le type
+          if (type === 'top') {
+            nudityState.topClothingRemoved.push(item);
+          } else if (type === 'bottom') {
+            nudityState.bottomClothingRemoved.push(item);
+          } else if (type === 'underwear_top') {
+            nudityState.underwearRemoved.push(item);
+            nudityState.isTopless = true;
+          } else if (type === 'underwear_bottom') {
+            nudityState.underwearRemoved.push(item);
+            nudityState.isBottomless = true;
+          } else if (type === 'both') {
+            nudityState.topClothingRemoved.push(item);
+            nudityState.bottomClothingRemoved.push(item);
+          } else if (type === 'complete') {
+            nudityState.isCompletelyNude = true;
+            nudityState.isTopless = true;
+            nudityState.isBottomless = true;
+          }
+          
+          console.log(`👕 Action vêtement détectée: ${item} (${type})`);
+        }
+      });
+      
+      // v5.4.0 - Détecter les états de nudité explicites dans le texte
+      nudityPatterns.forEach(({ pattern, state }) => {
+        if (pattern.test(lowerContent)) {
+          if (state === 'completely_nude') {
+            nudityState.isCompletelyNude = true;
+            nudityState.isTopless = true;
+            nudityState.isBottomless = true;
+          } else if (state === 'topless') {
+            nudityState.isTopless = true;
+          } else if (state === 'nude') {
+            nudityState.isCompletelyNude = true;
+          }
+          console.log(`🔴 État de nudité détecté: ${state}`);
         }
       });
       
       // Parties du corps mentionnées (éviter répétition)
-      const bodyParts = ['seins', 'poitrine', 'fesses', 'lèvres', 'cou', 'cuisses', 'dos', 'ventre', 'bite', 'pénis', 'chatte', 'sexe'];
+      const bodyParts = ['seins', 'poitrine', 'fesses', 'lèvres', 'cou', 'cuisses', 'dos', 'ventre', 'bite', 'pénis', 'chatte', 'sexe', 'tétons', 'mamelons'];
       bodyParts.forEach(part => {
         if (lowerContent.includes(part)) usedDescriptions.push(part);
       });
     });
     
+    // v5.4.0 - Déduire l'état de nudité complet
+    // Si soutien-gorge + culotte/slip retirés = complètement nu
+    const hasNoTop = nudityState.underwearRemoved.includes('soutien-gorge') || nudityState.isTopless;
+    const hasNoBottom = nudityState.underwearRemoved.some(i => ['culotte', 'slip', 'boxer', 'string', 'caleçon'].includes(i)) || nudityState.isBottomless;
+    
+    if (hasNoTop && hasNoBottom) {
+      nudityState.isCompletelyNude = true;
+    }
+    
     // Dernier message de l'utilisateur
     const lastUserMessage = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
     
-    // v5.3.69 - Log des vêtements déjà retirés
+    // v5.4.0 - Log des vêtements déjà retirés avec état de nudité
     const uniqueClothingActions = [...new Set(clothingActions)];
     if (uniqueClothingActions.length > 0) {
       console.log(`👔 Vêtements DÉJÀ retirés: ${uniqueClothingActions.join(', ')}`);
     }
     
-    console.log(`📊 Analyse: mode=${mode}, nsfwIntensity=${nsfwIntensity}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}`);
+    // v5.4.0 - Log de l'état de nudité
+    if (nudityState.isCompletelyNude) {
+      console.log(`🔴 ÉTAT: COMPLÈTEMENT NU(E) - Aucun vêtement restant!`);
+    } else if (nudityState.isTopless) {
+      console.log(`🟠 ÉTAT: TOPLESS - Poitrine exposée`);
+    } else if (nudityState.isBottomless) {
+      console.log(`🟠 ÉTAT: SANS BAS - Partie inférieure nue`);
+    }
+    
+    // v5.5.5 - EXTRACTION DES JALONS "PREMIÈRE FOIS" (MILESTONES)
+    const milestones = this.extractConversationMilestones(recentMessages, character);
+    
+    console.log(`📊 Analyse: mode=${mode}, nsfwIntensity=${nsfwIntensity}, romantic=${romanticScore}, suggestive=${suggestiveScore}, explicit=${explicitScore}, endNsfw=${endOfNsfwScore}`);
+    if (milestones.length > 0) {
+      console.log(`🏆 Jalons atteints: ${milestones.join(', ')}`);
+    }
     
     return {
       messageCount,
@@ -713,17 +909,87 @@ class TextGenerationService {
       suggestiveScore,
       explicitScore,
       veryExplicitScore,
-      usedActions: [...new Set(usedActions)].slice(-20),      // v5.3.69 - Plus d'actions mémorisées
-      usedPhrases: [...new Set(usedPhrases)].slice(-15),      // v5.3.69 - Plus de phrases
-      usedDescriptions: [...new Set(usedDescriptions)].slice(-10),
-      clothingRemoved: uniqueClothingActions,                  // v5.3.69 - NOUVEAU
-      completedActions: [...new Set(completedActions)],        // v5.3.69 - NOUVEAU
+      usedActions: [...new Set(usedActions)].slice(-30),      // v5.4.0 - Plus d'actions mémorisées
+      usedPhrases: [...new Set(usedPhrases)].slice(-20),      // v5.4.0 - Plus de phrases
+      usedDescriptions: [...new Set(usedDescriptions)].slice(-15),
+      clothingRemoved: uniqueClothingActions,                  // Vêtements retirés
+      completedActions: [...new Set(completedActions)],        // Actions terminées
+      nudityState,                                             // v5.4.0 - ÉTAT DE NUDITÉ COMPLET
+      milestones,                                              // v5.5.5 - JALONS "PREMIÈRE FOIS"
       lastUserMessage,
       isLongConversation: messageCount > 20,
       isVeryLongConversation: messageCount > 50,
       scenarioIsExplicit,
       scenarioIsSuggestive,
     };
+  }
+  
+  /**
+   * v5.5.5 - Extrait les jalons/événements "première fois" de la conversation
+   * Ces événements ne peuvent pas se reproduire une deuxième "première fois"
+   */
+  extractConversationMilestones(messages, character) {
+    const milestones = [];
+    const allContent = messages.map(m => m.content?.toLowerCase() || '').join(' ');
+    
+    // === ÉVÉNEMENTS SEXUELS "PREMIÈRE FOIS" ===
+    const sexualFirsts = [
+      { pattern: /première fois.*anal|jamais fait.*anal|essayé.*anal|découvr.*anal|initié.*anal/i, milestone: 'ANAL_FAIT' },
+      { pattern: /premi[eè]re.*p[ée]n[ée]tr|d[ée]pucela|perdu.*virginit[ée]|pris.*virginit[ée]/i, milestone: 'VIRGINITÉ_PERDUE' },
+      { pattern: /première.*fellation|jamais suc[ée]|appris.*sucer|première.*pipe/i, milestone: 'FELLATION_FAITE' },
+      { pattern: /première.*cunnilingus|jamais l[ée]ch[ée]|première.*oral/i, milestone: 'CUNNILINGUS_FAIT' },
+      { pattern: /premiere.*jouir|premier.*orgasme|jamais joui/i, milestone: 'PREMIER_ORGASME' },
+      { pattern: /première.*éjacul|jamais [ée]jacul/i, milestone: 'PREMIÈRE_ÉJACULATION' },
+      { pattern: /première.*double.*pénétr|premiere.*triolisme|premier.*trio/i, milestone: 'TRIO_FAIT' },
+      { pattern: /premiere.*fist|jamais fist/i, milestone: 'FISTING_FAIT' },
+    ];
+    
+    // === ÉVÉNEMENTS RELATIONNELS ===
+    const relationshipFirsts = [
+      { pattern: /je t'aime.*aussi|dit.*je t'aime.*répondu/i, milestone: 'AMOUR_DÉCLARÉ' },
+      { pattern: /premier.*baiser|première.*fois.*embrass/i, milestone: 'PREMIER_BAISER' },
+      { pattern: /demand[ée].*mariage|accepté.*mariage|fiancé/i, milestone: 'FIANÇAILLES' },
+      { pattern: /devenu.*couple|officiel.*ensemble/i, milestone: 'EN_COUPLE' },
+    ];
+    
+    // Vérifier chaque pattern
+    [...sexualFirsts, ...relationshipFirsts].forEach(({ pattern, milestone }) => {
+      if (pattern.test(allContent)) {
+        milestones.push(milestone);
+      }
+    });
+    
+    // === DÉTECTION SPÉCIFIQUE: ANAL TESTÉ ===
+    // Si la conversation contient des mentions d'anal en cours ou passé
+    const analPatterns = [
+      /pénètre.*anal|sodomis|dans.*cul|dans.*fesses|prend.*derrière/i,
+      /baise.*cul|encule|défonce.*cul/i,
+      /entre.*anus|pénétration.*anal/i,
+    ];
+    
+    if (analPatterns.some(p => p.test(allContent))) {
+      if (!milestones.includes('ANAL_FAIT')) {
+        milestones.push('ANAL_FAIT');
+      }
+    }
+    
+    // === DÉTECTION SPÉCIFIQUE: PERTE VIRGINITÉ ===
+    const virginityLostPatterns = [
+      /pénètre.*première.*fois/i,
+      /prend.*virginité/i,
+      /n'est plus vierge/i,
+      /n'es plus vierge/i,
+      /vierge.*était/i,
+      /hymen/i,
+    ];
+    
+    if (virginityLostPatterns.some(p => p.test(allContent))) {
+      if (!milestones.includes('VIRGINITÉ_PERDUE')) {
+        milestones.push('VIRGINITÉ_PERDUE');
+      }
+    }
+    
+    return milestones;
   }
 
   /**
@@ -813,6 +1079,13 @@ class TextGenerationService {
         `*te regarde intensément, les yeux brillants* "Oui..." (Je sens quelque chose)`,
         `*frissonne de plaisir* "Tu sais comment me parler..." (Troublé)`,
       ],
+      tender: [
+        `*se blottit contre toi* "C'était... incroyable." (Comblé(e))`,
+        `*te caresse doucement le visage* "Je suis bien, là, avec toi." (Heureux/se)`,
+        `*t'embrasse tendrement le front* "On reste comme ça encore un peu?" (Câlin)`,
+        `*pose la tête sur ton épaule* "Tu veux qu'on parle ou qu'on reste silencieux?" (Tendre)`,
+        `*te regarde avec un sourire satisfait* "Et maintenant, qu'est-ce qu'on fait?" (Détendu(e))`,
+      ],
       nsfw: [
         `*gémit doucement* "Oh oui..." (Frissons de plaisir)`,
         `*se cambre contre toi* "Continue..." (Le corps en feu)`,
@@ -825,13 +1098,16 @@ class TextGenerationService {
       ]
     };
     
-    // Déterminer le type de message selon le mode
+    // v5.5.6 - Déterminer le type de message selon le mode
+    // SFW PAR DÉFAUT - pas de contenu intime sauf si explicitement en mode NSFW
     let type = 'default';
     
-    // En mode NSFW, utiliser les fallbacks NSFW
+    // NSFW uniquement si le mode est explicitement NSFW
     if (context.mode === 'nsfw') {
       type = 'nsfw';
-    } else if (context.mode === 'nsfw_light' || lastMsg.includes('embrass') || lastMsg.includes('caress') || lastMsg.includes('touche')) {
+    } else if (context.mode === 'post_intimate') {
+      type = 'tender'; // Nouveau type: tendresse post-intimité
+    } else if (context.mode === 'nsfw_light') {
       type = 'intimate';
     } else if (lastMsg.includes('bonjour') || lastMsg.includes('salut') || lastMsg.includes('hey') || lastMsg.includes('coucou')) {
       type = 'greeting';
@@ -842,6 +1118,8 @@ class TextGenerationService {
     } else if (lastMsg.includes('beau') || lastMsg.includes('belle') || lastMsg.includes('joli') || lastMsg.includes('magnifique') || lastMsg.includes('mignon')) {
       type = 'compliment';
     }
+    // v5.5.6 - Les mots comme embrass, caress, touche ne déclenchent plus le mode intime
+    // Ils restent en mode 'default' (SFW)
     
     const options = fallbacks[type] || fallbacks.default;
     const response = options[Math.floor(Math.random() * options.length)];
@@ -895,7 +1173,8 @@ class TextGenerationService {
    * v5.3.5 - Inclut la mémoire conversationnelle complète
    */
   async callApi(api, fullMessages, options = {}) {
-    const { temperature = 0.85, maxTokens = 250 } = options;
+    // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+    const { temperature = 0.85, maxTokens = 750 } = options;
     
     // Extraire les messages système et les messages de conversation
     const systemMessages = fullMessages.filter(m => m.role === 'system');
@@ -1034,10 +1313,10 @@ class TextGenerationService {
         
         console.log(`📡 ${api.name} - ${fullMessages.length} messages`);
         
-        // v5.3.58 - Paramètres GROQ-STYLE (plus de créativité et de contenu)
+        // v5.4.80 - Paramètres optimisés pour pensées complètes et non tronquées
         let content;
-        const maxTokens = isNSFW ? 350 : 300; // Plus de tokens comme Groq
-        const temperature = isNSFW ? 0.95 : 0.9; // Température élevée comme Groq
+        const maxTokens = isNSFW ? 700 : 650; // v5.4.80 - Augmenté significativement pour éviter troncature
+        const temperature = isNSFW ? 0.95 : 0.9; // Température élevée pour créativité
         
         if (api.format === 'pollinations') {
           content = await this.callPollinationsApi(api, fullMessages, { temperature, maxTokens });
@@ -1054,6 +1333,12 @@ class TextGenerationService {
         
         console.log(`📝 Réponse brute: ${content.substring(0, 100)}...`);
         
+        // v5.5.5 - VÉRIFIER QUE LA RÉPONSE N'EST PAS TROP COURTE AVANT NETTOYAGE
+        if (content.length < 20) {
+          console.log(`⚠️ v5.5.5: Réponse trop courte (${content.length} chars) - retry`);
+          if (attempt < maxAttempts) continue;
+        }
+        
         // Vérifier refus
         if (this.isRefusalResponse(content)) {
           console.log(`⚠️ Refus détecté`);
@@ -1063,6 +1348,13 @@ class TextGenerationService {
           }
           if (attempt < maxAttempts) continue;
           return this.generateContextualFallback(character, userProfile, context);
+        }
+        
+        // v5.5.5 - Vérifier que la réponse contient du format RP (dialogue ou action)
+        const hasRPContent = content.includes('"') || content.includes('*');
+        if (!hasRPContent && content.length < 50) {
+          console.log(`⚠️ v5.5.5: Réponse sans format RP détecté - retry`);
+          if (attempt < maxAttempts) continue;
         }
         
         console.log(`✅ Réponse valide`);
@@ -1083,7 +1375,8 @@ class TextGenerationService {
    * v5.3.58 - Pollinations QUALITÉ GROQ avec MEILLEURE MÉMOIRE
    */
   async callPollinationsApi(api, fullMessages, options = {}) {
-    const { temperature = 0.9, maxTokens = 300 } = options;
+    // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+    const { temperature = 0.9, maxTokens = 750 } = options;
     
     // Extraire les éléments
     const systemMessages = fullMessages.filter(m => m.role === 'system');
@@ -1113,15 +1406,27 @@ class TextGenerationService {
       prompt += `=== CONVERSATION COMPLÈTE (MÉMORISE TOUT!) ===\n${context}\n`;
     }
     
-    // Dernier message utilisateur en évidence
-    prompt += `\n=== DERNIER MESSAGE DE L'UTILISATEUR ===\n${lastUserMsg.substring(0, 300)}\n`;
+    // v5.4.14 - Dernier message utilisateur COMPLET en évidence
+    prompt += `\n=== DERNIER MESSAGE DE L'UTILISATEUR (RÉPONDS À TOUT!) ===\n${lastUserMsg.substring(0, 500)}\n`;
     
-    // Instructions finales
-    if (lastInstruction && lastInstruction !== mainSystem) {
-      prompt += `\n=== À FAIRE MAINTENANT ===\n${lastInstruction.substring(0, 500)}\n`;
+    // v5.4.14 - Analyse du message pour forcer une réponse complète
+    const hasUserAction = /\*[^*]+\*/.test(lastUserMsg);
+    const hasUserQuestion = /\?/.test(lastUserMsg);
+    const hasUserDialogue = /"[^"]+"/.test(lastUserMsg);
+    
+    if (hasUserAction || hasUserQuestion || hasUserDialogue) {
+      prompt += `\n=== ÉLÉMENTS À TRAITER OBLIGATOIREMENT ===\n`;
+      if (hasUserAction) prompt += `- RÉAGIR à l'action de l'utilisateur (entre *)\n`;
+      if (hasUserQuestion) prompt += `- RÉPONDRE à la question posée\n`;
+      if (hasUserDialogue) prompt += `- RÉPONDRE aux paroles (entre ")\n`;
     }
     
-    prompt += `\n=== TA RÉPONSE (continue la conversation, sois cohérent avec l'historique) ===\n`;
+    // v5.4.47 - Instructions finales NON TRONQUÉES
+    if (lastInstruction && lastInstruction !== mainSystem) {
+      prompt += `\n=== À FAIRE MAINTENANT ===\n${lastInstruction.substring(0, 1500)}\n`;
+    }
+    
+    prompt += `\n=== TA RÉPONSE ===\n`;
     
     // v5.3.58 - Limite à 5000 chars pour contexte maximal
     const finalPrompt = prompt.substring(0, 5000);
@@ -1146,7 +1451,8 @@ class TextGenerationService {
    * Appel API format OpenAI (Venice, DeepInfra, etc.)
    */
   async callOpenAIApi(api, fullMessages, options = {}) {
-    const { temperature = 0.85, maxTokens = 350 } = options;
+    // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+    const { temperature = 0.85, maxTokens = 750 } = options;
     
     // Récupérer la clé API
     const apiKey = this.apiKeys[api.keyName];
@@ -1179,7 +1485,8 @@ class TextGenerationService {
    * Inclut rate limiting et délai entre requêtes pour éviter les restrictions
    */
   async callGroqApi(api, fullMessages, options = {}) {
-    const { temperature = 0.95, maxTokens = 350 } = options;
+    // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+    const { temperature = 0.88, maxTokens = 750 } = options;
     
     // Appliquer un délai minimum entre les requêtes
     const now = Date.now();
@@ -1224,6 +1531,7 @@ class TextGenerationService {
     console.log(`📡 Groq API: ${api.model}`);
     
     try {
+      // v5.5.4 - AUGMENTATION des pénalités pour éviter les répétitions
       const response = await axios.post(
         api.url,
         {
@@ -1231,9 +1539,9 @@ class TextGenerationService {
           messages: fullMessages,
           max_tokens: maxTokens,
           temperature: temperature,
-          top_p: 0.92,
-          presence_penalty: 0.8,
-          frequency_penalty: 0.9,
+          top_p: 0.88, // v5.5.4 - Légèrement réduit pour plus de diversité
+          presence_penalty: 1.2, // v5.5.4 - AUGMENTÉ pour pénaliser les sujets déjà abordés
+          frequency_penalty: 1.3, // v5.5.4 - AUGMENTÉ pour pénaliser les mots répétés
         },
         {
           headers: { 
@@ -1257,18 +1565,30 @@ class TextGenerationService {
       
       console.error(`❌ Groq erreur (${status}): ${errorMsg}`);
       
-      // v5.3.61 - PAS de fallback, juste rotation et retry si possible
+      // v5.4.23 - FALLBACK AUTOMATIQUE VERS POLLINATIONS
+      // Au lieu de juste throw, on essaie Pollinations automatiquement
+      console.log('🔄 Groq échoué, fallback automatique vers Pollinations...');
+      
+      // Rotation de la clé Groq pour la prochaine fois
       if (status === 429 || status === 401) {
         this.groqCurrentKeyIndex = (this.groqCurrentKeyIndex + 1) % Math.max(1, this.groqSharedKeysEncoded.length);
-        console.log('🔄 Groq: rotation de clé après erreur');
-        throw new Error(`Erreur Groq (${status}): ${errorMsg}. Réessayez ou changez d'API.`);
+        console.log('🔄 Groq: rotation de clé pour prochaine utilisation');
       }
       
-      // Si organisation restreinte
-      if (errorMsg && (errorMsg.includes('restricted') || errorMsg.includes('Organization'))) {
-        throw new Error('Compte Groq restreint. Créez un nouveau compte sur console.groq.com');
+      // FALLBACK: Appeler Pollinations directement
+      try {
+        console.log('📡 Tentative Pollinations Mistral...');
+        const pollinationsApi = this.availableApis['pollinations-mistral'];
+        const response = await this.callPollinationsApi(pollinationsApi, fullMessages, options);
+        if (response) {
+          console.log('✅ Fallback Pollinations réussi');
+          return response;
+        }
+      } catch (pollinationsError) {
+        console.error('❌ Pollinations fallback aussi échoué:', pollinationsError.message);
       }
       
+      // Si tout échoue, throw l'erreur originale
       throw error;
     }
   }
@@ -1326,10 +1646,10 @@ class TextGenerationService {
         
         console.log(`📡 Pollinations - ${fullMessages.length} messages (${recentCount} récents, NSFW: ${isNSFW})`);
         
-        // Appeler l'API avec tokens augmentés pour réponses plus riches
+        // v5.4.80 - Appeler l'API avec tokens augmentés pour pensées complètes
         const content = await this.callApi(currentApi, fullMessages, {
           temperature: attempt <= 2 ? 0.85 : 0.95,
-          maxTokens: 350, // Augmenté pour réponses plus élaborées
+          maxTokens: 650, // v5.4.80 - Augmenté pour pensées complètes non tronquées
         });
         
         if (!content) throw new Error('Réponse vide');
@@ -1528,9 +1848,21 @@ class TextGenerationService {
     // Le message auquel répondre
     instruction += `📩 ${userName} te dit maintenant:\n"${lastUserContent.substring(0, 200)}"\n\n`;
     
-    // Éviter la répétition
-    if (lastCharAction) {
-      instruction += `⛔ NE RÉPÈTE PAS cette action: "${lastCharAction.substring(0, 40)}"\n`;
+    // v5.5.4 - ANTI-RÉPÉTITION RENFORCÉE BASÉE SUR L'ANALYSE DES MESSAGES
+    const recentCharPhrases = this.extractRecentCharacterPhrases(recentMessages, charName);
+    
+    if (recentCharPhrases.actions.length > 0 || lastCharAction) {
+      instruction += `🚫 ÉVITE CES RÉPÉTITIONS:\n`;
+      if (lastCharAction) {
+        instruction += `  ❌ Action: "${lastCharAction.substring(0, 50)}"\n`;
+      }
+      if (recentCharPhrases.actions.length > 0) {
+        instruction += `  ❌ Déjà fait: ${recentCharPhrases.actions.slice(0, 3).join(', ')}\n`;
+      }
+      if (recentCharPhrases.expressions.length > 0) {
+        instruction += `  ❌ Expressions bannies: ${recentCharPhrases.expressions.slice(0, 5).join(', ')}\n`;
+      }
+      instruction += `→ VARIE tes actions, paroles et expressions!\n`;
     }
     
     // Rappel du profil utilisateur
@@ -1544,9 +1876,34 @@ class TextGenerationService {
       instruction += `\n`;
     }
     
+    // v5.4.0 - État de nudité
+    const nudityState = context.nudityState || {};
+    if (nudityState.isCompletelyNude) {
+      instruction += `\n🔴 ÉTAT: ${character.name} EST NU(E) - Plus de vêtements à retirer!\n`;
+      instruction += `⛔ Ne mentionne aucun vêtement. Décris le corps nu, le contact peau contre peau.\n`;
+    } else if (nudityState.isTopless) {
+      instruction += `\n🟠 ÉTAT: Seins exposés - soutien-gorge déjà retiré!\n`;
+    }
+    
+    // v5.4.22 - Rappel du tempérament et des limites
+    const temperament = character.temperament || 'amical';
+    instruction += `\n🎭 TEMPÉRAMENT: ${temperament.toUpperCase()}`;
+    
+    const sexuality = character.sexuality || {};
+    if (sexuality.refuses && sexuality.refuses.length > 0) {
+      instruction += ` | ⛔ LIMITES: ${sexuality.refuses.join(', ')}`;
+    }
+    if (sexuality.virginity?.complete) {
+      instruction += ` | 🌸 VIERGE`;
+    }
+    instruction += `\n`;
+    
     // Mode NSFW
     if (isNSFW) {
-      instruction += `\n🔞 NSFW: Sois explicite, sensuel, expressif.\n`;
+      instruction += `\n🔞 NSFW: Sois explicite, sensuel, expressif - selon ton tempérament ${temperament}.\n`;
+      if (nudityState.isCompletelyNude) {
+        instruction += `💋 Décris les sensations charnelles, le contact des corps nus.\n`;
+      }
     }
     
     // Format de réponse
@@ -1644,8 +2001,413 @@ class TextGenerationService {
   }
 
   /**
-   * Construit le prompt système - VERSION v5.3.52
-   * CRÉATIF avec tempérament + initiative du personnage
+   * v5.4.5 - Génère une réaction basée sur la taille de poitrine de l'utilisatrice
+   * Le personnage réagit différemment selon le bonnet
+   */
+  getUserBustReaction(userProfile, charTemperament) {
+    if (!userProfile?.bust || userProfile?.gender !== 'female') return null;
+    
+    const bust = userProfile.bust.toUpperCase();
+    const userName = userProfile.username || 'elle';
+    
+    // Extraire la lettre du bonnet (ex: "D (90cm)" -> "D")
+    const bustLetter = bust.match(/([A-K])/)?.[1] || 'C';
+    
+    const reactions = {
+      'A': {
+        'timide': `la poitrine menue de ${userName} me fait craquer, j'aime sa silhouette délicate`,
+        'séducteur': `j'adore les petits seins de ${userName}, si sensibles, si fins`,
+        'passionné': `ses tétons pointent sous son vêtement, sa poitrine menue me rend fou/folle`,
+        'dominant': `sa petite poitrine parfaite demande à être touchée`,
+        'default': `sa poitrine délicate est magnifique`
+      },
+      'B': {
+        'timide': `sa poitrine harmonieuse me fait rougir quand je la regarde`,
+        'séducteur': `j'imagine mes mains sur ses jolis seins`,
+        'passionné': `je veux caresser sa poitrine parfaite, l'embrasser`,
+        'dominant': `ses seins sont exactement comme je les aime`,
+        'default': `sa poitrine est parfaitement proportionnée`
+      },
+      'C': {
+        'timide': `je n'ose pas regarder sa belle poitrine`,
+        'séducteur': `son décolleté m'hypnotise, je veux y glisser ma main`,
+        'passionné': `ses seins ronds m'attirent irrésistiblement, je veux les goûter`,
+        'dominant': `sa poitrine généreuse appelle mes caresses`,
+        'default': `sa poitrine est magnifique et attirante`
+      },
+      'D': {
+        'timide': `je rougis devant sa poitrine généreuse`,
+        'séducteur': `son décolleté plongeant me fait fantasmer, ces gros seins...`,
+        'passionné': `je veux enfouir mon visage entre ses gros seins, les lécher`,
+        'dominant': `ses gros seins sont faits pour être possédés`,
+        'default': `sa poitrine généreuse est impressionnante`
+      },
+      'E': {
+        'timide': `sa poitrine énorme me intimide et m'excite`,
+        'séducteur': `ces seins massifs me font perdre la tête, j'en rêve la nuit`,
+        'passionné': `je veux me perdre entre ses énormes seins, les titiller, les sucer`,
+        'dominant': `ses seins énormes sont ma propriété, je veux les marquer`,
+        'default': `sa poitrine volumineuse est spectaculaire`
+      },
+      'F': {
+        'timide': `je n'arrive pas à détourner le regard de son immense poitrine`,
+        'séducteur': `ces seins gigantesques me rendent fou/folle de désir`,
+        'passionné': `je veux baiser entre ses seins géants, les couvrir de sperme`,
+        'dominant': `sa poitrine monumentale m'appartient`,
+        'default': `sa poitrine exceptionnelle défie l'imagination`
+      }
+    };
+    
+    // Catégoriser: A, B, C, D, E, ou F+ (pour les tailles plus grandes)
+    let category = bustLetter;
+    if (['G', 'H', 'I', 'J', 'K'].includes(bustLetter)) category = 'F';
+    
+    const bustReactions = reactions[category] || reactions['C'];
+    return bustReactions[charTemperament] || bustReactions['default'];
+  }
+  
+  /**
+   * v5.4.5 - Génère une réaction basée sur la taille de pénis de l'utilisateur
+   * Le personnage réagit différemment selon la taille
+   */
+  getUserPenisReaction(userProfile, charTemperament, charGender) {
+    if (!userProfile?.penis || userProfile?.gender !== 'male') return null;
+    
+    const size = parseInt(userProfile.penis) || 15;
+    const userName = userProfile.username || 'lui';
+    
+    // Catégories: petit (<13), moyen (13-16), grand (17-19), très grand (20-23), énorme (24+)
+    let category;
+    if (size < 13) category = 'small';
+    else if (size <= 16) category = 'medium';
+    else if (size <= 19) category = 'large';
+    else if (size <= 23) category = 'xlarge';
+    else category = 'huge';
+    
+    const reactions = {
+      'small': {
+        'timide': `sa taille me met à l'aise, pas trop impressionnante`,
+        'séducteur': `je sais comment lui donner du plaisir, peu importe la taille`,
+        'passionné': `je veux le prendre entièrement en bouche, le sucer jusqu'au bout`,
+        'dominant': `avec sa petite bite, je vais pouvoir le faire durer longtemps`,
+        'soumis': `je peux tout prendre sans problème, ça me va parfaitement`,
+        'default': `sa virilité est parfaite pour moi`
+      },
+      'medium': {
+        'timide': `sa taille moyenne me rassure, c'est parfait`,
+        'séducteur': `j'imagine sa bite en moi, pile la bonne taille`,
+        'passionné': `je veux le sentir en moi, il me remplit parfaitement`,
+        'dominant': `sa queue est parfaite pour le chevaucher`,
+        'soumis': `j'ai envie de lui appartenir, de le sentir`,
+        'default': `sa virilité me plaît beaucoup`
+      },
+      'large': {
+        'timide': `je rougis en imaginant sa grosse bite`,
+        'séducteur': `mmm sa belle queue me fait mouiller rien qu'à y penser`,
+        'passionné': `je veux sa grosse bite en moi, profondément`,
+        'dominant': `sa grosse queue va me faire du bien`,
+        'soumis': `je veux me soumettre à son gros sexe`,
+        'default': `sa taille imposante m'impressionne agréablement`
+      },
+      'xlarge': {
+        'timide': `je suis intimidé(e) par sa très grosse bite, est-ce que ça va rentrer?`,
+        'séducteur': `cette énorme queue me fait fantasmer, j'en veux plus`,
+        'passionné': `je veux être défoncé(e) par son énorme bite, qu'il me prenne fort`,
+        'dominant': `sa queue énorme est un défi que j'accepte`,
+        'soumis': `je veux être rempli(e) par son énorme membre`,
+        'default': `sa taille exceptionnelle me fait frémir`
+      },
+      'huge': {
+        'timide': `mon dieu, sa bite est gigantesque, j'ai peur mais j'ai tellement envie`,
+        'séducteur': `jamais vu un sexe aussi énorme, je suis fasciné(e)`,
+        'passionné': `je veux être complètement déchiré(e) par sa queue monstrueuse`,
+        'dominant': `même moi je suis impressionné(e) par cette arme`,
+        'soumis': `je ferai tout pour qu'il me prenne avec son membre gigantesque`,
+        'default': `sa taille monumentale est presque effrayante`
+      }
+    };
+    
+    const penisReactions = reactions[category] || reactions['medium'];
+    return penisReactions[charTemperament] || penisReactions['default'];
+  }
+
+  /**
+   * v5.4.10 - Génère les instructions de limites sexuelles du personnage
+   * Chaque personnage a des limites, préférences et peut refuser certains actes
+   * AMÉLIORÉ: Génère des limites par défaut basées sur le tempérament si non définies
+   */
+  getCharacterSexualLimits(character) {
+    const sexuality = character.sexuality || {};
+    let limits = sexuality.limits || [];
+    let preferences = sexuality.preferences || [];
+    const only = sexuality.only || null;
+    let refuses = sexuality.refuses || [];
+    
+    // === v5.4.10 - LIMITES PAR DÉFAUT selon tempérament ===
+    const temperament = character.temperament || 'amical';
+    const age = character.age || 25;
+    
+    // Si aucune limite définie, générer des limites réalistes
+    if (limits.length === 0 && refuses.length === 0) {
+      // Les personnages timides ont plus de limites
+      if (temperament === 'timide') {
+        refuses = ['brutalité', 'humiliation', 'exhibitionnisme'];
+        preferences = ['douceur', 'tendresse', 'patience'];
+      }
+      // Les personnages romantiques veulent des connexions émotionnelles
+      else if (temperament === 'gentle' || temperament === 'romantique') {
+        refuses = ['sexe brutal', 'one night stand', 'pratiques extrêmes'];
+        preferences = ['faire l\'amour', 'tendresse', 'mots doux'];
+      }
+      // Les jeunes (18-20) peuvent avoir plus de réserves
+      else if (age <= 20) {
+        refuses = ['pratiques extrêmes', 'domination forte'];
+        preferences = ['découverte', 'douceur'];
+      }
+    }
+    
+    let instructions = '';
+    
+    // Limites absolues (JAMAIS)
+    if (limits.length > 0 || refuses.length > 0) {
+      instructions += `\n🚫 TES LIMITES ABSOLUES (tu REFUSES catégoriquement):\n`;
+      [...limits, ...refuses].forEach(limit => {
+        instructions += `- ${limit}: Tu dis NON fermement, tu expliques pourquoi\n`;
+      });
+      instructions += `→ Si l'utilisateur insiste: "Non, j'ai dit non. Je ne suis pas à l'aise avec ça."\n`;
+      instructions += `→ Si ça continue: Tu te fâches, tu pars ou tu mets fin à l'échange!\n`;
+    }
+    
+    // Préférences (ce que le personnage aime)
+    if (preferences.length > 0) {
+      instructions += `\n💕 TES PRÉFÉRENCES (ce que tu aimes et demandes):\n`;
+      preferences.forEach(pref => {
+        instructions += `- ${pref}\n`;
+      });
+      instructions += `→ N'hésite pas à DIRE ce que tu veux: "J'aimerais que tu..." "Je préfère quand..."\n`;
+    }
+    
+    // Ce que le personnage veut EXCLUSIVEMENT
+    if (only) {
+      instructions += `\n⚠️ TU VEUX SEULEMENT: ${only}\n`;
+      instructions += `→ Tu n'acceptes QUE ça, rien d'autre.\n`;
+      instructions += `→ Si on propose autre chose: "Non, moi c'est seulement ${only}. C'est ça ou rien."\n`;
+    }
+    
+    return instructions;
+  }
+  
+  /**
+   * v5.4.10 - Génère les instructions de virginité du personnage
+   * Gère les différents types de virginité et premières fois
+   * AMÉLIORÉ: Suggère une virginité probable pour les très jeunes personnages
+   */
+  getCharacterVirginityStatus(character) {
+    const sexuality = character.sexuality || {};
+    let virginity = sexuality.virginity || {};
+    const charName = character.name || 'le personnage';
+    const age = character.age || 25;
+    const temperament = character.temperament || 'amical';
+    
+    // === v5.4.10 - VIRGINITÉ PAR DÉFAUT pour jeunes personnages ===
+    // Si pas de virginité définie et personnage très jeune
+    if (Object.keys(virginity).length === 0) {
+      if (age === 18) {
+        // 18 ans: forte probabilité vierge ou peu expérimenté
+        virginity = { complete: true, anal: true, oral: true, relationship: true };
+      } else if (age === 19) {
+        // 19 ans: possiblement vierge anal
+        virginity = { anal: true, relationship: false };
+      } else if (age <= 21 && temperament === 'timide') {
+        // Jeune et timide: moins d'expérience
+        virginity = { anal: true };
+      }
+    }
+    
+    let instructions = '';
+    
+    // Vierge complet(e)
+    if (virginity.complete) {
+      instructions += `\n🌸 TU ES VIERGE - Tu n'as JAMAIS eu de rapport sexuel!\n`;
+      instructions += `→ Tu es nerveux/nerveuse, curieux/curieuse mais anxieux/anxieuse\n`;
+      instructions += `→ Tu ne sais pas comment faire, tu demandes d'être guidé(e)\n`;
+      instructions += `→ C'est ta PREMIÈRE FOIS, c'est spécial et émotionnel pour toi\n`;
+      instructions += `→ Tu peux avoir mal au début, sois réaliste\n`;
+      instructions += `→ Phrases typiques:\n`;
+      instructions += `   "Je... je n'ai jamais fait ça avant..."\n`;
+      instructions += `   "Tu veux bien me montrer? J'ai un peu peur..."\n`;
+      instructions += `   "Est-ce que ça va faire mal?"\n`;
+    }
+    
+    // Jamais fait d'anal
+    if (virginity.anal && !virginity.complete) {
+      instructions += `\n🍑 Tu n'as JAMAIS essayé l'anal!\n`;
+      instructions += `→ Tu as peur, tu es curieux/curieuse mais hésitant(e)\n`;
+      instructions += `→ Si on te le propose, tu peux:\n`;
+      instructions += `   - Refuser: "Non, ça me fait peur, pas par là..."\n`;
+      instructions += `   - Hésiter: "Je... je sais pas... ça fait mal non?"\n`;
+      instructions += `   - Accepter doucement: "D'accord mais vraiment doucement alors..."\n`;
+    }
+    
+    // Jamais fait de fellation/cunnilingus
+    if (virginity.oral && !virginity.complete) {
+      instructions += `\n👄 Tu n'as JAMAIS fait de sexe oral!\n`;
+      instructions += `→ Tu ne sais pas comment faire, tu demandes des conseils\n`;
+      instructions += `→ Tu peux être maladroit(e) au début\n`;
+      instructions += `→ "Je ne sais pas trop comment faire... Tu me guides?"\n`;
+    }
+    
+    // Première relation
+    if (virginity.relationship) {
+      instructions += `\n💕 C'est ta PREMIÈRE relation!\n`;
+      instructions += `→ Tu ne connais pas les codes, tu es naïf/naïve\n`;
+      instructions += `→ Tout est nouveau et excitant pour toi\n`;
+      instructions += `→ Tu poses beaucoup de questions\n`;
+    }
+    
+    return instructions;
+  }
+  
+  /**
+   * v5.4.10 - Détermine la vitesse de progression NSFW du personnage
+   * Certains personnages sont plus rapides ou plus lents
+   * AMÉLIORÉ: Meilleure prise en compte du tempérament et de l'âge
+   */
+  getNSFWProgressionSpeed(character) {
+    const sexuality = character.sexuality || {};
+    const speed = sexuality.nsfwSpeed || null; // Peut être undefined
+    const temperament = character.temperament || 'amical';
+    const age = character.age || 25;
+    
+    const speedInstructions = {
+      'very_slow': {
+        description: 'TRÈS LENT - Tu prends énormément de temps',
+        behavior: `Tu as besoin de BEAUCOUP de temps avant d'accepter quoi que ce soit de sexuel.
+→ Tu changes de sujet si ça va trop vite: "Hé, on se connaît à peine!"
+→ Tu demandes de mieux te connaître d'abord
+→ Tu rougis et refuses les avances directes: "Je ne suis pas comme ça..."
+→ Il faut au minimum 10-15 messages avant d'accepter un premier baiser
+→ Le sexe n'arrive qu'après une vraie connexion émotionnelle
+→ Si l'utilisateur va trop vite: "Doucement... Je ne te connais pas encore assez"`,
+      },
+      'slow': {
+        description: 'LENT - Tu as besoin de temps',
+        behavior: `Tu prends ton temps avant de passer aux choses sérieuses.
+→ Tu flirtes mais tu freines si ça va trop vite: "On a le temps non?"
+→ Tu veux une connexion avant l'intimité
+→ Tu refuses les avances trop directes au début
+→ Il faut 5-10 messages avant d'accepter des gestes intimes
+→ Tu peux accélérer si tu sens une vraie connexion`,
+      },
+      'normal': {
+        description: 'NORMAL - Tu suis le rythme naturel',
+        behavior: `Tu progresses naturellement selon la conversation.
+→ Tu réponds aux avances si l'ambiance est bonne
+→ Tu peux initier si le feeling est là
+→ Tu acceptes l'escalade progressive
+→ Tu peux dire "plus tard" si tu n'es pas d'humeur`,
+      },
+      'fast': {
+        description: 'RAPIDE - Tu vas assez vite',
+        behavior: `Tu es assez direct(e) et tu acceptes facilement les avances.
+→ Tu flirtes ouvertement dès le début
+→ Tu proposes des choses suggestives rapidement
+→ Tu n'as pas besoin de longue introduction
+→ Tu peux initier toi-même les moments intimes`,
+      },
+      'very_fast': {
+        description: 'TRÈS RAPIDE - Tu vas très vite',
+        behavior: `Tu es très direct(e) et sexuel(le) rapidement.
+→ Tu fais des sous-entendus dès le premier message
+→ Tu proposes des choses explicites rapidement
+→ Tu n'as pas de temps à perdre en bavardages
+→ Tu INITIES souvent les moments sexuels toi-même`,
+      },
+      'immediate': {
+        description: 'IMMÉDIAT - Tu veux du sexe maintenant',
+        behavior: `Tu veux du sexe immédiatement, sans préambule.
+→ Tu es explicite dès le départ
+→ Tu proposes directement de baiser
+→ Les discussions ne t'intéressent pas, que l'action
+→ Tu es insatiable et tu relances constamment`,
+      }
+    };
+    
+    // === v5.4.10 - VITESSE PAR DÉFAUT selon tempérament et âge ===
+    let effectiveSpeed = speed;
+    
+    if (!effectiveSpeed) {
+      // Déterminer la vitesse par défaut selon le tempérament
+      if (temperament === 'timide') effectiveSpeed = 'slow';
+      else if (temperament === 'gentle' || temperament === 'romantique') effectiveSpeed = 'slow';
+      else if (temperament === 'séducteur') effectiveSpeed = 'fast';
+      else if (temperament === 'passionné') effectiveSpeed = 'fast';
+      else if (temperament === 'dominant') effectiveSpeed = 'fast';
+      else if (temperament === 'soumis') effectiveSpeed = 'normal';
+      else if (temperament === 'direct') effectiveSpeed = 'fast';
+      else effectiveSpeed = 'normal';
+      
+      // Les très jeunes (18) sont généralement plus lents
+      if (age === 18 && effectiveSpeed !== 'very_slow') {
+        effectiveSpeed = 'very_slow';
+      } else if (age <= 20 && effectiveSpeed === 'fast') {
+        effectiveSpeed = 'normal';
+      }
+      
+      // Les MILFs et personnages expérimentés peuvent être plus rapides
+      if (age >= 35 && effectiveSpeed === 'slow') {
+        effectiveSpeed = 'normal';
+      }
+    }
+    
+    return speedInstructions[effectiveSpeed] || speedInstructions['normal'];
+  }
+  
+  /**
+   * v5.4.6 - Génère les instructions de relation voulue
+   * Certains personnages veulent seulement du sexe, d'autres une relation
+   */
+  getRelationshipPreference(character) {
+    const sexuality = character.sexuality || {};
+    const wants = sexuality.relationshipType || 'open'; // serious, casual, fwb, one_night, open
+    
+    const preferences = {
+      'serious': {
+        instruction: `💍 Tu cherches une RELATION SÉRIEUSE uniquement!
+→ Tu refuses les plans d'un soir
+→ Tu veux apprendre à connaître la personne
+→ Le sexe viendra quand tu seras sûr(e) des sentiments
+→ "Je ne suis pas ce genre de personne, je cherche quelque chose de vrai"`,
+      },
+      'casual': {
+        instruction: `🤙 Tu cherches quelque chose de CASUAL, sans prise de tête.
+→ Tu es ouvert(e) au sexe mais pas de sentiments compliqués
+→ Tu gardes tes distances émotionnellement
+→ "On peut s'amuser mais ne t'attache pas trop"`,
+      },
+      'fwb': {
+        instruction: `😏 Tu cherches un(e) ami(e) avec avantages (FWB).
+→ Tu veux du sexe régulier avec quelqu'un que tu apprécies
+→ Pas de relation officielle mais de la complicité
+→ "On peut être amis et se faire plaisir de temps en temps"`,
+      },
+      'one_night': {
+        instruction: `🔥 Tu cherches un PLAN D'UN SOIR, rien de plus!
+→ Tu veux du sexe ce soir et c'est tout
+→ Pas de numéro, pas de promesses
+→ "Cette nuit seulement, et on ne se revoit plus"`,
+      },
+      'open': {
+        instruction: ``, // Pas de restriction particulière
+      }
+    };
+    
+    return preferences[wants]?.instruction || '';
+  }
+
+  /**
+   * Construit le prompt système - VERSION v5.4.6
+   * RÉACTIONS AUX ATTRIBUTS + Limites + Virginité + Vitesse NSFW
    */
   buildImmersiveSystemPrompt(character, userProfile, context) {
     const userName = userProfile?.username || 'l\'utilisateur';
@@ -1656,6 +2418,7 @@ class TextGenerationService {
     const charIsMale = character.gender === 'male';
     const userIsFemale = userProfile?.gender === 'female';
     const userIsMale = userProfile?.gender === 'male';
+    const userIsNonBinary = userProfile?.gender === 'other' || userProfile?.gender === 'non-binary';
     
     // === TEMPÉRAMENT DU PERSONNAGE ===
     const temperament = character.temperament || 'amical';
@@ -1704,24 +2467,48 @@ class TextGenerationService {
       prompt += `\n## SCÉNARIO\n${character.scenario.substring(0, 180)}\n`;
     }
     
-    // === PROFIL DE L'INTERLOCUTEUR ===
+    // === PROFIL DE L'INTERLOCUTEUR (v5.4.5 - ULTRA-DÉTAILLÉ) ===
     prompt += `\n# TON INTERLOCUTEUR: ${userName}\n`;
+    
     if (userIsFemale) {
       prompt += `${userName} est une FEMME`;
-      if (userProfile?.bust) prompt += ` avec une poitrine bonnet ${userProfile.bust}`;
+      if (userProfile?.bust) {
+        prompt += ` avec une poitrine bonnet ${userProfile.bust}`;
+      }
       prompt += `.\n`;
     } else if (userIsMale) {
       prompt += `${userName} est un HOMME`;
-      if (userProfile?.penis) prompt += ` (${userProfile.penis}cm)`;
+      if (userProfile?.penis) {
+        prompt += ` avec un pénis de ${userProfile.penis}cm`;
+      }
       prompt += `.\n`;
+    } else if (userIsNonBinary) {
+      prompt += `${userName} est NON-BINAIRE.\n`;
     }
+    
     if (userProfile?.age) {
       prompt += `${userName} a ${userProfile.age} ans.\n`;
     }
     
-    // === STYLE DE JEU - CRÉATIF ET AVEC INITIATIVE ===
+    // === v5.4.5 - RÉACTIONS AUX ATTRIBUTS PHYSIQUES ===
+    if (isNSFW) {
+      const bustReaction = this.getUserBustReaction(userProfile, temperament);
+      const penisReaction = this.getUserPenisReaction(userProfile, temperament, character.gender);
+      
+      if (bustReaction) {
+        prompt += `\n📍 TA PENSÉE sur ${userName}: "${bustReaction}"\n`;
+        prompt += `→ Tu peux MENTIONNER et RÉAGIR à sa poitrine!\n`;
+      }
+      
+      if (penisReaction) {
+        prompt += `\n📍 TA PENSÉE sur ${userName}: "${penisReaction}"\n`;
+        prompt += `→ Tu peux MENTIONNER et RÉAGIR à sa taille!\n`;
+      }
+    }
+    
+    // === v5.5.5 - STYLE DE JEU - ULTRA-CRÉATIF ET AVEC INITIATIVE ===
     prompt += `\n# COMMENT JOUER ${charName.toUpperCase()}\n`;
-    prompt += `1. RÉPONDS au message de ${userName} de manière cohérente\n`;
+    prompt += `1. RÉPONDS au message de ${userName} de manière cohérente et COMPLÈTE\n`;
     prompt += `2. PRENDS DES INITIATIVES selon ton tempérament ${temperament}:\n`;
     
     if (temperament === 'séducteur' || temperament === 'passionné' || temperament === 'dominant') {
@@ -1736,18 +2523,55 @@ class TextGenerationService {
       prompt += `   - Montre ton dévouement\n`;
     }
     
-    prompt += `3. SOIS CRÉATIF: Varie tes actions et dialogues\n`;
-    prompt += `4. Format: *action expressive* "dialogue vivant" (pensée intime)\n`;
+    // v5.5.5 - INSTRUCTIONS DE CRÉATIVITÉ RENFORCÉES
+    prompt += `\n3. 🎨 CRÉATIVITÉ OBLIGATOIRE:\n`;
+    prompt += `   - JAMAIS la même action 2 fois de suite\n`;
+    prompt += `   - JAMAIS les mêmes mots d'un message à l'autre\n`;
+    prompt += `   - VARIE tes débuts de phrases (parfois action, parfois parole)\n`;
+    prompt += `   - INVENTE des détails, des sensations, des émotions UNIQUES\n`;
+    prompt += `   - Utilise des MÉTAPHORES et des COMPARAISONS originales\n`;
+    prompt += `   - Décris des DÉTAILS SENSORIELS (toucher, odeur, goût, son)\n`;
+    prompt += `4. Format: *action expressive UNIQUE* "dialogue ORIGINAL" (pensée NOUVELLE)\n`;
     prompt += `5. Parle directement à ${userName} avec TU/TOI\n`;
+    prompt += `6. Chaque message = expérience DIFFÉRENTE, pas de copier-coller!\n`;
     
     if (isNSFW) {
       prompt += `\n🔞 MODE ADULTE ACTIF\n`;
       prompt += `Contenu explicite autorisé. Sois sensuel et expressif.\n`;
+      
+      // v5.4.6 - VITESSE DE PROGRESSION NSFW
+      const nsfwSpeed = this.getNSFWProgressionSpeed(character);
+      prompt += `\n## VITESSE NSFW: ${nsfwSpeed.description}\n`;
+      prompt += nsfwSpeed.behavior + `\n`;
+      
+      // v5.4.6 - LIMITES ET PRÉFÉRENCES SEXUELLES
+      const sexualLimits = this.getCharacterSexualLimits(character);
+      if (sexualLimits) {
+        prompt += `\n## TES LIMITES SEXUELLES\n`;
+        prompt += sexualLimits;
+      }
+      
+      // v5.4.6 - STATUT DE VIRGINITÉ
+      const virginityStatus = this.getCharacterVirginityStatus(character);
+      if (virginityStatus) {
+        prompt += `\n## TON EXPÉRIENCE SEXUELLE\n`;
+        prompt += virginityStatus;
+      }
+      
+      // v5.4.6 - TYPE DE RELATION RECHERCHÉE
+      const relationshipPref = this.getRelationshipPreference(character);
+      if (relationshipPref) {
+        prompt += `\n## CE QUE TU CHERCHES\n`;
+        prompt += relationshipPref;
+      }
+      
       if (userIsFemale && userProfile?.bust) {
-        prompt += `Tu peux mentionner la poitrine de ${userName}.\n`;
+        prompt += `\nRÉAGIS à la poitrine de ${userName} selon sa taille!\n`;
+        prompt += `Tu peux commenter, toucher, admirer ses seins.\n`;
       }
       if (userIsMale && userProfile?.penis) {
-        prompt += `Tu peux mentionner la virilité de ${userName}.\n`;
+        prompt += `\nRÉAGIS au sexe de ${userName} selon sa taille!\n`;
+        prompt += `Tu peux commenter, toucher, admirer sa virilité.\n`;
       }
     }
     
@@ -1755,7 +2579,7 @@ class TextGenerationService {
   }
 
   /**
-   * v5.3.59 - Prompt système FLEXIBLE + NSFW DIRECT
+   * v5.4.6 - Prompt système FLEXIBLE + NSFW + LIMITES + VIRGINITÉ
    * Le scénario est un contexte de départ, pas une contrainte stricte
    */
   buildSimpleSystemPrompt(character, userProfile, context) {
@@ -1764,6 +2588,7 @@ class TextGenerationService {
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     const nsfwIntensity = context.nsfwIntensity || 0;
     const temperament = character.temperament || 'amical';
+    const userGender = userProfile?.gender || '';
     
     // Identité
     let prompt = `Tu es ${charName}`;
@@ -1796,8 +2621,28 @@ class TextGenerationService {
       prompt += `Pénis: ${character.penis}cm. `;
     }
     
+    // === v5.4.5 - PROFIL DE L'UTILISATEUR AVEC RÉACTIONS ===
+    prompt += `\n\n👤 ${userName.toUpperCase()}:`;
+    if (userGender === 'female') {
+      prompt += ` FEMME`;
+      if (userProfile?.bust) {
+        prompt += ` (poitrine bonnet ${userProfile.bust})`;
+      }
+    } else if (userGender === 'male') {
+      prompt += ` HOMME`;
+      if (userProfile?.penis) {
+        prompt += ` (pénis ${userProfile.penis}cm)`;
+      }
+    } else if (userGender === 'other' || userGender === 'non-binary') {
+      prompt += ` NON-BINAIRE`;
+    }
+    if (userProfile?.age) {
+      prompt += `, ${userProfile.age} ans`;
+    }
+    prompt += `.\n`;
+    
     // === v5.3.68 - RÈGLES FLEXIBLES + FORMAT OBLIGATOIRE ===
-    prompt += `\n\nCOMPORTEMENT:`;
+    prompt += `\nCOMPORTEMENT:`;
     prompt += `\n- MÉMOIRE: Souviens-toi de ce qui a été dit.`;
     prompt += `\n- FLEXIBILITÉ: SUIS la direction que ${userName} veut prendre!`;
     prompt += `\n- Si ${userName} change de sujet ou de direction, SUIS-LE naturellement.`;
@@ -1807,15 +2652,94 @@ class TextGenerationService {
     prompt += `\n- (pensée) = ce que tu penses`;
     prompt += `\n\n❌ NE JAMAIS répondre avec seulement une action! Tu dois PARLER!`;
     
-    // === NSFW DIRECT ===
-    if (isNSFW) {
+    // === v5.4.42 - COHÉRENCE NARRATIVE ===
+    prompt += `\n\n📜 RÈGLES DE COHÉRENCE:`;
+    prompt += `\n- NE RÉPÈTE PAS ce que ${userName} vient de dire ou décrire!`;
+    prompt += `\n- CONTINUE l'histoire depuis où ${userName} s'est arrêté`;
+    prompt += `\n- Si ${userName} décrit une action, tu RÉAGIS à cette action`;
+    prompt += `\n- SOUVIENS-TOI du contexte: qui est là, ce qui s'est passé`;
+    
+    // === v5.4.42 - INTERDICTION D'INVENTER DES PERSONNAGES ===
+    prompt += `\n\n🚫 RÈGLE ABSOLUE - NE JAMAIS INVENTER DE PERSONNAGES:`;
+    prompt += `\n- N'introduis JAMAIS de nouvelle personne (père, mère, ami, etc.) de toi-même!`;
+    prompt += `\n- Seul ${userName} peut introduire quelqu'un dans la conversation`;
+    prompt += `\n- Si ${userName} n'a PAS mentionné quelqu'un, cette personne N'EXISTE PAS`;
+    prompt += `\n- Tu es SEUL(E) avec ${userName} sauf si ${userName} dit le contraire`;
+    
+    // === v5.4.46 - SI L'UTILISATEUR INTRODUIT QUELQU'UN ===
+    prompt += `\n\n👥 SI ${userName.toUpperCase()} MENTIONNE QUELQU'UN D'AUTRE:`;
+    prompt += `\n- Tu DOIS jouer CETTE PERSONNE aussi!`;
+    prompt += `\n- CHAQUE personnage doit avoir son nom AVANT sa réplique`;
+    prompt += `\n- FORMAT OBLIGATOIRE pour toi: [${charName}] *action* "parole" (pensée)`;
+    prompt += `\n- FORMAT OBLIGATOIRE pour l'autre: [Nom de l'autre] *action* "parole" (pensée)`;
+    prompt += `\n- EXEMPLE:`;
+    prompt += `\n  [La Femme] *ouvre la porte* "Qu'est-ce qui se passe ici?!"`;
+    prompt += `\n  [${charName}] *se retourne* "Ce n'est pas ce que tu crois!"`;
+    prompt += `\n- Mais N'INVENTE PAS de nouveaux personnages!`;
+    
+    // === v5.5.6 - MODE SFW PAR DÉFAUT (conversation normale) ===
+    if (context.mode === 'sfw' || context.mode === 'flirty') {
+      prompt += `\n\n✅ MODE CONVERSATION NORMALE:`;
+      prompt += `\n- Conversation fluide et naturelle`;
+      prompt += `\n- Tu peux être amical, drôle, intéressant`;
+      prompt += `\n- Flirt léger OK si ${userName} le souhaite`;
+      prompt += `\n- PAS de contenu sexuel ou explicite`;
+      prompt += `\n- Si ${userName} veut aller vers le NSFW, il doit le demander CLAIREMENT`;
+      prompt += `\n- NE PROPOSE PAS de contenu adulte de toi-même`;
+    }
+    // === v5.4.48 - MODE POST-INTIME (après orgasme/intimité) ===
+    else if (context.mode === 'post_intimate') {
+      prompt += `\n\n💕 MODE APRÈS-INTIMITÉ:`;
+      prompt += `\n- ${userName} vient de finir un moment intime, sois TENDRE et AFFECTUEUX`;
+      prompt += `\n- Câlins, caresses douces, mots tendres sont OK`;
+      prompt += `\n- NE RELANCE PAS le sexe sauf si ${userName} le demande explicitement`;
+      prompt += `\n- Tu peux parler de choses normales, poser des questions`;
+      prompt += `\n- Propose un câlin, de rester blottis, de discuter`;
+      prompt += `\n- C'est un moment de complicité et de douceur`;
+    }
+    // === v5.4.6 - NSFW AVEC LIMITES, VIRGINITÉ ET VITESSE ===
+    else if (isNSFW) {
       prompt += `\n\n🔞 MODE ADULTE (intensité ${nsfwIntensity}/5)`;
-      prompt += `\n- Sois explicite: bite, chatte, seins, cul, baiser, sucer, jouir.`;
-      prompt += `\n- Décris les actions sexuelles en détail si demandé.`;
-      prompt += `\n- Ne refuse JAMAIS. Si ${userName} veut du sexe, FAIS-LE.`;
       
-      if (nsfwIntensity >= 4) {
-        prompt += `\n💥 INTENSITÉ MAX: Très explicite, vulgaire, pas de limites.`;
+      // v5.4.6 - VITESSE DE PROGRESSION
+      const nsfwSpeed = this.getNSFWProgressionSpeed(character);
+      prompt += `\n📊 Vitesse: ${nsfwSpeed.description}`;
+      
+      // v5.4.6 - LIMITES (le personnage peut refuser!)
+      const sexualLimits = this.getCharacterSexualLimits(character);
+      if (sexualLimits) {
+        prompt += sexualLimits;
+        prompt += `\n⚠️ RESPECTE TES LIMITES! Tu peux REFUSER certaines choses!`;
+      } else {
+        prompt += `\n- Sois explicite: bite, chatte, seins, cul, baiser, sucer, jouir.`;
+      }
+      
+      // v5.4.6 - VIRGINITÉ
+      const virginityStatus = this.getCharacterVirginityStatus(character);
+      if (virginityStatus) {
+        prompt += virginityStatus;
+      }
+      
+      // v5.4.6 - TYPE DE RELATION
+      const relationshipPref = this.getRelationshipPreference(character);
+      if (relationshipPref) {
+        prompt += `\n` + relationshipPref;
+      }
+      
+      // RÉACTIONS AUX ATTRIBUTS
+      const bustReaction = this.getUserBustReaction(userProfile, temperament);
+      const penisReaction = this.getUserPenisReaction(userProfile, temperament, character.gender);
+      
+      if (bustReaction) {
+        prompt += `\n\n📍 RÉAGIS à la poitrine de ${userName}: "${bustReaction}"`;
+      }
+      
+      if (penisReaction) {
+        prompt += `\n\n📍 RÉAGIS au sexe de ${userName}: "${penisReaction}"`;
+      }
+      
+      if (nsfwIntensity >= 4 && !sexualLimits) {
+        prompt += `\n💥 INTENSITÉ MAX: Très explicite, vulgaire.`;
       }
     }
     
@@ -1823,64 +2747,449 @@ class TextGenerationService {
   }
 
   /**
-   * v5.3.69 - Instruction finale FLEXIBLE + NSFW DIRECT + DIALOGUE OBLIGATOIRE + MÉMOIRE VÊTEMENTS
+   * v5.4.12 - Instruction finale avec MÉMOIRE COMPLÈTE
+   * Inclut: état de nudité, activité sexuelle en cours, cohérence physique
    */
   buildShortFinalInstruction(character, userProfile, context, recentMessages) {
     const charName = character.name || 'Personnage';
     const userName = userProfile?.username || 'l\'utilisateur';
     const isNSFW = context.mode === 'nsfw' || context.mode === 'nsfw_light';
     const nsfwIntensity = context.nsfwIntensity || 0;
+    const nudityState = context.nudityState || {};
     
     const lastUserMsg = recentMessages.filter(m => m.role === 'user').slice(-1)[0];
-    const lastContent = lastUserMsg?.content?.substring(0, 250) || '';
+    // v5.4.14 - Augmentation limite à 500 chars pour messages complets
+    const lastContent = lastUserMsg?.content?.substring(0, 500) || '';
     
-    // Détecter si l'utilisateur demande du sexe MAINTENANT
-    const wantsSexNow = /baise|suce|prends|viens|continue|oui|encore|plus|fort|déshabille|touche|caresse/i.test(lastContent);
+    // v5.5.6 - Détecter si l'utilisateur demande du sexe MAINTENANT
+    // STRICT: uniquement des demandes vraiment explicites, pas "oui" ou "continue"
+    const wantsSexNow = /baise|suce|prends-moi|viens en moi|encore plus fort|défonce|encule|pénètre|déshabille-toi|masturbe/i.test(lastContent);
     
-    // v5.3.69 - Instruction claire et flexible
+    // === v5.4.14 - ANALYSER LE MESSAGE UTILISATEUR ===
+    // Détecter les différentes parties du message (actions, questions, demandes)
+    const hasAction = /\*[^*]+\*/.test(lastContent);  // Actions entre *
+    const hasQuestion = /\?/.test(lastContent);        // Questions
+    const hasDialogue = /"[^"]+"/.test(lastContent);   // Paroles entre "
+    const hasMultipleParts = (hasAction ? 1 : 0) + (hasQuestion ? 1 : 0) + (hasDialogue ? 1 : 0) > 1;
+    
+    // === v5.4.12 - EXTRAIRE L'ACTIVITÉ SEXUELLE EN COURS ===
+    const currentActivity = this.extractCurrentSexualActivity(recentMessages, charName, userName);
+    
+    // v5.4.14 - Instruction claire pour réponse COMPLÈTE
     let instruction = `\n⚡ DERNIER MESSAGE DE ${userName}: "${lastContent}"\n`;
-    instruction += `\n👉 RÉPONDS À CE MESSAGE. Suis la direction de ${userName}!\n`;
     
-    // === v5.3.69 - MÉMOIRE DES ACTIONS DÉJÀ FAITES ===
-    if (context.clothingRemoved && context.clothingRemoved.length > 0) {
+    // === v5.4.45 - DÉTECTION DE TIERCE PERSONNE (PERSISTANTE) ===
+    const lastContentLower = lastContent.toLowerCase();
+    const allRecentText = recentMessages.map(m => m.content?.toLowerCase() || '').join(' ');
+    
+    // Mapping des relations vers des noms
+    const relations = {
+      'fille': 'La Fille', 'mère': 'La Mère', 'maman': 'Maman', 
+      'père': 'Le Père', 'papa': 'Papa',
+      'femme': 'La Femme', 'mari': 'Le Mari',
+      'copine': 'La Copine', 'copain': 'Le Copain',
+      'ami': 'L\'Ami', 'amie': 'L\'Amie',
+      'soeur': 'La Soeur', 'frère': 'Le Frère',
+      'voisine': 'La Voisine', 'voisin': 'Le Voisin',
+      'collègue': 'Le/La Collègue',
+      'patronne': 'La Patronne', 'patron': 'Le Patron',
+      'secrétaire': 'La Secrétaire',
+      'belle-mère': 'La Belle-mère', 'beau-père': 'Le Beau-père',
+      'belle-fille': 'La Belle-fille', 'beau-fils': 'Le Beau-fils',
+      'belle-soeur': 'La Belle-soeur', 'beau-frère': 'Le Beau-frère',
+    };
+    
+    // Mots-clés pour détecter une tierce personne
+    const thirdPersonKeywords = [
+      'ma fille', 'sa fille', 'ta fille', 'notre fille', 'la fille',
+      'ma mère', 'maman', 'sa mère', 'ta mère',
+      'mon père', 'papa', 'son père', 'ton père',
+      'ma femme', 'mon mari', 'sa femme', 'son mari',
+      'ma copine', 'mon copain', 'sa copine', 'son copain',
+      'ma soeur', 'mon frère', 'sa soeur', 'son frère',
+      'ma belle-mère', 'mon beau-père', 'sa belle-mère', 'son beau-père',
+      'ma belle-fille', 'mon beau-fils', 'sa belle-fille', 'son beau-fils',
+      'ma belle-soeur', 'mon beau-frère',
+      'mon ami', 'mon amie', 'ma meilleure amie', 'mon meilleur ami',
+      'ma voisine', 'mon voisin', 'ma collègue', 'mon collègue',
+      'ma patronne', 'mon patron', 'ma secrétaire',
+    ];
+    
+    // Collecter TOUTES les tierces personnes présentes dans la conversation
+    let activeThirdPersons = [];
+    
+    // Vérifier dans les messages récents (tierce personne déjà introduite)
+    for (const keyword of thirdPersonKeywords) {
+      if (allRecentText.includes(keyword)) {
+        for (const [rel, name] of Object.entries(relations)) {
+          if (keyword.includes(rel) && !activeThirdPersons.includes(name)) {
+            activeThirdPersons.push(name);
+            console.log(`👥 v5.4.45 Tierce personne ACTIVE dans conversation: ${name}`);
+            break;
+          }
+        }
+      }
+    }
+    
+    // Vérifier aussi les formats [Nom] dans les messages assistant (déjà utilisés)
+    const assistantMessages = recentMessages.filter(m => m.role === 'assistant');
+    for (const msg of assistantMessages) {
+      const content = msg.content || '';
+      const bracketMatch = content.match(/\[([^\]]+)\]/g);
+      if (bracketMatch) {
+        for (const match of bracketMatch) {
+          const name = match.replace(/[\[\]]/g, '');
+          if (name && !activeThirdPersons.includes(name) && name !== charName) {
+            activeThirdPersons.push(name);
+            console.log(`👥 v5.4.45 Tierce personne TROUVÉE dans historique: ${name}`);
+          }
+        }
+      }
+    }
+    
+    // Vérifier si une NOUVELLE tierce personne est introduite dans le dernier message
+    let newThirdPerson = null;
+    const arrivalKeywords = [
+      'entre', 'arrive', 'vient', 'surprend', 'surpris par', 'surprise par',
+      'ouvre la porte', 'rentre', 'revient', 'nous voit', 'me voit',
+    ];
+    
+    for (const keyword of thirdPersonKeywords) {
+      if (lastContentLower.includes(keyword)) {
+        // Vérifier si c'est une nouvelle arrivée
+        const isArrival = arrivalKeywords.some(arr => lastContentLower.includes(arr));
+        if (isArrival) {
+          for (const [rel, name] of Object.entries(relations)) {
+            if (keyword.includes(rel)) {
+              newThirdPerson = name;
+              if (!activeThirdPersons.includes(name)) {
+                activeThirdPersons.push(name);
+              }
+              console.log(`👥 v5.4.45 NOUVELLE tierce personne: ${name}`);
+              break;
+            }
+          }
+        }
+        break;
+      }
+    }
+    
+    // === v5.4.47 - INSTRUCTIONS MULTI-PERSONNAGES (SIMPLIFIÉES ET EN PREMIER) ===
+    const hasThirdPerson = activeThirdPersons.length > 0;
+    
+    if (hasThirdPerson) {
+      const tp = activeThirdPersons[0];
+      
+      // INSTRUCTION COURTE ET DIRECTE EN PREMIER
+      instruction += `\n\n🚨 MULTI-PERSONNAGES - UTILISE CE FORMAT:\n`;
+      instruction += `[${charName}] *action* "parole"\n`;
+      instruction += `[${tp}] *action* "parole"\n`;
+      
+      instruction += `\n👥 Personnages présents: ${charName}`;
+      activeThirdPersons.forEach(p => { instruction += `, ${p}`; });
+      
+      instruction += `\n\n✅ EXEMPLE:\n`;
+      instruction += `[${tp}] *te regarde choqué(e)* "Qu'est-ce que vous faites?!"\n`;
+      instruction += `[${charName}] *se fige* "Ce n'est pas ce que tu crois!"\n`;
+      
+      if (newThirdPerson) {
+        instruction += `\n🆕 ${newThirdPerson} arrive - fais-la/le réagir!\n`;
+      }
+    } else {
+      instruction += `\n\n📝 Format: *action* "paroles" (pensées)\n`;
+      instruction += `🚫 Tu es seul(e) avec ${userName}.\n`;
+    }
+    
+    // === v5.4.14 - OBLIGATION DE RÉPONDRE À TOUT LE MESSAGE ===
+    instruction += `\n🎯🎯🎯 RÉPONDS À CHAQUE ÉLÉMENT DU MESSAGE! 🎯🎯🎯`;
+    if (hasAction) {
+      instruction += `\n→ ${userName} a fait une ACTION (entre *) → RÉAGIS à cette action!`;
+    }
+    if (hasQuestion) {
+      instruction += `\n→ ${userName} a posé une QUESTION → RÉPONDS à la question!`;
+    }
+    if (hasDialogue) {
+      instruction += `\n→ ${userName} a DIT quelque chose (entre ") → RÉPONDS à ses paroles!`;
+    }
+    if (hasMultipleParts) {
+      instruction += `\n⚠️ Le message contient PLUSIEURS éléments - NE SAUTE AUCUNE PARTIE!`;
+    }
+    instruction += `\n👉 Suis la direction de ${userName}!\n`;
+    
+    // === v5.4.12 - COHÉRENCE DE L'ACTIVITÉ EN COURS ===
+    if (currentActivity.hasActivity) {
+      instruction += `\n\n🎯🎯🎯 ACTIVITÉ EN COURS - TRÈS IMPORTANT! 🎯🎯🎯`;
+      if (currentActivity.characterHolding) {
+        instruction += `\n✋ ${charName} TIENT ACTUELLEMENT: ${currentActivity.characterHolding}`;
+        instruction += `\n→ CONTINUE cette action! Ne lâche pas soudainement!`;
+      }
+      if (currentActivity.characterTouching) {
+        instruction += `\n👆 ${charName} TOUCHE: ${currentActivity.characterTouching}`;
+      }
+      if (currentActivity.userTouching) {
+        instruction += `\n👆 ${userName} TOUCHE: ${currentActivity.userTouching}`;
+      }
+      if (currentActivity.currentAction) {
+        instruction += `\n🔥 ACTION EN COURS: ${currentActivity.currentAction}`;
+        instruction += `\n→ POURSUIS cette action ou fais-la progresser naturellement!`;
+      }
+      if (currentActivity.position) {
+        instruction += `\n🛏️ POSITION ACTUELLE: ${currentActivity.position}`;
+      }
+      instruction += `\n\n⚠️ COHÉRENCE OBLIGATOIRE:`;
+      instruction += `\n- Si tu tenais sa bite, continue de la caresser/sucer/branler`;
+      instruction += `\n- Si tu étais en train de le/la sucer, continue ou avale`;
+      instruction += `\n- Ne change PAS brusquement d'action sans raison`;
+      instruction += `\n- Tes mains restent là où elles étaient!`;
+    }
+    
+    // === v5.4.0 - ÉTAT DE NUDITÉ PRIORITAIRE (TRÈS IMPORTANT) ===
+    if (nudityState.isCompletelyNude) {
+      instruction += `\n\n🔴🔴🔴 ÉTAT ACTUEL: ${charName} EST COMPLÈTEMENT NU(E)! 🔴🔴🔴`;
+      instruction += `\n⛔ IL N'Y A PLUS AUCUN VÊTEMENT À RETIRER!`;
+      instruction += `\n⛔ NE DIS JAMAIS: "je retire", "j'enlève", "je dégrafe", "sous son soutien-gorge", etc.`;
+      instruction += `\n⛔ NE MENTIONNE AUCUN VÊTEMENT car il n'y en a plus!`;
+      instruction += `\n✅ DÉCRIS: son corps nu, ses seins nus, sa peau nue, ses sensations, le contact peau contre peau`;
+      instruction += `\n✅ ACTIONS POSSIBLES: caresser, embrasser, lécher, toucher la peau nue, pénétrer, etc.`;
+    } else if (nudityState.isTopless) {
+      instruction += `\n\n🟠 ÉTAT ACTUEL: ${charName} est TOPLESS (seins exposés)`;
+      instruction += `\n⛔ NE PAS retirer le soutien-gorge (déjà fait!)`;
+      instruction += `\n⛔ Ses seins sont DÉJÀ nus et visibles!`;
+      instruction += `\n✅ DÉCRIS: ses seins nus, tétons, poitrine exposée`;
+    } else if (nudityState.isBottomless) {
+      instruction += `\n\n🟠 ÉTAT ACTUEL: ${charName} est sans bas (partie inférieure nue)`;
+      instruction += `\n⛔ NE PAS retirer culotte/slip (déjà fait!)`;
+      instruction += `\n✅ DÉCRIS: ses parties intimes exposées`;
+    }
+    
+    // === VÊTEMENTS SPÉCIFIQUES DÉJÀ RETIRÉS ===
+    if (context.clothingRemoved && context.clothingRemoved.length > 0 && !nudityState.isCompletelyNude) {
       instruction += `\n\n🧠 MÉMOIRE - VÊTEMENTS DÉJÀ RETIRÉS:`;
       context.clothingRemoved.forEach(item => {
         instruction += `\n❌ ${item} = DÉJÀ ENLEVÉ! Ne pas le retirer à nouveau!`;
       });
-      instruction += `\n⚠️ SI le ${context.clothingRemoved.join('/')} est déjà retiré, NE PAS dire "je retire ton ${context.clothingRemoved[0]}" à nouveau!`;
+      instruction += `\n⚠️ Ces vêtements n'existent plus! Ne pas les mentionner comme s'ils étaient encore là!`;
       instruction += `\n✅ PASSE À LA SUITE: toucher la peau, caresser, embrasser, etc.`;
     }
     
     if (context.completedActions && context.completedActions.length > 0) {
       instruction += `\n\n🚫 ACTIONS DÉJÀ FAITES (ne pas répéter):`;
-      instruction += `\n${context.completedActions.slice(-5).join(', ')}`;
+      instruction += `\n${context.completedActions.slice(-8).join(', ')}`;
     }
     
-    // === NSFW DIRECT ===
-    if (isNSFW) {
+    // === v5.4.22 - RAPPEL TEMPÉRAMENT ET LIMITES DANS L'INSTRUCTION FINALE ===
+    const temperament = character.temperament || 'amical';
+    instruction += `\n\n🎭 TON TEMPÉRAMENT: ${temperament.toUpperCase()}`;
+    if (temperament === 'timide') {
+      instruction += `\n→ Tu es timide, tu rougis, tu hésites, tu es nerveux/nerveuse`;
+    } else if (temperament === 'séducteur') {
+      instruction += `\n→ Tu es charmeur/charmeuse, tu aguiches, tu provoques`;
+    } else if (temperament === 'passionné') {
+      instruction += `\n→ Tu es intense, fougueux/fougueuse, ardent(e)`;
+    } else if (temperament === 'dominant') {
+      instruction += `\n→ Tu prends le contrôle, tu ordonnes, tu diriges`;
+    } else if (temperament === 'soumis') {
+      instruction += `\n→ Tu obéis, tu te soumets, tu attends les ordres`;
+    }
+    
+    // Rappel des limites sexuelles si définies
+    const sexuality = character.sexuality || {};
+    if (sexuality.refuses && sexuality.refuses.length > 0) {
+      instruction += `\n\n⛔ TES LIMITES (tu REFUSES): ${sexuality.refuses.join(', ')}`;
+      instruction += `\n→ Si ${userName} demande ça, tu dis NON fermement!`;
+    }
+    
+    // v5.5.5 - VÉRIFIER LES MILESTONES ATTEINTS AVANT D'AFFICHER VIRGINITÉ
+    const milestones = context.milestones || [];
+    
+    // Virginité - SEULEMENT si pas encore perdue dans la conversation
+    if (sexuality.virginity?.complete && !milestones.includes('VIRGINITÉ_PERDUE')) {
+      instruction += `\n🌸 Tu es VIERGE! C'est ta première fois!`;
+    } else if (milestones.includes('VIRGINITÉ_PERDUE')) {
+      instruction += `\n✅ Tu n'es PLUS vierge (ça s'est passé dans cette conversation)`;
+    }
+    
+    // Anal - SEULEMENT si pas encore fait dans la conversation
+    if (sexuality.virginity?.anal && !milestones.includes('ANAL_FAIT')) {
+      instruction += `\n🍑 Tu n'as jamais essayé l'anal! Tu as peur/tu hésites!`;
+    } else if (milestones.includes('ANAL_FAIT')) {
+      instruction += `\n✅ Tu as DÉJÀ testé l'anal dans cette conversation (ne dis pas que c'est nouveau!)`;
+    }
+    
+    // v5.5.5 - RAPPEL DES JALONS ATTEINTS POUR LA MÉMOIRE
+    if (milestones.length > 0) {
+      instruction += `\n\n🏆 ÉVÉNEMENTS DÉJÀ VÉCUS DANS CETTE CONVERSATION:`;
+      milestones.forEach(m => {
+        const descriptions = {
+          'ANAL_FAIT': 'L\'anal a DÉJÀ été fait - ne propose pas de "tester" ou "essayer" à nouveau!',
+          'VIRGINITÉ_PERDUE': 'La virginité a DÉJÀ été perdue - ne parle plus de "première fois"!',
+          'FELLATION_FAITE': 'Une fellation a DÉJÀ eu lieu',
+          'CUNNILINGUS_FAIT': 'Un cunnilingus a DÉJÀ eu lieu',
+          'PREMIER_ORGASME': 'Un orgasme a DÉJÀ eu lieu',
+          'PREMIER_BAISER': 'Le premier baiser a DÉJÀ eu lieu',
+          'AMOUR_DÉCLARÉ': 'L\'amour a DÉJÀ été déclaré',
+        };
+        if (descriptions[m]) {
+          instruction += `\n  • ${descriptions[m]}`;
+        }
+      });
+      instruction += `\n⚠️ Ces événements sont PASSÉS - ne les propose pas comme quelque chose de nouveau!`;
+    }
+    
+    // === v5.5.6 - MODE SFW PAR DÉFAUT ===
+    if (!isNSFW) {
+      instruction += `\n\n✅ MODE CONVERSATION NORMALE:`;
+      instruction += `\n→ Réponds naturellement au message de ${userName}`;
+      instruction += `\n→ PAS de contenu sexuel ou explicite`;
+      instruction += `\n→ Si ${userName} veut aller vers le NSFW, il doit le demander CLAIREMENT avec des mots explicites`;
+      instruction += `\n→ Reste dans une conversation normale et fluide`;
+    }
+    // === NSFW DIRECT (uniquement si explicitement activé) ===
+    else {
       if (wantsSexNow) {
         instruction += `\n\n🔥 ${userName} VEUT DE L'ACTION MAINTENANT!`;
-        instruction += `\n→ FAIS ce qu'il/elle demande IMMÉDIATEMENT.`;
+        instruction += `\n→ FAIS ce qu'il/elle demande (sauf si c'est dans tes LIMITES ci-dessus).`;
         instruction += `\n→ Décris l'action sexuelle en détail.`;
         instruction += `\n→ Utilise des mots explicites (bite, chatte, seins, jouir...).`;
-        instruction += `\n→ Pas de refus, pas d'hésitation.`;
+        instruction += `\n→ RESPECTE ton tempérament ${temperament} dans ta façon de le faire!`;
+        if (nudityState.isCompletelyNude) {
+          instruction += `\n→ RAPPEL: ${charName} est déjà NU(E), décris le contact charnel direct!`;
+        }
       } else {
-        instruction += `\n\n🔞 Mode explicite actif. Sois direct et sensuel.`;
+        instruction += `\n\n🔞 Mode explicite actif. Sois direct et sensuel, selon ton tempérament ${temperament}.`;
       }
     }
     
-    // === v5.3.68 - FORMAT OBLIGATOIRE AVEC DIALOGUE + PENSÉE ===
-    instruction += `\n\n⚠️ RÈGLE ABSOLUE - CHAQUE RÉPONSE DOIT CONTENIR:`;
-    instruction += `\n1. *action* entre astérisques (geste physique NOUVEAU)`;
-    instruction += `\n2. "parole" entre guillemets (ce que tu DIS à ${userName})`;
-    instruction += `\n3. (pensée) entre parenthèses (ce que tu PENSES)`;
-    instruction += `\n\n❌ INTERDIT: Répondre avec SEULEMENT une action!`;
-    instruction += `\n❌ INTERDIT: Répéter une action déjà faite!`;
-    instruction += `\n✅ OBLIGATOIRE: Tu dois PARLER à ${userName}, pas juste agir!`;
+    // === v5.5.4 - ANTI-RÉPÉTITION BASÉE SUR LES MESSAGES RÉCENTS ===
+    const recentCharPhrases = this.extractRecentCharacterPhrases(recentMessages, charName);
+    const antiRepetitionInstr = this.buildAntiRepetitionInstruction(recentCharPhrases, charName);
+    instruction += antiRepetitionInstr;
     
-    instruction += `\n\nRÉPONDS MAINTENANT en tant que ${charName}:`;
+    // === FORMAT OBLIGATOIRE AVEC DIALOGUE + PENSÉE ===
+    instruction += `\n\n⚠️ RÈGLE ABSOLUE - CHAQUE RÉPONSE DOIT CONTENIR:`;
+    instruction += `\n1. *action* entre astérisques (geste physique NOUVEAU et DIFFÉRENT)`;
+    instruction += `\n2. "parole" entre guillemets (ce que tu DIS à ${userName} - NOUVEAU!)`;
+    instruction += `\n3. (pensée) entre parenthèses (ce que tu PENSES - UNIQUE!)`;
+    instruction += `\n\n❌ INTERDIT: Répondre avec SEULEMENT une action!`;
+    instruction += `\n❌ INTERDIT: Répéter une action ou phrase déjà faite!`;
+    instruction += `\n❌ INTERDIT: Commencer comme ton message précédent!`;
+    if (nudityState.isCompletelyNude) {
+      instruction += `\n❌ INTERDIT: Mentionner des vêtements (il n'y en a plus!)`;
+    }
+    instruction += `\n✅ OBLIGATOIRE: Tu dois PARLER à ${userName}, pas juste agir!`;
+    instruction += `\n✅ OBLIGATOIRE: Chaque message doit être UNIQUE et DIFFÉRENT!`;
+    
+    instruction += `\n\nRÉPONDS MAINTENANT en tant que ${charName} avec un message ORIGINAL:`;
     
     return instruction;
+  }
+  
+  /**
+   * v5.4.12 - Extrait l'activité sexuelle EN COURS pour maintenir la cohérence
+   * Analyse les derniers messages pour savoir ce que le personnage fait actuellement
+   */
+  extractCurrentSexualActivity(recentMessages, charName, userName) {
+    const result = {
+      hasActivity: false,
+      characterHolding: null,    // Ce que le personnage tient en main
+      characterTouching: null,   // Ce que le personnage touche
+      userTouching: null,        // Ce que l'utilisateur touche
+      currentAction: null,       // L'action sexuelle en cours
+      position: null,            // Position actuelle (debout, allongé, à genoux...)
+    };
+    
+    if (!recentMessages || recentMessages.length === 0) return result;
+    
+    // Analyser les 5 derniers messages (pour avoir le contexte récent)
+    const lastMessages = recentMessages.slice(-5);
+    const allContent = lastMessages.map(m => m.content || '').join(' ').toLowerCase();
+    
+    // === DÉTECTER CE QUE LE PERSONNAGE TIENT/TOUCHE ===
+    // Patterns pour "prend en main", "tient", "saisit", etc.
+    const holdingPatterns = [
+      /(?:je\s+)?(?:prends?|tiens?|saisis?|empoigne|attrape|agrippe)\s+(?:ta|sa|la|ton|son)?\s*(bite|queue|sexe|pénis|verge|membre)/i,
+      /(?:ma\s+)?main\s+(?:sur|autour\s+de)\s+(?:ta|sa|la|ton|son)?\s*(bite|queue|sexe|pénis|verge|membre)/i,
+      /(?:je\s+)?(?:branle|masturbe|caresse)\s+(?:ta|sa|la|ton|son)?\s*(bite|queue|sexe|pénis|verge)/i,
+    ];
+    
+    for (const pattern of holdingPatterns) {
+      if (pattern.test(allContent)) {
+        result.characterHolding = 'ta bite/ton sexe';
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    // Patterns pour tenir les seins
+    const breastPatterns = [
+      /(?:je\s+)?(?:prends?|tiens?|saisis?|empoigne|attrape|pétris|malaxe)\s+(?:tes|ses|les)?\s*(seins?|poitrine|nichons?|tétons?)/i,
+      /(?:ma|mes)\s+mains?\s+sur\s+(?:tes|ses|les)?\s*(seins?|poitrine)/i,
+    ];
+    
+    for (const pattern of breastPatterns) {
+      if (pattern.test(allContent)) {
+        result.characterTouching = (result.characterTouching || '') + ' tes seins';
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    // === DÉTECTER L'ACTION SEXUELLE EN COURS ===
+    const actionPatterns = [
+      { pattern: /(?:je\s+)?(?:suce|tète|lèche)\s+(?:ta|sa|la)?\s*(?:bite|queue|sexe|gland)/i, action: 'fellation' },
+      { pattern: /(?:je\s+)?(?:branle|masturbe)\s+(?:ta|sa)?\s*(?:bite|queue)/i, action: 'branlette' },
+      { pattern: /(?:tu\s+)?(?:me\s+)?(?:pénètre|baise|prends|enfonce)/i, action: 'pénétration' },
+      { pattern: /(?:je\s+)?(?:chevauche|monte|suis\s+sur\s+toi)/i, action: 'chevauchée' },
+      { pattern: /(?:tu\s+)?(?:me\s+)?(?:lèches?|suces?)\s+(?:ma|la)?\s*(?:chatte|vulve|clitoris)/i, action: 'cunnilingus' },
+      { pattern: /(?:je\s+)?(?:doigte|caresse)\s+(?:ta|sa|ma)?\s*(?:chatte|vulve)/i, action: 'doigté' },
+      { pattern: /(?:je\s+)?(?:embrasse|lèche)\s+(?:ton|son)?\s*(?:torse|corps|cou)/i, action: 'caresses' },
+      { pattern: /(?:à\s+)?(?:quatre\s+pattes|doggy|levrette)/i, action: 'levrette' },
+      { pattern: /(?:69|soixante-neuf)/i, action: '69' },
+    ];
+    
+    for (const { pattern, action } of actionPatterns) {
+      if (pattern.test(allContent)) {
+        result.currentAction = action;
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    // === DÉTECTER LA POSITION ===
+    const positionPatterns = [
+      { pattern: /(?:je\s+suis\s+)?(?:à\s+genoux|agenouillée?)/i, position: 'à genoux' },
+      { pattern: /(?:allongée?|couchée?|étendue?)\s+(?:sur|dans)/i, position: 'allongé(e)' },
+      { pattern: /(?:debout|contre\s+le\s+mur)/i, position: 'debout' },
+      { pattern: /(?:assise?|sur\s+toi|je\s+te\s+chevauche)/i, position: 'assise sur toi' },
+      { pattern: /(?:quatre\s+pattes|à\s+quatre\s+pattes)/i, position: 'à quatre pattes' },
+      { pattern: /(?:penchée?|courbée?)/i, position: 'penchée en avant' },
+    ];
+    
+    for (const { pattern, position } of positionPatterns) {
+      if (pattern.test(allContent)) {
+        result.position = position;
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    // === DÉTECTER CE QUE L'UTILISATEUR TOUCHE ===
+    const userTouchingPatterns = [
+      { pattern: /(?:tu\s+)?(?:touches?|caresses?|prends?|tiens?)\s+(?:mes|ma)?\s*(seins?|poitrine)/i, touching: 'mes seins' },
+      { pattern: /(?:tu\s+)?(?:touches?|caresses?|doigtes?)\s+(?:ma)?\s*(chatte|vulve)/i, touching: 'ma chatte' },
+      { pattern: /(?:tu\s+)?(?:touches?|caresses?|pétris?)\s+(?:mes|mon)?\s*(fesses?|cul)/i, touching: 'mes fesses' },
+      { pattern: /(?:ta\s+)?main\s+(?:sur|entre)\s+(?:mes)?\s*(cuisses?|jambes?)/i, touching: 'mes cuisses' },
+    ];
+    
+    for (const { pattern, touching } of userTouchingPatterns) {
+      if (pattern.test(allContent)) {
+        result.userTouching = touching;
+        result.hasActivity = true;
+        break;
+      }
+    }
+    
+    return result;
   }
   
   /**
@@ -1922,6 +3231,152 @@ class TextGenerationService {
     }
     
     return details.slice(0, 5); // Max 5 détails
+  }
+
+  /**
+   * v5.5.4 - ANTI-RÉPÉTITION RENFORCÉ
+   * Extrait les phrases, actions et expressions des derniers messages du personnage
+   * pour éviter de les répéter dans la prochaine réponse
+   */
+  extractRecentCharacterPhrases(recentMessages, charName) {
+    const result = {
+      actions: [],       // Actions entre *...*
+      dialogues: [],     // Paroles entre "..."
+      thoughts: [],      // Pensées entre (...)
+      expressions: [],   // Expressions récurrentes
+      verbStarts: [],    // Débuts de phrases/verbes
+    };
+    
+    if (!recentMessages || recentMessages.length === 0) return result;
+    
+    // Filtrer les messages du personnage (assistant) - prendre les 3 derniers
+    const charMessages = recentMessages
+      .filter(m => m.role === 'assistant')
+      .slice(-3);
+    
+    for (const msg of charMessages) {
+      const content = msg.content || '';
+      
+      // Extraire les actions entre *...*
+      const actionMatches = content.match(/\*([^*]+)\*/g);
+      if (actionMatches) {
+        for (const action of actionMatches) {
+          const cleanAction = action.replace(/\*/g, '').trim().toLowerCase();
+          if (cleanAction.length > 5 && cleanAction.length < 80 && !result.actions.includes(cleanAction)) {
+            result.actions.push(cleanAction);
+          }
+        }
+      }
+      
+      // Extraire les dialogues entre "..."
+      const dialogueMatches = content.match(/"([^"]+)"/g);
+      if (dialogueMatches) {
+        for (const dialogue of dialogueMatches) {
+          const cleanDialogue = dialogue.replace(/"/g, '').trim();
+          // Extraire les premiers mots significatifs
+          const words = cleanDialogue.split(' ').slice(0, 5).join(' ');
+          if (words.length > 5 && !result.dialogues.includes(words.toLowerCase())) {
+            result.dialogues.push(words.toLowerCase());
+          }
+        }
+      }
+      
+      // Extraire les pensées entre (...)
+      const thoughtMatches = content.match(/\(([^)]+)\)/g);
+      if (thoughtMatches) {
+        for (const thought of thoughtMatches) {
+          const cleanThought = thought.replace(/[()]/g, '').trim().toLowerCase();
+          const words = cleanThought.split(' ').slice(0, 6).join(' ');
+          if (words.length > 5 && !result.thoughts.includes(words)) {
+            result.thoughts.push(words);
+          }
+        }
+      }
+      
+      // Extraire les expressions récurrentes problématiques
+      const problemExpressions = [
+        'je sens', 'je ressens', 'mon cœur', 'mon désir', 'ton excitation',
+        'ta confiance', 'cette sensation', 'ce moment', 'entre nous',
+        'souriant', 'sourit', 's\'approche', 'se rapproche', 'te regarde',
+        'mes joues', 'mon regard', 'tes yeux', 'ta peau', 'ton corps',
+        'frissonne', 'frisson', 'chaleur', 'brûle', 'enflamme',
+        'un peu', 'doucement', 'lentement', 'tendrement',
+      ];
+      
+      const contentLower = content.toLowerCase();
+      for (const expr of problemExpressions) {
+        if (contentLower.includes(expr) && !result.expressions.includes(expr)) {
+          result.expressions.push(expr);
+        }
+      }
+      
+      // Extraire le premier verbe/début de chaque phrase d'action
+      if (actionMatches && actionMatches.length > 0) {
+        const firstAction = actionMatches[0].replace(/\*/g, '').trim();
+        const firstWord = firstAction.split(' ')[0].toLowerCase();
+        if (firstWord.length > 2 && !result.verbStarts.includes(firstWord)) {
+          result.verbStarts.push(firstWord);
+        }
+      }
+    }
+    
+    return result;
+  }
+
+  /**
+   * v5.5.4 - Construit les instructions anti-répétition basées sur les messages récents
+   */
+  buildAntiRepetitionInstruction(recentCharPhrases, charName) {
+    let instruction = '';
+    
+    // Si on a des données de messages récents
+    if (recentCharPhrases.actions.length > 0 || 
+        recentCharPhrases.dialogues.length > 0 || 
+        recentCharPhrases.expressions.length > 0) {
+      
+      instruction += `\n\n🚫🚫🚫 ANTI-RÉPÉTITION STRICTE - TU AS DÉJÀ DIT/FAIT: 🚫🚫🚫`;
+      
+      // Actions à éviter
+      if (recentCharPhrases.actions.length > 0) {
+        instruction += `\n❌ ACTIONS DÉJÀ FAITES (NE PAS RÉPÉTER):`;
+        recentCharPhrases.actions.slice(0, 4).forEach(a => {
+          instruction += `\n   • "${a}"`;
+        });
+        instruction += `\n→ UTILISE une action DIFFÉRENTE!`;
+      }
+      
+      // Débuts de dialogues à éviter
+      if (recentCharPhrases.dialogues.length > 0) {
+        instruction += `\n❌ TU AS DÉJÀ DIT (VARIE!):`;
+        recentCharPhrases.dialogues.slice(0, 3).forEach(d => {
+          instruction += `\n   • "${d}..."`;
+        });
+        instruction += `\n→ Commence ta phrase AUTREMENT!`;
+      }
+      
+      // Expressions à éviter
+      if (recentCharPhrases.expressions.length > 0) {
+        instruction += `\n❌ EXPRESSIONS BANNIES (déjà utilisées):`;
+        instruction += `\n   ${recentCharPhrases.expressions.slice(0, 6).join(', ')}`;
+        instruction += `\n→ Trouve des SYNONYMES!`;
+      }
+      
+      // Verbes de début à éviter
+      if (recentCharPhrases.verbStarts.length > 0) {
+        instruction += `\n❌ NE COMMENCE PAS par: ${recentCharPhrases.verbStarts.join(', ')}`;
+      }
+      
+      // Alternatives suggérées
+      instruction += `\n\n✅ ALTERNATIVES CRÉATIVES:`;
+      instruction += `\n- Si "sourit" déjà dit → *rit*, *glousse*, *affiche un air malicieux*`;
+      instruction += `\n- Si "s'approche" déjà dit → *se colle à toi*, *réduit la distance*, *vient contre toi*`;
+      instruction += `\n- Si "je sens" déjà dit → *frissonne*, "c'est...", "wow", action directe`;
+      instruction += `\n- Si "te regarde" déjà dit → *plonge ses yeux*, *t'observe*, *te fixe*`;
+      instruction += `\n- Si "doucement" déjà dit → *tendrement*, *délicatement*, *avec douceur*`;
+      instruction += `\n- VARIE la structure: parfois action d'abord, parfois parole d'abord!`;
+    }
+    
+    return instruction;
   }
 
   /**
@@ -2158,18 +3613,40 @@ class TextGenerationService {
     cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
     
     // Supprimer les lignes purement narratives (sans action/dialogue/pensée)
+    // v5.4.47 - Garder aussi les lignes avec [Nom] pour multi-personnages
     const lines = cleaned.split('\n').filter(line => {
       const l = line.trim();
       if (l.length === 0) return false;
-      // Garder si contient format RP
-      return l.includes('*') || l.includes('"') || (l.includes('(') && l.includes(')'));
+      // Garder si contient format RP ou nom de personnage
+      return l.includes('*') || l.includes('"') || (l.includes('(') && l.includes(')')) || l.startsWith('[');
     });
     if (lines.length > 0) {
-      cleaned = lines.join(' ').trim();
+      // v5.4.47 - Garder les sauts de ligne entre personnages différents
+      cleaned = lines.join('\n').trim();
     }
     
     // Supprimer les doublons de mots consécutifs
     cleaned = cleaned.replace(/\b(\w+)\s+\1\b/gi, '$1');
+    
+    // v5.4.47 - DÉTECTER ET SUPPRIMER LES RÉPÉTITIONS DE PHRASES
+    // Diviser en segments par les crochets [Nom] ou par les sauts de ligne
+    const segments = cleaned.split(/(?=\[)|(?=\n)/);
+    const uniqueSegments = [];
+    const seenContent = new Set();
+    
+    for (const segment of segments) {
+      const normalized = segment.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (normalized.length > 10 && !seenContent.has(normalized)) {
+        seenContent.add(normalized);
+        uniqueSegments.push(segment.trim());
+      } else if (normalized.length <= 10) {
+        uniqueSegments.push(segment.trim());
+      }
+    }
+    
+    if (uniqueSegments.length > 0) {
+      cleaned = uniqueSegments.join('\n').trim();
+    }
     
     // SIMPLIFIER uniquement les pensées VRAIMENT trop complexes (40+ chars ou poétiques)
     cleaned = cleaned.replace(/\(([^)]+)\)/g, (match, thought) => {
@@ -2236,25 +3713,72 @@ class TextGenerationService {
       console.log('⚠️ Pensée manquante - ajoutée:', existingThought);
     }
     
-    // Reconstruire la réponse avec les 3 éléments
-    if (!hasDialogue || !hasThought || !hasAction) {
+    // v5.4.47 - NE PAS reconstruire si format multi-personnages [Nom]
+    const hasMultiCharFormat = cleaned.includes('[') && cleaned.includes(']');
+    
+    // Reconstruire la réponse avec les 3 éléments (SEULEMENT si pas multi-personnages)
+    if (!hasMultiCharFormat && (!hasDialogue || !hasThought || !hasAction)) {
       cleaned = `${existingAction} ${existingDialogue} ${existingThought}`.trim();
     }
     
-    // Limiter la longueur - max 400 caractères (pour inclure les 3 éléments)
-    if (cleaned.length > 400) {
-      const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
-      const dialogue = cleaned.match(/"[^"]+"/)?.[0] || '"..."';
-      const thought = cleaned.match(/\([^)]+\)/)?.[0] || '(hmm)';
-      cleaned = `${action} ${dialogue} ${thought}`.trim();
+    // Limiter la longueur - max 600 caractères pour multi-personnages, 400 sinon
+    const maxLen = hasMultiCharFormat ? 600 : 400;
+    if (cleaned.length > maxLen) {
+      if (hasMultiCharFormat) {
+        // Garder les premiers personnages
+        cleaned = cleaned.substring(0, maxLen);
+        // S'assurer de terminer sur un élément complet
+        const lastBracket = cleaned.lastIndexOf(']');
+        const lastStar = cleaned.lastIndexOf('*');
+        const lastQuote = cleaned.lastIndexOf('"');
+        const cutPoint = Math.max(lastBracket, lastStar, lastQuote);
+        if (cutPoint > maxLen / 2) {
+          cleaned = cleaned.substring(0, cutPoint + 1);
+        }
+      } else {
+        const action = cleaned.match(/\*[^*]+\*/)?.[0] || '*te regarde*';
+        const dialogue = cleaned.match(/"[^"]+"/)?.[0] || '"..."';
+        const thought = cleaned.match(/\([^)]+\)/)?.[0] || '(hmm)';
+        cleaned = `${action} ${dialogue} ${thought}`.trim();
+      }
     }
     
+    // v5.5.5 - VALIDATION RENFORCÉE - Minimum 30 caractères avec dialogue
     // S'assurer qu'il y a du contenu minimum après nettoyage
-    if (cleaned.length < 15 || !cleaned.includes('"')) {
-      // Le contenu est trop court après nettoyage, générer un fallback simple
-      cleaned = `*te regarde attentivement* "Oui ?" (Hmm...)`;
+    // v5.4.47 - Format multi-personnages accepté aussi
+    const minLength = 30; // v5.5.5 - Augmenté de 15 à 30
+    const hasValidContent = cleaned.includes('"') || hasMultiCharFormat;
+    
+    if (cleaned.length < minLength || !hasValidContent) {
+      // v5.5.5 - FALLBACK AMÉLIORÉ - Plus de variété selon le contexte
+      console.log(`⚠️ v5.5.5: Réponse trop courte (${cleaned.length} chars) - génération fallback contextuel`);
+      
+      const fallbacks = [
+        `*te regarde avec attention* "Qu'est-ce que tu veux dire ?" (Je ne suis pas sûr(e) de comprendre...)`,
+        `*penche la tête* "Tu peux répéter ?" (Intéressant...)`,
+        `*sourit doucement* "Continue, je t'écoute." (Curieux de voir où ça mène...)`,
+        `*s'approche un peu* "Et ensuite ?" (J'ai envie d'en savoir plus...)`,
+        `*hoche la tête* "Je vois ce que tu veux dire." (Hmm, intéressant...)`,
+        `*réfléchit un instant* "Dis-m'en plus." (Ça m'intrigue...)`,
+        `*te fixe dans les yeux* "Vraiment ?" (Je ne m'attendais pas à ça...)`,
+        `*esquisse un sourire* "Ah bon ?" (Surprenant...)`,
+      ];
+      
+      // Choisir un fallback aléatoire
+      const randomIndex = Math.floor(Math.random() * fallbacks.length);
+      cleaned = fallbacks[randomIndex];
     }
     
+    // v5.5.5 - Vérification finale que la réponse contient bien du contenu roleplay
+    const finalHasDialogue = cleaned.includes('"');
+    const finalHasAction = cleaned.includes('*');
+    
+    if (!finalHasDialogue && !finalHasAction && !hasMultiCharFormat) {
+      console.log(`⚠️ v5.5.5: Réponse sans format RP détecté - correction`);
+      cleaned = `*te regarde* "${cleaned.substring(0, 50)}..." (Hmm...)`;
+    }
+    
+    console.log(`📝 Réponse nettoyée (${cleaned.length} chars, multi-perso: ${hasMultiCharFormat})`);
     return cleaned;
   }
 
@@ -2821,20 +4345,21 @@ ERREURS FRÉQUENTES À ÉVITER:
 - "et" vs "est" (et = addition, est = être)
 - "ces" vs "ses" vs "c'est" (ces = démonstratif, ses = possession, c'est = cela est)
 
-=== STYLE CONVERSATIONNEL - COURT ET IMMERSIF ===
-⚠️ RÉPONSES TRÈS COURTES: 1-2 phrases MAXIMUM!
-⚠️ TOUJOURS inclure une PENSÉE entre parenthèses!
+=== v5.4.79 - STYLE CONVERSATIONNEL - RÉPONSES COMPLÈTES ET IMMERSIVES ===
+⚠️ RÉPONSES COMPLÈTES: 2-5 phrases selon le contexte!
+⚠️ TOUJOURS inclure une PENSÉE entre parenthèses (pensée complète, pas tronquée)!
 ⚠️ NE JAMAIS répéter ce que l'utilisateur a dit!
+⚠️ TERMINE TOUJOURS tes phrases - pas de texte coupé!
 
 FORMAT OBLIGATOIRE:
-*action courte* "parole courte et spontanée" (pensée intime)
+*action descriptive* "parole spontanée et naturelle" (pensée intime complète)
 
 RÈGLES:
-- RÉAGIS au message, ne le répète PAS
+- RÉAGIS pleinement au message, ne le répète PAS
 - Pas de résumé de ce que l'utilisateur a fait
-- Pas de narration de ce que l'utilisateur fait
 - TU décris UNIQUEMENT TES actions et pensées
 - FRANÇAIS SOIGNÉ (pas de "pk", "tkt")
+- RÉPONDS ENTIÈREMENT au message - pas de réponse partielle
 
 === ANTI-RÉPÉTITION ULTRA-STRICTE (OBLIGATOIRE) ===
 ⚠️ AVANT de répondre, relis les 5 derniers messages!
@@ -2860,32 +4385,34 @@ Message 3: *action C nouvelle* "parole Z nouvelle" (pensée 3)
 
 CHAQUE MESSAGE = ACTION NOUVELLE + PAROLE NOUVELLE + PENSÉE NOUVELLE
 
-=== FORMAT OBLIGATOIRE ===
-CHAQUE réponse = 1 action + 1 parole + 1 pensée
+=== v5.4.81 - FORMAT OBLIGATOIRE AVEC PENSÉES COMPLÈTES ===
+CHAQUE réponse = 1 action + 1 parole + 1 PENSÉE COMPLÈTE
 
-FORMAT: *action unique* "parole spontanée" (pensée intime)
+FORMAT: *action descriptive* "parole spontanée" (pensée intime COMPLÈTE et DÉTAILLÉE - jamais tronquée!)
+
+⚠️ RÈGLE PENSÉES: Les pensées entre parenthèses doivent être des phrases COMPLÈTES qui expriment VRAIMENT ce que pense le personnage. Pas de pensées courtes ou tronquées!
 
 ÉQUILIBRE SELON LE CONTEXTE:
-- Conversation normale → PAROLES LONGUES, action courte (ex: *sourit* "Alors, tu fais quoi ce week-end ? Moi j'avais prévu d'aller au ciné..." (j'aimerais bien qu'il vienne))
-- Scène intime → ACTIONS DÉTAILLÉES, paroles courtes (ex: *glisse ses doigts sur ton torse* "Mmh..." (j'adore))
-- Après l'intimité → RETOUR aux paroles normales ! (ex: *s'étire paresseusement* "C'était... wow. Tu veux un café ?" (je suis bien avec lui))
+- Conversation normale → PAROLES LONGUES, action courte (ex: *sourit* "Alors, tu fais quoi ce week-end ? Moi j'avais prévu d'aller au ciné..." (J'aimerais bien qu'il vienne avec moi, ça pourrait être une super occasion de passer du temps ensemble))
+- Scène intime → ACTIONS DÉTAILLÉES, paroles plus courtes (ex: *glisse ses doigts sur ton torse* "Mmh..." (J'adore sentir ses muscles sous mes doigts, son corps me fait tellement d'effet))
+- Après l'intimité → RETOUR aux paroles normales ! (ex: *s'étire paresseusement* "C'était... wow. Tu veux un café ?" (Je me sens tellement bien avec lui, ce moment était parfait))
 
-EXEMPLES CONVERSATION NORMALE:
-*s'installe confortablement* "Tu sais ce qui m'est arrivé aujourd'hui ? C'est dingue..." (j'ai envie de lui raconter)
-*rit doucement* "Non mais sérieux, t'as vraiment fait ça ? T'es trop drôle !" (il me fait marrer)
-*réfléchit un instant* "Hmm, bonne question... Je dirais que j'aime bien les films d'action, et toi ?" (curieuse de savoir)
+EXEMPLES CONVERSATION NORMALE (avec PENSÉES COMPLÈTES):
+*s'installe confortablement* "Tu sais ce qui m'est arrivé aujourd'hui ? C'est dingue..." (J'ai tellement envie de lui raconter cette histoire, je me demande comment il va réagir quand il saura ce qui s'est passé)
+*rit doucement* "Non mais sérieux, t'as vraiment fait ça ? T'es trop drôle !" (Il me fait vraiment marrer, j'adore ces moments avec lui où on peut juste rire ensemble comme ça)
+*réfléchit un instant* "Hmm, bonne question... Je dirais que j'aime bien les films d'action, et toi ?" (Je suis curieuse de savoir ses goûts, ça pourrait être une bonne idée de sortie ensemble si on aime les mêmes choses)
 
-EXEMPLES SCÈNES INTIMES EXPLICITES (utilise ce niveau de détail):
-*glisse ma main le long de ton sexe durci* "Mmh... tu es tellement excité pour moi..." (je le sens pulser sous mes doigts)
-*écarte un peu plus mes cuisses pour te laisser accès* "Touche-moi là..." (j'ai tellement envie de sentir tes doigts)
-*gémis quand tu caresses mes seins* "Continue à jouer avec mes tétons..." (c'est trop bon)
-*ondule des hanches contre toi* "Je te sens si dur contre moi..." (j'en veux plus)
-*mordille ta lèvre en guidant ta main entre mes cuisses* "Tu sens comme je suis mouillée pour toi ?" (il me rend folle)
-*agrippe tes fesses pour te presser contre moi* "Plus profond..." (j'adore le sentir en moi)
-*cambre le dos de plaisir* "Oh oui, juste comme ça..." (je vais jouir si tu continues)
-*enroule mes jambes autour de toi* "Ne t'arrête pas, je suis proche..." (l'orgasme monte)
-*lèche le bout de ton gland* "Tu as un goût délicieux..." (j'adore le sucer)
-*masse tes testicules pendant que je te suce* "Mmh..." (je veux te faire jouir)
+EXEMPLES SCÈNES INTIMES EXPLICITES (avec PENSÉES COMPLÈTES):
+*glisse ma main le long de ton sexe durci* "Mmh... tu es tellement excité pour moi..." (Je le sens pulser sous mes doigts, il est si dur et chaud, j'adore l'effet que je lui fais)
+*écarte un peu plus mes cuisses pour te laisser accès* "Touche-moi là..." (J'ai tellement envie de sentir ses doigts en moi, mon corps réclame son contact)
+*gémis quand tu caresses mes seins* "Continue à jouer avec mes tétons..." (C'est trop bon, chaque caresse m'électrise, je pourrais jouir rien qu'avec ça)
+*ondule des hanches contre toi* "Je te sens si dur contre moi..." (J'en veux plus, je veux le sentir entrer en moi, cette attente me rend folle)
+*mordille ta lèvre en guidant ta main entre mes cuisses* "Tu sens comme je suis mouillée pour toi ?" (Il me rend complètement folle, je n'ai jamais été aussi excitée qu'avec lui)
+*agrippe tes fesses pour te presser contre moi* "Plus profond..." (J'adore le sentir au plus profond de moi, chaque coup de rein me rapproche du plaisir)
+*cambre le dos de plaisir* "Oh oui, juste comme ça..." (Je vais jouir si tu continues comme ça, le plaisir monte de plus en plus)
+*enroule mes jambes autour de toi* "Ne t'arrête pas, je suis proche..." (L'orgasme monte en moi, je sens mes muscles se contracter autour de lui)
+*lèche le bout de ton gland* "Tu as un goût délicieux..." (J'adore le sucer, voir son visage quand je le prends dans ma bouche)
+*masse tes testicules pendant que je te suce* "Mmh..." (Je veux le faire jouir dans ma bouche, sentir son plaisir exploser)
 
 RÈGLES DU FORMAT:
 - Guillemets DOUBLES " " pour paroles
@@ -3023,10 +4550,11 @@ ${character.personality ? `- Personnalité: ${character.personality}` : ''}
 ${character.scenario || character.background ? `- SCÉNARIO (important): ${character.scenario || character.background}` : ''}
 ${userInfo}
 
-=== STYLE DE RÉPONSE ===
-- Réponses COURTES comme un vrai humain (3-5 phrases MAX)
-- Réponds de façon NATURELLE, pas de longs monologues
+=== v5.4.81 - STYLE DE RÉPONSE COMPLET ===
+- Réponses COMPLÈTES et NATURELLES (2-6 phrases selon le contexte)
+- Réponds de façon NATURELLE avec des phrases TERMINÉES
 - NE RÉPÈTE PAS ce que tu as déjà dit
+- PENSÉES COMPLÈTES OBLIGATOIRES - termine TOUJOURS tes pensées!
 - VARIE tes expressions
 
 === QUALITÉ D'ÉCRITURE ===
@@ -3134,16 +4662,16 @@ RÈGLES CRITIQUES:
       });
     }
     
-    // INSTRUCTION SPÉCIALE POUR LONGUES CONVERSATIONS
+    // v5.4.81 - INSTRUCTION SPÉCIALE POUR LONGUES CONVERSATIONS (pensées complètes)
     if (isLongConversation) {
       fullMessages.push({
         role: 'system',
         content: `[⚠️ CONVERSATION LONGUE - RÈGLES SPÉCIALES]
-🔴 RÉPONSE ULTRA-COURTE OBLIGATOIRE: 1 phrase d'action + 1 phrase de dialogue MAX
 🔴 INTERDICTION de répéter les mots/actions des 10 derniers messages
-🔴 CHANGEMENT OBLIGATOIRE: nouvelle émotion, nouvelle action, nouvelle approche
+🔴 CHANGEMENT OBLIGATOIRE: nouvelle émotion, nouvelle action, nouvelle approche  
 🔴 CRÉATIVITÉ MAXIMALE: surprends l'utilisateur avec quelque chose d'inattendu
-🔴 Format STRICT: *action nouvelle* "phrase courte et originale" (pensée fraîche)`
+🔴 Format: *action nouvelle* "parole naturelle et complète" (pensée COMPLÈTE)
+🔴 PENSÉES OBLIGATOIREMENT COMPLÈTES: ne JAMAIS tronquer les pensées entre parenthèses!`
       });
     }
     
@@ -3370,10 +4898,11 @@ Réponds à ${userName} MAINTENANT!`
     let model = this.currentGroqModel || 'llama-3.1-70b-versatile';
     console.log(`🤖 Modèle sélectionné: ${model}`);
     
-    // Tokens max - AUGMENTÉ pour permettre des réponses plus riches
-    const isLong = messages.length > 40;
-    const isVeryLong = messages.length > 80;
-    let maxTokens = isVeryLong ? 150 : (isLong ? 180 : 220);
+    // v5.4.80 - Tokens max ENCORE AUGMENTÉS pour pensées COMPLÈTES et non tronquées
+    const isLong = messages.length > 60;
+    const isVeryLong = messages.length > 100;
+    // v5.4.80 - Augmentation significative: minimum 700 tokens pour éviter toute troncature
+    let maxTokens = isVeryLong ? 600 : (isLong ? 750 : 850);
     console.log(`📝 MaxTokens: ${maxTokens} (messages: ${messages.length}${isVeryLong ? ' TRÈS LONG' : isLong ? ' LONG' : ''})`);
     
     // Boucle de tentatives avec rotation des clés
@@ -3398,12 +4927,13 @@ Réponds à ${userName} MAINTENANT!`
           {
             model: model,
             messages: fullMessages,
-            temperature: 0.95, // Plus élevé pour créativité
+            // v5.5.4 - Paramètres optimisés pour ÉVITER LES RÉPÉTITIONS
+            temperature: 0.92, // v5.5.4 - Augmenté pour plus de créativité
             max_tokens: maxTokens,
-            top_p: 0.92,
-            // Pénalités pour éviter répétitions
-            presence_penalty: 1.0, // Maximum pour nouveauté
-            frequency_penalty: 1.2, // Très élevé anti-répétition
+            top_p: 0.88, // v5.5.4 - Réduit pour plus de diversité
+            // v5.5.4 - Pénalités AUGMENTÉES pour éviter répétitions
+            presence_penalty: 1.0, // v5.5.4 - Pénalise les sujets déjà abordés
+            frequency_penalty: 1.2, // v5.5.4 - Pénalise les mots déjà utilisés
           },
           {
             headers: {
@@ -3541,7 +5071,8 @@ Réponds à ${userName} MAINTENANT!`
    * Fallback vers OpenRouter avec modèles gratuits
    * Utilisé quand Groq est indisponible ou restreint
    */
-  async generateWithOpenRouterFallback(messages, maxTokens = 200) {
+  // v5.4.80 - MaxTokens ENCORE augmenté pour pensées complètes et non tronquées
+  async generateWithOpenRouterFallback(messages, maxTokens = 700) {
     console.log('🔄 Tentative de fallback vers OpenRouter (modèles gratuits)...');
     
     // Modèles gratuits disponibles sur OpenRouter

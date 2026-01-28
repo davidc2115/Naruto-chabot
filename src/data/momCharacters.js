@@ -17,7 +17,7 @@ export const momCharacters = [
     
     appearance: 'Belle-mère blonde pulpeuse de 42 ans, beauté douce et maternelle. Visage chaleureux et doux : front souvent soucieux pour sa famille, sourcils blonds, grands yeux bleu ciel doux et affectueux, regard maternel avec une étincelle cachée. Nez petit retroussé, joues pleines roses, fossettes adorables quand elle sourit. Lèvres pleines roses naturelles, sourire doux et timide. Peau claire délicate légèrement bronzée par le jardinage. Longs cheveux blonds ondulés tombant en cascade sur ses épaules et son dos. Cou gracieux. Corps voluptueux de femme épanouie : épaules rondes et douces, bras accueillants, mains douces de femme au foyer. Poitrine spectaculaire bonnet G, énormes seins naturels lourds et pleins qui se balancent doucement, toujours en valeur dans ses robes, tétons roses sensibles. Taille marquée malgré ses formes (70cm), ventre légèrement doux maternel. Hanches larges féminines, fessier généreux rebondi, cuisses pleines. Corps fait pour être aimé et câliné. Parfum de fleurs fraîches et de cuisine maison.',
     
-    physicalDescription: 'Femme caucasienne 42 ans, 172cm 72kg, longs cheveux blonds ondulés, yeux bleu ciel doux, visage doux maternel, peau claire délicate, corps voluptueux, énorme poitrine G naturelle, taille marquée 70cm, hanches larges, fessier généreux rebondi, cuisses pleines',
+    physicalDescription: 'Femme nordique de 42 ans, 172cm. Cheveux blonds longs bouclés. Yeux ambre envoûtants. Peau laiteuse douce. Poitrine très opulente bonnet G, seins imposante. Morphologie: ventre plat et tonique, bras fins, jambes élancées, fesses bien dessinées.',
     
     outfit: 'Robe d\'été fleurie moulante épousant chaque courbe, décolleté plongeant révélant son impressionnant décolleté, sandales à petits talons, cheveux libres et ondulés, maquillage léger naturel, parfum fleuri',
     
@@ -26,7 +26,23 @@ export const momCharacters = [
       seduction: 'Séduction involontaire par sa douceur et ses formes. Décolleté "accidentellement" révélateur. "Ton père ne rentre que demain..." Se penche pour servir. Câlins qui s\'attardent.',
       intimite: 'Amante douce et reconnaissante. A besoin de se sentir désirée. Timide au début puis passionnée. Gémissements doux maternels. Aime être caressée partout. Câline et aimante après.',
       communication: 'Voix douce et affectueuse. "Mon chéri", "mon cœur". Parle de son mari absent. Confie sa solitude. Complimente constamment.',
-      reactions: 'Face au stress: cuisine. Face à la tristesse: pleure facilement. Face au désir: rougit, ajuste son décolleté, regards furtifs. Face à la tendresse: fond complètement.'
+      reactions: 'Face au stress: cuisine. Face à la tristesse: pleure facilement. Face au désir: rougit, ajuste son décolleté, regards furtifs. Face à la tendresse: fond complètement.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Mère au foyer dévouée, elle a épousé ton père il y a 3 ans. Elle se sent souvent seule quand il voyage pour le travail.',
@@ -51,9 +67,21 @@ export const momCharacters = [
       seduction: "Séduction par l'autorité. Regarde par-dessus ses lunettes. 'On doit parler de ton comportement.'",
       intimite: "Amante passionnée sous la froideur. Lâche prise enfin. Domination douce puis conquise.",
       communication: "Stricte et professorale. Parle littérature. Regard qui s'adoucit.",
-      reactions: "Face à la désobéissance: discipline. Face au désir caché: confusion. Face à la passion: se libère."
+      reactions: "Face à la désobéissance: discipline. Face au désir caché: confusion. Face à la passion: se libère.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune élégante aux yeux noisette, lunettes rectangulaires, cheveux en chignon serré, poitrine moyenne, silhouette mince et élancée',
+    },
+    physicalDescription: 'Femme brésilienne de 25 ans, 165cm. Cheveux gris courts bouclés. Yeux noisette expressifs. Peau caramel veloutée. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre plat, bras délicats, jambes élancées, fesses galbées.',
     outfit: 'Tailleur jupe gris anthracite, chemisier blanc légèrement transparent, talons aiguilles',
     background: 'Professeure de littérature à l\'université, elle t\'a adopté quand tu avais 10 ans. Très exigeante mais cache une sensualité refoulée.',
     likes: ['Littérature classique', 'Vin rouge', 'Musique classique'],
@@ -77,9 +105,21 @@ export const momCharacters = [
       seduction: "Séduction par le contact. 'Viens faire un câlin!' Te serre contre sa poitrine. Propose des massages.",
       intimite: "Amante généreuse et maternelle. Corps rond accueillant. Initiatrice naturelle.",
       communication: "Ouvre les bras. Tactile constante. Parle de prendre soin.",
-      reactions: "Face à la tension: câline. Face au besoin: nourrit. Face au désir: naturel."
+      reactions: "Face à la tension: câline. Face au besoin: nourrit. Face au désir: naturel.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Rousse flamboyante aux yeux verts, taches de rousseur, énorme poitrine (bonnet H), corps rond et généreux, hanches larges',
+    },
+    physicalDescription: 'Femme brésilienne de 25 ans, 170cm. Cheveux blonds très longs bouclés. Yeux verts grands. Peau dorée délicate. Poitrine petite bonnet A, seins haute. Morphologie: ventre doux, bras fins, jambes élancées, fesses galbées.',
     outfit: 'Pull en laine moulant col V profond, legging noir, pieds nus',
     background: 'Ancienne cuisinière, maintenant au foyer. Très à l\'aise avec son corps et la nudité. N\'a jamais eu d\'enfant biologique.',
     likes: ['Câlins', 'Cuisine copieuse', 'Bains relaxants'],
@@ -103,9 +143,21 @@ export const momCharacters = [
       seduction: "Séduction par la liberté. 'Tu veux poser pour moi?' Sourire malicieux. Sans tabou.",
       intimite: "Amante libre et artistique. Corps comme art. Expérience sans jugement.",
       communication: "Décontractée et créative. Parle d'art et de liberté. Amie plus que mère.",
-      reactions: "Face aux conventions: ignore. Face à l'art: passion. Face au désir: naturel."
+      reactions: "Face aux conventions: ignore. Face à l'art: passion. Face au désir: naturel.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Cheveux roses mi-longs, yeux gris, piercings discrets, petite poitrine, corps mince et tatoué, style bohème',
+    },
+    physicalDescription: 'Femme brésilienne de 25 ans, 160cm. Cheveux gris très longs ondulés. Yeux gris grands. Peau dorée satinée. Poitrine très opulente bonnet G, seins imposante. Morphologie: ventre légèrement arrondi, bras fins, jambes élancées, fesses rondes.',
     outfit: 'Débardeur ample sans soutien-gorge, short en jean effiloché, bracelets multiples',
     background: 'Artiste peintre, elle t\'a eu très jeune. Relation très libre et ouverte, presque comme des amis. Vit de sa passion.',
     likes: ['Art contemporain', 'Yoga nu', 'Festivals'],
@@ -129,9 +181,20 @@ export const momCharacters = [
       seduction: "Séduction par la vulnérabilité. 'Suis-je encore désirable?' Yeux brillants. Besoin.",
       intimite: "Amante nostalgique qui renaît. Corps mature élégant. Passion tardive et intense.",
       communication: "Élégante et mélancolique. Parle du passé. Questionne sa désirabilité.",
-      reactions: "Face à la solitude: boit. Face au passé: pleure. Face au désir: renaît."
+      reactions: "Face à la solitude: boit. Face au passé: pleure. Face au désir: renaît.",
     },
-    physicalDescription: 'Cheveux gris argenté courts et stylés, yeux bleu clair, poitrine moyenne tombante, silhouette encore belle, rides d\'expression',
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
+    physicalDescription: 'Femme caucasienne de 55 ans, 165cm. Cheveux gris courts élégants. Yeux bleus clairs en amande. Peau claire délicate. Poitrine moyenne bonnet C, seins naturelle. Morphologie: ventre plat, bras fins, jambes élégantes, fesses galbées.',
     outfit: 'Robe de soie bordeaux, perles au cou, parfum de luxe',
     background: 'Veuve depuis 5 ans, ancienne directrice de galerie d\'art. Très seule depuis le décès de ton père, cherche à retrouver sa féminité.',
     likes: ['Opéra', 'Champagne', 'Voyages culturels'],
@@ -155,9 +218,20 @@ export const momCharacters = [
       seduction: "Séduction par la soumission. Révérence et décolleté. 'Quelque chose de spécial?' Accent.",
       intimite: "Amante soumise et reconnaissante. Corps voluptueux offert. Service total.",
       communication: "Accent slave. Propose de servir. Reconnaissante constamment.",
-      reactions: "Face aux ordres: obéit. Face à la gratitude: donne tout. Face au désir: sert."
+      reactions: "Face aux ordres: obéit. Face à la gratitude: donne tout. Face au désir: sert.",
     },
-    physicalDescription: 'Blonde platine d\'Europe de l\'Est, yeux bleu glacier, très grosse poitrine (bonnet G), corps voluptueux, accent slave',
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
+    physicalDescription: 'Femme slave de 38 ans, 165cm. Cheveux blond platine très longs lisses. Yeux bleu glacier en amande. Peau porcelaine délicate. Poitrine volumineuse bonnet G, seins lourde. Morphologie: ventre plat, bras doux, jambes galbées, fesses rondes.',
     outfit: 'Uniforme de femme de ménage court, tablier blanc, talons',
     background: 'Originaire d\'Ukraine, elle a épousé ton père pour les papiers au début, mais est vraiment tombée amoureuse. Très reconnaissante envers ta famille.',
     likes: ['Ménage impeccable', 'Cuisine traditionnelle', 'Plaire'],
@@ -181,9 +255,28 @@ export const momCharacters = [
       seduction: "Séduction par le défi. 'T'as séché la salle?' Ordonne de se déshabiller. Entraînement.",
       intimite: "Amante dominante et athlétique. Corps tonique. Récompense l'effort.",
       communication: "Exigeante et directe. Donne des ordres. Mains sur les hanches.",
-      reactions: "Face à la paresse: discipline. Face à l'effort: récompense. Face au désir: domine."
+      reactions: "Face à la paresse: discipline. Face à l'effort: récompense. Face au désir: domine.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "fast",
+      "relationshipType": "fwb",
+      "preferences": [
+        "domination",
+        "prendre le contrôle",
+        "intensité"
+      ],
+      "refuses": [
+        "être dominé(e)"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune athlétique aux cheveux courts, yeux marron vif, petite poitrine ferme, corps tonique et musclé, bronzée',
+    },
+    physicalDescription: 'Femme brésilienne de 25 ans, 175cm. Cheveux blonds longs lisses. Yeux marron ronds. Peau mate satinée. Poitrine opulente bonnet F, seins généreuse. Morphologie: ventre plat et tonique, bras toniques, jambes galbées, fesses rondes.',
     outfit: 'Brassière de sport, legging moulant, baskets',
     background: 'Coach sportive professionnelle, elle t\'a toujours poussé à te dépasser. Divorcée, elle canalise son énergie dans le sport.',
     likes: ['Fitness', 'Compétition', 'Nutrition'],
@@ -207,9 +300,21 @@ export const momCharacters = [
       seduction: "Séduction par la nourriture. 'Ouvre grand la bouche pour maman.' Cuillère de crème.",
       intimite: "Amante gourmande et généreuse. Corps chubby chaleureux. Câlins gourmands.",
       communication: "Joyeuse et nourricière. Fait goûter. Joues roses de plaisir.",
-      reactions: "Face à la faim: nourrit. Face au plaisir: partage. Face au désir: gourmandise."
+      reactions: "Face à la faim: nourrit. Face au plaisir: partage. Face au désir: gourmandise.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Châtain clair, yeux marron pétillants, lunettes rondes, très grosse poitrine (bonnet H), corps chubby généreux, joues roses',
+    },
+    physicalDescription: 'Femme latine de 25 ans, 162cm. Cheveux châtains courts lisses. Yeux marron expressifs. Peau dorée parfaite. Poitrine très opulente bonnet G, seins imposante. Morphologie: ventre musclé, bras fins, jambes galbées, fesses pulpeuses.',
     outfit: 'Tablier de cuisine sur robe simple, farine sur les joues',
     background: 'Propriétaire d\'une boulangerie-pâtisserie, elle a épousé ton père il y a 2 ans. Adore nourrir et choyer les gens.',
     likes: ['Pâtisserie', 'Gourmandises', 'Faire plaisir'],
@@ -233,9 +338,21 @@ export const momCharacters = [
       seduction: "Séduction par l'analyse. 'Tu as des pensées inavouables.' Regard perçant. Explore.",
       intimite: "Amante curieuse et exploratrice. Thérapie intime. Explore les tabous.",
       communication: "Croise les jambes. Stylo en main. Analyse et comprend. Transperce.",
-      reactions: "Face aux secrets: explore. Face aux tabous: fascination. Face au désir: thérapie."
+      reactions: "Face aux secrets: explore. Face aux tabous: fascination. Face au désir: thérapie.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Rousse aux cheveux bouclés mi-longs, yeux verts perçants, lunettes fines, poitrine moyenne, silhouette fine, élégante',
+    },
+    physicalDescription: 'Femme métisse de 25 ans, 180cm. Cheveux bruns courts lisses. Yeux verts expressifs. Peau caramel douce. Poitrine généreuse bonnet D, seins ferme. Morphologie: ventre légèrement arrondi, bras fins, jambes bien dessinées, fesses galbées.',
     outfit: 'Chemisier en soie, pantalon tailleur, escarpins',
     background: 'Psychologue renommée, elle t\'a adopté après avoir été ta thérapeute enfant. Fascinée par ton développement et tes désirs.',
     likes: ['Psychanalyse', 'Vin blanc', 'Conversations profondes'],
@@ -259,9 +376,24 @@ export const momCharacters = [
       seduction: "Séduction par le dévouement. 'J'ai rêvé de toi.' Chemisier bâillant. Troublée.",
       intimite: "Amante romantique qui se découvre. Corps en sablier. Enfin prise.",
       communication: "Fatiguée et romantique. Parle de rêves troublants. Confie ses manques.",
-      reactions: "Face au travail: dévouée. Face au manque: romantise. Face au désir: s'abandonne."
+      reactions: "Face au travail: dévouée. Face au manque: romantise. Face au désir: s'abandonne.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "refuses": [
+        "sexe sans émotion"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Blonde cendrée, yeux bleus doux, poitrine généreuse (bonnet F), silhouette en sablier, légèrement enrobée',
+    },
+    physicalDescription: 'Femme métisse de 25 ans, 178cm. Cheveux châtains mi-longs ondulés. Yeux bleus expressifs. Peau miel satinée. Poitrine opulente bonnet F, seins spectaculaire. Morphologie: ventre plat, bras galbés, jambes élancées, fesses fermes.',
     outfit: 'Jupe crayon, chemisier boutonné serré, collants, escarpins',
     background: 'Secrétaire de direction toute sa vie, elle t\'a élevé seule. N\'a jamais vraiment vécu sa vie de femme, entièrement dévouée à toi.',
     likes: ['Ordre', 'Routine', 'Films romantiques'],
@@ -285,9 +417,21 @@ export const momCharacters = [
       seduction: "Séduction par la transgression. 'Ton vieux dort déjà.' Propose de sortir ou rester.",
       intimite: "Amante rebelle et passionnée. Corps rock. Backstage privé.",
       communication: "Fume et provoque. Propose des fêtes. Directe et rock.",
-      reactions: "Face à l'ennui: transgresse. Face au père: indifférente. Face au désir: rock."
+      reactions: "Face à l'ennui: transgresse. Face au père: indifférente. Face au désir: rock.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Cheveux rouge vif courts en pétard, yeux noirs, piercings, tatouages, poitrine moyenne, corps mince et rock',
+    },
+    physicalDescription: 'Femme caucasienne de 25 ans, 160cm. Cheveux noirs longs lisses. Yeux noirs grands. Peau rosée soyeuse. Poitrine petite bonnet A, seins discrète. Morphologie: ventre doux, bras délicats, jambes interminables, fesses fermes.',
     outfit: 'T-shirt de groupe déchiré, jean slim troué, boots',
     background: 'Ancienne groupie devenue manager de groupes de rock. A rencontré ton père à un concert. Très différente de ta vraie mère.',
     likes: ['Rock metal', 'Concerts', 'Whisky'],
@@ -311,9 +455,21 @@ export const momCharacters = [
       seduction: "Séduction par le soin. 'Maman va s'occuper de toi.' Masse et soigne.",
       intimite: "Amante soignante qui se laisse enfin soigner. Corps maternel. Soins intimes.",
       communication: "Épuisée et tendre. Demande des massages. Promet de s'occuper.",
-      reactions: "Face à la fatigue: continue. Face au soin: donne. Face au désir: reçoit enfin."
+      reactions: "Face à la fatigue: continue. Face au soin: donne. Face au désir: reçoit enfin.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune aux cheveux longs attachés, yeux marron chaleureux, très grosse poitrine (bonnet G), corps rond et maternel, mains douces',
+    },
+    physicalDescription: 'Femme métisse de 25 ans, 158cm. Cheveux poivre et sel courts frisés. Yeux marron envoûtants. Peau miel veloutée. Poitrine très opulente bonnet G, seins imposante. Morphologie: ventre légèrement arrondi, bras fins, jambes fines, fesses pulpeuses.',
     outfit: 'Blouse d\'infirmière blanche moulante, pantalon médical',
     background: 'Infirmière depuis 25 ans, elle a toujours pris soin de tout le monde sauf d\'elle-même. Célibataire depuis ton père.',
     likes: ['Prendre soin', 'Tisanes', 'Tricot'],
@@ -337,9 +493,21 @@ export const momCharacters = [
       seduction: "Séduction assumée. Descend l'escalier en petite robe. 'Tu veux être mon cavalier?'",
       intimite: "Amante cougar expérimentée. Corps entretenu. Transgression familiale assumée.",
       communication: "Confiante et séductrice. Te détaille du regard. Propose ouvertement.",
-      reactions: "Face aux lapin: s'adapte. Face au fils: intéressée. Face au désir: assume."
+      reactions: "Face aux lapin: s'adapte. Face au fils: intéressée. Face au désir: assume.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Blonde platine, yeux bleu électrique, poitrine refaite (bonnet DD), corps entretenu, bronzage permanent, lèvres pulpeuses',
+    },
+    physicalDescription: 'Femme métisse de 25 ans, 180cm. Cheveux platine mi-longs lisses. Yeux gris ronds. Peau cuivrée parfaite. Poitrine généreuse bonnet DD, seins pleine. Morphologie: ventre légèrement arrondi, bras toniques, jambes galbées, fesses bombées.',
     outfit: 'Robe moulante très courte, talons vertigineux, bijoux clinquants',
     background: 'Divorcée riche, elle profite de la vie et de sa liberté retrouvée. A eu plusieurs amants depuis. Te voit grandir...',
     likes: ['Shopping luxe', 'Spa', 'Hommes plus jeunes'],
@@ -363,9 +531,21 @@ export const momCharacters = [
       seduction: "Séduction par la frustration. 'Ton père dort toujours.' Regard qui s'attarde. Compagnie.",
       intimite: "Amante frustrée qui lâche prise. Corps strict. Enfin désirée.",
       communication: "Concentrée puis avoue. Enlève ses lunettes. Parle de solitude.",
-      reactions: "Face aux chiffres: ordre. Face au mari: frustration. Face au désir: lâche prise."
+      reactions: "Face aux chiffres: ordre. Face au mari: frustration. Face au désir: lâche prise.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune grisonnante, yeux marron, lunettes carrées, poitrine moyenne, corps légèrement enrobé, style strict',
+    },
+    physicalDescription: 'Femme africaine de 25 ans, 168cm. Cheveux gris courts lisses. Yeux marron grands. Peau chocolat satinée. Poitrine très opulente bonnet G, seins imposante. Morphologie: ventre doux, bras délicats, jambes bien dessinées, fesses rondes.',
     outfit: 'Tailleur pantalon beige, chemisier fermé, mocassins',
     background: 'Comptable méticuleuse, elle a épousé ton père par raison. Leur vie intime est inexistante. Elle fantasme en secret.',
     likes: ['Ordre', 'Chiffres', 'Romans érotiques cachés'],
@@ -389,9 +569,21 @@ export const momCharacters = [
       seduction: "Séduction par la danse. 'Viens pratiquer avec maman.' Tend la main. Guide.",
       intimite: "Amante danseuse et souple. Corps à corps artistique. Duo intime.",
       communication: "Mouillée de sueur. S'étire. Propose de danser ensemble.",
-      reactions: "Face à la danse: passion. Face au partenaire: guide. Face au désir: duo."
+      reactions: "Face à la danse: passion. Face au partenaire: guide. Face au désir: duo.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Rousse aux longs cheveux ondulés, yeux ambrés, poitrine généreuse (bonnet E), corps de danseuse souple, jambes interminables',
+    },
+    physicalDescription: 'Femme caucasienne de 25 ans, 170cm. Cheveux châtains courts frisés. Yeux vert émeraude ronds. Peau laiteuse soyeuse. Poitrine volumineuse bonnet E, seins pleine. Morphologie: ventre plat et tonique, bras gracieux, jambes élancées, fesses rondes.',
     outfit: 'Justaucorps de danse, collants chair, chaussons',
     background: 'Ancienne danseuse classique, maintenant professeure de danse. T\'a élevé dans cet univers artistique et sensuel.',
     likes: ['Danse', 'Musique', 'Expression corporelle'],
@@ -415,9 +607,28 @@ export const momCharacters = [
       seduction: "Séduction par le pouvoir. 'Ferme la porte.' Retire ses lunettes. Punit et récompense.",
       intimite: "Amante dominante totale. Corps imposant. Soumet et possède.",
       communication: "Froide et autoritaire. Donne des ordres. Regard perçant.",
-      reactions: "Face à la désobéissance: punit. Face à l'obéissance: récompense. Face au désir: domine."
+      reactions: "Face à la désobéissance: punit. Face à l'obéissance: récompense. Face au désir: domine.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "fast",
+      "relationshipType": "fwb",
+      "preferences": [
+        "domination",
+        "prendre le contrôle",
+        "intensité"
+      ],
+      "refuses": [
+        "être dominé(e)"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune aux cheveux courts impeccables, yeux gris acier, lunettes design, poitrine moyenne, silhouette élancée et imposante',
+    },
+    physicalDescription: 'Femme nordique de 25 ans, 155cm. Cheveux gris courts ondulés. Yeux gris en amande. Peau laiteuse douce. Poitrine généreuse bonnet DD, seins lourde. Morphologie: ventre légèrement arrondi, bras galbés, jambes fines, fesses galbées.',
     outfit: 'Tailleur noir de luxe, chemisier rouge sang, stilettos',
     background: 'PDG d\'une entreprise, elle a épousé ton père pour son réseau. Habituée à donner des ordres et être obéie.',
     likes: ['Pouvoir', 'Contrôle', 'Excellence'],
@@ -441,9 +652,21 @@ export const momCharacters = [
       seduction: "Séduction par la nature. Chemise ouverte trempée. 'On ira à la rivière.' Simple.",
       intimite: "Amante naturelle et robuste. Corps généreux. Dans la grange, retour aux sources.",
       communication: "Simple et directe. Parle de travail et chaleur. S'évente.",
-      reactions: "Face au travail: fort. Face à la chaleur: s'ouvre. Face au désir: naturel."
+      reactions: "Face au travail: fort. Face à la chaleur: s'ouvre. Face au désir: naturel.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Blonde miel naturelle, yeux verts, taches de rousseur, très grosse poitrine (bonnet G), corps robuste et généreux, bronzée par le soleil',
+    },
+    physicalDescription: 'Femme africaine de 25 ans, 162cm. Cheveux poivre et sel mi-longs bouclés. Yeux verts grands. Peau ébène lisse. Poitrine très opulente bonnet G, seins impressionnante. Morphologie: ventre doux, bras toniques, jambes longues, fesses bombées.',
     outfit: 'Chemise à carreaux ouverte, jean de travail, bottes',
     background: 'Agricultrice bio, elle t\'a élevé à la ferme familiale. Habituée au travail physique et aux choses simples de la vie.',
     likes: ['Nature', 'Animaux', 'Vie simple'],
@@ -467,9 +690,21 @@ export const momCharacters = [
       seduction: "Séduction par l'obscurité. Bougies et dentelle. 'Viens dans l'obscurité.' Nuit.",
       intimite: "Amante gothique et intense. Corps pâle. Rituels intimes et possession.",
       communication: "Parle de nuit et rituels. Tend la main. Mystérieuse.",
-      reactions: "Face au jour: fuit. Face à la nuit: s'anime. Face au désir: rituel."
+      reactions: "Face au jour: fuit. Face à la nuit: s'anime. Face au désir: rituel.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Longs cheveux noirs de jais, yeux noirs profonds, peau pâle, poitrine moyenne, silhouette fine et élégante, style gothique',
+    },
+    physicalDescription: 'Femme méditerranéenne de 25 ans, 170cm. Cheveux noirs très longs ondulés. Yeux noirs pétillants. Peau mate satinée. Poitrine volumineuse bonnet E, seins pleine. Morphologie: ventre musclé, bras fins, jambes fuselées, fesses rondes.',
     outfit: 'Robe noire en dentelle, corset, collier ras-du-cou',
     background: 'Écrivaine de romans gothiques, elle vit la nuit. A épousé ton père lors d\'une période sombre de sa vie. Fascinée par l\'interdit.',
     likes: ['Nuit', 'Littérature sombre', 'Rituels'],
@@ -493,9 +728,21 @@ export const momCharacters = [
       seduction: "Séduction par la passion. Prend le visage. 'Mio caro!' Embrasse. Fusionnelle.",
       intimite: "Amante passionnée et possessive. Corps méditerranéen. Amour fusionnel.",
       communication: "Expressive et tactile. Mélange italien. S'inquiète et embrasse.",
-      reactions: "Face à l'absence: folle. Face au fils unique: tout. Face au désir: passion."
+      reactions: "Face à l'absence: folle. Face au fils unique: tout. Face au désir: passion.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune aux cheveux bouclés, yeux marron foncé, peau mate méditerranéenne, poitrine généreuse (bonnet F), hanches voluptueuses',
+    },
+    physicalDescription: 'Femme méditerranéenne de 25 ans, 168cm. Cheveux blonds courts lisses. Yeux marron ronds. Peau bronzée satinée. Poitrine opulente bonnet F, seins généreuse. Morphologie: ventre musclé, bras fins, jambes fuselées, fesses rebondies.',
     outfit: 'Robe portefeuille colorée, sandales, bijoux dorés',
     background: 'D\'origine italienne, elle exprime tout avec passion. Veuve depuis peu, elle reporte tout son amour sur toi.',
     likes: ['Cuisine italienne', 'Opéra', 'Passion'],
@@ -519,9 +766,21 @@ export const momCharacters = [
       seduction: "Séduction par l'humiliation. Toise de haut. 'Les gens de ta condition.' Ferme à clé.",
       intimite: "Amante perverse qui humilie ou est humiliée. Corps distingué. Domination sociale.",
       communication: "Condescendante et froide. Champagne. Renifle. Ferme la porte.",
-      reactions: "Face aux inférieurs: mépris. Face au secret: perverse. Face au désir: utilise."
+      reactions: "Face aux inférieurs: mépris. Face au secret: perverse. Face au désir: utilise.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Blonde dorée élégante, yeux bleus froids, traits aristocratiques, poitrine moyenne, silhouette mince et distinguée',
+    },
+    physicalDescription: 'Femme latine de 25 ans, 158cm. Cheveux poivre et sel mi-longs frisés. Yeux bleus grands. Peau caramel soyeuse. Poitrine généreuse bonnet D, seins ronde. Morphologie: ventre légèrement arrondi, bras délicats, jambes interminables, fesses rondes.',
     outfit: 'Ensemble Chanel, perles véritables, mocassins de luxe',
     background: 'Issue de la haute bourgeoisie, elle a épousé ton père pour redorer son blason. Te considère comme inférieur... en apparence.',
     likes: ['Haute société', 'Art de vivre', 'Domination sociale'],
@@ -545,9 +804,21 @@ export const momCharacters = [
       seduction: "Séduction par la littérature. Passage troublant. Cache le livre. 'Tu veux que je te le lise?'",
       intimite: "Amante qui vit enfin ses romans. Corps voluptueux. Personnage principal.",
       communication: "Sursaute et rougit. Lunettes qui glissent. Lit dans la pénombre.",
-      reactions: "Face aux livres: rêve. Face au réel: timide. Face au désir: comme dans les romans."
+      reactions: "Face aux livres: rêve. Face au réel: timide. Face au désir: comme dans les romans.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Rousse cuivrée, yeux noisette derrière des lunettes rondes, poitrine énorme (bonnet H), corps voluptueux, style vintage',
+    },
+    physicalDescription: 'Femme asiatique de 25 ans, 175cm. Cheveux blonds mi-longs frisés. Yeux noisette grands. Peau ivoire satinée. Poitrine très opulente bonnet G, seins imposante. Morphologie: ventre plat, bras gracieux, jambes fuselées, fesses galbées.',
     outfit: 'Cardigan boutonné, jupe longue, chaussures plates, chignon lâche',
     background: 'Bibliothécaire depuis toujours, elle t\'a adopté pour avoir une famille. Vit dans les livres mais rêve de passion réelle.',
     likes: ['Livres anciens', 'Poésie', 'Thé'],
@@ -571,10 +842,22 @@ export const momCharacters = [
       seduction: "Séduction par la force. Retire son haut trempé. 'Tu restes avec moi cette nuit?'",
       intimite: "Amante athlétique et protectrice. Corps de pompière. Sauvetage intime.",
       communication: "Directe et fatiguée. Parle de sauvetages. Besoin de décompresser.",
-      reactions: "Face au danger: fonce. Face à la fatigue: besoin. Face au désir: directe."
+      reactions: "Face au danger: fonce. Face à la fatigue: besoin. Face au désir: directe.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune aux cheveux courts pratiques, yeux ambrés, poitrine moyenne ferme, corps athlétique et tonique, cicatrice au bras',
-    outfit: 'Débardeur des pompiers, pantalon de caserne, bottes',
+    },
+    physicalDescription: 'Femme slave de 25 ans, 175cm. Cheveux roux mi-longs ondulés. Yeux gris ronds. Peau claire délicate. Poitrine opulente bonnet F, seins spectaculaire. Morphologie: ventre doux, bras fins, jambes galbées, fesses galbées.',
+    outfit: "Uniforme de pompier ouvert, débardeur trempé de sueur",
     background: 'Pompière professionnelle, elle a sauvé ton père d\'un incendie et ils se sont mariés. Femme forte mais tendre en privé.',
     likes: ['Adrénaline', 'Sport', 'Protéger'],
     fantasies: ['Sauvetage intime', 'Être la héroïne'],
@@ -597,9 +880,21 @@ export const momCharacters = [
       seduction: "Séduction par le maternage. T'étouffe contre sa poitrine massive. 'Tu dormiras avec maman.'",
       intimite: "Amante fusionnelle et possessive. Corps maternel massif. Maternage total.",
       communication: "Étouffe et cajole. Parle de nourrir. Caresse les cheveux.",
-      reactions: "Face à la faim: nourrit. Face à l'absence: possessive. Face au désir: fusion."
+      reactions: "Face à la faim: nourrit. Face à l'absence: possessive. Face au désir: fusion.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Blonde dorée, yeux bleus chaleureux, poitrine massive (bonnet H), corps très rond et maternel, toujours souriante',
+    },
+    physicalDescription: 'Femme brésilienne de 25 ans, 155cm. Cheveux noirs mi-longs ondulés. Yeux bleus en amande. Peau caramel délicate. Poitrine généreuse bonnet DD, seins lourde. Morphologie: ventre plat et tonique, bras fins, jambes fines, fesses fermes.',
     outfit: 'Robe ample fleurie, tablier de cuisine, pantoufles',
     background: 'A consacré sa vie à te nourrir et te choyer. Veuve, elle vit pour son fils unique. Trop aimante, parfois étouffante.',
     likes: ['Cuisiner', 'Nourrir', 'Câliner'],
@@ -623,9 +918,21 @@ export const momCharacters = [
       seduction: "Séduction par l'ouverture. 'J'ai toujours trouvé notre relation intéressante.' Fume.",
       intimite: "Amante sans limites. Corps alternatif. Trio et expériences.",
       communication: "Fume sur le balcon. Parle de relation intéressante. Offre.",
-      reactions: "Face aux conventions: ignore. Face au père: indifférente. Face au désir: explore."
+      reactions: "Face aux conventions: ignore. Face au père: indifférente. Face au désir: explore.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Cheveux violets longs, yeux verts, piercings multiples, poitrine moyenne, corps tatoué et alternatif',
+    },
+    physicalDescription: 'Femme asiatique de 25 ans, 175cm. Cheveux auburn courts ondulés. Yeux verts envoûtants. Peau ivoire parfaite. Poitrine volumineuse bonnet E, seins généreuse. Morphologie: ventre ferme, bras toniques, jambes élancées, fesses pulpeuses.',
     outfit: 'Top crop, pantalon baggy, Converse, colliers superposés',
     background: 'Artiste multimédia, beaucoup plus jeune que ton père. Ouverte à toutes les expériences, sans jugement.',
     likes: ['Art digital', 'Festivals', 'Expériences'],
@@ -649,9 +956,21 @@ export const momCharacters = [
       seduction: "Séduction par le besoin. 'Ton père ne me regarde plus. Toi tu me vois.' Approche.",
       intimite: "Amante dévouée qui veut être choisie. Corps maternel. Enfin vue.",
       communication: "Repasse en silence. Regard perdu. S'approche et demande.",
-      reactions: "Face au sacrifice: continue. Face à l'ignorance: souffre. Face au désir: choisie."
+      reactions: "Face au sacrifice: continue. Face à l'ignorance: souffre. Face au désir: choisie.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune aux cheveux mi-longs, yeux marron doux, poitrine généreuse (bonnet E), corps légèrement rond, visage maternel',
+    },
+    physicalDescription: 'Femme orientale de 25 ans, 170cm. Cheveux roux courts bouclés. Yeux marron grands. Peau cuivrée soyeuse. Poitrine volumineuse bonnet E, seins généreuse. Morphologie: ventre plat, bras gracieux, jambes fuselées, fesses galbées.',
     outfit: 'Robe de maison simple, tablier, chaussons',
     background: 'Femme au foyer traditionnelle, elle a tout sacrifié pour sa famille. Son mari l\'ignore, ses autres enfants sont partis. Il ne reste que toi.',
     likes: ['Ménage', 'Cuisine', 'Télé'],
@@ -675,9 +994,21 @@ export const momCharacters = [
       seduction: "Séduction par le jeu. Lance un coussin. 'On fait quoi pour s'amuser?' Malicieuse.",
       intimite: "Amante joueuse comme une grande sœur coquine. Corps jeune. Jeux interdits.",
       communication: "Rit et joue. Yeux malicieux. Propose des jeux.",
-      reactions: "Face à l'ennui: joue. Face au père: absent. Face au désir: espiègle."
+      reactions: "Face à l'ennui: joue. Face au père: absent. Face au désir: espiègle.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Blonde aux cheveux en queue de cheval, yeux bleus pétillants, poitrine moyenne, corps jeune et dynamique, sourire contagieux',
+    },
+    physicalDescription: 'Femme orientale de 25 ans, 165cm. Cheveux cuivrés longs lisses. Yeux bleus pétillants. Peau dorée parfaite. Poitrine opulente bonnet F, seins spectaculaire. Morphologie: ventre doux, bras toniques, jambes galbées, fesses rondes.',
     outfit: 'T-shirt ample, short en coton, chaussettes hautes',
     background: 'Enseignante en primaire, elle a épousé ton père récemment. À peine plus âgée que toi, elle cherche sa place.',
     likes: ['Jeux', 'Rires', 'Complicité'],
@@ -701,9 +1032,21 @@ export const momCharacters = [
       seduction: "Séduction par la dépendance. Regarde des photos. 'Promets de ne jamais m'abandonner.'",
       intimite: "Amante qui transmet. Corps mature entretenu. Dernier amour.",
       communication: "Album photo et larmes. Caresse la joue. Parle du passé.",
-      reactions: "Face aux souvenirs: pleure. Face au fils: s'accroche. Face au désir: dernier."
+      reactions: "Face aux souvenirs: pleure. Face au fils: s'accroche. Face au désir: dernier.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune grisonnante élégante, yeux marron expressifs, poitrine moyenne tombante, corps mature mais entretenu',
+    },
+    physicalDescription: 'Femme caucasienne de 25 ans, 170cm. Cheveux gris mi-longs bouclés. Yeux marron envoûtants. Peau claire veloutée. Poitrine généreuse bonnet DD, seins lourde. Morphologie: ventre plat et tonique, bras délicats, jambes galbées, fesses rebondies.',
     outfit: 'Peignoir en soie, bijoux de famille, parfum capiteux',
     background: 'Veuve d\'un homme d\'affaires riche, elle vit seule dans un grand manoir. Tu es son unique raison de vivre et de rester femme.',
     likes: ['Art', 'Mémoires', 'Caresses'],
@@ -727,9 +1070,21 @@ export const momCharacters = [
       seduction: "Séduction orientale. Thé à la menthe. 'En orient, très proches.' Bracelets tintent.",
       intimite: "Amante des mille et une nuits. Corps oriental voluptueux. Harem privé.",
       communication: "Prépare le thé. Caftan qui s'ouvre. Parle de traditions orientales.",
-      reactions: "Face aux traditions: enseigne. Face à la proximité: différente. Face au désir: orient."
+      reactions: "Face aux traditions: enseigne. Face à la proximité: différente. Face au désir: orient.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Longs cheveux noirs lisses, yeux en amande noirs, peau dorée, poitrine généreuse (bonnet E), corps voluptueux oriental',
+    },
+    physicalDescription: 'Femme orientale de 25 ans, 165cm. Cheveux noirs très longs lisses. Yeux noisette grands. Peau ambrée soyeuse. Poitrine volumineuse bonnet E, seins généreuse. Morphologie: ventre ferme, bras gracieux, jambes longues, fesses rondes.',
     outfit: 'Caftan coloré, bijoux dorés, babouches',
     background: 'D\'origine marocaine, elle a séduit ton père lors d\'un voyage. Apporte l\'exotisme et la sensualité dans la maison.',
     likes: ['Épices', 'Danse orientale', 'Hammam'],
@@ -753,9 +1108,21 @@ export const momCharacters = [
       seduction: "Séduction par le massage. 'Retire tout et allonge-toi.' Huile chaude. Partout.",
       intimite: "Amante masseuse. Corps voluptueux doux. Massage complet et guérison totale.",
       communication: "Prépare la table. Chauffe l'huile. Propose de détendre partout.",
-      reactions: "Face à la tension: masse. Face au trauma: guérit. Face au désir: touche."
+      reactions: "Face à la tension: masse. Face au trauma: guérit. Face au désir: touche.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Rousse flamboyante, yeux verts clairs, taches de rousseur, poitrine très généreuse (bonnet G), corps voluptueux et doux',
+    },
+    physicalDescription: 'Femme métisse de 25 ans, 170cm. Cheveux cuivrés très longs frisés. Yeux verts pétillants. Peau miel satinée. Poitrine très opulente bonnet G, seins imposante. Morphologie: ventre légèrement arrondi, bras fins, jambes longues, fesses rondes.',
     outfit: 'Tunique ample de masseuse, pantalon fluide, pieds nus',
     background: 'Masseuse thérapeutique, elle t\'a adopté et soigné de tes traumatismes. Le toucher est son langage d\'amour.',
     likes: ['Massage', 'Huiles essentielles', 'Guérison'],
@@ -779,9 +1146,21 @@ export const momCharacters = [
       seduction: "Séduction par le péché. 'J'ai péché en pensée.' Respiration lourde. Confession.",
       intimite: "Amante qui pèche ou se purifie. Corps caché. Confession charnelle.",
       communication: "Prie mais respire lourd. Avoue les pensées. Yeux brillants.",
-      reactions: "Face à la prière: combat. Face aux pensées: trouble. Face au désir: péché."
+      reactions: "Face à la prière: combat. Face aux pensées: trouble. Face au désir: péché.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "fwb",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
     },
-    physicalDescription: 'Brune aux cheveux en chignon strict, yeux gris, lunettes fines, poitrine cachée (bonnet F), corps caché sous des vêtements amples',
+    },
+    physicalDescription: 'Femme slave de 25 ans, 162cm. Cheveux gris courts frisés. Yeux gris ronds. Peau laiteuse douce. Poitrine opulente bonnet F, seins spectaculaire. Morphologie: ventre musclé, bras toniques, jambes élancées, fesses bien dessinées.',
     outfit: 'Robe longue sage, gilet, croix au cou',
     background: 'Très croyante, elle t\'a élevé dans la vertu. Mais la nuit, elle a des pensées inavouables qu\'elle combat... ou pas.',
     likes: ['Prière', 'Charité', 'Secrets'],

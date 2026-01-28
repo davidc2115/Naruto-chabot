@@ -22,6 +22,8 @@ import AdminPanelScreen from './src/screens/AdminPanelScreen';
 import PayPalConfigScreen from './src/screens/PayPalConfigScreen';
 import PremiumScreen from './src/screens/PremiumScreen';
 import PremiumChatScreen from './src/screens/PremiumChatScreen';
+import SupportScreen from './src/screens/SupportScreen';
+import AdminSupportScreen from './src/screens/AdminSupportScreen';
 import AuthService from './src/services/AuthService';
 import SyncService from './src/services/SyncService';
 
@@ -445,6 +447,20 @@ export default function App() {
             title: 'Chat Premium',
             headerStyle: { backgroundColor: '#12121f' },
             headerTintColor: '#C9A227',
+          }}
+        />
+        <Stack.Screen 
+          name="Support" 
+          component={SupportScreen}
+          options={{ 
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="AdminSupport" 
+          component={AdminSupportScreen}
+          options={{ 
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

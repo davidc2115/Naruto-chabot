@@ -13,12 +13,14 @@ import {
   StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import appConfig from '../../app.json';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
 import TextGenerationService from '../services/TextGenerationService';
 import SyncService from '../services/SyncService';
 import AuthService from '../services/AuthService';
+import PayPalService from '../services/PayPalService';
 import * as FileSystem from 'expo-file-system';
 
 // URL du serveur Freebox pour les fonctions admin
@@ -49,8 +51,8 @@ export default function SettingsScreen({ navigation, onLogout }) {
   const [groqModel, setGroqModel] = useState('');
   const [availableModels, setAvailableModels] = useState([]);
   
-  // Configuration images
-  const [imageSource, setImageSource] = useState('freebox');
+  // Configuration images - v5.4.17: 3 options
+  const [imageSource, setImageSource] = useState('pollinations'); // 'pollinations', 'freebox', 'local'
   const [freeboxUrl, setFreeboxUrl] = useState('http://88.174.155.230:33437/generate');
   
   // SD Local
@@ -62,6 +64,44 @@ export default function SettingsScreen({ navigation, onLogout }) {
   const [syncStatus, setSyncStatus] = useState(null);
   const [syncing, setSyncing] = useState(false);
   const [serverStats, setServerStats] = useState(null);
+  
+  // v5.4.73 - PayPal avec 3 types de plans
+  const [paypalEmail, setPaypalEmail] = useState('');
+  const [premiumStatus, setPremiumStatus] = useState({ isPremium: false });
+  // Initialiser avec les 3 plans par défaut pour éviter les problèmes d'affichage
+  const [premiumPlans, setPremiumPlans] = useState({
+    monthly: {
+      id: 'premium_monthly',
+      name: '📅 Premium Mensuel',
+      price: 4.99,
+      currency: 'EUR',
+      period: 'month',
+      features: ['Génération d\'images illimitée', 'Tous les personnages débloqués', 'Pas de publicité', 'Support prioritaire'],
+      icon: '📅',
+      color: '#3b82f6',
+    },
+    yearly: {
+      id: 'premium_yearly',
+      name: '🌟 Premium Annuel',
+      price: 39.99,
+      currency: 'EUR',
+      period: 'year',
+      features: ['Tous les avantages mensuels', '2 mois gratuits (33% d\'économie)', 'Accès anticipé aux nouvelles fonctionnalités', 'Personnages exclusifs'],
+      icon: '🌟',
+      color: '#f59e0b',
+      recommended: true,
+    },
+    lifetime: {
+      id: 'premium_lifetime',
+      name: '👑 Premium à Vie',
+      price: 99.99,
+      currency: 'EUR',
+      period: 'lifetime',
+      features: ['Accès PERMANENT', 'Toutes les futures mises à jour', 'Badge VIP exclusif', 'Support prioritaire à vie'],
+      icon: '👑',
+      color: '#10b981',
+    },
+  });
 
   useEffect(() => {
     loadAllSettings();
@@ -92,10 +132,72 @@ export default function SettingsScreen({ navigation, onLogout }) {
         await checkSDAvailability();
       }
       await loadSyncStatus();
+      await loadPayPalConfig();
     } catch (error) {
       console.error('Erreur chargement paramètres:', error);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  // v5.4.73 - Charger la configuration PayPal avec les 3 plans
+  const loadPayPalConfig = async () => {
+    try {
+      const config = await PayPalService.loadConfig();
+      setPaypalEmail(config.paypalEmail || '');
+      
+      // Charger les plans depuis le service (ou garder les valeurs par défaut)
+      const servicePlans = PayPalService.getPremiumPlans();
+      if (servicePlans && Object.keys(servicePlans).length >= 3) {
+        setPremiumPlans(servicePlans);
+        console.log('💳 Plans premium chargés:', Object.keys(servicePlans));
+      } else {
+        console.log('💳 Utilisation des plans par défaut');
+      }
+      
+      const status = await PayPalService.checkPremiumStatus();
+      setPremiumStatus(status);
+      console.log('💳 Statut premium:', status);
+    } catch (error) {
+      console.error('Erreur chargement PayPal:', error);
+      // Garder les plans par défaut en cas d'erreur
+    }
+  };
+  
+  // v5.4.49 - Sauvegarder la configuration PayPal
+  const savePayPalConfig = async () => {
+    try {
+      await PayPalService.saveConfig({ paypalEmail });
+      Alert.alert('✅ Succès', 'Configuration PayPal sauvegardée!');
+    } catch (error) {
+      Alert.alert('❌ Erreur', error.message);
+    }
+  };
+  
+  // v5.4.53 - Ouvrir le paiement PayPal avec activation automatique
+  const openPayPalPayment = async (planId) => {
+    if (!paypalEmail) {
+      Alert.alert('⚠️ Configuration requise', 'L\'administrateur doit d\'abord configurer PayPal.');
+      return;
+    }
+    
+    // Utiliser le nouveau processus avec activation automatique
+    const success = await PayPalService.processPaymentWithAutoActivation(
+      planId,
+      // Callback de succès - recharger le statut premium
+      async (status) => {
+        setPremiumStatus(status);
+      },
+      // Callback d'annulation
+      () => {
+        console.log('Paiement annulé');
+      }
+    );
+    
+    if (success) {
+      // Recharger le statut premium
+      const newStatus = await PayPalService.checkPremiumStatus();
+      setPremiumStatus(newStatus);
     }
   };
 
@@ -301,12 +403,14 @@ export default function SettingsScreen({ navigation, onLogout }) {
     try {
       await CustomImageAPIService.loadConfig();
       const strategy = CustomImageAPIService.getStrategy();
-      const url = CustomImageAPIService.getApiUrl();
+      const url = CustomImageAPIService.getFreeboxUrl();
       
-      setImageSource(strategy || 'freebox');
+      // v5.4.17 - Supporter les 3 stratégies
+      setImageSource(strategy || 'pollinations');
       if (url) {
         setFreeboxUrl(url);
       }
+      console.log(`📸 Config images chargée: ${strategy}, URL: ${url?.substring(0, 40)}...`);
     } catch (error) {
       console.error('Erreur chargement config images:', error);
     }
@@ -441,17 +545,27 @@ export default function SettingsScreen({ navigation, onLogout }) {
 
   const saveImageConfig = async () => {
     try {
-      if (imageSource === 'local') {
-        await CustomImageAPIService.saveConfig('', 'local', 'local');
-        Alert.alert('✅ Succès', 'Stable Diffusion Local activé ! Téléchargez le modèle pour commencer.');
-      } else {
-        // Freebox
-        if (!freeboxUrl.trim()) {
-          Alert.alert('Erreur', 'Veuillez entrer l\'URL de la Freebox.');
-          return;
-        }
-        await CustomImageAPIService.saveConfig(freeboxUrl.trim(), 'freebox', 'freebox');
-        Alert.alert('✅ Succès', 'API Freebox configurée !');
+      // v5.4.17 - Support des 3 stratégies
+      switch (imageSource) {
+        case 'local':
+          await CustomImageAPIService.saveConfig('local', null);
+          Alert.alert('✅ Succès', 'Stable Diffusion Local activé !\nTéléchargez le modèle pour commencer.');
+          break;
+          
+        case 'freebox':
+          if (!freeboxUrl.trim()) {
+            Alert.alert('Erreur', 'Veuillez entrer l\'URL du serveur Stable Diffusion.');
+            return;
+          }
+          await CustomImageAPIService.saveConfig('freebox', freeboxUrl.trim());
+          Alert.alert('✅ Succès', 'Stable Diffusion Serveur configuré !\nURL: ' + freeboxUrl.substring(0, 40) + '...');
+          break;
+          
+        case 'pollinations':
+        default:
+          await CustomImageAPIService.saveConfig('pollinations', null);
+          Alert.alert('✅ Succès', 'Pollinations AI activé !\nGénération cloud avec NSFW activé.');
+          break;
       }
     } catch (error) {
       Alert.alert('❌ Erreur', error.message);
@@ -465,11 +579,11 @@ export default function SettingsScreen({ navigation, onLogout }) {
     }
 
     try {
-      Alert.alert('Test en cours', 'Vérification de la connexion...');
-      const result = await CustomImageAPIService.testConnection(freeboxUrl.trim());
+      Alert.alert('Test en cours', 'Vérification de la connexion au serveur Stable Diffusion...');
+      const result = await CustomImageAPIService.testFreeboxConnection(freeboxUrl.trim());
       
       if (result.success) {
-        Alert.alert('✅ Succès', 'Connexion à la Freebox réussie !');
+        Alert.alert('✅ Succès', 'Connexion au serveur Stable Diffusion réussie !');
       } else {
         Alert.alert('❌ Échec', `Impossible de se connecter:\n${result.error}`);
       }
@@ -825,10 +939,29 @@ export default function SettingsScreen({ navigation, onLogout }) {
           </View>
           <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
           <Text style={styles.sectionDescription}>
-            Choisissez entre Freebox (serveur) ou SD Local (smartphone).
+            Choisissez votre source de génération d'images.
           </Text>
 
-          {/* Option Freebox */}
+          {/* Option 1: Pollinations AI (Cloud) */}
+          <TouchableOpacity
+            style={[
+              styles.optionCard,
+              imageSource === 'pollinations' && styles.optionCardActive
+            ]}
+            onPress={() => setImageSource('pollinations')}
+          >
+            <View style={styles.radioButton}>
+              {imageSource === 'pollinations' && <View style={styles.radioButtonInner} />}
+            </View>
+            <View style={styles.optionContent}>
+              <Text style={styles.optionTitle}>☁️ Pollinations AI (Cloud)</Text>
+              <Text style={styles.optionDescription}>
+                Génération cloud rapide et gratuite. NSFW activé !
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Option 2: Stable Diffusion (via Pollinations Flux) */}
           <TouchableOpacity
             style={[
               styles.optionCard,
@@ -840,220 +973,103 @@ export default function SettingsScreen({ navigation, onLogout }) {
               {imageSource === 'freebox' && <View style={styles.radioButtonInner} />}
             </View>
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>🏠 Freebox (Recommandé)</Text>
+              <Text style={styles.optionTitle}>🎨 Stable Diffusion (Flux)</Text>
               <Text style={styles.optionDescription}>
-                Serveur Stable Diffusion sur Freebox. Rapide et illimité !
+                Modèle Flux haute qualité. NSFW complet. Rapide (~5-15s).
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e', fontSize: 11, marginTop: 4 }]}>
+                ✅ Recommandé - Meilleure qualité d'images
               </Text>
             </View>
           </TouchableOpacity>
 
-          {/* Option SD Local */}
-          <TouchableOpacity
+          {/* Option 3: SD Local - Non disponible */}
+          <View
             style={[
               styles.optionCard,
-              imageSource === 'local' && styles.optionCardActive
+              { opacity: 0.6, backgroundColor: '#1f2937' }
             ]}
-            onPress={() => setImageSource('local')}
           >
-            <View style={styles.radioButton}>
-              {imageSource === 'local' && <View style={styles.radioButtonInner} />}
-            </View>
+            <View style={[styles.radioButton, { borderColor: '#6b7280' }]} />
             <View style={styles.optionContent}>
-              <Text style={styles.optionTitle}>📱 SD Local (Smartphone)</Text>
-              <Text style={styles.optionDescription}>
-                Génération sur téléphone. Offline, 100% privé.
+              <Text style={[styles.optionTitle, { color: '#9ca3af' }]}>📱 SD Local (Smartphone)</Text>
+              <Text style={[styles.optionDescription, { color: '#6b7280' }]}>
+                Génération hors ligne sur téléphone.
               </Text>
-              <Text style={styles.optionWarning}>⚠️ Pipeline en développement</Text>
+              <Text style={[styles.optionWarning, { color: '#ef4444' }]}>
+                ❌ Non disponible - ONNX incompatible avec votre appareil
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#9ca3af', fontSize: 10, marginTop: 4 }]}>
+                → Utilisez "Stable Diffusion (Flux)" - même qualité, plus rapide
+              </Text>
             </View>
-          </TouchableOpacity>
+          </View>
 
-          {/* Configuration Freebox */}
-          {imageSource === 'freebox' && (
+          {/* Configuration Pollinations AI */}
+          {imageSource === 'pollinations' && (
             <View style={styles.configBox}>
-              <Text style={styles.configTitle}>Configuration Freebox:</Text>
-              <TextInput
-                style={styles.urlInput}
-                placeholder="http://88.174.155.230:33437/generate"
-                value={freeboxUrl}
-                onChangeText={setFreeboxUrl}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              <TouchableOpacity style={styles.testButtonSmall} onPress={testFreeboxConnection}>
-                <Text style={styles.testButtonSmallText}>🧪 Tester la connexion</Text>
-              </TouchableOpacity>
+              <Text style={styles.configTitle}>☁️ Pollinations AI (Cloud)</Text>
+              <Text style={styles.optionDescription}>
+                Génération automatique via Pollinations AI avec le modèle Flux.
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e', marginTop: 8 }]}>
+                ✅ Mode NSFW activé (safe=false)
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e' }]}>
+                ✅ Qualité améliorée (enhance=true)
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e' }]}>
+                ✅ Modèle Flux pour meilleure qualité
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#3b82f6', marginTop: 8 }]}>
+                ℹ️ Aucune configuration requise
+              </Text>
             </View>
           )}
 
-          {/* Configuration SD Local */}
+          {/* Configuration Stable Diffusion (Flux) */}
+          {imageSource === 'freebox' && (
+            <View style={styles.configBox}>
+              <Text style={styles.configTitle}>🎨 Stable Diffusion (Flux)</Text>
+              <Text style={styles.optionDescription}>
+                Génération d'images haute qualité via le modèle Flux.
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e', marginTop: 8 }]}>
+                ✅ Mode NSFW activé
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e' }]}>
+                ✅ Qualité optimisée (Flux Realism/Anime auto)
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e' }]}>
+                ✅ Génération rapide (~5-15 secondes)
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#3b82f6', marginTop: 8, fontSize: 11 }]}>
+                ℹ️ Aucune configuration requise - tout est automatique
+              </Text>
+            </View>
+          )}
+
+          {/* Configuration SD Local - Non disponible */}
           {imageSource === 'local' && (
             <View style={styles.configBox}>
-              <Text style={styles.configTitle}>📱 Stable Diffusion Local:</Text>
-
-              {/* Statut détaillé */}
-              {sdAvailability && (
-                <View style={styles.sdInfoBox}>
-                  <Text style={styles.sdInfoTitle}>📊 Statut du module</Text>
-                  
-                  <Text style={styles.sdInfoText}>
-                    📱 Module natif: {sdAvailability.moduleLoaded ? '✅ Chargé' : '❌ Non chargé'}
-                    {sdAvailability.moduleVersion && ` (v${sdAvailability.moduleVersion})`}
-                  </Text>
-                  
-                  <Text style={styles.sdInfoText}>
-                    🔧 ONNX Runtime: {sdAvailability.onnxAvailable ? '✅ Disponible' : '❌ Non disponible'}
-                  </Text>
-                  
-                  {!sdAvailability.onnxAvailable && (
-                    <Text style={[styles.sdInfoText, { color: '#dc2626', fontSize: 11, marginLeft: 20 }]}>
-                      ⚠️ La génération locale n'est pas disponible sur cet appareil.
-                      {'\n'}   Utilisez la Freebox ou l'API externe pour générer des images.
-                    </Text>
-                  )}
-                  
-                  <Text style={styles.sdInfoText}>
-                    📦 Modèles: {sdAvailability.modelDownloaded 
-                      ? `✅ Prêts (${sdAvailability.modelSizeMB?.toFixed(0) || 0} MB)` 
-                      : '📥 À télécharger (~2 GB)'}
-                  </Text>
-                  
-                  {sdAvailability.deviceModel && (
-                    <Text style={styles.sdInfoText}>
-                      📲 Appareil: {sdAvailability.deviceModel} (Android {sdAvailability.androidVersion})
-                    </Text>
-                  )}
-                  
-                  <Text style={styles.sdInfoText}>
-                    🧠 RAM Totale: {
-                      sdAvailability.totalSystemRamMB > 0 
-                        ? (sdAvailability.totalSystemRamMB / 1024).toFixed(2)
-                        : sdAvailability.ramMB > 0 
-                          ? (sdAvailability.ramMB / 1024).toFixed(2) 
-                          : '?'
-                    } GB
-                    {(sdAvailability.availableSystemRamMB > 0 || sdAvailability.freeRamMB > 0) 
-                      ? ` (${((sdAvailability.availableSystemRamMB || sdAvailability.freeRamMB) / 1024).toFixed(2)} GB dispo)` 
-                      : ''
-                    }
-                    {sdAvailability.hasEnoughRAM ? ' ✅' : ' ⚠️'}
-                  </Text>
-                  
-                  {sdAvailability.freeStorageMB > 0 && (
-                    <Text style={styles.sdInfoText}>
-                      💾 Stockage: {(sdAvailability.freeStorageMB / 1024).toFixed(1)} GB libre
-                    </Text>
-                  )}
-                  
-                  <Text style={styles.sdInfoText}>
-                    ⚡ Pipeline: {sdAvailability.pipelineReady ? '✅ Prêt' : '⏸️ Non initialisé'}
-                  </Text>
-                  
-                  <View style={[styles.sdStatusBadge, { 
-                    backgroundColor: sdAvailability.canRunSD ? '#d1fae5' : '#fef3c7' 
-                  }]}>
-                    <Text style={[styles.sdStatusText, { 
-                      color: sdAvailability.canRunSD ? '#065f46' : '#92400e' 
-                    }]}>
-                      {sdAvailability.reason || 'Vérification...'}
-                    </Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Barre de progression */}
-              {sdDownloading && (
-                <View style={styles.progressContainer}>
-                  <Text style={styles.progressText}>
-                    📥 Téléchargement... {Math.round(sdDownloadProgress)}%
-                  </Text>
-                  <View style={styles.progressBar}>
-                    <View style={[styles.progressFill, { width: `${sdDownloadProgress}%` }]} />
-                  </View>
-                </View>
-              )}
-
-              {/* Bouton téléchargement */}
-              <TouchableOpacity 
-                style={[
-                  styles.downloadButton, 
-                  sdDownloading && styles.downloadButtonDisabled
-                ]} 
-                onPress={downloadSDModel}
-                disabled={sdDownloading}
-              >
-                <Text style={styles.downloadButtonText}>
-                  {sdDownloading 
-                    ? '⏳ Téléchargement en cours...' 
-                    : sdAvailability?.modelDownloaded
-                      ? '🔄 Re-télécharger le modèle'
-                      : '📥 Télécharger le modèle (~2.5 GB)'}
-                </Text>
-              </TouchableOpacity>
-              
-              {/* Bouton de test du module */}
-              <TouchableOpacity
-                style={[styles.sdButton, { backgroundColor: '#6366f1', marginTop: 10 }]}
-                onPress={async () => {
-                  try {
-                    Alert.alert('🧪 Test...', 'Test du module natif en cours...');
-                    const result = await StableDiffusionLocalService.testModule();
-                    console.log('🧪 Résultat test module:', JSON.stringify(result, null, 2));
-                    
-                    if (result.success) {
-                      // Calculer les valeurs à afficher
-                      const totalGB = result.totalRamGB || (result.totalRamMB ? result.totalRamMB / 1024 : 0);
-                      const availGB = result.availableRamGB || (result.availableRamMB ? result.availableRamMB / 1024 : 0);
-                      
-                      Alert.alert(
-                        '✅ Module OK',
-                        `Source: ${result.source || 'N/A'}\n` +
-                        `Version: ${result.moduleVersion || 'N/A'}\n` +
-                        `\n📊 RAM:\n` +
-                        `  • Totale: ${totalGB.toFixed(2)} GB\n` +
-                        `  • Disponible: ${availGB.toFixed(2)} GB\n` +
-                        (result.totalRamMB ? `  • (${Math.round(result.totalRamMB)} MB / ${Math.round(result.availableRamMB || 0)} MB)\n` : '') +
-                        `\n⚡ ONNX: ${result.onnxAvailable ? '✅ Disponible' : '❌ Non disponible'}\n` +
-                        `  Status: ${result.onnxStatus || 'N/A'}\n` +
-                        `\n📱 Appareil: ${result.device || 'N/A'}\n` +
-                        `  Fabricant: ${result.manufacturer || 'N/A'}\n` +
-                        `  Android: ${result.androidVersion || 'N/A'}` +
-                        (result.hint ? `\n\n💡 ${result.hint}` : '')
-                      );
-                    } else {
-                      // Afficher les détails de l'erreur
-                      let errorDetails = `Module trouvé: ${result.moduleExists ? '✅' : '❌'}\n`;
-                      errorDetails += `Platform: ${result.platform || 'N/A'} ${result.platformVersion || ''}\n`;
-                      errorDetails += `\nErreur: ${result.error || 'Inconnue'}\n`;
-                      
-                      if (result.hint) {
-                        errorDetails += `\n💡 ${result.hint}\n`;
-                      }
-                      
-                      if (result.availableModules && result.availableModules.length > 0) {
-                        errorDetails += `\nModules natifs trouvés (${result.availableModules.length}):\n`;
-                        errorDetails += result.availableModules.slice(0, 10).join(', ');
-                        if (result.availableModules.length > 10) {
-                          errorDetails += '...';
-                        }
-                      }
-                      
-                      if (result.methodsAvailable && result.methodsAvailable.length > 0) {
-                        errorDetails += `\n\nMéthodes du module:\n${result.methodsAvailable.join(', ')}`;
-                      }
-                      
-                      Alert.alert('❌ Erreur Module', errorDetails);
-                    }
-                    checkSDAvailability();
-                  } catch (e) {
-                    Alert.alert('❌ Erreur', e.message);
-                  }
-                }}
-              >
-                <Text style={styles.sdButtonText}>🧪 Tester le module natif</Text>
-              </TouchableOpacity>
-              
-              <Text style={styles.sdNote}>
-                💡 Conseil: Utilisez la Freebox pour l'instant. Le SD Local sera fonctionnel dans une future mise à jour.
+              <Text style={styles.configTitle}>📱 SD Local - Non disponible</Text>
+              <Text style={[styles.optionDescription, { color: '#ef4444', marginTop: 8 }]}>
+                ❌ La génération locale d'images n'est pas disponible sur votre appareil.
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#9ca3af', marginTop: 8 }]}>
+                Raisons possibles :
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#6b7280', fontSize: 11 }]}>
+                • ONNX Runtime non compatible avec votre processeur
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#6b7280', fontSize: 11 }]}>
+                • MediaTek/Exynos parfois non supporté
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#6b7280', fontSize: 11 }]}>
+                • RAM insuffisante ({sdAvailability?.ramMB > 0 ? `${(sdAvailability.ramMB/1024).toFixed(1)}GB détecté` : 'non détectée'})
+              </Text>
+              <Text style={[styles.optionDescription, { color: '#22c55e', marginTop: 12 }]}>
+                ✅ Solution : Utilisez "Stable Diffusion (Flux)" - même qualité, plus rapide !
               </Text>
             </View>
           )}
@@ -1106,13 +1122,13 @@ export default function SettingsScreen({ navigation, onLogout }) {
         </View>
       )}
 
-      {/* SYNCHRONISATION FREEBOX - Admin seulement */}
+      {/* SYNCHRONISATION SERVEUR - Admin seulement */}
       {isAdmin && (
         <View style={styles.section}>
           <View style={styles.adminBadge}>
             <Text style={styles.adminBadgeText}>👑 Admin Only</Text>
           </View>
-          <Text style={styles.sectionTitle}>☁️ Synchronisation Freebox</Text>
+          <Text style={styles.sectionTitle}>☁️ Synchronisation Serveur</Text>
           
           <View style={styles.syncStatusBox}>
             <View style={styles.syncStatusRow}>
@@ -1169,21 +1185,225 @@ export default function SettingsScreen({ navigation, onLogout }) {
           </View>
           
           <Text style={styles.syncHint}>
-            Synchronise tes personnages, conversations et paramètres avec ta Freebox.
+            Synchronise tes personnages, conversations et paramètres avec le serveur.
             Les personnages publics sont partagés avec la communauté.
           </Text>
         </View>
       )}
 
+      {/* v5.4.73 - PAYPAL & PREMIUM - 3 types d'abonnement */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>💳 Premium & Paiement</Text>
+        
+        {/* Statut Premium - Amélioré */}
+        <View style={[
+          styles.premiumStatusBox,
+          premiumStatus.isPremium && { borderColor: '#10b981', backgroundColor: '#ecfdf5' }
+        ]}>
+          <Text style={styles.premiumStatusTitle}>
+            {premiumStatus.isPremium ? '👑 Compte Premium' : '⭐ Compte Gratuit'}
+          </Text>
+          
+          {premiumStatus.isPremium && (
+            <>
+              {/* Afficher le type de plan */}
+              {premiumStatus.planId && (
+                <Text style={styles.premiumPlanType}>
+                  {premiumStatus.planId === 'monthly' && '📅 Abonnement Mensuel'}
+                  {premiumStatus.planId === 'yearly' && '🌟 Abonnement Annuel'}
+                  {premiumStatus.planId === 'lifetime' && '👑 Premium à Vie'}
+                </Text>
+              )}
+              
+              {/* Date d'expiration ou Premium à vie */}
+              {premiumStatus.expiresAt ? (
+                <View style={styles.expirationBox}>
+                  <Text style={styles.premiumExpiry}>
+                    ⏰ Expire le: {new Date(premiumStatus.expiresAt).toLocaleDateString('fr-FR')}
+                  </Text>
+                  {premiumStatus.daysRemaining && (
+                    <Text style={[
+                      styles.daysRemaining,
+                      premiumStatus.daysRemaining <= 7 && { color: '#ef4444' }
+                    ]}>
+                      {premiumStatus.daysRemaining} jour{premiumStatus.daysRemaining > 1 ? 's' : ''} restant{premiumStatus.daysRemaining > 1 ? 's' : ''}
+                    </Text>
+                  )}
+                  {premiumStatus.willExpireSoon && (
+                    <Text style={styles.expirationWarning}>
+                      ⚠️ Renouveler bientôt pour garder vos avantages !
+                    </Text>
+                  )}
+                </View>
+              ) : (
+                <Text style={styles.premiumLifetime}>🎉 Premium à vie - Aucune expiration !</Text>
+              )}
+              
+              {/* Date d'activation */}
+              {premiumStatus.activatedAt && (
+                <Text style={styles.activatedDate}>
+                  Activé le: {new Date(premiumStatus.activatedAt).toLocaleDateString('fr-FR')}
+                </Text>
+              )}
+            </>
+          )}
+          
+          {/* Si expiré récemment */}
+          {premiumStatus.expired && (
+            <Text style={styles.expiredNotice}>
+              ❌ Votre abonnement a expiré. Renouvelez pour retrouver vos avantages !
+            </Text>
+          )}
+        </View>
+        
+        {/* Configuration PayPal (Admin) */}
+        {isAdmin && (
+          <View style={styles.paypalConfigBox}>
+            <Text style={styles.paypalConfigTitle}>⚙️ Configuration PayPal (Admin)</Text>
+            <Text style={styles.paypalConfigHint}>
+              Email PayPal pour recevoir les paiements
+            </Text>
+            <TextInput
+              style={styles.paypalInput}
+              value={paypalEmail}
+              onChangeText={setPaypalEmail}
+              placeholder="votre-email@paypal.com"
+              placeholderTextColor="#9ca3af"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TouchableOpacity style={styles.paypalSaveButton} onPress={savePayPalConfig}>
+              <Text style={styles.paypalSaveButtonText}>💾 Sauvegarder</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        
+        {/* v5.4.75 - Plans Premium - Affichage EXPLICITE des 3 plans */}
+        {!premiumStatus.isPremium && (
+          <View style={styles.premiumPlansBox}>
+            <Text style={styles.premiumPlansTitle}>🌟 Passer en Premium</Text>
+            <Text style={styles.premiumPlansSubtitle}>
+              Choisissez votre formule et débloquez tous les avantages !
+            </Text>
+            
+            {/* ========== PLAN MENSUEL ========== */}
+            <TouchableOpacity 
+              style={styles.premiumPlanCard}
+              onPress={() => openPayPalPayment('monthly')}
+            >
+              <View style={styles.premiumPlanHeader}>
+                <View style={styles.planTitleRow}>
+                  <Text style={styles.planIcon}>📅</Text>
+                  <Text style={styles.premiumPlanName}>Premium Mensuel</Text>
+                </View>
+                <View style={styles.priceBox}>
+                  <Text style={styles.premiumPlanPrice}>4.99€</Text>
+                  <Text style={styles.pricePeriod}>/mois</Text>
+                </View>
+              </View>
+              <View style={styles.premiumPlanFeatures}>
+                <Text style={styles.premiumPlanFeature}>✓ Génération d'images illimitée</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Tous les personnages débloqués</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Pas de publicité</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Support prioritaire</Text>
+              </View>
+              <View style={[styles.selectPlanButton, { backgroundColor: '#3b82f6' }]}>
+                <Text style={styles.selectPlanText}>📲 S'abonner</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* ========== PLAN ANNUEL (RECOMMANDÉ) ========== */}
+            <TouchableOpacity 
+              style={[styles.premiumPlanCard, styles.recommendedPlanCard]}
+              onPress={() => openPayPalPayment('yearly')}
+            >
+              <View style={styles.recommendedBadge}>
+                <Text style={styles.recommendedText}>⭐ RECOMMANDÉ</Text>
+              </View>
+              <View style={styles.premiumPlanHeader}>
+                <View style={styles.planTitleRow}>
+                  <Text style={styles.planIcon}>🌟</Text>
+                  <Text style={[styles.premiumPlanName, { color: '#f59e0b' }]}>Premium Annuel</Text>
+                </View>
+                <View style={styles.priceBox}>
+                  <Text style={styles.premiumPlanPrice}>39.99€</Text>
+                  <Text style={styles.pricePeriod}>/an</Text>
+                </View>
+              </View>
+              <View style={styles.premiumPlanFeatures}>
+                <Text style={styles.premiumPlanFeature}>✓ Tous les avantages mensuels</Text>
+                <Text style={[styles.premiumPlanFeature, { color: '#f59e0b', fontWeight: 'bold' }]}>✓ 2 mois GRATUITS (33% d'économie)</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Accès anticipé aux nouvelles fonctionnalités</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Personnages exclusifs</Text>
+              </View>
+              <View style={[styles.selectPlanButton, { backgroundColor: '#f59e0b' }]}>
+                <Text style={styles.selectPlanText}>📲 S'abonner</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* ========== PLAN À VIE ========== */}
+            <TouchableOpacity 
+              style={styles.premiumPlanCard}
+              onPress={() => openPayPalPayment('lifetime')}
+            >
+              <View style={styles.premiumPlanHeader}>
+                <View style={styles.planTitleRow}>
+                  <Text style={styles.planIcon}>👑</Text>
+                  <Text style={styles.premiumPlanName}>Premium à Vie</Text>
+                </View>
+                <View style={styles.priceBox}>
+                  <Text style={styles.premiumPlanPrice}>99.99€</Text>
+                  <Text style={styles.pricePeriod}>une fois</Text>
+                </View>
+              </View>
+              <View style={styles.premiumPlanFeatures}>
+                <Text style={[styles.premiumPlanFeature, { fontWeight: 'bold' }]}>✓ Accès PERMANENT</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Toutes les futures mises à jour</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Badge VIP exclusif</Text>
+                <Text style={styles.premiumPlanFeature}>✓ Support prioritaire à vie</Text>
+              </View>
+              <View style={[styles.selectPlanButton, { backgroundColor: '#10b981' }]}>
+                <Text style={styles.selectPlanText}>🎁 Acheter à vie</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <Text style={styles.premiumNote}>
+              💡 Après le paiement sur PayPal, confirmez dans l'app pour activer automatiquement votre Premium !
+            </Text>
+            
+            <Text style={styles.premiumSecurityNote}>
+              🔒 Paiement sécurisé via PayPal • Annulation facile
+            </Text>
+          </View>
+        )}
+        
+        {/* Option de renouvellement pour les premium non-lifetime */}
+        {premiumStatus.isPremium && premiumStatus.expiresAt && premiumStatus.willExpireSoon && (
+          <View style={styles.renewBox}>
+            <Text style={styles.renewTitle}>⚡ Renouveler maintenant</Text>
+            <Text style={styles.renewDesc}>
+              Votre abonnement expire bientôt. Renouvelez pour ne pas perdre vos avantages !
+            </Text>
+            <TouchableOpacity 
+              style={styles.renewButton}
+              onPress={() => openPayPalPayment(premiumStatus.planId || 'monthly')}
+            >
+              <Text style={styles.renewButtonText}>🔄 Renouveler</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
       {/* À PROPOS */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>Version: 3.7.10</Text>
+          <Text style={styles.aboutText}>Version: {appConfig.expo.version}</Text>
+          <Text style={styles.aboutText}>Build: {appConfig.expo.android.versionCode}</Text>
           <Text style={styles.aboutText}>Application de roleplay conversationnel</Text>
-          <Text style={styles.aboutText}>400+ personnages disponibles</Text>
-          <Text style={styles.aboutText}>Génération d'images: Freebox (Pollinations multi-modèles)</Text>
-          <Text style={styles.aboutText}>Synchronisation Freebox + Personnages publics</Text>
+          <Text style={styles.aboutText}>840+ personnages disponibles</Text>
+          <Text style={styles.aboutText}>Génération d'images: Stable Diffusion + Pollinations</Text>
+          <Text style={styles.aboutText}>Synchronisation Serveur + Personnages publics</Text>
           <Text style={styles.aboutText}>Mode NSFW 100% français</Text>
         </View>
       </View>
@@ -1195,7 +1415,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
           <Text style={styles.featureItem}>✓ Multi-clés Groq avec rotation</Text>
           <Text style={styles.featureItem}>✓ Personnalisation des bulles de chat</Text>
           <Text style={styles.featureItem}>✓ Mode NSFW pour adultes</Text>
-          <Text style={styles.featureItem}>✓ Génération d'images Freebox illimitée</Text>
+          <Text style={styles.featureItem}>✓ Génération d'images Stable Diffusion illimitée</Text>
           <Text style={styles.featureItem}>✓ Option SD Local sur smartphone</Text>
           <Text style={styles.featureItem}>✓ Galerie d'images par personnage</Text>
           <Text style={styles.featureItem}>✓ Sauvegarde automatique</Text>
@@ -2052,5 +2272,262 @@ const styles = StyleSheet.create({
     marginTop: 10,
     lineHeight: 18,
     fontStyle: 'italic',
+  },
+  // === v5.4.49 - Styles PayPal & Premium ===
+  premiumStatusBox: {
+    backgroundColor: '#fef3c7',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+    borderWidth: 2,
+    borderColor: '#f59e0b',
+  },
+  premiumStatusTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#92400e',
+    textAlign: 'center',
+  },
+  premiumExpiry: {
+    fontSize: 13,
+    color: '#78350f',
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  premiumLifetime: {
+    fontSize: 14,
+    color: '#059669',
+    textAlign: 'center',
+    marginTop: 5,
+    fontWeight: '600',
+  },
+  paypalConfigBox: {
+    backgroundColor: '#e0f2fe',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#0ea5e9',
+  },
+  paypalConfigTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0369a1',
+    marginBottom: 8,
+  },
+  paypalConfigHint: {
+    fontSize: 12,
+    color: '#0c4a6e',
+    marginBottom: 10,
+  },
+  paypalInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#0ea5e9',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    color: '#1f2937',
+  },
+  paypalSaveButton: {
+    marginTop: 10,
+    backgroundColor: '#0ea5e9',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  paypalSaveButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  premiumPlansBox: {
+    backgroundColor: '#f0fdf4',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#10b981',
+  },
+  premiumPlansTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#065f46',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  premiumPlanCard: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#10b981',
+  },
+  premiumPlanHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  premiumPlanName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#065f46',
+  },
+  premiumPlanPrice: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#059669',
+  },
+  premiumPlanFeatures: {
+    marginTop: 5,
+  },
+  premiumPlanFeature: {
+    fontSize: 12,
+    color: '#047857',
+    marginBottom: 3,
+  },
+  premiumNote: {
+    fontSize: 11,
+    color: '#065f46',
+    textAlign: 'center',
+    marginTop: 10,
+    fontStyle: 'italic',
+  },
+  // === v5.4.73 - Nouveaux styles Premium ===
+  premiumPlanType: {
+    fontSize: 14,
+    color: '#059669',
+    fontWeight: '600',
+    marginTop: 5,
+    textAlign: 'center',
+  },
+  expirationBox: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#d1fae5',
+  },
+  daysRemaining: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#059669',
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  expirationWarning: {
+    fontSize: 12,
+    color: '#f59e0b',
+    textAlign: 'center',
+    marginTop: 8,
+    fontWeight: '600',
+  },
+  activatedDate: {
+    fontSize: 11,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  expiredNotice: {
+    fontSize: 13,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginTop: 10,
+    fontWeight: '600',
+  },
+  premiumPlansSubtitle: {
+    fontSize: 13,
+    color: '#065f46',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  recommendedPlanCard: {
+    borderWidth: 3,
+    borderColor: '#f59e0b',
+    backgroundColor: '#fffbeb',
+  },
+  recommendedBadge: {
+    position: 'absolute',
+    top: -10,
+    right: 10,
+    backgroundColor: '#f59e0b',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 1,
+  },
+  recommendedText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  planTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  planIcon: {
+    fontSize: 24,
+    marginRight: 8,
+  },
+  priceBox: {
+    alignItems: 'flex-end',
+  },
+  pricePeriod: {
+    fontSize: 11,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  selectPlanButton: {
+    backgroundColor: '#6366f1',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  selectPlanText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  premiumSecurityNote: {
+    fontSize: 10,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  renewBox: {
+    backgroundColor: '#fef3c7',
+    padding: 15,
+    borderRadius: 12,
+    marginTop: 15,
+    borderWidth: 2,
+    borderColor: '#f59e0b',
+  },
+  renewTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#92400e',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  renewDesc: {
+    fontSize: 13,
+    color: '#78350f',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  renewButton: {
+    backgroundColor: '#f59e0b',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  renewButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

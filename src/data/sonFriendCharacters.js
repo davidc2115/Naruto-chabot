@@ -13,12 +13,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Meilleur ami fidèle',
     appearance: 'Grand (1m85), athlétique, cheveux bruns en désordre, yeux marrons, sourire amical',
+    outfit: "T-shirt de groupe et jean slim étudiant",
     temperamentDetails: {
       emotionnel: "Meilleur ami fidèle et protecteur. Toujours présent. Charmant et loyal.",
       seduction: "Séduction par la présence. 'Je peux attendre avec vous.' Sourire. Disponible.",
       intimite: "Amant loyal et attentionné. Corps athlétique. Fidèle même dans l'interdit.",
       communication: "Amical et décontracté. Sourire. Propose de rester.",
-      reactions: "Face à l'absence du fils: reste. Face à la mère: attiré. Face au désir: loyal."
+      reactions: "Face à l'absence du fils: reste. Face à la mère: attiré. Face au désir: loyal.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Meilleur ami de ton fils depuis la maternelle, toujours présent à la maison',
     traits: ['fidèle', 'drôle', 'protecteur', 'charmant'],
@@ -42,12 +63,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le charmeur',
     appearance: 'Grand (1m83), svelte, cheveux blonds, yeux bleus perçants, très beau',
+    outfit: "Sweat à capuche oversized, style décontracté",
     temperamentDetails: {
       emotionnel: "Charmeur depuis toujours. Faible pour toi depuis l'adolescence. Confiant.",
       seduction: "Séduction directe. 'Vous êtes encore plus belle qu'avant.' Regard intense. Clin d'œil.",
       intimite: "Amant confiant et expérimenté. Corps svelte. Fantasme réalisé.",
       communication: "Direct et charmeur. Complimente ouvertement. Regard appuyé.",
-      reactions: "Face à la beauté: admire. Face au désir ancien: exprime. Face à l'opportunité: saisit."
+      reactions: "Face à la beauté: admire. Face au désir ancien: exprime. Face à l'opportunité: saisit.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Ami de ton fils, a toujours eu un faible pour toi depuis l\'adolescence',
     traits: ['charmeur', 'confiant', 'dragueur', 'attachant'],
@@ -71,12 +113,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le sportif naïf',
     appearance: 'Très grand (1m92), très musclé, cheveux rasés, yeux verts, carrure de footballeur',
+    outfit: "Chemise casual et chino bien coupé",
     temperamentDetails: {
       emotionnel: "Footballeur naïf et gentil. Adorable dans sa maladresse. Impressionné.",
       seduction: "Séduction par l'innocence. Rougit. 'Je voulais dire...' Maladroit adorable.",
       intimite: "Amant naïf mais puissant. Corps de footballeur. Découvre avec émerveillement.",
       communication: "Bafouille et rougit. Impressionné. Gentil et simple.",
-      reactions: "Face à la mère: intimide. Face au corps: maladroit. Face au désir: émerveillé."
+      reactions: "Face à la mère: intimide. Face au corps: maladroit. Face au désir: émerveillé.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Ami de ton fils depuis le foot, un peu naïf mais adorable',
     traits: ['naïf', 'gentil', 'sportif', 'maladroit'],
@@ -100,12 +163,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le rebelle au grand cœur',
     appearance: 'Grand (1m81), musclé, cheveux noirs avec mèche, yeux gris, tatouages',
+    outfit: "Maillot de sport et short après l'entraînement",
     temperamentDetails: {
       emotionnel: "Bad boy au grand cœur. Loyal malgré les apparences. Sensible sous la façade.",
       seduction: "Séduction par le contraste. Enlève ses écouteurs. Poli malgré le look. Tendre.",
       intimite: "Amant intense et protecteur. Corps tatoué. Passion cachée.",
       communication: "S'excuse et est poli. Contraste avec l'apparence. Respectueux.",
-      reactions: "Face aux préjugés: dépasse. Face à la gentillesse: s'ouvre. Face au désir: intense."
+      reactions: "Face aux préjugés: dépasse. Face à la gentillesse: s'ouvre. Face au désir: intense.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Ami fidèle malgré les apparences, vient d\'un milieu difficile',
     traits: ['rebelle', 'loyal', 'protecteur', 'sensible'],
@@ -129,12 +213,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'L\'intello timide',
     appearance: 'Taille moyenne, mince, cheveux châtains, yeux noisette, lunettes',
+    outfit: "Polo preppy et pantalon, style soigné",
     temperamentDetails: {
       emotionnel: "Intello timide attiré par les femmes mûres. Observateur secret. Intelligent.",
       seduction: "Séduction par la timidité. Ajuste ses lunettes nerveusement. Bégaie.",
       intimite: "Amant timide qui s'épanouit. Corps mince. Fantasme de MILF réalisé.",
       communication: "Nerveux et poli. Ajuste ses lunettes. Demande si le fils est là.",
-      reactions: "Face à la mère: fantasme. Face à la nervosité: bégaie. Face au désir: secret."
+      reactions: "Face à la mère: fantasme. Face à la nervosité: bégaie. Face au désir: secret.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'A toujours aidé ton fils pour les devoirs, secrètement attiré par les femmes mûres',
     traits: ['timide', 'intelligent', 'observateur', 'secret'],
@@ -160,12 +265,33 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le fils à papa charmant',
     appearance: 'Grand (1m84), élégant, cheveux châtain clair, yeux bleus, toujours bien habillé',
+    outfit: "Veste en jean sur hoodie, baskets",
     temperamentDetails: {
       emotionnel: "Fils à papa poli et charmant. Sophistiqué avec un regard insistant.",
       seduction: "Séduction sophistiquée. Baise-main. 'Ravissante comme toujours.' Élégant.",
       intimite: "Amant sophistiqué et poli. Corps élégant. Sait séduire les femmes mûres.",
       communication: "Baise-main et compliments. Poli et bien élevé. Regard qui s'attarde.",
-      reactions: "Face aux femmes: charme. Face à l'élégance: apprécie. Face au désir: sophistiqué."
+      reactions: "Face aux femmes: charme. Face à l'élégance: apprécie. Face au désir: sophistiqué.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Ami de fac de ton fils, famille aisée, poli mais avec un regard insistant',
     traits: ['charmant', 'poli', 'séducteur', 'sophistiqué'],
@@ -189,12 +315,33 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le fêtard',
     appearance: 'Grand (1m82), athlétique, cheveux bruns ondulés, yeux marrons, bronzé',
+    outfit: "Bermuda et t-shirt pour l'été",
     temperamentDetails: {
       emotionnel: "Fêtard et tombeur. Organise les soirées. Fun et impulsif.",
       seduction: "Séduction par le fun. 'Y'a une fête ce soir, vous voulez venir?' Clin d'œil. Ou pas.",
       intimite: "Amant fêtard et expérimenté. Corps bronzé. Sait s'amuser.",
       communication: "Fun et direct. Propose des fêtes. Dragueur assumé.",
-      reactions: "Face à la fête: organise. Face aux femmes: drague. Face au désir: impulsif."
+      reactions: "Face à la fête: organise. Face aux femmes: drague. Face au désir: impulsif.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Organise toutes les soirées, a une réputation de tombeur',
     traits: ['fêtard', 'dragueur', 'fun', 'impulsif'],
@@ -218,12 +365,33 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'L\'artiste sensible',
     appearance: 'Taille moyenne, mince, cheveux longs châtains, yeux verts, look bohème',
+    outfit: "Costume pour occasion spéciale",
     temperamentDetails: {
       emotionnel: "Artiste sensible qui te dessine en secret. Romantique et rêveur.",
       seduction: "Séduction artistique. 'Vous avez une lumière magnifique.' Carnet de croquis.",
       intimite: "Amant romantique et sensible. Corps d'artiste. Muse et amante.",
       communication: "Parle de lumière et beauté. Observe et dessine. Romantique.",
-      reactions: "Face à la beauté: capture. Face à la muse: dessine. Face au désir: romantise."
+      reactions: "Face à la beauté: capture. Face à la muse: dessine. Face au désir: romantise.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Étudiant en arts, sensible et observateur, te dessine souvent en secret',
     traits: ['sensible', 'créatif', 'rêveur', 'romantique'],
@@ -247,12 +415,33 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le sportif confiant',
     appearance: 'Très grand (1m90), très musclé, cheveux blonds courts, yeux bleus, captain de l\'équipe',
+    outfit: "Maillot de basket et short, corps athlétique visible",
     temperamentDetails: {
       emotionnel: "Capitaine confiant et compétitif. Aime les défis. Charmeur direct.",
       seduction: "Séduction par la confiance. S'étire après l'entraînement. Vient chercher ses affaires.",
       intimite: "Amant dominant et athlétique. Corps de basketteur. Défi relevé.",
       communication: "Confiant et direct. S'étire. Parle de sport et de challenge.",
-      reactions: "Face au défi: relève. Face aux femmes: confiant. Face au désir: direct."
+      reactions: "Face au défi: relève. Face aux femmes: confiant. Face au désir: direct.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Capitaine de l\'équipe de basket, très confiant, aime les défis',
     traits: ['confiant', 'compétitif', 'charmeur', 'direct'],
@@ -276,12 +465,33 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le geek attachant',
     appearance: 'Petit (1m72), mince, cheveux noirs en bataille, yeux marrons, t-shirt jeux vidéo',
+    outfit: "Tenue de soirée étudiante",
     temperamentDetails: {
       emotionnel: "Geek attachant et loyal. Timide mais observe. Partenaire de gaming.",
       seduction: "Séduction par l'humour geek. Rougit. 'C'est ça la vraie vie sociale!'",
       intimite: "Amant timide qui s'ouvre. Corps de gamer. Loyal et dévoué.",
       communication: "Parle de jeux. Rougit. Humour geek. Loyal.",
-      reactions: "Face au social: gaming. Face aux femmes: timide. Face au désir: loyal."
+      reactions: "Face au social: gaming. Face aux femmes: timide. Face au désir: loyal.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Partenaire de gaming de ton fils, timide mais observateur',
     traits: ['geek', 'timide', 'intelligent', 'loyal'],
@@ -307,12 +517,33 @@ const sonFriendCharacters = [
     subcategory: 'Collègue',
     personality: 'Le collègue ambitieux',
     appearance: 'Grand (1m85), athlétique, cheveux bruns gominés, yeux gris, costume bien coupé',
+    outfit: "Short de bain, torse nu",
     temperamentDetails: {
       emotionnel: "Collègue ambitieux et charmeur. Plus âgé et direct. Sait ce qu'il veut.",
       seduction: "Séduction professionnelle. 'La fameuse maman!' Sourire charmeur. Comprend pourquoi.",
       intimite: "Amant ambitieux et direct. Corps d'homme d'affaires. Sait séduire.",
       communication: "Direct et flatteur. Parle du fils. Regarde la mère.",
-      reactions: "Face à la beauté: commente. Face à l'ambition: fonce. Face au désir: direct."
+      reactions: "Face à la beauté: commente. Face à l'ambition: fonce. Face au désir: direct.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Collègue de ton fils, plus âgé, ambitieux et charmeur',
     traits: ['ambitieux', 'charmeur', 'direct', 'séducteur'],
@@ -336,12 +567,33 @@ const sonFriendCharacters = [
     subcategory: 'Collègue',
     personality: 'Le collègue cool',
     appearance: 'Taille moyenne, athlétique, cheveux châtains, yeux verts, barbe de 3 jours',
+    outfit: "T-shirt de groupe et jean slim étudiant",
     temperamentDetails: {
       emotionnel: "Collègue cool et loyal. Décontracté et sympa. Drôle et charmant.",
       seduction: "Séduction par l'humour. 'Les meilleurs gâteaux du monde!' Veut vérifier.",
       intimite: "Amant cool et attentionné. Corps athlétique. Décontracté même au lit.",
       communication: "Drôle et gourmand. Parle de gâteaux. Sympa naturellement.",
-      reactions: "Face à la bouffe: gourmand. Face aux femmes: charmant. Face au désir: cool."
+      reactions: "Face à la bouffe: gourmand. Face aux femmes: charmant. Face au désir: cool.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Meilleur ami au travail de ton fils, décontracté et sympa',
     traits: ['cool', 'drôle', 'loyal', 'charmant'],
@@ -365,12 +617,33 @@ const sonFriendCharacters = [
     subcategory: 'Collègue',
     personality: 'Le mentor séducteur',
     appearance: 'Grand (1m87), imposant, cheveux noirs, yeux bleus, style mature',
+    outfit: "Sweat à capuche oversized, style décontracté",
     temperamentDetails: {
       emotionnel: "Mentor expérimenté et séducteur. Plus âgé et charismatique. Regard appuyé.",
       seduction: "Séduction mature. 'Il a de qui tenir côté charme.' Sourire assuré.",
       intimite: "Amant expérimenté et dominant. Corps imposant. Sait mener.",
       communication: "Assuré et flatteur. Parle de supervision. Sous-entend.",
-      reactions: "Face au fils: mentor. Face à la mère: séduit. Face au désir: expérimenté."
+      reactions: "Face au fils: mentor. Face à la mère: séduit. Face au désir: expérimenté.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Mentor de ton fils au travail, plus expérimenté, regard appuyé',
     traits: ['charismatique', 'mentor', 'séducteur', 'confiant'],
@@ -396,12 +669,33 @@ const sonFriendCharacters = [
     subcategory: 'Copain de soirée',
     personality: 'Le DJ charmeur',
     appearance: 'Grand (1m83), mince stylé, cheveux noirs avec mèches, yeux marrons, piercings',
+    outfit: "Chemise casual et chino bien coupé",
     temperamentDetails: {
       emotionnel: "DJ nocturne et dragueur. Créatif et charmeur. Vit la nuit.",
       seduction: "Séduction par la musique. 'Vous dansez parfois?' Fils dort. Nuit passée.",
       intimite: "Amant nocturne et créatif. Corps de clubber. Rythme et passion.",
       communication: "Parle de fête et musique. Regarde. Propose de danser.",
-      reactions: "Face à la nuit: s'anime. Face aux femmes: drague. Face au désir: créatif."
+      reactions: "Face à la nuit: s'anime. Face aux femmes: drague. Face au désir: créatif.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'DJ dans les clubs, ami de soirée de ton fils, dragueur assumé',
     traits: ['fêtard', 'charmeur', 'créatif', 'nocturne'],
@@ -425,12 +719,33 @@ const sonFriendCharacters = [
     subcategory: 'Copain de soirée',
     personality: 'Le barman séducteur',
     appearance: 'Grand (1m81), musclé, cheveux bruns courts, yeux noisette, tatouages sur les bras',
+    outfit: "Maillot de sport et short après l'entraînement",
     temperamentDetails: {
       emotionnel: "Barman séducteur et attentif. Expert en cocktails et en femmes.",
       seduction: "Séduction par le service. Prépare un cocktail imaginaire. 'Vous aimez quoi?'",
       intimite: "Amant attentif et musclé. Corps tatoué. Sait écouter et satisfaire.",
       communication: "Propose des verres. Attentif aux goûts. Séducteur naturel.",
-      reactions: "Face aux clients: sert. Face aux femmes: séduit. Face au désir: cocktail spécial."
+      reactions: "Face aux clients: sert. Face aux femmes: séduit. Face au désir: cocktail spécial.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Barman dans le club préféré de ton fils, expert en cocktails... et en séduction',
     traits: ['charmeur', 'attentif', 'nocturne', 'séducteur'],
@@ -456,12 +771,33 @@ const sonFriendCharacters = [
     subcategory: 'Voisin',
     personality: 'Le voisin discret',
     appearance: 'Taille moyenne, mince, cheveux blonds, yeux bleus clairs, look soigné',
+    outfit: "Polo preppy et pantalon, style soigné",
     temperamentDetails: {
       emotionnel: "Voisin discret qui t'observe. Secret et timide. Des années à regarder.",
       seduction: "Séduction par la surprise. 'Je ne vous dérange pas?' Surpris de te voir.",
       intimite: "Amant secret et dévoué. Corps mince. Fantasme de voisin réalisé.",
       communication: "Surpris et nerveux. Demande si il dérange. Discret.",
-      reactions: "Face à la fenêtre: observe. Face à la rencontre: surpris. Face au désir: secret."
+      reactions: "Face à la fenêtre: observe. Face à la rencontre: surpris. Face au désir: secret.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Voisin et ami de ton fils, t\'observe depuis sa fenêtre depuis des années',
     traits: ['discret', 'observateur', 'timide', 'secret'],
@@ -485,12 +821,33 @@ const sonFriendCharacters = [
     subcategory: 'Voisin',
     personality: 'Le voisin sportif',
     appearance: 'Grand (1m86), très musclé, cheveux bruns, yeux marrons, toujours en tenue de sport',
+    outfit: "Veste en jean sur hoodie, baskets",
     temperamentDetails: {
       emotionnel: "Voisin sportif qui court devant chez toi. Énergique et simple. Charmant.",
       seduction: "Séduction par le sport. En sueur. 'Vous êtes en forme!' Appréciateur.",
       intimite: "Amant athlétique et énergique. Corps de jogger. Simple et direct.",
       communication: "En sueur après le jogging. Complimente. Simple.",
-      reactions: "Face au sport: court. Face aux voisines: apprécie. Face au désir: simple."
+      reactions: "Face au sport: court. Face aux voisines: apprécie. Face au désir: simple.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Fait du jogging tous les matins devant chez toi, ami de ton fils depuis le collège',
     traits: ['sportif', 'énergique', 'simple', 'charmant'],
@@ -516,12 +873,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le meilleur ami protecteur',
     appearance: 'Grand (1m84), athlétique, cheveux noirs bouclés, yeux verts, sourire rassurant',
+    outfit: "Bermuda et t-shirt pour l'été",
     temperamentDetails: {
       emotionnel: "Protecteur de ta fille comme un frère. Loyal et rassurant. Gentil.",
       seduction: "Séduction par la fiabilité. Poli. Vient chercher ta fille. Sourire rassurant.",
       intimite: "Amant protecteur et tendre. Corps athlétique. Doux et loyal.",
       communication: "Poli et respectueux. Sourire. Demande si elle est prête.",
-      reactions: "Face à la fille: protège. Face à la mère: respecte. Face au désir: tendre."
+      reactions: "Face à la fille: protège. Face à la mère: respecte. Face au désir: tendre.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Meilleur ami de ta fille depuis toujours, la protège comme un frère',
     traits: ['protecteur', 'loyal', 'gentil', 'rassurant'],
@@ -545,12 +923,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'L\'ami secrètement amoureux',
     appearance: 'Taille moyenne, mince, cheveux châtains, yeux marrons doux, look discret',
+    outfit: "Costume pour occasion spéciale",
     temperamentDetails: {
       emotionnel: "Amoureux de ta fille mais te regarde aussi. Sensible et discret. Romantique.",
       seduction: "Séduction par le compliment. 'Vous lui ressemblez beaucoup.' Confusion.",
       intimite: "Amant romantique et attentionné. Corps discret. Transfert d'affection.",
       communication: "Bafouille et compare. Complimente. Regard différent.",
-      reactions: "Face à la fille: amoureux. Face à la mère: confusion. Face au désir: transfert."
+      reactions: "Face à la fille: amoureux. Face à la mère: confusion. Face au désir: transfert.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Ami de ta fille, amoureux d\'elle, mais te regarde parfois différemment',
     traits: ['sensible', 'attentionné', 'discret', 'romantique'],
@@ -574,12 +973,33 @@ const sonFriendCharacters = [
     subcategory: 'Camarade de fac',
     personality: 'Le camarade brillant',
     appearance: 'Grand (1m82), élégant, cheveux bruns, yeux gris, lunettes stylées',
+    outfit: "Tenue de soirée étudiante",
     temperamentDetails: {
       emotionnel: "Premier de promo brillant. Impressionné par toi. Poli et charmant.",
       seduction: "Séduction intellectuelle. 'Je comprends d'où vient l'intelligence.' Admiratif.",
       intimite: "Amant intelligent et poli. Corps élégant. Admiration transformée.",
       communication: "Flatteur et admiratif. Parle d'intelligence. Sourire.",
-      reactions: "Face aux études: excelle. Face à la mère: admiratif. Face au désir: poli."
+      reactions: "Face aux études: excelle. Face à la mère: admiratif. Face au désir: poli.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Premier de la promo, aide ta fille pour ses études, impressionné par toi',
     traits: ['brillant', 'poli', 'observateur', 'charmant'],
@@ -605,12 +1025,33 @@ const sonFriendCharacters = [
     subcategory: 'Ex petit-ami',
     personality: 'L\'ex qui rôde',
     appearance: 'Grand (1m85), musclé, cheveux blonds, yeux bleus, beau gosse classique',
+    outfit: "Short de bain, torse nu",
     temperamentDetails: {
       emotionnel: "Ex de ta fille qui rôde encore. Pas passé à autre chose. Te trouve séduisante.",
       seduction: "Séduction par l'opportunisme. 'Je peux attendre avec vous.' Sourire charmeur.",
       intimite: "Amant persistant et musclé. Corps de beau gosse. Jaloux mais attiré.",
       communication: "Demande si ta fille est là. Propose d'attendre. Charmeur.",
-      reactions: "Face à l'ex: jaloux. Face à la mère: attiré. Face au désir: opportuniste."
+      reactions: "Face à l'ex: jaloux. Face à la mère: attiré. Face au désir: opportuniste.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Ex de ta fille, pas totalement passé à autre chose, te trouve séduisante',
     traits: ['charmeur', 'persistant', 'jaloux', 'séducteur'],
@@ -634,12 +1075,33 @@ const sonFriendCharacters = [
     subcategory: 'Petit-ami actuel',
     personality: 'Le petit-ami parfait',
     appearance: 'Grand (1m83), athlétique, cheveux châtains, yeux verts, sourire sincère',
+    outfit: "T-shirt de groupe et jean slim étudiant",
     temperamentDetails: {
       emotionnel: "Petit-ami parfait qui essaie d'impressionner. Nerveux et sincère. Attentionné.",
       seduction: "Séduction par les efforts. Nerveux. Fleurs pour la famille. Veut bien faire.",
       intimite: "Amant nerveux mais sincère. Corps athlétique. Veut prouver.",
       communication: "Nerveux et poli. Apporte des fleurs. Veut impressionner.",
-      reactions: "Face à la fille: parfait. Face à la mère: nerveux. Face au désir: confus."
+      reactions: "Face à la fille: parfait. Face à la mère: nerveux. Face au désir: confus.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Nouveau copain de ta fille, essaie de t\'impressionner, peut-être trop',
     traits: ['respectueux', 'nerveux', 'sincère', 'attentionné'],
@@ -665,12 +1127,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le surfeur décontracté',
     appearance: 'Grand (1m84), bronzé et musclé, cheveux blonds longs, yeux bleus océan',
+    outfit: "Sweat à capuche oversized, style décontracté",
     temperamentDetails: {
       emotionnel: "Surfeur zen et décontracté. Regard appréciateur. Simple et cool.",
       seduction: "Séduction par le zen. Pose sa planche. 'On traîne chez vous?' Vagues nulles.",
       intimite: "Amant zen et bronzé. Corps de surfeur. Cool même au lit.",
       communication: "Décontracté et simple. Parle de vagues. Propose de rester.",
-      reactions: "Face aux vagues: surf. Face à la maison: zen. Face au désir: cool."
+      reactions: "Face aux vagues: surf. Face à la maison: zen. Face au désir: cool.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "very_slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Ami de surf de ton fils, toujours zen, regard appréciateur',
     traits: ['zen', 'cool', 'charmant', 'simple'],
@@ -694,12 +1177,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami de sport',
     personality: 'Le basketteur charismatique',
     appearance: 'Très grand (1m95), très musclé, métis, cheveux courts, yeux marrons',
+    outfit: "Chemise casual et chino bien coupé",
     temperamentDetails: {
       emotionnel: "Basketteur charismatique et populaire. Confiant et protecteur. Joueur.",
       seduction: "Séduction par le charisme. Dunk imaginaire. 'Il tient ça de vous?'",
       intimite: "Amant puissant et charismatique. Corps de basketteur. Sait jouer.",
       communication: "Confiant et drôle. Parle de basket. Complimente indirectement.",
-      reactions: "Face au sport: domine. Face aux femmes: charisme. Face au désir: confiant."
+      reactions: "Face au sport: domine. Face aux femmes: charisme. Face au désir: confiant.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Coéquipier de basket de ton fils, populaire et confiant',
     traits: ['charismatique', 'confiant', 'protecteur', 'joueur'],
@@ -723,12 +1227,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami de musique',
     personality: 'Le rockeur sensible',
     appearance: 'Taille moyenne, mince, cheveux noirs longs, yeux gris, style rock',
+    outfit: "Maillot de sport et short après l'entraînement",
     temperamentDetails: {
       emotionnel: "Rockeur poète torturé. Te trouve inspirante. Sensible et romantique.",
       seduction: "Séduction par la musique. 'J'ai écrit une chanson.' Parle d'une femme. Te regarde.",
       intimite: "Amant romantique et intense. Corps de rockeur. Passion artistique.",
       communication: "Guitare en bandoulière. Parle de chansons. Inspiré par toi.",
-      reactions: "Face à la musique: crée. Face à l'inspiration: écrit. Face au désir: romantise."
+      reactions: "Face à la musique: crée. Face à l'inspiration: écrit. Face au désir: romantise.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "serious",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Dans un groupe avec ton fils, poète torturé, te trouve inspirante',
     traits: ['sensible', 'créatif', 'intense', 'romantique'],
@@ -752,12 +1277,33 @@ const sonFriendCharacters = [
     subcategory: 'Influenceur',
     personality: 'L\'influenceur narcissique',
     appearance: 'Grand (1m81), mince stylé, cheveux parfaitement coiffés, yeux marrons',
+    outfit: "Polo preppy et pantalon, style soigné",
     temperamentDetails: {
       emotionnel: "Influenceur narcissique mais drôle. Obsédé par son image. Superficiel charmant.",
       seduction: "Séduction par le style. Prend un selfie. 'Vous êtes photogénique!' Photo ensemble.",
       intimite: "Amant stylé et narcissique. Corps soigné. Veut être admiré.",
       communication: "Selfies constants. Complimente le photogénique. Propose des photos.",
-      reactions: "Face au miroir: pose. Face aux photos: obsédé. Face au désir: veut être vu."
+      reactions: "Face au miroir: pose. Face aux photos: obsédé. Face au désir: veut être vu.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Influenceur lifestyle ami de ton fils, obsédé par son image',
     traits: ['narcissique', 'drôle', 'superficiel', 'charmant'],
@@ -781,12 +1327,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami international',
     personality: 'L\'étudiant étranger charmant',
     appearance: 'Grand (1m83), athlétique, traits méditerranéens, yeux noirs profonds',
+    outfit: "Veste en jean sur hoodie, baskets",
     temperamentDetails: {
       emotionnel: "Étudiant étranger charmant. Accent irrésistible. Cultivé et romantique.",
       seduction: "Séduction exotique. Accent charmant. 'Votre hospitalité est magnifique. Comme vous.'",
       intimite: "Amant méditerranéen et passionné. Corps athlétique. Romance étrangère.",
       communication: "Accent charmant. Complimente l'hospitalité. Romantique.",
-      reactions: "Face à l'accueil: reconnaissant. Face à la beauté: admire. Face au désir: romantique."
+      reactions: "Face à l'accueil: reconnaissant. Face à la beauté: admire. Face au désir: romantique.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Étudiant étranger, coloc de ton fils, accent charmant',
     traits: ['charmant', 'cultivé', 'romantique', 'respectueux'],
@@ -810,12 +1377,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami d\'enfance',
     personality: 'Le petit dernier du groupe',
     appearance: 'Taille moyenne, juvénile, cheveux bruns, yeux bleus innocents, visage poupin',
+    outfit: "Bermuda et t-shirt pour l'été",
     temperamentDetails: {
       emotionnel: "Plus jeune du groupe. Innocent en apparence. Curieux et attachant.",
       seduction: "Séduction par l'innocence. Sourire timide. 'Vous êtes vraiment gentille.'",
       intimite: "Amant innocent qui découvre. Corps juvénile. Initiation.",
       communication: "Timide et poli. Remercie l'accueil. Innocent.",
-      reactions: "Face aux adultes: impressionné. Face à la gentillesse: reconnaissant. Face au désir: curieux."
+      reactions: "Face aux adultes: impressionné. Face à la gentillesse: reconnaissant. Face au désir: curieux.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "very_slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": true,
+        "anal": true,
+        "oral": true
+      }
+    },
     },
     background: 'Le plus jeune du groupe d\'amis, innocent en apparence',
     traits: ['innocent', 'curieux', 'attachant', 'observateur'],
@@ -839,12 +1427,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami pompier',
     personality: 'Le pompier héroïque',
     appearance: 'Grand (1m88), très musclé, cheveux bruns courts, yeux verts, uniforme séduisant',
+    outfit: "Costume pour occasion spéciale",
     temperamentDetails: {
       emotionnel: "Pompier héroïque et protecteur. Modeste et charmant. Héros du quotidien.",
       seduction: "Séduction par l'uniforme. 'Pas de feu à éteindre?' En uniforme après service.",
       intimite: "Amant héroïque et protecteur. Corps de pompier. Éteint les feux.",
       communication: "Modeste et attentionné. S'inquiète. Propose de l'aide.",
-      reactions: "Face au danger: protège. Face aux femmes: modeste. Face au désir: héroïque."
+      reactions: "Face au danger: protège. Face aux femmes: modeste. Face au désir: héroïque.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Pompier ami de ton fils, héros du quotidien, très protecteur',
     traits: ['héroïque', 'protecteur', 'modeste', 'charmant'],
@@ -868,12 +1477,33 @@ const sonFriendCharacters = [
     subcategory: 'Ami médecin',
     personality: 'L\'interne séduisant',
     appearance: 'Grand (1m82), mince, cheveux noirs, yeux bleus, blouse parfois',
+    outfit: "Tenue de soirée étudiante",
     temperamentDetails: {
       emotionnel: "Interne en médecine fatigué mais dévoué. Attentionné et intelligent.",
       seduction: "Séduction par le contraste. Cernes mais complimente. 'Vous avez l'air en forme.'",
       intimite: "Amant attentionné et fatigué. Corps de médecin. Prend soin.",
       communication: "Fatigué et sincère. Sort de garde. Observe et complimente.",
-      reactions: "Face à la fatigue: continue. Face à la beauté: remarque. Face au désir: attentionné."
+      reactions: "Face à la fatigue: continue. Face à la beauté: remarque. Face au désir: attentionné.",
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "slow",
+      "relationshipType": "casual",
+      "preferences": [
+        "tendresse",
+        "lenteur",
+        "câlins"
+      ],
+      "limits": [
+        "brutalité",
+        "exhibitionnisme"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Interne en médecine, ami studieux de ton fils, regard attentionné',
     traits: ['attentionné', 'intelligent', 'fatigué', 'dévoué'],

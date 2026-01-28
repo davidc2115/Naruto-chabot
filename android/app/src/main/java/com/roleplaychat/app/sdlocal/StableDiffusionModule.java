@@ -36,16 +36,17 @@ import javax.annotation.Nonnull;
 /**
  * Module natif Stable Diffusion pour Android
  * Utilise ONNX Runtime pour l'inférence sur appareil
- * Version 4.3.3 - Diagnostic ONNX amélioré
+ * Version 5.0.0 - Initialisation ONNX améliorée avec retry et multi-ABI support
  */
 public class StableDiffusionModule extends ReactContextBaseJavaModule {
     private static final String TAG = "SDLocalModule";
     private static final String MODULE_NAME = "StableDiffusionLocal";
-    private static final String VERSION = "4.3.3";
+    private static final String VERSION = "5.0.0";
     private static final String MODELS_DIR = "sd_models";
     
     // Message d'erreur ONNX pour diagnostic
     private String onnxErrorMessage = null;
+    private String onnxInitDetails = null;
     
     // Noms des fichiers modèles ONNX
     private static final String TEXT_ENCODER_MODEL = "text_encoder.onnx";
@@ -59,62 +60,180 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
     private OrtSession vaeDecoderSession;
     private boolean isInitialized = false;
     private boolean isGenerating = false;
+    private int initAttempts = 0;
 
     public StableDiffusionModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
         
-        Log.i(TAG, "╔════════════════════════════════════════════════════╗");
-        Log.i(TAG, "║  StableDiffusionModule v" + VERSION + " INIT         ║");
-        Log.i(TAG, "╚════════════════════════════════════════════════════╝");
-        Log.i(TAG, "📱 Appareil: " + Build.MODEL + " (" + Build.MANUFACTURER + ")");
-        Log.i(TAG, "📱 Android: " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + ")");
-        Log.i(TAG, "📱 CPU ABI: " + Build.SUPPORTED_ABIS[0]);
+        Log.i(TAG, "╔════════════════════════════════════════════════════════════╗");
+        Log.i(TAG, "║  StableDiffusionModule v" + VERSION + " INIT               ║");
+        Log.i(TAG, "║  Xiaomi/MediaTek/Qualcomm ARM64 Optimisé                   ║");
+        Log.i(TAG, "╚════════════════════════════════════════════════════════════╝");
         
-        // Initialiser ONNX Runtime avec gestion d'erreur améliorée
+        // Log détaillé de l'appareil
+        logDeviceInfo();
+        
+        // Initialiser ONNX Runtime avec plusieurs tentatives
+        initializeOnnxRuntime();
+        
+        // Log du statut final
+        Log.i(TAG, "════════════════════════════════════════════════════════════");
+        Log.i(TAG, "📊 STATUT FINAL:");
+        Log.i(TAG, "   Module: v" + VERSION + " ✅");
+        Log.i(TAG, "   ONNX: " + (ortEnv != null ? "✅ OK" : "❌ " + onnxErrorMessage));
+        if (onnxInitDetails != null) {
+            Log.i(TAG, "   Détails: " + onnxInitDetails);
+        }
+        Log.i(TAG, "════════════════════════════════════════════════════════════");
+    }
+    
+    /**
+     * Log détaillé des informations de l'appareil
+     */
+    private void logDeviceInfo() {
+        Log.i(TAG, "┌────────────────────────────────────────────────────────────┐");
+        Log.i(TAG, "│ INFORMATIONS APPAREIL                                      │");
+        Log.i(TAG, "├────────────────────────────────────────────────────────────┤");
+        Log.i(TAG, "│ Modèle: " + Build.MODEL);
+        Log.i(TAG, "│ Fabricant: " + Build.MANUFACTURER);
+        Log.i(TAG, "│ Marque: " + Build.BRAND);
+        Log.i(TAG, "│ Appareil: " + Build.DEVICE);
+        Log.i(TAG, "│ Produit: " + Build.PRODUCT);
+        Log.i(TAG, "│ Android: " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + ")");
+        Log.i(TAG, "│ Board: " + Build.BOARD);
+        Log.i(TAG, "│ Hardware: " + Build.HARDWARE);
+        
+        // Toutes les ABIs supportées
+        StringBuilder abis = new StringBuilder();
+        for (String abi : Build.SUPPORTED_ABIS) {
+            if (abis.length() > 0) abis.append(", ");
+            abis.append(abi);
+        }
+        Log.i(TAG, "│ ABIs supportées: " + abis.toString());
+        Log.i(TAG, "│ ABI principale: " + Build.SUPPORTED_ABIS[0]);
+        
+        // Vérifier si ARM64
+        boolean hasArm64 = false;
+        for (String abi : Build.SUPPORTED_ABIS) {
+            if (abi.equals("arm64-v8a")) {
+                hasArm64 = true;
+                break;
+            }
+        }
+        Log.i(TAG, "│ ARM64-v8a: " + (hasArm64 ? "✅ Supporté" : "❌ Non supporté"));
+        Log.i(TAG, "└────────────────────────────────────────────────────────────┘");
+    }
+    
+    /**
+     * Initialise ONNX Runtime avec plusieurs tentatives et méthodes
+     */
+    private void initializeOnnxRuntime() {
+        Log.i(TAG, "🔄 Initialisation ONNX Runtime...");
+        
+        // Tentative 1: Initialisation standard
+        initAttempts = 1;
+        Log.i(TAG, "📍 Tentative " + initAttempts + ": Initialisation standard");
+        
         try {
-            Log.i(TAG, "🔄 Tentative d'initialisation ONNX Runtime...");
+            // Essayer de charger explicitement la bibliothèque native
+            try {
+                System.loadLibrary("onnxruntime");
+                Log.i(TAG, "✅ Bibliothèque onnxruntime chargée manuellement");
+            } catch (UnsatisfiedLinkError ule) {
+                Log.w(TAG, "⚠️ Chargement manuel échoué (normal si déjà chargé): " + ule.getMessage());
+            }
             
-            // Tenter de charger ONNX
             ortEnv = OrtEnvironment.getEnvironment();
             
             if (ortEnv != null) {
-                Log.i(TAG, "✅ ONNX Runtime Environment créé!");
+                Log.i(TAG, "✅ ONNX Runtime Environment créé avec succès!");
                 onnxErrorMessage = null;
+                onnxInitDetails = "Initialisation standard réussie";
+                
+                // Vérifier les providers disponibles
                 try {
                     String apiBase = OrtEnvironment.getApiBase();
-                    Log.i(TAG, "✅ ONNX API: " + apiBase);
+                    Log.i(TAG, "✅ ONNX API Base: " + apiBase);
+                    onnxInitDetails += " (API: " + apiBase + ")";
                 } catch (Exception e) {
-                    Log.w(TAG, "⚠️ ONNX API info indisponible");
+                    Log.w(TAG, "⚠️ ONNX API info non disponible");
                 }
-            } else {
-                onnxErrorMessage = "ONNX Environment null - vérifiez la compatibilité de votre appareil";
-                Log.e(TAG, "❌ " + onnxErrorMessage);
+                return;
             }
         } catch (NoClassDefFoundError e) {
-            onnxErrorMessage = "Bibliothèque ONNX non incluse dans l'APK";
+            onnxErrorMessage = "Classes ONNX non trouvées dans l'APK";
             Log.e(TAG, "❌ NoClassDefFoundError: " + e.getMessage());
+            Log.e(TAG, "   → Vérifiez que onnxruntime-android est dans build.gradle");
         } catch (UnsatisfiedLinkError e) {
-            onnxErrorMessage = "Bibliothèque native ONNX incompatible avec " + Build.SUPPORTED_ABIS[0];
+            onnxErrorMessage = "Bibliothèque native ONNX non trouvée pour " + Build.SUPPORTED_ABIS[0];
             Log.e(TAG, "❌ UnsatisfiedLinkError: " + e.getMessage());
+            Log.e(TAG, "   → L'ABI " + Build.SUPPORTED_ABIS[0] + " n'est peut-être pas supportée");
+            Log.e(TAG, "   → Essayez de mettre à jour onnxruntime-android à la dernière version");
         } catch (ExceptionInInitializerError e) {
-            onnxErrorMessage = "Erreur initialisation ONNX: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+            Throwable cause = e.getCause();
+            onnxErrorMessage = "Erreur init ONNX: " + (cause != null ? cause.getMessage() : e.getMessage());
             Log.e(TAG, "❌ ExceptionInInitializerError: " + e.getMessage());
-            if (e.getCause() != null) {
-                Log.e(TAG, "❌ Cause: " + e.getCause().getMessage());
+            if (cause != null) {
+                Log.e(TAG, "   Cause: " + cause.getClass().getSimpleName() + " - " + cause.getMessage());
+                cause.printStackTrace();
             }
         } catch (Throwable e) {
             onnxErrorMessage = e.getClass().getSimpleName() + ": " + e.getMessage();
-            Log.e(TAG, "❌ " + onnxErrorMessage);
+            Log.e(TAG, "❌ Exception inattendue: " + onnxErrorMessage);
             e.printStackTrace();
         }
         
-        // Log du statut final
-        Log.i(TAG, "════════════════════════════════════════════════════");
-        Log.i(TAG, "📊 STATUT:");
-        Log.i(TAG, "   Module: v" + VERSION + " ✅");
-        Log.i(TAG, "   ONNX: " + (ortEnv != null ? "✅ OK" : "❌ " + onnxErrorMessage));
-        Log.i(TAG, "════════════════════════════════════════════════════");
+        // Tentative 2: Avec délai (pour les appareils lents)
+        initAttempts = 2;
+        Log.i(TAG, "📍 Tentative " + initAttempts + ": Avec délai 500ms");
+        
+        try {
+            Thread.sleep(500);
+            ortEnv = OrtEnvironment.getEnvironment();
+            
+            if (ortEnv != null) {
+                Log.i(TAG, "✅ ONNX Runtime créé (tentative 2)");
+                onnxErrorMessage = null;
+                onnxInitDetails = "Réussi après délai";
+                return;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Tentative 2 échouée: " + e.getMessage());
+        }
+        
+        // Tentative 3: Forcer le garbage collector et réessayer
+        initAttempts = 3;
+        Log.i(TAG, "📍 Tentative " + initAttempts + ": Après GC");
+        
+        try {
+            System.gc();
+            Thread.sleep(300);
+            ortEnv = OrtEnvironment.getEnvironment();
+            
+            if (ortEnv != null) {
+                Log.i(TAG, "✅ ONNX Runtime créé (tentative 3 - après GC)");
+                onnxErrorMessage = null;
+                onnxInitDetails = "Réussi après garbage collection";
+                return;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Tentative 3 échouée: " + e.getMessage());
+        }
+        
+        // Échec définitif
+        Log.e(TAG, "════════════════════════════════════════════════════════════");
+        Log.e(TAG, "❌ ONNX RUNTIME NON DISPONIBLE APRÈS " + initAttempts + " TENTATIVES");
+        Log.e(TAG, "════════════════════════════════════════════════════════════");
+        Log.e(TAG, "Raison: " + onnxErrorMessage);
+        Log.e(TAG, "");
+        Log.e(TAG, "SOLUTIONS POSSIBLES:");
+        Log.e(TAG, "1. Utilisez Stable Diffusion Serveur à la place");
+        Log.e(TAG, "2. Votre appareil (" + Build.MODEL + ") peut ne pas être compatible");
+        Log.e(TAG, "3. Vérifiez que vous avez assez de RAM disponible (4 GB+ recommandé)");
+        Log.e(TAG, "════════════════════════════════════════════════════════════");
+        
+        onnxInitDetails = "Échec après " + initAttempts + " tentatives";
     }
 
     @Override
@@ -131,16 +250,76 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
         constants.put("IS_LOADED", true);
         constants.put("ONNX_AVAILABLE", ortEnv != null);
         constants.put("ONNX_ERROR", onnxErrorMessage != null ? onnxErrorMessage : "");
+        constants.put("ONNX_INIT_DETAILS", onnxInitDetails != null ? onnxInitDetails : "");
+        constants.put("ONNX_INIT_ATTEMPTS", initAttempts);
         constants.put("PIPELINE_READY", isInitialized);
         constants.put("DEVICE_MODEL", Build.MODEL);
         constants.put("MANUFACTURER", Build.MANUFACTURER);
+        constants.put("BRAND", Build.BRAND);
+        constants.put("DEVICE", Build.DEVICE);
+        constants.put("BOARD", Build.BOARD);
+        constants.put("HARDWARE", Build.HARDWARE);
         constants.put("ANDROID_VERSION", Build.VERSION.RELEASE);
         constants.put("SDK_VERSION", Build.VERSION.SDK_INT);
         constants.put("CPU_ABI", Build.SUPPORTED_ABIS[0]);
+        
+        // Toutes les ABIs supportées
+        StringBuilder abis = new StringBuilder();
+        for (String abi : Build.SUPPORTED_ABIS) {
+            if (abis.length() > 0) abis.append(",");
+            abis.append(abi);
+        }
+        constants.put("SUPPORTED_ABIS", abis.toString());
+        
+        // Vérifier si ARM64
+        boolean hasArm64 = false;
+        for (String abi : Build.SUPPORTED_ABIS) {
+            if (abi.equals("arm64-v8a")) {
+                hasArm64 = true;
+                break;
+            }
+        }
+        constants.put("HAS_ARM64", hasArm64);
+        
         constants.put("TEXT_ENCODER_MODEL", TEXT_ENCODER_MODEL);
         constants.put("UNET_MODEL", UNET_MODEL);
         constants.put("VAE_DECODER_MODEL", VAE_DECODER_MODEL);
         return constants;
+    }
+    
+    /**
+     * Réinitialise ONNX Runtime (peut être appelé depuis JS)
+     */
+    @ReactMethod
+    public void reinitializeOnnx(Promise promise) {
+        Log.i(TAG, "🔄 Réinitialisation ONNX demandée depuis JavaScript...");
+        
+        try {
+            // Fermer l'environnement existant si présent
+            if (ortEnv != null) {
+                try {
+                    ortEnv.close();
+                } catch (Exception e) {
+                    Log.w(TAG, "⚠️ Erreur fermeture ortEnv: " + e.getMessage());
+                }
+                ortEnv = null;
+            }
+            
+            // Réinitialiser
+            initializeOnnxRuntime();
+            
+            WritableMap result = Arguments.createMap();
+            result.putBoolean("success", ortEnv != null);
+            result.putBoolean("onnxAvailable", ortEnv != null);
+            result.putString("error", onnxErrorMessage != null ? onnxErrorMessage : "");
+            result.putString("details", onnxInitDetails != null ? onnxInitDetails : "");
+            result.putInt("attempts", initAttempts);
+            
+            promise.resolve(result);
+        } catch (Exception e) {
+            Log.e(TAG, "❌ Erreur réinitialisation: " + e.getMessage());
+            promise.reject("REINIT_ERROR", e.getMessage());
+        }
     }
 
     /**
@@ -309,9 +488,27 @@ public class StableDiffusionModule extends ReactContextBaseJavaModule {
             result.putString("moduleVersion", VERSION);
             result.putString("deviceModel", Build.MODEL);
             result.putString("manufacturer", Build.MANUFACTURER);
+            result.putString("brand", Build.BRAND);
+            result.putString("device", Build.DEVICE);
+            result.putString("board", Build.BOARD);
+            result.putString("hardware", Build.HARDWARE);
             result.putString("androidVersion", Build.VERSION.RELEASE);
             result.putInt("sdkVersion", Build.VERSION.SDK_INT);
             result.putBoolean("pipelineReady", isInitialized);
+            
+            // ABIs info
+            result.putString("cpuAbi", Build.SUPPORTED_ABIS[0]);
+            StringBuilder abis = new StringBuilder();
+            for (String abi : Build.SUPPORTED_ABIS) {
+                if (abis.length() > 0) abis.append(", ");
+                abis.append(abi);
+            }
+            result.putString("supportedAbis", abis.toString());
+            
+            // ONNX diagnostic info
+            result.putString("onnxError", onnxErrorMessage != null ? onnxErrorMessage : "");
+            result.putString("onnxInitDetails", onnxInitDetails != null ? onnxInitDetails : "");
+            result.putInt("onnxInitAttempts", initAttempts);
             
             // Debug info
             result.putString("debugTotalRam", String.format("%.2f GB", totalRamGB));

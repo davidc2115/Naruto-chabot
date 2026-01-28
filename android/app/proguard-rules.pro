@@ -11,4 +11,23 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
+# ONNX Runtime - Garder toutes les classes
+-keep class ai.onnxruntime.** { *; }
+-keepclassmembers class ai.onnxruntime.** { *; }
+-dontwarn ai.onnxruntime.**
+
+# Stable Diffusion Local Module
+-keep class com.roleplaychat.app.sdlocal.** { *; }
+-keepclassmembers class com.roleplaychat.app.sdlocal.** { *; }
+
+# Garder les méthodes natives
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Garder les annotations
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses,EnclosingMethod
+
 # Add any project specific keep options here:

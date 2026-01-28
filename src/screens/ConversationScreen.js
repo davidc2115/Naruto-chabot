@@ -397,32 +397,62 @@ export default function ConversationScreen({ route, navigation }) {
         console.log('⚠️ Erreur updateRelationship:', relError.message);
       }
 
-      // Génération de la réponse avec timeout
+      // v5.4.23 - Génération de la réponse avec timeout et retry automatique
       let response;
-      try {
-        response = await Promise.race([
-          TextGenerationService.generateResponse(
-            updatedMessages,
-            character,
-            userProfile
-          ),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 60000)
-          )
-        ]);
-      } catch (genError) {
-        console.error('❌ Erreur génération:', genError.message);
-        response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
+      let generationAttempts = 0;
+      const maxGenerationAttempts = 3;
+      
+      while (generationAttempts < maxGenerationAttempts) {
+        generationAttempts++;
+        try {
+          console.log(`🤖 Tentative de génération ${generationAttempts}/${maxGenerationAttempts}...`);
+          response = await Promise.race([
+            TextGenerationService.generateResponse(
+              updatedMessages,
+              character,
+              userProfile
+            ),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Timeout')), 45000)
+            )
+          ]);
+          
+          // Si on a une réponse valide, sortir de la boucle
+          if (response && typeof response === 'string' && response.length > 10) {
+            console.log('✅ Réponse générée avec succès');
+            break;
+          } else {
+            console.log('⚠️ Réponse vide ou trop courte, retry...');
+            response = null;
+          }
+        } catch (genError) {
+          console.error(`❌ Erreur génération (tentative ${generationAttempts}):`, genError.message);
+          
+          // Attendre un peu avant de réessayer
+          if (generationAttempts < maxGenerationAttempts) {
+            await new Promise(r => setTimeout(r, 1000 * generationAttempts));
+          }
+        }
       }
 
-      // Vérification de la réponse
-      if (!response || typeof response !== 'string') {
-        response = `*sourit* "..." (Réponse vide, réessaie)`;
+      // Si toutes les tentatives ont échoué, générer une réponse contextuelle
+      if (!response || typeof response !== 'string' || response.length < 10) {
+        console.log('⚠️ Toutes les tentatives échouées, génération contextuelle...');
+        // Réponse contextuelle basée sur le dernier message
+        const lastUserContent = userMessageContent.toLowerCase();
+        if (lastUserContent.includes('bonjour') || lastUserContent.includes('salut') || lastUserContent.includes('hey')) {
+          response = `*sourit chaleureusement* "Bonjour ! Je suis content(e) de te voir." (${character.name} semble heureux/heureuse)`;
+        } else if (lastUserContent.includes('?')) {
+          response = `*réfléchit un instant* "Hmm, bonne question..." (${character.name} prend le temps de répondre)`;
+        } else {
+          response = `*t'écoute attentivement* "Je t'entends..." *hoche la tête* (${character.name} est attentif/attentive)`;
+        }
       }
 
       const assistantMessage = {
         role: 'assistant',
         content: response,
+        timestamp: Date.now(),
       };
 
       const finalMessages = [...updatedMessages, assistantMessage];
@@ -496,15 +526,15 @@ export default function ConversationScreen({ route, navigation }) {
     try {
       console.log(`🎁 Génération image récompense niveau ${newLevel}: ${reward.imageType}`);
       
-      // v5.3.70 - Utiliser generateSceneImage avec le niveau NSFW approprié
-      // C'est la même fonction que pour les images en conversation
+      // v5.4.6 - Utiliser generateSceneImage avec le niveau DE RELATION avec ce personnage
+      // Le niveau est celui de la relation avec CE personnage spécifique
       const profile = userProfile || await UserProfileService.getProfile();
       
-      // Calculer le niveau de relation équivalent pour l'image
-      // Plus le niveau est élevé, plus l'image est explicite
+      // Le niveau de relation avec ce personnage détermine le type d'image
+      // newLevel = nouveau niveau de relation avec ce personnage spécifique
       const relationLevel = Math.min(newLevel, 10); // Cap at 10 for max NSFW
       
-      console.log(`📸 Génération image niveau ${newLevel} avec relationLevel=${relationLevel}`);
+      console.log(`📸 Récompense niveau ${newLevel} avec ${character.name} - Image niveau ${relationLevel}`);
       
       // Utiliser la même fonction que les conversations pour garantir la cohérence
       const imageUrl = await ImageGenerationService.generateSceneImage(
@@ -577,13 +607,22 @@ export default function ConversationScreen({ route, navigation }) {
         throw new Error('Personnage invalide');
       }
       
-      // Niveau de relation pour adapter la tenue/pose
-      const currentLevel = userLevel?.level || 1;
-      const effectiveLevel = Math.max(1, currentLevel);
+      // v5.4.6 - Niveau de relation SPÉCIFIQUE AU PERSONNAGE (pas global!)
+      // On récupère le niveau directement depuis LevelService pour être sûr
+      let effectiveLevel = 1;
+      try {
+        const characterLevelData = await LevelService.getCharacterStats(character.id);
+        effectiveLevel = Math.max(1, characterLevelData?.level || 1);
+        console.log(`📊 Niveau relation avec ${character.name}: ${effectiveLevel} (titre: ${characterLevelData?.title})`);
+      } catch (levelError) {
+        // Fallback sur le state si erreur
+        effectiveLevel = Math.max(1, userLevel?.level || 1);
+        console.log(`⚠️ Fallback niveau: ${effectiveLevel}`);
+      }
       
-      console.log(`🎨 Génération image: Niveau ${effectiveLevel}`);
+      console.log(`🎨 Génération image: Niveau relation ${effectiveLevel} avec ${character.name}`);
       
-      // Génération avec timeout
+      // v5.4.94 - Génération avec timeout augmenté (150s pour Freebox via Pollinations)
       const imageUrl = await Promise.race([
         ImageGenerationService.generateSceneImage(
           character,
@@ -592,7 +631,7 @@ export default function ConversationScreen({ route, navigation }) {
           effectiveLevel
         ),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout génération')), 90000)
+          setTimeout(() => reject(new Error('Timeout génération')), 150000)
         )
       ]);
       
@@ -612,16 +651,19 @@ export default function ConversationScreen({ route, navigation }) {
         role: 'system',
         content: '[Image générée et sauvegardée dans la galerie]',
         image: imageUrl,
+        timestamp: Date.now(),
       };
 
-      const updatedMessages = [...messages, imageMessage];
-      setMessages(updatedMessages);
-      
-      try {
-        await saveConversation(updatedMessages, relationship);
-      } catch (e) {
-        console.log('⚠️ Erreur sauvegarde conversation');
-      }
+      // v5.4.43 - Utiliser callback pour éviter la condition de concurrence
+      // Cela garantit qu'on utilise les messages les plus récents
+      setMessages(prevMessages => {
+        const newMessages = [...prevMessages, imageMessage];
+        // Sauvegarde asynchrone
+        saveConversation(newMessages, relationship).catch(e => 
+          console.log('⚠️ Erreur sauvegarde:', e.message)
+        );
+        return newMessages;
+      });
 
       Alert.alert('Succès', 'Image générée et ajoutée à la galerie !');
 
@@ -647,8 +689,8 @@ export default function ConversationScreen({ route, navigation }) {
             }}
           ]
         );
-      } else if (error.message?.includes('Timeout')) {
-        Alert.alert('Timeout', 'La génération a pris trop de temps. Réessayez.');
+      } else if (error.message?.includes('Timeout') || error.message?.includes('trop long')) {
+        Alert.alert('⏱️ Timeout', 'La génération a pris trop de temps (>2min). Le serveur est peut-être surchargé. Réessayez dans quelques instants.');
       } else {
         Alert.alert('Erreur', 'Impossible de générer l\'image. Réessayez.');
       }
@@ -703,9 +745,10 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   /**
-   * Formatage du texte RP - Version robuste v6
+   * v5.4.23 - Formatage du texte RP - Version robuste v7
    * Parse: *actions*, (pensées), "dialogues"
    * Gère les astérisques Unicode et les actions inline
+   * FIX: Les actions/pensées entre paroles sont maintenant correctement colorées
    */
   const formatRPMessage = (content) => {
     if (!content || typeof content !== 'string') {
@@ -717,22 +760,57 @@ export default function ConversationScreen({ route, navigation }) {
     const len = content.length;
     let currentText = '';
     
+    // Tous les caractères de guillemets possibles
+    const openQuotes = ['"', '\u00AB', '\u201C', '\uFF02', "'", '\u2018', '\u201A'];
+    const closeQuotes = ['"', '\u00BB', '\u201D', '\uFF02', "'", '\u2019', '\u201B'];
+    
     while (i < len) {
       const char = content[i];
       
-      // Détecter le début d'une action (astérisque)
+      // v5.4.45 - Détecter le nom d'un personnage entre crochets [Nom]
+      if (char === '[') {
+        if (currentText.trim()) {
+          result.push({ type: 'text', text: currentText });
+        }
+        currentText = '';
+        
+        // Chercher le crochet fermant
+        let bracketEnd = -1;
+        for (let j = i + 1; j < len && j < i + 50; j++) { // Max 50 chars pour un nom
+          if (content[j] === ']') {
+            bracketEnd = j;
+            break;
+          }
+          // Si on rencontre un autre caractère spécial, ce n'est pas un nom
+          if (content[j] === '\n' || content[j] === '[') break;
+        }
+        
+        if (bracketEnd !== -1 && bracketEnd > i + 1) {
+          const speakerName = content.substring(i + 1, bracketEnd);
+          result.push({ type: 'speaker', text: speakerName });
+          i = bracketEnd + 1;
+          // Supprimer les espaces après le nom du personnage
+          while (i < len && content[i] === ' ') i++;
+        } else {
+          currentText += char;
+          i++;
+        }
+        continue;
+      }
+      
+      // Détecter le début d'une action (astérisque) - PRIORITÉ HAUTE
       if (isAsterisk(char)) {
         // Sauvegarder le texte accumulé avant
-        if (currentText) {
+        if (currentText.trim()) {
           result.push({ type: 'text', text: currentText });
-          currentText = '';
         }
+        currentText = '';
         
         // Chercher la fin de l'action (prochain astérisque)
         const actionEnd = findNextAsterisk(content, i + 1);
         
         if (actionEnd !== -1 && actionEnd > i + 1) {
-          // Action trouvée
+          // Action trouvée - inclure les astérisques
           const actionContent = content.substring(i + 1, actionEnd);
           result.push({ type: 'action', text: '*' + actionContent + '*' });
           i = actionEnd + 1;
@@ -744,23 +822,26 @@ export default function ConversationScreen({ route, navigation }) {
         continue;
       }
       
-      // Détecter le début d'une pensée (parenthèse)
+      // Détecter le début d'une pensée (parenthèse) - PRIORITÉ HAUTE
       if (char === '(' || char === '\uFF08') {
-        if (currentText) {
+        if (currentText.trim()) {
           result.push({ type: 'text', text: currentText });
-          currentText = '';
         }
+        currentText = '';
         
-        const closeChar = char === '\uFF08' ? '\uFF09' : ')';
+        // Chercher la parenthèse fermante
+        let depth = 1;
         let thoughtEnd = -1;
-        for (let j = i + 1; j < len; j++) {
-          if (content[j] === closeChar || content[j] === ')') {
-            thoughtEnd = j;
-            break;
+        for (let j = i + 1; j < len && depth > 0; j++) {
+          if (content[j] === '(' || content[j] === '\uFF08') depth++;
+          else if (content[j] === ')' || content[j] === '\uFF09') {
+            depth--;
+            if (depth === 0) thoughtEnd = j;
           }
         }
         
-        if (thoughtEnd !== -1 && thoughtEnd > i + 2) {
+        if (thoughtEnd !== -1 && thoughtEnd > i + 1) {
+          // Pensée trouvée - inclure les parenthèses
           const thoughtContent = content.substring(i, thoughtEnd + 1);
           result.push({ type: 'thought', text: thoughtContent });
           i = thoughtEnd + 1;
@@ -772,45 +853,74 @@ export default function ConversationScreen({ route, navigation }) {
       }
       
       // Détecter le début d'un dialogue (guillemets)
-      if (char === '"' || char === '\u00AB' || char === '\u201C' || char === '\uFF02') {
-        if (currentText) {
+      const openQuoteIndex = openQuotes.indexOf(char);
+      if (openQuoteIndex !== -1) {
+        if (currentText.trim()) {
           result.push({ type: 'text', text: currentText });
-          currentText = '';
         }
+        currentText = '';
         
         // Trouver le guillemet fermant correspondant
-        let closeChars = ['"', '\u00BB', '\u201D', '\uFF02'];
-        if (char === '\u00AB') closeChars = ['\u00BB'];
-        
+        // Chercher le guillemet fermant en priorité, sinon n'importe quel guillemet fermant
         let dialogueEnd = -1;
+        const primaryClose = closeQuotes[openQuoteIndex];
+        
         for (let j = i + 1; j < len; j++) {
-          if (closeChars.includes(content[j])) {
+          // Arrêter si on rencontre une action ou pensée (ne pas les englober)
+          if (isAsterisk(content[j]) || content[j] === '(' || content[j] === '\uFF08') {
+            // Vérifier si c'est une action/pensée valide (a une fermeture)
+            if (isAsterisk(content[j])) {
+              const nextAsterisk = findNextAsterisk(content, j + 1);
+              if (nextAsterisk !== -1) {
+                // Il y a une action, terminer le dialogue ici
+                dialogueEnd = j - 1;
+                break;
+              }
+            }
+            if (content[j] === '(' || content[j] === '\uFF08') {
+              // Il y a une pensée
+              dialogueEnd = j - 1;
+              break;
+            }
+          }
+          
+          if (content[j] === primaryClose || closeQuotes.includes(content[j])) {
             dialogueEnd = j;
             break;
           }
         }
         
-        if (dialogueEnd !== -1 && dialogueEnd > i + 1) {
+        if (dialogueEnd !== -1 && dialogueEnd >= i + 1) {
+          // Dialogue trouvé - inclure les guillemets pour clarté visuelle
           const dialogueContent = content.substring(i + 1, dialogueEnd);
-          result.push({ type: 'dialogue', text: dialogueContent });
-          i = dialogueEnd + 1;
+          if (dialogueContent.trim()) {
+            result.push({ type: 'dialogue', text: '"' + dialogueContent + '"' });
+          }
+          // Avancer après le guillemet fermant si on l'a trouvé
+          if (closeQuotes.includes(content[dialogueEnd])) {
+            i = dialogueEnd + 1;
+          } else {
+            i = dialogueEnd + 1;
+          }
         } else {
+          // Pas de fermeture valide, traiter le reste comme dialogue
           currentText += char;
           i++;
         }
         continue;
       }
       
-      // Caractère normal
+      // Caractère normal - ajouter au texte courant
       currentText += char;
       i++;
     }
     
-    // Ajouter le texte restant
-    if (currentText) {
+    // Ajouter le texte restant (s'il y en a)
+    if (currentText.trim()) {
       result.push({ type: 'text', text: currentText });
     }
     
+    // Si rien n'a été parsé, retourner le contenu original
     return result.length > 0 ? result : [{ type: 'text', text: content }];
   };
 
@@ -848,33 +958,62 @@ export default function ConversationScreen({ route, navigation }) {
               {character.name}
             </Text>
           )}
-          <Text style={styles.messageContent}>
+          <Text style={[styles.messageContent, { color: isUser ? '#ffffff' : '#000000' }]}>
             {formattedParts.map((part, index) => {
-              if (part.type === 'action') {
-                // ACTIONS: Couleur personnalisée
+              // v5.4.45 - Affichage des noms de personnages
+              if (part.type === 'speaker') {
+                // NOMS DE PERSONNAGES: Violet/Magenta, gras
                 return (
-                  <Text key={index} style={{ color: style.actionColor || '#ef4444', fontStyle: 'italic', fontWeight: 'bold' }}>
+                  <Text 
+                    key={`speaker-${index}`} 
+                    style={{ 
+                      color: '#9333ea', // Violet
+                      fontWeight: 'bold',
+                      fontStyle: 'normal',
+                    }}
+                  >
+                    [{part.text}]{' '}
+                  </Text>
+                );
+              } else if (part.type === 'action') {
+                // ACTIONS: Rouge, italique, gras
+                return (
+                  <Text 
+                    key={`action-${index}`} 
+                    style={{ 
+                      color: style.actionColor || '#ef4444', 
+                      fontStyle: 'italic', 
+                      fontWeight: 'bold',
+                    }}
+                  >
                     {part.text}
                   </Text>
                 );
               } else if (part.type === 'thought') {
-                // PENSÉES: Couleur personnalisée
+                // PENSÉES: Bleu, italique
                 return (
-                  <Text key={index} style={{ color: style.thoughtColor || '#3b82f6', fontStyle: 'italic' }}>
-                    {part.text}
-                  </Text>
-                );
-              } else if (part.type === 'dialogue') {
-                // PAROLES: Couleur personnalisée
-                return (
-                  <Text key={index} style={{ color: isUser ? '#ffffff' : (style.dialogueColor || '#1f2937') }}>
+                  <Text 
+                    key={`thought-${index}`} 
+                    style={{ 
+                      color: style.thoughtColor || '#3b82f6', 
+                      fontStyle: 'italic',
+                      fontWeight: 'normal',
+                    }}
+                  >
                     {part.text}
                   </Text>
                 );
               } else {
-                // Texte normal
+                // v5.4.40 - TOUT LE RESTE EN NOIR (dialogue + texte normal)
                 return (
-                  <Text key={index} style={{ color: isUser ? '#ffffff' : (style.dialogueColor || '#4b5563') }}>
+                  <Text 
+                    key={`text-${index}`} 
+                    style={{ 
+                      color: isUser ? '#ffffff' : '#000000',
+                      fontStyle: 'normal',
+                      fontWeight: 'normal',
+                    }}
+                  >
                     {part.text}
                   </Text>
                 );

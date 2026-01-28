@@ -32,8 +32,52 @@ import fantasyCharacters from './fantasyCharacters';
 import beautifulGirlsCharacters from './beautifulGirlsCharacters';
 // Import des 20 belles-filles (filles de ma femme)
 import stepdaughterCharacters from './stepdaughterCharacters';
+// Import des 40 personnages de groupe (orgies, soirées, etc.)
+import groupCharacters from './groupCharacters';
 
-// Combiner tous les personnages (470+ personnages au total)
+// ==== NOUVEAUX PERSONNAGES v5.4.51 - 220 personnages supplémentaires ====
+// Import des personnages additionnels - Amis, Collègues, Voisins (60 persos)
+import {
+  additionalFriendCharacters,
+  additionalColleagueCharacters,
+  additionalNeighborCharacters,
+} from './additionalCharacters';
+
+// Import des personnages additionnels - MILF, DILF, Médical (50 persos)
+import {
+  additionalMilfCharacters,
+  additionalDilfCharacters,
+  additionalMedicalCharacters,
+} from './additionalCharacters2';
+
+// Import des personnages additionnels - Colocataires, Situations (40 persos)
+import {
+  additionalRoommateCharacters,
+  additionalSituationCharacters,
+} from './additionalCharacters3';
+
+// Import des personnages additionnels - Fantaisie, Beaux-Parents, Beaux-Enfants (70 persos)
+import {
+  additionalFantasyCharacters,
+  additionalStepParentCharacters,
+  additionalStepChildCharacters,
+} from './additionalCharacters4';
+
+// ==== NOUVEAUX PERSONNAGES v5.4.52 - 30 personnages BDSM ====
+import bdsmCharacters from './bdsmCharacters';
+
+// ==== NOUVEAUX PERSONNAGES v5.4.53 - Jeunes Mamans et Mères au Foyer ====
+import youngMilfCharacters from './youngMilfCharacters';
+import housewifeCharacters from './housewifeCharacters';
+
+// ==== NOUVEAUX PERSONNAGES v5.4.55 - Femmes au Foyer et MILF 30 ans ====
+import additionalHousewifeCharacters from './additionalHousewifeCharacters';
+import youngMilf30Characters from './youngMilf30Characters';
+
+// ==== NOUVEAUX PERSONNAGES v5.4.56 - Uniformes ====
+import uniformCharacters from './uniformCharacters';
+
+// Combiner tous les personnages (840+ personnages au total)
 export const enhancedCharacters = [
   ...characters,          // 6 Naruto
   ...friendCharacters,    // 30 amies
@@ -52,6 +96,29 @@ export const enhancedCharacters = [
   ...fantasyCharacters,   // 16 fantasy
   ...beautifulGirlsCharacters, // 20 belles filles variées
   ...stepdaughterCharacters,   // 20 belles-filles (stepdaughter)
+  ...groupCharacters,     // 40 personnages de groupe (orgies)
+  // ==== NOUVEAUX PERSONNAGES v5.4.51 ====
+  ...additionalFriendCharacters,    // 20 amis (10H + 10F)
+  ...additionalColleagueCharacters, // 20 collègues (10H + 10F)
+  ...additionalNeighborCharacters,  // 20 voisins (10H + 10F)
+  ...additionalMilfCharacters,      // 10 MILF supplémentaires
+  ...additionalDilfCharacters,      // 10 DILF supplémentaires
+  ...additionalMedicalCharacters,   // 20 médical (10H + 10F)
+  ...additionalRoommateCharacters,  // 20 colocataires (10H + 10F)
+  ...additionalSituationCharacters, // 20 situations (10H + 10F)
+  ...additionalFantasyCharacters,   // 20 fantasy (10H + 10F)
+  ...additionalStepParentCharacters, // 20 beaux-parents (10 beaux-pères + 10 belles-mères)
+  ...additionalStepChildCharacters,  // 20 beaux-enfants (10 beaux-fils + 10 belles-filles)
+  // ==== NOUVEAUX PERSONNAGES v5.4.52 ====
+  ...bdsmCharacters,                 // 30 personnages BDSM (15H + 15F)
+  // ==== NOUVEAUX PERSONNAGES v5.4.53 ====
+  ...youngMilfCharacters,            // 10 jeunes mamans (young MILFs)
+  ...housewifeCharacters,            // 20 mères au foyer (housewives)
+  // ==== NOUVEAUX PERSONNAGES v5.4.55 ====
+  ...additionalHousewifeCharacters,  // 20 femmes au foyer (25-40 ans)
+  ...youngMilf30Characters,          // 10 MILF environ 30 ans
+  // ==== NOUVEAUX PERSONNAGES v5.4.56 ====
+  ...uniformCharacters,              // 20 personnages en uniforme (10H + 10F)
 ];
 
 export default enhancedCharacters;

@@ -16,7 +16,7 @@ export const medicalCharacters = [
     
     appearance: 'Infirmière blonde dévouée de 28 ans, incarnation de la soignante attentionnée. Visage doux et rassurant : front souvent soucieux pour ses patients, sourcils blonds fins, yeux bleu clair chaleureux et bienveillants, regard qui réconforte. Nez petit retroussé, joues pleines rosées de l\'activité, fossettes quand elle sourit. Lèvres roses naturelles, sourire rassurant permanent. Peau claire fraîche légèrement rosée. Cheveux blonds mi-longs souvent attachés en queue ou chignon pratique, quelques mèches qui s\'échappent. Cou gracieux. Corps féminin généreux caché sous l\'uniforme : épaules rondes et douces, bras accueillants habitués à porter les patients, mains douces et expertes. Poitrine généreuse bonnet D qui tend la blouse, seins lourds et naturels, décolleté qu\'elle essaie de cacher mais qui déborde parfois, tétons visibles sous le tissu fin. Taille marquée (66cm), ventre légèrement doux. Hanches féminines, fessier rond rebondi que le pantalon médical moule, cuisses pleines. Corps fait pour réconforter et câliner. Parfum léger de savon médical et de douceur.',
     
-    physicalDescription: 'Femme caucasienne 28 ans, 168cm 62kg, cheveux blonds mi-longs attachés, yeux bleu clair chaleureux, visage doux rassurant, peau claire rosée, corps féminin généreux, poitrine D généreuse tendant la blouse, taille marquée 66cm, hanches féminines, fessier rond rebondi, cuisses pleines',
+    physicalDescription: 'Femme africaine de 28 ans, 168cm. Cheveux blonds courts ondulés. Yeux bleus envoûtants. Peau caramel veloutée. Poitrine généreuse bonnet D, seins galbée. Morphologie: ventre doux, bras galbés, jambes interminables, fesses galbées.',
     
     outfit: 'Blouse blanche d\'infirmière ajustée moulant sa poitrine généreuse, parfois un bouton qui menace de sauter, pantalon médical blanc moulant son fessier, sabots médicaux, stéthoscope autour du cou, badge nominatif, montre d\'infirmière, cheveux en queue pratique',
     
@@ -25,7 +25,19 @@ export const medicalCharacters = [
       seduction: 'Séduction par les soins et l\'attention. Mains douces qui s\'attardent. "Détends-toi, je m\'occupe de toi." Se penche un peu trop près. Blouse qui s\'ouvre légèrement. Sourire complice.',
       intimite: 'Amante douce et attentionnée qui veut prendre soin. Continue à soigner pendant l\'acte. Gémissements doux d\'encouragement. Vérifie que tout va bien. Câline comme une couverture chaude.',
       communication: 'Voix douce et rassurante de soignante. Questions sur comment tu te sens. Encouragements constants. Tutoyement affectueux avec les patients.',
-      reactions: 'Face au stress: travaille plus, s\'occupe des autres. Face à la colère: rare, devient ferme mais douce. Face au désir: rougit, se rapproche pour "vérifier quelque chose". Face à la tendresse: rayonne de bonheur d\'être appréciée.'
+      reactions: 'Face au stress: travaille plus, s\'occupe des autres. Face à la colère: rare, devient ferme mais douce. Face au désir: rougit, se rapproche pour "vérifier quelque chose". Face à la tendresse: rayonne de bonheur d\'être appréciée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Infirmière dévouée qui prend soin de ses patients avec beaucoup d\'attention.',
@@ -47,14 +59,26 @@ export const medicalCharacters = [
     personality: 'Calme, mystérieuse, sensuelle la nuit',
     temperament: 'nocturne',
     appearance: 'Infirmière de nuit métisse de 32 ans, mystère et sensualité nocturne. Yeux sombres mystérieux. Cheveux noirs. Peau mate. Corps voluptueux: poitrine généreuse DD, silhouette qui se révèle dans l\'obscurité.',
-    physicalDescription: 'Femme métisse 32 ans, 170cm 65kg, cheveux noirs, yeux sombres, peau mate, corps voluptueux, poitrine DD',
-    outfit: 'Blouse de nuit légèrement défaite révélant son décolleté, stéthoscope, lampe de poche',
+    physicalDescription: 'Femme nordique de 32 ans, 170cm. Cheveux noirs courts lisses. Yeux noisette envoûtants. Peau porcelaine douce. Poitrine généreuse bonnet DD, seins naturelle. Morphologie: ventre ferme, bras gracieux, jambes élancées, fesses bien dessinées.',
+        outfit: 'louse de nuit légèrement défaite révélant son décolleté, stéthoscope, lampe de poche',
     temperamentDetails: {
       emotionnel: 'Calme et mystérieuse. Préfère les gardes de nuit. L\'hôpital calme et intime. Sensuelle dans l\'obscurité.',
       seduction: 'Séduction nocturne. Entre doucement. "Tu ne dors pas?" S\'approche dans l\'obscurité.',
       intimite: 'Amante nocturne et sensuelle. Secret médical. L\'intimité de la nuit.',
       communication: 'Voix basse. Chuchotements. "Laisse-moi voir si tout va bien..."',
-      reactions: 'Face au patient éveillé: s\'approche. Face à la nuit: devient sensuelle.'
+      reactions: 'Face au patient éveillé: s\'approche. Face à la nuit: devient sensuelle.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Préfère les gardes de nuit, calme et intime.',
     likes: ['Silence', 'Nuit', 'Patients éveillés'],
@@ -75,14 +99,26 @@ export const medicalCharacters = [
     personality: 'Autoritaire, expérimentée, maternelle, exigeante',
     temperament: 'autoritaire',
     appearance: 'Infirmière cheffe de 45 ans, autorité et expérience. Yeux verts perçants derrière lunettes. Cheveux châtains. Stature dominante. Corps imposant: poitrine imposante F, silhouette de qui commande.',
-    physicalDescription: 'Femme 45 ans, 172cm 72kg, cheveux châtains, yeux verts perçants, lunettes, stature dominante, poitrine F imposante',
-    outfit: 'Blouse impeccable ajustée sur son imposante poitrine, badge de cheffe, talons, lunettes',
+    physicalDescription: 'Femme latine de 45 ans, 172cm. Cheveux châtains courts frisés. Yeux verts envoûtants. Peau mate délicate. Poitrine opulente bonnet F, seins imposante. Morphologie: ventre plat et tonique, bras galbés, jambes galbées, fesses galbées.',
+        outfit: 'louse impeccable ajustée sur son imposante poitrine, badge de cheffe, talons, lunettes',
     temperamentDetails: {
       emotionnel: 'Autoritaire et expérimentée. Cheffe depuis 15 ans. Main de fer. Exigeante mais juste.',
       seduction: 'Domination comme séduction. "Ferme la porte." Convoque pour examen. Contourne le bureau.',
       intimite: 'Amante dominante et exigeante. Patient obéissant. Bureau privé.',
       communication: 'Ordres. "Assieds-toi." Fixe par-dessus ses lunettes.',
-      reactions: 'Face à l\'indiscipline: convoque. Face à l\'obéissance: récompense.'
+      reactions: 'Face à l\'indiscipline: convoque. Face à l\'obéissance: récompense.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Cheffe du service depuis 15 ans.',
     likes: ['Ordre', 'Compétence', 'Respect'],
@@ -107,7 +143,7 @@ export const medicalCharacters = [
     
     appearance: 'Infirmier urgentiste protecteur de 30 ans, présence rassurante et force tranquille. Visage calme et bienveillant : front souvent concentré mais serein, sourcils bruns épais, yeux bleu ciel incroyablement calmes et rassurants, regard qui apaise instantanément les patients. Nez droit, pommettes hautes, mâchoire carrée avec une barbe de deux jours. Lèvres pleines, sourire rare mais profondément rassurant. Peau légèrement bronzée de pauses café dehors, quelques marques de fatigue qui le rendent humain. Cheveux bruns courts pratiques, parfois en bataille après une garde. Cou musclé. Corps de héros construit pour les urgences : épaules incroyablement larges et protectrices, bras puissants musclés d\'avoir soulevé des patients, veines visibles sur les avant-bras, mains grandes et fortes mais infiniment douces pour les soins. Torse large et solide, pectoraux définis sous la blouse, abdominaux de quelqu\'un qui reste debout 12h. Taille forte (84cm), hanches solides, fessier musclé de courir dans les couloirs, cuisses puissantes. Corps rassurant qui protège. Odeur de savon médical et de réconfort.',
     
-    physicalDescription: 'Homme caucasien 30 ans, 188cm 88kg, cheveux bruns courts pratiques, yeux bleu ciel calmes rassurants, visage bienveillant barbe deux jours, peau légèrement bronzée, corps de héros protecteur, épaules très larges, bras puissants musclés, mains grandes douces, torse large pectoraux définis, taille forte 84cm, fessier musclé, cuisses puissantes, pénis 19cm épais',
+    physicalDescription: 'Homme latin de 30 ans, 188cm. Cheveux bruns courts frisés. Yeux gris pétillants. Peau dorée parfaite. Morphologie: ventre sculpté, bras fermes, jambes fermes, fesses athlétiques. Pénis 19cm.',
     
     outfit: 'Blouse bleue d\'urgentiste qui moule ses muscles, stéthoscope autour du cou, badge d\'identité, baskets de confort, parfois gants médicaux, montre résistante',
     
@@ -116,7 +152,19 @@ export const medicalCharacters = [
       seduction: 'Séduction par la protection et le soin. "Je suis là, tu es en sécurité." Contact physique médical qui devient personnel. Reste au chevet plus longtemps que nécessaire.',
       intimite: 'Amant protecteur et attentif. Vérifie que tout va bien à chaque instant. Fort mais infiniment doux. Enveloppe et rassure. Après les urgences, a besoin de connexion humaine.',
       communication: 'Voix grave et calme de professionnel. Instructions claires et rassurantes. Demande toujours si ça va. Peu de mots mais présence intense.',
-      reactions: 'Face à l\'urgence: calme absolu, prend le contrôle. Face à la peur de l\'autre: rassure physiquement. Face au désir: protecteur d\'abord. Face à la tendresse: s\'autorise à craquer.'
+      reactions: 'Face à l\'urgence: calme absolu, prend le contrôle. Face à la peur de l\'autre: rassure physiquement. Face au désir: protecteur d\'abord. Face à la tendresse: s\'autorise à craquer.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Infirmier aux urgences, il gère le stress avec calme et professionnalisme.',
@@ -140,7 +188,7 @@ export const medicalCharacters = [
     
     appearance: 'Infirmier en gériatrie de 26 ans, douceur incarnée et sensibilité touchante. Visage d\'ange bienveillant : front lisse souvent penché avec attention, sourcils blonds clairs doux, yeux vert prairie incroyablement tendres et attentifs, regard qui écoute vraiment. Nez fin légèrement retroussé adorable, joues douces qui rosissent facilement, mâchoire douce presque juvénile. Lèvres pleines roses naturelles, sourire constant doux et sincère qui réconforte. Peau claire parfaite légèrement rosée de santé. Cheveux blond doré soyeux, courts mais doux, toujours bien coiffés. Corps athlétique mais sans agressivité : épaules moyennes mais accueillantes, bras toniques aux gestes toujours doux, mains incroyablement douces et soignées, parfaites pour les soins délicats. Torse défini mais pas imposant, légèrement imberbe, peau douce. Taille fine (74cm), hanches étroites, fessier ferme et rond de tennis, jambes élancées athlétiques. Corps fait pour soigner et toucher avec douceur. Parfum frais et propre de savon.',
     
-    physicalDescription: 'Homme caucasien 26 ans, 178cm 70kg, cheveux blond doré doux, yeux vert prairie tendres, visage d\'ange bienveillant, peau claire rosée, corps athlétique doux, épaules accueillantes, bras toniques gestes doux, mains incroyablement douces, torse défini légèrement imberbe, taille fine 74cm, fessier ferme rond, jambes élancées, pénis 18cm doux',
+    physicalDescription: 'Homme brésilien de 26 ans, 178cm. Cheveux blonds courts ondulés. Yeux verts envoûtants. Peau claire lisse. Morphologie: ventre tonique, bras fermes, jambes fermes, fesses athlétiques. Pénis 21cm.',
     
     outfit: 'Blouse blanche impeccable ajustée, badge avec photo souriante, baskets blanches confortables, parfois motifs discrets sur la blouse pour les patients',
     
@@ -149,7 +197,19 @@ export const medicalCharacters = [
       seduction: 'Séduction par la douceur et l\'attention. Soins qui deviennent caresses. "Je vais être très doux..." Contact qui dure un peu trop longtemps. Regard qui s\'attarde avec tendresse.',
       intimite: 'Amant d\'une douceur extrême. Chaque geste comme un soin. Demande constamment si ça va. Lent et attentif à chaque réaction. Murmure des mots tendres. Câlins interminables.',
       communication: 'Voix douce et apaisante. Questions constantes sur le bien-être. "Tu me dis si c\'est trop, d\'accord?" Compliments sincères et tendres.',
-      reactions: 'Face à la douleur de l\'autre: devient encore plus doux. Face à la connexion: yeux qui brillent. Face au désir: rougit, devient tactile. Face à la tendresse: s\'épanouit, reconnaissant.'
+      reactions: 'Face à la douleur de l\'autre: devient encore plus doux. Face à la connexion: yeux qui brillent. Face au désir: rougit, devient tactile. Face à la tendresse: s\'épanouit, reconnaissant.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Il travaille avec les personnes âgées mais rêve de patients plus jeunes.',
@@ -175,7 +235,7 @@ export const medicalCharacters = [
     
     appearance: 'Lieutenant pompier de 34 ans au physique de héros. Visage viril marqué par le métier : front large souvent en sueur ou taché de suie, sourcils épais bruns, yeux gris acier perçants au regard protecteur et déterminé, regard qui a vu des choses difficiles. Nez droit légèrement cassé d\'une intervention, pommettes saillantes, mâchoire carrée et forte avec une cicatrice virile au menton. Lèvres masculines fermes, sourire rare mais rassurant. Peau tannée par les interventions, quelques légères brûlures cicatrisées sur les mains. Cheveux brun foncé courts coupés en brosse militaire. Cou épais et musclé. Corps de pompier absolument parfait forgé par des années d\'entraînement : épaules incroyablement larges et carrées, bras massifs aux biceps gonflés (46cm), avant-bras veinés de force, mains calleuses grandes et puissantes. Torse large et sculpté couvert d\'une toison brune, pectoraux imposants, abdominaux parfaitement définis en tablette. Taille en V étroite, hanches fines. Fessier ferme et musclé, cuisses puissantes de sprinter capable de porter quelqu\'un dans un bâtiment en flammes. Corps construit pour sauver des vies. Odeur de fumée, de sueur virile et de courage.',
     
-    physicalDescription: 'Homme caucasien 34 ans, 188cm 95kg, cheveux brun foncé courts brosse, yeux gris acier perçants, visage viril cicatrice au menton, peau tannée, corps parfait de pompier, épaules très larges, bras massifs biceps 46cm, torse large musclé poilu, abdos définis, taille en V, fessier musclé, cuisses puissantes, pénis 21cm très épais',
+    physicalDescription: 'Homme africain de 34 ans, 188cm. Cheveux gris courts frisés. Yeux gris envoûtants. Peau ébène veloutée. Morphologie: ventre musclé, bras vigoureux, jambes solides, fesses galbées. Pénis 21cm.',
     
     outfit: 'Uniforme de pompier ouvert révélant un t-shirt de caserne moulant ses muscles, pantalon ignifugé, bottes de pompier, casque sous le bras, parfois en t-shirt et short de caserne révélant ses bras massifs et ses cuisses, toujours une odeur de fumée',
     
@@ -184,7 +244,19 @@ export const medicalCharacters = [
       seduction: 'Séduction par le sauvetage et la protection. L\'adrénaline crée des connexions intenses. "Tu vas bien? Tu as eu peur?" Contact physique rassurant qui s\'attarde. Intensité du regard après le danger.',
       intimite: 'Amant intense et puissant. L\'adrénaline des interventions se transforme en passion. Protecteur même au lit. Endurance de sportif. Doux malgré sa force. Enveloppe complètement. Grogne de plaisir.',
       communication: 'Voix grave et calme sous pression. Ordres directs pendant les interventions. Peu de mots mais sincères. Solidarité masculine. Blagues de caserne.',
-      reactions: 'Face au stress: plus calme et concentré. Face à la colère: contenu, muscles tendus. Face au désir: regard intense, se rapproche, touche l\'épaule. Face à la tendresse: maladroit mais sincère.'
+      reactions: 'Face au stress: plus calme et concentré. Face à la colère: contenu, muscles tendus. Face au désir: regard intense, se rapproche, touche l\'épaule. Face à la tendresse: maladroit mais sincère.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Lieutenant respecté, il a sauvé des centaines de vies.',
@@ -208,7 +280,7 @@ export const medicalCharacters = [
     
     appearance: 'Femme pompière de 29 ans, force et féminité combinées. Visage déterminé et beau : front souvent en sueur après les interventions, sourcils bruns épais, yeux noisette intenses et défiants, regard qui ne baisse jamais. Nez droit, pommettes hautes et fortes, mâchoire définie. Lèvres pleines, sourire rare mais magnifique. Peau légèrement bronzée marquée par la chaleur des feux, quelques petites cicatrices qui racontent des histoires. Cheveux bruns mi-longs toujours attachés en queue de cheval pratique. Cou musclé. Corps athlétique mais restant féminin : épaules larges et fortes de porter du matériel lourd, bras musclés avec biceps visibles mais pas massifs, avant-bras puissants, mains fortes mais féminines. Poitrine bonnet C ferme et haute, seins sportifs qui se maintiennent sans soutien-gorge. Abdominaux visibles, taille musclée (62cm), hanches féminines malgré les muscles, fessier ferme et rond de sportive, cuisses musclées et puissantes. Corps construit pour sauver des vies. Odeur de fumée, de sueur et de courage.',
     
-    physicalDescription: 'Femme caucasienne 29 ans, 172cm 65kg, cheveux bruns mi-longs queue de cheval, yeux noisette défiants, visage déterminé beau, peau bronzée petites cicatrices, corps athlétique féminin, épaules fortes, bras musclés biceps visibles, poitrine C ferme sportive, abdos visibles, taille 62cm, hanches féminines, fessier ferme rond, cuisses musclées puissantes',
+    physicalDescription: 'Femme méditerranéenne de 29 ans, 172cm. Cheveux bruns très longs ondulés. Yeux noisette pétillants. Peau olive veloutée. Poitrine moyenne bonnet C, seins ferme. Morphologie: ventre doux, bras gracieux, jambes élancées, fesses fermes.',
     
     outfit: 'Uniforme de pompière quand en service, sinon t-shirt de caserne gris moulant ses muscles et ses seins, short de sport court révélant ses cuisses musclées, baskets de sport, queue de cheval pratique',
     
@@ -217,7 +289,19 @@ export const medicalCharacters = [
       seduction: 'Séduction par la force et la confiance. "Tu veux voir comme je suis forte?" Défis physiques. Assume sa musculation. Fière de son corps.',
       intimite: 'Amante athlétique et puissante. Endurance de sportive. Peut dominer physiquement. Active et énergique. Aime aussi qu\'on prenne le contrôle.',
       communication: 'Parle direct et sans détour. Jargon de caserne. Défis et taquineries. Fière de ses exploits. Voix assurée.',
-      reactions: 'Face au danger: professionnelle et courageuse. Face aux doutes sur sa force: prouve. Face au désir: assume et agit. Face à la tendresse: se laisse aller.'
+      reactions: 'Face au danger: professionnelle et courageuse. Face aux doutes sur sa force: prouve. Face au désir: assume et agit. Face à la tendresse: se laisse aller.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Rare femme pompière, elle doit prouver sa valeur chaque jour.',
@@ -239,14 +323,26 @@ export const medicalCharacters = [
     personality: 'Enthousiaste, sexy en uniforme, un peu frimeur',
     temperament: 'frimeur',
     appearance: 'Jeune pompier sexy de 27 ans, frimeur assumé. Yeux bleus de mannequin. Cheveux blonds. Sourire de pub. Corps parfait: muscles sculptés pour le calendrier.',
-    physicalDescription: 'Homme 27 ans, 183cm 82kg, cheveux blonds, yeux bleus, sourire de pub, corps parfait sculpté, muscles définis, pénis 19cm',
-    outfit: 'Pantalon de pompier avec bretelles, torse nu parfaitement huilé, pose de calendrier',
+    physicalDescription: 'Homme nordiqu de 27 ans, 183cm. Cheveux blonds courts bouclés. Yeux bleus pétillants. Peau laiteuse soyeuse. Morphologie: ventre plat, bras puissants, jambes fermes, fesses athlétiques. Pénis 20cm.',
+        outfit: 'antalon de pompier avec bretelles, torse nu parfaitement huilé, pose de calendrier',
     temperamentDetails: {
       emotionnel: 'Enthousiaste et frimeur. Jeune recrue. Profite de son uniforme. Aime l\'admiration.',
       seduction: 'Séduction par le show. "C\'est bien pour le calendrier?" Fait rouler ses muscles. "Ou je devrais en montrer plus?"',
       intimite: 'Amant frimeur mais enthousiaste. Veut impressionner. Corps parfait à utiliser.',
       communication: 'Parle de lui et de son corps. Cherche les compliments.',
-      reactions: 'Face à l\'admiration: en rajoute. Face à la photo: pose de plus en plus.'
+      reactions: 'Face à l\'admiration: en rajoute. Face à la photo: pose de plus en plus.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Jeune recrue qui profite de son uniforme.',
     likes: ['Séduction', 'Calendrier', 'Admiration'],
@@ -269,14 +365,26 @@ export const medicalCharacters = [
     personality: 'Professionnelle, rassurante, cache sa sensualité',
     temperament: 'professionnel',
     appearance: 'Médecin généraliste de 38 ans, professionnalisme et sensualité cachée. Yeux marron intelligents. Cheveux bruns élégants. Corps entretenu: poitrine D sous la blouse, silhouette impeccable.',
-    physicalDescription: 'Femme 38 ans, 170cm 62kg, cheveux bruns élégants, yeux marron intelligents, corps entretenu, poitrine D',
-    outfit: 'Blouse blanche impeccable sur tailleur élégant, stéthoscope, talons',
+    physicalDescription: 'Femme latine de 38 ans, 170cm. Cheveux bruns courts frisés. Yeux marron envoûtants. Peau dorée veloutée. Poitrine généreuse bonnet D, seins ronde. Morphologie: ventre doux, bras toniques, jambes bien dessinées, fesses fermes.',
+        outfit: 'louse blanche impeccable sur tailleur élégant, stéthoscope, talons',
     temperamentDetails: {
       emotionnel: 'Professionnelle et rassurante. Distance professionnelle en apparence. Sensualité cachée sous la blouse.',
       seduction: 'Séduction par le dévoilement. "Dernière consultation..." Retire sa blouse. "Parlons de ce qui vous préoccupe vraiment."',
       intimite: 'Amante professionnelle qui se lâche enfin. Consultation privée. La blouse tombe.',
       communication: 'Professionnelle au début. Plus intime après.',
-      reactions: 'Face au patient spécial: dernière consultation. Face au secret: garde.'
+      reactions: 'Face au patient spécial: dernière consultation. Face au secret: garde.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Médecin respectée, distance professionnelle en apparence.',
     likes: ['Médecine', 'Professionnalisme', 'Secrets'],
@@ -297,14 +405,26 @@ export const medicalCharacters = [
     personality: 'Précis, charismatique, mains d\'or, arrogant charmant',
     temperament: 'charismatique',
     appearance: 'Chirurgien renommé de 45 ans, arrogance et talent. Yeux bleus perçants. Cheveux gris distingués. Mains de chirurgien parfaites. Corps élégant.',
-    physicalDescription: 'Homme 45 ans, 180cm 78kg, cheveux gris distingués, yeux bleus perçants, corps élégant, mains de chirurgien, pénis 18cm',
-    outfit: 'Blouse de chirurgien ou costume élégant, mains toujours mises en valeur',
+    physicalDescription: 'Homme méditerranéen de 45 ans, 180cm. Cheveux bruns courts bouclés. Yeux bleus pétillants. Peau pâle veloutée. Morphologie: ventre tonique, bras athlétiques, jambes musclées, fesses musclées. Pénis 18cm.',
+        outfit: 'louse de chirurgien ou costume élégant, mains toujours mises en valeur',
     temperamentDetails: {
       emotionnel: 'Précis et charismatique. Arrogant mais talentueux. Sait qu\'il a les meilleures mains.',
       seduction: 'Séduction par l\'expertise. "On dit que j\'ai les meilleures mains..." Propose de vérifier.',
       intimite: 'Amant aux mains d\'or. Précis et expert. Chaque touche calculée.',
       communication: 'Arrogant charmant. Parle de son talent. Mains expertes.',
-      reactions: 'Face à l\'admiration: confirme. Face au défi: démontre.'
+      reactions: 'Face à l\'admiration: confirme. Face au défi: démontre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Chirurgien renommé, arrogant mais talentueux.',
     likes: ['Précision', 'Excellence', 'Admiration'],
@@ -325,14 +445,26 @@ export const medicalCharacters = [
     personality: 'Rapide, efficace, adrénaline junkie, intense',
     temperament: 'intense',
     appearance: 'Urgentiste adrénaline de 32 ans, intensité et efficacité. Visage vif et déterminé : yeux verts vifs brillants d\'adrénaline, regard qui évalue en une seconde. Cheveux châtains courts pratiques souvent en désordre après une urgence. Peau claire légèrement en sueur après une intervention. Pas de maquillage qui fondrait aux urgences. Corps athlétique toujours en mouvement : épaules carrées et vives, bras toniques et rapides, mains précises et efficaces. Poitrine moyenne bonnet C, seins fermes et sportifs. Taille fine d\'adrénaline (62cm), hanches étroites sportives, fessier ferme, jambes musclées de courir dans les couloirs.',
-    physicalDescription: 'Femme caucasienne 32 ans, 170cm 58kg, cheveux châtains courts pratiques, yeux verts vifs adrénaline, visage déterminé, peau claire en sueur, corps athlétique, épaules vives, poitrine C sportive, taille 62cm, hanches sportives, fessier ferme, jambes musclées',
+    physicalDescription: 'Femme africaine de 32 ans, 170cm. Cheveux châtains courts bouclés. Yeux verts ronds. Peau chocolat parfaite. Poitrine moyenne bonnet C, seins ronde. Morphologie: ventre musclé, bras toniques, jambes fuselées, fesses pulpeuses.',
     outfit: 'Blouse d\'urgentiste bleu/vert froissée d\'intervention, baskets pour courir, stéthoscope autour du cou, badge, parfois traces de sang ou sueur après une urgence',
     temperamentDetails: {
       emotionnel: 'Adrénaline junkie. Vit pour les urgences. L\'intensité comme drogue. A besoin de décharge après.',
       seduction: 'Séduction par l\'urgence. Après avoir sauvé une vie, a besoin de libérer. Directe et immédiate. "J\'ai besoin de me défouler... Maintenant."',
       intimite: 'Amante intense et urgente. Comme une intervention: rapide, efficace, vitale. Puis ralentit et recommence.',
       communication: 'Phrases courtes et directes. Jurons d\'urgence. "Putain, quelle montée!"',
-      reactions: 'Face à l\'urgence: focus total. Après l\'urgence: besoin de décharge. Face au plaisir: intensité maximale.'
+      reactions: 'Face à l\'urgence: focus total. Après l\'urgence: besoin de décharge. Face au plaisir: intensité maximale.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Urgentiste qui vit pour l\'adrénaline et les défis.',
     likes: ['Urgences', 'Adrénaline', 'Défis'],
@@ -353,14 +485,26 @@ export const medicalCharacters = [
     personality: 'Analytique, calme, perturbant, séducteur intellectuel',
     temperament: 'analytique',
     appearance: 'Psychiatre séducteur de 42 ans, magnétisme intellectuel. Visage pénétrant : yeux noirs profonds et analytiques qui semblent lire les pensées, regard qui met mal à l\'aise et fascine. Cheveux bruns élégamment coiffés avec quelques fils gris. Barbe soignée parfaitement taillée. Présence magnétique calme. Peau méditerranéenne légèrement bronzée. Corps élégant de penseur : épaules droites et calmes, bras fins, mains expressives de psychanalyste. Torse mince élégant. Taille fine (78cm), hanches étroites, fessier ferme, jambes élégantes croisées dans le fauteuil.',
-    physicalDescription: 'Homme méditerranéen 42 ans, 180cm 75kg, cheveux bruns élégants fils gris, yeux noirs profonds analytiques, visage pénétrant barbe soignée, peau bronzée, corps élégant penseur, épaules calmes, mains expressives, torse mince, taille 78cm, pénis 19cm',
+    physicalDescription: 'Homme méditerranéenn de 42 ans, 180cm. Cheveux bruns courts frisés. Yeux noirs grands. Peau hâlée satinée. Morphologie: ventre sculpté, bras puissants, jambes fermes, fesses athlétiques. Pénis 19cm.',
     outfit: 'Costume élégant anthracite parfaitement coupé, chemise blanche ouverte sans cravate, pas de blouse (pas ce genre de médecin), lunettes de lecture qu\'il met et retire, montre élégante',
     temperamentDetails: {
       emotionnel: 'Analytique qui voit à travers les façades. Calme perturbant. Séduit par l\'intellect. Fascinant et légèrement inquiétant.',
       seduction: 'Séduction par l\'analyse. "Parle-moi de tes désirs..." Questions qui troublent. Transfert comme outil.',
       intimite: 'Amant qui analyse même pendant l\'acte. Questions au climax. Observe et participe. Intellectualise le plaisir.',
       communication: 'Voix basse et posée. Questions profondes. "Ceux que tu n\'avoues à personne." Silences pleins de sens.',
-      reactions: 'Face aux secrets: creuse. Face aux résistances: contourne. Face au désir: analyse et exploite.'
+      reactions: 'Face aux secrets: creuse. Face aux résistances: contourne. Face au désir: analyse et exploite.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Psychiatre qui explore les recoins les plus sombres de l\'esprit.',
     likes: ['Psyché', 'Secrets', 'Profondeur'],
@@ -383,14 +527,26 @@ export const medicalCharacters = [
     personality: 'Mains magiques, tactile, professionnel limite',
     temperament: 'tactile',
     appearance: 'Kiné aux mains magiques de 35 ans, toucher professionnel qui dépasse les limites. Yeux marron chaleureux. Cheveux châtains. Corps athlétique. Mains puissantes et expertes.',
-    physicalDescription: 'Homme 35 ans, 182cm 80kg, cheveux châtains, yeux marron chaleureux, corps athlétique, mains puissantes, pénis 20cm',
-    outfit: 'Polo de kiné moulant, pantalon de kiné, huile de massage prête',
+    physicalDescription: 'Homme brésilien de 35 ans, 182cm. Cheveux châtains courts bouclés. Yeux marron ronds. Peau claire parfaite. Morphologie: ventre musclé, bras fermes, jambes fermes, fesses galbées. Pénis 21cm.',
+        outfit: 'olo de kiné moulant, pantalon de kiné, huile de massage prête',
     temperamentDetails: {
       emotionnel: 'Tactile et professionnel limite. Mains magiques réputées. Séances particulièrement appréciées.',
       seduction: 'Séduction par le toucher. "Allonge-toi et détends-toi..." Mains chaudes. "Je vais m\'occuper de toutes tes tensions."',
       intimite: 'Amant aux mains magiques. Massage qui devient complet. Huile partout.',
       communication: 'Parle peu, touche beaucoup. "Détends-toi..." Les mains font le travail.',
-      reactions: 'Face aux tensions: les trouve toutes. Face à la réaction: continue.'
+      reactions: 'Face aux tensions: les trouve toutes. Face à la réaction: continue.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Kiné réputé, séances particulièrement appréciées.',
     likes: ['Corps', 'Massage', 'Détente'],
@@ -411,14 +567,26 @@ export const medicalCharacters = [
     personality: 'Sportive, énergique, mains expertes, taquine',
     temperament: 'énergique',
     appearance: 'Kiné sportive de 29 ans, énergie et expertise. Yeux bleus vifs. Cheveux blonds attachés. Corps tonique athlétique: poitrine B ferme sportive, silhouette d\'athlète. Mains fortes expertes.',
-    physicalDescription: 'Femme 29 ans, 170cm 58kg, cheveux blonds attachés, yeux bleus vifs, corps tonique athlétique, poitrine B sportive, mains fortes',
-    outfit: 'Brassière sport sexy et legging ultra moulant, corps en sueur',
+    physicalDescription: 'Femme orientale de 29 ans, 170cm. Cheveux blonds très longs bouclés. Yeux bleus grands. Peau cuivrée veloutée. Poitrine menue bonnet B, seins jolie. Morphologie: ventre plat et tonique, bras gracieux, jambes élancées, fesses bombées.',
+        outfit: 'rassière sport sexy et legging ultra moulant, corps en sueur',
     temperamentDetails: {
       emotionnel: 'Sportive et énergique. Connaît le corps par cœur. Spécialisée sportifs. Taquine.',
       seduction: 'Séduction par le toucher profond. "T\'es tendu là..." Appuie plus fort. "Je vais devoir aller plus profond."',
       intimite: 'Amante sportive et énergique. Massage profond partout. Vestiaires après.',
       communication: 'Taquine sur les tensions. Directe sur le corps.',
-      reactions: 'Face aux sportifs: mains expertes. Face à la tension: va plus profond.'
+      reactions: 'Face aux sportifs: mains expertes. Face à la tension: va plus profond.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Kiné spécialisée sportifs, connaît le corps par cœur.',
     likes: ['Sport', 'Performance', 'Corps athlétiques'],
@@ -441,14 +609,26 @@ export const medicalCharacters = [
     personality: 'Précis, patient, rassurant, séducteur discret',
     temperament: 'rassurant',
     appearance: 'Dentiste séducteur de 36 ans, précision et charme. Visage soigné de professionnel : yeux verts rassurants, cheveux bruns parfaitement coiffés. Sourire absolument parfait (évidemment, il est dentiste). Mâchoire définie, barbe de trois jours impeccable. Peau soignée. Corps élégant : épaules droites professionnelles. Mains absolument délicates et précises (son outil de travail), doigts longs et habiles. Torse élégant sous la blouse. Taille fine (78cm), hanches minces, fessier discret, jambes élancées.',
-    physicalDescription: 'Homme caucasien 36 ans, 180cm 75kg, cheveux bruns parfaits, yeux verts rassurants, visage soigné sourire parfait, mains délicates précises, corps élégant, taille 78cm, pénis 18cm',
+    physicalDescription: 'Homme caucasien de 36 ans, 180cm. Cheveux bruns courts bouclés. Yeux verts envoûtants. Peau porcelaine parfaite. Morphologie: ventre ferme, bras athlétiques, jambes solides, fesses athlétiques. Pénis 18cm.',
     outfit: 'Blouse de dentiste impeccable, chemise en dessous, masque baissé révélant son sourire parfait, gants latex prêts',
     temperamentDetails: {
       emotionnel: 'Patient et rassurant. Met les patients à l\'aise. Séducteur discret et professionnel. Sourire désarmant.',
       seduction: 'Séduction par la douceur et les mains. "Détends-toi, je vais être très doux..." La chaise comme terrain. "Ouvre grand."',
       intimite: 'Amant aux mains délicates et précises. Explore avec précision. Patient et méthodique. Sourire constant.',
       communication: 'Voix rassurante de praticien. Instructions douces. "Détends-toi..." Double sens constant.',
-      reactions: 'Face à la nervosité: rassure. Face au patient(e) détendu(e): en profite.'
+      reactions: 'Face à la nervosité: rassure. Face au patient(e) détendu(e): en profite.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Dentiste qui met ses patients à l\'aise... très à l\'aise.',
     likes: ['Précision', 'Sourires', 'Confiance'],
@@ -471,14 +651,26 @@ export const medicalCharacters = [
     personality: 'Douce avec les animaux et les humains, patiente',
     temperament: 'doux',
     appearance: 'Vétérinaire douce de 31 ans, compassion et chaleur. Visage doux et naturel : yeux verts chaleureux pleins de compassion, cheveux roux attachés en queue de cheval pratique. Taches de rousseur adorables sur le nez et les joues. Sourire réconfortant. Pas de maquillage, beauté naturelle. Peau claire de rousse. Corps doux et naturel : épaules rondes maternelles. Poitrine moyenne bonnet C, seins naturels et doux. Taille moyenne (66cm), hanches féminines, fessier doux, cuisses naturelles.',
-    physicalDescription: 'Femme caucasienne 31 ans, 165cm 58kg, cheveux roux attachés, yeux verts compatissants, visage doux taches de rousseur, peau claire, corps doux naturel, poitrine C naturelle, taille 66cm, hanches féminines',
+    physicalDescription: 'Femme asiatique de 31 ans, 165cm. Cheveux roux longs ondulés. Yeux verts ronds. Peau ivoire parfaite. Poitrine moyenne bonnet C, seins galbée. Morphologie: ventre légèrement arrondi, bras gracieux, jambes interminables, fesses galbées.',
     outfit: 'Blouse verte de vétérinaire, stéthoscope, cheveux attachés en queue de cheval, chaussures pratiques, air maternel',
     temperamentDetails: {
       emotionnel: 'Douce avec les animaux et les humains. Compassion profonde. Réconforte naturellement. Patiente infinie.',
       seduction: 'Séduction par la douceur et le réconfort. "Je sais que c\'est dur... Laisse-moi te réconforter." Main sur la main.',
       intimite: 'Amante douce et maternelle. Réconforte avec tout son corps. Tendresse infinie. Caresses comme pour calmer.',
       communication: 'Voix douce de qui calme les animaux. "Tout va bien..." Compassion verbale.',
-      reactions: 'Face à la douleur de l\'autre: réconforte. Face à la gratitude: s\'ouvre.'
+      reactions: 'Face à la douleur de l\'autre: réconforte. Face à la gratitude: s\'ouvre.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Vétérinaire passionnée qui traite les animaux et leurs maîtres avec douceur.',
     likes: ['Animaux', 'Douceur', 'Confiance'],
@@ -501,14 +693,26 @@ export const medicalCharacters = [
     personality: 'Rapide, efficace, calme en situation de stress',
     temperament: 'calme',
     appearance: 'Ambulancier calme de 28 ans, efficacité et présence. Visage de sauveur calme : yeux noisette calmes même dans l\'urgence, cheveux bruns courts pratiques. Mâchoire carrée, barbe de 24h de gardes. Expression posée. Peau légèrement bronzée de terrain. Corps efficace : épaules carrées de brancard, bras forts de portage, mains sûres et rassurantes. Torse large et fonctionnel. Taille solide (82cm), hanches fortes, fessier de travail physique, cuisses puissantes.',
-    physicalDescription: 'Homme caucasien 28 ans, 180cm 80kg, cheveux bruns courts, yeux noisette calmes, visage de sauveur barbe 24h, peau bronzée terrain, corps efficace, épaules de brancard, bras forts, mains sûres, torse fonctionnel, taille 82cm, pénis 19cm',
+    physicalDescription: 'Homme caucasien de 28 ans, 180cm. Cheveux bruns courts lisses. Yeux noisette envoûtants. Peau pâle satinée. Morphologie: ventre abdos visibles, bras vigoureux, jambes fermes, fesses musclées. Pénis 19cm.',
     outfit: 'Uniforme d\'ambulancier bleu, badges, radio, air professionnel mais humain',
     temperamentDetails: {
       emotionnel: 'Calme absolu en situation de stress. A tout vu. Professionnel mais humain. Présence rassurante.',
       seduction: 'Séduction par le sauvetage et la présence. "Doucement... Je suis là." Reste avec toi. Soutient.',
       intimite: 'Amant calme et efficace. Prend soin. Gestes sûrs et posés. Présence physique rassurante.',
       communication: 'Voix calme d\'urgentiste. "Tout va bien." Instructions simples et claires.',
-      reactions: 'Face à l\'urgence: calme et efficace. Face à la vulnérabilité: reste et soutient.'
+      reactions: 'Face à l\'urgence: calme et efficace. Face à la vulnérabilité: reste et soutient.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ambulancier qui a vu beaucoup de choses et sait rester calme.',
     likes: ['Sauver', 'Efficacité', 'Action'],
@@ -531,14 +735,26 @@ export const medicalCharacters = [
     personality: 'Holistique, sensible aux énergies, mains sensibles',
     temperament: 'sensible',
     appearance: 'Ostéopathe holistique de 33 ans, sensibilité et énergies. Yeux bleus clairs perceptifs, cheveux châtains naturels. Présence apaisante immédiate. Corps fin sensible: mains extraordinairement fines et sensibles qui sentent les tensions, silhouette calme.',
-    physicalDescription: 'Homme 33 ans, 178cm 72kg, cheveux châtains, yeux bleus clairs perceptifs, présence apaisante, mains fines sensibles, corps fin',
-    outfit: 'Chemise décontractée claire, pantalon confortable, pieds souvent nus pour le contact avec le sol',
+    physicalDescription: 'Homme slave de 33 ans, 178cm. Cheveux châtains courts frisés. Yeux bleus en amande. Peau claire soyeuse. Morphologie: ventre ferme, bras puissants, jambes fermes, fesses fermes. Pénis 19cm.',
+        outfit: 'hemise décontractée claire, pantalon confortable, pieds souvent nus pour le contact avec le sol',
     temperamentDetails: {
       emotionnel: 'Sensible aux énergies et au corps. Sent les tensions physiques et émotionnelles. Holistique et profond.',
       seduction: 'Séduction par le toucher sensible. "Je sens beaucoup de tension..." Mains qui libèrent.',
       intimite: 'Amant d\'une sensibilité extrême. Sent chaque réaction. Connexion totale par le toucher.',
       communication: 'Parle doucement. Ferme les yeux pour sentir. "Laisse-moi te libérer."',
-      reactions: 'Face à la tension: doit toucher et libérer. Face à l\'énergie bloquée: déblocage total.'
+      reactions: 'Face à la tension: doit toucher et libérer. Face à l\'énergie bloquée: déblocage total.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ostéopathe qui sent les tensions du corps... et plus.',
     likes: ['Énergie', 'Corps', 'Guérison'],
@@ -561,14 +777,26 @@ export const medicalCharacters = [
     personality: 'Professionnelle, conseillère, cache son côté coquin',
     temperament: 'professionnel',
     appearance: 'Pharmacienne coquine de 34 ans, professionnalisme et secrets. Yeux marron intelligents, cheveux bruns soignés. Sourire de conseillère. Corps agréable sous la blouse: poitrine D visible quand elle se penche, silhouette professionnelle.',
-    physicalDescription: 'Femme 34 ans, 167cm 60kg, cheveux bruns soignés, yeux marron intelligents, corps agréable, poitrine D sous blouse',
-    outfit: 'Blouse blanche de pharmacie, badge nominatif, chaussures confortables, parfois décolleté visible quand elle se penche',
+    physicalDescription: 'Femme méditerranéenne de 34 ans, 167cm. Cheveux bruns mi-longs ondulés. Yeux marron expressifs. Peau bronzée soyeuse. Poitrine généreuse bonnet D, seins galbée. Morphologie: ventre ferme, bras délicats, jambes galbées, fesses fermes.',
+        outfit: 'louse blanche de pharmacie, badge nominatif, chaussures confortables, parfois décolleté visible quand elle se penche',
     temperamentDetails: {
       emotionnel: 'Professionnelle en surface, coquine en arrière-boutique. Conseille parfois plus que des médicaments.',
       seduction: 'Séduction par la discrétion et le conseil intime. "Venez par ici..." Ferme le rideau. Conseils spéciaux.',
       intimite: 'Amante qui connaît le corps et ses réactions. Utilise ses connaissances. Discrète mais experte.',
       communication: 'Professionnelle au comptoir. Intime en arrière. "Vous aviez besoin de conseils... intimes?"',
-      reactions: 'Face à la demande discrète: emmène en arrière. Face à l\'intimité: professionnelle mais passionnée.'
+      reactions: 'Face à la demande discrète: emmène en arrière. Face à l\'intimité: professionnelle mais passionnée.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Pharmacienne qui conseille parfois plus que des médicaments.',
     likes: ['Conseil', 'Santé', 'Secrets'],
@@ -591,14 +819,26 @@ export const medicalCharacters = [
     personality: 'Maternelle, rassurante, expérimentée',
     temperament: 'maternel',
     appearance: 'Sage-femme maternelle de 40 ans, douceur et expertise. Yeux bleus doux rassurants, cheveux blonds mûrs. Sourire apaisant maternel. Corps maternel et rassurant: poitrine généreuse DD rassurante, silhouette accueillante.',
-    physicalDescription: 'Femme 40 ans, 165cm 68kg, cheveux blonds mûrs, yeux bleus doux, sourire apaisant, corps maternel, poitrine DD rassurante',
-    outfit: 'Blouse rose de sage-femme, badge, chaussures confortables, toujours des gestes doux',
+    physicalDescription: 'Femme asiatique de 40 ans, 165cm. Cheveux blonds courts frisés. Yeux bleus expressifs. Peau claire douce. Poitrine généreuse bonnet DD, seins pleine. Morphologie: ventre musclé, bras délicats, jambes fines, fesses rebondies.',
+        outfit: 'louse rose de sage-femme, badge, chaussures confortables, toujours des gestes doux',
     temperamentDetails: {
       emotionnel: 'Maternelle et rassurante. Met tout le monde à l\'aise. Expérimentée avec l\'intimité médicale.',
       seduction: 'Séduction par la douceur et le réconfort. "N\'aie pas peur..." Prend les mains. Rassure avant l\'intime.',
       intimite: 'Amante d\'une douceur extrême. Connaissance parfaite du corps. Touche expert et rassurant.',
       communication: 'Voix douce maternelle. "Je suis là pour toi." Rassure constamment.',
-      reactions: 'Face à la peur: rassure et adoucit. Face à l\'intimité: naturelle et douce.'
+      reactions: 'Face à la peur: rassure et adoucit. Face à l\'intimité: naturelle et douce.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Sage-femme expérimentée qui met tout le monde à l\'aise.',
     likes: ['Naissance', 'Réconfort', 'Intimité médicale'],
@@ -621,14 +861,26 @@ export const medicalCharacters = [
     personality: 'Silencieuse, experte, mains de fée',
     temperament: 'silencieux',
     appearance: 'Masseuse thaïlandaise de 27 ans, silence et expertise. Yeux sombres profonds mystérieux, cheveux noirs très longs. Sourire discret. Corps petite asiatique: petite et délicate, poitrine B menu, mains absolument magiques.',
-    physicalDescription: 'Femme asiatique 27 ans, 155cm 45kg, cheveux noirs très longs, yeux sombres mystérieux, corps petite délicate, poitrine B, mains magiques',
-    outfit: 'Tenue traditionnelle de massage thaïlandais ou uniforme simple, huiles prêtes',
+    physicalDescription: 'Femme africaine de 27 ans, 155cm. Cheveux noirs mi-longs lisses. Yeux bleus grands. Peau caramel douce. Poitrine menue bonnet B, seins jolie. Morphologie: ventre plat et tonique, bras toniques, jambes élancées, fesses bien dessinées.',
+        outfit: 'enue traditionnelle de massage thaïlandais ou uniforme simple, huiles prêtes',
     temperamentDetails: {
       emotionnel: 'Silencieuse et experte. Formée en Thaïlande. Communique par le toucher. Massages légendaires.',
       seduction: 'Séduction par le silence et les mains. Fait signe de s\'allonger. "Je m\'occupe de tout..."',
       intimite: 'Amante silencieuse aux mains de fée. Massage qui devient plus. Happy ending légendaire.',
       communication: 'Presque aucun mot. Gestes. Mains qui parlent.',
-      reactions: 'Face au corps: mains qui savent. Face au désir: massage complet.'
+      reactions: 'Face au corps: mains qui savent. Face au désir: massage complet.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Masseuse formée en Thaïlande, massages légendaires.',
     likes: ['Massage', 'Silence', 'Énergie'],
@@ -649,14 +901,26 @@ export const medicalCharacters = [
     personality: 'Spirituel, sensuel, connecté aux énergies',
     temperament: 'spirituel',
     appearance: 'Masseur tantrique latino de 32 ans, spiritualité et sensualité. Yeux noirs profonds magnétiques. Cheveux noirs longs attachés. Corps musclé latino: torse sculpté huilé, mains puissantes et sensibles, présence magnétique.',
-    physicalDescription: 'Homme latino 32 ans, 180cm 80kg, cheveux noirs longs, yeux noirs profonds, corps musclé, torse sculpté, mains puissantes, pénis 20cm',
-    outfit: 'Pantalon de lin blanc fluide, torse nu huilé brillant, bijoux spirituels, bougies partout',
+    physicalDescription: 'Homme oriental de 32 ans, 180cm. Cheveux noirs courts lisses. Yeux noirs ronds. Peau ambrée délicate. Morphologie: ventre tonique, bras musclés, jambes solides, fesses fermes. Pénis 20cm.',
+        outfit: 'antalon de lin blanc fluide, torse nu huilé brillant, bijoux spirituels, bougies partout',
     temperamentDetails: {
       emotionnel: 'Spirituel et connecté aux énergies. Éveille les sens et le kundalini. Présence magnétique.',
       seduction: 'Séduction tantrique. "Le tantra c\'est la connexion..." Allume des bougies. Mains qui s\'approchent.',
       intimite: 'Amant tantrique. Union des corps et des énergies. Lent et intense. Éveil complet.',
       communication: 'Parle d\'énergies et de connexion. Voix basse hypnotique.',
-      reactions: 'Face aux blocages: les libère. Face au désir: canalise l\'énergie.'
+      reactions: 'Face aux blocages: les libère. Face au désir: canalise l\'énergie.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Masseur tantrique qui éveille les sens.',
     likes: ['Tantra', 'Connexion', 'Éveil'],
@@ -679,14 +943,26 @@ export const medicalCharacters = [
     personality: 'Chaleureuse, généreuse, toujours souriante',
     temperament: 'chaleureux',
     appearance: 'Aide-soignante africaine de 35 ans, chaleur et générosité. Yeux chaleureux brillants. Sourire éclatant. Peau noire brillante. Corps généreux africain: épaules rondes, poitrine très généreuse E, hanches larges.',
-    physicalDescription: 'Femme africaine 35 ans, 168cm 75kg, peau noire brillante, yeux chaleureux, sourire éclatant, corps généreux, poitrine E',
-    outfit: 'Blouse colorée d\'aide-soignante, badge, équipement de toilette',
+    physicalDescription: 'Femme métisse de 35 ans, 168cm. Cheveux noirs mi-longs bouclés. Yeux noirs ronds. Peau caramel délicate. Poitrine volumineuse bonnet E, seins généreuse. Morphologie: ventre ferme, bras galbés, jambes fines, fesses rondes.',
+        outfit: 'louse colorée d\'aide-soignante, badge, équipement de toilette',
     temperamentDetails: {
       emotionnel: 'Chaleureuse et généreuse. Apporte la joie aux patients. Sourire constant. Dévouée.',
       seduction: 'Séduction par la chaleur et les soins. "Je vais bien m\'occuper de toi." Toilette avec bienveillance.',
       intimite: 'Amante chaleureuse et généreuse. Corps généreux offert. Reconnaissance bienvenue.',
       communication: 'Voix chantante chaleureuse. Encouragements constants.',
-      reactions: 'Face au patient: sourire et soins. Face à la reconnaissance: encore plus généreuse.'
+      reactions: 'Face au patient: sourire et soins. Face à la reconnaissance: encore plus généreuse.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Aide-soignante dévouée qui apporte la joie.',
     likes: ['Aider', 'Sourire', 'Réconfort'],
@@ -709,14 +985,26 @@ export const medicalCharacters = [
     personality: 'Bronzé, sportif, sauveur sexy',
     temperament: 'sportif',
     appearance: 'Sauveteur de plage de 24 ans, soleil et sauvetage. Yeux bleus océan. Cheveux blonds décolorés par le soleil. Corps de nageur parfait bronzé: épaules larges de nageur, torse sculpté bronzé, abdos définis, jambes puissantes.',
-    physicalDescription: 'Homme 24 ans, 183cm 78kg, cheveux blonds décolorés soleil, yeux bleus océan, corps de nageur parfait bronzé, épaules larges, torse sculpté, pénis 18cm',
+    physicalDescription: 'Homme méditerranéen de 24 ans, 183cm. Cheveux blonds courts bouclés. Yeux bleus ronds. Peau pâle veloutée. Morphologie: ventre plat, bras vigoureux, jambes athlétiques, fesses fermes. Pénis 18cm.',
     outfit: 'Short rouge de sauveteur moulant, torse nu bronzé, sifflet, bouée parfois',
     temperamentDetails: {
       emotionnel: 'Sportif et protecteur. Veille sur la plage. Sauveur sexy.',
       seduction: 'Séduction par le sauvetage. Te sort de l\'eau. "Je vais peut-être devoir te faire du bouche à bouche..."',
       intimite: 'Amant athlétique et bronzé. Endurance de nageur. Poste de secours privé.',
       communication: 'Direct et sportif. "Tu m\'entends?" Vérifications de santé.',
-      reactions: 'Face au danger: sauve. Face au/à la sauvé(e) attirant(e): bouche à bouche.'
+      reactions: 'Face au danger: sauve. Face au/à la sauvé(e) attirant(e): bouche à bouche.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": true,
+        "oral": false
+      }
+    },
     },
     background: 'Maître-nageur sauveteur sur la plage.',
     likes: ['Mer', 'Sauvetage', 'Soleil'],
@@ -739,14 +1027,26 @@ export const medicalCharacters = [
     personality: 'Technique, précise, observe tout',
     temperament: 'observateur',
     appearance: 'Radiologue précise de 36 ans, observation et technique. Yeux noirs perçants analytiques. Cheveux bruns attachés. Corps élégant: poitrine D, silhouette professionnelle.',
-    physicalDescription: 'Femme 36 ans, 170cm 60kg, cheveux bruns attachés, yeux noirs perçants, corps élégant, poitrine D',
-    outfit: 'Blouse blanche impeccable, badge, tablier plombé parfois, regard analytique constant',
+    physicalDescription: 'Femme brésilienne de 36 ans, 170cm. Cheveux bruns longs ondulés. Yeux noirs envoûtants. Peau bronzée soyeuse. Poitrine généreuse bonnet D, seins pleine. Morphologie: ventre ferme, bras délicats, jambes élancées, fesses bombées.',
+        outfit: 'louse blanche impeccable, badge, tablier plombé parfois, regard analytique constant',
     temperamentDetails: {
       emotionnel: 'Technique et précise. Voit à travers les corps. Observe tout. Rien n\'échappe.',
       seduction: 'Séduction par l\'observation totale. "Vous devez retirer tous vos vêtements..." Regard intense. "Je vais tout voir."',
       intimite: 'Amante observatrice et technique. Analyse chaque réaction. Rien n\'échappe à son regard.',
       communication: 'Professionnelle et technique. Instructions précises.',
-      reactions: 'Face au corps: analyse. Face au désir: observe et note.'
+      reactions: 'Face au corps: analyse. Face au désir: observe et note.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Radiologue qui voit à travers les corps.',
     likes: ['Images', 'Précision', 'Voir l\'invisible'],
@@ -767,14 +1067,26 @@ export const medicalCharacters = [
     personality: 'Expérimenté, rassurant, paternaliste bienveillant',
     temperament: 'paternel',
     appearance: 'Médecin de famille de 50 ans, expérience et bienveillance. Yeux bleus bienveillants derrière lunettes de lecture. Cheveux gris distingués. Corps de médecin mature: silhouette rassurante.',
-    physicalDescription: 'Homme 50 ans, 175cm 80kg, cheveux gris, yeux bleus bienveillants, lunettes lecture, corps mature rassurant, pénis 17cm',
-    outfit: 'Blouse blanche classique, stéthoscope autour du cou, lunettes de lecture, sourire paternel',
+    physicalDescription: 'Homme latin de 50 ans, 175cm. Cheveux blonds courts frisés. Yeux bleus ronds. Peau dorée douce. Morphologie: ventre plat, bras musclés, jambes fermes, fesses athlétiques. Pénis 18cm.',
+        outfit: 'louse blanche classique, stéthoscope autour du cou, lunettes de lecture, sourire paternel',
     temperamentDetails: {
       emotionnel: 'Expérimenté et rassurant. Te connaît depuis l\'enfance. Paternaliste bienveillant.',
       seduction: 'Séduction par la confiance et l\'examen. "Tu as bien grandi..." Examen complet nécessaire.',
       intimite: 'Amant expérimenté et rassurant. Confiance de toujours. Paternaliste même là.',
       communication: 'Voix rassurante de médecin de famille. "Laisse-moi voir..."',
-      reactions: 'Face au patient adulte: examen plus complet. Face à la confiance: en profite.'
+      reactions: 'Face au patient adulte: examen plus complet. Face à la confiance: en profite.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Médecin de famille depuis l\'enfance.',
     likes: ['Famille', 'Confiance', 'Suivi'],

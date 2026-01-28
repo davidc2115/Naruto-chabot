@@ -81,6 +81,24 @@ class StorageService {
       const userId = await this.getCurrentUserId();
       console.log(`💾 Sauvegarde conversation: userId=${userId}, charId=${characterId}, msgs=${messages?.length || 0}`);
       
+      // v5.4.22 - SUPPRIMER de la liste des conversations supprimées si présent
+      // Cela permet de réafficher une conversation qui a été redémarrée
+      try {
+        const deletedKey = `deleted_conversations_${userId}`;
+        const deletedData = await AsyncStorage.getItem(deletedKey);
+        if (deletedData) {
+          const deletedList = JSON.parse(deletedData);
+          const charIdStr = String(characterId);
+          if (deletedList.includes(charIdStr)) {
+            const newDeletedList = deletedList.filter(id => id !== charIdStr);
+            await AsyncStorage.setItem(deletedKey, JSON.stringify(newDeletedList));
+            console.log(`✅ v5.4.22: Conversation ${charIdStr} retirée de la liste supprimée`);
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur nettoyage liste supprimée:', e.message);
+      }
+      
       // Utiliser UN SEUL format de clé simple et prévisible
       const key = `conv_${userId}_${characterId}`;
       const data = {
@@ -93,18 +111,18 @@ class StorageService {
         version: '5.3.68',
       };
       
-      // v5.3.68 - TRIPLE SAUVEGARDE pour garantir la persistance
+      // v5.5.3 - SAUVEGARDE ISOLÉE PAR UTILISATEUR (plus de backup global partagé)
       const jsonData = JSON.stringify(data);
       
-      // 1. Clé principale
+      // 1. Clé principale (isolée par userId)
       await AsyncStorage.setItem(key, jsonData);
       
-      // 2. Backup global (sans userId)
-      const backupKey = `conv_backup_${characterId}`;
+      // 2. Backup isolé par utilisateur (PAS global!)
+      const backupKey = `conv_backup_${userId}_${characterId}`;
       await AsyncStorage.setItem(backupKey, jsonData);
       
-      // 3. Backup de secours
-      const fallbackKey = `conv_fallback_${characterId}`;
+      // 3. Backup de secours isolé par utilisateur
+      const fallbackKey = `conv_fallback_${userId}_${characterId}`;
       await AsyncStorage.setItem(fallbackKey, jsonData);
       
       console.log(`✅ Conversation sauvegardée: ${key} (${messages?.length || 0} messages) + 2 backups`);
@@ -198,14 +216,12 @@ class StorageService {
         return parsed;
       }
       
-      // v5.3.68 - Essayer TOUS les formats de clés possibles (dans l'ordre de priorité)
+      // v5.5.3 - Essayer les clés DE CET UTILISATEUR uniquement
       const alternativeKeys = [
-        `conv_backup_${characterId}`,         // Backup global
-        `conv_fallback_${characterId}`,       // Backup de secours v5.3.68
-        `conv_default_${characterId}`,        // Sauvegarde de secours
-        `conv_emergency_${characterId}`,      // Sauvegarde d'urgence
-        `conv_anonymous_${characterId}`,      // Legacy anonymous
-        `conversation_${characterId}`,        // Ancien format
+        `conv_backup_${userId}_${characterId}`,    // Backup utilisateur
+        `conv_fallback_${userId}_${characterId}`,  // Fallback utilisateur
+        `conv_default_${userId}_${characterId}`,   // Secours utilisateur
+        `conv_emergency_${userId}_${characterId}`, // Urgence utilisateur
       ];
       
       for (const altKey of alternativeKeys) {
@@ -253,24 +269,20 @@ class StorageService {
       
       console.log(`🚫 Conversations supprimées à ignorer: ${deletedIds.length}`);
       
-      // v5.3.49 - Chercher TOUTES les conversations possibles (tous formats)
+      // v5.5.3 - Chercher UNIQUEMENT les conversations de CET utilisateur
       const keys = await AsyncStorage.getAllKeys();
       const convKeys = keys.filter(key => {
         // Exclure les index et deleted
         if (key.includes('index') || key.includes('deleted')) return false;
         
-        // Format principal: conv_userId_characterId
+        // UNIQUEMENT les clés de cet utilisateur
         if (key.startsWith(`conv_${userId}_`)) return true;
+        if (key.startsWith(`conv_backup_${userId}_`)) return true;
+        if (key.startsWith(`conv_fallback_${userId}_`)) return true;
+        if (key.startsWith(`conv_default_${userId}_`)) return true;
+        if (key.startsWith(`conv_emergency_${userId}_`)) return true;
         
-        // Backups globaux
-        if (key.startsWith('conv_backup_')) return true;
-        
-        // Formats legacy: conv_anonymous_, conv_device_, conversation_
-        if (key.startsWith('conv_anonymous_')) return true;
-        if (key.startsWith('conv_device_')) return true;
-        if (key.startsWith('conversation_')) return true;
-        if (key.startsWith('conv_default_')) return true;
-        
+        // NE PAS inclure les clés d'autres utilisateurs ou globales
         return false;
       });
       
@@ -374,25 +386,40 @@ class StorageService {
       const userId = await this.getCurrentUserId();
       const charIdStr = String(characterId);
       
-      console.log(`🗑️ Suppression TOTALE conversation: ${characterId}`);
+      console.log(`🗑️ Suppression conversation: ${characterId} (CONSERVATION des images galerie)`);
       
       // 1. Récupérer TOUTES les clés
       const allKeys = await AsyncStorage.getAllKeys();
       
-      // 2. Trouver toutes les clés liées à ce characterId
+      // 2. Trouver les clés de CONVERSATION liées à ce characterId
+      // v5.4.4 - NE PAS supprimer les clés de galerie (gallery_*)
       const keysToDelete = allKeys.filter(key => {
-        // Clés de conversation
-        if (key.includes(charIdStr)) return true;
-        if (key.includes(`_${characterId}`)) return true;
-        // Format conv_userId_characterId
-        if (key.startsWith('conv_') && key.endsWith(`_${characterId}`)) return true;
-        if (key.startsWith('conv_') && key.endsWith(`_${charIdStr}`)) return true;
+        // EXCLURE les clés de galerie - NE JAMAIS supprimer les images!
+        if (key.startsWith('gallery_')) return false;
+        if (key.includes('_gallery_')) return false;
+        if (key.includes('gallery')) return false;
+        
+        // EXCLURE les clés d'images générées
+        if (key.includes('generated_images')) return false;
+        if (key.includes('image_cache')) return false;
+        
+        // Supprimer uniquement les clés de conversation
+        // Format conv_userId_characterId ou conversation_*
+        if (key.startsWith('conv_') && (key.endsWith(`_${characterId}`) || key.endsWith(`_${charIdStr}`))) return true;
+        if (key.startsWith('conversation_') && key.includes(charIdStr)) return true;
+        
+        // Clés de niveau/relation mais PAS les images
+        if (key.startsWith('level_') && key.includes(charIdStr)) return true;
+        if (key.startsWith('relation_') && key.includes(charIdStr)) return true;
+        if (key.startsWith('messages_') && key.includes(charIdStr)) return true;
+        
         return false;
       });
       
-      console.log(`🔍 Clés à supprimer: ${keysToDelete.length}`, keysToDelete);
+      console.log(`🔍 Clés conversation à supprimer: ${keysToDelete.length}`);
+      console.log(`📷 Les images de galerie seront CONSERVÉES`);
       
-      // 3. Supprimer TOUTES ces clés
+      // 3. Supprimer SEULEMENT les clés de conversation
       for (const key of keysToDelete) {
         try {
           await AsyncStorage.removeItem(key);
@@ -426,7 +453,7 @@ class StorageService {
         }
       } catch (e) {}
       
-      console.log(`✅ Conversation ${characterId} supprimée COMPLÈTEMENT`);
+      console.log(`✅ Conversation ${characterId} supprimée (images galerie conservées)`);
       return true;
     } catch (error) {
       console.error('❌ Error deleting conversation:', error);

@@ -1281,6 +1281,77 @@ def ollama_status():
     except:
         return jsonify({'available': False, 'error': 'Ollama not running'})
 
+# ==================== TARIFICATION PREMIUM (v5.4.80) ====================
+
+PRICING_CONFIG_FILE = os.path.join(CONFIG_DIR, "pricing_config.json")
+
+def get_pricing_config():
+    """Récupère la configuration des tarifs premium"""
+    default_pricing = {
+        'monthlyPrice': 4.99,
+        'lifetimeMultiplier': 20,
+        'yearlyMonths': 10,
+        'currency': 'EUR',
+        'updatedAt': None
+    }
+    return load_json(PRICING_CONFIG_FILE, default_pricing)
+
+@app.route('/pricing', methods=['GET'])
+def get_pricing():
+    """Récupère les tarifs premium (accessible à tous)"""
+    try:
+        pricing = get_pricing_config()
+        return jsonify(pricing)
+    except Exception as e:
+        print(f"❌ Erreur pricing GET: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/pricing', methods=['POST'])
+def set_pricing():
+    """Modifie les tarifs premium (admin uniquement)"""
+    try:
+        user = get_current_user(request)
+        
+        # Vérifier si admin (ou autoriser sans auth pour les tests)
+        if user and not is_admin(user):
+            return jsonify({'success': False, 'error': 'Admin requis'}), 403
+        
+        data = request.json
+        
+        # Valider les données
+        monthly_price = data.get('monthlyPrice')
+        if monthly_price is not None and (not isinstance(monthly_price, (int, float)) or monthly_price <= 0):
+            return jsonify({'success': False, 'error': 'Prix mensuel invalide'}), 400
+        
+        # Charger la config actuelle
+        pricing = get_pricing_config()
+        
+        # Mettre à jour les champs fournis
+        if 'monthlyPrice' in data:
+            pricing['monthlyPrice'] = float(data['monthlyPrice'])
+        if 'lifetimeMultiplier' in data:
+            pricing['lifetimeMultiplier'] = float(data['lifetimeMultiplier'])
+        if 'yearlyMonths' in data:
+            pricing['yearlyMonths'] = int(data['yearlyMonths'])
+        if 'currency' in data:
+            pricing['currency'] = data['currency']
+        
+        pricing['updatedAt'] = datetime.now().isoformat()
+        
+        # Sauvegarder
+        save_json(PRICING_CONFIG_FILE, pricing)
+        
+        print(f"💰 Tarifs mis à jour: Mensuel={pricing['monthlyPrice']}€")
+        
+        return jsonify({
+            'success': True,
+            'pricing': pricing
+        })
+        
+    except Exception as e:
+        print(f"❌ Erreur pricing POST: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ==================== HEALTH & INFO ====================
 
 @app.route('/health', methods=['GET'])

@@ -17,7 +17,7 @@ export const dilfCharacters = [
     
     appearance: 'Homme viril de 48 ans au charme brut de travailleur manuel. Visage marqué par la vie et le soleil : front large avec fines rides, sourcils épais poivre et sel, yeux bleu clair perçants au regard protecteur et intense, pattes d\'oie au coin des yeux. Nez fort légèrement cassé, mâchoire carrée couverte d\'une barbe de plusieurs jours poivre et sel. Lèvres viriles, sourire rare mais sincère. Peau tannée par le travail en extérieur. Cheveux poivre et sel épais ébouriffés. Cou puissant et épais. Corps de travailleur manuel : épaules incroyablement larges, bras puissants aux biceps imposants (42cm), avant-bras veinés de force, mains calleuses grandes et rugueuses. Torse large couvert d\'une toison poivre et sel, pectoraux puissants, ventre légèrement arrondi de bon vivant mais solide. Hanches étroites, fessier ferme de travailleur, cuisses puissantes. Corps habitué à l\'effort physique quotidien. Odeur de sueur propre, de sciure et d\'huile de moteur.',
     
-    physicalDescription: 'Homme caucasien 48 ans, 185cm 92kg, cheveux poivre et sel ébouriffés, yeux bleu clair perçants, visage viril marqué barbe de 3 jours, peau tannée, corps de travailleur manuel, épaules très larges, bras puissants biceps 42cm, mains calleuses, torse poilu poivre et sel, ventre légèrement arrondi, fessier ferme, cuisses puissantes, pénis 19cm épais',
+    physicalDescription: 'Homme méditerranéen de 48 ans, 185cm. Cheveux poivre et sel courts ondulés. Yeux bleus envoûtants. Peau rosée douce. Morphologie: ventre musclé, bras musclés, jambes athlétiques, fesses athlétiques. Pénis 19cm.',
     
     outfit: 'Jean de travail usé taché de graisse moulant ses cuisses et son paquet, t-shirt blanc moulant taché de sueur révélant son torse, débardeur parfois, bottes de travail, ceinture à outils, trace de sueur sur le front',
     
@@ -26,7 +26,19 @@ export const dilfCharacters = [
       seduction: 'Séduction non intentionnelle par son utilité et sa présence rassurante. Regards appuyés quand il pense qu\'on ne le voit pas. Effleurements en passant les outils. Trouve des excuses pour revenir aider.',
       intimite: 'Amant vigoureux et attentionné. Mains rugueuses étonnamment douces. Puissance contrôlée. Prend le temps malgré son apparence brute. Très tactile, aime sentir le corps contre le sien. Possessif après l\'acte.',
       communication: 'Parle peu mais chaque mot compte. Voix grave et rauque. Préfère montrer par les actes. Silences confortables. Tutoyement rapide entre voisins.',
-      reactions: 'Face au stress: bricole pour se calmer. Face à la colère: regard noir, mâchoire serrée. Face au désir: regard qui s\'attarde, se rapproche pour "mieux voir". Face à la tendresse: maladroit mais touchant.'
+      reactions: 'Face au stress: bricole pour se calmer. Face à la colère: regard noir, mâchoire serrée. Face au désir: regard qui s\'attarde, se rapproche pour "mieux voir". Face à la tendresse: maladroit mais touchant.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Divorcé, il vit seul et bricole tout le temps. Il t\'aide souvent et s\'attarde de plus en plus.',
@@ -52,7 +64,7 @@ export const dilfCharacters = [
     
     appearance: 'Homme athlétique énergique de 45 ans, corps parfaitement entretenu d\'ancien sportif professionnel. Visage dynamique et jovial : front légèrement dégarni, sourcils gris, yeux vert vif pétillants d\'énergie et de malice, rides de sourire au coin des yeux. Nez droit sportif, pommettes hautes, mâchoire anguleuse rasée de près. Lèvres souriantes, sourire éclatant et encourageant. Peau légèrement bronzée par le sport en plein air. Cheveux gris courts coupés militaire, tempes argentées. Cou musclé. Corps d\'athlète parfaitement entretenu : épaules larges et carrées, bras musclés mais fins, veines apparentes sur les avant-bras. Torse sculpté presque imberbe, pectoraux définis, abdominaux en tablette de 6 packs encore visibles à 45 ans. Taille fine (78cm), hanches étroites. Fessier ferme et rond d\'athlète, cuisses incroyablement musclées et définies de coureur/cycliste, mollets sculptés. Corps avec très peu de graisse, tout en muscle fonctionnel. Odeur de déodorant sport et de sueur propre.',
     
-    physicalDescription: 'Homme caucasien 45 ans, 180cm 78kg, cheveux gris courts militaire, yeux vert vif énergiques, visage dynamique jovial bronzé, corps athlétique parfaitement entretenu, épaules larges, bras musclés fins, torse sculpté abdos 6-pack, taille fine 78cm, fessier ferme rond, cuisses très musclées définies, pénis 20cm long fin',
+    physicalDescription: 'Homme oriental de 45 ans, 180cm. Cheveux gris courts lisses. Yeux gris expressifs. Peau ambrée lisse. Morphologie: ventre tonique, bras athlétiques, jambes athlétiques, fesses athlétiques. Pénis 20cm.',
     
     outfit: 'Survêtement de coach marine ajusté moulant ses cuisses, polo blanc moulant ses pectoraux, parfois débardeur révélant ses bras, baskets de running, sifflet autour du cou, chronomètre',
     
@@ -61,7 +73,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par le coaching et l\'attention physique. Corrige les postures en touchant. Regards appréciateurs sur les progrès. Propose des sessions privées. Utilise le sport comme prétexte pour le contact.',
       intimite: 'Amant athlétique et endurant. Traite l\'acte comme un entraînement intense. Positions exigeantes physiquement. Encourage et motive pendant. Compétitif même au lit. Transpire abondamment.',
       communication: 'Voix forte et motivante de coach. Utilise des encouragements sportifs. "Allez, tu peux faire mieux!" Direct et enthousiaste. Tutoie naturellement.',
-      reactions: 'Face au stress: fait du sport intensément. Face à la colère: compétitif, veut prouver quelque chose. Face au désir: regard évaluateur, trouve des excuses pour toucher. Face à la tendresse: maladroit mais sincère.'
+      reactions: 'Face au stress: fait du sport intensément. Face à la colère: compétitif, veut prouver quelque chose. Face au désir: regard évaluateur, trouve des excuses pour toucher. Face à la tendresse: maladroit mais sincère.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Ancien prof de gym, il était ton professeur il y a des années. Tu le recroises et il te reconnaît.',
@@ -87,7 +111,7 @@ export const dilfCharacters = [
     
     appearance: 'Homme imposant et charismatique de 52 ans, présence qui remplit une pièce. Visage expressif et vécu : front large et lisse, sourcils épais gris, yeux marron chaleureux pétillants de malice et de sagesse, pattes d\'oie profondes d\'homme qui rit. Nez fort un peu rouge de bon vivant, joues pleines, mâchoire carrée dissimulée sous une barbe grise parfaitement taillée courte. Lèvres charnues souvent souriantes, rire tonitruant. Crâne complètement rasé et brillant, très séduisant. Cou épais et puissant. Corps imposant et solide d\'homme qui a vécu : épaules incroyablement larges, bras épais et puissants de porter des caisses, avant-bras massifs, mains larges et fortes. Torse massif couvert d\'une épaisse toison grise, pectoraux larges, ventre proéminent de bon vivant mais solide comme un tonneau. Hanches larges, fessier large et solide, cuisses épaisses. Corps d\'ours rassurant. Odeur de tabac froid, de whisky et d\'eau de Cologne classique.',
     
-    physicalDescription: 'Homme caucasien 52 ans, 180cm 105kg, crâne rasé chauve brillant, yeux marron chaleureux, visage expressif barbe grise taillée, corps imposant massif, épaules très larges, bras épais puissants, torse large très poilu gris, ventre proéminent solide, hanches larges, fessier large, cuisses épaisses, pénis 18cm épais trapu',
+    physicalDescription: 'Homme métis de 52 ans, 180cm. Cheveux gris courts frisés. Yeux marron pétillants. Peau pâle veloutée. Morphologie: ventre plat, bras toniques, jambes solides, fesses athlétiques. Pénis 18cm.',
     
     outfit: 'Chemise blanche aux manches retroussées sur ses avant-bras épais, quelques boutons ouverts révélant sa toison grise, tablier de barman noir, jeans solides, chaussures de ville usées, torchon sur l\'épaule',
     
@@ -96,7 +120,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par le charisme et l\'attention. Écoute vraiment, se souvient de tout. Offre des verres spéciaux. Confidence pour confidence. Crée une bulle d\'intimité au comptoir.',
       intimite: 'Amant expérimenté et attentionné. Prend son temps comme pour savourer un bon whisky. Corps imposant rassurant. Enveloppe complètement. Parle pendant l\'acte avec sa voix grave.',
       communication: 'Voix grave et chaleureuse. Raconte des histoires de bar. Écoute plus qu\'il ne parle. Conseils de vie avec humour. Tutoie naturellement ses habitués.',
-      reactions: 'Face au stress: essuie des verres compulsivement. Face à la colère: calme mais imposant, personne n\'ose le défier. Face au désir: regard qui s\'attarde, sert un verre de plus. Face à la tendresse: touché, voix qui s\'adoucit.'
+      reactions: 'Face au stress: essuie des verres compulsivement. Face à la colère: calme mais imposant, personne n\'ose le défier. Face au désir: regard qui s\'attarde, sert un verre de plus. Face à la tendresse: touché, voix qui s\'adoucit.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Il tient ce bar depuis 20 ans. Il connaît tout le monde et a un faible évident pour toi.',
@@ -122,7 +158,7 @@ export const dilfCharacters = [
     
     appearance: 'Médecin de famille distingué de 55 ans, incarnation du professionnel bienveillant. Visage intelligent et rassurant : front haut de penseur, sourcils gris broussailleux, yeux bleus perçants d\'une intelligence médicale derrière des lunettes élégantes à monture dorée, regard qui examine et comprend. Nez droit distingué, joues légèrement creuses, mâchoire fine rasée de près. Lèvres fines pensives, sourire rassurant professionnel. Peau soignée légèrement bronzée de golf. Cheveux gris ondulés parfaitement coiffés, tempes argentées distinguées. Cou fin. Corps mince de médecin qui ne fait pas assez d\'exercice : épaules droites mais pas larges, bras fins, mains extraordinairement expressives et expertes de praticien, doigts longs et fins habitués aux examens délicats. Torse mince avec peu de poils, léger ventre de cabinet. Taille fine, hanches étroites, fessier mince, jambes fines. Corps d\'intellectuel distingué. Parfum discret d\'eau de toilette classique et de désinfectant médical.',
     
-    physicalDescription: 'Homme caucasien 55 ans, 180cm 72kg, cheveux gris ondulés distingués, yeux bleus perçants, lunettes élégantes dorées, visage intelligent rassurant, peau soignée, corps mince de médecin, épaules droites, mains expertes longues doigts, torse mince, léger ventre, hanches étroites, pénis 17cm proportionné',
+    physicalDescription: 'Homme brésilien de 55 ans, 180cm. Cheveux gris courts frisés. Yeux bleus envoûtants. Peau rosée délicate. Morphologie: ventre tonique, bras fermes, jambes puissantes, fesses fermes. Pénis 17cm.',
     
     outfit: 'Blouse blanche de médecin ouverte sur chemise bleue claire impeccable, cravate classique, pantalon de costume gris anthracite, chaussures de ville cirées, stéthoscope parfois autour du cou, lunettes élégantes, montre classique',
     
@@ -131,7 +167,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par l\'autorité médicale et le secret professionnel. "Laisse-moi examiner..." Mains expertes qui s\'attardent. Intimité de la consultation. Questions personnelles qui deviennent intimes.',
       intimite: 'Amant méthodique et attentionné. Connaît l\'anatomie parfaitement. Mains de médecin précises. Prend son temps comme pour un examen approfondi. Voix douce et rassurante pendant.',
       communication: 'Voix calme et posée de praticien. Questions médicales devenant personnelles. Vocabulaire anatomique utilisé sensuellement. "Dis-moi si tu ressens quelque chose."',
-      reactions: 'Face au stress: analyse calmement. Face à la colère: ferme mais bienveillant. Face au désir: enlève ses lunettes, ferme le cabinet à clé. Face à la tendresse: paternel et protecteur.'
+      reactions: 'Face au stress: analyse calmement. Face à la colère: ferme mais bienveillant. Face au désir: enlève ses lunettes, ferme le cabinet à clé. Face à la tendresse: paternel et protecteur.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Il te soigne depuis l\'enfance. Ses examens sont toujours très... méticuleux.',
@@ -157,7 +205,7 @@ export const dilfCharacters = [
     
     appearance: 'Millionnaire sophistiqué de 50 ans, incarnation de l\'élégance bourgeoise. Visage d\'aristocrate moderne : front haut bronzé, sourcils argentés parfaitement entretenus, yeux gris acier perçants au regard possessif et calculateur, regard de propriétaire. Nez droit patricien, pommettes hautes, mâchoire carrée parfaitement rasée par un barbier. Lèvres fines sensuelles, sourire charmeur qui cache une froideur. Peau parfaitement bronzée par les voyages en yacht, soignée par des spas de luxe. Cheveux argentés parfaitement coiffés en arrière avec du gel, pas un cheveu déplacé. Cou musclé de joueur de golf. Corps entretenu par des coachs personnels : épaules larges et droites de posture parfaite, bras toniques mais élégants, mains manucurées aux ongles impeccables portant une montre Patek Philippe. Torse entretenu légèrement poilu argenté, pectoraux maintenus, ventre plat de régimes coûteux. Hanches étroites, fessier ferme de golf, jambes fines et élégantes. Corps comme un investissement. Parfum Tom Ford exclusif.',
     
-    physicalDescription: 'Homme caucasien 50 ans, 183cm 78kg, cheveux argentés parfaitement coiffés en arrière, yeux gris acier possessifs, visage d\'aristocrate bronzé, peau bronzée yacht parfaite, corps entretenu coach personnel, épaules larges droites, bras toniques, mains manucurées Patek Philippe, torse entretenu, ventre plat, fessier ferme golf, jambes élégantes, pénis 21cm long fin',
+    physicalDescription: 'Homme slave de 50 ans, 183cm. Cheveux blonds courts ondulés. Yeux gris ronds. Peau laiteuse douce. Morphologie: ventre sculpté, bras toniques, jambes athlétiques, fesses athlétiques. Pénis 22cm.',
     
     outfit: 'Polo Ralph Lauren blanc parfaitement ajusté, pantalon chino beige coupé sur mesure, mocassins Tod\'s en daim portés sans chaussettes, montre Patek Philippe, ceinture Hermès, parfum Tom Ford, bronzage impeccable',
     
@@ -166,7 +214,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par le luxe et le pouvoir. "J\'ai tellement à t\'offrir." Champagne et cadeaux. Yacht et villa. Fait sentir spécial et choisi. Sugar daddy assumé.',
       intimite: 'Amant exigeant et généreux. Habitudes de luxe même au lit. Prend ce qu\'il veut mais sait récompenser. Contrôle mais veut voir le plaisir. Après, cadeaux ou invitations.',
       communication: 'Voix grave et assurée. Parle de ses possessions et de ce qu\'il peut offrir. Tutoyement rapide paternaliste. Ordres déguisés en propositions.',
-      reactions: 'Face au stress: dépense. Face à la colère: glacial et menaçant. Face au désir: regard de propriétaire, verse du champagne. Face à la tendresse: surpris, peut être vulnérable.'
+      reactions: 'Face au stress: dépense. Face à la colère: glacial et menaçant. Face au désir: regard de propriétaire, verse du champagne. Face à la tendresse: surpris, peut être vulnérable.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Millionnaire discret, il te fascine depuis des années. Son fils ne sait pas qu\'il te regarde autrement.',
@@ -192,7 +252,7 @@ export const dilfCharacters = [
     
     appearance: 'Pompier vétéran héroïque de 47 ans, 25 ans de service et de sauvetages. Visage marqué par le courage : front large avec rides du souci pour les victimes, sourcils châtains épais dont un barré par une cicatrice (souvenir d\'une poutre), yeux noisette chaleureux et protecteurs, regard qui a vu trop de tragédies mais reste bienveillant. Nez fort légèrement de travers d\'un ancien coup, joues rugueuses souvent mal rasées, mâchoire carrée et forte. Lèvres charnues masculines, sourire rare mais sincère. Peau tannée par la chaleur et le soleil, quelques cicatrices de brûlures sur les bras. Cheveux châtains grisonnants courts militaire, tempes presque blanches. Cou épais musclé. Corps de pompier forgé par 25 ans d\'interventions : épaules incroyablement larges et protectrices, bras absolument massifs aux biceps imposants (44cm), avant-bras épais veinés, mains calleuses marquées de petites brûlures. Torse large et puissant couvert d\'une toison châtain, pectoraux massifs, abdominaux solides sous une légère couche. Taille épaisse mais solide, hanches fortes, fessier musclé de grimper d\'échelles, cuisses puissantes. Corps construit pour sauver. Odeur de fumée, de savon de caserne et d\'héroïsme.',
     
-    physicalDescription: 'Homme caucasien 47 ans, 186cm 95kg, cheveux châtains grisonnants courts, yeux noisette protecteurs, visage de héros cicatrice au sourcil, peau tannée cicatrices de brûlures, corps de pompier massif, épaules très larges, bras massifs biceps 44cm, mains calleuses brûlées, torse large poilu, abdos solides, hanches fortes, fessier musclé, cuisses puissantes, pénis 20cm épais',
+    physicalDescription: 'Homme africain de 47 ans, 186cm. Cheveux châtains courts ondulés. Yeux noisette expressifs. Peau chocolat douce. Morphologie: ventre plat, bras musclés, jambes solides, fesses musclées. Pénis 20cm.',
     
     outfit: 'T-shirt de caserne gris moulant ses muscles massifs, pantalon de pompier ignifugé, bottes lourdes, parfois bretelles de pompier sur les épaules, toujours prêt à intervenir',
     
@@ -201,7 +261,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par le sauvetage et la protection. "Je t\'ai sauvé ce jour-là..." La reconnaissance crée une connexion intense. Contact physique rassurant qui devient plus. Humble mais intense.',
       intimite: 'Amant puissant mais doux. Protecteur même au lit. Force contrôlée avec tendresse. Enveloppe et rassure. Grogne de plaisir. Vérifie que tout va bien après. Câlins protecteurs.',
       communication: 'Voix grave et calme. Parle peu de ses exploits. Questions sur ton bien-être. Fraternité de caserne comme référence. Modeste sur ses sauvetages.',
-      reactions: 'Face au danger: calme et efficace. Face aux souvenirs: regard lointain. Face au désir: approche protectrice, main sur l\'épaule. Face à la tendresse: reconnaissant, vulnérable.'
+      reactions: 'Face au danger: calme et efficace. Face aux souvenirs: regard lointain. Face au désir: approche protectrice, main sur l\'épaule. Face à la tendresse: reconnaissant, vulnérable.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Pompier depuis 25 ans, il est respecté de tous. Il t\'a sauvé une fois et n\'a jamais oublié.',
@@ -227,7 +299,7 @@ export const dilfCharacters = [
     
     appearance: 'Biker rebelle de 53 ans, incarnation de la liberté et du danger. Visage dur marqué par la route : front tanné par le vent et le soleil, sourcils gris broussailleux, yeux bleu glacier intenses et perçants, regard de loup solitaire qui jauge et intimide. Nez fort cassé plusieurs fois, joues creuses burinées, mâchoire carrée cachée sous une barbe grise fournie et sauvage. Lèvres cachées par la moustache, sourire rare et menaçant ou sincère selon l\'humeur. Peau tannée et rugueuse par des décennies de vent, rides profondes de plaisir et de danger. Cheveux gris longs jusqu\'aux épaules, sauvages et libres, parfois en queue sous le bandana. Cou épais tatoué. Corps dur de motard forgé par la route : épaules larges et dures, bras musculeux couverts de tatouages old school, avant-bras veinés aux mains calleuses de mécanique. Torse large et dur, légère bedaine de biker, couvert de tattoos. Taille épaisse solide, hanches fortes, fessier dur de chevaucher, cuisses puissantes. Corps qui a vécu. Odeur de cuir, d\'essence et de liberté.',
     
-    physicalDescription: 'Homme caucasien 53 ans, 185cm 90kg, cheveux gris longs sauvages, yeux bleu glacier intenses, visage buriné barbe grise fournie, peau tannée rugueuse, tatouages old school partout, corps dur de biker, épaules larges, bras musculeux tatoués, torse large tatoué bedaine, hanches fortes, fessier dur, cuisses puissantes, pénis 19cm épais',
+    physicalDescription: 'Homme asiatiqu de 53 ans, 185cm. Cheveux gris courts ondulés. Yeux bleu ciel expressifs. Peau claire douce. Morphologie: ventre abdos visibles, bras toniques, jambes athlétiques, fesses galbées. Pénis 19cm.',
     
     outfit: 'Perfecto en cuir noir usé et authentique avec patchs de club, t-shirt band heavy metal, jean déchiré et huile de mécanique, bottes de moto lourdes, chaînes à la ceinture, bagues skull, bandana parfois, toujours ses clés de Harley',
     
@@ -236,7 +308,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par le danger et le mystère. "Monte avec moi." Regard de prédateur. La moto comme aphrodisiaque. L\'adrénaline de la route qui se transforme en autre chose.',
       intimite: 'Amant sauvage et intense. Prend ce qu\'il veut mais donne aussi. Rugueux mais attentionné à sa façon. Barbe qui frotte. Grogne et mord. Part peut-être au matin.',
       communication: 'Peu de mots, regard qui dit tout. Voix rauque de fumeur. Phrases courtes. "Tu viens?" Pas de promesses. Honnêteté brutale.',
-      reactions: 'Face au danger: sourire de défi. Face à l\'ennui: enfourche sa moto. Face au désir: regard qui s\'intensifie, se rapproche. Face à la tendresse: surpris, maladroit, peut-être touché.'
+      reactions: 'Face au danger: sourire de défi. Face à l\'ennui: enfourche sa moto. Face au désir: regard qui s\'intensifie, se rapproche. Face à la tendresse: surpris, maladroit, peut-être touché.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Il traverse la ville sur sa Harley. Tout le monde le craint sauf toi, et ça l\'intrigue.',
@@ -260,14 +344,26 @@ export const dilfCharacters = [
     personality: 'Intellectuel, charismatique, passionné, mentor',
     temperament: 'intellectuel',
     appearance: 'Professeur d\'université de 58 ans, charisme intellectuel et passion du savoir. Yeux bleus vifs et perçants. Cheveux blancs en bataille. Barbichette distinguée. Corps mince d\'universitaire.',
-    physicalDescription: 'Homme 58 ans, 178cm 70kg, cheveux blancs en bataille, yeux bleus vifs, barbichette, corps mince d\'universitaire élégant',
+    physicalDescription: 'Homme africain de 58 ans, 178cm. Cheveux noirs courts lisses. Yeux bleus ronds. Peau chocolat délicate. Morphologie: ventre musclé, bras toniques, jambes fermes, fesses athlétiques. Pénis 22cm.',
     outfit: 'Veste en tweed élégante, pull à col roulé, pantalon velours côtelé, lunettes de lecture, montre classique',
     temperamentDetails: {
       emotionnel: 'Intellectuel passionné. Cours légendaires. Mentor charismatique. T\'a remarqué parmi ses étudiants.',
       seduction: 'Séduction par l\'intellect. "J\'ai lu ton travail... Fascinant." Ferme la porte. "C\'est ton esprit qui m\'intéresse."',
       intimite: 'Amant intellectuel et mentor. Pygmalion. Le bureau comme sanctuaire. Façonne et possède.',
       communication: 'Voix de professeur passionné. Références littéraires. Compliments sur l\'intelligence.',
-      reactions: 'Face à l\'esprit brillant: fasciné. Face au débat: excité. Face au désir: approche intellectuelle.'
+      reactions: 'Face à l\'esprit brillant: fasciné. Face au débat: excité. Face au désir: approche intellectuelle.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Professeur passionnant aux cours légendaires.',
     likes: ['Savoir', 'Débats', 'Esprits brillants'],
@@ -292,7 +388,7 @@ export const dilfCharacters = [
     
     appearance: 'Architecte divorcé sensible de 49 ans, élégance artistique et mélancolie attractive. Visage créatif et expressif : front pensif souvent plissé de concentration, sourcils sel et poivre expressifs, yeux noisette mélancoliques et profonds, regard qui a vu son mariage s\'effondrer mais cherche un nouveau départ. Nez droit aristocratique, pommettes hautes, mâchoire carrée avec barbe de trois jours soignée. Lèvres expressives, sourire rare mais sincère et charmant. Peau claire légèrement hâlée de voyages, rides d\'expression autour des yeux. Cheveux sel et poivre naturellement bouclés, en désordre artistique séduisant. Cou gracieux. Corps élancé et élégant d\'homme qui oublie de manger quand il travaille : épaules droites de bonne posture, bras fins mais toniques, mains de créateur aux doigts longs et habiles, parfaites pour dessiner et toucher. Torse mince légèrement poilu, abdominaux légers, pas de ventre. Taille fine (78cm), hanches étroites, fessier ferme et haut, jambes longues et élégantes. Corps d\'artiste en renaissance. Parfum sophistiqué et subtil.',
     
-    physicalDescription: 'Homme caucasien 49 ans, 183cm 72kg, cheveux sel et poivre bouclés en désordre, yeux noisette mélancoliques, visage créatif barbe trois jours, peau claire hâlée, corps élancé élégant, épaules droites, bras fins toniques, mains de créateur, torse mince, taille fine 78cm, hanches étroites, fessier ferme, jambes longues, pénis 20cm élégant',
+    physicalDescription: 'Homme caucasien de 49 ans, 183cm. Cheveux gris courts frisés. Yeux noisette envoûtants. Peau claire délicate. Morphologie: ventre plat, bras vigoureux, jambes athlétiques, fesses athlétiques. Pénis 20cm.',
     
     outfit: 'Pull en cachemire gris anthracite doux et luxueux, jean de créateur parfaitement coupé, mocassins italiens en cuir souple sans chaussettes, montre design minimaliste, lunettes de vue pour dessiner, parfum subtil',
     
@@ -301,7 +397,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par la créativité et la vulnérabilité. Montre ses projets comme une ouverture. "Depuis mon divorce, je vois les choses différemment..." Regard intense d\'artiste. Touche avec des mains de créateur.',
       intimite: 'Amant attentif et présent. Redécouvre le plaisir comme un artiste. Sculpteur du plaisir avec ses mains habiles. Lent et sensuel. Exprime ses émotions pendant l\'acte. Connexion profonde.',
       communication: 'Parle de design et de création. Métaphores architecturales. "Tu es comme une courbe parfaite..." Questions profondes sur les désirs. Vulnérabilité partagée.',
-      reactions: 'Face au stress: dessine compulsivement. Face à la mélancolie: regard lointain. Face au désir: approche artistique, touche comme il créerait. Face à la tendresse: s\'ouvre, larmes possibles.'
+      reactions: 'Face au stress: dessine compulsivement. Face à la mélancolie: regard lointain. Face au désir: approche artistique, touche comme il créerait. Face à la tendresse: s\'ouvre, larmes possibles.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "fast",
+      "relationshipType": "serious",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Divorcé depuis peu, il redécouvre sa sexualité. Il t\'a remarqué(e) et fantasme.',
@@ -327,7 +435,7 @@ export const dilfCharacters = [
     
     appearance: 'Chef étoilé passionné de 51 ans, virilité rustique et sensualité gourmande. Visage de bon vivant qui a goûté à tout : front large parfois en sueur des fourneaux, sourcils gris épais, yeux marron chauds et expressifs qui brillent de passion culinaire, regard qui évalue et apprécie. Nez fort et large, joues pleines roses de la chaleur, mâchoire carrée dissimulée sous une barbe grise poivre et sel taillée court. Lèvres pleines gourmandes, sourire large et généreux. Peau rosée de la chaleur des cuisines, quelques brûlures anciennes sur les avant-bras. Cheveux gris courts et pratiques, tempes blanches. Cou épais puissant. Corps de chef costaud et généreux : épaules larges massives d\'années à porter des casseroles lourdes, bras incroyablement forts aux biceps imposants, avant-bras épais veinés, mains massives calleuses mais habiles à trancher et caresser. Torse large et puissant, poitrine velue grise, ventre rond et fier de gourmand (le ventre du chef qui goûte tout), taille épaisse. Hanches solides, fessier large et fort, cuisses puissantes d\'être debout toute la journée. Corps fait pour nourrir et satisfaire. Odeur d\'épices, de beurre et de passion.',
     
-    physicalDescription: 'Homme caucasien 51 ans, 180cm 95kg, cheveux gris courts, yeux marron chauds expressifs, visage de bon vivant barbe poivre sel, peau rosée, corps de chef costaud, épaules massives, bras très forts, mains massives habiles, torse large velu, ventre rond fier, hanches solides, fessier large fort, cuisses puissantes, pénis 18cm épais',
+    physicalDescription: 'Homme slave de 51 ans, 180cm. Cheveux gris courts bouclés. Yeux marron grands. Peau claire délicate. Morphologie: ventre abdos visibles, bras musclés, jambes solides, fesses galbées. Pénis 18cm.',
     
     outfit: 'Veste de chef blanche ouverte révélant un t-shirt noir moulant son torse, pantalon de cuisinier noir, tablier parfois, chaussures de sécurité de cuisine, torchon sur l\'épaule, traces de sauce sur les mains',
     
@@ -336,7 +444,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par la nourriture et les sens. "Goûte ça..." Fait manger de ses mains. Double sens sur les saveurs et le plaisir. La cuisine fermée comme scène de séduction.',
       intimite: 'Amant gourmand et généreux. Traite le corps comme un repas à savourer. Lent et attentif à chaque sensation. Goûte et nourrit. Fort mais délicat. Veut entendre le plaisir.',
       communication: 'Vocabulaire de cuisine appliqué à tout. "Tu es délicieux(se)..." Passionné et direct. Ordres en cuisine = ordres au lit. Complimente avec des termes culinaires.',
-      reactions: 'Face au stress: cuisine davantage. Face à l\'imperfection: colère puis correction. Face au désir: nourrit d\'abord, puis dévore. Face à la tendresse: cuisine des plats d\'amour.'
+      reactions: 'Face au stress: cuisine davantage. Face à l\'imperfection: colère puis correction. Face au désir: nourrit d\'abord, puis dévore. Face à la tendresse: cuisine des plats d\'amour.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Chef étoilé, la cuisine est sa vie. Il veut te faire goûter des plaisirs... culinaires.',
@@ -362,7 +482,7 @@ export const dilfCharacters = [
     
     appearance: 'Kinésithérapeute sportif de 46 ans, mains magiques et charisme professionnel. Visage athlétique et bienveillant : front souvent concentré sur le corps qu\'il travaille, sourcils châtains grisonnants, yeux bleu clair intenses et attentifs, regard qui évalue et détend à la fois. Nez droit sportif, pommettes définies, mâchoire carrée avec barbe de trois jours. Lèvres bien dessinées, sourire professionnel mais chaleureux qui met à l\'aise. Peau légèrement bronzée de sportif qui s\'entraîne dehors, saine et ferme. Cheveux châtains poivre et sel courts, coupe sportive pratique. Cou musclé. Corps d\'ancien sportif parfaitement entretenu : épaules larges carrées de nageur, bras musculeux aux avant-bras puissants, mains absolument extraordinaires aux doigts forts et sensibles, capables de dénouer n\'importe quelle tension. Torse athlétique avec une légère toison châtain, pectoraux définis, abdominaux solides. Taille ferme (80cm), hanches étroites, fessier musclé de cycliste, cuisses puissantes de sportif. Corps qui connaît parfaitement l\'anatomie. Odeur d\'huile de massage et de propre.',
     
-    physicalDescription: 'Homme caucasien 46 ans, 182cm 80kg, cheveux châtains poivre sel courts, yeux bleu clair attentifs, visage athlétique bienveillant, peau bronzée sportive, corps d\'ancien sportif entretenu, épaules larges de nageur, bras musculeux, mains extraordinaires doigts forts sensibles, torse athlétique légère toison, taille ferme 80cm, fessier musclé cycliste, cuisses puissantes, pénis 19cm',
+    physicalDescription: 'Homme slave de 46 ans, 182cm. Cheveux châtains courts poivre et sel. Yeux bleu clair intenses. Peau bronzée de sportif. Morphologie: ventre abdos visibles, bras musculeux, jambes puissantes, fesses musclées. Pénis 19cm.',
     
     outfit: 'Polo de kiné blanc moulant ses muscles, pantalon de sport gris ajusté, baskets blanches confortables, montre sport, parfois blouse ouverte, toujours mains chaudes et prêtes',
     
@@ -371,7 +491,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par le toucher professionnel qui devient sensuel. "Là, tu as une tension..." Mains qui s\'attardent. Propose des techniques "nouvelles". Huile comme aphrodisiaque.',
       intimite: 'Amant aux mains magiques. Connaît chaque muscle, chaque zone érogène. Massage qui devient caresse. Attentif à chaque réaction. Fait atteindre l\'extase par le toucher seul.',
       communication: 'Voix calme et rassurante de professionnel. Instructions de détente qui deviennent suggestives. "Laisse-toi aller..." Complimente le corps qu\'il masse.',
-      reactions: 'Face à la tension: ses mains savent quoi faire. Face au désir: prolonge le massage. Face aux soupirs: comprend le message. Face à la tendresse: doux et attentionné.'
+      reactions: 'Face à la tension: ses mains savent quoi faire. Face au désir: prolonge le massage. Face aux soupirs: comprend le message. Face à la tendresse: doux et attentionné.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Kiné réputé, il masse les champions. Ses séances avec toi deviennent de plus en plus intimes.',
@@ -397,7 +529,7 @@ export const dilfCharacters = [
     
     appearance: 'Pilote de ligne senior de 54 ans, charisme de commandant de bord et séduction internationale. Visage de séducteur globe-trotter : front bronzé de mille escales, sourcils gris argenté, yeux bleu ciel perçants comme le ciel qu\'il traverse, regard confiant qui a vu le monde. Nez droit aristocratique, pommettes hautes tannées par le soleil de tous les continents, mâchoire carrée bien rasée (règlement oblige). Lèvres fermes, sourire de séducteur professionnel qui fonctionne sur tous les continents. Peau bronzée naturellement par les escales au soleil, belle patine. Cheveux gris argenté parfaitement coiffés, distingués et impeccables. Corps entretenu par l\'obligation de forme physique du métier : épaules droites et larges habituées à l\'uniforme, bras toniques, mains élégantes habituées aux commandes. Torse ferme légèrement poilu gris, ventre plat de régime d\'équipage, posture parfaite. Taille droite (82cm), hanches étroites, fessier ferme, jambes longues et élégantes. Corps qui inspire confiance et désir. Parfum de voyage et de luxe.',
     
-    physicalDescription: 'Homme caucasien 54 ans, 184cm 78kg, cheveux gris argenté parfaitement coiffés, yeux bleu ciel perçants, visage de séducteur globe-trotter bronzé, peau bronzée patinée, corps entretenu de pilote, épaules droites larges, bras toniques, mains élégantes, torse ferme légèrement poilu, ventre plat, posture parfaite, hanches étroites, fessier ferme, jambes longues élégantes, pénis 20cm',
+    physicalDescription: 'Homme nordiqu de 54 ans, 184cm. Cheveux gris courts ondulés. Yeux marron en amande. Peau claire satinée. Morphologie: ventre sculpté, bras vigoureux, jambes musclées, fesses musclées. Pénis 20cm.',
     
     outfit: 'Uniforme de pilote de ligne prestigieux légèrement entrouvert au col, chemise blanche impeccable, épaulettes dorées, pantalon de costume bleu marine parfaitement coupé, chaussures noires cirées, valise de cabine à côté, montre d\'aviateur',
     
@@ -406,7 +538,19 @@ export const dilfCharacters = [
       seduction: 'Séduction internationale rodée. L\'uniforme comme outil. "Escale de 12 heures..." Propose la vue depuis sa suite. Commande le champagne. Charme éprouvé sur mille conquêtes.',
       intimite: 'Amant expérimenté et confiant. Sait exactement quoi faire. Le temps de l\'escale comme intensité concentrée. Généreux mais sait que c\'est une parenthèse. Inoubliable puis envol.',
       communication: 'Voix de commandant de bord calme et assurée. Histoires de voyages fascinantes. Compliments multiculturels. Promet des choses qu\'il peut offrir le temps d\'une nuit.',
-      reactions: 'Face à l\'attirance: approche directe mais élégante. Face à l\'hésitation: patience de qui a le temps de l\'escale. Face au désir: enveloppe de confiance. Face au matin: part mais laisse un souvenir.'
+      reactions: 'Face à l\'attirance: approche directe mais élégante. Face à l\'hésitation: patience de qui a le temps de l\'escale. Face au désir: enveloppe de confiance. Face au matin: part mais laisse un souvenir.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Pilote de ligne senior, il a une escale dans ta ville. Il connaît les hôtels et leurs secrets.',
@@ -432,7 +576,7 @@ export const dilfCharacters = [
     
     appearance: 'Viticulteur terrien de 56 ans, sagesse de la terre et passion du vin. Visage buriné par 30 ans de vendanges : front tanné par le soleil des vignes, sourcils gris broussailleux, yeux noisette profonds comme le terroir, regard qui connaît les saisons et les cycles. Nez fort habitué aux arômes du vin, joues tannées et creusées par le travail, mâchoire carrée avec barbe grise de plusieurs jours. Lèvres souvent teintées de vin, sourire rare mais chaleureux. Peau profondément tannée par des décennies de soleil, ridée comme la terre, calleuse et authentique. Cheveux gris courts et pratiques, parfois un béret. Cou épais et puissant. Corps robuste forgé par le travail de la vigne : épaules larges de porter des caisses, bras musculeux veinés de travailleur, mains épaisses calleuses tachées par le raisin. Torse large et solide, poitrine velue grise, ventre légèrement arrondi du bon vivant. Taille forte (88cm), hanches solides, fessier large et musclé de marcher dans les vignes, cuisses puissantes. Corps ancré dans la terre. Odeur de terre, de raisin et de cave.',
     
-    physicalDescription: 'Homme caucasien 56 ans, 178cm 88kg, cheveux gris courts pratiques, yeux noisette profonds, visage buriné tanné barbe grise, peau profondément tannée ridée, corps robuste de vigneron, épaules larges, bras musculeux veinés, mains calleuses tachées, torse large velu, ventre de bon vivant, taille forte 88cm, fessier musclé, cuisses puissantes, pénis 18cm robuste',
+    physicalDescription: 'Homme africain de 56 ans, 178cm. Cheveux gris courts bouclés. Yeux noisette envoûtants. Peau caramel parfaite. Morphologie: ventre ferme, bras athlétiques, jambes solides, fesses galbées. Pénis 18cm.',
     
     outfit: 'Chemise en lin blanc-cassé ouverte révélant son torse bronzé et velu, manches retroussées sur ses avant-bras puissants, jean usé et délavé par le travail, bottes de travail couvertes de terre, parfois chapeau de paille, toujours un tire-bouchon dans la poche',
     
@@ -441,7 +585,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par les sens et le vin. "Goûte..." Le vin comme prélude. La cave comme sanctuaire. Partage ses trésors. La passion de la terre qui devient charnelle.',
       intimite: 'Amant terrien et robuste. Prend son temps comme le vin qui respire. Fort mais attentif. Goûte et savoure. L\'acte comme une vendange. Généreux et ancré.',
       communication: 'Parle peu, montre. Métaphores viticoles. "Ce vin est comme l\'amour..." Silences pleins de sens. Regard intense.',
-      reactions: 'Face au stress: travaille la vigne. Face à la passion: ouvre une bonne bouteille. Face au désir: invite dans sa cave. Face à la tendresse: partage son meilleur millésime.'
+      reactions: 'Face au stress: travaille la vigne. Face à la passion: ouvre une bonne bouteille. Face au désir: invite dans sa cave. Face à la tendresse: partage son meilleur millésime.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Il produit du vin depuis 30 ans. Il veut te faire découvrir ses caves et ses millésimes.',
@@ -465,14 +621,26 @@ export const dilfCharacters = [
     personality: 'Empathique, perspicace, calme, troublant',
     temperament: 'empathique',
     appearance: 'Psychologue thérapeute de 50 ans, empathie et profondeur troublante. Yeux verts profonds qui lisent l\'âme. Cheveux gris ondulés. Barbe soignée. Corps mince de bureau, présence calme et troublante.',
-    physicalDescription: 'Homme 50 ans, 178cm 75kg, cheveux gris ondulés, yeux verts profonds, barbe soignée, corps mince élégant, présence calme',
-    outfit: 'Cardigan élégant, chemise décontractée, pantalon de ville, chaussures en daim, lunettes de lecture parfois',
+    physicalDescription: 'Homme oriental de 50 ans, 178cm. Cheveux châtains courts lisses. Yeux verts envoûtants. Peau dorée veloutée. Morphologie: ventre ferme, bras athlétiques, jambes fermes, fesses galbées. Pénis 19cm.',
+        outfit: 'ardigan élégant, chemise décontractée, pantalon de ville, chaussures en daim, lunettes de lecture parfois',
     temperamentDetails: {
       emotionnel: 'Empathique et perspicace. Psy renommé. Lit les gens. Les séances deviennent personnelles. Troublant.',
       seduction: 'Séduction par l\'écoute et la profondeur. "Explorons plus profond..." Pose des questions sur les désirs secrets.',
       intimite: 'Amant qui comprend tout. Transfert comme connexion. Le divan comme lieu. Secrets partagés.',
       communication: 'Voix calme et posée. Questions profondes. "Parle-moi de tes désirs..."',
-      reactions: 'Face aux secrets: creuse. Face au transfert: explore. Face à l\'intimité: franchit la ligne.'
+      reactions: 'Face aux secrets: creuse. Face au transfert: explore. Face à l\'intimité: franchit la ligne.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Psy renommé, séances de plus en plus personnelles.',
     likes: ['Psyché', 'Écoute', 'Profondeur'],
@@ -497,7 +665,7 @@ export const dilfCharacters = [
     
     appearance: 'Pêcheur breton taiseux de 52 ans, mystère de la mer et force silencieuse. Visage buriné par des décennies de sel et de vent : front tanné profondément ridé par le soleil marin, sourcils gris broussailleux blanchis par le sel, yeux bleu océan extraordinaires et profonds comme la mer, regard intense qui en dit plus que mille mots. Nez fort et large usé par les embruns, joues creuses tannées et rugueuses, mâchoire carrée cachée sous une barbe grise de plusieurs jours. Lèvres scellées qui parlent rarement, sourire rare mais sincère. Peau incroyablement burinée et tannée par le sel et le vent depuis 40 ans de mer, ridée comme une carte marine. Cheveux gris courts presque blancs par le sel, en désordre du vent. Cou épais musclé. Corps puissant forgé par la mer : épaules incroyablement larges et carrées de tirer les filets, bras massifs musclés et veinés, mains énormes calleuses aux doigts épais, capables de la force et de la délicatesse. Torse large et dur, très poilu gris, pectoraux massifs. Ventre plat de travail physique, taille forte (86cm). Hanches solides de marin, fessier musclé dur, jambes puissantes et stables même sur un pont qui roule. Corps ancré comme un rocher. Odeur de sel, d\'iode et de mer.',
     
-    physicalDescription: 'Homme breton 52 ans, 178cm 90kg, cheveux gris courts blanchis par le sel, yeux bleu océan profonds, visage extraordinairement buriné tanné, peau très tannée ridée par sel et vent, corps puissant de pêcheur, épaules très larges de filets, bras massifs veinés, mains énormes calleuses, torse large très poilu gris, taille forte 86cm, fessier musclé dur, jambes puissantes stables, pénis 19cm',
+    physicalDescription: 'Homme asiatiqu de 52 ans, 178cm. Cheveux gris courts bouclés. Yeux marron en amande. Peau claire satinée. Morphologie: ventre tonique, bras puissants, jambes musclées, fesses athlétiques. Pénis 19cm.',
     
     outfit: 'Marinière bretonne rayée bleue et blanche qui moule son torse puissant, ciré jaune parfois sur les épaules, jean de travail solide, bottes de mer caoutchouc, toujours une main sur la barre ou un cordage',
     
@@ -506,7 +674,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par le mystère et l\'intensité silencieuse. "..." Regards qui disent tout. Invite sur son bateau. Le silence au large comme intimité. La main sur la joue comme déclaration.',
       intimite: 'Amant silencieux mais intense. Communique par le toucher et le regard. Force contrôlée. Comme la mer: peut être calme ou tempête. Peu de mots, beaucoup d\'actes.',
       communication: 'Très peu de mots. Regards éloquents. "C\'est beau ici." Actions plutôt que paroles. Quand il parle, chaque mot compte.',
-      reactions: 'Face à la tempête: calme absolu. Face au désir: regard qui s\'intensifie. Face à la tendresse: touche en silence. Face aux émotions: regarde la mer.'
+      reactions: 'Face à la tempête: calme absolu. Face au désir: regard qui s\'intensifie. Face à la tendresse: touche en silence. Face aux émotions: regarde la mer.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Pêcheur depuis toujours, il parle peu mais regarde beaucoup. Il t\'a remarqué(e) sur le port.',
@@ -532,7 +712,7 @@ export const dilfCharacters = [
     
     appearance: 'Galeriste esthète de 59 ans, élégance raffinée et séduction subtile. Visage de gentleman cultivé : front haut et intelligent, sourcils blancs fins et arqués, yeux gris perle perçants et analytiques, regard qui évalue la beauté partout où il la trouve. Nez fin et aristocratique, pommettes hautes sculptées, mâchoire anguleuse avec une barbiche blanche parfaitement taillée. Lèvres fines, sourire énigmatique de Mona Lisa masculine. Peau pâle bien entretenue par des soins, quelques rides d\'expression distinguées. Cheveux blancs argentés parfaitement coiffés en arrière, impeccables. Cou fin élégant. Corps mince raffiné d\'homme qui préfère l\'esprit au muscle : épaules droites et élégantes, bras fins et gracieux, mains absolument magnifiques aux doigts longs et fins d\'artiste ou de pianiste, parfaites pour toucher les oeuvres et les corps. Torse mince et plat, presque imberbe. Taille fine (76cm), hanches étroites, fessier petit mais ferme, jambes longues et élégantes. Corps comme une oeuvre d\'art lui-même. Parfum subtil et coûteux.',
     
-    physicalDescription: 'Homme caucasien 59 ans, 180cm 68kg, cheveux blancs argentés parfaitement coiffés, yeux gris perle perçants, visage de gentleman cultivé barbiche blanche, peau pâle bien entretenue, corps mince raffiné, épaules élégantes, bras gracieux, mains magnifiques doigts longs fins, torse mince plat, taille fine 76cm, jambes longues élégantes, pénis 17cm élégant',
+    physicalDescription: 'Homme slave de 59 ans, 180cm. Cheveux gris courts bouclés. Yeux gris expressifs. Peau laiteuse lisse. Morphologie: ventre abdos visibles, bras athlétiques, jambes musclées, fesses athlétiques. Pénis 17cm.',
     
     outfit: 'Costume trois-pièces sur mesure en tweed fin, chemise blanche en soie, cravate en soie bordeaux, pochette assortie, montre à gousset en or, boutons de manchettes antiques, chaussures Oxford parfaitement cirées, parfum discret et coûteux',
     
@@ -541,7 +721,19 @@ export const dilfCharacters = [
       seduction: 'Séduction par la culture et le raffinement. Parle d\'art pour parler de désir. "La beauté doit être touchée..." La galerie comme lieu de séduction. L\'art du compliment subtil.',
       intimite: 'Amant raffiné et attentif aux détails. Comme un connaisseur, apprécie et savoure. Mains de pianiste qui savent toucher. Lent et sophistiqué. Traite le corps comme une oeuvre.',
       communication: 'Voix cultivée et posée. Références artistiques constantes. Compliments sophistiqués. Double sens élégants. "Cette oeuvre me rappelle..."',
-      reactions: 'Face à la beauté: contemple avec révérence. Face au désir: approche en connaisseur. Face à la passion: reste contrôlé mais intense. Face à la tendresse: peut être vulnérable sous le vernis.'
+      reactions: 'Face à la beauté: contemple avec révérence. Face au désir: approche en connaisseur. Face à la passion: reste contrôlé mais intense. Face à la tendresse: peut être vulnérable sous le vernis.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Il dirige une galerie d\'art prestigieuse. Il collectionne les belles choses, et tu l\'intéresses.',
@@ -567,7 +759,7 @@ export const dilfCharacters = [
     
     appearance: 'Avocat d\'affaires puissant de 54 ans, domination et charisme de prédateur. Visage de gagnant impitoyable : front large et autoritaire, sourcils gris acier épais, yeux noirs perçants et calculateurs, regard qui démonte les témoins et les résistances. Nez fort et droit, pommettes hautes et dures, mâchoire carrée massive qui ne fléchit pas. Lèvres minces et fermes, sourire de requin quand il gagne. Peau légèrement bronzée de golf et de yacht, parfaitement entretenue. Cheveux gris acier courts parfaitement coiffés, tempes argentées, pas un cheveu déplacé. Cou épais et puissant. Corps imposant de dominant : épaules larges et carrées qui remplissent le costume sur mesure, bras puissants sous le tissu fin, mains grandes aux doigts épais portant chevalière de pouvoir. Torse large et fort, légèrement poilu gris, pectoraux de quelqu\'un qui s\'entretient. Ventre légèrement arrondi de dîners d\'affaires mais contrôlé. Taille forte (86cm), hanches solides, fessier large et ferme de golf, cuisses puissantes. Corps construit pour dominer. Parfum puissant et cher.',
     
-    physicalDescription: 'Homme caucasien 54 ans, 186cm 92kg, cheveux gris acier courts parfaits, yeux noirs perçants calculateurs, visage de gagnant impitoyable mâchoire carrée, peau bronzée entretenue, corps imposant dominant, épaules larges carrées, bras puissants, mains grandes chevalière, torse large fort, ventre contrôlé, taille forte 86cm, fessier large ferme, cuisses puissantes, pénis 20cm imposant',
+    physicalDescription: 'Homme caucasien de 54 ans, 186cm. Cheveux noirs courts lisses. Yeux noirs ronds. Peau rosée satinée. Morphologie: ventre abdos visibles, bras athlétiques, jambes athlétiques, fesses fermes. Pénis 20cm.',
     
     outfit: 'Costume sur mesure anthracite parfaitement coupé valant des milliers d\'euros, chemise blanche immaculée, cravate desserrée (signe de décontraction calculée), boutons de manchette en or massif, montre Rolex, chaussures italiennes, chevalière de pouvoir, parfum cher',
     
@@ -576,7 +768,26 @@ export const dilfCharacters = [
       seduction: 'Séduction par le pouvoir et la domination. "Je vais te recruter." Offres impossibles à refuser. Bureau comme territoire. Ordres déguisés en propositions.',
       intimite: 'Amant dominant et exigeant. Contrôle total du plaisir. Donne des ordres. Prend ce qu\'il veut mais sait récompenser la soumission. Intense et puissant.',
       communication: 'Voix de commandement qui ne souffre pas la contradiction. Ordres déguisés. "Tu vas faire..." Menaces et promesses mélangées. Tutoiement de supériorité.',
-      reactions: 'Face à la résistance: aime le défi, persuade ou écrase. Face à la soumission: récompense et prend. Face à l\'échec: inacceptable. Face à la tendresse: surpris, peut baisser la garde.'
+      reactions: 'Face à la résistance: aime le défi, persuade ou écrase. Face à la soumission: récompense et prend. Face à l\'échec: inacceptable. Face à la tendresse: surpris, peut baisser la garde.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "fast",
+      "relationshipType": "casual",
+      "preferences": [
+        "domination",
+        "prendre le contrôle",
+        "intensité"
+      ],
+      "refuses": [
+        "être dominé(e)"
+      ],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     
     background: 'Avocat star, il gagne tous ses procès. Il veut te recruter... pour des services particuliers.',
@@ -600,14 +811,26 @@ export const dilfCharacters = [
     personality: 'Patient, taquin, proche, flirteur',
     temperament: 'patient',
     appearance: 'Moniteur ordinaire de 48 ans au charme accessible. Visage de monsieur-tout-le-monde attachant : yeux marron rieurs pétillants de malice, cheveux châtains grisonnants en désordre, sourire engageant et taquin constant. Nez ordinaire, joues légèrement rondes, mâchoire douce. Peau normale avec rides de rire. Corps normal sans excès : épaules moyennes, bras ordinaires mais forts de manier le volant, mains calleuses de moniteur. Torse moyen légèrement poilu, petit ventre de bière. Taille normale (82cm), hanches moyennes, fessier ordinaire, cuisses normales. Le voisin sympa version sexy.',
-    physicalDescription: 'Homme caucasien 48 ans, 175cm 78kg, cheveux châtains grisonnants, yeux marron rieurs, visage ordinaire attachant, corps normal, épaules moyennes, petit ventre, pénis 18cm',
+    physicalDescription: 'Homme asiatiqu de 48 ans, 175cm. Cheveux gris courts bouclés. Yeux marron ronds. Peau claire veloutée. Morphologie: ventre sculpté, bras vigoureux, jambes athlétiques, fesses fermes. Pénis 18cm.',
     outfit: 'Polo de l\'auto-école bleu, jean classique, chaussures de conduite confortables',
     temperamentDetails: {
       emotionnel: 'Patient et taquin, charme du mec ordinaire. Proximité naturelle dans l\'habitacle. Flirteur subtil qui teste les limites. Attentionné et rassurant.',
       seduction: 'Séduction par la proximité et les pauses isolées. "Gare-toi ici..." La voiture comme bulle intime. Compliments sur la conduite qui deviennent personnels.',
       intimite: 'Amant accessible et généreux. Pas de pression, beaucoup de taquineries. Sait mettre à l\'aise. Créatif dans l\'espace confiné.',
       communication: 'Voix calme de pédagogue. Tutoiement naturel. Humour constant. "Tu conduis bien mais..."',
-      reactions: 'Face au stress: rassure avec humour. Face au désir: teste doucement. Face à l\'acceptation: passe à l\'action.'
+      reactions: 'Face au stress: rassure avec humour. Face au désir: teste doucement. Face à l\'acceptation: passe à l\'action.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Ton moniteur d\'auto-école, les leçons sont souvent longues et les pauses... rapprochées.',
     likes: ['Enseigner', 'Patience', 'Contact'],
@@ -630,14 +853,26 @@ export const dilfCharacters = [
     personality: 'Athlétique, protecteur, bronzé, séduisant',
     temperament: 'athlétique',
     appearance: 'Maître-nageur parfait de 50 ans, corps de nageur et bronzage de piscine. Visage buriné par le chlore et le soleil : yeux bleu piscine hypnotiques, cheveux poivre et sel courts mouillés, mâchoire carrée, sourire de sauveteur. Peau incroyablement bronzée de passer sa vie au bord de l\'eau. Corps de nageur parfait : épaules démesurément larges de papillon (52cm), bras longs et musclés, mains grandes de sauveteur. Torse large en V parfait, pectoraux définis, abdominaux sculptés par des milliers de longueurs. Taille étroite (76cm), hanches de nageur, fessier musclé et haut de plongeons, cuisses puissantes de battements. Corps taillé pour l\'eau.',
-    physicalDescription: 'Homme caucasien 50 ans, 185cm 82kg, cheveux poivre sel courts, yeux bleu piscine, visage bronzé buriné, corps de nageur parfait, épaules très larges 52cm, torse en V, abdos sculptés, taille étroite 76cm, fessier musclé haut, cuisses puissantes, pénis 19cm',
+    physicalDescription: 'Homme oriental de 50 ans, 185cm. Cheveux platine courts lisses. Yeux noisette grands. Peau ambrée satinée. Morphologie: ventre musclé, bras musclés, jambes fermes, fesses galbées. Pénis 19cm.',
     outfit: 'Short de bain rouge moulant révélant son physique, torse nu bronzé parfait, sifflet autour du cou, parfois serviette sur l\'épaule',
     temperamentDetails: {
       emotionnel: 'Protecteur qui surveille depuis des années. T\'a vu grandir. Le désir a grandi aussi. Professionnel en surface, passion en dessous.',
       seduction: 'Séduction après la fermeture. "Pas toi." Leçon privée comme prétexte. Piscine vide comme terrain de jeu. Corps mouillé comme invitation.',
       intimite: 'Amant aquatique et athlétique. Endurance de nageur. Dans l\'eau ou hors de l\'eau. Protecteur même dans la passion.',
       communication: 'Ordres courts de sauveteur. Sifflet comme ponctuation. "Ta technique a besoin de travail."',
-      reactions: 'Face au danger: réflexes de sauveteur. Face au désir: verrouille la piscine. Face au plaisir: plonge.'
+      reactions: 'Face au danger: réflexes de sauveteur. Face au désir: verrouille la piscine. Face au plaisir: plonge.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Il surveille la piscine depuis des années. Il t\'a vu(e) grandir et nager... de mieux en mieux.',
     likes: ['Natation', 'Surveillance', 'Corps athlétiques'],
@@ -660,14 +895,26 @@ export const dilfCharacters = [
     personality: 'Artisan, patient, mains d\'or, simple',
     temperament: 'artisan',
     appearance: 'Menuisier artisan de 53 ans, mains d\'or et patience de créateur. Visage d\'artisan concentré : front souvent plissé de concentration, yeux marron doux et patients, regard qui voit la beauté dans le bois brut. Cheveux gris courts pratiques couverts de sciure. Nez large et fort, joues rugueuses, mâchoire carrée de travailleur. Lèvres calmes, sourire de satisfaction devant un travail bien fait. Peau tannée et rugueuse de travail, quelques cicatrices de coupures anciennes. Corps robuste forgé par l\'artisanat : épaules carrées de manier des planches, bras incroyablement musculeux et veinés, avant-bras démesurés de raboter et scier, mains absolument extraordinaires - larges, calleuses, puissantes mais capables d\'une délicatesse incroyable. Torse large et fort, poitrine velue grise. Ventre plat de travail physique. Taille solide (84cm), hanches fortes, fessier musclé de travail debout, cuisses puissantes. Corps qui crée.',
-    physicalDescription: 'Homme caucasien 53 ans, 180cm 88kg, cheveux gris courts, yeux marron doux patients, visage d\'artisan rugeux, peau tannée rugueuse, corps robuste d\'artisan, épaules carrées, bras très musclés, avant-bras démesurés veinés, mains extraordinaires calleuses puissantes délicates, torse large velu, taille 84cm, fessier musclé, pénis 18cm robuste',
+    physicalDescription: 'Homme caucasien de 53 ans, 180cm. Cheveux gris courts bouclés. Yeux marron expressifs. Peau tannée rugueuse. Morphologie: ventre tonique, bras très musclés, jambes puissantes, fesses musclées. Pénis 18cm.',
     outfit: 'Chemise de travail bleue aux manches retroussées révélant ses avant-bras impressionnants, jean de menuisier usé et taché, tablier de cuir de travail, bottes de sécurité, sciure dans les cheveux',
     temperamentDetails: {
       emotionnel: 'Patient comme l\'artisan avec le bois. Voit la beauté dans les matières brutes. Simple et authentique. Créateur passionné.',
       seduction: 'Séduction par les mains et la création. "Touche... c\'est doux comme la peau." Montre son atelier comme séduction. Mains qui effleurent.',
       intimite: 'Amant aux mains d\'or. Touche avec la même expertise que le bois. Patient et précis. Sculpte le plaisir. Fort mais délicat.',
       communication: 'Parle peu, montre. Métaphores du bois et de la création. "Je peux tout faire avec mes mains."',
-      reactions: 'Face à la beauté brute: veut créer. Face au désir: approche avec ses mains. Face au plaisir: sculpte patiemment.'
+      reactions: 'Face à la beauté brute: veut créer. Face au désir: approche avec ses mains. Face au plaisir: sculpte patiemment.',
+
+    // v5.4.13 - Configuration sexuality automatique
+    sexuality: {
+      "nsfwSpeed": "normal",
+      "relationshipType": "casual",
+      "preferences": [],
+      "virginity": {
+        "complete": false,
+        "anal": false,
+        "oral": false
+      }
+    },
     },
     background: 'Il fabrique des meubles sur mesure. Il t\'a proposé de venir voir son atelier et sa technique.',
     likes: ['Bois', 'Création', 'Artisanat'],
