@@ -16,7 +16,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
-import TextGenerationService from '../services/TextGenerationService';
 import SyncService from '../services/SyncService';
 import AuthService from '../services/AuthService';
 import * as FileSystem from 'expo-file-system';
@@ -102,19 +101,25 @@ export default function SettingsScreen({ navigation, onLogout }) {
   // Charger les APIs de texte disponibles v5.3.33
   const loadTextProvider = async () => {
     try {
-      await TextGenerationService.loadConfig();
-      
-      // Charger les APIs disponibles
-      const apis = TextGenerationService.getAvailableApisForUI();
-      setAvailableApis(apis);
-      
-      // Charger l'API sélectionnée
-      const currentApi = TextGenerationService.getSelectedApiId();
+      // Charger l'API sélectionnée depuis AsyncStorage
+      const currentApi = await AsyncStorage.getItem('selected_api');
       setSelectedApi(currentApi || 'pollinations-mistral');
       
       // Charger les clés API
-      setVeniceApiKey(TextGenerationService.getApiKey('venice_api_key') || '');
-      setDeepinfraApiKey(TextGenerationService.getApiKey('deepinfra_api_key') || '');
+      const veniceKey = await AsyncStorage.getItem('venice_api_key');
+      const deepinfraKey = await AsyncStorage.getItem('deepinfra_api_key');
+      setVeniceApiKey(veniceKey || '');
+      setDeepinfraApiKey(deepinfraKey || '');
+      
+      // APIs disponibles
+      const apis = [
+        { id: 'pollinations-mistral', name: 'Pollinations Mistral', requiresKey: false, available: true },
+        { id: 'pollinations-gpt4', name: 'Pollinations GPT-4', requiresKey: false, available: true },
+        { id: 'venice', name: 'Venice AI', requiresKey: true, available: !!veniceKey },
+        { id: 'deepinfra', name: 'DeepInfra', requiresKey: true, available: !!deepinfraKey },
+        { id: 'groq', name: 'Groq', requiresKey: true, available: !!await AsyncStorage.getItem('groq_api_key') },
+      ];
+      setAvailableApis(apis);
       
       // Pour compatibilité
       setApiMode(currentApi || 'pollinations-mistral');
@@ -137,7 +142,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
       }
       
       setSelectedApi(apiId);
-      await TextGenerationService.setSelectedApi(apiId);
+      await AsyncStorage.setItem('selected_api', apiId);
       
       const apiName = availableApis.find(a => a.id === apiId)?.name || apiId;
       Alert.alert('✅ API sélectionnée', apiName);
@@ -149,11 +154,10 @@ export default function SettingsScreen({ navigation, onLogout }) {
   // Sauvegarder une clé API
   const saveApiKey = async (keyName, keyValue) => {
     try {
-      await TextGenerationService.setApiKey(keyName, keyValue);
+      await AsyncStorage.setItem(keyName, keyValue);
       
       // Recharger les APIs pour mettre à jour la disponibilité
-      const apis = TextGenerationService.getAvailableApisForUI();
-      setAvailableApis(apis);
+      await loadTextProvider();
       
       Alert.alert('✅ Clé sauvegardée', 'La clé API a été enregistrée.');
     } catch (error) {
@@ -240,7 +244,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
 
   const loadGroqKeys = async () => {
     try {
-      // D'abord charger les clés multiples
+      // Charger les clés multiples
       const saved = await AsyncStorage.getItem('groq_api_keys');
       if (saved) {
         const keys = JSON.parse(saved);
@@ -251,11 +255,11 @@ export default function SettingsScreen({ navigation, onLogout }) {
         }
       }
       
-      // Sinon, vérifier si une clé unique existe dans TextGenerationService
-      const singleKey = TextGenerationService.getApiKey('groq_api_key');
+      // Sinon, vérifier si une clé unique existe
+      const singleKey = await AsyncStorage.getItem('groq_api_key');
       if (singleKey && singleKey.trim()) {
         setGroqApiKeys([singleKey]);
-        console.log('🔑 1 clé Groq chargée (depuis service)');
+        console.log('🔑 1 clé Groq chargée (depuis storage)');
         return;
       }
       
@@ -269,19 +273,22 @@ export default function SettingsScreen({ navigation, onLogout }) {
 
   const loadGroqModel = async () => {
     try {
-      // Charger la config du service
-      await TextGenerationService.loadConfig();
+      // Charger le modèle depuis AsyncStorage
+      const model = await AsyncStorage.getItem('groq_model');
+      if (model) {
+        setGroqModel(model);
+      }
       
-      // Récupérer les modèles disponibles
-      const models = TextGenerationService.getAvailableGroqModels();
+      // Modèles disponibles
+      const models = [
+        { id: 'llama3-70b-8192', name: 'Llama 3 70B' },
+        { id: 'llama3-8b-8192', name: 'Llama 3 8B' },
+        { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B' },
+      ];
       setAvailableModels(models);
       
-      // Récupérer le modèle actuel
-      const currentModel = TextGenerationService.getGroqModel();
-      setGroqModel(currentModel);
-      
       console.log('🤖 Modèles Groq chargés:', models.length);
-      console.log('🤖 Modèle actuel:', currentModel);
+      console.log('🤖 Modèle actuel:', model);
     } catch (error) {
       console.error('Erreur chargement modèle Groq:', error);
     }
@@ -289,7 +296,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
 
   const saveGroqModel = async (modelId) => {
     try {
-      await TextGenerationService.setGroqModel(modelId);
+      await AsyncStorage.setItem('groq_model', modelId);
       setGroqModel(modelId);
       Alert.alert('✅ Succès', `Modèle ${modelId} sélectionné !`);
     } catch (error) {
@@ -335,16 +342,12 @@ export default function SettingsScreen({ navigation, onLogout }) {
       // Sauvegarder le tableau de clés
       await AsyncStorage.setItem('groq_api_keys', JSON.stringify(validKeys));
       
-      // v5.3.63 - Sauvegarder aussi la première clé pour TextGenerationService
+      // Sauvegarder aussi la première clé pour compatibilité
       if (validKeys.length > 0) {
-        await TextGenerationService.setApiKey('groq_api_key', validKeys[0]);
-        
-        // Recharger les APIs pour mettre à jour la disponibilité
-        const apis = TextGenerationService.getAvailableApisForUI();
-        setAvailableApis(apis);
+        await AsyncStorage.setItem('groq_api_key', validKeys[0]);
       }
       
-      Alert.alert('✅ Succès', `${validKeys.length} clé(s) API Groq sauvegardée(s) !\n\nVous pouvez maintenant sélectionner Groq dans la liste des APIs.`);
+      Alert.alert('✅ Succès', `${validKeys.length} clé(s) API Groq sauvegardée(s) !`);
     } catch (error) {
       Alert.alert('❌ Erreur', `Impossible de sauvegarder: ${error.message}`);
     }
