@@ -10,7 +10,7 @@ import { Linking } from 'react-native';
 class AuthService {
   constructor() {
     // Port unique 33437 pour tous les services
-    this.baseUrl = 'http://88.174.155.230:33437';
+    this.baseUrl = 'http://82.65.75.176:33437';
     this.token = null;
     this.user = null;
     this.ADMIN_EMAIL = 'douvdouv21@gmail.com';
