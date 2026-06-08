@@ -9,7 +9,7 @@ import axios from 'axios';
 class SyncService {
   constructor() {
     // Port unique 33437 pour tous les services
-    this.baseUrl = 'http://88.174.155.230:33437';
+    this.baseUrl = 'http://82.65.75.176:33437';
     this.userId = null;
     this.lastSync = null;
     this.autoSyncInterval = null;

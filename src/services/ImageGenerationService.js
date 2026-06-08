@@ -7,7 +7,7 @@ import AuthService from './AuthService';
 class ImageGenerationService {
   constructor() {
     // URL Freebox par défaut
-    this.freeboxURL = 'http://88.174.155.230:33437/generate';
+    this.freeboxURL = 'http://82.65.75.176:33437/generate';
     this.lastRequestTime = 0;
     this.minDelay = 1000;
     this.maxRetries = 3;

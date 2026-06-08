@@ -22,7 +22,7 @@ import AuthService from '../services/AuthService';
 import * as FileSystem from 'expo-file-system';
 
 // URL du serveur Freebox pour les fonctions admin
-const FREEBOX_URL = 'http://88.174.155.230:33437';
+const FREEBOX_URL = 'http://82.65.75.176:33437';
 
 export default function SettingsScreen({ navigation, onLogout }) {
   const [loading, setLoading] = useState(true);
@@ -51,7 +51,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
   
   // Configuration images
   const [imageSource, setImageSource] = useState('freebox');
-  const [freeboxUrl, setFreeboxUrl] = useState('http://88.174.155.230:33437/generate');
+  const [freeboxUrl, setFreeboxUrl] = useState('http://82.65.75.176:33437/generate');
   
   // SD Local
   const [sdAvailability, setSdAvailability] = useState(null);
