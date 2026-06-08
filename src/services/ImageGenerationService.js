@@ -3814,19 +3814,15 @@ class ImageGenerationService {
     
     let imageUrl;
     
-    // Première tentative: stratégie configurée
-    if (strategy === 'local') {
-      imageUrl = await this.generateWithLocal(prompt);
-    } else {
-      // v5.3.58 - Passer le character pour les détails physiques directs
-      imageUrl = await this.generateWithFreebox(prompt, character);
-    }
+    // Première tentative: Pollinations.ai direct (GRATUIT, SANS CLÉ, ILLIMITÉ)
+    console.log('🌐 Utilisation Pollinations.ai direct (gratuit, sans clé)...');
+    imageUrl = await this.generateWithFallbackAPI(prompt, retryCount);
     
     // Vérifier si l'image est valide
     const isValid = await this.validateImageUrl(imageUrl);
     
     if (isValid) {
-      console.log('✅ Image générée avec succès');
+      console.log('✅ Image générée avec succès (Pollinations.ai)');
       return imageUrl;
     }
     
@@ -3838,9 +3834,15 @@ class ImageGenerationService {
       return await this.generateImage(prompt, retryCount + 1, character);
     }
     
-    // Dernière tentative: fallback API avec délai long
-    console.log('🔄 Utilisation fallback API avec délai anti-rate-limit...');
-    return await this.generateWithFallbackAPI(prompt, retryCount);
+    // Dernière tentative: fallback sur serveur Debian si Pollinations échoue
+    console.log('🔄 Fallback sur serveur Debian...');
+    if (strategy === 'local') {
+      imageUrl = await this.generateWithLocal(prompt);
+    } else {
+      imageUrl = await this.generateWithFreebox(prompt, character);
+    }
+    
+    return imageUrl;
   }
 
   /**
