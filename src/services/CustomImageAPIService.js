@@ -10,7 +10,7 @@ import AuthService from './AuthService';
 class CustomImageAPIService {
   constructor() {
     // URL Freebox par défaut (serveur Pollinations avec fallback multi-modèles)
-    this.customApiUrl = 'http://88.174.155.230:33437/generate';
+    this.customApiUrl = 'http://82.65.75.176:33437/generate';
     this.apiType = 'freebox'; // 'freebox' ou 'local'
     this.strategy = 'freebox'; // 'freebox' ou 'local'
     this.currentUserId = null;
