@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import GroqService from '../services/GroqService';
-import TextGenerationService from '../services/TextGenerationService';
+import DirectTextGenerationService from '../services/DirectTextGenerationService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
@@ -401,7 +401,7 @@ export default function ConversationScreen({ route, navigation }) {
       let response;
       try {
         response = await Promise.race([
-          TextGenerationService.generateResponse(
+          DirectTextGenerationService.generateChatResponse(
             updatedMessages,
             character,
             userProfile
