@@ -3846,6 +3846,26 @@ class ImageGenerationService {
   }
 
   /**
+   * Génère avec Pollinations.ai (fallback API)
+   */
+  async generateWithFallbackAPI(prompt, retryCount = 0) {
+    try {
+      const encodedPrompt = encodeURIComponent(prompt);
+      const seed = Date.now() + Math.floor(Math.random() * 99999);
+      const width = 576;
+      const height = 1024;
+      
+      const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true&nofeed=true&model=flux&t=${Date.now()}`;
+      
+      console.log('🌐 URL Pollinations générée');
+      return url;
+    } catch (error) {
+      console.error('❌ Erreur Pollinations:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Valide qu'une URL d'image est correcte
    */
   async validateImageUrl(imageUrl) {
