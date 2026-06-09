@@ -63,7 +63,7 @@ class CustomImageAPIService {
       
       if (config) {
         const parsed = JSON.parse(config);
-        this.customApiUrl = parsed.url || 'http://88.174.155.230:33437/generate';
+        this.customApiUrl = parsed.url || 'http://82.65.75.176:33437/generate';
         this.apiType = parsed.type || 'freebox';
         // Forcer freebox ou local, jamais pollinations
         this.strategy = (parsed.strategy === 'local') ? 'local' : 'freebox';
@@ -74,15 +74,15 @@ class CustomImageAPIService {
           strategy: this.strategy
         });
       } else {
-        console.log(`📸 Aucune config images (user: ${userId}), utilisation par défaut: Freebox`);
-        this.customApiUrl = 'http://88.174.155.230:33437/generate';
+        console.log(`📸 Aucune config images (user: ${userId}), utilisation par défaut: Debian`);
+        this.customApiUrl = 'http://82.65.75.176:33437/generate';
         this.apiType = 'freebox';
         this.strategy = 'freebox';
       }
     } catch (error) {
       console.error('Error loading custom API config:', error);
-      // Fallback sur Freebox
-      this.customApiUrl = 'http://88.174.155.230:33437/generate';
+      // Fallback sur Debian
+      this.customApiUrl = 'http://82.65.75.176:33437/generate';
       this.apiType = 'freebox';
       this.strategy = 'freebox';
     }
@@ -100,7 +100,7 @@ class CustomImageAPIService {
       const validType = (type === 'local') ? 'local' : 'freebox';
       
       const config = { 
-        url: url || 'http://88.174.155.230:33437/generate', 
+        url: url || 'http://82.65.75.176:33437/generate', 
         type: validType, 
         strategy: validStrategy,
         userId: userId,
@@ -129,7 +129,7 @@ class CustomImageAPIService {
   async clearConfig() {
     try {
       await AsyncStorage.removeItem('custom_image_api');
-      this.customApiUrl = 'http://88.174.155.230:33437/generate';
+      this.customApiUrl = 'http://82.65.75.176:33437/generate';
       this.apiType = 'freebox';
       this.strategy = 'freebox';
       return true;
@@ -143,7 +143,7 @@ class CustomImageAPIService {
    * Obtenir l'URL de l'API actuelle
    */
   getApiUrl() {
-    return this.customApiUrl || 'http://88.174.155.230:33437/generate';
+    return this.customApiUrl || 'http://82.65.75.176:33437/generate';
   }
 
   /**
@@ -248,7 +248,7 @@ class CustomImageAPIService {
       seed = Date.now(),
     } = options;
 
-    const url = this.customApiUrl || 'http://88.174.155.230:33437/generate';
+    const url = this.customApiUrl || 'http://82.65.75.176:33437/generate';
     const encodedPrompt = encodeURIComponent(prompt);
     
     // Si l'URL contient déjà des paramètres, utiliser &, sinon ?
