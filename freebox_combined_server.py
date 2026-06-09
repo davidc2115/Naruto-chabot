@@ -1281,6 +1281,119 @@ def ollama_status():
     except:
         return jsonify({'available': False, 'error': 'Ollama not running'})
 
+# ==================== IMAGE PERMISSIONS ====================
+
+IMAGES_FILE = os.path.join(DATA_DIR, "images_data.json")
+
+def load_images():
+    """Charge les images depuis le fichier JSON"""
+    if os.path.exists(IMAGES_FILE):
+        return load_json(IMAGES_FILE, [])
+    return []
+
+def save_images(images):
+    """Sauvegarde les images dans le fichier JSON"""
+    save_json(IMAGES_FILE, images)
+
+@app.route('/api/account/save', methods=['POST'])
+def save_account():
+    """Sauvegarde le compte utilisateur"""
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'user_id required'}), 400
+        
+        user = get_user_by_id(user_id)
+        if user:
+            user['email'] = data.get('email', user.get('email'))
+            user['name'] = data.get('name', user.get('name'))
+            user['updated_at'] = int(time.time() * 1000)
+            save_json(os.path.join(USERS_DIR, f"{user_id}.json"), user)
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/account/load', methods=['GET'])
+def load_account():
+    """Charge le compte utilisateur"""
+    try:
+        user_id = request.args.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'user_id required'}), 400
+        
+        user = get_user_by_id(user_id)
+        
+        if user:
+            account = {k: v for k, v in user.items() if k != 'password_hash'}
+            return jsonify({'success': True, 'account': account})
+        else:
+            return jsonify({'success': False, 'error': 'Account not found'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/images/share', methods=['POST'])
+def share_image():
+    """Partage une image générée"""
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'user_id required'}), 400
+        
+        images = load_images()
+        
+        new_image = {
+            'id': f"img_{int(time.time() * 1000)}_{uuid.uuid4().hex[:8]}",
+            'user_id': user_id,
+            'url': data.get('url'),
+            'character_id': data.get('character_id'),
+            'character_name': data.get('character_name'),
+            'prompt': data.get('prompt'),
+            'created_at': datetime.now().isoformat()
+        }
+        
+        images.append(new_image)
+        save_images(images)
+        
+        return jsonify({'success': True, 'image_id': new_image['id']})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/images/shared', methods=['GET'])
+def load_shared_images():
+    """
+    Charge les images partagées
+    Admin voit toutes les images, utilisateur voit seulement ses images
+    """
+    try:
+        user_id = request.args.get('user_id')
+        images = load_images()
+        
+        if user_id:
+            # Utilisateur normal: voir seulement ses images
+            user_images = [img for img in images if img.get('user_id') == user_id]
+            return jsonify({'success': True, 'images': user_images})
+        else:
+            # Admin: voir toutes les images
+            return jsonify({'success': True, 'images': images})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/images/user/<user_id>', methods=['GET'])
+def load_user_images(user_id):
+    """Charge les images d'un utilisateur spécifique"""
+    try:
+        images = load_images()
+        user_images = [img for img in images if img.get('user_id') == user_id]
+        return jsonify({'success': True, 'images': user_images})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 # ==================== HEALTH & INFO ====================
 
 @app.route('/health', methods=['GET'])

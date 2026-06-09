@@ -347,7 +347,10 @@ export default function SettingsScreen({ navigation, onLogout }) {
         await AsyncStorage.setItem('groq_api_key', validKeys[0]);
       }
       
-      Alert.alert('✅ Succès', `${validKeys.length} clé(s) API Groq sauvegardée(s) !`);
+      // Recharger les APIs pour mettre à jour la disponibilité de Groq
+      await loadTextProvider();
+      
+      Alert.alert('✅ Succès', `${validKeys.length} clé(s) API Groq sauvegardée(s) !\n\nVous pouvez maintenant sélectionner Groq dans la liste des APIs.`);
     } catch (error) {
       Alert.alert('❌ Erreur', `Impossible de sauvegarder: ${error.message}`);
     }
