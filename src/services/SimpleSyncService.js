@@ -119,21 +119,44 @@ class SimpleSyncService {
 
   /**
    * Charge les images partagées
+   * Admin voit toutes les images, utilisateur voit seulement ses images
    */
-  async loadSharedImages() {
+  async loadSharedImages(isAdmin = false) {
     try {
+      const params = isAdmin ? {} : { user_id: this.userId };
       const response = await axios.get(
         `${this.baseUrl}/api/images/shared`,
-        { timeout: 10000 }
+        { params, timeout: 10000 }
       );
 
       if (response.data.success && response.data.images) {
-        console.log(`✅ ${response.data.images.length} images partagées chargées`);
+        console.log(`✅ ${response.data.images.length} images chargées (${isAdmin ? 'admin' : 'user'})`);
         return response.data.images;
       }
       return [];
     } catch (error) {
       console.error('❌ Erreur chargement images partagées:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Charge les images de l'utilisateur courant
+   */
+  async loadUserImages() {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/api/images/user/${this.userId}`,
+        { timeout: 10000 }
+      );
+
+      if (response.data.success && response.data.images) {
+        console.log(`✅ ${response.data.images.length} images utilisateur chargées`);
+        return response.data.images;
+      }
+      return [];
+    } catch (error) {
+      console.error('❌ Erreur chargement images utilisateur:', error);
       return [];
     }
   }
