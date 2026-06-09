@@ -879,7 +879,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
               <Text style={styles.configTitle}>Configuration Freebox:</Text>
               <TextInput
                 style={styles.urlInput}
-                placeholder="http://88.174.155.230:33437/generate"
+                placeholder="http://82.65.75.176:33437/generate"
                 value={freeboxUrl}
                 onChangeText={setFreeboxUrl}
                 autoCapitalize="none"
