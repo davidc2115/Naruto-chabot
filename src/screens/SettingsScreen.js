@@ -630,195 +630,83 @@ export default function SettingsScreen({ navigation, onLogout }) {
         </TouchableOpacity>
         </View>
 
-        {/* === GÉNÉRATION DE TEXTE v5.3.33 - Multi-API === */}
+        {/* === GÉNÉRATION DE TEXTE - Groq API Multi-Clés === */}
         <View style={styles.section}>
         <Text style={styles.sectionTitle}>🤖 Génération de Texte</Text>
         <Text style={styles.sectionDescription}>
-          Sélectionnez l'API pour les réponses des personnages.{'\n'}
-          Pas de rotation automatique - vous gardez l'API choisie.
+          Configurez vos clés API Groq pour la génération de texte.{'\n'}
+          Rotation automatique entre les clés pour éviter les limites.
         </Text>
 
-        {/* === APIS GRATUITES (sans clé) === */}
-        <View style={styles.apiCategoryBox}>
-          <Text style={styles.apiCategoryTitle}>🆓 APIs Gratuites (sans clé)</Text>
-          
-          {availableApis.filter(api => !api.requiresKey).map((api) => (
-            <TouchableOpacity
-              key={api.id}
-              style={[
-                styles.apiModeOption,
-                selectedApi === api.id && styles.apiModeOptionActive
-              ]}
-              onPress={() => selectTextApi(api.id)}
-            >
-              <View style={styles.radioButtonSmall}>
-                {selectedApi === api.id && <View style={styles.radioButtonSmallInner} />}
-              </View>
-              <View style={styles.apiModeContent}>
-                <Text style={[
-                  styles.apiModeName,
-                  selectedApi === api.id && styles.apiModeNameActive
-                ]}>
-                  {api.name}
-                </Text>
-                <Text style={styles.apiModeDescription}>
-                  {api.description}
-                  {api.uncensored && ' 🔓'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* === APIS AVEC CLÉ (optionnelles) === */}
-        <View style={styles.apiKeySection}>
-          <Text style={styles.apiKeyTitle}>🔑 APIs avec clé (optionnel)</Text>
-          <Text style={styles.apiKeyDesc}>
-            Ces APIs offrent des modèles uncensored mais nécessitent une clé gratuite.
+        {/* === GROQ API - MULTI-CLÉS === */}
+        <View style={styles.groqSection}>
+          <Text style={styles.groqSectionTitle}>⚡ Groq API (Ultra Rapide)</Text>
+          <Text style={styles.apiKeyHint}>
+            Créez un compte sur console.groq.com pour obtenir des clés gratuites.{'\n'}
+            Ajoutez plusieurs clés pour une rotation automatique.
           </Text>
           
-          {/* Venice AI */}
-          <View style={styles.apiKeyInputBox}>
-            <Text style={styles.apiKeyLabel}>🔓 Venice AI (uncensored)</Text>
-            <Text style={styles.apiKeyHint}>Créez un compte sur venice.ai pour obtenir une clé</Text>
-            <TextInput
-              style={styles.apiKeyInput}
-              value={veniceApiKey}
-              onChangeText={setVeniceApiKey}
-              placeholder="Entrez votre clé Venice AI..."
-              placeholderTextColor="#9ca3af"
-              secureTextEntry={true}
-            />
-            <TouchableOpacity
-              style={styles.apiKeySaveButton}
-              onPress={() => saveApiKey('venice_api_key', veniceApiKey)}
-            >
-              <Text style={styles.apiKeySaveText}>Sauvegarder</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* DeepInfra */}
-          <View style={styles.apiKeyInputBox}>
-            <Text style={styles.apiKeyLabel}>⚡ DeepInfra (rapide)</Text>
-            <Text style={styles.apiKeyHint}>Créez un compte sur deepinfra.com pour obtenir une clé</Text>
-            <TextInput
-              style={styles.apiKeyInput}
-              value={deepinfraApiKey}
-              onChangeText={setDeepinfraApiKey}
-              placeholder="Entrez votre clé DeepInfra..."
-              placeholderTextColor="#9ca3af"
-              secureTextEntry={true}
-            />
-            <TouchableOpacity
-              style={styles.apiKeySaveButton}
-              onPress={() => saveApiKey('deepinfra_api_key', deepinfraApiKey)}
-            >
-              <Text style={styles.apiKeySaveText}>Sauvegarder</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* === GROQ API - MULTI-CLÉS v5.3.63 === */}
-          <View style={styles.groqSection}>
-            <Text style={styles.groqSectionTitle}>⚡ Groq API (Ultra Rapide)</Text>
-            <Text style={styles.apiKeyHint}>
-              Créez un compte sur console.groq.com pour obtenir des clés gratuites.{'\n'}
-              Ajoutez plusieurs clés pour une rotation automatique.
-            </Text>
-            
-            {/* Liste des clés Groq */}
-            {groqApiKeys.map((key, index) => (
-              <View key={index} style={styles.keyInputContainer}>
-                <TextInput
-                  style={styles.keyInput}
-                  value={key}
-                  onChangeText={(value) => updateKey(index, value)}
-                  placeholder={`Clé Groq ${index + 1} (gsk_...)`}
-                  placeholderTextColor="#9ca3af"
-                  secureTextEntry={true}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                {groqApiKeys.length > 1 && (
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => removeKeyField(index)}
-                  >
-                    <Text style={styles.removeButtonText}>×</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-            
-            {/* Bouton ajouter clé */}
-            <TouchableOpacity style={styles.addButton} onPress={addKeyField}>
-              <Text style={styles.addButtonText}>+ Ajouter une clé Groq</Text>
-            </TouchableOpacity>
-            
-            {/* Boutons d'action */}
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={[styles.testButton, testingApi && { opacity: 0.7 }]}
-                onPress={testGroqKey}
-                disabled={testingApi}
-              >
-                <Text style={styles.testButtonText}>
-                  {testingApi ? '⏳ Test...' : '🧪 Tester'}
-                </Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={saveGroqKeys}
-              >
-                <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
-              </TouchableOpacity>
+          {/* Liste des clés Groq */}
+          {groqApiKeys.map((key, index) => (
+            <View key={index} style={styles.keyInputContainer}>
+              <TextInput
+                style={styles.keyInput}
+                value={key}
+                onChangeText={(value) => updateKey(index, value)}
+                placeholder={`Clé Groq ${index + 1} (gsk_...)`}
+                placeholderTextColor="#9ca3af"
+                secureTextEntry={true}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {groqApiKeys.length > 1 && (
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => removeKeyField(index)}
+                >
+                  <Text style={styles.removeButtonText}>×</Text>
+                </TouchableOpacity>
+              )}
             </View>
+          ))}
+          
+          {/* Bouton ajouter clé */}
+          <TouchableOpacity style={styles.addButton} onPress={addKeyField}>
+            <Text style={styles.addButtonText}>+ Ajouter une clé Groq</Text>
+          </TouchableOpacity>
+          
+          {/* Boutons d'action */}
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.testButton, testingApi && { opacity: 0.7 }]}
+              onPress={testGroqKey}
+              disabled={testingApi}
+            >
+              <Text style={styles.testButtonText}>
+                {testingApi ? '⏳ Test...' : '🧪 Tester'}
+              </Text>
+            </TouchableOpacity>
             
-            {/* Info clés */}
-            <Text style={styles.groqInfoText}>
-              💡 {groqApiKeys.filter(k => k && k.trim()).length} clé(s) configurée(s){'\n'}
-              🔄 Rotation automatique entre les clés{'\n'}
-              ⚡ Llama 70B, 8B et Mixtral disponibles
-            </Text>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={saveGroqKeys}
+            >
+              <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
+            </TouchableOpacity>
           </View>
           
-          {/* APIs nécessitant clé */}
-          {availableApis.filter(api => api.requiresKey).map((api) => (
-            <TouchableOpacity
-              key={api.id}
-              style={[
-                styles.apiModeOption,
-                selectedApi === api.id && styles.apiModeOptionActive,
-                !api.available && styles.apiModeOptionDisabled
-              ]}
-              onPress={() => selectTextApi(api.id)}
-              disabled={!api.available}
-            >
-              <View style={styles.radioButtonSmall}>
-                {selectedApi === api.id && <View style={styles.radioButtonSmallInner} />}
-              </View>
-              <View style={styles.apiModeContent}>
-                <Text style={[
-                  styles.apiModeName,
-                  selectedApi === api.id && styles.apiModeNameActive,
-                  !api.available && styles.apiModeNameDisabled
-                ]}>
-                  {api.name} {!api.available && '(clé requise)'}
-                </Text>
-                <Text style={styles.apiModeDescription}>
-                  {api.description}
-                  {api.uncensored && ' 🔓'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+          {/* Info clés */}
+          <Text style={styles.groqInfoText}>
+            💡 {groqApiKeys.filter(k => k && k.trim()).length} clé(s) configurée(s){'\n'}
+            🔄 Rotation automatique entre les clés{'\n'}
+            ⚡ Llama 70B, 8B et Mixtral disponibles
+          </Text>
         </View>
 
         <View style={styles.providerNote}>
           <Text style={styles.providerNoteText}>
-            💡 Les APIs Pollinations sont gratuites et ne nécessitent aucune clé.{'\n'}
-            🔓 = Mode uncensored (sans restrictions){'\n'}
-            En cas d'erreur, l'app bascule automatiquement vers Pollinations Mistral.
+            💡 Groq API est gratuit et rapide. Ajoutez plusieurs clés pour éviter les limites.{'\n'}
+            Obtenez vos clés sur console.groq.com
           </Text>
         </View>
       </View>
