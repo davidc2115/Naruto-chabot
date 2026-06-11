@@ -8,6 +8,7 @@ import { View, ActivityIndicator, Text, StyleSheet, Linking, TouchableOpacity, A
 import HomeScreen from './src/screens/HomeScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import GestionScreen from './src/screens/GestionScreen';
 import UserSettingsScreen from './src/screens/UserSettingsScreen';
 import CharacterDetailScreen from './src/screens/CharacterDetailScreen';
 import ConversationScreen from './src/screens/ConversationScreen';
@@ -78,6 +79,15 @@ function HomeTabs({ isAdmin, onLogout }) {
         options={{
           tabBarLabel: 'Discord',
           tabBarIcon: ({ color }) => <TabIcon name="🎮" color={color} />,
+        }}
+      />
+      {/* Onglet Gestion */}
+      <Tab.Screen 
+        name="Gestion" 
+        component={GestionScreen}
+        options={{
+          tabBarLabel: 'Gestion',
+          tabBarIcon: ({ color }) => <TabIcon name="⚙️" color={color} />,
         }}
       />
       {/* Onglet Admin pour gérer les membres (admin uniquement) */}
