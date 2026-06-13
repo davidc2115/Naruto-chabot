@@ -71,32 +71,32 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --stacktrace
           
-      - name: 📦 Find and rename APK
+      - name:  Find and rename APK
         run: |
           APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -1)
           echo "Found APK at: $APK_PATH"
-          cp "$APK_PATH" roleplay-chat.apk
-          ls -lh roleplay-chat.apk
+          cp "$APK_PATH" cde.apk
+          ls -lh cde.apk
 
       - name: 📊 Get APK info
         id: apk_info
         run: |
-          APK_SIZE=$(ls -lh roleplay-chat.apk | awk '{print $5}')
+          APK_SIZE=$(ls -lh cde.apk | awk '{print $5}')
           echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
           echo "APK Size: $APK_SIZE"
 
       - name: 📤 Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: roleplay-chat-apk
-          path: roleplay-chat.apk
+          name: cde-apk
+          path: cde.apk
           retention-days: 30
 
       - name: 🏷️ Upload to Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
-          files: roleplay-chat.apk
+          files: cde.apk
           fail_on_unmatched_files: false
           generate_release_notes: false
         env:
