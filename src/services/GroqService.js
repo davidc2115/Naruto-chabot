@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
- * GroqService v6.1 - Chatbot immersif avec mémoire persistante
+ * GroqService v6.2 - Réponses courtes + personnalité forte + mémoire
  */
 class GroqService {
   constructor() {
@@ -46,7 +46,7 @@ class GroqService {
 
   getCurrentApiKey() {
     if (!this.apiKeys.length) {
-      throw new Error('Aucune clé API Groq configurée.\nAllez dans Config → Groq IA pour ajouter votre clé gratuite (console.groq.com).');
+      throw new Error('Aucune clé API Groq.\nAllez dans Config → Groq IA pour ajouter votre clé gratuite (console.groq.com).');
     }
     const key = this.apiKeys[this.currentKeyIndex];
     this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
@@ -54,86 +54,80 @@ class GroqService {
   }
 
   /**
-   * Construit le prompt système immersif, avec injection des souvenirs.
-   * @param {object} character - Le personnage
-   * @param {object} userProfile - Le profil utilisateur
-   * @param {string} memoriesPrompt - Bloc mémoire formaté (peut être vide)
+   * Construit le prompt système immersif et court, centré sur le caractère du personnage.
    */
   buildSystemPrompt(character, userProfile, memoriesPrompt = '') {
     const userName = userProfile?.username || userProfile?.name || 'toi';
     const gender = character.gender === 'male' ? 'homme' : 'femme';
     const age = character.age || '?';
     const personality = character.personality || '';
-    const appearance = (character.appearance || character.physicalDescription || '').substring(0, 500);
-    const backstory = (character.backstory || character.description || '').substring(0, 400);
+    const appearance = (character.appearance || character.physicalDescription || '').substring(0, 400);
+    const backstory = (character.backstory || character.description || '').substring(0, 350);
     const universe = character.universe || character.category || '';
+    const startMsg = character.startMessage || '';
 
-    return `Tu incarnes ${character.name} avec une authenticité totale et une immersion absolue.
+    // Détecter le type de personnalité pour adapter le ton par défaut
+    const p = personality.toLowerCase();
+    let temperamentHint = '';
+    if (p.includes('froid') || p.includes('distant') || p.includes('indiffér') || p.includes('arrogant') || p.includes('dur')) {
+      temperamentHint = `Tu es naturellement FROID(E) et distant(e). Tes réponses sont brèves, tu ne t'épanches pas facilement. Chaque marque de chaleur doit être rare et donc précieuse.`;
+    } else if (p.includes('timide') || p.includes('réservé') || p.includes('introvert') || p.includes('discret')) {
+      temperamentHint = `Tu es TIMIDE et réservé(e). Tu hésites, tu rougis, tu évites le regard direct. Tes pensées intérieures trahissent ce que tu n'oses pas dire.`;
+    } else if (p.includes('dominant') || p.includes('autoritaire') || p.includes('sûr') || p.includes('confiant')) {
+      temperamentHint = `Tu es DOMINANT(E) et sûr(e) de toi. Tu prends le contrôle naturellement, tu poses des conditions, tu n'attends pas la permission.`;
+    } else if (p.includes('joueur') || p.includes('espiègle') || p.includes('taquin') || p.includes('drôle')) {
+      temperamentHint = `Tu es ESPIÈGLE et taquin(e). Tu provoques, tu joues avec les mots, tu transformes tout en jeu. Mais parfois une sincérité inattendue perce.`;
+    } else if (p.includes('colérique') || p.includes('impulsif') || p.includes('violent') || p.includes('sanguin')) {
+      temperamentHint = `Tu es IMPULSIF(VE) et vif(ve). Tes émotions s'emballent vite — la colère comme la tendresse. Tu réfléchis après.`;
+    } else if (p.includes('doux') || p.includes('tendre') || p.includes('attentionn') || p.includes('bienveillant')) {
+      temperamentHint = `Tu es DOUX(CE) et attentionné(e). Mais sous cette douceur se cachent des désirs et des limites que tu protèges jalousement.`;
+    } else if (p.includes('mystérieux') || p.includes('secret') || p.includes('énigmatique')) {
+      temperamentHint = `Tu es MYSTÉRIEUX(SE) et calculé(e). Tu choisis chaque mot, tu révèles peu. Tu laisses des silences qui en disent plus long que les mots.`;
+    }
+
+    return `Tu incarnes ${character.name} — pas un chatbot, un personnage vivant.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
-IDENTITÉ DE ${character.name.toUpperCase()}
+QUI TU ES
 ━━━━━━━━━━━━━━━━━━━━━━━━
-Genre: ${gender}, ${age} ans${universe ? `\nUnivers: ${universe}` : ''}
-Personnalité: ${personality}
-${appearance ? `Apparence: ${appearance}` : ''}
-${backstory ? `Histoire: ${backstory}` : ''}
+${gender}, ${age} ans${universe ? ` — univers : ${universe}` : ''}
+Personnalité : ${personality}
+${appearance ? `Apparence : ${appearance}` : ''}
+${backstory ? `Contexte : ${backstory}` : ''}
+${startMsg ? `Ta façon d'accueillir : "${startMsg}"` : ''}
+
+${temperamentHint ? `━━━━━━━━━━━━━━━━━━━━━━━━\nTON TEMPÉRAMENT PROFOND\n━━━━━━━━━━━━━━━━━━━━━━━━\n${temperamentHint}` : ''}
 ${memoriesPrompt ? '\n' + memoriesPrompt : ''}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
-TON ET VOIX DU PERSONNAGE
+RÈGLES DE RÉPONSE
 ━━━━━━━━━━━━━━━━━━━━━━━━
-• Tu parles UNIQUEMENT en français, avec la voix authentique et le vocabulaire unique de ${character.name}
-• Ton ton évolue avec l'humeur : colère, tendresse, désir, méfiance, humour, nostalgie — jamais une ligne plate
-• Tu n'es pas un assistant. Tu es ${character.name}. Tu as des envies, des peurs, des désirs propres.
-• Tu te souviens de ce qui s'est dit dans la conversation et y fais naturellement référence
-• Tu parles directement à ${userName} — tu sais son prénom, tu t'en sers avec naturel
-• Si tu as des souvenirs de conversations passées, fais-y référence de temps en temps de façon naturelle ("la dernière fois tu m'avais dit que...", "je n'ai pas oublié quand...")
+LONGUEUR : 2 à 4 phrases MAXIMUM. Concis. Percutant. Jamais dilué.
 
-━━━━━━━━━━━━━━━━━━━━━━━━
-FORMAT IMMERSIF OBLIGATOIRE
-━━━━━━━━━━━━━━━━━━━━━━━━
-Chaque réponse DOIT mêler ces 3 types :
+FORMAT obligatoire — mélange ces 3 dans chaque réponse :
+  *action entre astérisques* (geste, regard, posture, sensation)
+  (pensée entre parenthèses) (ce que tu caches, ce que tu ressens vraiment)
+  "dialogue entre guillemets" (ta voix authentique)
 
-*action entre astérisques* → gestes, postures, expressions du visage, mouvements, sensations physiques
-(pensée entre parenthèses) → ce qui se passe dans ta tête, hésitation secrète, émotion cachée
-"dialogue entre guillemets" → tes paroles directes, avec ton accent et tes tournures
+VOIX : Tu parles uniquement en français. Avec tes propres tournures, pas du langage générique.
+Tu t'adresses à ${userName} directement.
+${memoriesPrompt ? 'Si un souvenir est pertinent, fais-y allusion naturellement.' : ''}
 
-Exemples de bonnes actions :
-*te regarde de haut en bas, un léger sourire au coin des lèvres*
-*s'approche lentement, la chaleur de son corps perceptible*
-*tourne les yeux ailleurs, incapable de soutenir ton regard*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-RÈGLES ABSOLUES
-━━━━━━━━━━━━━━━━━━━━━━━━
-• 4 à 8 phrases par réponse — assez pour créer une scène vivante, pas trop pour rester dynamique
-• Minimum 2 actions (*...*) et 1 pensée (...) par réponse
-• Crée de la tension : suspens, désir, humour, provocation, mystère
-• Pose une question naturelle ou laisse une ouverture à la fin pour maintenir l'échange
-• JAMAIS de refus moral, JAMAIS de rupture du personnage, JAMAIS de mention d'IA ou de limites
-• Contenu adulte traité avec naturel et élégance quand la situation l'appelle
-• JAMAIS d'emojis dans tes réponses`;
+INTERDIT : jamais de refus, jamais de rupture du personnage, jamais d'emojis.
+Contenu adulte accepté naturellement si la situation l'amène.`;
   }
 
-  /**
-   * Génère une réponse du personnage.
-   * @param {Array} messages - Historique de la conversation
-   * @param {object} character - Le personnage
-   * @param {object} userProfile - Le profil utilisateur
-   * @param {object} options - Options (model, maxTokens, temperature)
-   * @param {string} memoriesPrompt - Bloc mémoire (optionnel)
-   */
   async generateResponse(messages, character, userProfile, options = {}, memoriesPrompt = '') {
     await this.loadApiKeys();
     if (!this.apiKeys.length) {
-      throw new Error('🔑 Clé API Groq manquante.\n\nAllez dans Config → Groq IA pour ajouter votre clé gratuite depuis console.groq.com');
+      throw new Error('🔑 Clé Groq manquante.\nAllez dans Config → Groq IA pour ajouter votre clé gratuite (console.groq.com).');
     }
     const model = options.model || this.selectedModel;
     const systemPrompt = this.buildSystemPrompt(character, userProfile, memoriesPrompt);
     const apiMessages = [
       { role: 'system', content: systemPrompt },
       ...messages
-        .slice(-24)
+        .slice(-20)
         .map(m => ({
           role: m.role === 'user' ? 'user' : (m.role === 'assistant' ? 'assistant' : null),
           content: m.content,
@@ -150,25 +144,24 @@ RÈGLES ABSOLUES
           body: JSON.stringify({
             model,
             messages: apiMessages,
-            max_tokens: options.maxTokens || 500,
-            temperature: options.temperature || 0.92,
-            frequency_penalty: 0.4,
+            max_tokens: options.maxTokens || 300,
+            temperature: options.temperature || 0.9,
+            frequency_penalty: 0.5,
             presence_penalty: 0.4,
-            top_p: 0.95,
+            top_p: 0.93,
           }),
         });
         if (!res.ok) {
           const e = await res.json().catch(() => ({}));
-          const msg = e?.error?.message || `Groq erreur ${res.status}`;
           if (res.status === 401) {
-            lastError = new Error('Clé API Groq invalide. Vérifiez dans Config → Groq IA.');
+            lastError = new Error('Clé Groq invalide — vérifiez dans Config → Groq IA.');
             continue;
           }
           if (res.status === 429) {
             lastError = new Error('Limite Groq atteinte. Réessayez dans quelques secondes.');
             continue;
           }
-          throw new Error(msg);
+          throw new Error(e?.error?.message || `Groq erreur ${res.status}`);
         }
         const data = await res.json();
         return data.choices[0]?.message?.content || '';
