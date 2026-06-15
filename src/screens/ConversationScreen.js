@@ -57,7 +57,9 @@ export default function ConversationScreen({ route, navigation }) {
   const [colorPickerTitle, setColorPickerTitle] = useState('');
   
   // Premium status
-  const [isPremium, setIsPremium] = useState(false);
+  const [isPremium, setIsPremium] = useState(true);
+  const [showGroqSetup, setShowGroqSetup] = useState(false);
+  const [groqKeyInput, setGroqKeyInput] = useState("");
   
   // Contrôle du scroll
   const [userIsScrolling, setUserIsScrolling] = useState(false);
@@ -100,6 +102,11 @@ export default function ConversationScreen({ route, navigation }) {
       ]);
       
       setIsInitialized(true);
+      // Check if Groq API key is configured
+      const keys = await GroqService.loadApiKeys();
+      if (!keys || keys.length === 0) {
+        setTimeout(() => setShowGroqSetup(true), 800);
+      }
       
       navigation.setOptions({
         title: character?.name || 'Conversation',
@@ -158,32 +165,7 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   const checkPremiumStatus = async () => {
-    try {
-      // Vérifier si admin (toujours premium)
-      const user = AuthService.getCurrentUser();
-      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
-      
-      if (isAdmin) {
-        console.log('👑 Admin détecté - Premium automatique');
-        setIsPremium(true);
-        return;
-      }
-      
-      // Vérifier localement d'abord
-      const localPremium = AuthService.isPremium();
-      setIsPremium(localPremium);
-      
-      // Puis vérifier côté serveur
-      const serverPremium = await AuthService.checkPremiumStatus();
-      setIsPremium(serverPremium);
-      console.log('💎 Status Premium:', serverPremium ? 'Oui' : 'Non');
-    } catch (error) {
-      console.error('❌ Erreur vérification premium:', error);
-      // Fallback: vérifier si admin
-      const user = AuthService.getCurrentUser();
-      const isAdmin = user?.is_admin || user?.email?.toLowerCase() === 'douvdouv21@gmail.com';
-      setIsPremium(isAdmin || AuthService.isPremium());
-    }
+    setIsPremium(true);
   };
 
   const loadUserProfile = async () => {
@@ -546,29 +528,7 @@ export default function ConversationScreen({ route, navigation }) {
   const generateImage = async () => {
     if (generatingImage) return;
 
-    // Vérifier le statut premium
-    if (!isPremium) {
-      Alert.alert(
-        '💎 Fonctionnalité Premium',
-        'La génération d\'images est réservée aux membres Premium.\n\nDevenez Premium pour débloquer cette fonctionnalité et bien plus encore !',
-        [
-          { text: 'Plus tard', style: 'cancel' },
-          { 
-            text: 'Devenir Premium', 
-            onPress: () => {
-              // Navigation vers l'écran Premium si disponible
-              try {
-                navigation.navigate('Premium');
-              } catch (e) {
-                Alert.alert('Premium', 'Rendez-vous dans les paramètres pour devenir Premium.');
-              }
-            }
-          }
-        ]
-      );
-      return;
-    }
-
+    
     setGeneratingImage(true);
     try {
       // Validation
@@ -888,6 +848,50 @@ export default function ConversationScreen({ route, navigation }) {
     );
   };
 
+
+  const renderGroqSetupModal = () => (
+    <Modal
+      visible={showGroqSetup}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={() => setShowGroqSetup(false)}
+    >
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', padding: 24 }}>
+        <View style={{ backgroundColor: '#1a1a2e', borderRadius: 20, padding: 24, borderWidth: 1, borderColor: '#C9A227' }}>
+          <Text style={{ color: '#C9A227', fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 8 }}>🤖 Configuration IA</Text>
+          <Text style={{ color: '#D4AF37', textAlign: 'center', marginBottom: 16, lineHeight: 20 }}>
+            Pour activer le chatbot IA, entrez votre clé API Groq gratuite.{"\n"}Créez votre compte sur console.groq.com
+          </Text>
+          <TextInput
+            style={{ backgroundColor: '#0d0d1a', color: '#fff', borderRadius: 10, padding: 14, borderWidth: 1, borderColor: '#C9A227', marginBottom: 16, fontSize: 13 }}
+            value={groqKeyInput}
+            onChangeText={setGroqKeyInput}
+            placeholder="gsk_xxxxxxxxxxxxxxxxxxxx"
+            placeholderTextColor="#555"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <TouchableOpacity
+            style={{ backgroundColor: '#C9A227', padding: 14, borderRadius: 12, alignItems: 'center', marginBottom: 10 }}
+            onPress={async () => {
+              if (groqKeyInput.trim().startsWith('gsk_')) {
+                await GroqService.saveApiKeys([groqKeyInput.trim()]);
+                setShowGroqSetup(false);
+                setGroqKeyInput('');
+              } else {
+                Alert.alert('Clé invalide', 'La clé Groq doit commencer par gsk_');
+              }
+            }}
+          >
+            <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 16 }}>✓ Enregistrer la clé</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowGroqSetup(false)} style={{ alignItems: 'center', padding: 10 }}>
+            <Text style={{ color: '#6b7280', fontSize: 14 }}>Configurer plus tard (Gestion → IA)</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
   // Modal de personnalisation
   const renderSettingsModal = () => {
     const themes = ChatStyleService.getThemes();
@@ -1281,7 +1285,7 @@ export default function ConversationScreen({ route, navigation }) {
 
       <View style={styles.inputContainer}>
         <TouchableOpacity
-          style={[styles.imageButton, !isPremium && styles.imageButtonLocked]}
+          style={styles.imageButton}
           onPress={generateImage}
           disabled={generatingImage}
         >
@@ -1289,7 +1293,7 @@ export default function ConversationScreen({ route, navigation }) {
             <ActivityIndicator size="small" color="#6366f1" />
           ) : (
             <Text style={styles.imageButtonText}>
-              {isPremium ? '🎨' : '🔒'}
+              {'🎨'}
             </Text>
           )}
         </TouchableOpacity>
@@ -1316,6 +1320,7 @@ export default function ConversationScreen({ route, navigation }) {
       </View>
       
       {renderSettingsModal()}
+      {renderGroqSetupModal()}
       
       {/* Color Picker Modal */}
       <ColorPicker
