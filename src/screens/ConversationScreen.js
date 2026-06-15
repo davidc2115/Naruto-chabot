@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import GroqService from '../services/GroqService';
+import MemoryService from '../services/MemoryService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
@@ -58,6 +59,7 @@ export default function ConversationScreen({ route, navigation }) {
   
   // Premium status
   const [isPremium, setIsPremium] = useState(true);
+  const [memoriesPrompt, setMemoriesPrompt] = useState('');
   const [showGroqSetup, setShowGroqSetup] = useState(false);
   const [groqKeyInput, setGroqKeyInput] = useState("");
   
@@ -102,6 +104,11 @@ export default function ConversationScreen({ route, navigation }) {
       ]);
       
       setIsInitialized(true);
+      // Load character memories
+      try {
+        const mp = await MemoryService.getMemoriesPrompt(character?.id);
+        setMemoriesPrompt(mp);
+      } catch (e) { console.log('⚠️ Mémoire non chargée:', e.message); }
       // Check if Groq API key is configured
       const keys = await GroqService.loadApiKeys();
       if (!keys || keys.length === 0) {
@@ -385,7 +392,9 @@ export default function ConversationScreen({ route, navigation }) {
           GroqService.generateResponse(
             updatedMessages,
             character,
-            userProfile
+            userProfile,
+            {},
+            memoriesPrompt
           ),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Timeout')), 60000)
@@ -395,6 +404,16 @@ export default function ConversationScreen({ route, navigation }) {
         console.error('❌ Erreur génération:', genError.message);
         response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
       }
+
+      // Save memorable moments
+      try {
+        const memory = MemoryService.extractMemoryFromMessage(character.name, response, userMessageContent);
+        if (memory) {
+          await MemoryService.saveMemory(character.id, memory);
+          const updatedMp = await MemoryService.getMemoriesPrompt(character.id);
+          setMemoriesPrompt(updatedMp);
+        }
+      } catch (e) { console.log('⚠️ Sauvegarde mémoire:', e.message); }
 
       // Vérification de la réponse
       if (!response || typeof response !== 'string') {
