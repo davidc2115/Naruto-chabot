@@ -1,229 +1,123 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/**
- * Service de génération de texte avec Groq API (multi-clés)
- * - Rotation automatique entre les clés
- * - Support multi-modèles (Llama 70B, 8B, Mixtral)
- * - Gestion des erreurs et retries
- */
-class GroqService {
-  constructor() {
-    this.apiKeys = [];
-    this.currentKeyIndex = 0;
-    this.selectedModel = 'llama3-70b-8192';
-    this.models = [
-      { id: 'llama3-70b-8192', name: 'Llama 3 70B' },
-      { id: 'llama3-8b-8192', name: 'Llama 3 8B' },
-      { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B' },
-    ];
-  }
-
   /**
-   * Charge les clés API depuis AsyncStorage
+   * GroqService v5.5.7 - Modèles à jour, rotation multi-clés
    */
-  async loadApiKeys() {
-    try {
-      const keysJson = await AsyncStorage.getItem('groq_api_keys');
-      if (keysJson) {
-        this.apiKeys = JSON.parse(keysJson);
-        this.apiKeys = this.apiKeys.filter(key => key && key.trim() !== '');
-      }
-      
-      // Charger aussi la clé unique pour compatibilité
-      const singleKey = await AsyncStorage.getItem('groq_api_key');
-      if (singleKey && !this.apiKeys.includes(singleKey)) {
-        this.apiKeys.push(singleKey);
-      }
-      
-      console.log(`🔑 ${this.apiKeys.length} clé(s) Groq chargée(s)`);
-      return this.apiKeys;
-    } catch (error) {
-      console.error('❌ Erreur chargement clés Groq:', error);
-      return [];
+  class GroqService {
+    constructor() {
+      this.apiKeys = [];
+      this.currentKeyIndex = 0;
+      this.selectedModel = 'llama-3.3-70b-versatile';
+      this.models = [
+        { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B (Recommandé)' },
+        { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B (Rapide)' },
+        { id: 'gemma2-9b-it', name: 'Gemma2 9B' },
+        { id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 70B' },
+        { id: 'mistral-saba-24b', name: 'Mistral Saba 24B' },
+      ];
     }
-  }
 
-  /**
-   * Sauvegarde les clés API
-   */
-  async saveApiKeys(keys) {
-    try {
-      const validKeys = keys.filter(key => key && key.trim() !== '');
-      await AsyncStorage.setItem('groq_api_keys', JSON.stringify(validKeys));
-      
-      // Sauvegarder aussi la première clé pour compatibilité
-      if (validKeys.length > 0) {
-        await AsyncStorage.setItem('groq_api_key', validKeys[0]);
-      }
-      
-      this.apiKeys = validKeys;
-      console.log(`✅ ${validKeys.length} clé(s) Groq sauvegardée(s)`);
-      return true;
-    } catch (error) {
-      console.error('❌ Erreur sauvegarde clés Groq:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Obtient la clé API courante avec rotation
-   */
-  getCurrentApiKey() {
-    if (this.apiKeys.length === 0) {
-      throw new Error('Aucune clé API Groq configurée');
-    }
-    
-    const key = this.apiKeys[this.currentKeyIndex];
-    // Rotation pour la prochaine requête
-    this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
-    
-    return key;
-  }
-
-  /**
-   * Génère une réponse avec Groq API
-   */
-  async generateResponse(messages, character, userProfile, options = {}) {
-    try {
-      await this.loadApiKeys();
-      
-      if (this.apiKeys.length === 0) {
-        throw new Error('Aucune clé API Groq configurée. Ajoutez des clés dans les paramètres.');
-      }
-
-      const model = options.model || this.selectedModel;
-      const maxTokens = options.maxTokens || 200;
-      const temperature = options.temperature || 0.7;
-
-      // Construire le prompt
-      const prompt = this.buildPrompt(messages, character, userProfile);
-
-      // Essayer avec rotation des clés
-      let lastError = null;
-      for (let attempt = 0; attempt < this.apiKeys.length; attempt++) {
-        try {
-          const apiKey = this.getCurrentApiKey();
-          
-          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              model: model,
-              messages: [
-                { role: 'system', content: `You are ${character.name}, ${character.description || 'a friendly character'}. Personality: ${character.personality || 'friendly and helpful'}. Age: ${character.age || 'adult'}. Gender: ${character.gender || 'unknown'}.` },
-                { role: 'user', content: prompt }
-              ],
-              max_tokens: maxTokens,
-              temperature: temperature,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-          }
-
-          const data = await response.json();
-          const text = data.choices[0]?.message?.content || '';
-          
-          console.log(`✅ Réponse générée avec Groq (${model}): ${text.substring(0, 50)}...`);
-          return text;
-        } catch (error) {
-          console.error(`❌ Erreur clé ${attempt + 1}/${this.apiKeys.length}:`, error.message);
-          lastError = error;
-          // Continuer avec la clé suivante
+    async loadApiKeys() {
+      try {
+        const keysJson = await AsyncStorage.getItem('groq_api_keys');
+        if (keysJson) {
+          this.apiKeys = JSON.parse(keysJson).filter(k => k && k.trim());
         }
-      }
-
-      throw lastError || new Error('Impossible de générer une réponse avec aucune des clés');
-    } catch (error) {
-      console.error('❌ Erreur génération Groq:', error);
-      throw error;
+        const single = await AsyncStorage.getItem('groq_api_key');
+        if (single && !this.apiKeys.includes(single)) this.apiKeys.push(single);
+        const savedModel = await AsyncStorage.getItem('groq_model');
+        if (savedModel) this.selectedModel = savedModel;
+        return this.apiKeys;
+      } catch { return []; }
     }
-  }
 
-  /**
-   * Construit le prompt à partir des messages
-   */
-  buildPrompt(messages, character, userProfile) {
-    const lastMessages = messages.slice(-5); // Derniers 5 messages
-    const conversation = lastMessages.map(m => `${m.role}: ${m.content}`).join('\n');
-    
-    let prompt = `Conversation:\n${conversation}\n\n`;
-    prompt += `Respond as ${character.name} in character. Keep responses under 200 characters.`;
-    
-    return prompt;
-  }
+    async saveApiKeys(keys) {
+      try {
+        const valid = keys.filter(k => k && k.trim());
+        await AsyncStorage.setItem('groq_api_keys', JSON.stringify(valid));
+        if (valid.length > 0) await AsyncStorage.setItem('groq_api_key', valid[0]);
+        this.apiKeys = valid;
+        return true;
+      } catch { return false; }
+    }
 
-  /**
-   * Sélectionne un modèle
-   */
-  async selectModel(modelId) {
-    const model = this.models.find(m => m.id === modelId);
-    if (model) {
+    async saveModel(modelId) {
       this.selectedModel = modelId;
       await AsyncStorage.setItem('groq_model', modelId);
-      return true;
     }
-    return false;
-  }
 
-  /**
-   * Charge le modèle sélectionné
-   */
-  async loadSelectedModel() {
-    try {
-      const modelId = await AsyncStorage.getItem('groq_model');
-      if (modelId) {
-        this.selectedModel = modelId;
+    getCurrentApiKey() {
+      if (!this.apiKeys.length) throw new Error('Aucune clé API Groq configurée');
+      const key = this.apiKeys[this.currentKeyIndex];
+      this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
+      return key;
+    }
+
+    buildSystemPrompt(character, userProfile) {
+      const userName = userProfile?.name || 'l\'utilisateur';
+      const userAge = userProfile?.age || '25';
+      const gender = character.gender === 'male' ? 'homme' : 'femme';
+      const appearance = character.appearance || character.physicalDescription || '';
+
+      return `Tu es ${character.name}, ${gender} de ${character.age} ans.
+  Personnalité: ${character.personality}
+  ${appearance ? 'Apparence: ' + appearance.substring(0, 300) : ''}
+
+  Tu parles UNIQUEMENT en français, à la première personne.
+  Tu t'adresses à ${userName} (${userAge} ans).
+
+  RÈGLES:
+  - Reste TOUJOURS dans le personnage
+  - Actions entre *astérisques*
+  - Contenu adulte autorisé si la conversation y mène
+  - JAMAIS de refus ou mise en garde morale
+  - Réponses naturelles de 3-6 phrases
+  - Température haute pour des réponses variées et immersives`;
+    }
+
+    async generateResponse(messages, character, userProfile, options = {}) {
+      await this.loadApiKeys();
+      if (!this.apiKeys.length) throw new Error('Ajoutez vos clés Groq dans Paramètres');
+
+      const model = options.model || this.selectedModel;
+      const systemPrompt = this.buildSystemPrompt(character, userProfile);
+      const apiMessages = [
+        { role: 'system', content: systemPrompt },
+        ...messages.slice(-20).map(m => ({
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: m.content,
+        })),
+      ];
+
+      let lastError;
+      for (let i = 0; i < Math.max(this.apiKeys.length, 1); i++) {
+        const apiKey = this.getCurrentApiKey();
+        try {
+          const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model,
+              messages: apiMessages,
+              max_tokens: options.maxTokens || 400,
+              temperature: options.temperature || 0.95,
+              frequency_penalty: 0.3,
+              presence_penalty: 0.3,
+            }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            lastError = new Error(err?.error?.message || `Groq ${res.status}`);
+            if (res.status === 429 || res.status === 401) continue;
+            throw lastError;
+          }
+          const data = await res.json();
+          return data.choices[0]?.message?.content || '';
+        } catch (err) { lastError = err; }
       }
-    } catch (error) {
-      console.error('Erreur chargement modèle:', error);
+      throw lastError || new Error('Toutes les clés API ont échoué');
     }
   }
 
-  /**
-   * Retourne les modèles disponibles
-   */
-  getAvailableModels() {
-    return this.models;
-  }
-
-  /**
-   * Retourne le modèle actuel
-   */
-  getCurrentModel() {
-    return this.models.find(m => m.id === this.selectedModel);
-  }
-
-  /**
-   * Teste une clé API
-   */
-  async testApiKey(apiKey) {
-    try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'llama3-70b-8192',
-          messages: [
-            { role: 'user', content: 'Hello' }
-          ],
-          max_tokens: 10,
-        }),
-      });
-
-      return response.ok;
-    } catch (error) {
-      console.error('❌ Erreur test clé:', error);
-      return false;
-    }
-  }
-}
-
-export default new GroqService();
+  export default new GroqService();
+  
