@@ -33,6 +33,7 @@ export default function ConversationScreen({ route, navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [relationship, setRelationship] = useState(null);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [imageProgress, setImageProgress] = useState('');
   const [userProfile, setUserProfile] = useState(null);
   const [gallery, setGallery] = useState([]);
   const [conversationBackground, setConversationBackground] = useState(null);
@@ -510,8 +511,10 @@ export default function ConversationScreen({ route, navigation }) {
       const imageUrl = await ImageGenerationService.generateSceneImage(
         character,
         profile,
-        [], // Pas de messages récents nécessaires
-        relationLevel
+        [],
+        relationLevel,
+        null,
+        reward?.imageType || null
       );
       
       if (imageUrl) {
@@ -567,10 +570,11 @@ export default function ConversationScreen({ route, navigation }) {
           character,
           userProfile,
           messages || [],
-          effectiveLevel
+          effectiveLevel,
+          (msg) => setImageProgress(msg)
         ),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout génération')), 90000)
+          setTimeout(() => reject(new Error('Timeout génération')), 120000)
         )
       ]);
       
@@ -632,6 +636,7 @@ export default function ConversationScreen({ route, navigation }) {
       }
     } finally {
       setGeneratingImage(false);
+      setImageProgress('');
     }
   };
 
