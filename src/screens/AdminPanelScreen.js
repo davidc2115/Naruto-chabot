@@ -147,7 +147,7 @@ export default function AdminPanelScreen() {
     await ApiServerService.setServerUrl(url || '');
     setServerUrl(url || '');
     setServerTestResult(null);
-    Alert.alert(url ? '✅ URL serveur sauvegardée' : '✅ URL effacée', url ? 'L'app utilisera ce serveur pour générer les réponses.' : 'Retour en mode clé Groq locale.');
+    Alert.alert(url ? '✅ URL serveur sauvegardée' : '✅ URL effacée', url ? `L'app utilisera ce serveur pour générer les réponses.` : `Retour en mode clé Groq locale.`);
   };
 
   const testServerConnection = async () => {
@@ -161,7 +161,7 @@ export default function AdminPanelScreen() {
     try {
       await ApiServerService.setServerUrl(url);
       const ok = await ApiServerService.isServerAvailable();
-      setServerTestResult({ ok, message: ok ? '✅ Serveur connecté et opérationnel !' : '❌ Serveur inaccessible — vérifiez l'URL' });
+      setServerTestResult({ ok, message: ok ? '✅ Serveur connecté et opérationnel !' : `❌ Serveur inaccessible — vérifiez l'URL` });
     } catch (e) {
       setServerTestResult({ ok: false, message: `❌ Erreur: ${e.message}` });
     } finally {
