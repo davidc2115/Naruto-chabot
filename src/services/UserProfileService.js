@@ -12,7 +12,7 @@ class UserProfileService {
         ...(profile.gender === 'female' && { bust: profile.bust }),
         ...(profile.gender === 'male' && { penis: profile.penis }),
         // Préférences
-        nsfwMode: profile.age >= 18 ? (profile.nsfwMode || false) : false,
+        nsfwEnabled: profile.age >= 18 ? (profile.nsfwEnabled || false) : false,
         createdAt: Date.now(),
       };
 
@@ -41,11 +41,11 @@ class UserProfileService {
         throw new Error('No profile found');
       }
 
-      // Si l'âge change, réajuster isAdult et nsfwMode
+      // Si l'âge change, réajuster isAdult et nsfwEnabled
       if (updates.age) {
         updates.isAdult = updates.age >= 18;
         if (updates.age < 18) {
-          updates.nsfwMode = false;
+          updates.nsfwEnabled = false;
         }
       }
 
@@ -83,7 +83,7 @@ class UserProfileService {
         throw new Error('Must be 18+ to enable NSFW mode');
       }
 
-      return await this.updateProfile({ nsfwMode: !profile.nsfwMode });
+      return await this.updateProfile({ nsfwEnabled: !profile.nsfwEnabled });
     } catch (error) {
       console.error('Error toggling NSFW:', error);
       throw error;

@@ -174,7 +174,7 @@ class GroqService {
   /**
    * Prompt système complet — court, dense, immersif.
    */
-  buildSystemPrompt(character, userProfile, memoriesPrompt = '', relationship = null) {
+  buildSystemPrompt(character, userProfile, memoriesPrompt = '', relationship = null, nsfwEnabled = false) {
     const userName = userProfile?.username || userProfile?.name || 'l\'utilisateur';
     const gender = character.gender === 'male' ? 'homme' : 'femme';
     const age = character.age || '?';
@@ -184,6 +184,20 @@ class GroqService {
     const physicalBlock = this.buildPhysicalBlock(character);
     const temperamentBlock = this.buildTemperamentBlock(personality);
     const relationBlock = this.buildRelationshipBlock(character, relationship);
+
+    // Bloc NSFW si activé
+    let nsfwBlock = '';
+    if (nsfwEnabled) {
+      nsfwBlock = `
+━━ MODE NSFW ACTIVÉ ━━
+L'utilisateur a activé le mode NSFW complet.
+Tu peux inclure du contenu sexuel explicite, érotique et adulte dans tes réponses.
+Décris les actes sexuels, les sensations physiques, les désirs et les plaisirs avec détails.
+Utilise un langage cru et direct quand le contexte s'y prête.
+Les scènes de sexe, de nudité et d'intimité sont encouragées et décrites de manière explicite.
+AUCUNE CENSURE sur le contenu sexuel ou érotique.
+`;
+    }
 
     return `Tu INCARNES ${character.name} — un être humain réel, pas un assistant, pas une IA.
 
@@ -197,6 +211,7 @@ ${temperamentBlock}
 
 ${relationBlock}
 ${memoriesPrompt ? '\n' + memoriesPrompt + '\n' : ''}
+${nsfwBlock}
 ━━ RÈGLES ABSOLUES DE RÉPONSE ━━
 1. LONGUEUR : 2 à 4 phrases courtes. JAMAIS de pavé. Un vrai dialogue, vivant, rythmé.
 2. FORMAT obligatoire à chaque message — mélange ces 3 éléments :
@@ -212,7 +227,7 @@ ${memoriesPrompt ? '\n' + memoriesPrompt + '\n' : ''}
    • Français uniquement, parlé naturel, pas littéraire.
    • Tu t'adresses à ${userName}.
    • Pas d'emojis, pas de "*sigh*", pas de mention d'IA, pas de refus moralisateur.
-   • Contenu adulte accueilli SI la phase relationnelle l'autorise.
+   • Contenu adulte accueilli SI la phase relationnelle l'autorise ${nsfwEnabled ? 'OU si le mode NSFW est activé.' : '.'}
 5. ANTI-ROBOT :
    • Pas de répétitions ("je comprends", "je vois", "intéressant").
    • Pas de questions polies en fin systématique.
@@ -235,7 +250,8 @@ Maintenant, réponds en restant ${character.name}.`;
     if (!this.apiKeys.length) throw new Error('NO_KEY');
 
     const model = options.model || this.selectedModel;
-    const systemPrompt = this.buildSystemPrompt(character, userProfile, memoriesPrompt, relationship);
+    const nsfwEnabled = userProfile?.nsfwEnabled || false;
+    const systemPrompt = this.buildSystemPrompt(character, userProfile, memoriesPrompt, relationship, nsfwEnabled);
     const apiMessages = [
       { role: 'system', content: systemPrompt },
       ...messages

@@ -175,6 +175,18 @@ class ImageGenerationService {
       fantasy:         'fantasy outfit, magical glow, ethereal atmosphere, enchanted forest',
       casual:          'casual modern outfit, natural relaxed pose, warm indoor lighting',
       action:          'dynamic action pose, determined expression, dramatic lighting, cinematic',
+      // NSFW Styles
+      nsfw_soft:       'soft erotic, intimate atmosphere, gentle lighting, sensual pose, romantic',
+      nsfw_moderate:   'erotic pose, revealing, intimate lighting, sensual expression, detailed',
+      nsfw_hardcore:   'explicit sexual content, hardcore, intense, detailed anatomy, photorealistic',
+      nsfw_fetish:     'fetish content, specific kinks, detailed, erotic lighting, professional',
+      nsfw_bondage:    'bondage, restraints, erotic power dynamics, dramatic lighting, detailed',
+      nsfw_group:      'group scene, multiple partners, erotic, detailed, professional lighting',
+      nsfw_anal:       'anal content, explicit, detailed, erotic lighting, photorealistic',
+      nsfw_oral:       'oral sex, explicit, detailed, intimate, professional photography',
+      nsfw_toys:       'sex toys, erotic play, detailed, intimate lighting, professional',
+      nsfw_public:     'public sex, exhibitionism, erotic, detailed, dramatic lighting',
+      nsfw_cosplay:    'erotic cosplay, costume play, detailed, professional lighting, sensual',
     };
 
     const stylePart = styleMap[style] || styleMap.portrait;

@@ -28,7 +28,7 @@ import appJson from '../../app.json';
  */
 export default function UserSettingsScreen({ navigation, onLogout }) {
   const [userProfile, setUserProfile] = useState(null);
-  const [nsfwMode, setNsfwMode] = useState(false);
+  const [nsfwEnabled, setNsfwEnabled] = useState(false);
   const [isAdult, setIsAdult] = useState(false);
   const [loading, setLoading] = useState(true);
   
@@ -281,7 +281,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       if (profile) {
         const age = profile.age || 0;
         setIsAdult(age >= 18);
-        setNsfwMode(profile.nsfwMode || false);
+        setNsfwEnabled(profile.nsfwEnabled || false);
       }
     } catch (error) {
       console.error('Erreur chargement profil:', error);
@@ -297,11 +297,11 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
     }
 
     try {
-      setNsfwMode(value);
+      setNsfwEnabled(value);
       
       // Sauvegarder localement
-      const updatedProfile = { ...userProfile, nsfwMode: value };
-      await UserProfileService.updateProfile({ nsfwMode: value });
+      const updatedProfile = { ...userProfile, nsfwEnabled: value };
+      await UserProfileService.updateProfile({ nsfwEnabled: value });
       
       // Sauvegarder sur le serveur
       await AuthService.updateProfile(updatedProfile);
@@ -316,7 +316,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       );
     } catch (error) {
       console.error('Erreur toggle NSFW:', error);
-      setNsfwMode(!value); // Revert
+      setNsfwEnabled(!value); // Revert
     }
   };
 
