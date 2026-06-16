@@ -17,6 +17,9 @@ on:
       - '7.*'
       - 'native-build-*'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-android-native:
     name: 🚀 Build Android APK (Native)
