@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import GroqService from '../services/GroqService';
 import MemoryService from '../services/MemoryService';
 import ApiServerService from '../services/ApiServerService';
+import LlamaService, { LLAMA_MODELS } from '../services/LlamaService';
 
 export default function AdminPanelScreen() {
   const [groqKeys, setGroqKeys] = useState([]);
@@ -21,6 +22,15 @@ export default function AdminPanelScreen() {
   const [serverUrlInput, setServerUrlInput] = useState('');
   const [testingServer, setTestingServer] = useState(false);
   const [serverTestResult, setServerTestResult] = useState(null);
+  // Offline AI state
+  const [offlineStatus, setOfflineStatus] = useState({}); // { modelId: { downloaded: bool } }
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadingModelId, setDownloadingModelId] = useState(null);
+  const [activeOfflineModelId, setActiveOfflineModelId] = useState(null);
+  const [isModelLoaded, setIsModelLoaded] = useState(false);
+  const [isLoadingModel, setIsLoadingModel] = useState(false);
+  const [loadingModelMsg, setLoadingModelMsg] = useState('');
 
   useEffect(() => {
     loadSettings();
@@ -39,6 +49,14 @@ export default function AdminPanelScreen() {
       setServerUrl(sUrl || '');
       setServerUrlInput(sUrl || '');
       setMemoriesCount(count);
+      // Check offline model status
+      const statusObj = {};
+      for (const modelId of Object.keys(LLAMA_MODELS)) {
+        statusObj[modelId] = { downloaded: await LlamaService.isModelDownloaded(modelId) };
+      }
+      setOfflineStatus(statusObj);
+      setActiveOfflineModelId(LlamaService.activeModelId);
+      setIsModelLoaded(LlamaService.isLoaded);
     } catch (e) {
       console.error('Erreur chargement paramètres:', e);
     }
@@ -151,6 +169,72 @@ export default function AdminPanelScreen() {
     }
   };
 
+
+  const handleDownload = async (modelId) => {
+    setIsDownloading(true);
+    setDownloadingModelId(modelId);
+    setDownloadProgress(0);
+    try {
+      await LlamaService.downloadModel(modelId, (progress) => {
+        setDownloadProgress(progress);
+      });
+      setOfflineStatus(prev => ({ ...prev, [modelId]: { downloaded: true } }));
+    } catch (e) {
+      if (!e.message?.includes('cancel')) {
+        Alert.alert('❌ Erreur téléchargement', e.message);
+      }
+    } finally {
+      setIsDownloading(false);
+      setDownloadingModelId(null);
+      setDownloadProgress(0);
+    }
+  };
+
+  const handleCancelDownload = async () => {
+    await LlamaService.cancelDownload();
+    setIsDownloading(false);
+    setDownloadingModelId(null);
+    setDownloadProgress(0);
+  };
+
+  const handleLoadModel = async (modelId) => {
+    setIsLoadingModel(true);
+    setLoadingModelMsg('Initialisation…');
+    try {
+      await LlamaService.loadModel(modelId, setLoadingModelMsg);
+      setActiveOfflineModelId(modelId);
+      setIsModelLoaded(true);
+    } catch (e) {
+      Alert.alert('❌ Erreur chargement', e.message);
+    } finally {
+      setIsLoadingModel(false);
+      setLoadingModelMsg('');
+    }
+  };
+
+  const handleUnloadModel = async () => {
+    await LlamaService.unloadModel();
+    setActiveOfflineModelId(null);
+    setIsModelLoaded(false);
+  };
+
+  const handleDeleteModel = (modelId) => {
+    const model = LLAMA_MODELS[modelId];
+    Alert.alert('🗑️ Supprimer le modèle', `Supprimer ${model.name} (${model.desc.split('•')[0].trim()}) ?`, [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Supprimer', style: 'destructive', onPress: async () => {
+          await LlamaService.deleteModel(modelId);
+          setOfflineStatus(prev => ({ ...prev, [modelId]: { downloaded: false } }));
+          if (activeOfflineModelId === modelId) {
+            setActiveOfflineModelId(null);
+            setIsModelLoaded(false);
+          }
+        }
+      }
+    ]);
+  };
+
   const SectionBtn = ({ id, label, icon }) => (
     <TouchableOpacity
       style={[styles.sectionBtn, activeSection === id && styles.sectionBtnActive]}
@@ -174,6 +258,7 @@ export default function AdminPanelScreen() {
           <SectionBtn id="serveur" label="Serveur" icon="🌐" />
           <SectionBtn id="image" label="Images" icon="🎨" />
           <SectionBtn id="memory" label="Mémoire" icon="🧠" />
+          <SectionBtn id="offline" label="Hors-ligne" icon="📱" />
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -388,6 +473,113 @@ export default function AdminPanelScreen() {
             </View>
           )}
 
+
+          {activeSection === 'offline' && (
+            <View>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>📱 IA Locale — 100% Hors Ligne</Text>
+                <Text style={styles.infoText}>
+                  Téléchargez un modèle une fois, puis conversez sans Internet.{'
+'}
+                  Le modèle tourne directement sur votre téléphone.{'
+
+'}
+                  ⚠️ Requiert 4-6 Go de RAM libre. Première génération : 5-20s.
+                </Text>
+              </View>
+
+              {isModelLoaded && (
+                <View style={[styles.infoBox, { borderLeftColor: '#22c55e' }]}>
+                  <Text style={[styles.infoTitle, { color: '#22c55e' }]}>✅ Modèle actif : {LLAMA_MODELS[activeOfflineModelId]?.name}</Text>
+                  <Text style={styles.infoText}>Prêt pour les conversations hors ligne.</Text>
+                  <TouchableOpacity style={[styles.testBtn, { marginTop: 10 }]} onPress={handleUnloadModel}>
+                    <Text style={styles.testBtnText}>⏏️ Décharger de la mémoire</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {isLoadingModel && (
+                <View style={[styles.infoBox, { borderLeftColor: '#f59e0b' }]}>
+                  <Text style={[styles.infoTitle, { color: '#f59e0b' }]}>⏳ Chargement en cours…</Text>
+                  <Text style={styles.infoText}>{loadingModelMsg}</Text>
+                </View>
+              )}
+
+              <Text style={styles.sectionLabel}>🤖 Choisissez un modèle</Text>
+
+              {Object.entries(LLAMA_MODELS).map(([modelId, model]) => {
+                const downloaded = offlineStatus[modelId]?.downloaded;
+                const isActive = activeOfflineModelId === modelId && isModelLoaded;
+                const isThisDownloading = downloadingModelId === modelId && isDownloading;
+
+                return (
+                  <View key={modelId} style={[styles.offlineCard, isActive && styles.offlineCardActive]}>
+                    <View style={styles.offlineCardHeader}>
+                      <Text style={styles.offlineModelName}>{model.name}</Text>
+                      {isActive && <Text style={styles.offlineActiveBadge}>ACTIF</Text>}
+                      {downloaded && !isActive && <Text style={styles.offlineDownloadedBadge}>PRÊT</Text>}
+                    </View>
+                    <Text style={styles.offlineModelDesc}>{model.desc}</Text>
+
+                    {isThisDownloading && (
+                      <View style={styles.progressContainer}>
+                        <View style={[styles.progressBar, { width: `${Math.round(downloadProgress * 100)}%` }]} />
+                        <Text style={styles.progressText}>{Math.round(downloadProgress * 100)}% — {LlamaService.formatBytes(downloadProgress * model.size)} / {model.desc.split('•')[0].trim()}</Text>
+                      </View>
+                    )}
+
+                    <View style={styles.offlineActions}>
+                      {!downloaded && !isThisDownloading && (
+                        <TouchableOpacity
+                          style={[styles.offlineBtn, styles.offlineBtnDownload, isDownloading && styles.offlineBtnDisabled]}
+                          onPress={() => handleDownload(modelId)}
+                          disabled={isDownloading}
+                        >
+                          <Text style={styles.offlineBtnText}>⬇️ Télécharger</Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {isThisDownloading && (
+                        <TouchableOpacity style={[styles.offlineBtn, styles.offlineBtnCancel]} onPress={handleCancelDownload}>
+                          <Text style={styles.offlineBtnText}>✕ Annuler</Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {downloaded && !isActive && !isLoadingModel && !isThisDownloading && (
+                        <TouchableOpacity style={[styles.offlineBtn, styles.offlineBtnLoad]} onPress={() => handleLoadModel(modelId)}>
+                          <Text style={styles.offlineBtnText}>▶️ Charger en mémoire</Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {downloaded && !isThisDownloading && (
+                        <TouchableOpacity style={[styles.offlineBtn, styles.offlineBtnDelete]} onPress={() => handleDeleteModel(modelId)}>
+                          <Text style={styles.offlineBtnText}>🗑️</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>💡 Utilisation</Text>
+                <Text style={styles.infoText}>
+                  1. Téléchargez un modèle (Wi-Fi recommandé){'
+'}
+                  2. Appuyez sur "Charger en mémoire"{'
+'}
+                  3. Dans les conversations, l'IA locale est utilisée automatiquement{'
+'}
+                  4. Déchargez le modèle si vous manquez de RAM{'
+
+'}
+                  En ligne : Groq (cloud) est plus rapide et de meilleure qualité.{'
+'}
+                  Hors ligne : le modèle local prend le relais automatiquement.
+                </Text>
+              </View>
+            </View>
+          )}
           <View style={{ height: 60 }} />
         </ScrollView>
       </View>
@@ -396,6 +588,40 @@ export default function AdminPanelScreen() {
 }
 
 const styles = StyleSheet.create({
+
+  offlineCard: {
+    backgroundColor: '#111827', borderRadius: 14, padding: 16, marginBottom: 12,
+    borderWidth: 1, borderColor: '#1f2937',
+  },
+  offlineCardActive: { borderColor: '#22c55e', backgroundColor: '#0a1f0a' },
+  offlineCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  offlineModelName: { color: '#C9A227', fontSize: 15, fontWeight: '700', flex: 1 },
+  offlineActiveBadge: {
+    backgroundColor: '#22c55e', color: '#000', fontSize: 11, fontWeight: '800',
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
+  },
+  offlineDownloadedBadge: {
+    backgroundColor: '#1d4ed8', color: '#fff', fontSize: 11, fontWeight: '800',
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
+  },
+  offlineModelDesc: { color: '#9ca3af', fontSize: 12, marginBottom: 12 },
+  progressContainer: {
+    backgroundColor: '#1f2937', borderRadius: 8, height: 24, marginBottom: 10,
+    overflow: 'hidden', justifyContent: 'center',
+  },
+  progressBar: {
+    position: 'absolute', left: 0, top: 0, bottom: 0,
+    backgroundColor: '#C9A227', borderRadius: 8,
+  },
+  progressText: { color: '#fff', fontSize: 11, fontWeight: '600', textAlign: 'center', zIndex: 1 },
+  offlineActions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  offlineBtn: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 8, alignItems: 'center' },
+  offlineBtnDownload: { backgroundColor: '#C9A227', flex: 1 },
+  offlineBtnLoad: { backgroundColor: '#1d4ed8', flex: 1 },
+  offlineBtnCancel: { backgroundColor: '#7f1d1d', flex: 1 },
+  offlineBtnDelete: { backgroundColor: '#1f2937', minWidth: 44 },
+  offlineBtnDisabled: { opacity: 0.4 },
+  offlineBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
   safeArea: {
     flex: 1,
     backgroundColor: '#0a0a12',
