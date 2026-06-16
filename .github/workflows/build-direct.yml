@@ -38,12 +38,12 @@ jobs:
       - name: 🤖 Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: 🛠️ Install Android NDK (requis par llama.rn)
+      - name: 🛠️ Install Android NDK 26 (requis par Expo 51 / RN 0.74)
         run: |
-          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;25.1.8937393" --sdk_root=$ANDROID_HOME
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.1.8937393" >> $GITHUB_ENV
-          echo "NDK_HOME=$ANDROID_HOME/ndk/25.1.8937393" >> $GITHUB_ENV
-          echo "✅ NDK 25 installé"
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;26.1.10909125" --sdk_root=$ANDROID_HOME
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+          echo "NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+          echo "✅ NDK 26.1.10909125 installé"
 
       - name: 🗑️ Clean everything
         run: |
@@ -59,15 +59,19 @@ jobs:
       - name: 🏗️ Prebuild (Generate native Android files)
         run: npx expo prebuild --platform android --clean
 
-      - name: 🔧 Configure Gradle with NDK
+      - name: 🔧 Configure Gradle with NDK + AGP compatibility
         run: |
           cd android
+          # NDK path
           if [ ! -f "local.properties" ]; then
             echo "sdk.dir=$ANDROID_HOME" > local.properties
           fi
           echo "ndk.dir=$ANDROID_NDK_HOME" >> local.properties
+          # Fix: expo-modules-core 'release' SoftwareComponent issue with AGP 8.x
+          echo "android.experimental.forceLegacyModeForVariantAPI=true" >> gradle.properties
           chmod +x gradlew
-          echo "✅ Gradle + NDK configurés"
+          echo "✅ Gradle + NDK + AGP fix configurés"
+          cat local.properties
 
       - name: 📝 Create keystore
         run: |
