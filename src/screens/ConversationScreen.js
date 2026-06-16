@@ -396,23 +396,24 @@ export default function ConversationScreen({ route, navigation }) {
       let response;
       let _usedOffline = false;
       try {
-        const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt);
-
         // PRIORITÉ 1 : IA locale hors ligne (si un modèle llama est chargé en mémoire)
         if (LlamaService.isLoaded) {
           _usedOffline = true;
+          const localPrompt = LlamaService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship);
           response = await Promise.race([
-            LlamaService.generateResponse(updatedMessages, systemPrompt),
+            LlamaService.generateResponse(updatedMessages, localPrompt),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
           ]);
         }
+
+        const cloudPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship);
 
         // PRIORITÉ 2 : Serveur Replit (si configuré)
         if (!response) {
           const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
           if (serverAvailable) {
             response = await Promise.race([
-              ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
+              ApiServerService.generateText(cloudPrompt, updatedMessages, GroqService.selectedModel),
               new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
             ]);
           }
@@ -421,7 +422,7 @@ export default function ConversationScreen({ route, navigation }) {
         // PRIORITÉ 3 : Groq local (clé dans l'app)
         if (!response) {
           response = await Promise.race([
-            GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt),
+            GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 60000))
           ]);
         }
@@ -429,12 +430,12 @@ export default function ConversationScreen({ route, navigation }) {
         console.error('❌ Erreur génération:', genError.message);
         if (_usedOffline) {
           try {
-            response = await GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt);
+            response = await GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship);
           } catch {
-            response = `*te regarde* "..." (Hors ligne — configure une clé Groq dans Config)`;
+            response = `*te regarde* (silence) Hors ligne — configure une clé Groq dans Config.`;
           }
         } else {
-          response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
+          response = `*te regarde* (silence) Hmm... j'ai eu un petit problème, réessaie.`;
         }
       }
 
@@ -555,8 +556,9 @@ export default function ConversationScreen({ route, navigation }) {
       );
       
       if (imageUrl) {
-        // Sauvegarder dans la galerie
-        await GalleryService.saveImageToGallery(character.id, imageUrl);
+        // Sauvegarder dans la galerie (passe l'URL distante stable si dispo)
+        const remoteUrl = ImageGenerationService.getLastRemoteUrl?.();
+        await GalleryService.saveImageToGallery(character.id, imageUrl, { remoteUrl });
         
         // Enregistrer comme image débloquée
         await LevelService.recordUnlockedImage(character.id, newLevel, imageUrl);
@@ -621,7 +623,8 @@ export default function ConversationScreen({ route, navigation }) {
       
       // Sauvegarde avec protection
       try {
-        await GalleryService.saveImageToGallery(character.id, imageUrl);
+        const remoteUrl = ImageGenerationService.getLastRemoteUrl?.();
+        await GalleryService.saveImageToGallery(character.id, imageUrl, { remoteUrl });
         await loadGallery();
       } catch (saveError) {
         console.log('⚠️ Erreur sauvegarde galerie:', saveError.message);

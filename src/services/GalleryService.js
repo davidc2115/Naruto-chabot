@@ -100,33 +100,55 @@ class GalleryService {
   }
 
   /**
-   * Télécharge une image et la sauvegarde localement
+   * Télécharge OU copie une image vers le dossier galerie persistant.
+   * Gère 3 cas :
+   *   1. URL distante (http/https) → downloadAsync
+   *   2. URI locale file:// (cache Pollinations) → copyAsync vers gallery/
+   *   3. Chemin déjà dans gallery/ → no-op
    */
   async downloadAndSaveImage(imageUrl, characterId, seed) {
     try {
       await this.initDirectory();
-      
+
       const fileName = this.generateFileName(characterId, seed);
       const localPath = `${this.imageDirectory}${fileName}`;
-      
+
+      // Cas 3 : déjà dans gallery → rien à faire
+      if (imageUrl && imageUrl.startsWith(this.imageDirectory)) {
+        return { localPath: imageUrl, fileName: imageUrl.split('/').pop(), success: true };
+      }
+
+      // Cas 2 : fichier local (file:// ou chemin absolu cacheDirectory)
+      const isLocal = imageUrl && (imageUrl.startsWith('file://') || imageUrl.startsWith('/'));
+      if (isLocal) {
+        try {
+          const info = await FileSystem.getInfoAsync(imageUrl);
+          if (!info.exists) {
+            console.log(`⚠️ Fichier source introuvable: ${imageUrl}`);
+            return { success: false, error: 'Fichier source introuvable' };
+          }
+          await FileSystem.copyAsync({ from: imageUrl, to: localPath });
+          console.log(`✅ Image COPIÉE (local→galerie): ${fileName}`);
+          return { localPath, fileName, success: true };
+        } catch (copyErr) {
+          console.log(`⚠️ Échec copie locale: ${copyErr.message}`);
+          return { success: false, error: copyErr.message };
+        }
+      }
+
+      // Cas 1 : URL distante
       console.log(`📥 Téléchargement image: ${imageUrl.substring(0, 50)}...`);
-      
-      // Télécharger l'image
       const downloadResult = await FileSystem.downloadAsync(imageUrl, localPath);
-      
+
       if (downloadResult.status === 200) {
         console.log(`✅ Image sauvegardée localement: ${fileName}`);
-        return {
-          localPath: localPath,
-          fileName: fileName,
-          success: true,
-        };
+        return { localPath, fileName, success: true };
       } else {
         console.log(`⚠️ Échec téléchargement: status ${downloadResult.status}`);
         return { success: false, error: `Status ${downloadResult.status}` };
       }
     } catch (error) {
-      console.error('❌ Erreur téléchargement image:', error);
+      console.error('❌ Erreur téléchargement/copie image:', error);
       return { success: false, error: error.message };
     }
   }
@@ -188,11 +210,11 @@ class GalleryService {
     return originalUrl;
   }
 
-  async saveImageToGallery(characterId, imageUrl) {
+  async saveImageToGallery(characterId, imageUrl, options = {}) {
     try {
       const userId = await this.getCurrentUserId();
       const key = `gal_${userId}_${characterId}`;
-      
+
       // v5.3.68 - Double chargement pour s'assurer de ne pas perdre de données
       let gallery = [];
       try {
@@ -204,74 +226,76 @@ class GalleryService {
         console.log('⚠️ Erreur lecture galerie, création nouvelle');
         gallery = [];
       }
-      
-      // Extraire les infos importantes de l'URL
-      const seed = this.extractSeedFromUrl(imageUrl);
-      const prompt = this.extractPromptFromUrl(imageUrl);
-      
-      // Vérifier si l'image existe déjà (par seed ou URL)
+
+      // v7.0 - Si l'input est un fichier local du cache (Pollinations), on le copie
+      // IMMÉDIATEMENT dans le dossier galerie persistant pour éviter la purge cache Android.
+      const isLocal = imageUrl && (imageUrl.startsWith('file://') || imageUrl.startsWith('/')) && !imageUrl.startsWith(this.imageDirectory);
+
+      // URL distante stable fournie en option (depuis ImageGenerationService.getLastRemoteUrl())
+      const remoteUrl = options.remoteUrl || null;
+
+      // Seed/prompt extraits depuis l'URL distante (si disponible) sinon depuis imageUrl
+      const sourceForMeta = remoteUrl || imageUrl;
+      const seed = this.extractSeedFromUrl(sourceForMeta);
+      const prompt = this.extractPromptFromUrl(sourceForMeta);
+
+      // Si fichier local → COPIE SYNCHRONE vers gallery/ pour persistance immédiate
+      let finalLocalPath = null;
+      if (isLocal) {
+        const dl = await this.downloadAndSaveImage(imageUrl, characterId, seed || Math.random().toString(36).slice(2, 9));
+        if (dl.success) finalLocalPath = dl.localPath;
+      } else if (imageUrl && imageUrl.startsWith(this.imageDirectory)) {
+        finalLocalPath = imageUrl;
+      }
+
+      // Vérifier si l'image existe déjà
       const exists = gallery.some(item => {
         if (typeof item === 'string') {
-          return this.extractSeedFromUrl(item) === seed || item === imageUrl;
+          return (seed && this.extractSeedFromUrl(item) === seed) || item === imageUrl || item === remoteUrl;
         }
-        return item.seed === seed || item.url === imageUrl;
+        return (seed && item.seed === seed) || item.url === imageUrl || item.url === remoteUrl || item.localPath === finalLocalPath;
       });
-      
+
       if (!exists) {
-        // v5.3.68: SAUVEGARDER D'ABORD avec l'URL, puis télécharger en arrière-plan
         const imageData = {
-          url: imageUrl,                    // URL originale (TOUJOURS gardée)
-          localPath: null,                  // Sera rempli après téléchargement
+          // Préférer l'URL distante pour fallback réseau
+          url: remoteUrl || (isLocal ? null : imageUrl),
+          localPath: finalLocalPath,
           seed: seed,
           prompt: prompt ? prompt.substring(0, 500) : null,
           savedAt: Date.now(),
-          characterId: characterId,
-          isLocal: false,
+          characterId,
+          isLocal: !!finalLocalPath,
         };
-        
+
         gallery.unshift(imageData);
-        
+
         // Limiter à 100 images par personnage
         if (gallery.length > 100) {
           const removed = gallery.pop();
           if (removed?.localPath) {
-            try {
-              await FileSystem.deleteAsync(removed.localPath, { idempotent: true });
-            } catch (e) {}
+            try { await FileSystem.deleteAsync(removed.localPath, { idempotent: true }); } catch (e) { /* ignore */ }
           }
         }
-        
-        // v5.3.68 - TRIPLE sauvegarde pour persistance garantie
+
         const jsonData = JSON.stringify(gallery);
-        
-        // 1. Clé principale avec userId
         await AsyncStorage.setItem(key, jsonData);
-        console.log(`🖼️ Image ajoutée à la galerie: ${key}, seed=${seed}`);
-        
-        // 2. Backup global sans userId (pour récupération)
-        const backupKey = `gal_backup_${characterId}`;
-        await AsyncStorage.setItem(backupKey, jsonData);
-        
-        // 3. Vérification que la sauvegarde a fonctionné
-        const verify = await AsyncStorage.getItem(key);
-        if (!verify) {
-          console.error('❌ ÉCHEC vérification sauvegarde galerie!');
-          // Réessayer
-          await AsyncStorage.setItem(key, jsonData);
-        } else {
-          console.log('✅ Sauvegarde galerie vérifiée');
+        await AsyncStorage.setItem(`gal_backup_${characterId}`, jsonData);
+        console.log(`🖼️ Image ajoutée à la galerie: ${key} (local=${!!finalLocalPath}, seed=${seed})`);
+
+        // Si on n'a pas pu copier le fichier local mais qu'on a une URL distante stable,
+        // on tente un téléchargement en arrière-plan pour persistance hors-ligne.
+        if (!finalLocalPath && remoteUrl) {
+          this.downloadInBackground(characterId, remoteUrl, seed, key, gallery);
         }
-        
-        // Télécharger en ARRIÈRE-PLAN (ne bloque pas)
-        this.downloadInBackground(characterId, imageUrl, seed, key, gallery);
       } else {
         console.log(`ℹ️ Image déjà dans galerie: seed=${seed}`);
       }
-      
-      return imageUrl;
+
+      // Retourner ce qui sera affiché : priorité au fichier local persistant
+      return finalLocalPath || remoteUrl || imageUrl;
     } catch (error) {
       console.error('Error saving image to gallery:', error);
-      // v5.3.68 - Tentative de sauvegarde de secours
       try {
         const fallbackKey = `gal_fallback_${characterId}`;
         const simpleData = JSON.stringify([{ url: imageUrl, savedAt: Date.now() }]);

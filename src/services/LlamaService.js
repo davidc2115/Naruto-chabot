@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initLlama } from 'llama.rn';
+import PromptBuilder from './PromptBuilder';
 
 /**
  * LlamaService v1.0 — IA 100% hors ligne (llama.rn + llama.cpp)
@@ -180,10 +181,19 @@ class LlamaService {
   // ─── Inference ───────────────────────────────────────────────────────────────
 
   /**
+   * Construit un prompt système COMPACT optimisé pour les petits modèles locaux.
+   * Réutilise PromptBuilder partagé avec GroqService.
+   */
+  buildSystemPrompt(character, userProfile, memoriesPrompt = '', relationship = null) {
+    return PromptBuilder.buildSystemPrompt(character, userProfile, memoriesPrompt, relationship, { compact: true });
+  }
+
+  /**
    * Génère une réponse en local, sans Internet.
-   * @param {Array} messages  — historique [{role, content}]
-   * @param {string} systemPrompt — prompt système du personnage
-   * @param {Function} [onToken]  — callback token-by-token (streaming)
+   * Format imposé : *pensée*, (action), dialogue — réponses 1-3 phrases.
+   * @param {Array} messages          — historique [{role, content}]
+   * @param {string|null} systemPrompt — prompt système. Si null, doit être fourni via buildSystemPrompt.
+   * @param {Function} [onToken]      — callback token-by-token (streaming)
    * @returns {Promise<string>}
    */
   async generateResponse(messages, systemPrompt, onToken) {
@@ -194,22 +204,30 @@ class LlamaService {
     }
 
     const model = LLAMA_MODELS[this.activeModelId];
-    const stopTokens = model?.stop || ['<|end|>', 'Utilisateur:'];
+    // Stops élargis : on coupe dès que le modèle veut continuer un nouveau tour ou faire un monologue
+    const baseStop = model?.stop || ['<|end|>', 'Utilisateur:'];
+    const stopTokens = [
+      ...baseStop,
+      '\nUtilisateur:', '\nUser:', '\n\nUtilisateur', '\n\nUser',
+      '\n###', '\n[INST]', '</s>',
+    ];
 
     const chatMessages = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: systemPrompt || '' },
       ...messages
-        .slice(-30)
+        .slice(-16) // contexte plus court → réponses plus rapides + plus concises
         .filter(m => (m.role === 'user' || m.role === 'assistant') && m.content?.trim()),
     ];
 
     const completionOpts = {
       messages: chatMessages,
-      n_predict: 320,
-      temperature: 0.88,
-      top_p: 0.93,
+      n_predict: 160,          // ↓ pour réponses COURTES (1-3 phrases)
+      temperature: 0.82,
+      top_p: 0.92,
       min_p: 0.05,
-      repeat_penalty: 1.15,
+      repeat_penalty: 1.18,
+      frequency_penalty: 0.5,
+      presence_penalty: 0.4,
       stop: stopTokens,
     };
 
@@ -218,7 +236,11 @@ class LlamaService {
       onToken ? (data) => { if (data.token) onToken(data.token); } : undefined
     );
 
-    return (result.text || '').trim();
+    let text = (result.text || '').trim();
+    // Coupe défensivement après la 4e phrase si le modèle s'emballe
+    const sentences = text.split(/(?<=[.!?…])\s+/);
+    if (sentences.length > 4) text = sentences.slice(0, 4).join(' ').trim();
+    return text;
   }
 
   // ─── Utility ─────────────────────────────────────────────────────────────────

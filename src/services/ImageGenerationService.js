@@ -108,6 +108,8 @@ class ImageGenerationService {
     const cleanPrompt = prompt.replace(/[^\w\s,.-]/g, ' ').replace(/\s+/g, ' ').trim();
     const encoded = encodeURIComponent(cleanPrompt);
     const url = `https://image.pollinations.ai/prompt/${encoded}?model=flux-schnell&width=512&height=768&nologo=true&seed=${seed}&nofeed=true`;
+    // Mémorisé pour que GalleryService puisse stocker une URL stable (regénérable via seed)
+    this._lastRemoteUrl = url;
 
     // On déclenche la génération côté Pollinations avec un timeout de 30s
     // Puis on retourne l'URL — le composant Image gère le reste
@@ -212,6 +214,7 @@ class ImageGenerationService {
       ? customPrompt + ', highly detailed, 8k, masterpiece'
       : this.buildBasePromptText(character, style);
 
+    this._lastRemoteUrl = null;
     try { return await this.generateViaPollinations(prompt, onProgress); }
     catch (e) {
       onProgress?.(`⚠️ ${e.message} → Stable Horde…`);
@@ -223,12 +226,16 @@ class ImageGenerationService {
     await this.waitMinDelay();
     const prompt = this.buildScenePromptText(character, messages, relationLevel, imageType);
 
+    this._lastRemoteUrl = null;
     try { return await this.generateViaPollinations(prompt, onProgress); }
     catch (e) {
       onProgress?.(`⚠️ ${e.message} → Stable Horde…`);
       return await this.generateViaStableHorde(prompt, onProgress);
     }
   }
+
+  /** Retourne l'URL distante stable utilisée lors de la dernière génération (ou null). */
+  getLastRemoteUrl() { return this._lastRemoteUrl || null; }
 }
 
 export default new ImageGenerationService();
