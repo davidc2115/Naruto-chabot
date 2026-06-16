@@ -18,6 +18,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import GroqService from '../services/GroqService';
 import ApiServerService from '../services/ApiServerService';
 import MemoryService from '../services/MemoryService';
+import LlamaService from '../services/LlamaService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
 import UserProfileService from '../services/UserProfileService';
@@ -393,34 +394,48 @@ export default function ConversationScreen({ route, navigation }) {
 
       // Génération de la réponse avec timeout
       let response;
+      let _usedOffline = false;
       try {
-        // Essai serveur d'abord (pas de config requise côté user)
-        const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
-        if (serverAvailable) {
-          const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt);
+        const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt);
+
+        // PRIORITÉ 1 : IA locale hors ligne (si un modèle llama est chargé en mémoire)
+        if (LlamaService.isLoaded) {
+          _usedOffline = true;
           response = await Promise.race([
-            ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
+            LlamaService.generateResponse(updatedMessages, systemPrompt),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
           ]);
         }
-        // Fallback sur Groq local si serveur indisponible
+
+        // PRIORITÉ 2 : Serveur Replit (si configuré)
+        if (!response) {
+          const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
+          if (serverAvailable) {
+            response = await Promise.race([
+              ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
+            ]);
+          }
+        }
+
+        // PRIORITÉ 3 : Groq local (clé dans l'app)
         if (!response) {
           response = await Promise.race([
-            GroqService.generateResponse(
-              updatedMessages,
-              character,
-              userProfile,
-              {},
-              memoriesPrompt
-            ),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Timeout')), 60000)
-            )
+            GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 60000))
           ]);
         }
       } catch (genError) {
         console.error('❌ Erreur génération:', genError.message);
-        response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
+        if (_usedOffline) {
+          try {
+            response = await GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt);
+          } catch {
+            response = `*te regarde* "..." (Hors ligne — configure une clé Groq dans Config)`;
+          }
+        } else {
+          response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
+        }
       }
 
       // Mise à jour mémoire complète (souvenirs + arc relationnel + résumé)
