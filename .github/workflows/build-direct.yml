@@ -69,9 +69,14 @@ jobs:
           echo "ndk.dir=$ANDROID_NDK_HOME" >> local.properties
           # Fix: expo-modules-core 'release' SoftwareComponent issue with AGP 8.x
           echo "android.experimental.forceLegacyModeForVariantAPI=true" >> gradle.properties
+          # llama.rn 0.12+ requires React Native New Architecture (TurboModules + Codegen)
+          echo "newArchEnabled=true" >> gradle.properties
+          echo "hermesEnabled=true" >> gradle.properties
           chmod +x gradlew
-          echo "✅ Gradle + NDK + AGP fix configurés"
+          echo "✅ Gradle + NDK + AGP fix + New Arch configurés"
           cat local.properties
+          echo "--- gradle.properties (tail) ---"
+          tail -10 gradle.properties
 
       - name: 📝 Create keystore
         run: |

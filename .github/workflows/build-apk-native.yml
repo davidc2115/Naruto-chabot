@@ -123,7 +123,10 @@ jobs:
           if [ -f "gradlew" ]; then
             chmod +x gradlew
           echo "android.experimental.forceLegacyModeForVariantAPI=true" >> gradle.properties
-          echo "✅ AGP legacy mode fix ajouté"
+          # llama.rn 0.12+ requires React Native New Architecture (TurboModules + Codegen)
+          echo "newArchEnabled=true" >> gradle.properties
+          echo "hermesEnabled=true" >> gradle.properties
+          echo "✅ AGP legacy mode fix + New Arch ajoutés"
             echo "✅ Gradle wrapper ready"
           else
             echo "❌ No gradle wrapper found"
