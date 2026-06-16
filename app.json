@@ -2,7 +2,7 @@
   "expo": {
     "name": "CDE",
     "slug": "cde-app",
-    "version": "5.3.76",
+    "version": "5.5.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,7 +21,9 @@
           "photosPermission": "L'application a besoin d'accéder à votre galerie pour importer des images de personnages.",
           "cameraPermission": "L'application a besoin d'accéder à votre caméra pour prendre des photos de personnages."
         }
-      ]
+      ],
+      "./app.plugin.js",
+      "llama.rn"
     ],
     "ios": {
       "supportsTablet": true,
@@ -37,7 +39,7 @@
         "backgroundColor": "#6366f1"
       },
       "package": "com.roleplaychat.app",
-      "versionCode": 130,
+      "versionCode": 131,
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.CAMERA",
