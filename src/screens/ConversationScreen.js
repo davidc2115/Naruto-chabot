@@ -108,7 +108,7 @@ export default function ConversationScreen({ route, navigation }) {
       setIsInitialized(true);
       // Load character memories
       try {
-        const mp = await MemoryService.getMemoriesPrompt(character?.id);
+        const mp = await MemoryService.getFullContext(character?.id, relationship).catch(() => '');
         setMemoriesPrompt(mp);
       } catch (e) { console.log('⚠️ Mémoire non chargée:', e.message); }
       // Check if Groq API key is configured (skip if server proxy is available)
@@ -423,15 +423,20 @@ export default function ConversationScreen({ route, navigation }) {
         response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
       }
 
-      // Save memorable moments
+      // Mise à jour mémoire complète (souvenirs + arc relationnel + résumé)
       try {
+        const finalMessagesForMemory = [...updatedMessages, { role: 'assistant', content: response }];
+        // 1. Souvenir clé si moment marquant
         const memory = MemoryService.extractMemoryFromMessage(character.name, response, userMessageContent);
-        if (memory) {
-          await MemoryService.saveMemory(character.id, memory);
-          const updatedMp = await MemoryService.getMemoriesPrompt(character.id);
-          setMemoriesPrompt(updatedMp);
-        }
-      } catch (e) { console.log('⚠️ Sauvegarde mémoire:', e.message); }
+        if (memory) await MemoryService.saveMemory(character.id, memory);
+        // 2. Arc relationnel (événements fondateurs + ton)
+        await MemoryService.updateRelationshipArc(character.id, response, userMessageContent, newRelationship, finalMessagesForMemory);
+        // 3. Résumé récent glissant
+        await MemoryService.updateRecentSummary(character.id, finalMessagesForMemory);
+        // 4. Rafraîchir le contexte complet pour la prochaine réponse
+        const updatedMp = await MemoryService.getFullContext(character.id, newRelationship);
+        setMemoriesPrompt(updatedMp);
+      } catch (e) { console.log('⚠️ Mémoire:', e.message); }
 
       // Vérification de la réponse
       if (!response || typeof response !== 'string') {
