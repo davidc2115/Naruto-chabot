@@ -183,7 +183,7 @@ Contenu adulte accueilli naturellement quand la situation l'amène.`;
     const apiMessages = [
       { role: 'system', content: systemPrompt },
       ...messages
-        .slice(-20)
+        .slice(-80)
         .map(m => ({
           role: m.role === 'user' ? 'user' : (m.role === 'assistant' ? 'assistant' : null),
           content: m.content,
