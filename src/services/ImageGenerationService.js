@@ -146,8 +146,24 @@ class ImageGenerationService {
     const gender = character.gender === 'male' ? 'handsome man' : 'beautiful woman';
     const appearance = (character.appearance || character.physicalDescription || '').substring(0, 200);
     const bodyType = character.bodyType || '';
+    const height = character.height ? `${character.height}cm tall` : '';
     const bust = character.bust || character.bustSize || '';
     const physicalExtra = character.gender === 'female' && bust ? `, ${bust} cup bust` : '';
+    
+    // Détails physiques supplémentaires pour plus de précision
+    const hair = character.hair || character.hairColor || '';
+    const hairStyle = character.hairStyle || '';
+    const eyes = character.eyes || character.eyeColor || '';
+    const skin = character.skin || character.skinTone || '';
+    
+    // Construction détaillée de l'apparence
+    let detailedAppearance = appearance;
+    if (hair) detailedAppearance += `, ${hair} hair`;
+    if (hairStyle) detailedAppearance += `, ${hairStyle} hairstyle`;
+    if (eyes) detailedAppearance += `, ${eyes} eyes`;
+    if (skin) detailedAppearance += `, ${skin} skin`;
+    if (height) detailedAppearance += `, ${height}`;
+    if (bodyType) detailedAppearance += `, ${bodyType} build`;
 
     // Sélection aléatoire des variations pour plus de diversité
     const randomScene = this.getRandomElement(this.scenes);
@@ -191,12 +207,12 @@ class ImageGenerationService {
 
     const stylePart = styleMap[style] || styleMap.portrait;
     
-    // Construction du prompt avec variations aléatoires
-    const base = appearance
-      ? `${appearance}, ${randomOutfit}, ${randomPose}, ${randomScene}, ${randomCamera}, ${randomLighting}, ${randomMood}${bodyType ? ', ' + bodyType + ' build' : ''}${physicalExtra}, ${stylePart}`
-      : `${gender}, ${randomOutfit}, ${randomPose}, ${randomScene}, ${randomCamera}, ${randomLighting}, ${randomMood}${bodyType ? ', ' + bodyType : ''}${physicalExtra}, ${stylePart}`;
+    // Construction du prompt avec variations aléatoires et détails physiques complets
+    const base = detailedAppearance
+      ? `${detailedAppearance}${physicalExtra}, ${randomOutfit}, ${randomPose}, ${randomScene}, ${randomCamera}, ${randomLighting}, ${randomMood}, ${stylePart}`
+      : `${gender}, ${randomOutfit}, ${randomPose}, ${randomScene}, ${randomCamera}, ${randomLighting}, ${randomMood}${physicalExtra}, ${stylePart}`;
 
-    return base + ', highly detailed, 8k, masterpiece, best quality, sharp focus, photorealistic';
+    return base + ', highly detailed, 8k, masterpiece, best quality, sharp focus, photorealistic, accurate facial features';
   }
 
   buildScenePromptText(character, messages, relationLevel, imageType) {
@@ -228,18 +244,35 @@ class ImageGenerationService {
     else if (relationLevel >= 5) styleLevel = 'flirtatious smile, elegant outfit, warm lighting';
     else if (relationLevel >= 3) styleLevel = 'friendly smile, casual outfit, natural pose';
 
+    // Détails physiques détaillés pour ressemblance au personnage
     const appearance = (character.appearance || character.physicalDescription || '').substring(0, 200);
     const bodyType = character.bodyType || '';
+    const height = character.height ? `${character.height}cm tall` : '';
     const bust = character.bust || character.bustSize || '';
     const physicalExtra = character.gender === 'female' && bust ? `, ${bust} cup bust` : '';
+    
+    const hair = character.hair || character.hairColor || '';
+    const hairStyle = character.hairStyle || '';
+    const eyes = character.eyes || character.eyeColor || '';
+    const skin = character.skin || character.skinTone || '';
+    
+    // Construction détaillée de l'apparence
+    let detailedAppearance = appearance;
+    if (hair) detailedAppearance += `, ${hair} hair`;
+    if (hairStyle) detailedAppearance += `, ${hairStyle} hairstyle`;
+    if (eyes) detailedAppearance += `, ${eyes} eyes`;
+    if (skin) detailedAppearance += `, ${skin} skin`;
+    if (height) detailedAppearance += `, ${height}`;
+    if (bodyType) detailedAppearance += `, ${bodyType} build`;
+    
     const gender = character.gender === 'male' ? 'handsome man' : 'beautiful woman';
 
-    // Construction du prompt avec variations aléatoires
-    const base = appearance
-      ? `${appearance}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}${bodyType ? ', ' + bodyType : ''}${physicalExtra}, ${styleLevel}`
-      : `${gender}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}${bodyType ? ', ' + bodyType : ''}${physicalExtra}, ${styleLevel}`;
+    // Construction du prompt avec variations aléatoires et détails physiques complets
+    const base = detailedAppearance
+      ? `${detailedAppearance}${physicalExtra}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}, ${styleLevel}`
+      : `${gender}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}${physicalExtra}, ${styleLevel}`;
 
-    return base + ', highly detailed, 8k, masterpiece, best quality, photorealistic, sharp focus';
+    return base + ', highly detailed, 8k, masterpiece, best quality, photorealistic, sharp focus, accurate facial features';
   }
 
   // ─── Pollinations (PRIMARY — rapide, sans clé) ─────────────────────────────
