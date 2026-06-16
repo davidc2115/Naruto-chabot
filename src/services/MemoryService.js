@@ -1,160 +1,223 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
- * MemoryService v1.0 - Mémoire persistante par personnage
+ * MemoryService v2.0 — Mémoire Relationnelle Complète
  *
- * Enregistre automatiquement les moments clés des conversations
- * et les injecte dans le prompt système pour que l'IA s'en souvienne.
+ * 3 niveaux de mémoire :
+ *   1. SOUVENIRS CLÉS   — moments marquants extraits automatiquement
+ *   2. ARC RELATIONNEL  — évolution de la relation, ton actuel, événements fondateurs
+ *   3. RÉSUMÉ RÉCENT    — condensé des 30 derniers échanges (glissant)
+ *
+ * → getFullContext() retourne un bloc injecté dans chaque prompt système.
  */
 
-const MAX_MEMORIES_PER_CHARACTER = 30;
-const MEMORY_KEY_PREFIX = 'char_memories_';
+const MAX_MEMORIES = 40;
+const MAX_ARC_EVENTS = 20;
+const SUMMARY_WINDOW = 30;
 
-// Patterns déclencheurs de souvenirs (dans les réponses de l'IA)
+const KEYS = {
+  memories: (id) => `char_memories_${id}`,
+  arc:      (id) => `char_arc_${id}`,
+  summary:  (id) => `char_summary_${id}`,
+};
+
 const MEMORY_TRIGGERS = [
-  // Aveux et déclarations
-  /je t[e']? ?aim/i,
-  /je vous aim/i,
+  /je t[e']? ?aim/i, /je vous aim/i, /tu me manques/i,
+  /je n['']? ?oublierai jamais/i, /c[''']est la première fois/i,
+  /je n['']? ?ai jamais dit ça/i, /je te fais confiance/i,
   /je ressens quelque chose/i,
-  /tu me manques/i,
-  /je n['']? ?oublierai jamais/i,
-  /c[''']est la première fois/i,
-  /je n['']? ?ai jamais dit ça/i,
-  /je te fais confiance/i,
-  // Révélations personnelles
-  /personne ne sait/i,
-  /je n['']? ?ai jamais avoué/i,
-  /mon secret/i,
-  /je cache/i,
-  /en vérité/i,
-  // Moments de tension / intimité
+  /personne ne sait/i, /je n['']? ?ai jamais avoué/i,
+  /mon secret/i, /en vérité/i,
   /\*(?:embrasse|serre dans ses bras|prend la main|effleure|caresse|s[''']approche très près)\*/i,
   /\*(?:pleure|les larmes|les yeux brillants|la voix brisée)\*/i,
-  /\*(?:sourit pour la première fois|rit vraiment)\*/i,
-  // Décisions importantes
-  /je resterai/i,
-  /je partirai jamais/i,
-  /je veux qu['']on/i,
-  /à partir de maintenant/i,
-  /quelque chose a changé/i,
+  /\*(?:sourit pour la première fois|rit vraiment|le cœur s[''']emballe)\*/i,
+  /je resterai/i, /je partirai jamais/i, /à partir de maintenant/i,
+  /quelque chose a changé/i, /je veux qu['']on/i,
+  /\*(?:enlève|retire|déboutonne|soulève|glisse)\*/i,
+  /\*(?:gémit|soupire profondément|frissonne|tremble légèrement)\*/i,
+  /je t[e']? ?veux/i, /viens avec moi/i,
+  /je ne te pardonnerai jamais/i, /je suis désolé[e]?/i,
+  /comment as-tu pu/i, /je t[e']? ?ai menti/i,
 ];
 
+function detectTone(recentMessages) {
+  const text = (recentMessages || []).slice(-6).map(m => m.content || '').join(' ').toLowerCase();
+  if (text.match(/aime|baise|nud|désir|corps|touche|sent bon/)) return 'intime et sensuel';
+  if (text.match(/embrasse|serre|câlin|tendre|doux/)) return 'tendre et proche';
+  if (text.match(/jaloux|colère|cris|dispute|blessé/)) return 'tendu / conflictuel';
+  if (text.match(/rit|taquine|drôle|sourire|malicieux/)) return 'complice et joueur';
+  if (text.match(/secret|mélancolie|doute|peur|vulnérable/)) return 'vulnérable et sincère';
+  return 'neutre';
+}
+
 class MemoryService {
-  /**
-   * Analyse un message IA et retourne un souvenir condensé s'il est mémorable.
-   */
+
+  // ══════════════════════════════════════════
+  // SOUVENIRS CLÉS
+  // ══════════════════════════════════════════
+
   extractMemoryFromMessage(characterName, aiMessage, userMessage) {
     if (!aiMessage || aiMessage.length < 30) return null;
+    if (!MEMORY_TRIGGERS.some(p => p.test(aiMessage))) return null;
 
-    const isMemorable = MEMORY_TRIGGERS.some(pattern => pattern.test(aiMessage));
-    if (!isMemorable) return null;
-
-    // Condenser le souvenir : garder les 200 premiers caractères pertinents
-    const cleaned = aiMessage
-      .replace(/\n+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    // Résumé du contexte utilisateur
-    const userContext = userMessage
-      ? `(${userMessage.substring(0, 60).trim()}${userMessage.length > 60 ? '…' : ''})`
+    const cleaned = aiMessage.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+    const userCtx = userMessage
+      ? `(${userMessage.substring(0, 60).trim()}${userMessage.length > 60 ? '…' : ''}) → `
       : '';
 
     return {
       id: Date.now().toString(36),
       timestamp: new Date().toISOString(),
-      userContext,
-      content: cleaned.substring(0, 220),
       date: new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }),
+      content: userCtx + cleaned.substring(0, 240),
     };
   }
 
-  /**
-   * Sauvegarde un souvenir pour un personnage donné.
-   */
   async saveMemory(characterId, memory) {
     if (!characterId || !memory) return;
     try {
-      const key = MEMORY_KEY_PREFIX + characterId;
       const existing = await this.getMemories(characterId);
-      const updated = [memory, ...existing].slice(0, MAX_MEMORIES_PER_CHARACTER);
-      await AsyncStorage.setItem(key, JSON.stringify(updated));
-    } catch (e) {
-      console.error('MemoryService.saveMemory error:', e);
-    }
+      const isDup = existing.some(m => m.content.substring(0, 80) === memory.content.substring(0, 80));
+      if (isDup) return;
+      await AsyncStorage.setItem(KEYS.memories(characterId), JSON.stringify([memory, ...existing].slice(0, MAX_MEMORIES)));
+    } catch {}
   }
 
-  /**
-   * Récupère tous les souvenirs d'un personnage.
-   */
   async getMemories(characterId) {
     if (!characterId) return [];
     try {
-      const raw = await AsyncStorage.getItem(MEMORY_KEY_PREFIX + characterId);
+      const raw = await AsyncStorage.getItem(KEYS.memories(characterId));
       return raw ? JSON.parse(raw) : [];
-    } catch (e) {
-      return [];
-    }
+    } catch { return []; }
   }
 
-  /**
-   * Retourne un bloc texte formaté pour injection dans le prompt système.
-   */
+  // ══════════════════════════════════════════
+  // ARC RELATIONNEL
+  // ══════════════════════════════════════════
+
+  async updateRelationshipArc(characterId, aiResponse, userMessage, relationship, recentMessages) {
+    if (!characterId) return;
+    try {
+      const arc = await this._getArc(characterId) || { events: [], currentTone: 'neutre', lastUpdated: null };
+
+      if (MEMORY_TRIGGERS.some(p => p.test(aiResponse))) {
+        const clean = aiResponse.replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+        const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+        const level = relationship?.level || 1;
+        const userCtx = userMessage ? `"${userMessage.substring(0, 50)}" → ` : '';
+        const event = `[Niv.${level} — ${date}] ${userCtx}${clean.substring(0, 180)}`;
+        arc.events = [event, ...arc.events].slice(0, MAX_ARC_EVENTS);
+      }
+
+      const interactions = relationship?.interactions || 0;
+      if (interactions % 5 === 0 || !arc.lastUpdated) {
+        arc.currentTone = detectTone(recentMessages || []);
+      }
+      arc.lastUpdated = new Date().toISOString();
+      if (relationship) {
+        arc.lastRelation = {
+          level: relationship.level, affection: relationship.affection,
+          trust: relationship.trust, interactions: relationship.interactions,
+        };
+      }
+      await AsyncStorage.setItem(KEYS.arc(characterId), JSON.stringify(arc));
+    } catch {}
+  }
+
+  async _getArc(characterId) {
+    try {
+      const raw = await AsyncStorage.getItem(KEYS.arc(characterId));
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  // ══════════════════════════════════════════
+  // RÉSUMÉ RÉCENT (fenêtre glissante)
+  // ══════════════════════════════════════════
+
+  async updateRecentSummary(characterId, messages) {
+    if (!characterId || !messages?.length) return;
+    try {
+      const recent = messages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .slice(-SUMMARY_WINDOW);
+      const condensed = recent.map(m => {
+        const who = m.role === 'user' ? 'Toi' : 'Lui/Elle';
+        return `${who}: ${(m.content || '').substring(0, 100).replace(/\n/g, ' ')}`;
+      }).join('\n');
+      await AsyncStorage.setItem(KEYS.summary(characterId), condensed.substring(0, 2000));
+    } catch {}
+  }
+
+  // ══════════════════════════════════════════
+  // CONTEXT COMPLET — injection dans le prompt
+  // ══════════════════════════════════════════
+
+  async getFullContext(characterId, relationship) {
+    const blocks = [];
+    const arc = await this._getArc(characterId);
+    const rel = arc?.lastRelation || relationship;
+
+    // 1. État relation
+    if (rel) {
+      const tone = arc?.currentTone || 'neutre';
+      blocks.push(
+        `━━━━━━━━━━━━━━━━━━━━━━━━\nÉTAT DE NOTRE RELATION\n━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `Niveau ${rel.level || 1} | ${rel.interactions || 0} échanges | Affection ${rel.affection || 0}% | Confiance ${rel.trust || 0}%\n` +
+        `Ton actuel : ${tone}`
+      );
+    }
+
+    // 2. Tournants / événements clés
+    if (arc?.events?.length) {
+      const lines = arc.events.slice(0, 8).map(e => `• ${e.substring(0, 200)}`).join('\n');
+      blocks.push(`━━━━━━━━━━━━━━━━━━━━━━━━\nMOMENTS FONDATEURS\n━━━━━━━━━━━━━━━━━━━━━━━━\n${lines}`);
+    }
+
+    // 3. Souvenirs clés
+    const memories = await this.getMemories(characterId);
+    if (memories.length) {
+      const lines = memories.slice(0, 10).map(m => `• [${m.date}] ${m.content.substring(0, 200)}`).join('\n');
+      blocks.push(
+        `━━━━━━━━━━━━━━━━━━━━━━━━\nSOUVENIRS IMPORTANTS\n(Fais-y référence naturellement si pertinent)\n━━━━━━━━━━━━━━━━━━━━━━━━\n${lines}`
+      );
+    }
+
+    return blocks.join('\n\n');
+  }
+
+  // Compatibilité avec l'ancien code
   async getMemoriesPrompt(characterId) {
     const memories = await this.getMemories(characterId);
     if (!memories.length) return '';
-
-    const lines = memories
-      .slice(0, 12)
-      .map(m => `• [${m.date}] ${m.content.substring(0, 180)}`)
-      .join('\n');
-
-    return `━━━━━━━━━━━━━━━━━━━━━━━━
-SOUVENIRS DE TES CONVERSATIONS PRÉCÉDENTES
-(Tu te souviens de ces moments — fais-y référence naturellement si c'est pertinent)
-━━━━━━━━━━━━━━━━━━━━━━━━
-${lines}`;
+    const lines = memories.slice(0, 12).map(m => `• [${m.date}] ${m.content.substring(0, 180)}`).join('\n');
+    return `━━━━━━━━━━━━━━━━━━━━━━━━\nSOUVENIRS\n━━━━━━━━━━━━━━━━━━━━━━━━\n${lines}`;
   }
 
-  /**
-   * Supprime tous les souvenirs d'un personnage spécifique.
-   */
   async clearCharacterMemories(characterId) {
-    await AsyncStorage.removeItem(MEMORY_KEY_PREFIX + characterId);
+    await AsyncStorage.multiRemove([
+      KEYS.memories(characterId), KEYS.arc(characterId), KEYS.summary(characterId),
+    ]).catch(() => {});
   }
 
-  /**
-   * Supprime tous les souvenirs de tous les personnages.
-   */
   async clearAllMemories() {
     try {
       const keys = await AsyncStorage.getAllKeys();
-      const memoryKeys = keys.filter(k => k.startsWith(MEMORY_KEY_PREFIX));
-      if (memoryKeys.length) await AsyncStorage.multiRemove(memoryKeys);
-    } catch (e) {
-      console.error('MemoryService.clearAllMemories error:', e);
-    }
+      const toRemove = keys.filter(k => k.startsWith('char_memories_') || k.startsWith('char_arc_') || k.startsWith('char_summary_'));
+      if (toRemove.length) await AsyncStorage.multiRemove(toRemove);
+    } catch {}
   }
 
-  /**
-   * Compte le total de souvenirs enregistrés (pour les stats).
-   */
   async getTotalMemoriesCount() {
     try {
       const keys = await AsyncStorage.getAllKeys();
-      const memoryKeys = keys.filter(k => k.startsWith(MEMORY_KEY_PREFIX));
       let total = 0;
-      for (const key of memoryKeys) {
-        const raw = await AsyncStorage.getItem(key);
-        if (raw) {
-          const arr = JSON.parse(raw);
-          total += arr.length;
-        }
+      for (const k of keys.filter(k => k.startsWith('char_memories_'))) {
+        const raw = await AsyncStorage.getItem(k);
+        if (raw) total += JSON.parse(raw).length;
       }
       return total;
-    } catch (e) {
-      return 0;
-    }
+    } catch { return 0; }
   }
 }
 
