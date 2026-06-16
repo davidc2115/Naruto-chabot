@@ -6,6 +6,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import GroqService from '../services/GroqService';
 import MemoryService from '../services/MemoryService';
+import ApiServerService from '../services/ApiServerService';
 
 export default function AdminPanelScreen() {
   const [groqKeys, setGroqKeys] = useState([]);
@@ -16,6 +17,10 @@ export default function AdminPanelScreen() {
   const [testResult, setTestResult] = useState(null);
   const [memoriesCount, setMemoriesCount] = useState(0);
   const [activeSection, setActiveSection] = useState('groq');
+  const [serverUrl, setServerUrl] = useState('');
+  const [serverUrlInput, setServerUrlInput] = useState('');
+  const [testingServer, setTestingServer] = useState(false);
+  const [serverTestResult, setServerTestResult] = useState(null);
 
   useEffect(() => {
     loadSettings();
@@ -30,6 +35,9 @@ export default function AdminPanelScreen() {
       const hordeKey = await AsyncStorage.getItem('stable_horde_key');
       if (hordeKey) setStableHordeKey(hordeKey);
       const count = await MemoryService.getTotalMemoriesCount();
+      const sUrl = await ApiServerService.getServerUrl();
+      setServerUrl(sUrl || '');
+      setServerUrlInput(sUrl || '');
       setMemoriesCount(count);
     } catch (e) {
       console.error('Erreur chargement paramètres:', e);
@@ -116,6 +124,33 @@ export default function AdminPanelScreen() {
     );
   };
 
+  const saveServerUrl = async () => {
+    const url = serverUrlInput.trim();
+    await ApiServerService.setServerUrl(url || '');
+    setServerUrl(url || '');
+    setServerTestResult(null);
+    Alert.alert(url ? '✅ URL serveur sauvegardée' : '✅ URL effacée', url ? 'L'app utilisera ce serveur pour générer les réponses.' : 'Retour en mode clé Groq locale.');
+  };
+
+  const testServerConnection = async () => {
+    const url = serverUrlInput.trim();
+    if (!url) {
+      Alert.alert('URL vide', 'Entrez une URL serveur avant de tester.');
+      return;
+    }
+    setTestingServer(true);
+    setServerTestResult(null);
+    try {
+      await ApiServerService.setServerUrl(url);
+      const ok = await ApiServerService.isServerAvailable();
+      setServerTestResult({ ok, message: ok ? '✅ Serveur connecté et opérationnel !' : '❌ Serveur inaccessible — vérifiez l'URL' });
+    } catch (e) {
+      setServerTestResult({ ok: false, message: `❌ Erreur: ${e.message}` });
+    } finally {
+      setTestingServer(false);
+    }
+  };
+
   const SectionBtn = ({ id, label, icon }) => (
     <TouchableOpacity
       style={[styles.sectionBtn, activeSection === id && styles.sectionBtnActive]}
@@ -136,6 +171,7 @@ export default function AdminPanelScreen() {
 
         <View style={styles.sectionTabs}>
           <SectionBtn id="groq" label="Groq IA" icon="🤖" />
+          <SectionBtn id="serveur" label="Serveur" icon="🌐" />
           <SectionBtn id="image" label="Images" icon="🎨" />
           <SectionBtn id="memory" label="Mémoire" icon="🧠" />
         </View>
@@ -251,6 +287,67 @@ export default function AdminPanelScreen() {
                   2. L'image est générée selon le contexte de la conversation et votre niveau de relation avec le personnage{'\n'}
                   3. L'image est sauvegardée automatiquement dans la galerie{'\n\n'}
                   Délai moyen : 30 à 120 secondes selon la file d'attente du réseau Stable Horde.
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {activeSection === 'serveur' && (
+            <View>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>🌐 Serveur IA intégré</Text>
+                <Text style={styles.infoText}>
+                  Si un serveur Replit est déployé, l'app l'utilise automatiquement — aucune clé Groq requise.{'
+
+'}
+                  Laissez vide pour utiliser uniquement votre clé Groq locale.
+                </Text>
+              </View>
+
+              <Text style={styles.sectionLabel}>🔗 URL du serveur</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.keyInput}
+                  value={serverUrlInput}
+                  onChangeText={setServerUrlInput}
+                  placeholder="https://mon-serveur.replit.app"
+                  placeholderTextColor="#444"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="url"
+                />
+                <TouchableOpacity style={styles.addBtn} onPress={saveServerUrl}>
+                  <Text style={styles.addBtnText}>✓</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.testBtn, testingServer && { opacity: 0.6 }]}
+                onPress={testServerConnection}
+                disabled={testingServer}
+              >
+                <Text style={styles.testBtnText}>{testingServer ? 'Test en cours…' : '⚡ Tester la connexion serveur'}</Text>
+              </TouchableOpacity>
+
+              {serverTestResult && (
+                <View style={[styles.testResult, { borderColor: serverTestResult.ok ? '#22c55e' : '#ef4444' }]}>
+                  <Text style={{ color: serverTestResult.ok ? '#22c55e' : '#ef4444', fontSize: 13 }}>
+                    {serverTestResult.message}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>ℹ️ Comment ça marche ?</Text>
+                <Text style={styles.infoText}>
+                  1. Le serveur Replit héberge la clé Groq de manière sécurisée{'
+'}
+                  2. L'app envoie les messages au serveur{'
+'}
+                  3. Le serveur génère la réponse et la retourne{'
+
+'}
+                  Cela permet à tous les utilisateurs de profiter de l'IA sans configurer de clé.
                 </Text>
               </View>
             </View>
