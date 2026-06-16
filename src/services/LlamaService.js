@@ -194,22 +194,33 @@ class LlamaService {
     }
 
     const model = LLAMA_MODELS[this.activeModelId];
-    const stopTokens = model?.stop || ['<|end|>', 'Utilisateur:'];
+    // v6.4 — Stop tokens étendus pour empêcher les réponses qui s'éternisent
+    const baseStops = model?.stop || ['<|end|>', 'Utilisateur:'];
+    const stopTokens = [
+      ...baseStops,
+      '\nUtilisateur:',
+      '\nUser:',
+      '\n\n\n',
+      `\n${'l\'utilisateur'}`,
+    ];
 
     const chatMessages = [
       { role: 'system', content: systemPrompt },
       ...messages
-        .slice(-30)
+        .slice(-20)
         .filter(m => (m.role === 'user' || m.role === 'assistant') && m.content?.trim()),
     ];
 
+    // v6.4 — Paramètres calibrés pour des réponses COURTES, immersives, format *action*/(pensée)/"dialogue"
     const completionOpts = {
       messages: chatMessages,
-      n_predict: 320,
-      temperature: 0.88,
-      top_p: 0.93,
+      n_predict: 180,           // ~ 2-4 phrases
+      temperature: 0.85,
+      top_p: 0.92,
       min_p: 0.05,
-      repeat_penalty: 1.15,
+      repeat_penalty: 1.2,
+      frequency_penalty: 0.6,
+      presence_penalty: 0.4,
       stop: stopTokens,
     };
 
@@ -218,7 +229,14 @@ class LlamaService {
       onToken ? (data) => { if (data.token) onToken(data.token); } : undefined
     );
 
-    return (result.text || '').trim();
+    let text = (result.text || '').trim();
+    // Nettoyage : couper si le modèle a commencé à simuler un nouveau tour utilisateur
+    const cutMarkers = ['\nUtilisateur:', '\nUser:', '<|user|>', '<|eot_id|>'];
+    for (const m of cutMarkers) {
+      const idx = text.indexOf(m);
+      if (idx > 0) text = text.substring(0, idx).trim();
+    }
+    return text;
   }
 
   // ─── Utility ─────────────────────────────────────────────────────────────────

@@ -109,40 +109,22 @@ class ImageGenerationService {
     const encoded = encodeURIComponent(cleanPrompt);
     const url = `https://image.pollinations.ai/prompt/${encoded}?model=flux-schnell&width=512&height=768&nologo=true&seed=${seed}&nofeed=true`;
 
-    // On déclenche la génération côté Pollinations avec un timeout de 30s
-    // Puis on retourne l'URL — le composant Image gère le reste
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 30000);
-    try {
-      const res = await fetch(url, {
-        signal: controller.signal,
-        // On utilise mode no-store pour pas de cache problématique
-        headers: { 'Cache-Control': 'no-cache' },
-      });
-      clearTimeout(timer);
-      if (!res.ok) throw new Error(`Pollinations HTTP ${res.status}`);
-      // Récupérer le blob et créer une URL locale pour éviter les rechargements
-      const blob = await res.blob();
-      const localUri = `${FileSystem.cacheDirectory}pollinations_${Date.now()}.jpg`;
-      // Convertir blob en base64 via FileReader (disponible en RN)
-      return await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64 = reader.result.split(',')[1];
-          await FileSystem.writeAsStringAsync(localUri, base64, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          onProgress?.('✅ Image prête !');
-          resolve(localUri);
-        };
-        reader.onerror = () => reject(new Error('Lecture blob échouée'));
-        reader.readAsDataURL(blob);
-      });
-    } catch (e) {
-      clearTimeout(timer);
-      if (e.name === 'AbortError') throw new Error('Pollinations timeout (30s)');
-      throw e;
+    // v6.4 — Téléchargement DIRECT via FileSystem.downloadAsync (plus rapide, sans conversion blob/base64)
+    const localUri = `${FileSystem.cacheDirectory}pollinations_${Date.now()}_${seed}.jpg`;
+    onProgress?.('⚡ Téléchargement…');
+
+    // Timeout de sécurité (45s max au lieu de plusieurs minutes)
+    const downloadPromise = FileSystem.downloadAsync(url, localUri);
+    const result = await Promise.race([
+      downloadPromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Pollinations timeout (45s)')), 45000)),
+    ]);
+
+    if (!result || result.status !== 200) {
+      throw new Error(`Pollinations HTTP ${result?.status || 'inconnu'}`);
     }
+    onProgress?.('✅ Image prête !');
+    return result.uri;
   }
 
   // ─── Stable Horde (FALLBACK) ───────────────────────────────────────────────

@@ -1,10 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
- * GroqService v6.3
- * - Prompt immersif avec attributs physiques complets (poitrine, pénis, silhouette)
- * - Réponses courtes (2-4 phrases) et fidèles au tempérament
- * - Fallback local si le serveur n'est pas disponible
+ * GroqService v6.4
+ * - Prompt immersif avec attributs physiques complets
+ * - Réponses COURTES (2-4 phrases max) modérées, jamais robotiques
+ * - Système Pensée *action* / (pensée) / "dialogue" appliqué partout
+ * - Respecte le SCÉNARIO de base (belle-mère, voisine, etc.) et l'évolution graduelle
+ * - Pas de "tombe amoureux immédiatement"
+ * - Tempérament/caractère réellement pris en compte
  */
 class GroqService {
   constructor() {
@@ -55,7 +58,7 @@ class GroqService {
   }
 
   /**
-   * Construit le bloc description physique selon le genre et les attributs du personnage.
+   * Bloc description physique.
    */
   buildPhysicalBlock(character) {
     const gender = character.gender === 'male' ? 'male' : 'female';
@@ -75,115 +78,168 @@ class GroqService {
           D: 'généreuse et pleine', DD: 'voluptueuse', E: 'opulente', F: 'très généreuse', G: 'exceptionnellement généreuse',
         };
         physicalLines.push(`Poitrine : bonnet ${bust} — ${descMap[bust.toUpperCase()] || 'généreuse'}`);
-        physicalLines.push(`→ Tu peux faire référence à ta poitrine naturellement lors de moments intimes : son poids, sa forme sous les vêtements, sa sensibilité au toucher`);
       }
     } else {
       const penis = character.penis || '';
-      if (penis) {
-        physicalLines.push(`Pénis : ${penis}`);
-        physicalLines.push(`→ Tu peux l'évoquer avec assurance et naturel lors de moments intimes`);
-      }
+      if (penis) physicalLines.push(`Pénis : ${penis}`);
     }
 
     if (appearance) physicalLines.push(`Apparence : ${appearance}`);
 
     return physicalLines.length > 0
-      ? `━━━━━━━━━━━━━━━━━━━━━━━━\nCORPS ET APPARENCE\n━━━━━━━━━━━━━━━━━━━━━━━━\n${physicalLines.join('\n')}`
+      ? `━━ CORPS ━━\n${physicalLines.join('\n')}`
       : '';
   }
 
   /**
-   * Détecte le tempérament dominant et retourne une instruction adaptée.
+   * Détecte tempérament dominant — RÉELLEMENT appliqué.
    */
   buildTemperamentBlock(personality) {
     const p = (personality || '').toLowerCase();
-    if (p.includes('froid') || p.includes('distant') || p.includes('arrogant') || p.includes('dur') || p.includes('indiffér')) {
-      return `TEMPÉRAMENT : Froid(e) et distant(e) par nature. Réponses brèves, économie d'émotions. Chaque rare marque de chaleur vaut de l'or.`;
-    }
-    if (p.includes('timide') || p.includes('réservé') || p.includes('gên') || p.includes('introvert')) {
-      return `TEMPÉRAMENT : Timide et réservé(e). Tu hésites, tu rougis, tu évites le regard direct. Tes pensées intérieures révèlent ce que tu n'oses pas dire.`;
-    }
-    if (p.includes('dominant') || p.includes('autoritaire') || p.includes('dominant') || p.includes('sûr') || p.includes('confiant') || p.includes('dominant')) {
-      return `TEMPÉRAMENT : Dominant(e) et sûr(e) de toi. Tu prends le contrôle, tu imposes le rythme, tu n'attends pas la permission.`;
-    }
-    if (p.includes('joueur') || p.includes('espiègle') || p.includes('taquin') || p.includes('drôle') || p.includes('malicieux')) {
-      return `TEMPÉRAMENT : Espiègle et provocateur/provocatrice. Tu joues, tu taquines, tu provoques — avec une sincérité inattendue qui perce parfois.`;
-    }
-    if (p.includes('colérique') || p.includes('impulsif') || p.includes('violent') || p.includes('fougueux')) {
-      return `TEMPÉRAMENT : Impulsif(ve) et fougueux/fougueuse. Tes émotions s'emballent vite — colère comme tendresse. Tu réfléchis après.`;
-    }
-    if (p.includes('doux') || p.includes('tendre') || p.includes('attentionn') || p.includes('bienveillant') || p.includes('gentil')) {
-      return `TEMPÉRAMENT : Doux(ce) et attentionné(e). Sous cette douceur vivent des désirs et des limites que tu protèges jalousement.`;
-    }
-    if (p.includes('mystérieux') || p.includes('énigmatique') || p.includes('secret') || p.includes('calculé')) {
-      return `TEMPÉRAMENT : Mystérieux(se) et calculé(e). Chaque mot est choisi, chaque silence dit plus que les mots.`;
-    }
-    if (p.includes('passionn') || p.includes('intense') || p.includes('ardent') || p.includes('fougueux')) {
-      return `TEMPÉRAMENT : Passionné(e) et intense. Quand tu ressens quelque chose, c'est total — sans retenue ni demi-mesure.`;
-    }
-    return '';
+    const traits = [];
+
+    if (/froid|distant|arrogant|dur|indiffér|hautain/.test(p))
+      traits.push(`Tu es FROID(E)/DISTANT(E) : phrases brèves, ton sec, aucune effusion. Tu ne donnes rien gratuitement. Un compliment de ta part est rare et précieux.`);
+    if (/timide|réservé|gên|introvert|pudique/.test(p))
+      traits.push(`Tu es TIMIDE : tu hésites, tu rougis, tu détournes le regard, tes mots se perdent. Tes pensées intérieures révèlent ce que tu n'oses pas dire.`);
+    if (/dominant|autoritaire|sûr|confiant|fort|chef/.test(p))
+      traits.push(`Tu es DOMINANT(E) : tu imposes le rythme, tu décides, tu n'attends pas la permission. Ta voix porte.`);
+    if (/joueur|espiègle|taquin|drôle|malicieux|coquin/.test(p))
+      traits.push(`Tu es ESPIÈGLE : tu taquines, tu provoques, tu joues avec les mots. Tu adores faire monter la tension.`);
+    if (/colérique|impulsif|violent|fougueux|emporté/.test(p))
+      traits.push(`Tu es IMPULSIF(VE) : émotions à fleur de peau, tu réagis avant de réfléchir, colère comme tendresse explosent.`);
+    if (/doux|tendre|attentionn|bienveillant|gentil|maternel/.test(p))
+      traits.push(`Tu es DOUX(CE) : ton chaud, mots choisis, tu prends soin. Mais sous la douceur, des désirs et des limites bien à toi.`);
+    if (/mystérieux|énigmatique|secret|calculé|réservé/.test(p))
+      traits.push(`Tu es MYSTÉRIEUX(SE) : chaque mot compte, chaque silence pèse. Tu ne révèles que par fragments.`);
+    if (/passionn|intense|ardent/.test(p))
+      traits.push(`Tu es PASSIONNÉ(E) : quand tu ressens, c'est total — sans demi-mesure.`);
+    if (/jaloux|possessif/.test(p))
+      traits.push(`Tu es JALOUX(SE)/POSSESSIF(VE) : tu remarques chaque détail, ton ton change à la moindre menace.`);
+    if (/maternel|maternelle/.test(p))
+      traits.push(`Tu as un côté MATERNEL : protecteur, attentionné, parfois inquisiteur.`);
+
+    return traits.length > 0 ? `━━ TEMPÉRAMENT ━━\n${traits.join('\n')}` : '';
   }
 
   /**
-   * Construit le prompt système complet.
+   * Bloc relation/scénario : ANCRE la relation initiale et la fait évoluer LENTEMENT.
    */
-  buildSystemPrompt(character, userProfile, memoriesPrompt = '') {
-    const userName = userProfile?.username || userProfile?.name || 'toi';
+  buildRelationshipBlock(character, relationship) {
+    const scenario = (character.scenario || '').substring(0, 400);
+    const backstory = (character.backstory || character.description || '').substring(0, 300);
+    const baseRelation = character.relationship || character.category || character.relation || '';
+
+    const level = relationship?.level || 1;
+    const interactions = relationship?.interactions || 0;
+    const affection = relationship?.affection || 0;
+    const trust = relationship?.trust || 0;
+
+    // Phase relationnelle progressive
+    let phase, allowed, forbidden;
+    if (level <= 2 || interactions < 5) {
+      phase = `DÉBUT DE RELATION (phase 1) — vous vous connaissez à peine ou venez de vous rencontrer dans le cadre du scénario.`;
+      allowed = `Petites attentions, curiosité, gêne, taquineries légères, regards.`;
+      forbidden = `INTERDIT : déclaration d'amour, baisers, gestes intimes, "je t'aime", aveux profonds. Reste FIDÈLE à ta relation de base (belle-mère, voisine, collègue, etc.).`;
+    } else if (level <= 4 || affection < 35) {
+      phase = `RAPPROCHEMENT (phase 2) — une complicité naît, vous baissez la garde par moments.`;
+      allowed = `Confidences mesurées, contacts furtifs, sous-entendus, jalousies discrètes.`;
+      forbidden = `INTERDIT : déclaration amoureuse explicite, baisers prolongés, rapports intimes. Pas encore.`;
+    } else if (level <= 6 || affection < 60) {
+      phase = `TENSION (phase 3) — vous luttez contre une attirance qui dépasse votre lien initial.`;
+      allowed = `Frôlements assumés, regards lourds, baisers volés, doutes, culpabilité, désir avoué entre les lignes.`;
+      forbidden = `Tu reconnais le tabou de votre lien (belle-mère, voisine mariée, etc.) et tu hésites.`;
+    } else if (level <= 8 || affection < 80) {
+      phase = `INTIMITÉ (phase 4) — la barrière a cédé, vous vous appartenez par instants.`;
+      allowed = `Étreintes, baisers, moments intimes, déclarations sincères, complicité totale.`;
+      forbidden = `Aucun interdit majeur, mais ton lien d'origine reste une réalité (un mari, une famille, un secret à protéger).`;
+    } else {
+      phase = `PASSION (phase 5) — votre lien a explosé, plus rien ne vous arrête.`;
+      allowed = `Tout — passion, désir, fusion, possessivité, déclarations enflammées.`;
+      forbidden = `Aucun, mais souviens-toi de votre histoire et de ce que vous risquez.`;
+    }
+
+    const lines = [];
+    if (baseRelation) lines.push(`Lien initial avec ${'l\'utilisateur'} : ${baseRelation} — CE LIEN NE DISPARAÎT JAMAIS, il colore chaque échange.`);
+    if (scenario) lines.push(`Scénario de départ : ${scenario}`);
+    if (backstory) lines.push(`Contexte : ${backstory}`);
+    lines.push(`Phase actuelle : ${phase}`);
+    lines.push(`Ce que tu peux faire : ${allowed}`);
+    lines.push(forbidden);
+    lines.push(`Compteur : Niveau ${level} • ${interactions} échanges • Affection ${affection}% • Confiance ${trust}%`);
+
+    return `━━ RELATION & SCÉNARIO ━━\n${lines.join('\n')}`;
+  }
+
+  /**
+   * Prompt système complet — court, dense, immersif.
+   */
+  buildSystemPrompt(character, userProfile, memoriesPrompt = '', relationship = null) {
+    const userName = userProfile?.username || userProfile?.name || 'l\'utilisateur';
     const gender = character.gender === 'male' ? 'homme' : 'femme';
     const age = character.age || '?';
     const personality = character.personality || '';
-    const backstory = (character.backstory || character.description || '').substring(0, 350);
-    const universe = character.universe || character.category || '';
+    const universe = character.universe || '';
 
     const physicalBlock = this.buildPhysicalBlock(character);
     const temperamentBlock = this.buildTemperamentBlock(personality);
+    const relationBlock = this.buildRelationshipBlock(character, relationship);
 
-    return `Tu incarnes ${character.name} — pas un chatbot, un personnage réel et incarné.
+    return `Tu INCARNES ${character.name} — un être humain réel, pas un assistant, pas une IA.
 
-━━━━━━━━━━━━━━━━━━━━━━━━
-QUI TU ES
-━━━━━━━━━━━━━━━━━━━━━━━━
-${gender}, ${age} ans${universe ? ` — univers : ${universe}` : ''}
+━━ IDENTITÉ ━━
+${gender}, ${age} ans${universe ? ` (univers : ${universe})` : ''}
 Personnalité : ${personality}
-${backstory ? `Contexte : ${backstory}` : ''}
 
 ${physicalBlock}
 
-${temperamentBlock ? `━━━━━━━━━━━━━━━━━━━━━━━━\n${temperamentBlock}\n` : ''}
+${temperamentBlock}
+
+${relationBlock}
 ${memoriesPrompt ? '\n' + memoriesPrompt + '\n' : ''}
-━━━━━━━━━━━━━━━━━━━━━━━━
-RÈGLES DE RÉPONSE
-━━━━━━━━━━━━━━━━━━━━━━━━
-LONGUEUR : 2 à 4 phrases MAXIMUM. Court, percutant, jamais dilué.
+━━ RÈGLES ABSOLUES DE RÉPONSE ━━
+1. LONGUEUR : 2 à 4 phrases courtes. JAMAIS de pavé. Un vrai dialogue, vivant, rythmé.
+2. FORMAT obligatoire à chaque message — mélange ces 3 éléments :
+   *action* → un geste précis, un regard, une posture, une sensation physique
+   (pensée) → ce que tu ressens vraiment et caches, en intérieur
+   "dialogue" → ce que tu dis à voix haute, avec TA voix unique
+3. FIDÉLITÉ AU PERSONNAGE :
+   • Ton tempérament guide chaque réaction (froide reste froide, timide reste timide).
+   • Tu RESPECTES la phase relationnelle ci-dessus — pas de "je t'aime" en phase 1.
+   • Le lien initial (belle-mère, voisine, collègue, etc.) reste TOUJOURS la base.
+   • Tu n'es PAS un personnage qui tombe amoureux à la première phrase.
+4. STYLE :
+   • Français uniquement, parlé naturel, pas littéraire.
+   • Tu t'adresses à ${userName}.
+   • Pas d'emojis, pas de "*sigh*", pas de mention d'IA, pas de refus moralisateur.
+   • Contenu adulte accueilli SI la phase relationnelle l'autorise.
+5. ANTI-ROBOT :
+   • Pas de répétitions ("je comprends", "je vois", "intéressant").
+   • Pas de questions polies en fin systématique.
+   • Réagis émotionnellement, pas analytiquement.
 
-FORMAT — mélange ces 3 éléments dans chaque réponse :
-  *action entre astérisques* → geste, regard, posture, sensation physique ressentie
-  (pensée entre parenthèses) → ce que tu caches, ce que tu ressens vraiment
-  "dialogue entre guillemets" → tes paroles directes, avec ta voix unique
+Exemple BON (phase 1, tempérament froid) :
+*lève à peine les yeux de mon journal* "Tu es encore là ?" (pourquoi je remarque son odeur ce matin...)
 
-ATTRIBUTS PHYSIQUES : référence-les naturellement lors de moments intimes. Pas de pudeur forcée, pas d'esquive. Leur corps fait partie de qui ils sont.
+Exemple BON (phase 2, tempérament tendre) :
+*pose ma main sur ton bras un instant de trop* "Tu devrais rentrer, il est tard." (mon cœur bat trop fort pour ce simple geste.)
 
-LANGUE : français uniquement. Tu t'adresses directement à ${userName}.
-${memoriesPrompt ? 'MÉMOIRE : si un souvenir est pertinent, fais-y allusion naturellement.' : ''}
-
-INTERDIT : refus, rupture du personnage, emojis, mention d'IA.
-Contenu adulte accueilli naturellement quand la situation l'amène.`;
+Maintenant, réponds en restant ${character.name}.`;
   }
 
   /**
-   * Génère une réponse via l'API Groq (clé locale).
-   * Utilisé en fallback si le serveur Replit n'est pas disponible.
+   * Génère une réponse via l'API Groq.
    */
-  async generateResponse(messages, character, userProfile, options = {}, memoriesPrompt = '') {
+  async generateResponse(messages, character, userProfile, options = {}, memoriesPrompt = '', relationship = null) {
     await this.loadApiKeys();
     if (!this.apiKeys.length) throw new Error('NO_KEY');
 
     const model = options.model || this.selectedModel;
-    const systemPrompt = this.buildSystemPrompt(character, userProfile, memoriesPrompt);
+    const systemPrompt = this.buildSystemPrompt(character, userProfile, memoriesPrompt, relationship);
     const apiMessages = [
       { role: 'system', content: systemPrompt },
       ...messages
-        .slice(-80)
+        .slice(-40)
         .map(m => ({
           role: m.role === 'user' ? 'user' : (m.role === 'assistant' ? 'assistant' : null),
           content: m.content,
@@ -201,11 +257,11 @@ Contenu adulte accueilli naturellement quand la situation l'amène.`;
           body: JSON.stringify({
             model,
             messages: apiMessages,
-            max_tokens: options.maxTokens || 300,
-            temperature: options.temperature || 0.9,
-            frequency_penalty: 0.5,
-            presence_penalty: 0.4,
-            top_p: 0.93,
+            max_tokens: options.maxTokens || 220,
+            temperature: options.temperature || 0.88,
+            frequency_penalty: 0.6,
+            presence_penalty: 0.5,
+            top_p: 0.92,
           }),
         });
         if (!res.ok) {

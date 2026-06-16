@@ -204,29 +204,48 @@ class GalleryService {
         console.log('⚠️ Erreur lecture galerie, création nouvelle');
         gallery = [];
       }
+
+      // v6.4 — Si l'image est déjà un fichier local (file://...), on la déplace dans la galerie
+      // et on l'enregistre comme localPath directement (pas de re-téléchargement échoué)
+      const isLocalFile = typeof imageUrl === 'string' && imageUrl.startsWith('file://');
+      let storedUrl = imageUrl;
+      let storedLocalPath = null;
+      let storedSeed = this.extractSeedFromUrl(imageUrl);
+      let storedPrompt = this.extractPromptFromUrl(imageUrl);
+
+      if (isLocalFile) {
+        try {
+          await this.initDirectory();
+          const seedPart = storedSeed || Math.random().toString(36).substring(7);
+          const fileName = `${characterId}_${seedPart}_${Date.now()}.jpg`;
+          const destPath = `${this.imageDirectory}${fileName}`;
+          await FileSystem.copyAsync({ from: imageUrl, to: destPath });
+          storedLocalPath = destPath;
+          if (!storedSeed) storedSeed = seedPart;
+          console.log(`✅ Image locale copiée dans galerie: ${fileName}`);
+        } catch (copyErr) {
+          console.log('⚠️ Copie impossible, on garde le chemin source:', copyErr.message);
+          storedLocalPath = imageUrl; // fallback
+        }
+      }
       
-      // Extraire les infos importantes de l'URL
-      const seed = this.extractSeedFromUrl(imageUrl);
-      const prompt = this.extractPromptFromUrl(imageUrl);
-      
-      // Vérifier si l'image existe déjà (par seed ou URL)
+      // Vérifier si l'image existe déjà (par seed, localPath ou URL)
       const exists = gallery.some(item => {
         if (typeof item === 'string') {
-          return this.extractSeedFromUrl(item) === seed || item === imageUrl;
+          return this.extractSeedFromUrl(item) === storedSeed || item === imageUrl;
         }
-        return item.seed === seed || item.url === imageUrl;
+        return (storedSeed && item.seed === storedSeed) || item.url === imageUrl || item.localPath === storedLocalPath;
       });
       
       if (!exists) {
-        // v5.3.68: SAUVEGARDER D'ABORD avec l'URL, puis télécharger en arrière-plan
         const imageData = {
-          url: imageUrl,                    // URL originale (TOUJOURS gardée)
-          localPath: null,                  // Sera rempli après téléchargement
-          seed: seed,
-          prompt: prompt ? prompt.substring(0, 500) : null,
+          url: storedUrl,
+          localPath: storedLocalPath,
+          seed: storedSeed,
+          prompt: storedPrompt ? storedPrompt.substring(0, 500) : null,
           savedAt: Date.now(),
           characterId: characterId,
-          isLocal: false,
+          isLocal: !!storedLocalPath,
         };
         
         gallery.unshift(imageData);
@@ -241,37 +260,24 @@ class GalleryService {
           }
         }
         
-        // v5.3.68 - TRIPLE sauvegarde pour persistance garantie
         const jsonData = JSON.stringify(gallery);
-        
-        // 1. Clé principale avec userId
         await AsyncStorage.setItem(key, jsonData);
-        console.log(`🖼️ Image ajoutée à la galerie: ${key}, seed=${seed}`);
-        
-        // 2. Backup global sans userId (pour récupération)
         const backupKey = `gal_backup_${characterId}`;
         await AsyncStorage.setItem(backupKey, jsonData);
+        console.log(`🖼️ Image ajoutée à la galerie: ${key}, seed=${storedSeed}, local=${!!storedLocalPath}`);
         
-        // 3. Vérification que la sauvegarde a fonctionné
-        const verify = await AsyncStorage.getItem(key);
-        if (!verify) {
-          console.error('❌ ÉCHEC vérification sauvegarde galerie!');
-          // Réessayer
-          await AsyncStorage.setItem(key, jsonData);
-        } else {
-          console.log('✅ Sauvegarde galerie vérifiée');
+        // Téléchargement en arrière-plan UNIQUEMENT si c'est une URL HTTP(S) distante
+        if (!storedLocalPath && /^https?:\/\//.test(imageUrl)) {
+          this.downloadInBackground(characterId, imageUrl, storedSeed, key, gallery);
         }
-        
-        // Télécharger en ARRIÈRE-PLAN (ne bloque pas)
-        this.downloadInBackground(characterId, imageUrl, seed, key, gallery);
       } else {
-        console.log(`ℹ️ Image déjà dans galerie: seed=${seed}`);
+        console.log(`ℹ️ Image déjà dans galerie: seed=${storedSeed}`);
       }
       
-      return imageUrl;
+      return storedLocalPath || imageUrl;
     } catch (error) {
       console.error('Error saving image to gallery:', error);
-      // v5.3.68 - Tentative de sauvegarde de secours
+      // Tentative de sauvegarde de secours
       try {
         const fallbackKey = `gal_fallback_${characterId}`;
         const simpleData = JSON.stringify([{ url: imageUrl, savedAt: Date.now() }]);

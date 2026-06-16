@@ -396,7 +396,7 @@ export default function ConversationScreen({ route, navigation }) {
       let response;
       let _usedOffline = false;
       try {
-        const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt);
+        const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship);
 
         // PRIORITÉ 1 : IA locale hors ligne (si un modèle llama est chargé en mémoire)
         if (LlamaService.isLoaded) {
@@ -421,7 +421,7 @@ export default function ConversationScreen({ route, navigation }) {
         // PRIORITÉ 3 : Groq local (clé dans l'app)
         if (!response) {
           response = await Promise.race([
-            GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt),
+            GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 60000))
           ]);
         }
@@ -429,7 +429,7 @@ export default function ConversationScreen({ route, navigation }) {
         console.error('❌ Erreur génération:', genError.message);
         if (_usedOffline) {
           try {
-            response = await GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt);
+            response = await GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship);
           } catch {
             response = `*te regarde* "..." (Hors ligne — configure une clé Groq dans Config)`;
           }
@@ -1228,8 +1228,8 @@ export default function ConversationScreen({ route, navigation }) {
   return (
     <KeyboardAvoidingView
       style={[styles.container, conversationBackground && { backgroundColor: 'transparent' }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 70}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       {conversationBackground && (
         <>
@@ -1312,6 +1312,8 @@ export default function ConversationScreen({ route, navigation }) {
         renderItem={renderMessage}
         keyExtractor={(item, index) => index.toString()}
         contentContainerStyle={styles.messagesList}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="none"
         // Scroll automatique quand le contenu change de taille
         onContentSizeChange={(contentWidth, contentHeight) => {
           // Scroll en bas uniquement si pas en train de scroller manuellement
