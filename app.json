@@ -22,8 +22,7 @@
           "cameraPermission": "L'application a besoin d'accéder à votre caméra pour prendre des photos de personnages."
         }
       ],
-      "./app.plugin.js",
-      "llama.rn"
+      "./app.plugin.js"
     ],
     "ios": {
       "supportsTablet": true,
