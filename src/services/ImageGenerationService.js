@@ -19,6 +19,115 @@ class ImageGenerationService {
     this.preferredModels = ['Deliberate', 'Dreamshaper', 'SDXL 1.0'];
     this.lastRequestTime = 0;
     this.minDelay = 1000;
+    
+    // Variations pour génération dynamique
+    this.scenes = [
+      'luxury penthouse with city skyline view',
+      'elegant restaurant with candlelight',
+      'sunny beach at golden hour',
+      'cozy coffee shop interior',
+      'modern office with glass walls',
+      'beautiful garden with flowers',
+      'rooftop bar at night',
+      'art gallery with spotlights',
+      'vintage library with warm light',
+      'spa with soft ambient lighting',
+      'yacht deck at sunset',
+      'mountain cabin fireplace',
+      'fashion runway backstage',
+      'hotel suite with city view',
+      'private jet interior',
+      'wine cellar with dim lighting',
+      'botanical garden greenhouse',
+      'rooftop pool at twilight',
+      'luxury car interior',
+      'beach house balcony'
+    ];
+    
+    this.poses = [
+      'elegant standing pose',
+      'relaxed sitting pose',
+      'dynamic walking pose',
+      'casual leaning pose',
+      'confident standing pose',
+      'playful jumping pose',
+      'graceful dancing pose',
+      'thoughtful sitting pose',
+      'flirtatious glance pose',
+      'power pose standing',
+      'intimate close-up pose',
+      'candid laughing pose',
+      'mysterious shadow pose',
+      'romantic embrace pose',
+      'confident stride pose'
+    ];
+    
+    this.outfits = [
+      'elegant evening gown',
+      'sophisticated business suit',
+      'casual chic outfit',
+      'summer dress',
+      'designer cocktail dress',
+      'smart casual ensemble',
+      'luxury loungewear',
+      'vintage inspired outfit',
+      'modern minimalist outfit',
+      'bohemian style dress',
+      'athletic luxury wear',
+      'formal black tie attire',
+      'designer jeans and blazer',
+      'silk blouse and skirt',
+      'cashmere sweater ensemble'
+    ];
+    
+    this.cameraAngles = [
+      'close-up portrait shot',
+      'medium shot framing',
+      'full body shot',
+      'low angle dramatic shot',
+      'high angle portrait',
+      'side profile view',
+      'three-quarter view',
+      'over-the-shoulder shot',
+      'dutch angle creative shot',
+      'birds eye view',
+      'worms eye view',
+      'silhouette shot',
+      'backlit dramatic shot',
+      'soft focus portrait',
+      'sharp detailed close-up'
+    ];
+    
+    this.lighting = [
+      'golden hour sunlight',
+      'soft diffused studio light',
+      'dramatic side lighting',
+      'backlit rim lighting',
+      'natural window light',
+      'neon city lights',
+      'candlelight ambiance',
+      'softbox studio lighting',
+      'moonlight blue tones',
+      'warm tungsten light',
+      'bright daylight',
+      'overcast soft light',
+      'colored gel lighting',
+      'vintage film lighting',
+      'high-key bright lighting'
+    ];
+    
+    this.moods = [
+      'elegant and sophisticated',
+      'playful and flirtatious',
+      'mysterious and alluring',
+      'confident and powerful',
+      'romantic and intimate',
+      'casual and relaxed',
+      'dramatic and intense',
+      'dreamy and ethereal',
+      'bold and daring',
+      'soft and gentle'
+    ];
   }
 
   async waitMinDelay() {
@@ -29,12 +138,24 @@ class ImageGenerationService {
 
   // ─── Builders de prompt ────────────────────────────────────────────────────
 
+  getRandomElement(array) {
+    return array[Math.floor(Math.random() * array.length)];
+  }
+
   buildBasePromptText(character, style) {
     const gender = character.gender === 'male' ? 'handsome man' : 'beautiful woman';
     const appearance = (character.appearance || character.physicalDescription || '').substring(0, 200);
     const bodyType = character.bodyType || '';
     const bust = character.bust || character.bustSize || '';
     const physicalExtra = character.gender === 'female' && bust ? `, ${bust} cup bust` : '';
+
+    // Sélection aléatoire des variations pour plus de diversité
+    const randomScene = this.getRandomElement(this.scenes);
+    const randomPose = this.getRandomElement(this.poses);
+    const randomOutfit = this.getRandomElement(this.outfits);
+    const randomCamera = this.getRandomElement(this.cameraAngles);
+    const randomLighting = this.getRandomElement(this.lighting);
+    const randomMood = this.getRandomElement(this.moods);
 
     const styleMap = {
       portrait:        'portrait, close-up, soft lighting, elegant, detailed face, expressive eyes',
@@ -57,9 +178,11 @@ class ImageGenerationService {
     };
 
     const stylePart = styleMap[style] || styleMap.portrait;
+    
+    // Construction du prompt avec variations aléatoires
     const base = appearance
-      ? `${appearance}${bodyType ? ', ' + bodyType + ' build' : ''}${physicalExtra}, ${stylePart}`
-      : `${gender}${bodyType ? ', ' + bodyType : ''}${physicalExtra}, ${stylePart}`;
+      ? `${appearance}, ${randomOutfit}, ${randomPose}, ${randomScene}, ${randomCamera}, ${randomLighting}, ${randomMood}${bodyType ? ', ' + bodyType + ' build' : ''}${physicalExtra}, ${stylePart}`
+      : `${gender}, ${randomOutfit}, ${randomPose}, ${randomScene}, ${randomCamera}, ${randomLighting}, ${randomMood}${bodyType ? ', ' + bodyType : ''}${physicalExtra}, ${stylePart}`;
 
     return base + ', highly detailed, 8k, masterpiece, best quality, sharp focus, photorealistic';
   }
@@ -70,11 +193,20 @@ class ImageGenerationService {
     const recentContent = (messages || [])
       .slice(-4).map(m => m.content || '').join(' ').toLowerCase();
 
+    // Sélection aléatoire des variations pour plus de diversité
+    const randomScene = this.getRandomElement(this.scenes);
+    const randomPose = this.getRandomElement(this.poses);
+    const randomOutfit = this.getRandomElement(this.outfits);
+    const randomCamera = this.getRandomElement(this.cameraAngles);
+    const randomLighting = this.getRandomElement(this.lighting);
+    const randomMood = this.getRandomElement(this.moods);
+
     let sceneCtx = 'portrait, expressive, detailed face';
     if (recentContent.includes('plage') || recentContent.includes('mer')) sceneCtx = 'beach, ocean, golden hour, natural light';
     else if (recentContent.includes('nuit') || recentContent.includes('soir')) sceneCtx = 'night scene, moonlight, atmospheric blue lighting';
     else if (recentContent.includes('combat') || recentContent.includes('bataille')) sceneCtx = 'dynamic action pose, dramatic lighting, cinematic';
     else if (recentContent.includes('chambre') || recentContent.includes('lit')) sceneCtx = 'indoor bedroom, soft warm lighting, intimate';
+    else sceneCtx = randomScene; // Utiliser une scène aléatoire par défaut
 
     let styleLevel = 'portrait, neutral expression, detailed face';
     if (relationLevel >= 10) styleLevel = 'explicit nude, ultra sexy, uncensored, boudoir, 4k';
@@ -90,9 +222,10 @@ class ImageGenerationService {
     const physicalExtra = character.gender === 'female' && bust ? `, ${bust} cup bust` : '';
     const gender = character.gender === 'male' ? 'handsome man' : 'beautiful woman';
 
+    // Construction du prompt avec variations aléatoires
     const base = appearance
-      ? `${appearance}${bodyType ? ', ' + bodyType : ''}${physicalExtra}, ${sceneCtx}, ${styleLevel}`
-      : `${gender}${bodyType ? ', ' + bodyType : ''}${physicalExtra}, ${sceneCtx}, ${styleLevel}`;
+      ? `${appearance}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}${bodyType ? ', ' + bodyType : ''}${physicalExtra}, ${styleLevel}`
+      : `${gender}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}${bodyType ? ', ' + bodyType : ''}${physicalExtra}, ${styleLevel}`;
 
     return base + ', highly detailed, 8k, masterpiece, best quality, photorealistic, sharp focus';
   }

@@ -90,15 +90,23 @@ function HomeTabs() {
         tabBarActiveTintColor: '#C9A227',
         tabBarInactiveTintColor: '#6b7280',
         tabBarStyle: {
-          backgroundColor: '#12121f',
-          borderTopColor: '#C9A227',
+          backgroundColor: '#0a0a12',
+          borderTopColor: 'rgba(201, 162, 39, 0.2)',
           borderTopWidth: 1,
-          shadowColor: '#8B0000',
+          shadowColor: '#C9A227',
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.3,
-          shadowRadius: 4,
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          height: 65,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
         headerShown: false,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          letterSpacing: 0.5,
+        },
       }}
     >
       <Tab.Screen
@@ -147,10 +155,13 @@ export default function App() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingEmoji}>💋</Text>
-        <Text style={styles.loadingTitle}>Boys & Girls</Text>
-        <ActivityIndicator size="large" color="#C9A227" style={{ marginTop: 20 }} />
-        <Text style={styles.loadingText}>Chargement...</Text>
+        <View style={styles.loadingLogo}>
+          <Text style={styles.loadingEmoji}>✨</Text>
+        </View>
+        <Text style={styles.loadingTitle}>Roleplay Chat</Text>
+        <Text style={styles.loadingSubtitle}>Premium Experience</Text>
+        <ActivityIndicator size="large" color="#C9A227" style={{ marginTop: 30 }} />
+        <Text style={styles.loadingText}>Loading your experience...</Text>
       </View>
     );
   }
@@ -184,8 +195,57 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a12' },
-  loadingEmoji: { fontSize: 60, marginBottom: 15 },
-  loadingTitle: { fontSize: 32, fontWeight: 'bold', color: '#C9A227', textShadowColor: '#8B6914', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 12, letterSpacing: 4 },
-  loadingText: { marginTop: 10, fontSize: 14, color: '#D4AF37', fontWeight: '600' },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: '#0a0a12',
+    backgroundImage: 'linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%)'
+  },
+  loadingLogo: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(201, 162, 39, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(201, 162, 39, 0.3)',
+    shadowColor: '#C9A227',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  loadingEmoji: { 
+    fontSize: 50, 
+    color: '#C9A227',
+  },
+  loadingTitle: { 
+    fontSize: 36, 
+    fontWeight: 'bold', 
+    color: '#C9A227', 
+    textShadowColor: '#8B6914', 
+    textShadowOffset: { width: 2, height: 2 }, 
+    textShadowRadius: 12, 
+    letterSpacing: 3,
+    marginBottom: 8,
+    fontFamily: 'Platform-Bold'
+  },
+  loadingSubtitle: {
+    fontSize: 16,
+    color: '#D4AF37',
+    letterSpacing: 8,
+    textTransform: 'uppercase',
+    marginBottom: 20,
+    opacity: 0.8
+  },
+  loadingText: { 
+    marginTop: 15, 
+    fontSize: 14, 
+    color: '#D4AF37', 
+    fontWeight: '400',
+    letterSpacing: 1,
+    opacity: 0.7
+  },
 });
