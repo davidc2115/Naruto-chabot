@@ -382,9 +382,7 @@ export default function AdminPanelScreen() {
               <View style={styles.infoBox}>
                 <Text style={styles.infoTitle}>🌐 Serveur IA intégré</Text>
                 <Text style={styles.infoText}>
-                  Si un serveur Replit est déployé, l'app l'utilise automatiquement — aucune clé Groq requise.{'
-
-'}
+                  Si un serveur Replit est déployé, l'app l'utilise automatiquement — aucune clé Groq requise.{'\n\n'}
                   Laissez vide pour utiliser uniquement votre clé Groq locale.
                 </Text>
               </View>
@@ -425,13 +423,9 @@ export default function AdminPanelScreen() {
               <View style={styles.infoBox}>
                 <Text style={styles.infoTitle}>ℹ️ Comment ça marche ?</Text>
                 <Text style={styles.infoText}>
-                  1. Le serveur Replit héberge la clé Groq de manière sécurisée{'
-'}
-                  2. L'app envoie les messages au serveur{'
-'}
-                  3. Le serveur génère la réponse et la retourne{'
-
-'}
+                  1. Le serveur Replit héberge la clé Groq de manière sécurisée{'\n'}
+                  2. L'app envoie les messages au serveur{'\n'}
+                  3. Le serveur génère la réponse et la retourne{'\n\n'}
                   Cela permet à tous les utilisateurs de profiter de l'IA sans configurer de clé.
                 </Text>
               </View>
@@ -479,11 +473,8 @@ export default function AdminPanelScreen() {
               <View style={styles.infoBox}>
                 <Text style={styles.infoTitle}>📱 IA Locale — 100% Hors Ligne</Text>
                 <Text style={styles.infoText}>
-                  Téléchargez un modèle une fois, puis conversez sans Internet.{'
-'}
-                  Le modèle tourne directement sur votre téléphone.{'
-
-'}
+                  Téléchargez un modèle une fois, puis conversez sans Internet.{'\n'}
+                  Le modèle tourne directement sur votre téléphone.{'\n\n'}
                   ⚠️ Requiert 4-6 Go de RAM libre. Première génération : 5-20s.
                 </Text>
               </View>
@@ -564,17 +555,11 @@ export default function AdminPanelScreen() {
               <View style={styles.infoBox}>
                 <Text style={styles.infoTitle}>💡 Utilisation</Text>
                 <Text style={styles.infoText}>
-                  1. Téléchargez un modèle (Wi-Fi recommandé){'
-'}
-                  2. Appuyez sur "Charger en mémoire"{'
-'}
-                  3. Dans les conversations, l'IA locale est utilisée automatiquement{'
-'}
-                  4. Déchargez le modèle si vous manquez de RAM{'
-
-'}
-                  En ligne : Groq (cloud) est plus rapide et de meilleure qualité.{'
-'}
+                  1. Téléchargez un modèle (Wi-Fi recommandé){'\n'}
+                  2. Appuyez sur "Charger en mémoire"{'\n'}
+                  3. Dans les conversations, l'IA locale est utilisée automatiquement{'\n'}
+                  4. Déchargez le modèle si vous manquez de RAM{'\n\n'}
+                  En ligne : Groq (cloud) est plus rapide et de meilleure qualité.{'\n'}
                   Hors ligne : le modèle local prend le relais automatiquement.
                 </Text>
               </View>
