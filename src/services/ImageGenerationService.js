@@ -142,19 +142,55 @@ class ImageGenerationService {
     return array[Math.floor(Math.random() * array.length)];
   }
 
+  /**
+   * Convertit la taille de bonnet en descripteur détaillé pour la génération d'images
+   */
+  getBustSizeDescriptor(bust) {
+    if (!bust) return '';
+    
+    const bustLower = bust.toLowerCase().trim();
+    
+    // Mapping des tailles de bonnet vers des descripteurs précis
+    const sizeMapping = {
+      'a': 'small A cup breasts, petite chest, subtle feminine curves',
+      'aa': 'very small AA cup breasts, minimal chest, delicate feminine form',
+      'b': 'medium B cup breasts, average feminine bust, natural curves',
+      'c': 'medium-large C cup breasts, noticeable feminine bust, attractive curves',
+      'd': 'large D cup breasts, voluptuous bust, prominent feminine curves',
+      'dd': 'very large DD cup breasts, full voluptuous bust, generous curves',
+      'e': 'huge E cup breasts, very full bust, impressive curves',
+      'f': 'enormous F cup breasts, spectacular bust, dramatic curves',
+      'g': 'massive G cup breasts, extremely full bust, overwhelming curves',
+      'h': 'gigantic H cup breasts, colossal bust, hyper-feminine curves',
+      'i': 'immense I cup breasts, monumental bust, extreme curves',
+    };
+    
+    // Extraire la lettre de la taille (A, B, C, etc.)
+    const sizeLetter = bustLower.replace(/[^a-z]/g, '');
+    
+    if (sizeMapping[sizeLetter]) {
+      return sizeMapping[sizeLetter];
+    }
+    
+    // Fallback pour les tailles non reconnues
+    return `${bust} cup breasts`;
+  }
+
   buildBasePromptText(character, style) {
     const gender = character.gender === 'male' ? 'handsome man' : 'beautiful woman';
     const appearance = (character.appearance || character.physicalDescription || '').substring(0, 200);
     const bodyType = character.bodyType || '';
     const height = character.height ? `${character.height}cm tall` : '';
     const bust = character.bust || character.bustSize || '';
-    const physicalExtra = character.gender === 'female' && bust ? `, ${bust} cup bust` : '';
     
     // Détails physiques supplémentaires pour plus de précision
     const hair = character.hair || character.hairColor || '';
     const hairStyle = character.hairStyle || '';
     const eyes = character.eyes || character.eyeColor || '';
     const skin = character.skin || character.skinTone || '';
+    
+    // Descripteur de taille de poitrine précis pour les femmes
+    const bustDescriptor = character.gender === 'female' ? this.getBustSizeDescriptor(bust) : '';
     
     // Construction détaillée de l'apparence
     let detailedAppearance = appearance;
@@ -164,6 +200,7 @@ class ImageGenerationService {
     if (skin) detailedAppearance += `, ${skin} skin`;
     if (height) detailedAppearance += `, ${height}`;
     if (bodyType) detailedAppearance += `, ${bodyType} build`;
+    if (bustDescriptor) detailedAppearance += `, ${bustDescriptor}`;
 
     // Sélection aléatoire des variations pour plus de diversité
     const randomScene = this.getRandomElement(this.scenes);
@@ -249,7 +286,9 @@ class ImageGenerationService {
     const bodyType = character.bodyType || '';
     const height = character.height ? `${character.height}cm tall` : '';
     const bust = character.bust || character.bustSize || '';
-    const physicalExtra = character.gender === 'female' && bust ? `, ${bust} cup bust` : '';
+    
+    // Descripteur de taille de poitrine précis pour les femmes
+    const bustDescriptor = character.gender === 'female' ? this.getBustSizeDescriptor(bust) : '';
     
     const hair = character.hair || character.hairColor || '';
     const hairStyle = character.hairStyle || '';
@@ -264,13 +303,14 @@ class ImageGenerationService {
     if (skin) detailedAppearance += `, ${skin} skin`;
     if (height) detailedAppearance += `, ${height}`;
     if (bodyType) detailedAppearance += `, ${bodyType} build`;
+    if (bustDescriptor) detailedAppearance += `, ${bustDescriptor}`;
     
     const gender = character.gender === 'male' ? 'handsome man' : 'beautiful woman';
 
     // Construction du prompt avec variations aléatoires et détails physiques complets
     const base = detailedAppearance
-      ? `${detailedAppearance}${physicalExtra}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}, ${styleLevel}`
-      : `${gender}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}${physicalExtra}, ${styleLevel}`;
+      ? `${detailedAppearance}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}, ${styleLevel}`
+      : `${gender}, ${randomOutfit}, ${randomPose}, ${sceneCtx}, ${randomCamera}, ${randomLighting}, ${randomMood}, ${styleLevel}`;
 
     return base + ', highly detailed, 8k, masterpiece, best quality, photorealistic, sharp focus, accurate facial features';
   }
