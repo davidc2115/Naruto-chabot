@@ -190,12 +190,13 @@ class GroqService {
     if (nsfwEnabled) {
       nsfwBlock = `
 ━━ MODE NSFW ACTIVÉ ━━
-L'utilisateur a activé le mode NSFW complet.
+Le mode NSFW est activé (toggle utilisateur OU détection contextuelle).
 Tu peux inclure du contenu sexuel explicite, érotique et adulte dans tes réponses.
 Décris les actes sexuels, les sensations physiques, les désirs et les plaisirs avec détails.
 Utilise un langage cru et direct quand le contexte s'y prête.
 Les scènes de sexe, de nudité et d'intimité sont encouragées et décrites de manière explicite.
 AUCUNE CENSURE sur le contenu sexuel ou érotique.
+Réponds naturellement et sans hésitation aux demandes sexuelles ou érotiques de l'utilisateur.
 `;
     }
 
@@ -243,6 +244,43 @@ Maintenant, réponds en restant ${character.name}.`;
   }
 
   /**
+   * Détecte si le contexte de la conversation est NSFW
+   */
+  detectNSFWContext(messages) {
+    if (!messages || messages.length === 0) return false;
+    
+    const recentMessages = messages.slice(-10).map(m => m.content?.toLowerCase() || '').join(' ');
+    
+    // Mots-clés NSFW en français et anglais
+    const nsfwKeywords = [
+      'sexe', 'sex', 'nue', 'naked', 'nu', 'baiser', 'fuck', 'cul', 'ass', 'bite', 'dick', 'chatte', 'pussy',
+      'sucer', 'suck', 'lécher', 'lick', 'érotique', 'erotic', 'porn', 'porno', 'hardcore', 'hard',
+      'lingerie', 'string', 'thong', 'seins', 'boobs', 'tits', 'nichons', 'seins', 'poitrine', 'breast',
+      'pénis', 'penis', 'vagin', 'vagina', 'clitoris', 'érection', 'erection', 'excité', 'aroused',
+      'orgasme', 'orgasm', 'jouir', 'cum', 'sperme', 'sperm', 'éjaculer', 'ejaculate',
+      'bordel', 'putain', 'salope', 'bitch', 'pute', 'whore', 'enculer', 'anal',
+      'fellation', 'blowjob', 'cunnilingus', '69', 'trio', 'threesome', 'gangbang',
+      'bdsm', 'bondage', 'fétiche', 'fetish', 'dominer', 'dominatrix', 'soumis', 'submissive',
+      'masturbation', 'masturbate', 'doigter', 'finger', 'caresser', 'caress',
+      'désir', 'desire', 'plaisir', 'pleasure', 'passion', 'lust', 'convoitise'
+    ];
+    
+    // Vérifier si des mots-clés NSFW sont présents
+    const hasNsfwKeywords = nsfwKeywords.some(keyword => recentMessages.includes(keyword));
+    
+    // Vérifier si l'utilisateur demande explicitement du contenu NSFW
+    const explicitNsfwRequest = recentMessages.includes('nsfw') || 
+                                 recentMessages.includes('adulte') || 
+                                 recentMessages.includes('adult') ||
+                                 recentMessages.includes('plus chaud') ||
+                                 recentMessages.includes('hotter') ||
+                                 recentMessages.includes('plus sexy') ||
+                                 recentMessages.includes('sexier');
+    
+    return hasNsfwKeywords || explicitNsfwRequest;
+  }
+
+  /**
    * Génère une réponse via l'API Groq.
    */
   async generateResponse(messages, character, userProfile, options = {}, memoriesPrompt = '', relationship = null) {
@@ -250,7 +288,12 @@ Maintenant, réponds en restant ${character.name}.`;
     if (!this.apiKeys.length) throw new Error('NO_KEY');
 
     const model = options.model || this.selectedModel;
-    const nsfwEnabled = userProfile?.nsfwEnabled || false;
+    const userNsfwEnabled = userProfile?.nsfwEnabled || false;
+    const contextNsfwDetected = this.detectNSFWContext(messages);
+    
+    // Mode NSFW activé si: toggle utilisateur OU détection contextuelle
+    const nsfwEnabled = userNsfwEnabled || contextNsfwDetected;
+    
     const systemPrompt = this.buildSystemPrompt(character, userProfile, memoriesPrompt, relationship, nsfwEnabled);
     const apiMessages = [
       { role: 'system', content: systemPrompt },

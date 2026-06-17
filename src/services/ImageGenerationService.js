@@ -379,9 +379,61 @@ class ImageGenerationService {
     }
   }
 
+  /**
+   * Détecte si le contexte de la conversation est NSFW
+   */
+  detectNSFWContext(messages) {
+    if (!messages || messages.length === 0) return false;
+    
+    const recentMessages = messages.slice(-10).map(m => m.content?.toLowerCase() || '').join(' ');
+    
+    // Mots-clés NSFW en français et anglais
+    const nsfwKeywords = [
+      'sexe', 'sex', 'nue', 'naked', 'nu', 'baiser', 'fuck', 'cul', 'ass', 'bite', 'dick', 'chatte', 'pussy',
+      'sucer', 'suck', 'lécher', 'lick', 'érotique', 'erotic', 'porn', 'porno', 'hardcore', 'hard',
+      'lingerie', 'string', 'thong', 'seins', 'boobs', 'tits', 'nichons', 'poitrine', 'breast',
+      'pénis', 'penis', 'vagin', 'vagina', 'clitoris', 'érection', 'erection', 'excité', 'aroused',
+      'orgasme', 'orgasm', 'jouir', 'cum', 'sperme', 'sperm', 'éjaculer', 'ejaculate',
+      'bordel', 'putain', 'salope', 'bitch', 'pute', 'whore', 'enculer', 'anal',
+      'fellation', 'blowjob', 'cunnilingus', '69', 'trio', 'threesome', 'gangbang',
+      'bdsm', 'bondage', 'fétiche', 'fetish', 'dominer', 'dominatrix', 'soumis', 'submissive',
+      'masturbation', 'masturbate', 'doigter', 'finger', 'caresser', 'caress',
+      'désir', 'desire', 'plaisir', 'pleasure', 'passion', 'lust', 'convoitise'
+    ];
+    
+    // Vérifier si des mots-clés NSFW sont présents
+    const hasNsfwKeywords = nsfwKeywords.some(keyword => recentMessages.includes(keyword));
+    
+    // Vérifier si l'utilisateur demande explicitement du contenu NSFW
+    const explicitNsfwRequest = recentMessages.includes('nsfw') || 
+                                 recentMessages.includes('adulte') || 
+                                 recentMessages.includes('adult') ||
+                                 recentMessages.includes('plus chaud') ||
+                                 recentMessages.includes('hotter') ||
+                                 recentMessages.includes('plus sexy') ||
+                                 recentMessages.includes('sexier');
+    
+    return hasNsfwKeywords || explicitNsfwRequest;
+  }
+
   async generateSceneImage(character, userProfile, messages = [], relationLevel = 1, onProgress = null, imageType = null) {
     await this.waitMinDelay();
-    const prompt = this.buildScenePromptText(character, messages, relationLevel, imageType);
+    
+    // Détection dynamique du mode NSFW
+    const userNsfwEnabled = userProfile?.nsfwEnabled || false;
+    const contextNsfwDetected = this.detectNSFWContext(messages);
+    const nsfwEnabled = userNsfwEnabled || contextNsfwDetected;
+    
+    // Sélection automatique du style NSFW si activé et relation élevée
+    let selectedImageType = imageType;
+    if (nsfwEnabled && !imageType) {
+      if (relationLevel >= 10) selectedImageType = 'nsfw_hardcore';
+      else if (relationLevel >= 9) selectedImageType = 'nsfw_moderate';
+      else if (relationLevel >= 8) selectedImageType = 'nsfw_soft';
+      else if (relationLevel >= 7) selectedImageType = 'lingerie';
+    }
+    
+    const prompt = this.buildScenePromptText(character, messages, relationLevel, selectedImageType);
 
     try { return await this.generateViaPollinations(prompt, onProgress); }
     catch (e) {
