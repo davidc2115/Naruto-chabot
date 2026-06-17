@@ -52,9 +52,12 @@ class GroqService {
 
   getCurrentApiKey() {
     if (!this.apiKeys.length) throw new Error('NO_KEY');
-    const key = this.apiKeys[this.currentKeyIndex];
+    return this.apiKeys[this.currentKeyIndex];
+  }
+
+  rotateToNextKey() {
+    if (!this.apiKeys.length) return;
     this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
-    return key;
   }
 
   /**
@@ -325,14 +328,23 @@ Maintenant, réponds en restant ${character.name}.`;
         });
         if (!res.ok) {
           const e = await res.json().catch(() => ({}));
-          if (res.status === 401) { lastError = new Error('Clé Groq invalide — vérifiez dans Config → Groq IA.'); continue; }
-          if (res.status === 429) { lastError = new Error('Limite Groq atteinte. Réessayez dans quelques secondes.'); continue; }
+          if (res.status === 401) { 
+            lastError = new Error('Clé Groq invalide — vérifiez dans Config → Groq IA.'); 
+            this.rotateToNextKey();
+            continue; 
+          }
+          if (res.status === 429) { 
+            lastError = new Error('Limite Groq atteinte. Réessayez dans quelques secondes.'); 
+            this.rotateToNextKey();
+            continue; 
+          }
           throw new Error(e?.error?.message || `Groq erreur ${res.status}`);
         }
         const data = await res.json();
         return data.choices[0]?.message?.content || '';
       } catch (e) {
         lastError = e;
+        this.rotateToNextKey();
       }
     }
     throw lastError || new Error('Toutes les clés ont échoué');
