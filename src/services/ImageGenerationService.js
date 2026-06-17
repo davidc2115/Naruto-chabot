@@ -150,19 +150,19 @@ class ImageGenerationService {
     
     const bustLower = bust.toLowerCase().trim();
     
-    // Mapping des tailles de bonnet vers des descripteurs précis
+    // Mapping des tailles de bonnet vers des descripteurs précis et réalistes
     const sizeMapping = {
-      'a': 'small A cup breasts, petite chest, subtle feminine curves',
+      'a': 'petite A cup breasts, small feminine chest, subtle natural curves',
       'aa': 'very small AA cup breasts, minimal chest, delicate feminine form',
-      'b': 'medium B cup breasts, average feminine bust, natural curves',
-      'c': 'medium-large C cup breasts, noticeable feminine bust, attractive curves',
-      'd': 'large D cup breasts, voluptuous bust, prominent feminine curves',
-      'dd': 'very large DD cup breasts, full voluptuous bust, generous curves',
-      'e': 'huge E cup breasts, very full bust, impressive curves',
-      'f': 'enormous F cup breasts, spectacular bust, dramatic curves',
-      'g': 'massive G cup breasts, extremely full bust, overwhelming curves',
-      'h': 'gigantic H cup breasts, colossal bust, hyper-feminine curves',
-      'i': 'immense I cup breasts, monumental bust, extreme curves',
+      'b': 'medium B cup breasts, average feminine bust, natural curves, modest size',
+      'c': 'medium-large C cup breasts, noticeable feminine bust, attractive curves, well-proportioned',
+      'd': 'large D cup breasts, voluptuous full bust, prominent feminine curves, generous size',
+      'dd': 'very large DD cup breasts, extremely full voluptuous bust, generous curves, impressive size',
+      'e': 'huge E cup breasts, very full heavy bust, impressive curves, substantial size',
+      'f': 'enormous F cup breasts, spectacular massive bust, dramatic curves, very large size',
+      'g': 'massive G cup breasts, extremely full heavy bust, overwhelming curves, huge size',
+      'h': 'gigantic H cup breasts, colossal heavy bust, hyper-feminine curves, enormous size',
+      'i': 'immense I cup breasts, monumental heavy bust, extreme curves, gigantic size',
     };
     
     // Extraire la lettre de la taille (A, B, C, etc.)
