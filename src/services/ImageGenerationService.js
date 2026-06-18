@@ -158,11 +158,11 @@ class ImageGenerationService {
       'c': 'medium-large C cup breasts, noticeable feminine bust, attractive curves, well-proportioned',
       'd': 'large D cup breasts, voluptuous full bust, prominent feminine curves, generous size',
       'dd': 'very large DD cup breasts, extremely full voluptuous bust, generous curves, impressive size',
-      'e': 'huge E cup breasts, very full heavy bust, impressive curves, substantial size',
-      'f': 'enormous F cup breasts, spectacular massive bust, dramatic curves, very large size',
-      'g': 'massive G cup breasts, extremely full heavy bust, overwhelming curves, huge size',
-      'h': 'gigantic H cup breasts, colossal heavy bust, hyper-feminine curves, enormous size',
-      'i': 'immense I cup breasts, monumental heavy bust, extreme curves, gigantic size',
+      'e': 'huge E cup breasts, very full heavy bust, impressive curves, substantial size, heavy weight',
+      'f': 'enormous F cup breasts, spectacular massive bust, dramatic curves, very large size, extremely heavy',
+      'g': 'massive G cup breasts, extremely full heavy bust, overwhelming curves, huge size, colossal weight',
+      'h': 'gigantic H cup breasts, colossal heavy bust, hyper-feminine curves, enormous size, monumental weight',
+      'i': 'immense I cup breasts, monumental heavy bust, extreme curves, gigantic size, overwhelming weight',
     };
     
     // Extraire la lettre de la taille (A, B, C, etc.)
