@@ -618,9 +618,8 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
       </View>
 
       {/* GÉNÉRATION D'IMAGES */}
-      {isPremium && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🖼️ Génération d'Images</Text>
           
           <Text style={styles.sectionSubtitle}>Méthode de génération</Text>
           
@@ -838,7 +837,6 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
             </Text>
           </View>
         </View>
-      )}
 
       {/* INFO APPLICATION 18+ */}
       <View style={styles.section}>
