@@ -457,13 +457,15 @@ class ImageGenerationService {
     else if (recentContent.includes('chambre') || recentContent.includes('lit')) sceneCtx = 'indoor bedroom, soft warm lighting, intimate';
     else sceneCtx = randomScene; // Utiliser une scène aléatoire par défaut
 
+    // Styles NSFW disponibles dès le début (non explicite: lingerie, topless, etc.)
+    // Plus de blocage par niveau de relation
     let styleLevel = 'portrait, neutral expression, detailed face';
     if (relationLevel >= 10) styleLevel = 'explicit nude, ultra sexy, uncensored, boudoir, 4k';
-    else if (relationLevel >= 9) styleLevel = 'erotic pose, very revealing lingerie, intimate lighting';
-    else if (relationLevel >= 8) styleLevel = 'topless, artistic nude, boudoir photography, silk';
-    else if (relationLevel >= 7) styleLevel = 'lingerie, boudoir, soft warm lighting, tasteful';
-    else if (relationLevel >= 5) styleLevel = 'flirtatious smile, elegant outfit, warm lighting';
-    else if (relationLevel >= 3) styleLevel = 'friendly smile, casual outfit, natural pose';
+    else if (relationLevel >= 8) styleLevel = 'erotic pose, very revealing lingerie, intimate lighting';
+    else if (relationLevel >= 6) styleLevel = 'topless, artistic nude, boudoir photography, silk';
+    else if (relationLevel >= 4) styleLevel = 'lingerie, boudoir, soft warm lighting, tasteful';
+    else if (relationLevel >= 2) styleLevel = 'flirtatious smile, elegant outfit, warm lighting';
+    else styleLevel = 'friendly smile, casual outfit, natural pose';
 
     // Détails physiques détaillés pour ressemblance au personnage
     const appearance = (character.appearance || character.physicalDescription || '').substring(0, 200);

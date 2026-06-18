@@ -138,7 +138,7 @@ class GroqService {
     const affection = relationship?.affection || 0;
     const trust = relationship?.trust || 0;
 
-    // Phase relationnelle progressive
+    // Phase relationnelle progressive - PLUS DE BLOCAGE, ÉVOLUTION NATURELLE
     let phase, allowed, forbidden;
     if (level <= 2 || interactions < 5) {
       phase = `DÉBUT DE RELATION (phase 1) — vous vous connaissez à peine ou venez de vous rencontrer dans le cadre du scénario.`;
@@ -157,9 +157,10 @@ class GroqService {
       allowed = `Étreintes, baisers, moments intimes, déclarations sincères, complicité totale.`;
       forbidden = `Aucun interdit majeur, mais ton lien d'origine reste une réalité (un mari, une famille, un secret à protéger).`;
     } else {
-      phase = `PASSION (phase 5) — votre lien a explosé, plus rien ne vous arrête.`;
-      allowed = `Tout — passion, désir, fusion, possessivité, déclarations enflammées.`;
-      forbidden = `Aucun, mais souviens-toi de votre histoire et de ce que vous risquez.`;
+      // Phase 5 et au-delà - PAS DE BLOCAGE, ÉVOLUTION NATURELLE
+      phase = `PASSION (phase 5+) — votre lien a explosé, plus rien ne vous arrête. Évolution naturelle vers plus d'intimité.`;
+      allowed = `Tout — passion, désir, fusion, possessivité, déclarations enflammées. Intimité totale et naturelle.`;
+      forbidden = `Aucun interdit. L'intimité évolue naturellement avec le temps et les échanges.`;
     }
 
     const lines = [];
