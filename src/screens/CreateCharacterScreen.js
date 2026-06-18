@@ -58,6 +58,96 @@ export default function CreateCharacterScreen({ navigation, route }) {
   const [serverOnline, setServerOnline] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
   
+  // === IMPORT DEPUIS SOURCES EXTERNES ===
+  const [importUrl, setImportUrl] = useState('');
+  const [importSource, setImportSource] = useState('chub'); // chub, characterhub, janitorai
+  const [importing, setImporting] = useState(false);
+
+  // === IMPORTER PERSONNAGE DEPUIS SOURCE EXTERNE ===
+  const importCharacterFromSource = async () => {
+    if (!importUrl) {
+      Alert.alert('Erreur', 'Veuillez entrer une URL de personnage');
+      return;
+    }
+
+    setImporting(true);
+    try {
+      let characterData = null;
+
+      // Chub AI
+      if (importSource === 'chub') {
+        // Extraire l'ID du personnage depuis l'URL Chub
+        const chubMatch = importUrl.match(/chub\.ai\/characters\/([a-f0-9-]+)/);
+        if (!chubMatch) {
+          throw new Error('URL Chub invalide');
+        }
+        const characterId = chubMatch[1];
+        
+        const response = await axios.get(`https://api.chub.ai/api/characters/${characterId}`);
+        characterData = response.data;
+      }
+      // CharacterHub
+      else if (importSource === 'characterhub') {
+        const hubMatch = importUrl.match(/characterhub\.org\/character\/([a-f0-9-]+)/);
+        if (!hubMatch) {
+          throw new Error('URL CharacterHub invalide');
+        }
+        const characterId = hubMatch[1];
+        
+        const response = await axios.get(`https://api.characterhub.org/api/characters/${characterId}`);
+        characterData = response.data;
+      }
+      // JanitorAI
+      else if (importSource === 'janitorai') {
+        const janitorMatch = importUrl.match(/janitorai\.com\/characters\/([a-f0-9-]+)/);
+        if (!janitorMatch) {
+          throw new Error('URL JanitorAI invalide');
+        }
+        const characterId = janitorMatch[1];
+        
+        const response = await axios.get(`https://api.janitorai.com/characters/${characterId}`);
+        characterData = response.data;
+      }
+
+      if (!characterData) {
+        throw new Error('Impossible de récupérer les données du personnage');
+      }
+
+      // Mapper les données du personnage vers notre format
+      setName(characterData.name || characterData.character?.name || '');
+      setAge(characterData.age || characterData.character?.age?.toString() || '');
+      setGender(characterData.gender || characterData.character?.gender || 'female');
+      setPersonality(characterData.personality || characterData.character?.personality || '');
+      setAppearance(characterData.appearance || characterData.character?.description || '');
+      setScenario(characterData.scenario || characterData.character?.scenario || '');
+      setStartMessage(characterData.startMessage || characterData.character?.greeting || '');
+      
+      // Mapper les caractéristiques physiques si disponibles
+      if (characterData.character || characterData.appearance) {
+        const char = characterData.character || characterData;
+        setHairColor(char.hairColor || char.hair || '');
+        setEyeColor(char.eyeColor || char.eyes || '');
+        setHeight(char.height?.replace('cm', '') || char.height?.replace(' cm', '') || '165');
+        setBodyType(char.bodyType || char.body || 'moyenne');
+        setSkinTone(char.skinTone || char.skin || 'claire');
+        
+        if (char.gender === 'female' && char.bust) {
+          setBust(char.bust);
+        } else if (char.gender === 'male' && char.penis) {
+          setPenis(char.penis?.replace('cm', '') || '17');
+        }
+      }
+
+      Alert.alert('Succès', 'Personnage importé avec succès !');
+      setImportUrl('');
+    } catch (error) {
+      console.error('Erreur import:', error);
+      Alert.alert('Erreur', 'Impossible d\'importer le personnage: ' + (error.message || 'erreur inconnue'));
+    } finally {
+      setImporting(false);
+    }
+  };
+  
   // === LISTES DE CHOIX ===
   const hairLengths = ['très courts', 'courts', 'mi-longs', 'longs', 'très longs'];
   const eyeColors = ['marron', 'noisette', 'vert', 'bleu', 'gris', 'noir', 'ambre', 'violet'];
@@ -711,6 +801,49 @@ IMPORTANT: Réponds UNIQUEMENT avec le JSON, sans aucun texte explicatif.`;
         {isEditing ? 'Modifier le personnage' : 'Créer un personnage'}
       </Text>
 
+      {/* Section Import depuis sources externes */}
+      <View style={styles.importSection}>
+        <Text style={styles.sectionTitle}>🌐 Importer depuis une source externe</Text>
+        <View style={styles.importSourceRow}>
+          <TouchableOpacity
+            style={[styles.sourceButton, importSource === 'chub' && styles.sourceButtonActive]}
+            onPress={() => setImportSource('chub')}
+          >
+            <Text style={[styles.sourceButtonText, importSource === 'chub' && styles.sourceButtonTextActive]}>Chub AI</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.sourceButton, importSource === 'characterhub' && styles.sourceButtonActive]}
+            onPress={() => setImportSource('characterhub')}
+          >
+            <Text style={[styles.sourceButtonText, importSource === 'characterhub' && styles.sourceButtonTextActive]}>CharacterHub</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.sourceButton, importSource === 'janitorai' && styles.sourceButtonActive]}
+            onPress={() => setImportSource('janitorai')}
+          >
+            <Text style={[styles.sourceButtonText, importSource === 'janitorai' && styles.sourceButtonTextActive]}>JanitorAI</Text>
+          </TouchableOpacity>
+        </View>
+        <TextInput
+          style={styles.importUrlInput}
+          placeholder={`URL du personnage ${importSource === 'chub' ? 'Chub AI' : importSource === 'characterhub' ? 'CharacterHub' : 'JanitorAI'}`}
+          value={importUrl}
+          onChangeText={setImportUrl}
+          placeholderTextColor="#9ca3af"
+        />
+        <TouchableOpacity
+          style={styles.importButton}
+          onPress={importCharacterFromSource}
+          disabled={importing}
+        >
+          {importing ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.importButtonText}>📥 Importer le personnage</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
       {/* Section Image */}
       <View style={styles.imageSection}>
         <Text style={styles.sectionTitle}>📸 Photo du personnage</Text>
@@ -1347,6 +1480,59 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  importSection: {
+    marginBottom: 20,
+    padding: 15,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+  },
+  importSourceRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  sourceButton: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    marginRight: 5,
+    alignItems: 'center',
+  },
+  sourceButtonActive: {
+    backgroundColor: '#6366f1',
+    borderColor: '#6366f1',
+  },
+  sourceButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  sourceButtonTextActive: {
+    color: '#fff',
+  },
+  importUrlInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
+    marginBottom: 10,
+    color: '#374151',
+  },
+  importButton: {
+    backgroundColor: '#6366f1',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  importButtonText: {
+    color: '#fff',
+    fontSize: 14,
     fontWeight: 'bold',
   },
   imageSection: {
