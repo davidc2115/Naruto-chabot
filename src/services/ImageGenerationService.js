@@ -176,12 +176,65 @@ class ImageGenerationService {
     return `${bust} cup breasts`;
   }
 
+  /**
+   * Extrait les descripteurs de morphologie (rond, voluptueux, gros fessier, etc.)
+   */
+  getMorphologyDescriptors(character) {
+    const descriptors = [];
+    const appearance = (character.appearance || character.physicalDescription || '').toLowerCase();
+    const bodyType = (character.bodyType || '').toLowerCase();
+    
+    // Descripteurs de morphologie pour les femmes
+    if (character.gender === 'female') {
+      // Fessier
+      if (appearance.includes('gros fessier') || appearance.includes('grosse fesse') || appearance.includes('big butt') || appearance.includes('large butt')) {
+        descriptors.push('large voluptuous butt');
+      } else if (appearance.includes('fessier rebondi') || appearance.includes('fessier rond') || appearance.includes('round butt')) {
+        descriptors.push('round plump butt');
+      } else if (appearance.includes('fessier ferme') || appearance.includes('firm butt')) {
+        descriptors.push('firm toned butt');
+      }
+      
+      // Hanches
+      if (appearance.includes('hanches larges') || appearance.includes('wide hips')) {
+        descriptors.push('wide feminine hips');
+      } else if (appearance.includes('hanches étroites') || appearance.includes('narrow hips')) {
+        descriptors.push('narrow hips');
+      }
+      
+      // Corps
+      if (bodyType.includes('voluptueux') || bodyType.includes('voluptuous') || appearance.includes('voluptueux')) {
+        descriptors.push('voluptuous curvy body');
+      } else if (bodyType.includes('ronde') || bodyType.includes('round') || appearance.includes('ronde')) {
+        descriptors.push('round soft body');
+      } else if (bodyType.includes('pulpeux') || bodyType.includes('plump') || appearance.includes('pulpeux')) {
+        descriptors.push('plump soft body');
+      } else if (bodyType.includes('enrobé') || bodyType.includes('chubby') || appearance.includes('enrobé')) {
+        descriptors.push('chubby body');
+      } else if (bodyType.includes('athlétique') || bodyType.includes('athletic') || bodyType.includes('tonique')) {
+        descriptors.push('athletic toned body');
+      } else if (bodyType.includes('élancé') || bodyType.includes('slim') || bodyType.includes('mince')) {
+        descriptors.push('slim slender body');
+      }
+      
+      // Cuisses
+      if (appearance.includes('cuisses épaisses') || appearance.includes('thick thighs')) {
+        descriptors.push('thick soft thighs');
+      } else if (appearance.includes('cuisses musclées') || appearance.includes('muscular thighs')) {
+        descriptors.push('muscular toned thighs');
+      }
+    }
+    
+    return descriptors.join(', ');
+  }
+
   buildBasePromptText(character, style) {
     const gender = character.gender === 'male' ? 'handsome man' : 'beautiful woman';
     const appearance = (character.appearance || character.physicalDescription || '').substring(0, 200);
     const bodyType = character.bodyType || '';
     const height = character.height ? `${character.height}cm tall` : '';
     const bust = character.bust || character.bustSize || '';
+    const age = character.age ? `${character.age} years old` : '';
     
     // Détails physiques supplémentaires pour plus de précision
     const hair = character.hair || character.hairColor || '';
@@ -192,8 +245,12 @@ class ImageGenerationService {
     // Descripteur de taille de poitrine précis pour les femmes
     const bustDescriptor = character.gender === 'female' ? this.getBustSizeDescriptor(bust) : '';
     
+    // Descripteurs de morphologie (fessier, hanches, corps, cuisses)
+    const morphologyDescriptors = this.getMorphologyDescriptors(character);
+    
     // Construction détaillée de l'apparence
     let detailedAppearance = appearance;
+    if (age) detailedAppearance += `, ${age}`;
     if (hair) detailedAppearance += `, ${hair} hair`;
     if (hairStyle) detailedAppearance += `, ${hairStyle} hairstyle`;
     if (eyes) detailedAppearance += `, ${eyes} eyes`;
@@ -201,6 +258,7 @@ class ImageGenerationService {
     if (height) detailedAppearance += `, ${height}`;
     if (bodyType) detailedAppearance += `, ${bodyType} build`;
     if (bustDescriptor) detailedAppearance += `, ${bustDescriptor}`;
+    if (morphologyDescriptors) detailedAppearance += `, ${morphologyDescriptors}`;
 
     // Sélection aléatoire des variations pour plus de diversité
     const randomScene = this.getRandomElement(this.scenes);
@@ -286,9 +344,13 @@ class ImageGenerationService {
     const bodyType = character.bodyType || '';
     const height = character.height ? `${character.height}cm tall` : '';
     const bust = character.bust || character.bustSize || '';
+    const age = character.age ? `${character.age} years old` : '';
     
     // Descripteur de taille de poitrine précis pour les femmes
     const bustDescriptor = character.gender === 'female' ? this.getBustSizeDescriptor(bust) : '';
+    
+    // Descripteurs de morphologie (fessier, hanches, corps, cuisses)
+    const morphologyDescriptors = this.getMorphologyDescriptors(character);
     
     const hair = character.hair || character.hairColor || '';
     const hairStyle = character.hairStyle || '';
@@ -297,6 +359,7 @@ class ImageGenerationService {
     
     // Construction détaillée de l'apparence
     let detailedAppearance = appearance;
+    if (age) detailedAppearance += `, ${age}`;
     if (hair) detailedAppearance += `, ${hair} hair`;
     if (hairStyle) detailedAppearance += `, ${hairStyle} hairstyle`;
     if (eyes) detailedAppearance += `, ${eyes} eyes`;
@@ -304,6 +367,7 @@ class ImageGenerationService {
     if (height) detailedAppearance += `, ${height}`;
     if (bodyType) detailedAppearance += `, ${bodyType} build`;
     if (bustDescriptor) detailedAppearance += `, ${bustDescriptor}`;
+    if (morphologyDescriptors) detailedAppearance += `, ${morphologyDescriptors}`;
     
     const gender = character.gender === 'male' ? 'handsome man' : 'beautiful woman';
 
