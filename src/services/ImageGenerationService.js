@@ -602,6 +602,19 @@ class ImageGenerationService {
       ? customPrompt + ', highly detailed, 8k, masterpiece'
       : this.buildBasePromptText(character, style);
 
+    // Pour contenu NSFW, utiliser Stable Horde en priorité (Pollinations filtre)
+    const isNSFW = character.isNSFW || style.includes('nsfw') || style.includes('lingerie') || style.includes('nude');
+    
+    if (isNSFW) {
+      onProgress?.('🎨 Mode NSFW → Stable Horde (Pollinations filtre)...');
+      try { return await this.generateViaStableHorde(prompt, onProgress); }
+      catch (e) {
+        onProgress?.(`⚠️ Stable Horde échoué → Pollinations…`);
+        return await this.generateViaPollinations(prompt, onProgress);
+      }
+    }
+
+    // Pour contenu SFW, Pollinations en priorité
     try { return await this.generateViaPollinations(prompt, onProgress); }
     catch (e) {
       onProgress?.(`⚠️ ${e.message} → Stable Horde…`);

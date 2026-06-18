@@ -398,32 +398,36 @@ export default function ConversationScreen({ route, navigation }) {
       try {
         const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship);
 
-        // PRIORITÉ 1 : IA locale hors ligne (si un modèle llama est chargé en mémoire)
-        if (LlamaService.isLoaded) {
-          _usedOffline = true;
-          response = await Promise.race([
-            LlamaService.generateResponse(updatedMessages, systemPrompt),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
-          ]);
-        }
-
-        // PRIORITÉ 2 : Serveur Replit (si configuré)
-        if (!response) {
-          const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
-          if (serverAvailable) {
-            response = await Promise.race([
-              ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
-            ]);
-          }
-        }
-
-        // PRIORITÉ 3 : Groq local (clé dans l'app)
-        if (!response) {
+        // PRIORITÉ 1 : Groq multi-keys (principal - rapide et fiable)
+        try {
           response = await Promise.race([
             GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 60000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout Groq')), 60000))
           ]);
+        } catch (groqError) {
+          console.log('⚠️ Groq échoué, fallback local...');
+          
+          // PRIORITÉ 2 : IA locale hors ligne (si un modèle llama est chargé en mémoire)
+          if (LlamaService.isLoaded) {
+            _usedOffline = true;
+            response = await Promise.race([
+              LlamaService.generateResponse(updatedMessages, systemPrompt),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
+            ]);
+          }
+          
+          // PRIORITÉ 3 : Serveur Replit (si configuré)
+          if (!response) {
+            const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
+            if (serverAvailable) {
+              response = await Promise.race([
+                ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
+              ]);
+            }
+          }
+          
+          if (!response) throw groqError;
         }
       } catch (genError) {
         console.error('❌ Erreur génération:', genError.message);
