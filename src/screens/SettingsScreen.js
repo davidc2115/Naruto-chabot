@@ -113,6 +113,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
       
       // APIs disponibles
       const apis = [
+        { id: 'local-llama', name: '📱 Local Llama (Offline)', requiresKey: false, available: true },
         { id: 'pollinations-mistral', name: 'Pollinations Mistral', requiresKey: false, available: true },
         { id: 'pollinations-gpt4', name: 'Pollinations GPT-4', requiresKey: false, available: true },
         { id: 'venice', name: 'Venice AI', requiresKey: true, available: !!veniceKey },
