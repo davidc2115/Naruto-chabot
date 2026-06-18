@@ -1,13 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
+import StableDiffusionLocalService from './StableDiffusionLocalService';
 
 /**
- * ImageGenerationService v6.3 — VITESSE MAXIMALE
+ * ImageGenerationService v6.4 — VITESSE MAXIMALE + GÉNÉRATION LOCALE
  *
  * Stratégie :
  *   1. Pollinations.ai (flux-schnell) → retourne l'URL directement, aucun download
  *      React Native affiche l'image dès qu'elle est prête (5-15s)
  *   2. Fallback Stable Horde → base64 → fichier local (compatible GalleryService)
+ *   3. Fallback Stable Diffusion Local → génération ONNX sur appareil Android
  *
  * Le composant <Image source={{ uri }} /> gère le streaming nativement.
  * Le download n'a lieu QUE si l'utilisateur sauvegarde en galerie.
@@ -537,6 +539,43 @@ class ImageGenerationService {
     return result.uri;
   }
 
+  // ─── Stable Diffusion Local (FALLBACK ANDROID) ───────────────────────────────
+
+  async generateViaLocalSD(prompt, onProgress) {
+    onProgress?.('📱 Génération locale sur appareil...');
+    
+    try {
+      // Vérifier la disponibilité
+      const availability = await StableDiffusionLocalService.checkAvailability();
+      
+      if (!availability?.available) {
+        throw new Error('Stable Diffusion Local non disponible - téléchargez les modèles dans Paramètres');
+      }
+      
+      if (!availability?.modelDownloaded) {
+        throw new Error('Modèles SD non téléchargés - téléchargez-les dans Paramètres');
+      }
+      
+      if (!availability?.pipelineReady) {
+        onProgress?.('🚀 Initialisation du pipeline...');
+        await StableDiffusionLocalService.initializePipeline();
+      }
+      
+      onProgress?.('🎨 Génération en cours...');
+      const localUri = await StableDiffusionLocalService.generateImage(prompt, {
+        width: 512,
+        height: 768,
+        steps: 25,
+        guidanceScale: 7.5,
+      });
+      
+      onProgress?.('✅ Image locale prête !');
+      return localUri;
+    } catch (error) {
+      throw new Error(`Stable Diffusion Local: ${error.message}`);
+    }
+  }
+
   // ─── Stable Horde (FALLBACK) ───────────────────────────────────────────────
 
   async generateViaStableHorde(prompt, onProgress) {
@@ -611,8 +650,12 @@ class ImageGenerationService {
       onProgress?.('🎨 Mode NSFW → Stable Horde (Pollinations filtre)...');
       try { return await this.generateViaStableHorde(prompt, onProgress); }
       catch (e) {
-        onProgress?.(`⚠️ Stable Horde échoué → Pollinations…`);
-        return await this.generateViaPollinations(prompt, onProgress);
+        onProgress?.(`⚠️ Stable Horde échoué → Local SD…`);
+        try { return await this.generateViaLocalSD(prompt, onProgress); }
+        catch (e2) {
+          onProgress?.(`⚠️ Local SD échoué → Pollinations…`);
+          return await this.generateViaPollinations(prompt, onProgress);
+        }
       }
     }
 
@@ -620,7 +663,15 @@ class ImageGenerationService {
     try { return await this.generateViaPollinations(prompt, onProgress); }
     catch (e) {
       onProgress?.(`⚠️ ${e.message} → Stable Horde…`);
-      return await this.generateViaStableHorde(prompt, onProgress);
+      try { return await this.generateViaStableHorde(prompt, onProgress); }
+      catch (e2) {
+        onProgress?.(`⚠️ Stable Horde échoué → Local SD…`);
+        try { return await this.generateViaLocalSD(prompt, onProgress); }
+        catch (e3) {
+          onProgress?.(`⚠️ Local SD non disponible → Erreur finale`);
+          throw new Error('Tous les services de génération ont échoué');
+        }
+      }
     }
   }
 
