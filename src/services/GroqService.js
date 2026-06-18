@@ -138,20 +138,58 @@ class GroqService {
     const affection = relationship?.affection || 0;
     const trust = relationship?.trust || 0;
 
-    // Phase relationnelle progressive - PLUS DE BLOCAGE, ÉVOLUTION NATURELLE
+    // Phase relationnelle progressive - NSFW POSSIBLE DÈS LE DÉBUT, VITESSE SELON TEMPÉRAMENT
+    const temperament = (character.temperament || character.personality || '').toLowerCase();
+    
+    // Calculer le seuil d'acceptation NSFW selon le tempérament
+    let nsfwThreshold = 2; // Par défaut: niveau 2 pour NSFW léger
+    if (temperament.includes('timide') || temperament.includes('shy') || temperament.includes('réservé')) {
+      nsfwThreshold = 5; // Timide: besoin de plus de confiance
+    } else if (temperament.includes('direct') || temperament.includes('bold') || temperament.includes('audacieux')) {
+      nsfwThreshold = 1; // Direct: accepte NSFW dès le début
+    } else if (temperament.includes('séducteur') || temperament.includes('séductrice') || temperament.includes('charmeur')) {
+      nsfwThreshold = 1; // Séducteur: accepte NSFW dès le début
+    } else if (temperament.includes('passionn') || temperament.includes('ardent')) {
+      nsfwThreshold = 1; // Passionné: accepte NSFW dès le début
+    } else if (temperament.includes('dominant') || temperament.includes('dominante')) {
+      nsfwThreshold = 2; // Dominant: accepte NSFW rapidement
+    } else if (temperament.includes('soumis') || temperament.includes('soumise')) {
+      nsfwThreshold = 3; // Soumis: besoin d'un peu plus de confiance
+    } else if (temperament.includes('mystérieux') || temperament.includes('énigmatique')) {
+      nsfwThreshold = 4; // Mystérieux: plus difficile à percer
+    }
+    
+    // NSFW autorisé si niveau >= seuil OU affection >= seuil * 10
+    const nsfwAllowed = level >= nsfwThreshold || affection >= (nsfwThreshold * 10);
+    
     let phase, allowed, forbidden;
     if (level <= 2 || interactions < 5) {
       phase = `DÉBUT DE RELATION (phase 1) — vous vous connaissez à peine ou venez de vous rencontrer dans le cadre du scénario.`;
       allowed = `Petites attentions, curiosité, gêne, taquineries légères, regards.`;
-      forbidden = `INTERDIT : déclaration d'amour, baisers, gestes intimes, "je t'aime", aveux profonds. Reste FIDÈLE à ta relation de base (belle-mère, voisine, collègue, etc.).`;
+      if (nsfwAllowed) {
+        allowed += ` Contenu intime possible selon ton tempérament.`;
+        forbidden = `Respecte ton tempérament: si timide, hésite; si direct, va de l'avant.`;
+      } else {
+        forbidden = `INTERDIT : déclaration d'amour, baisers, gestes intimes, "je t'aime", aveux profonds. Reste FIDÈLE à ta relation de base (belle-mère, voisine, collègue, etc.).`;
+      }
     } else if (level <= 4 || affection < 35) {
       phase = `RAPPROCHEMENT (phase 2) — une complicité naît, vous baissez la garde par moments.`;
       allowed = `Confidences mesurées, contacts furtifs, sous-entendus, jalousies discrètes.`;
-      forbidden = `INTERDIT : déclaration amoureuse explicite, baisers prolongés, rapports intimes. Pas encore.`;
+      if (nsfwAllowed) {
+        allowed += ` Intimité légère acceptable selon ton tempérament.`;
+        forbidden = `Si timide, reste prudent; si audacieux, ose plus.`;
+      } else {
+        forbidden = `INTERDIT : déclaration amoureuse explicite, baisers prolongés, rapports intimes. Pas encore.`;
+      }
     } else if (level <= 6 || affection < 60) {
       phase = `TENSION (phase 3) — vous luttez contre une attirance qui dépasse votre lien initial.`;
       allowed = `Frôlements assumés, regards lourds, baisers volés, doutes, culpabilité, désir avoué entre les lignes.`;
-      forbidden = `Tu reconnais le tabou de votre lien (belle-mère, voisine mariée, etc.) et tu hésites.`;
+      if (nsfwAllowed) {
+        allowed += ` Intimité physique acceptable selon ton tempérament.`;
+        forbidden = `Tu reconnais le tabou de votre lien (belle-mère, voisine mariée, etc.) et tu hésites selon ton tempérament.`;
+      } else {
+        forbidden = `Tu reconnais le tabou de votre lien (belle-mère, voisine mariée, etc.) et tu hésites.`;
+      }
     } else if (level <= 8 || affection < 80) {
       phase = `INTIMITÉ (phase 4) — la barrière a cédé, vous vous appartenez par instants.`;
       allowed = `Étreintes, baisers, moments intimes, déclarations sincères, complicité totale.`;
