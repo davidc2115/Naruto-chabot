@@ -178,13 +178,135 @@ class ImageGenerationService {
 
   /**
    * Extrait les descripteurs de morphologie (rond, voluptueux, gros fessier, etc.)
+   * Inclut: poids, taille, forme, visage, couleur de peau, origine
    */
   getMorphologyDescriptors(character) {
     const descriptors = [];
     const appearance = (character.appearance || character.physicalDescription || '').toLowerCase();
     const bodyType = (character.bodyType || '').toLowerCase();
+    const physicalDescription = (character.physicalDescription || '').toLowerCase();
     
-    // Descripteurs de morphologie pour les femmes
+    // === POIDS ===
+    if (appearance.includes('très mince') || appearance.includes('very slim') || appearance.includes('maigre')) {
+      descriptors.push('very slender lightweight');
+    } else if (appearance.includes('mince') || appearance.includes('slim') || appearance.includes('thin')) {
+      descriptors.push('slim lightweight');
+    } else if (appearance.includes('moyen') || appearance.includes('average') || appearance.includes('normal')) {
+      descriptors.push('average weight');
+    } else if (appearance.includes('enrobé') || appearance.includes('chubby') || appearance.includes('plump')) {
+      descriptors.push('chubby soft weight');
+    } else if (appearance.includes('ronde') || appearance.includes('round') || appearance.includes('curvy')) {
+      descriptors.push('curvy voluptuous weight');
+    } else if (appearance.includes('gros') || appearance.includes('large') || appearance.includes('heavy')) {
+      descriptors.push('heavy full-figured');
+    }
+    
+    // === TAILLE ===
+    const height = character.height || '';
+    if (height) {
+      const heightNum = parseInt(height.replace('cm', '').replace(' ', ''));
+      if (heightNum < 160) {
+        descriptors.push('petite short stature');
+      } else if (heightNum < 170) {
+        descriptors.push('average height');
+      } else if (heightNum < 180) {
+        descriptors.push('tall stature');
+      } else {
+        descriptors.push('very tall stature');
+      }
+    }
+    
+    // === FORME DU CORPS ===
+    if (bodyType.includes('voluptueux') || bodyType.includes('voluptuous') || appearance.includes('voluptueux')) {
+      descriptors.push('voluptuous curvy hourglass figure');
+    } else if (bodyType.includes('athlétique') || bodyType.includes('athletic') || bodyType.includes('tonique')) {
+      descriptors.push('athletic toned fit figure');
+    } else if (bodyType.includes('élancé') || bodyType.includes('slender') || bodyType.includes('mince')) {
+      descriptors.push('slender lean figure');
+    } else if (bodyType.includes('ronde') || bodyType.includes('round') || appearance.includes('ronde')) {
+      descriptors.push('round soft pear-shaped figure');
+    } else if (bodyType.includes('rectangulaire') || bodyType.includes('rectangle')) {
+      descriptors.push('rectangular straight figure');
+    } else if (bodyType.includes('sablier') || bodyType.includes('hourglass')) {
+      descriptors.push('classic hourglass figure');
+    }
+    
+    // === VISAGE ===
+    if (appearance.includes('visage rond') || appearance.includes('round face')) {
+      descriptors.push('round soft face');
+    } else if (appearance.includes('visage ovale') || appearance.includes('oval face')) {
+      descriptors.push('oval elegant face');
+    } else if (appearance.includes('visage carré') || appearance.includes('square face')) {
+      descriptors.push('square angular face');
+    } else if (appearance.includes('visage en cœur') || appearance.includes('heart-shaped face')) {
+      descriptors.push('heart-shaped delicate face');
+    } else if (appearance.includes('visage long') || appearance.includes('long face')) {
+      descriptors.push('long elongated face');
+    }
+    
+    // === DÉTAILS DU VISAGE ===
+    if (appearance.includes('pommettes hautes') || appearance.includes('high cheekbones')) {
+      descriptors.push('high defined cheekbones');
+    } else if (appearance.includes('pommettes saillantes') || appearance.includes('prominent cheekbones')) {
+      descriptors.push('prominent cheekbones');
+    }
+    
+    if (appearance.includes('mâchoire carrée') || appearance.includes('square jaw')) {
+      descriptors.push('square defined jawline');
+    } else if (appearance.includes('mâchoire anguleuse') || appearance.includes('angular jaw')) {
+      descriptors.push('angular sharp jawline');
+    } else if (appearance.includes('mâchoire fine') || appearance.includes('delicate jaw')) {
+      descriptors.push('delicate refined jawline');
+    }
+    
+    if (appearance.includes('double menton') || appearance.includes('double chin')) {
+      descriptors.push('soft double chin');
+    } else if (appearance.includes('menton fuyant') || appearance.includes('receding chin')) {
+      descriptors.push('receding chin');
+    }
+    
+    // === COULEUR DE PEAU ===
+    const skinTone = character.skinTone || character.skin || '';
+    if (skinTone) {
+      if (skinTone.includes('très claire') || skinTone.includes('very fair') || skinTone.includes('pale')) {
+        descriptors.push('very fair pale skin');
+      } else if (skinTone.includes('claire') || skinTone.includes('fair')) {
+        descriptors.push('fair light skin');
+      } else if (skinTone.includes('mate') || skinTone.includes('olive')) {
+        descriptors.push('olive matte skin');
+      } else if (skinTone.includes('bronzée') || skinTone.includes('tanned')) {
+        descriptors.push('tanned bronzed skin');
+      } else if (skinTone.includes('caramel') || skinTone.includes('golden')) {
+        descriptors.push('golden caramel skin');
+      } else if (skinTone.includes('ébène') || skinTone.includes('ebony') || skinTone.includes('dark')) {
+        descriptors.push('dark ebony skin');
+      }
+    }
+    
+    // === ORIGINE / ETHNICITÉ ===
+    if (appearance.includes('caucasienne') || appearance.includes('caucasian') || appearance.includes('blanche')) {
+      descriptors.push('Caucasian features');
+    } else if (appearance.includes('asiatique') || appearance.includes('asian') || appearance.includes(' asiat')) {
+      descriptors.push('Asian features');
+    } else if (appearance.includes('africaine') || appearance.includes('african') || appearance.includes('noire')) {
+      descriptors.push('African features');
+    } else if (appearance.includes('latina') || appearance.includes('hispanic') || appearance.includes('latino')) {
+      descriptors.push('Latina Hispanic features');
+    } else if (appearance.includes('arabe') || appearance.includes('arab') || appearance.includes('middle eastern')) {
+      descriptors.push('Middle Eastern features');
+    } else if (appearance.includes('indienne') || appearance.includes('indian') || appearance.includes('south asian')) {
+      descriptors.push('South Asian features');
+    } else if (appearance.includes('métisse') || appearance.includes('mixed') || appearance.includes('mixed race')) {
+      descriptors.push('mixed race features');
+    } else if (appearance.includes('méditerranéenne') || appearance.includes('mediterranean')) {
+      descriptors.push('Mediterranean features');
+    } else if (appearance.includes('nordique') || appearance.includes('nordic') || appearance.includes('scandinavian')) {
+      descriptors.push('Nordic Scandinavian features');
+    } else if (appearance.includes('slave') || appearance.includes('slavic') || appearance.includes('eastern european')) {
+      descriptors.push('Slavic Eastern European features');
+    }
+    
+    // === DÉTAILS SPÉCIFIQUES FÉMININS ===
     if (character.gender === 'female') {
       // Fessier
       if (appearance.includes('gros fessier') || appearance.includes('grosse fesse') || appearance.includes('big butt') || appearance.includes('large butt')) {
@@ -202,26 +324,30 @@ class ImageGenerationService {
         descriptors.push('narrow hips');
       }
       
-      // Corps
-      if (bodyType.includes('voluptueux') || bodyType.includes('voluptuous') || appearance.includes('voluptueux')) {
-        descriptors.push('voluptuous curvy body');
-      } else if (bodyType.includes('ronde') || bodyType.includes('round') || appearance.includes('ronde')) {
-        descriptors.push('round soft body');
-      } else if (bodyType.includes('pulpeux') || bodyType.includes('plump') || appearance.includes('pulpeux')) {
-        descriptors.push('plump soft body');
-      } else if (bodyType.includes('enrobé') || bodyType.includes('chubby') || appearance.includes('enrobé')) {
-        descriptors.push('chubby body');
-      } else if (bodyType.includes('athlétique') || bodyType.includes('athletic') || bodyType.includes('tonique')) {
-        descriptors.push('athletic toned body');
-      } else if (bodyType.includes('élancé') || bodyType.includes('slim') || bodyType.includes('mince')) {
-        descriptors.push('slim slender body');
-      }
-      
       // Cuisses
       if (appearance.includes('cuisses épaisses') || appearance.includes('thick thighs')) {
         descriptors.push('thick soft thighs');
       } else if (appearance.includes('cuisses musclées') || appearance.includes('muscular thighs')) {
         descriptors.push('muscular toned thighs');
+      }
+    }
+    
+    // === DÉTAILS SPÉCIFIQUES MASCULINS ===
+    if (character.gender === 'male') {
+      // Épaules
+      if (appearance.includes('épaules larges') || appearance.includes('broad shoulders')) {
+        descriptors.push('broad masculine shoulders');
+      } else if (appearance.includes('épaules étroites') || appearance.includes('narrow shoulders')) {
+        descriptors.push('narrow shoulders');
+      }
+      
+      // Torse
+      if (appearance.includes('torse large') || appearance.includes('broad chest')) {
+        descriptors.push('broad muscular chest');
+      } else if (appearance.includes('torse poilu') || appearance.includes('hairy chest')) {
+        descriptors.push('hairy chest');
+      } else if (appearance.includes('torse musclé') || appearance.includes('muscular chest')) {
+        descriptors.push('defined muscular chest');
       }
     }
     
