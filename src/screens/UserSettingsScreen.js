@@ -18,6 +18,7 @@ import AuthService from '../services/AuthService';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
+import LlamaService from '../services/LlamaService';
 import appJson from '../../app.json';
 
 /**
@@ -41,6 +42,13 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   const [isPremium, setIsPremium] = useState(false);
   const [initializingPipeline, setInitializingPipeline] = useState(false);
   
+  // États pour Llama (génération texte hors ligne)
+  const [llamaAvailability, setLlamaAvailability] = useState(null);
+  const [llamaDownloading, setLlamaDownloading] = useState(false);
+  const [llamaDownloadProgress, setLlamaDownloadProgress] = useState(0);
+  const [llamaLoading, setLlamaLoading] = useState(false);
+  const [selectedLlamaModel, setSelectedLlamaModel] = useState(null);
+  
   // État pour les mises à jour
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [updateInfo, setUpdateInfo] = useState(null);
@@ -52,6 +60,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   useEffect(() => {
     loadUserData();
     loadImageSettings();
+    checkLlamaAvailability();
     checkPremiumStatus();
   }, []);
 
@@ -59,6 +68,7 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
     const unsubscribe = navigation.addListener('focus', () => {
       loadUserData();
       loadImageSettings();
+      checkLlamaAvailability();
       checkPremiumStatus();
     });
     return unsubscribe;
@@ -85,6 +95,125 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
     } catch (error) {
       console.error('Erreur chargement config images:', error);
     }
+  };
+
+  const checkLlamaAvailability = async () => {
+    try {
+      const activeModelId = await LlamaService.getStoredActiveModelId();
+      setSelectedLlamaModel(activeModelId);
+      
+      const availability = {
+        activeModelId,
+        isLoaded: LlamaService.isLoaded,
+        phi35Downloaded: await LlamaService.isModelDownloaded('phi35mini'),
+        llama321bDownloaded: await LlamaService.isModelDownloaded('llama321b'),
+      };
+      setLlamaAvailability(availability);
+    } catch (error) {
+      console.error('Erreur vérification Llama:', error);
+    }
+  };
+
+  const handleDownloadLlamaModel = async (modelId) => {
+    const { LLAMA_MODELS } = LlamaService;
+    const model = LLAMA_MODELS?.[modelId];
+    if (!model) return;
+    
+    Alert.alert(
+      `📥 Télécharger ${model.name}`,
+      `Taille: ${model.desc}\n\n⚠️ Le téléchargement peut prendre plusieurs minutes selon votre connexion.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Télécharger',
+          onPress: async () => {
+            try {
+              setLlamaDownloading(true);
+              setLlamaDownloadProgress(0);
+              
+              await LlamaService.downloadModel(modelId, (progress) => {
+                setLlamaDownloadProgress(progress);
+              });
+              
+              await checkLlamaAvailability();
+              setLlamaDownloading(false);
+              
+              Alert.alert('✅ Téléchargement terminé', `${model.name} a été téléchargé avec succès.`);
+            } catch (error) {
+              setLlamaDownloading(false);
+              console.error('Erreur téléchargement Llama:', error);
+              Alert.alert('❌ Erreur', 'Le téléchargement a échoué: ' + error.message);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleLoadLlamaModel = async (modelId) => {
+    Alert.alert(
+      '🚀 Charger le modèle',
+      'Cela va charger le modèle en mémoire pour la génération de texte hors ligne.\n\n⚠️ Cela peut prendre 10-30 secondes.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Charger',
+          onPress: async () => {
+            try {
+              setLlamaLoading(true);
+              
+              await LlamaService.loadModel(modelId, (msg) => {
+                console.log('Llama load:', msg);
+              });
+              
+              await checkLlamaAvailability();
+              setLlamaLoading(false);
+              
+              Alert.alert('✅ Modèle chargé', 'Le modèle est prêt pour la génération hors ligne.');
+            } catch (error) {
+              setLlamaLoading(false);
+              console.error('Erreur chargement Llama:', error);
+              Alert.alert('❌ Erreur', 'Le chargement a échoué: ' + error.message);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleUnloadLlamaModel = async () => {
+    try {
+      await LlamaService.unloadModel();
+      await checkLlamaAvailability();
+      Alert.alert('✅ Modèle déchargé', 'Le modèle a été libéré de la mémoire.');
+    } catch (error) {
+      console.error('Erreur déchargement Llama:', error);
+      Alert.alert('❌ Erreur', 'Le déchargement a échoué.');
+    }
+  };
+
+  const handleDeleteLlamaModel = async (modelId) => {
+    Alert.alert(
+      '🗑️ Supprimer le modèle',
+      'Êtes-vous sûr de vouloir supprimer ce modèle ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await LlamaService.deleteModel(modelId);
+              await checkLlamaAvailability();
+              Alert.alert('✅ Supprimé', 'Le modèle a été supprimé.');
+            } catch (error) {
+              console.error('Erreur suppression Llama:', error);
+              Alert.alert('❌ Erreur', 'La suppression a échoué.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleImageStrategyChange = async (newStrategy) => {
@@ -837,6 +966,164 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
             </Text>
           </View>
         </View>
+      )}
+
+      {/* GÉNÉRATION DE TEXTE HORS LIGNE */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>📱 Génération de Texte Hors Ligne</Text>
+        
+        <Text style={styles.sectionSubtitle}>Modèles Llama pour génération locale</Text>
+        
+        {/* Status Llama */}
+        {llamaAvailability ? (
+          <View style={styles.sdStatusBox}>
+            <Text style={styles.sdStatusTitle}>📱 Statut des modèles Llama</Text>
+            
+            {/* Phi 3.5 Status */}
+            <View style={styles.sdStatusRow}>
+              <Text style={styles.sdStatusLabel}>Phi-3.5 Mini:</Text>
+              <Text style={[
+                styles.sdStatusValue,
+                { color: llamaAvailability.phi35Downloaded ? '#10b981' : '#6b7280' }
+              ]}>
+                {llamaAvailability.phi35Downloaded ? '✅ Téléchargé' : '📥 Non téléchargé'}
+              </Text>
+            </View>
+            
+            {/* Llama 3.2 1B Status */}
+            <View style={styles.sdStatusRow}>
+              <Text style={styles.sdStatusLabel}>Llama 3.2 1B:</Text>
+              <Text style={[
+                styles.sdStatusValue,
+                { color: llamaAvailability.llama321bDownloaded ? '#10b981' : '#6b7280' }
+              ]}>
+                {llamaAvailability.llama321bDownloaded ? '✅ Téléchargé' : '📥 Non téléchargé'}
+              </Text>
+            </View>
+            
+            {/* Loaded Status */}
+            <View style={styles.sdStatusRow}>
+              <Text style={styles.sdStatusLabel}>Modèle chargé:</Text>
+              <Text style={[
+                styles.sdStatusValue,
+                { color: llamaAvailability.isLoaded ? '#10b981' : '#6b7280' }
+              ]}>
+                {llamaAvailability.isLoaded ? '✅ Prêt' : '⏸️ Non chargé'}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <ActivityIndicator color="#6366f1" style={{ marginTop: 10 }} />
+        )}
+        
+        {/* Barre de progression téléchargement Llama */}
+        {llamaDownloading && (
+          <View style={{ marginVertical: 10 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>Téléchargement...</Text>
+              <Text style={{ fontSize: 12, color: '#6b7280' }}>{Math.round(llamaDownloadProgress * 100)}%</Text>
+            </View>
+            <View style={{ height: 8, backgroundColor: '#e5e7eb', borderRadius: 4 }}>
+              <View style={{ 
+                height: 8, 
+                backgroundColor: '#6366f1', 
+                borderRadius: 4,
+                width: `${Math.round(llamaDownloadProgress * 100)}%`
+              }} />
+            </View>
+          </View>
+        )}
+        
+        {/* Boutons Llama */}
+        <View style={styles.sdButtonsRow}>
+          {/* Télécharger Phi 3.5 */}
+          {!llamaAvailability?.phi35Downloaded && (
+            <TouchableOpacity
+              style={[styles.sdDownloadButton, llamaDownloading && styles.sdButtonDisabled]}
+              onPress={() => handleDownloadLlamaModel('phi35mini')}
+              disabled={llamaDownloading}
+            >
+              <Text style={styles.sdDownloadButtonText}>
+                📥 Phi-3.5 Mini (~2.2 Go)
+              </Text>
+            </TouchableOpacity>
+          )}
+          
+          {/* Télécharger Llama 3.2 1B */}
+          {!llamaAvailability?.llama321bDownloaded && (
+            <TouchableOpacity
+              style={[styles.sdDownloadButton, llamaDownloading && styles.sdButtonDisabled]}
+              onPress={() => handleDownloadLlamaModel('llama321b')}
+              disabled={llamaDownloading}
+            >
+              <Text style={styles.sdDownloadButtonText}>
+                📥 Llama 3.2 1B (~700 Mo)
+              </Text>
+            </TouchableOpacity>
+          )}
+          
+          {/* Charger modèle */}
+          {llamaAvailability && (llamaAvailability.phi35Downloaded || llamaAvailability.llama321bDownloaded) && !llamaAvailability.isLoaded && (
+            <TouchableOpacity
+              style={[styles.sdDownloadButton, { backgroundColor: '#10b981' }, llamaLoading && styles.sdButtonDisabled]}
+              onPress={() => handleLoadLlamaModel(llamaAvailability.phi35Downloaded ? 'phi35mini' : 'llama321b')}
+              disabled={llamaLoading}
+            >
+              {llamaLoading ? (
+                <View style={styles.sdDownloadingContent}>
+                  <ActivityIndicator color="#fff" size="small" />
+                  <Text style={styles.sdDownloadButtonText}>Chargement...</Text>
+                </View>
+              ) : (
+                <Text style={styles.sdDownloadButtonText}>
+                  🚀 Charger le modèle
+                </Text>
+              )}
+            </TouchableOpacity>
+          )}
+          
+          {/* Décharger modèle */}
+          {llamaAvailability?.isLoaded && (
+            <TouchableOpacity
+              style={[styles.sdDownloadButton, { backgroundColor: '#f59e0b' }]}
+              onPress={handleUnloadLlamaModel}
+            >
+              <Text style={styles.sdDownloadButtonText}>
+                ⏸️ Décharger le modèle
+              </Text>
+            </TouchableOpacity>
+          )}
+          
+          {/* Supprimer Phi 3.5 */}
+          {llamaAvailability?.phi35Downloaded && (
+            <TouchableOpacity
+              style={[styles.sdDeleteButton, { marginTop: 8 }]}
+              onPress={() => handleDeleteLlamaModel('phi35mini')}
+            >
+              <Text style={styles.sdDeleteButtonText}>
+                🗑️ Supprimer Phi-3.5
+              </Text>
+            </TouchableOpacity>
+          )}
+          
+          {/* Supprimer Llama 3.2 1B */}
+          {llamaAvailability?.llama321bDownloaded && (
+            <TouchableOpacity
+              style={[styles.sdDeleteButton, { marginTop: 8 }]}
+              onPress={() => handleDeleteLlamaModel('llama321b')}
+            >
+              <Text style={styles.sdDeleteButtonText}>
+                🗑️ Supprimer Llama 3.2
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        
+        <Text style={styles.sdInfoText}>
+          ℹ️ La génération locale nécessite un smartphone puissant (3+ Go RAM).
+          Les modèles sont générés directement sur votre appareil sans connexion Internet.
+        </Text>
+      </View>
 
       {/* INFO APPLICATION 18+ */}
       <View style={styles.section}>
