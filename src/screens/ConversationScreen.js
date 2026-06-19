@@ -650,7 +650,9 @@ export default function ConversationScreen({ route, navigation }) {
             userProfile,
             messages || [],
             effectiveLevel,
-            (msg) => setImageProgress(msg)
+            (msg) => setImageProgress(msg),
+            null,
+            imageSystem || 'mix'
           ),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Timeout génération')), 120000)
