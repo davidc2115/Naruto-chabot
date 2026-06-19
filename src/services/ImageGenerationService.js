@@ -712,10 +712,8 @@ class ImageGenerationService {
     return hasNsfwKeywords || explicitNsfwRequest;
   }
 
-  async generateSceneImage(character, userProfile, messages = [], relationLevel = 1, onProgress = null, imageType = null, imageSystem = 'mix') {
+  async generateSceneImage(character, userProfile, messages = [], relationLevel = 1, onProgress = null, imageType = null) {
     await this.waitMinDelay();
-    
-    console.log(`🎨 generateSceneImage: imageSystem=${imageSystem}, relationLevel=${relationLevel}`);
     
     // Détection dynamique du mode NSFW
     const userNsfwEnabled = userProfile?.nsfwEnabled || false;
@@ -733,44 +731,10 @@ class ImageGenerationService {
     
     const prompt = this.buildScenePromptText(character, messages, relationLevel, selectedImageType);
 
-    // Respecter le système d'image configuré
-    if (imageSystem === 'pollinations') {
-      onProgress?.('⚡ Pollinations uniquement...');
-      try { return await this.generateViaPollinations(prompt, onProgress); }
-      catch (e) {
-        onProgress?.(`⚠️ Pollinations échoué: ${e.message}`);
-        throw e;
-      }
-    } else if (imageSystem === 'horde') {
-      onProgress?.('🎨 Stable Horde uniquement...');
-      try { return await this.generateViaStableHorde(prompt, onProgress); }
-      catch (e) {
-        onProgress?.(`⚠️ Stable Horde échoué: ${e.message}`);
-        throw e;
-      }
-    } else if (imageSystem === 'local') {
-      onProgress?.('📱 Local SD uniquement...');
-      try { return await this.generateViaLocalSD(prompt, onProgress); }
-      catch (e) {
-        onProgress?.(`⚠️ Local SD échoué: ${e.message}`);
-        throw e;
-      }
-    } else {
-      // Mode mix: Pollinations → Stable Horde → Local SD
-      onProgress?.('🎨 Mode mix: Pollinations → Stable Horde → Local...');
-      try { return await this.generateViaPollinations(prompt, onProgress); }
-      catch (e) {
-        onProgress?.(`⚠️ ${e.message} → Stable Horde…`);
-        try { return await this.generateViaStableHorde(prompt, onProgress); }
-        catch (e2) {
-          onProgress?.(`⚠️ Stable Horde échoué → Local SD…`);
-          try { return await this.generateViaLocalSD(prompt, onProgress); }
-          catch (e3) {
-            onProgress?.(`⚠️ Local SD non disponible → Erreur finale`);
-            throw new Error('Tous les services de génération ont échoué');
-          }
-        }
-      }
+    try { return await this.generateViaPollinations(prompt, onProgress); }
+    catch (e) {
+      onProgress?.(`⚠️ ${e.message} → Stable Horde…`);
+      return await this.generateViaStableHorde(prompt, onProgress);
     }
   }
 }
