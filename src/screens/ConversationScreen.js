@@ -407,8 +407,8 @@ export default function ConversationScreen({ route, navigation }) {
         const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship);
         
         // Récupérer le système de génération configuré
-        const textSystem = await AsyncStorage.getItem('text_generation_system') || 'mix';
-        console.log('📝 Système de texte:', textSystem);
+        const textSystem = await AsyncStorage.getItem('text_generation_system');
+        console.log('📝 Système de texte:', textSystem || 'mix (défaut)');
 
         // Selon le système configuré
         if (textSystem === 'local') {
@@ -683,60 +683,24 @@ export default function ConversationScreen({ route, navigation }) {
       const effectiveLevel = Math.max(1, currentLevel);
       
       // Récupérer le système de génération d'image configuré
-      const imageSystem = await AsyncStorage.getItem('image_generation_system') || 'mix';
-      console.log(`🎨 Système d'image: ${imageSystem}, Niveau ${effectiveLevel}`);
+      const imageSystem = await AsyncStorage.getItem('image_generation_system');
+      console.log(`🎨 Système d'image: ${imageSystem || 'mix (défaut)'}, Niveau ${effectiveLevel}`);
       
       let imageUrl;
       
-      // Selon le système configuré
-      if (imageSystem === 'local') {
-        // MODE LOCAL UNIQUEMENT
-        imageUrl = await Promise.race([
-          ImageGenerationService.generateViaLocalSD(
-            ImageGenerationService.buildBasePromptText(character, 'portrait'),
-            (msg) => setImageProgress(msg)
-          ),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout génération locale')), 120000)
-          )
-        ]);
-      } else if (imageSystem === 'horde') {
-        // MODE STABLE HORDE UNIQUEMENT
-        imageUrl = await Promise.race([
-          ImageGenerationService.generateViaStableHorde(
-            ImageGenerationService.buildBasePromptText(character, 'portrait'),
-            (msg) => setImageProgress(msg)
-          ),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout Stable Horde')), 120000)
-          )
-        ]);
-      } else if (imageSystem === 'pollinations') {
-        // MODE POLLINATIONS UNIQUEMENT
-        imageUrl = await Promise.race([
-          ImageGenerationService.generateViaPollinations(
-            ImageGenerationService.buildBasePromptText(character, 'portrait'),
-            (msg) => setImageProgress(msg)
-          ),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout Pollinations')), 120000)
-          )
-        ]);
-      } else {
-        // MODE MIX (défaut)
-        imageUrl = await Promise.race([
-          ImageGenerationService.generateSceneImage(
-            character,
-            userProfile,
-            messages || [],
-            effectiveLevel,
-            (msg) => setImageProgress(msg)
-          ),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout génération')), 120000)
-          )
-        ]);
-      }
+      // Utiliser generateSceneImage qui gère déjà le fallback entre les différents services
+      imageUrl = await Promise.race([
+        ImageGenerationService.generateSceneImage(
+          character,
+          userProfile,
+          messages || [],
+          effectiveLevel,
+          (msg) => setImageProgress(msg)
+        ),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout génération')), 120000)
+        )
+      ]);
       
       if (!imageUrl) {
         throw new Error('Image non générée');
