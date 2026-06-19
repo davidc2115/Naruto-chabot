@@ -28,6 +28,14 @@ import LevelService from '../services/LevelService';
 import AuthService from '../services/AuthService';
 import ColorPicker from '../components/ColorPicker';
 
+// Import optionnel de CharacterImageService
+let CharacterImageService = null;
+try {
+  CharacterImageService = require('../services/CharacterImageService').default;
+} catch (e) {
+  console.log('CharacterImageService non disponible');
+}
+
 export default function ConversationScreen({ route, navigation }) {
   const { character, forceNew, timestamp } = route.params || {};
   const [messages, setMessages] = useState([]);
@@ -650,6 +658,11 @@ export default function ConversationScreen({ route, navigation }) {
       try {
         await GalleryService.saveImageToGallery(character.id, imageUrl);
         await loadGallery();
+        
+        // Sauvegarder dans CharacterImageService pour persistance
+        if (CharacterImageService) {
+          await CharacterImageService.addImage(character.id, imageUrl, `Image générée - Niveau ${effectiveLevel}`);
+        }
       } catch (saveError) {
         console.log('⚠️ Erreur sauvegarde galerie:', saveError.message);
       }

@@ -15,6 +15,7 @@ import enhancedCharacters from '../data/allCharacters';
 // Import optionnel des services (avec fallback)
 let CustomCharacterService = null;
 let GalleryService = null;
+let CharacterImageService = null;
 
 try {
   CustomCharacterService = require('../services/CustomCharacterService').default;
@@ -26,6 +27,12 @@ try {
   GalleryService = require('../services/GalleryService').default;
 } catch (e) {
   console.log('GalleryService non disponible');
+}
+
+try {
+  CharacterImageService = require('../services/CharacterImageService').default;
+} catch (e) {
+  console.log('CharacterImageService non disponible');
 }
 
 export default function HomeScreen({ navigation }) {
@@ -47,6 +54,9 @@ export default function HomeScreen({ navigation }) {
       setAllCharacters([...enhancedCharacters]);
     }
     
+    // Charger les images générées
+    loadGeneratedImages();
+    
     // Charger les personnages custom en arrière-plan avec timeout
     const timer = setTimeout(() => {
       loadCustomCharactersBackground();
@@ -61,9 +71,30 @@ export default function HomeScreen({ navigation }) {
       if (!loadingRef.current && customLoaded) {
         loadCustomCharactersBackground();
       }
+      loadGeneratedImages();
     });
     return unsubscribe;
   }, [navigation, customLoaded]);
+
+  // Charger les images générées pour chaque personnage
+  const loadGeneratedImages = async () => {
+    if (!CharacterImageService) return;
+    
+    try {
+      const images = {};
+      
+      for (const character of allCharacters) {
+        const latestImage = await CharacterImageService.getLatestImage(character.id);
+        if (latestImage) {
+          images[character.id] = latestImage.url;
+        }
+      }
+      
+      setCharacterImages(images);
+    } catch (error) {
+      console.error('Erreur chargement images générées:', error);
+    }
+  };
 
   // Charger les personnages custom en arrière-plan avec TIMEOUT
   const loadCustomCharactersBackground = async () => {
@@ -231,6 +262,7 @@ export default function HomeScreen({ navigation }) {
   // Rendu optimisé des personnages
   const renderCharacter = useCallback(({ item }) => {
     const imageUrl = item.imageUrl || characterImages[item.id];
+    const hasGeneratedImage = characterImages[item.id] && !item.imageUrl;
     
     return (
       <TouchableOpacity
@@ -238,37 +270,52 @@ export default function HomeScreen({ navigation }) {
         onPress={() => navigation.navigate('CharacterDetail', { character: item })}
       >
         <View style={styles.cardContent}>
-          {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              style={styles.characterImage}
-            />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {item.name.split(' ').map(n => n[0]).join('')}
-              </Text>
-            </View>
-          )}
+          <View style={styles.imageContainer}>
+            {imageUrl ? (
+              <Image
+                source={{ uri: imageUrl }}
+                style={styles.characterImage}
+              />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                  {item.name.split(' ').map(n => n[0]).join('')}
+                </Text>
+              </View>
+            )}
+            {hasGeneratedImage && (
+              <View style={styles.generatedBadge}>
+                <Text style={styles.generatedBadgeText}>🎨</Text>
+              </View>
+            )}
+          </View>
           <View style={styles.info}>
-            <Text style={styles.name}>
-              {item.name}
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>
+                {item.name}
+              </Text>
               {item.isCustom && <Text style={styles.customBadge}> ✨</Text>}
-            </Text>
-            <Text style={styles.age}>{item.age} ans • {
-              item.gender === 'male' ? 'Homme' :
-              item.gender === 'female' ? 'Femme' : 
-              'Non-binaire'
-            }</Text>
-            <Text style={styles.description} numberOfLines={2}>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.age}>{item.age} ans</Text>
+              <Text style={styles.gender}>• {
+                item.gender === 'male' ? 'Homme' :
+                item.gender === 'female' ? 'Femme' : 
+                'NB'
+              }</Text>
+            </View>
+            <Text style={styles.scenario} numberOfLines={2}>
               {item.scenario}
             </Text>
             <View style={styles.tagsContainer}>
-              {(item.tags || []).slice(0, 4).map((tag, index) => (
+              {(item.tags || []).slice(0, 3).map((tag, index) => (
                 <View key={index} style={styles.tag}>
                   <Text style={styles.tagText}>{tag}</Text>
                 </View>
               ))}
+              {(item.tags || []).length > 3 && (
+                <Text style={styles.moreTagsText}>+{(item.tags || []).length - 3}</Text>
+              )}
             </View>
           </View>
         </View>
@@ -552,20 +599,67 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
   },
-  characterImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+  imageContainer: {
+    width: 80,
+    height: 80,
     marginRight: 16,
+    position: 'relative',
+  },
+  generatedBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#6366f1',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#1e1e2e',
+  },
+  generatedBadgeText: {
+    fontSize: 12,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  gender: {
+    fontSize: 13,
+    color: '#a0a0b0',
+    marginLeft: 8,
+  },
+  scenario: {
+    fontSize: 13,
+    color: '#d1d5db',
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+  moreTagsText: {
+    fontSize: 11,
+    color: '#6366f1',
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  characterImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
   avatarPlaceholder: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#6366f1',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
   },
   avatarText: {
     fontSize: 28,
