@@ -208,10 +208,80 @@ export default function UnifiedSettingsScreen({ navigation, onLogout }) {
               placeholder="Votre nom"
               placeholderTextColor="#6b7280"
             />
+            
+            <Text style={styles.label}>Genre</Text>
+            <View style={styles.buttonGroup}>
+              <TouchableOpacity
+                style={[styles.optionButton, userProfile?.gender === 'male' && styles.optionButtonActive]}
+                onPress={() => setUserProfile({ ...userProfile, gender: 'male' })}
+              >
+                <Text style={[styles.optionButtonText, userProfile?.gender === 'male' && styles.optionButtonTextActive]}>
+                  👨 Homme
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.optionButton, userProfile?.gender === 'female' && styles.optionButtonActive]}
+                onPress={() => setUserProfile({ ...userProfile, gender: 'female' })}
+              >
+                <Text style={[styles.optionButtonText, userProfile?.gender === 'female' && styles.optionButtonTextActive]}>
+                  👩 Femme
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.optionButton, userProfile?.gender === 'other' && styles.optionButtonActive]}
+                onPress={() => setUserProfile({ ...userProfile, gender: 'other' })}
+              >
+                <Text style={[styles.optionButtonText, userProfile?.gender === 'other' && styles.optionButtonTextActive]}>
+                  🧑 Autre
+                </Text>
+              </TouchableOpacity>
+            </View>
+            
+            <Text style={styles.label}>Âge</Text>
+            <TextInput
+              style={styles.input}
+              value={userProfile?.age?.toString() || ''}
+              onChangeText={(text) => {
+                const age = parseInt(text) || 0;
+                setUserProfile({ 
+                  ...userProfile, 
+                  age,
+                  isAdult: age >= 18,
+                  nsfwEnabled: age >= 18 ? (userProfile?.nsfwEnabled || false) : false
+                });
+              }}
+              placeholder="Votre âge"
+              placeholderTextColor="#6b7280"
+              keyboardType="numeric"
+            />
+            
+            {userProfile?.isAdult && (
+              <View style={styles.switchRow}>
+                <Text style={styles.label}>Mode NSFW</Text>
+                <TouchableOpacity
+                  style={[styles.switch, userProfile?.nsfwEnabled && styles.switchActive]}
+                  onPress={async () => {
+                    const newProfile = await UserProfileService.toggleNSFW();
+                    setUserProfile(newProfile);
+                  }}
+                >
+                  <Text style={styles.switchText}>{userProfile?.nsfwEnabled ? 'ON' : 'OFF'}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            
             <TouchableOpacity 
               style={styles.saveButton}
               onPress={async () => {
-                await UserProfileService.saveProfile(userProfile);
+                if (!userProfile?.username || !userProfile?.age || !userProfile?.gender) {
+                  Alert.alert('Erreur', 'Veuillez remplir tous les champs du profil');
+                  return;
+                }
+                if (userProfile.age < 18) {
+                  Alert.alert('Erreur', 'Vous devez avoir 18 ans ou plus');
+                  return;
+                }
+                await UserProfileService.updateProfile(userProfile);
                 Alert.alert('Succès', 'Profil sauvegardé');
               }}
             >
@@ -628,9 +698,32 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   versionText: {
-    color: '#ffffff',
+    color: '#6366f1',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 8,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  switch: {
+    backgroundColor: '#2a2a3e',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#3a3a4e',
+  },
+  switchActive: {
+    backgroundColor: '#6366f1',
+    borderColor: '#6366f1',
+  },
+  switchText: {
+    color: '#a0a0b0',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
