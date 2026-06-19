@@ -404,7 +404,11 @@ export default function ConversationScreen({ route, navigation }) {
       let response;
       let _usedOffline = false;
       try {
-        const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship);
+        // Déterminer si le mode NSFW est activé
+        const nsfwEnabled = userProfile?.nsfwEnabled === true || userProfile?.nsfwMode === true || userProfile?.nsfwMode === 'true';
+        console.log(`🔞 NSFW Mode: ${nsfwEnabled}`);
+        
+        const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship, nsfwEnabled);
         
         // PRIORITÉ 1 : Groq multi-keys (principal - rapide et fiable)
         try {
@@ -634,22 +638,29 @@ export default function ConversationScreen({ route, navigation }) {
       // Récupérer le système de génération d'image configuré
       const imageSystem = await AsyncStorage.getItem('image_generation_system');
       console.log(`🎨 Système d'image: ${imageSystem || 'mix (défaut)'}, Niveau ${effectiveLevel}`);
+      console.log(`🎨 Character: ${character.name}, User Profile: ${userProfile?.username}`);
       
       let imageUrl;
       
       // Utiliser generateSceneImage qui gère déjà le fallback entre les différents services
-      imageUrl = await Promise.race([
-        ImageGenerationService.generateSceneImage(
-          character,
-          userProfile,
-          messages || [],
-          effectiveLevel,
-          (msg) => setImageProgress(msg)
-        ),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout génération')), 120000)
-        )
-      ]);
+      try {
+        imageUrl = await Promise.race([
+          ImageGenerationService.generateSceneImage(
+            character,
+            userProfile,
+            messages || [],
+            effectiveLevel,
+            (msg) => setImageProgress(msg)
+          ),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout génération')), 120000)
+          )
+        ]);
+        console.log(`✅ Image générée: ${imageUrl}`);
+      } catch (genError) {
+        console.error('❌ Erreur génération image:', genError.message);
+        throw genError;
+      }
       
       if (!imageUrl) {
         throw new Error('Image non générée');
