@@ -405,24 +405,20 @@ export default function ConversationScreen({ route, navigation }) {
       let _usedOffline = false;
       try {
         const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship);
+        
+        // Récupérer le système de génération configuré
+        const textSystem = await AsyncStorage.getItem('text_generation_system') || 'mix';
+        console.log('📝 Système de texte:', textSystem);
 
-        // PRIORITÉ 1 : Groq multi-keys (principal - rapide et fiable)
-        try {
-          response = await Promise.race([
-            GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout Groq')), 60000))
-          ]);
-        } catch (groqError) {
-          console.log('⚠️ Groq échoué, fallback local...');
+        // Selon le système configuré
+        if (textSystem === 'local') {
+          // MODE LOCAL UNIQUEMENT
+          console.log('📱 Mode local activé');
           
-          // PRIORITÉ 2 : IA locale hors ligne
           // Essayer de charger automatiquement un modèle si disponible
           if (!LlamaService.isLoaded) {
             try {
               console.log('🔄 Tentative auto-chargement modèle Llama...');
-              const activeModelId = await LlamaService.getStoredActiveModelId();
-              
-              // Essayer Phi-3.5 d'abord, puis Llama 3.2 1B
               const phi35Downloaded = await LlamaService.isModelDownloaded('phi35mini');
               const llama321bDownloaded = await LlamaService.isModelDownloaded('llama321b');
               
@@ -432,33 +428,85 @@ export default function ConversationScreen({ route, navigation }) {
               } else if (llama321bDownloaded) {
                 await LlamaService.loadModel('llama321b', (msg) => console.log('Llama load:', msg));
                 console.log('✅ Llama 3.2 1B auto-chargé');
+              } else {
+                throw new Error('Aucun modèle Llama téléchargé');
               }
             } catch (loadError) {
               console.log('⚠️ Auto-chargement échoué:', loadError.message);
+              throw new Error('Mode local activé mais aucun modèle disponible');
             }
           }
           
-          // Générer avec Llama si chargé
-          if (LlamaService.isLoaded) {
-            _usedOffline = true;
-            response = await Promise.race([
-              LlamaService.generateResponse(updatedMessages, systemPrompt),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
-            ]);
-          }
+          // Générer avec Llama
+          _usedOffline = true;
+          response = await Promise.race([
+            LlamaService.generateResponse(updatedMessages, systemPrompt),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
+          ]);
           
-          // PRIORITÉ 3 : Serveur Replit (si configuré)
-          if (!response) {
-            const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
-            if (serverAvailable) {
+        } else if (textSystem === 'groq') {
+          // MODE GROQ UNIQUEMENT
+          console.log('☁️ Mode Groq activé');
+          response = await Promise.race([
+            GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout Groq')), 60000))
+          ]);
+          
+        } else {
+          // MODE MIX (défaut)
+          console.log('🔄 Mode mix activé');
+          
+          // PRIORITÉ 1 : Groq multi-keys (principal - rapide et fiable)
+          try {
+            response = await Promise.race([
+              GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout Groq')), 60000))
+            ]);
+          } catch (groqError) {
+            console.log('⚠️ Groq échoué, fallback local...');
+            
+            // PRIORITÉ 2 : IA locale hors ligne
+            // Essayer de charger automatiquement un modèle si disponible
+            if (!LlamaService.isLoaded) {
+              try {
+                console.log('🔄 Tentative auto-chargement modèle Llama...');
+                const phi35Downloaded = await LlamaService.isModelDownloaded('phi35mini');
+                const llama321bDownloaded = await LlamaService.isModelDownloaded('llama321b');
+                
+                if (phi35Downloaded) {
+                  await LlamaService.loadModel('phi35mini', (msg) => console.log('Llama load:', msg));
+                  console.log('✅ Phi-3.5 Mini auto-chargé');
+                } else if (llama321bDownloaded) {
+                  await LlamaService.loadModel('llama321b', (msg) => console.log('Llama load:', msg));
+                  console.log('✅ Llama 3.2 1B auto-chargé');
+                }
+              } catch (loadError) {
+                console.log('⚠️ Auto-chargement échoué:', loadError.message);
+              }
+            }
+            
+            // Générer avec Llama si chargé
+            if (LlamaService.isLoaded) {
+              _usedOffline = true;
               response = await Promise.race([
-                ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
+                LlamaService.generateResponse(updatedMessages, systemPrompt),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
               ]);
             }
+            
+            // PRIORITÉ 3 : Serveur Replit (si configuré)
+            if (!response) {
+              const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
+              if (serverAvailable) {
+                response = await Promise.race([
+                  ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
+                ]);
+              }
+            }
+            
+            if (!response) throw groqError;
           }
-          
-          if (!response) throw groqError;
         }
       } catch (genError) {
         console.error('❌ Erreur génération:', genError.message);
@@ -634,21 +682,61 @@ export default function ConversationScreen({ route, navigation }) {
       const currentLevel = userLevel?.level || 1;
       const effectiveLevel = Math.max(1, currentLevel);
       
-      console.log(`🎨 Génération image: Niveau ${effectiveLevel}`);
+      // Récupérer le système de génération d'image configuré
+      const imageSystem = await AsyncStorage.getItem('image_generation_system') || 'mix';
+      console.log(`🎨 Système d'image: ${imageSystem}, Niveau ${effectiveLevel}`);
       
-      // Génération avec timeout
-      const imageUrl = await Promise.race([
-        ImageGenerationService.generateSceneImage(
-          character,
-          userProfile,
-          messages || [],
-          effectiveLevel,
-          (msg) => setImageProgress(msg)
-        ),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout génération')), 120000)
-        )
-      ]);
+      let imageUrl;
+      
+      // Selon le système configuré
+      if (imageSystem === 'local') {
+        // MODE LOCAL UNIQUEMENT
+        imageUrl = await Promise.race([
+          ImageGenerationService.generateViaLocalSD(
+            ImageGenerationService.buildBasePromptText(character, 'portrait'),
+            (msg) => setImageProgress(msg)
+          ),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout génération locale')), 120000)
+          )
+        ]);
+      } else if (imageSystem === 'horde') {
+        // MODE STABLE HORDE UNIQUEMENT
+        imageUrl = await Promise.race([
+          ImageGenerationService.generateViaStableHorde(
+            ImageGenerationService.buildBasePromptText(character, 'portrait'),
+            (msg) => setImageProgress(msg)
+          ),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout Stable Horde')), 120000)
+          )
+        ]);
+      } else if (imageSystem === 'pollinations') {
+        // MODE POLLINATIONS UNIQUEMENT
+        imageUrl = await Promise.race([
+          ImageGenerationService.generateViaPollinations(
+            ImageGenerationService.buildBasePromptText(character, 'portrait'),
+            (msg) => setImageProgress(msg)
+          ),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout Pollinations')), 120000)
+          )
+        ]);
+      } else {
+        // MODE MIX (défaut)
+        imageUrl = await Promise.race([
+          ImageGenerationService.generateSceneImage(
+            character,
+            userProfile,
+            messages || [],
+            effectiveLevel,
+            (msg) => setImageProgress(msg)
+          ),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout génération')), 120000)
+          )
+        ]);
+      }
       
       if (!imageUrl) {
         throw new Error('Image non générée');
