@@ -32,8 +32,10 @@ import fantasyCharacters from './fantasyCharacters';
 import beautifulGirlsCharacters from './beautifulGirlsCharacters';
 // Import des 20 belles-filles (filles de ma femme)
 import stepdaughterCharacters from './stepdaughterCharacters';
+// Import des 200 personnages inspirés de Candy AI
+import candyAICharacters from './candyAICharacters';
 
-// Combiner tous les personnages (470+ personnages au total)
+// Combiner tous les personnages (670+ personnages au total)
 export const enhancedCharacters = [
   ...characters,          // 6 Naruto
   ...friendCharacters,    // 30 amies
@@ -52,6 +54,7 @@ export const enhancedCharacters = [
   ...fantasyCharacters,   // 16 fantasy
   ...beautifulGirlsCharacters, // 20 belles filles variées
   ...stepdaughterCharacters,   // 20 belles-filles (stepdaughter)
+  ...candyAICharacters,       // 200 Candy AI inspirés
 ];
 
 export default enhancedCharacters;
