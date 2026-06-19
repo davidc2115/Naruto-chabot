@@ -152,10 +152,24 @@ export default function ChatsScreen({ navigation }) {
   // Fallback: charger les conversations directement depuis AsyncStorage
   const loadConversationsDirectly = async () => {
     try {
+      // Récupérer l'ID utilisateur actuel
+      let userId = 'default';
+      try {
+        if (StorageService) {
+          userId = await StorageService.getCurrentUserId();
+        }
+      } catch (e) {
+        console.log('⚠️ Erreur récupération userId:', e.message);
+      }
+      
+      console.log(`🔍 loadConversationsDirectly avec userId: ${userId}`);
+      
       const keys = await AsyncStorage.getAllKeys();
       const convKeys = keys.filter(k => 
         k.startsWith('conv_') && !k.includes('index') && !k.includes('deleted')
       );
+      
+      console.log(`📚 ${convKeys.length} clés de conversations trouvées`);
       
       const result = [];
       const seenIds = new Set();
@@ -167,6 +181,13 @@ export default function ChatsScreen({ navigation }) {
             const parsed = JSON.parse(data);
             const charId = parsed?.characterId || key.split('_').pop();
             
+            // Vérifier que la conversation appartient à l'utilisateur actuel
+            const keyUserId = parsed?.userId;
+            if (keyUserId && keyUserId !== userId) {
+              console.log(`⚠️ Conversation ignorée (userId différent): ${key} (${keyUserId} vs ${userId})`);
+              continue;
+            }
+            
             if (charId && !seenIds.has(charId)) {
               seenIds.add(charId);
               result.push({
@@ -175,11 +196,15 @@ export default function ChatsScreen({ navigation }) {
                 relationship: parsed?.relationship || { level: 1, affection: 50 },
                 lastUpdated: parsed?.lastUpdated || new Date().toISOString(),
               });
+              console.log(`✅ Conversation chargée: ${charId}`);
             }
           }
-        } catch (e) {}
+        } catch (e) {
+          console.log(`⚠️ Erreur traitement ${key}:`, e.message);
+        }
       }
       
+      console.log(`✅ TOTAL fallback: ${result.length} conversations`);
       return result;
     } catch (e) {
       console.error('❌ loadConversationsDirectly:', e);

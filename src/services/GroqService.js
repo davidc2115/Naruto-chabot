@@ -331,6 +331,8 @@ Maintenant, réponds en restant ${character.name}.`;
     await this.loadApiKeys();
     if (!this.apiKeys.length) throw new Error('NO_KEY');
 
+    console.log(`🔑 Groq: ${this.apiKeys.length} clés disponibles, index actuel: ${this.currentKeyIndex}`);
+
     const model = options.model || this.selectedModel;
     const userNsfwEnabled = userProfile?.nsfwEnabled || false;
     const contextNsfwDetected = this.detectNSFWContext(messages);
@@ -351,8 +353,16 @@ Maintenant, réponds en restant ${character.name}.`;
     ];
 
     let lastError;
-    for (let i = 0; i < Math.max(this.apiKeys.length, 1); i++) {
+    // Essayer toutes les clés disponibles (jusqu'à 3 fois chacune pour retry)
+    const maxAttempts = this.apiKeys.length * 3;
+    
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const keyIndex = this.currentKeyIndex;
       const apiKey = this.getCurrentApiKey();
+      const keySuffix = apiKey ? apiKey.slice(-4) : 'NONE';
+      
+      console.log(`🔑 Tentative ${attempt + 1}/${maxAttempts}: Clé #${keyIndex} (...${keySuffix})`);
+      
       try {
         const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -367,27 +377,51 @@ Maintenant, réponds en restant ${character.name}.`;
             top_p: 0.92,
           }),
         });
+        
         if (!res.ok) {
           const e = await res.json().catch(() => ({}));
+          const errorMsg = e?.error?.message || `Groq erreur ${res.status}`;
+          console.log(`❌ Erreur HTTP ${res.status}: ${errorMsg}`);
+          
           if (res.status === 401) { 
             lastError = new Error('Clé Groq invalide — vérifiez dans Config → Groq IA.'); 
+            console.log(`🔄 Rotation clé (401)`);
             this.rotateToNextKey();
             continue; 
           }
           if (res.status === 429) { 
             lastError = new Error('Limite Groq atteinte. Réessayez dans quelques secondes.'); 
+            console.log(`🔄 Rotation clé (429)`);
             this.rotateToNextKey();
             continue; 
           }
-          throw new Error(e?.error?.message || `Groq erreur ${res.status}`);
+          if (res.status === 400) {
+            lastError = new Error(`Groq erreur 400: ${errorMsg}`);
+            console.log(`🔄 Rotation clé (400)`);
+            this.rotateToNextKey();
+            continue;
+          }
+          if (res.status === 500 || res.status === 502 || res.status === 503) {
+            lastError = new Error(`Groq erreur serveur ${res.status}`);
+            console.log(`🔄 Rotation clé (serveur)`);
+            this.rotateToNextKey();
+            continue;
+          }
+          throw new Error(errorMsg);
         }
+        
         const data = await res.json();
+        console.log(`✅ Succès avec clé #${keyIndex} (...${keySuffix})`);
         return data.choices[0]?.message?.content || '';
       } catch (e) {
         lastError = e;
+        console.log(`❌ Erreur catch: ${e.message}`);
+        console.log(`🔄 Rotation clé (erreur)`);
         this.rotateToNextKey();
       }
     }
+    
+    console.log(`❌ Toutes les clés ont échoué après ${maxAttempts} tentatives`);
     throw lastError || new Error('Toutes les clés ont échoué');
   }
 }
