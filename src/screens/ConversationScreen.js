@@ -634,34 +634,23 @@ export default function ConversationScreen({ route, navigation }) {
       // Niveau de relation pour adapter la tenue/pose
       const currentLevel = userLevel?.level || 1;
       const effectiveLevel = Math.max(1, currentLevel);
-      
-      // Récupérer le système de génération d'image configuré
-      const imageSystem = await AsyncStorage.getItem('image_generation_system');
-      console.log(`🎨 Système d'image: ${imageSystem || 'mix (défaut)'}, Niveau ${effectiveLevel}`);
-      console.log(`🎨 Character: ${character.name}, User Profile: ${userProfile?.username}`);
-      
-      let imageUrl;
-      
-      // Utiliser generateSceneImage qui gère déjà le fallback entre les différents services
-      try {
-        imageUrl = await Promise.race([
-          ImageGenerationService.generateSceneImage(
-            character,
-            userProfile,
-            messages || [],
-            effectiveLevel,
-            (msg) => setImageProgress(msg)
-          ),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout génération')), 120000)
-          )
-        ]);
-        console.log(`✅ Image générée: ${imageUrl}`);
-      } catch (genError) {
-        console.error('❌ Erreur génération image:', genError.message);
-        throw genError;
-      }
-      
+
+      console.log(`🎨 Génération image: Niveau ${effectiveLevel}`);
+
+      // Génération avec timeout
+      const imageUrl = await Promise.race([
+        ImageGenerationService.generateSceneImage(
+          character,
+          userProfile,
+          messages || [],
+          effectiveLevel,
+          (msg) => setImageProgress(msg)
+        ),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout génération')), 120000)
+        )
+      ]);
+
       if (!imageUrl) {
         throw new Error('Image non générée');
       }
