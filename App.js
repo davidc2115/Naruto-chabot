@@ -7,6 +7,7 @@ import { View, ActivityIndicator, Text, StyleSheet, Linking, TouchableOpacity, A
 
 import ChatsScreen from './src/screens/ChatsScreen';
 import UserSettingsScreen from './src/screens/UserSettingsScreen';
+import UnifiedSettingsScreen from './src/screens/UnifiedSettingsScreen';
 import CharacterDetailScreen from './src/screens/CharacterDetailScreen';
 import ConversationScreen from './src/screens/ConversationScreen';
 import CreateCharacterScreen from './src/screens/CreateCharacterScreen';
@@ -130,16 +131,10 @@ function HomeTabs() {
         options={{ tabBarLabel: 'Discord', tabBarIcon: ({ color }) => <TabIcon name="🎮" color={color} /> }}
       />
       <Tab.Screen
-        name="Config"
-        component={AdminPanelScreen}
-        options={{ tabBarLabel: 'Config', tabBarIcon: ({ color }) => <TabIcon name="⚙️" color={color} /> }}
+        name="Settings"
+        component={UnifiedSettingsScreen}
+        options={{ tabBarLabel: 'Paramètres', tabBarIcon: ({ color }) => <TabIcon name="⚙️" color={color} /> }}
       />
-      <Tab.Screen
-        name="UserSettings"
-        options={{ tabBarLabel: 'Profil', tabBarIcon: ({ color }) => <TabIcon name="👤" color={color} /> }}
-      >
-        {props => <UserSettingsScreen {...props} onLogout={() => {}} />}
-      </Tab.Screen>
     </Tab.Navigator>
   );
 }

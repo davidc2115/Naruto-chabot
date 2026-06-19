@@ -695,18 +695,7 @@ export default function ConversationScreen({ route, navigation }) {
     } catch (error) {
       console.error('❌ Erreur génération image:', error);
       
-      if (error.message?.includes('Premium') || error.message?.includes('403')) {
-        Alert.alert(
-          '💎 Premium Requis',
-          'Vous devez être membre Premium pour générer des images.',
-          [
-            { text: 'OK', style: 'cancel' },
-            { text: 'Devenir Premium', onPress: () => {
-              try { navigation.navigate('Premium'); } catch (e) {}
-            }}
-          ]
-        );
-      } else if (error.message?.includes('Timeout')) {
+      if (error.message?.includes('Timeout')) {
         Alert.alert('Timeout', 'La génération a pris trop de temps. Réessayez.');
       } else {
         Alert.alert('Erreur', 'Impossible de générer l\'image. Réessayez.');
