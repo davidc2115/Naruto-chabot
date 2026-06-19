@@ -109,16 +109,18 @@ export default function ChatsScreen({ navigation }) {
         if (StorageService) {
           convs = await StorageService.getAllConversations();
           convs = Array.isArray(convs) ? convs : [];
+          console.log(`💬 ${convs.length} conversations trouvées via StorageService`);
         } else {
           // Fallback: charger directement depuis AsyncStorage
           convs = await loadConversationsDirectly();
+          console.log(`💬 ${convs.length} conversations trouvées via fallback`);
         }
-        console.log(`💬 ${convs.length} conversations trouvées`);
       } catch (e) {
         console.log('⚠️ Erreur conversations:', e.message);
         // Fallback
         try {
           convs = await loadConversationsDirectly();
+          console.log(`💬 ${convs.length} conversations trouvées via fallback après erreur`);
         } catch (e2) {
           console.log('⚠️ Fallback échoué:', e2.message);
         }
