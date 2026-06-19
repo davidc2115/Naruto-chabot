@@ -407,7 +407,30 @@ export default function ConversationScreen({ route, navigation }) {
         } catch (groqError) {
           console.log('⚠️ Groq échoué, fallback local...');
           
-          // PRIORITÉ 2 : IA locale hors ligne (si un modèle llama est chargé en mémoire)
+          // PRIORITÉ 2 : IA locale hors ligne
+          // Essayer de charger automatiquement un modèle si disponible
+          if (!LlamaService.isLoaded) {
+            try {
+              console.log('🔄 Tentative auto-chargement modèle Llama...');
+              const activeModelId = await LlamaService.getStoredActiveModelId();
+              
+              // Essayer Phi-3.5 d'abord, puis Llama 3.2 1B
+              const phi35Downloaded = await LlamaService.isModelDownloaded('phi35mini');
+              const llama321bDownloaded = await LlamaService.isModelDownloaded('llama321b');
+              
+              if (phi35Downloaded) {
+                await LlamaService.loadModel('phi35mini', (msg) => console.log('Llama load:', msg));
+                console.log('✅ Phi-3.5 Mini auto-chargé');
+              } else if (llama321bDownloaded) {
+                await LlamaService.loadModel('llama321b', (msg) => console.log('Llama load:', msg));
+                console.log('✅ Llama 3.2 1B auto-chargé');
+              }
+            } catch (loadError) {
+              console.log('⚠️ Auto-chargement échoué:', loadError.message);
+            }
+          }
+          
+          // Générer avec Llama si chargé
           if (LlamaService.isLoaded) {
             _usedOffline = true;
             response = await Promise.race([
