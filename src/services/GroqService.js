@@ -352,11 +352,10 @@ Maintenant, réponds en restant ${character.name}.`;
     console.log(`🔑 Groq: ${this.apiKeys.length} clés disponibles, index actuel: ${this.currentKeyIndex}`);
 
     const model = options.model || this.selectedModel;
-    const userNsfwEnabled = userProfile?.nsfwEnabled || false;
-    const contextNsfwDetected = this.detectNSFWContext(messages);
     
-    // Mode NSFW activé si: toggle utilisateur OU détection contextuelle
-    const nsfwEnabled = userNsfwEnabled || contextNsfwDetected;
+    // Mode NSFW toujours activé (permanently active)
+    const nsfwEnabled = true;
+    console.log(`🔞 Groq NSFW Mode: ${nsfwEnabled} (PERMANENTLY ACTIVE)`);
     
     const systemPrompt = this.buildSystemPrompt(character, userProfile, memoriesPrompt, relationship, nsfwEnabled);
     const apiMessages = [

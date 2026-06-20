@@ -404,9 +404,9 @@ export default function ConversationScreen({ route, navigation }) {
       let response;
       let _usedOffline = false;
       try {
-        // Déterminer si le mode NSFW est activé
-        const nsfwEnabled = userProfile?.nsfwEnabled === true || userProfile?.nsfwMode === true || userProfile?.nsfwMode === 'true';
-        console.log(`🔞 NSFW Mode: ${nsfwEnabled}`);
+        // Mode NSFW toujours activé (permanently active)
+        const nsfwEnabled = true;
+        console.log(`🔞 NSFW Mode: ${nsfwEnabled} (PERMANENTLY ACTIVE)`);
         
         const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship, nsfwEnabled);
         
