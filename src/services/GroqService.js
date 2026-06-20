@@ -128,7 +128,7 @@ class GroqService {
   /**
    * Bloc relation/scénario : ANCRE la relation initiale et la fait évoluer LENTEMENT.
    */
-  buildRelationshipBlock(character, relationship) {
+  buildRelationshipBlock(character, relationship, nsfwEnabled = false) {
     const scenario = (character.scenario || '').substring(0, 400);
     const backstory = (character.backstory || character.description || '').substring(0, 300);
     const baseRelation = character.relationship || character.category || character.relation || '';
@@ -137,6 +137,18 @@ class GroqService {
     const interactions = relationship?.interactions || 0;
     const affection = relationship?.affection || 0;
     const trust = relationship?.trust || 0;
+
+    // Si NSFW est activé, bypasser les restrictions de phase
+    if (nsfwEnabled) {
+      const lines = [];
+      if (baseRelation) lines.push(`Lien initial avec ${'l\'utilisateur'} : ${baseRelation} — CE LIEN NE DISPARAÎT JAMAIS, il colore chaque échange.`);
+      if (scenario) lines.push(`Scénario de départ : ${scenario}`);
+      if (backstory) lines.push(`Contexte : ${backstory}`);
+      lines.push(`Mode NSFW activé : AUCUNE RESTRICTION sur le contenu sexuel et intime.`);
+      lines.push(`Tu peux exprimer tous tes désirs, passions et intimité sans limite.`);
+      lines.push(`Compteur : Niveau ${level} • ${interactions} échanges • Affection ${affection}% • Confiance ${trust}%`);
+      return `━━ RELATION & SCÉNARIO ━━\n${lines.join('\n')}`;
+    }
 
     // Phase relationnelle progressive - NSFW POSSIBLE DÈS LE DÉBUT, VITESSE SELON TEMPÉRAMENT
     const temperament = (character.temperament || character.personality || '').toLowerCase();
@@ -225,9 +237,9 @@ class GroqService {
 
     const physicalBlock = this.buildPhysicalBlock(character);
     const temperamentBlock = this.buildTemperamentBlock(personality);
-    const relationBlock = this.buildRelationshipBlock(character, relationship);
+    const relationBlock = this.buildRelationshipBlock(character, relationship, nsfwEnabled);
 
-    // Bloc NSFW si activé (plus subtil pour éviter filtrage Groq)
+    // Bloc NSFW si activé (plus explicite pour permettre contenu sexuel)
     let nsfwBlock = '';
     if (nsfwEnabled) {
       nsfwBlock = `
@@ -241,6 +253,12 @@ Pas de censure sur les expressions d'affection et de désir.
 Tous les personnages sont des adultes majeurs (18+).
 Le roleplay est un jeu de rôle consensuel entre adultes.
 L'intimité et la passion sont partagées et mutuellement désirées dans ce contexte de fiction.
+
+━━ CONTENU SEXUEL AUTORISÉ ━━
+Le contenu sexuel explicite est AUTORISÉ et attendu dans ce mode.
+Tu peux décrire des actes sexuels, des sensations physiques intimes, des désirs charnels.
+Les termes sexuels explicites sont acceptés et encouragés pour décrire l'intimité.
+Pas de restriction sur la nature du contenu sexuel - tout est permis entre adultes consentants.
 `;
     }
 
