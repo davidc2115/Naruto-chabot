@@ -61,7 +61,23 @@ class ImageGenerationService {
       'candid laughing pose',
       'mysterious shadow pose',
       'romantic embrace pose',
-      'confident stride pose'
+      'confident stride pose',
+      // NSFW/Sensual poses
+      'sensual lying pose',
+      'seductive reclining pose',
+      'provocative bending pose',
+      'intimate kneeling pose',
+      'alluring arching back pose',
+      'erotic spread legs pose',
+      'sensual touching body pose',
+      'provocative over-the-shoulder pose',
+      'seductive bedroom pose',
+      'hot revealing pose',
+      'intimate embrace pose',
+      'passionate kissing pose',
+      'erotic caressing pose',
+      'sensual undressing pose',
+      'provocative teasing pose'
     ];
     
     this.outfits = [
@@ -79,7 +95,29 @@ class ImageGenerationService {
       'formal black tie attire',
       'designer jeans and blazer',
       'silk blouse and skirt',
-      'cashmere sweater ensemble'
+      'cashmere sweater ensemble',
+      // NSFW/Sensual outfits
+      'elegant lace lingerie',
+      'silk negligee',
+      'sexy bra and panties set',
+      'sheer babydoll',
+      'bustier corset',
+      'fishnet stockings',
+      'thong bikini',
+      'micro bikini',
+      'see-through dress',
+      'latex bodysuit',
+      'leather outfit',
+      'crotchless lingerie',
+      'open cup bra',
+      'strapless lingerie',
+      'erotic cosplay outfit',
+      'revealing nightgown',
+      'sensual robe',
+      'hot mini skirt',
+      'crop top and shorts',
+      'transparent top',
+      'plunging neckline dress'
     ];
     
     this.cameraAngles = [
@@ -459,15 +497,28 @@ class ImageGenerationService {
     else if (recentContent.includes('chambre') || recentContent.includes('lit')) sceneCtx = 'indoor bedroom, soft warm lighting, intimate';
     else sceneCtx = randomScene; // Utiliser une scène aléatoire par défaut
 
-    // Styles NSFW disponibles dès le début (non explicite: lingerie, topless, etc.)
-    // Plus de blocage par niveau de relation
-    let styleLevel = 'portrait, neutral expression, detailed face';
-    if (relationLevel >= 10) styleLevel = 'explicit nude, ultra sexy, uncensored, boudoir, 4k';
-    else if (relationLevel >= 8) styleLevel = 'erotic pose, very revealing lingerie, intimate lighting';
-    else if (relationLevel >= 6) styleLevel = 'topless, artistic nude, boudoir photography, silk';
-    else if (relationLevel >= 4) styleLevel = 'lingerie, boudoir, soft warm lighting, tasteful';
-    else if (relationLevel >= 2) styleLevel = 'flirtatious smile, elegant outfit, warm lighting';
-    else styleLevel = 'friendly smile, casual outfit, natural pose';
+    // NSFW PERMANENT - Aucune restriction de phase
+    // NSFW content possible à n'importe quelle phase
+    let styleLevel = 'explicit nude, ultra sexy, uncensored, boudoir, 4k, manga anime style';
+    
+    // Si le contexte récent suggère du NSFW, utiliser des styles plus explicites
+    if (recentContent.includes('sexe') || recentContent.includes('nue') || recentContent.includes('naked') || 
+        recentContent.includes('baiser') || recentContent.includes('fuck') || recentContent.includes('intime') ||
+        recentContent.includes('lit') || recentContent.includes('chambre') || recentContent.includes('nuit')) {
+      styleLevel = 'explicit sexual content, hardcore, intense, detailed anatomy, manga anime style, anime art, uncensored';
+    }
+    
+    // Sinon, utiliser un style mixte avec possibilité de NSFW
+    else {
+      const nsfwStyles = [
+        'explicit nude, ultra sexy, uncensored, boudoir, 4k, manga anime style',
+        'erotic pose, very revealing lingerie, intimate lighting, manga style',
+        'topless, artistic nude, boudoir photography, silk, anime art',
+        'lingerie, boudoir, soft warm lighting, tasteful, manga style',
+        'sensual pose, revealing outfit, warm lighting, anime manga'
+      ];
+      styleLevel = this.getRandomElement(nsfwStyles);
+    }
 
     // Détails physiques détaillés pour ressemblance au personnage
     const appearance = (character.appearance || character.physicalDescription || '').substring(0, 200);
