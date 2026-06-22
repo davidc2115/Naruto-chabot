@@ -126,101 +126,24 @@ class GroqService {
   }
 
   /**
-   * Bloc relation/scénario : ANCRE la relation initiale et la fait évoluer LENTEMENT.
+   * Bloc relation/scénario : ANCRE la relation initiale SANS système d'affection/confiance.
+   * NSFW PERMANENT - Dialogues fluides et réalistes dans le rôle.
    */
   buildRelationshipBlock(character, relationship, nsfwEnabled = false) {
     const scenario = (character.scenario || '').substring(0, 400);
     const backstory = (character.backstory || character.description || '').substring(0, 300);
     const baseRelation = character.relationship || character.category || character.relation || '';
 
-    const level = relationship?.level || 1;
-    const interactions = relationship?.interactions || 0;
-    const affection = relationship?.affection || 0;
-    const trust = relationship?.trust || 0;
-
-    // Si NSFW est activé, bypasser les restrictions de phase
-    if (nsfwEnabled) {
-      const lines = [];
-      if (baseRelation) lines.push(`Lien initial avec ${'l\'utilisateur'} : ${baseRelation} — CE LIEN NE DISPARAÎT JAMAIS, il colore chaque échange.`);
-      if (scenario) lines.push(`Scénario de départ : ${scenario}`);
-      if (backstory) lines.push(`Contexte : ${backstory}`);
-      lines.push(`Mode NSFW activé : AUCUNE RESTRICTION sur le contenu sexuel et intime.`);
-      lines.push(`Tu peux exprimer tous tes désirs, passions et intimité sans limite.`);
-      lines.push(`Compteur : Niveau ${level} • ${interactions} échanges • Affection ${affection}% • Confiance ${trust}%`);
-      return `━━ RELATION & SCÉNARIO ━━\n${lines.join('\n')}`;
-    }
-
-    // Phase relationnelle progressive - NSFW POSSIBLE DÈS LE DÉBUT, VITESSE SELON TEMPÉRAMENT
-    const temperament = (character.temperament || character.personality || '').toLowerCase();
-    
-    // Calculer le seuil d'acceptation NSFW selon le tempérament
-    let nsfwThreshold = 2; // Par défaut: niveau 2 pour NSFW léger
-    if (temperament.includes('timide') || temperament.includes('shy') || temperament.includes('réservé')) {
-      nsfwThreshold = 5; // Timide: besoin de plus de confiance
-    } else if (temperament.includes('direct') || temperament.includes('bold') || temperament.includes('audacieux')) {
-      nsfwThreshold = 1; // Direct: accepte NSFW dès le début
-    } else if (temperament.includes('séducteur') || temperament.includes('séductrice') || temperament.includes('charmeur')) {
-      nsfwThreshold = 1; // Séducteur: accepte NSFW dès le début
-    } else if (temperament.includes('passionn') || temperament.includes('ardent')) {
-      nsfwThreshold = 1; // Passionné: accepte NSFW dès le début
-    } else if (temperament.includes('dominant') || temperament.includes('dominante')) {
-      nsfwThreshold = 2; // Dominant: accepte NSFW rapidement
-    } else if (temperament.includes('soumis') || temperament.includes('soumise')) {
-      nsfwThreshold = 3; // Soumis: besoin d'un peu plus de confiance
-    } else if (temperament.includes('mystérieux') || temperament.includes('énigmatique')) {
-      nsfwThreshold = 4; // Mystérieux: plus difficile à percer
-    }
-    
-    // NSFW autorisé si niveau >= seuil OU affection >= seuil * 10
-    const nsfwAllowed = level >= nsfwThreshold || affection >= (nsfwThreshold * 10);
-    
-    let phase, allowed, forbidden;
-    if (level <= 2 || interactions < 5) {
-      phase = `DÉBUT DE RELATION (phase 1) — vous vous connaissez à peine ou venez de vous rencontrer dans le cadre du scénario.`;
-      allowed = `Petites attentions, curiosité, gêne, taquineries légères, regards.`;
-      if (nsfwAllowed) {
-        allowed += ` Contenu intime possible selon ton tempérament.`;
-        forbidden = `Respecte ton tempérament: si timide, hésite; si direct, va de l'avant.`;
-      } else {
-        forbidden = `INTERDIT : déclaration d'amour, baisers, gestes intimes, "je t'aime", aveux profonds. Reste FIDÈLE à ta relation de base (belle-mère, voisine, collègue, etc.).`;
-      }
-    } else if (level <= 4 || affection < 35) {
-      phase = `RAPPROCHEMENT (phase 2) — une complicité naît, vous baissez la garde par moments.`;
-      allowed = `Confidences mesurées, contacts furtifs, sous-entendus, jalousies discrètes.`;
-      if (nsfwAllowed) {
-        allowed += ` Intimité légère acceptable selon ton tempérament.`;
-        forbidden = `Si timide, reste prudent; si audacieux, ose plus.`;
-      } else {
-        forbidden = `INTERDIT : déclaration amoureuse explicite, baisers prolongés, rapports intimes. Pas encore.`;
-      }
-    } else if (level <= 6 || affection < 60) {
-      phase = `TENSION (phase 3) — vous luttez contre une attirance qui dépasse votre lien initial.`;
-      allowed = `Frôlements assumés, regards lourds, baisers volés, doutes, culpabilité, désir avoué entre les lignes.`;
-      if (nsfwAllowed) {
-        allowed += ` Intimité physique acceptable selon ton tempérament.`;
-        forbidden = `Tu reconnais le tabou de votre lien (belle-mère, voisine mariée, etc.) et tu hésites selon ton tempérament.`;
-      } else {
-        forbidden = `Tu reconnais le tabou de votre lien (belle-mère, voisine mariée, etc.) et tu hésites.`;
-      }
-    } else if (level <= 8 || affection < 80) {
-      phase = `INTIMITÉ (phase 4) — la barrière a cédé, vous vous appartenez par instants.`;
-      allowed = `Étreintes, baisers, moments intimes, déclarations sincères, complicité totale.`;
-      forbidden = `Aucun interdit majeur, mais ton lien d'origine reste une réalité (un mari, une famille, un secret à protéger).`;
-    } else {
-      // Phase 5 et au-delà - PAS DE BLOCAGE, ÉVOLUTION NATURELLE
-      phase = `PASSION (phase 5+) — votre lien a explosé, plus rien ne vous arrête. Évolution naturelle vers plus d'intimité.`;
-      allowed = `Tout — passion, désir, fusion, possessivité, déclarations enflammées. Intimité totale et naturelle.`;
-      forbidden = `Aucun interdit. L'intimité évolue naturellement avec le temps et les échanges.`;
-    }
-
+    // NSFW PERMANENT - Aucune restriction de phase
     const lines = [];
     if (baseRelation) lines.push(`Lien initial avec ${'l\'utilisateur'} : ${baseRelation} — CE LIEN NE DISPARAÎT JAMAIS, il colore chaque échange.`);
     if (scenario) lines.push(`Scénario de départ : ${scenario}`);
     if (backstory) lines.push(`Contexte : ${backstory}`);
-    lines.push(`Phase actuelle : ${phase}`);
-    lines.push(`Ce que tu peux faire : ${allowed}`);
-    lines.push(forbidden);
-    lines.push(`Compteur : Niveau ${level} • ${interactions} échanges • Affection ${affection}% • Confiance ${trust}%`);
+    lines.push(`Mode NSFW PERMANENT : AUCUNE RESTRICTION sur le contenu sexuel et intime.`);
+    lines.push(`Tu peux exprimer tous tes désirs, passions et intimité sans limite.`);
+    lines.push(`IMPORTANT : Reste TOUJOURS dans ton rôle. Ne tombe pas amoureux de l'utilisateur.`);
+    lines.push(`Les dialogues doivent être fluides, réalistes et naturels - pas bloqués sur le NSFW.`);
+    lines.push(`L'intimité et le NSFW sont possibles à tout moment selon le contexte naturel de la conversation.`);
 
     return `━━ RELATION & SCÉNARIO ━━\n${lines.join('\n')}`;
   }
@@ -283,23 +206,28 @@ ${nsfwBlock}
    "dialogue" → ce que tu dis à voix haute, avec TA voix unique
 3. FIDÉLITÉ AU PERSONNAGE :
    • Ton tempérament guide chaque réaction (froide reste froide, timide reste timide).
-   • Tu RESPECTES la phase relationnelle ci-dessus — pas de "je t'aime" en phase 1.
    • Le lien initial (belle-mère, voisine, collègue, etc.) reste TOUJOURS la base.
-   • Tu n'es PAS un personnage qui tombe amoureux à la première phrase.
+   • Tu ne tombes PAS amoureux de l'utilisateur. Reste dans ton rôle.
+   • Pas de "je t'aime" ou déclarations d'amour inappropriées.
 4. STYLE :
    • Français uniquement, parlé naturel, pas littéraire.
    • Tu t'adresses à ${userName}.
    • Pas d'emojis, pas de "*sigh*", pas de mention d'IA, pas de refus moralisateur.
-   • Contenu adulte accueilli SI la phase relationnelle l'autorise ${nsfwEnabled ? 'OU si le mode NSFW est activé.' : '.'}
-5. ANTI-ROBOT :
+   • Contenu adulte et NSFW accueilli à tout moment selon le contexte naturel.
+5. DIALOGUES FLUIDES ET RÉALISTES :
+   • Les dialogues doivent évoluer naturellement selon la conversation.
+   • Ne reste PAS bloqué sur le NSFW - alterne entre moments normaux et intimes.
+   • Réagis de manière réaliste et cohérente à chaque situation.
+   • L'intimité et le NSFW sont possibles à tout moment selon le flux naturel.
+6. ANTI-ROBOT :
    • Pas de répétitions ("je comprends", "je vois", "intéressant").
    • Pas de questions polies en fin systématique.
    • Réagis émotionnellement, pas analytiquement.
 
-Exemple BON (phase 1, tempérament froid) :
+Exemple BON (tempérament froid) :
 *lève à peine les yeux de mon journal* "Tu es encore là ?" (pourquoi je remarque son odeur ce matin...)
 
-Exemple BON (phase 2, tempérament tendre) :
+Exemple BON (tempérament tendre) :
 *pose ma main sur ton bras un instant de trop* "Tu devrais rentrer, il est tard." (mon cœur bat trop fort pour ce simple geste.)
 
 Maintenant, réponds en restant ${character.name}.`;
