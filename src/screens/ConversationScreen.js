@@ -21,6 +21,7 @@ import MemoryService from '../services/MemoryService';
 import LlamaService from '../services/LlamaService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
+import LocalImageService from '../services/LocalImageService';
 import UserProfileService from '../services/UserProfileService';
 import GalleryService from '../services/GalleryService';
 import ChatStyleService from '../services/ChatStyleService';
@@ -637,19 +638,55 @@ export default function ConversationScreen({ route, navigation }) {
 
       console.log(`🎨 Génération image: Niveau ${effectiveLevel}`);
 
-      // Génération avec timeout
-      const imageUrl = await Promise.race([
-        ImageGenerationService.generateSceneImage(
-          character,
-          userProfile,
-          messages || [],
-          effectiveLevel,
-          (msg) => setImageProgress(msg)
-        ),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout génération')), 120000)
-        )
-      ]);
+      let imageUrl = null;
+
+      // PRIORITÉ 1: Génération locale 100% sur smartphone (LocalImageService)
+      try {
+        const localAvailable = await LocalImageService.isAvailable();
+        if (localAvailable && LocalImageService.isLoaded) {
+          console.log('📱 Tentative génération locale...');
+          setImageProgress('Génération locale en cours...');
+          
+          imageUrl = await Promise.race([
+            LocalImageService.generateImage({
+              character,
+              userProfile,
+              relationLevel: effectiveLevel,
+              imageType: 'portrait',
+              onProgress: (msg) => setImageProgress(msg)
+            }),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Timeout génération locale')), 180000)
+            )
+          ]);
+          
+          if (imageUrl) {
+            console.log('✅ Image générée localement !');
+          }
+        }
+      } catch (localError) {
+        console.log('⚠️ Génération locale échouée:', localError.message);
+        // Continuer avec le serveur si la locale échoue
+      }
+
+      // PRIORITÉ 2: Fallback sur serveur (ImageGenerationService)
+      if (!imageUrl) {
+        console.log('🌐 Fallback sur génération serveur...');
+        setImageProgress('Génération serveur en cours...');
+        
+        imageUrl = await Promise.race([
+          ImageGenerationService.generateSceneImage(
+            character,
+            userProfile,
+            messages || [],
+            effectiveLevel,
+            (msg) => setImageProgress(msg)
+          ),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout génération')), 120000)
+          )
+        ]);
+      }
 
       if (!imageUrl) {
         throw new Error('Image non générée');
@@ -1291,24 +1328,6 @@ export default function ConversationScreen({ route, navigation }) {
         <View style={styles.relationshipBar}>
           <View style={styles.relationshipStat}>
             <Text style={styles.relationshipLabel}>💫 Niv.{userLevel?.level || relationship.level || 1}</Text>
-          </View>
-          <View style={styles.relationshipStat}>
-            <View style={styles.statBarContainer}>
-              <Text style={styles.relationshipLabel}>Affection</Text>
-              <View style={styles.miniBarBg}>
-                <View style={[styles.miniBarFill, styles.affectionBar, { width: `${relationship.affection}%` }]} />
-              </View>
-              <Text style={styles.statPercent}>{relationship.affection}%</Text>
-            </View>
-          </View>
-          <View style={styles.relationshipStat}>
-            <View style={styles.statBarContainer}>
-              <Text style={styles.relationshipLabel}>Confiance</Text>
-              <View style={styles.miniBarBg}>
-                <View style={[styles.miniBarFill, styles.trustBar, { width: `${relationship.trust}%` }]} />
-              </View>
-              <Text style={styles.statPercent}>{relationship.trust}%</Text>
-            </View>
           </View>
           <TouchableOpacity
             style={styles.galleryButton}

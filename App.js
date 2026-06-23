@@ -19,6 +19,7 @@ import PayPalConfigScreen from './src/screens/PayPalConfigScreen';
 import PremiumScreen from './src/screens/PremiumScreen';
 import PremiumChatScreen from './src/screens/PremiumChatScreen';
 import AdminPanelScreen from './src/screens/AdminPanelScreen';
+import AutoInitService from './src/services/AutoInitService';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -141,10 +142,42 @@ function HomeTabs() {
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
+  const [initStatus, setInitStatus] = useState({
+    llama: 'idle',
+    image: 'idle',
+    message: 'Initialisation...'
+  });
 
   useEffect(() => {
-    const timer = setTimeout(() => { setIsLoading(false); }, 1000);
-    return () => clearTimeout(timer);
+    // Initialisation automatique des modèles au démarrage
+    const initializeApp = async () => {
+      try {
+        console.log('🚀 Démarrage de l\'initialisation automatique...');
+        
+        await AutoInitService.initializeAll((service, status, message) => {
+          setInitStatus({
+            llama: AutoInitService.getStatus().llama,
+            image: AutoInitService.getStatus().image,
+            message: message || 'Chargement...'
+          });
+        });
+        
+        console.log('✅ Initialisation terminée');
+      } catch (error) {
+        console.error('❌ Erreur initialisation:', error);
+        setInitStatus(prev => ({
+          ...prev,
+          message: 'Erreur de chargement'
+        }));
+      } finally {
+        // Attendre un peu avant de cacher l'écran de chargement
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
+      }
+    };
+
+    initializeApp();
   }, []);
 
   if (isLoading) {
@@ -156,7 +189,23 @@ export default function App() {
         <Text style={styles.loadingTitle}>Roleplay Chat</Text>
         <Text style={styles.loadingSubtitle}>Premium Experience</Text>
         <ActivityIndicator size="large" color="#C9A227" style={{ marginTop: 30 }} />
-        <Text style={styles.loadingText}>Loading your experience...</Text>
+        <Text style={styles.loadingText}>{initStatus.message}</Text>
+        <View style={styles.statusContainer}>
+          <Text style={[
+            styles.statusText, 
+            initStatus.llama === 'success' ? styles.statusSuccess : 
+            initStatus.llama === 'error' ? styles.statusError : styles.statusLoading
+          ]}>
+            🧠 LLM: {initStatus.llama === 'success' ? '✓' : initStatus.llama === 'error' ? '✗' : '⏳'}
+          </Text>
+          <Text style={[
+            styles.statusText, 
+            initStatus.image === 'success' ? styles.statusSuccess : 
+            initStatus.image === 'error' ? styles.statusError : styles.statusLoading
+          ]}>
+            🎨 Image: {initStatus.image === 'success' ? '✓' : initStatus.image === 'error' ? '✗' : '⏳'}
+          </Text>
+        </View>
       </View>
     );
   }
@@ -242,5 +291,29 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     letterSpacing: 1,
     opacity: 0.7
+  },
+  statusContainer: {
+    marginTop: 25,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    paddingHorizontal: 40,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+  statusLoading: {
+    color: '#D4AF37',
+    opacity: 0.7,
+  },
+  statusSuccess: {
+    color: '#4ade80',
+    fontWeight: 'bold',
+  },
+  statusError: {
+    color: '#f87171',
+    fontWeight: 'bold',
   },
 });
