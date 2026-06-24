@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import * as FileSystem from 'expo-file-system';
 import {
   View,
   Text,
@@ -15,13 +16,14 @@ import {
   ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import GroqService from '../services/GroqService';
 import ApiServerService from '../services/ApiServerService';
 import MemoryService from '../services/MemoryService';
 import LlamaService from '../services/LlamaService';
 import StorageService from '../services/StorageService';
 import ImageGenerationService from '../services/ImageGenerationService';
-import LocalImageService from '../services/LocalImageService';
+import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
 import UserProfileService from '../services/UserProfileService';
 import GalleryService from '../services/GalleryService';
 import ChatStyleService from '../services/ChatStyleService';
@@ -74,9 +76,6 @@ export default function ConversationScreen({ route, navigation }) {
   const [memoriesPrompt, setMemoriesPrompt] = useState('');
   const [showGroqSetup, setShowGroqSetup] = useState(false);
   const [groqKeyInput, setGroqKeyInput] = useState("");
-  
-  // API selection setting
-  const [selectedApi, setSelectedApi] = useState('pollinations-mistral');
   
   // Contrôle du scroll
   const [userIsScrolling, setUserIsScrolling] = useState(false);
@@ -423,131 +422,97 @@ export default function ConversationScreen({ route, navigation }) {
         console.log(`🔧 API sélectionnée: ${selectedApi}`);
         
         const systemPrompt = GroqService.buildSystemPrompt(character, userProfile, memoriesPrompt, newRelationship, nsfwEnabled);
-        
-        // Logique basée sur selectedApi
-        if (selectedApi === 'local-llama') {
-          // PRIORITÉ : IA locale hors ligne
-          console.log('📱 Mode local Llama sélectionné');
-          
-          // Essayer de charger automatiquement un modèle si disponible
-          if (!LlamaService.isLoaded) {
-            try {
-              console.log('🔄 Tentative auto-chargement modèle Llama...');
-              const phi35Downloaded = await LlamaService.isModelDownloaded('phi35mini');
-              const llama321bDownloaded = await LlamaService.isModelDownloaded('llama321b');
-              
-              if (phi35Downloaded) {
-                await LlamaService.loadModel('phi35mini', (msg) => console.log('Llama load:', msg));
-                console.log('✅ Phi-3.5 Mini auto-chargé');
-              } else if (llama321bDownloaded) {
-                await LlamaService.loadModel('llama321b', (msg) => console.log('Llama load:', msg));
-                console.log('✅ Llama 3.2 1B auto-chargé');
-              } else {
-                throw new Error('Aucun modèle Llama téléchargé. Téléchargez-en un dans Config → Génération Locale');
-              }
-            } catch (loadError) {
-              console.log('⚠️ Auto-chargement échoué:', loadError.message);
-              throw new Error('Modèle Llama non disponible. Téléchargez-en un dans Config → Génération Locale');
+
+        // Helper : charger automatiquement un modèle Llama si pas encore chargé
+        const ensureLlamaLoaded = async () => {
+          if (LlamaService.isLoaded) return true;
+          try {
+            const phi35Downloaded = await LlamaService.isModelDownloaded('phi35mini');
+            const llama321bDownloaded = await LlamaService.isModelDownloaded('llama321b');
+            if (phi35Downloaded) {
+              await LlamaService.loadModel('phi35mini', (msg) => console.log('Llama load:', msg));
+              console.log('✅ Phi-3.5 Mini auto-chargé');
+              return true;
+            } else if (llama321bDownloaded) {
+              await LlamaService.loadModel('llama321b', (msg) => console.log('Llama load:', msg));
+              console.log('✅ Llama 3.2 1B auto-chargé');
+              return true;
             }
+          } catch (loadError) {
+            console.log('⚠️ Auto-chargement Llama échoué:', loadError.message);
           }
-          
-          // Générer avec Llama
+          return false;
+        };
+
+        const callGroq = () => Promise.race([
+          GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout Groq')), 60000))
+        ]);
+
+        const callLlama = async () => {
+          await ensureLlamaLoaded();
+          if (!LlamaService.isLoaded) {
+            throw new Error('Aucun modèle local chargé. Téléchargez Phi-3.5 ou Llama 3.2 dans Config.');
+          }
           _usedOffline = true;
-          response = await Promise.race([
+          return Promise.race([
             LlamaService.generateResponse(updatedMessages, systemPrompt, undefined, true),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
           ]);
-          
+        };
+
+        // Logique basée sur selectedApi
+        if (selectedApi === 'local-llama') {
+          // PRIORITÉ : IA locale hors ligne
+          console.log('� Mode local Llama sélectionné');
+          response = await callLlama();
         } else if (selectedApi === 'groq') {
           // PRIORITÉ : Groq multi-keys
           console.log('⚡ Mode Groq sélectionné');
-          
           try {
-            response = await Promise.race([
-              GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout Groq')), 60000))
-            ]);
+            response = await callGroq();
           } catch (groqError) {
             console.log('⚠️ Groq échoué, fallback local...');
-            
-            // Fallback vers Llama local
-            if (!LlamaService.isLoaded) {
-              try {
-                console.log('🔄 Tentative auto-chargement modèle Llama...');
-                const phi35Downloaded = await LlamaService.isModelDownloaded('phi35mini');
-                const llama321bDownloaded = await LlamaService.isModelDownloaded('llama321b');
-                
-                if (phi35Downloaded) {
-                  await LlamaService.loadModel('phi35mini', (msg) => console.log('Llama load:', msg));
-                  console.log('✅ Phi-3.5 Mini auto-chargé');
-                } else if (llama321bDownloaded) {
-                  await LlamaService.loadModel('llama321b', (msg) => console.log('Llama load:', msg));
-                  console.log('✅ Llama 3.2 1B auto-chargé');
-                }
-              } catch (loadError) {
-                console.log('⚠️ Auto-chargement échoué:', loadError.message);
+            try {
+              response = await callLlama();
+            } catch (llamaError) {
+              console.log('⚠️ Llama indisponible, tentative serveur Replit…');
+              const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
+              if (serverAvailable) {
+                response = await Promise.race([
+                  ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
+                ]);
               }
+              if (!response) throw groqError;
             }
-            
-            if (LlamaService.isLoaded) {
-              _usedOffline = true;
-              response = await Promise.race([
-                LlamaService.generateResponse(updatedMessages, systemPrompt, undefined, true),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
-              ]);
-            }
-            
-            if (!response) throw groqError;
           }
-          
         } else {
-          // Autres APIs (Pollinations, Venice, DeepInfra, etc.)
+          // Autres APIs (Pollinations, Venice, DeepInfra, etc.) - fallback vers Groq
           console.log(`🌐 Mode ${selectedApi} sélectionné`);
-          
-          // Pour l'instant, fallback vers Groq si l'API n'est pas implémentée
           try {
-            response = await Promise.race([
-              GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 60000))
-            ]);
+            response = await callGroq();
           } catch (error) {
             console.log('⚠️ API échouée, fallback local...');
-            
-            // Fallback vers Llama local
-            if (!LlamaService.isLoaded) {
-              try {
-                const phi35Downloaded = await LlamaService.isModelDownloaded('phi35mini');
-                const llama321bDownloaded = await LlamaService.isModelDownloaded('llama321b');
-                
-                if (phi35Downloaded) {
-                  await LlamaService.loadModel('phi35mini', (msg) => console.log('Llama load:', msg));
-                } else if (llama321bDownloaded) {
-                  await LlamaService.loadModel('llama321b', (msg) => console.log('Llama load:', msg));
-                }
-              } catch (loadError) {
-                console.log('⚠️ Auto-chargement échoué:', loadError.message);
+            try {
+              response = await callLlama();
+            } catch (llamaError) {
+              console.log('⚠️ Llama indisponible, tentative serveur Replit…');
+              const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
+              if (serverAvailable) {
+                response = await Promise.race([
+                  ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
+                ]);
               }
+              if (!response) throw error;
             }
-            
-            if (LlamaService.isLoaded) {
-              _usedOffline = true;
-              response = await Promise.race([
-                LlamaService.generateResponse(updatedMessages, systemPrompt, undefined, true),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout offline 60s')), 60000))
-              ]);
-            }
-            
-            if (!response) throw error;
           }
         }
       } catch (genError) {
         console.error('❌ Erreur génération:', genError.message);
         if (_usedOffline) {
-          try {
-            response = await GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship);
-          } catch {
-            response = `*te regarde* "..." (Hors ligne — configure une clé Groq dans Config)`;
-          }
+          response = `*te regarde* "..." (Mode hors-ligne — vérifie que ton modèle local est bien chargé)`;
         } else {
           response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
         }
@@ -718,52 +683,104 @@ export default function ConversationScreen({ route, navigation }) {
 
       let imageUrl = null;
 
-      // PRIORITÉ 1: Génération locale 100% sur smartphone (LocalImageService)
-      try {
-        const localAvailable = await LocalImageService.isAvailable();
-        if (localAvailable && LocalImageService.isLoaded) {
-          console.log('📱 Tentative génération locale...');
-          setImageProgress('Génération locale en cours...');
-          
-          imageUrl = await Promise.race([
-            LocalImageService.generateImage({
-              character,
-              userProfile,
-              relationLevel: effectiveLevel,
-              imageType: 'portrait',
-              onProgress: (msg) => setImageProgress(msg)
-            }),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Timeout génération locale')), 180000)
-            )
-          ]);
-          
-          if (imageUrl) {
-            console.log('✅ Image générée localement !');
-          }
-        }
-      } catch (localError) {
-        console.log('⚠️ Génération locale échouée:', localError.message);
-        // Continuer avec le serveur si la locale échoue
-      }
+      // Lire le choix utilisateur : 'local', 'horde', 'pollinations' ou 'mix' (défaut)
+      const imageSystem = (await AsyncStorage.getItem('image_generation_system')) || 'mix';
+      console.log(`🧭 Image generation system: ${imageSystem}`);
 
-      // PRIORITÉ 2: Fallback sur serveur (ImageGenerationService)
-      if (!imageUrl) {
-        console.log('🌐 Fallback sur génération serveur...');
-        setImageProgress('Génération serveur en cours...');
-        
-        imageUrl = await Promise.race([
+      // Construire le prompt scène (utilisé pour SD local + serveurs)
+      const scenePrompt = ImageGenerationService.buildScenePrompt
+        ? ImageGenerationService.buildScenePrompt(character, userProfile, messages || [], effectiveLevel)
+        : null;
+
+      // Helper : génération locale via le module natif ONNX (Stable Diffusion)
+      const generateLocal = async () => {
+        setImageProgress('🔍 Vérification module SD local...');
+        const availability = await StableDiffusionLocalService.checkAvailability();
+        if (!availability?.available) {
+          throw new Error('Module SD natif non disponible sur cet appareil');
+        }
+        if (!availability?.modelDownloaded) {
+          throw new Error('Modèles SD non téléchargés (Paramètres → Images Locales)');
+        }
+        if (!availability?.pipelineReady) {
+          setImageProgress('🚀 Initialisation du pipeline SD...');
+          await StableDiffusionLocalService.initializePipeline((p, msg) =>
+            setImageProgress(`Pipeline: ${msg || p + '%'}`)
+          );
+        }
+        setImageProgress('🎨 Génération locale en cours...');
+        const prompt = scenePrompt
+          || `portrait of ${character?.name || 'character'}, highly detailed, masterpiece, 8k`;
+        const result = await Promise.race([
+          StableDiffusionLocalService.generateImage(prompt, {
+            steps: 20,
+            guidanceScale: 7.5,
+          }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout génération locale (180s)')), 180000)
+          ),
+        ]);
+        if (!result) throw new Error('Génération locale a retourné null');
+        // SD natif retourne { imageBase64, imagePath } ou { imageUrl, imagePath }.
+        // Préférer imagePath (URI fichier), sinon convertir base64 → fichier.
+        if (typeof result === 'string') return result;
+        if (result.imagePath) return result.imagePath;
+        const base64 = result.imageBase64 || result.imageUrl;
+        if (base64) {
+          // base64 brut sans préfixe data: ?
+          const clean = String(base64).replace(/^data:image\/\w+;base64,/, '');
+          const uri = `${FileSystem.cacheDirectory}sd_local_${Date.now()}.png`;
+          await FileSystem.writeAsStringAsync(uri, clean, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          return uri;
+        }
+        throw new Error('Format de retour SD local inattendu');
+      };
+
+      // Helper : génération via serveur (Pollinations / Stable Horde)
+      const generateRemote = async (forcedBackend = null) => {
+        setImageProgress('🌐 Génération serveur en cours...');
+        return Promise.race([
           ImageGenerationService.generateSceneImage(
             character,
             userProfile,
             messages || [],
             effectiveLevel,
-            (msg) => setImageProgress(msg)
+            (msg) => setImageProgress(msg),
+            null,
+            forcedBackend // 'horde' | 'pollinations' | null (auto)
           ),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout génération')), 120000)
-          )
+            setTimeout(() => reject(new Error('Timeout génération serveur')), 120000)
+          ),
         ]);
+      };
+
+      if (imageSystem === 'local') {
+        // FORCÉ LOCAL : uniquement SD natif sur l'appareil
+        console.log('🔒 Mode LOCAL forcé → Stable Diffusion natif');
+        imageUrl = await generateLocal();
+      } else if (imageSystem === 'horde') {
+        console.log('☁️ Mode HORDE forcé');
+        imageUrl = await generateRemote('horde');
+      } else if (imageSystem === 'pollinations') {
+        console.log('☁️ Mode POLLINATIONS forcé');
+        imageUrl = await generateRemote('pollinations');
+      } else {
+        // MIX : essai local d'abord (si dispo), sinon serveur
+        try {
+          const availability = await StableDiffusionLocalService.checkAvailability();
+          if (availability?.available && availability?.modelDownloaded) {
+            console.log('📱 Mix → tentative locale...');
+            imageUrl = await generateLocal();
+          }
+        } catch (localError) {
+          console.log('⚠️ Local SD échoué:', localError.message);
+        }
+        if (!imageUrl) {
+          imageUrl = await generateRemote(null);
+        }
       }
 
       if (!imageUrl) {

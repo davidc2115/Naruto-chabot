@@ -763,7 +763,7 @@ class ImageGenerationService {
     return hasNsfwKeywords || explicitNsfwRequest;
   }
 
-  async generateSceneImage(character, userProfile, messages = [], relationLevel = 1, onProgress = null, imageType = null) {
+  async generateSceneImage(character, userProfile, messages = [], relationLevel = 1, onProgress = null, imageType = null, forcedBackend = null) {
     await this.waitMinDelay();
     
     // Détection dynamique du mode NSFW
@@ -782,11 +782,27 @@ class ImageGenerationService {
     
     const prompt = this.buildScenePromptText(character, messages, relationLevel, selectedImageType);
 
+    // Backend forcé par le réglage utilisateur
+    if (forcedBackend === 'horde') {
+      onProgress?.('🎨 Stable Horde (forcé par réglage)…');
+      return await this.generateViaStableHorde(prompt, onProgress);
+    }
+    if (forcedBackend === 'pollinations') {
+      onProgress?.('🎨 Pollinations (forcé par réglage)…');
+      return await this.generateViaPollinations(prompt, onProgress);
+    }
+
+    // Mix / auto : Pollinations puis fallback Stable Horde
     try { return await this.generateViaPollinations(prompt, onProgress); }
     catch (e) {
       onProgress?.(`⚠️ ${e.message} → Stable Horde…`);
       return await this.generateViaStableHorde(prompt, onProgress);
     }
+  }
+
+  // Exposer la construction du prompt scène pour usage externe (ex: SD local)
+  buildScenePrompt(character, userProfile, messages = [], relationLevel = 1, imageType = null) {
+    return this.buildScenePromptText(character, messages, relationLevel, imageType);
   }
 }
 
