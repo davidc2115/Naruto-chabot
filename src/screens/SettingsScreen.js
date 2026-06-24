@@ -18,6 +18,7 @@ import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
 import SyncService from '../services/SyncService';
 import AuthService from '../services/AuthService';
+import LlamaService from '../services/LlamaService';
 import * as FileSystem from 'expo-file-system';
 
 // URL du serveur Freebox pour les fonctions admin
@@ -57,6 +58,12 @@ export default function SettingsScreen({ navigation, onLogout }) {
   const [sdDownloading, setSdDownloading] = useState(false);
   const [sdDownloadProgress, setSdDownloadProgress] = useState(0);
   
+  // Llama Local
+  const [llamaAvailability, setLlamaAvailability] = useState(null);
+  const [llamaDownloading, setLlamaDownloading] = useState(false);
+  const [llamaDownloadProgress, setLlamaDownloadProgress] = useState(0);
+  const [llamaActiveModel, setLlamaActiveModel] = useState(null);
+  
   // Synchronisation
   const [syncStatus, setSyncStatus] = useState(null);
   const [syncing, setSyncing] = useState(false);
@@ -84,6 +91,8 @@ export default function SettingsScreen({ navigation, onLogout }) {
       await loadProfile();
       await loadTextProvider();
       await loadGroqKeys(); // v5.3.63 - Charger les clés Groq
+      await loadGroqModel(); // Charger le modèle Groq
+      await checkLlamaAvailability(); // Vérifier les modèles Llama locaux
       
       // Charger les paramètres sensibles seulement si admin
       if (adminStatus) {
@@ -328,6 +337,101 @@ export default function SettingsScreen({ navigation, onLogout }) {
     } catch (error) {
       console.error('❌ Error checking SD availability:', error);
       setSdAvailability({ available: false, reason: error.message });
+    }
+  };
+
+  const checkLlamaAvailability = async () => {
+    try {
+      const activeModelId = await LlamaService.getStoredActiveModelId();
+      setLlamaActiveModel(activeModelId);
+      
+      const phi35Downloaded = await LlamaService.isModelDownloaded('phi35mini');
+      const llama321bDownloaded = await LlamaService.isModelDownloaded('llama321b');
+      
+      setLlamaAvailability({
+        activeModel: activeModelId,
+        phi35Downloaded,
+        llama321bDownloaded,
+        isLoaded: LlamaService.isLoaded,
+      });
+      
+      console.log('📱 Llama availability:', {
+        activeModel: activeModelId,
+        phi35Downloaded,
+        llama321bDownloaded,
+        isLoaded: LlamaService.isLoaded,
+      });
+    } catch (error) {
+      console.error('❌ Error checking Llama availability:', error);
+      setLlamaAvailability({ error: error.message });
+    }
+  };
+
+  const downloadLlamaModel = async (modelId) => {
+    try {
+      setLlamaDownloading(true);
+      setLlamaDownloadProgress(0);
+      
+      const model = LlamaService.LLAMA_MODELS?.[modelId];
+      if (!model) {
+        throw new Error('Modèle inconnu');
+      }
+      
+      Alert.alert(
+        '📥 Téléchargement',
+        `Télécharger ${model.name} (${LlamaService.formatBytes(model.size)}) ?`,
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Télécharger',
+            onPress: async () => {
+              try {
+                await LlamaService.downloadModel(modelId, (progress, bytesWritten, total) => {
+                  setLlamaDownloadProgress(progress * 100);
+                });
+                
+                setLlamaDownloading(false);
+                setLlamaDownloadProgress(100);
+                
+                Alert.alert(
+                  '✅ Téléchargement réussi !',
+                  `${model.name} téléchargé avec succès.`,
+                  [{ text: 'OK', onPress: () => checkLlamaAvailability() }]
+                );
+              } catch (error) {
+                console.error('❌ Erreur téléchargement Llama:', error);
+                setLlamaDownloading(false);
+                Alert.alert('❌ Erreur', `Téléchargement échoué: ${error.message}`);
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      setLlamaDownloading(false);
+      Alert.alert('❌ Erreur', error.message);
+    }
+  };
+
+  const loadLlamaModel = async (modelId) => {
+    try {
+      await LlamaService.loadModel(modelId, (msg) => console.log('Llama load:', msg));
+      await checkLlamaAvailability();
+      Alert.alert('✅ Succès', 'Modèle Llama chargé avec succès !');
+    } catch (error) {
+      console.error('❌ Erreur chargement Llama:', error);
+      Alert.alert('❌ Erreur', `Chargement échoué: ${error.message}`);
+    }
+  };
+
+  const unloadLlamaModel = async () => {
+    try {
+      await LlamaService.unloadModel();
+      await checkLlamaAvailability();
+      Alert.alert('✅ Succès', 'Modèle Llama déchargé.');
+    } catch (error) {
+      console.error('❌ Erreur déchargement Llama:', error);
+      Alert.alert('❌ Erreur', `Déchargement échoué: ${error.message}`);
     }
   };
 
@@ -702,12 +806,157 @@ export default function SettingsScreen({ navigation, onLogout }) {
             🔄 Rotation automatique entre les clés{'\n'}
             ⚡ Llama 70B, 8B et Mixtral disponibles
           </Text>
+          
+          {/* Sélection du modèle Groq */}
+          <View style={styles.modelSelectorContainer}>
+            <Text style={styles.modelSelectorTitle}>🎯 Modèle Groq:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.modelSelectorScroll}>
+              {availableModels.map((model) => (
+                <TouchableOpacity
+                  key={model.id}
+                  style={[
+                    styles.modelOption,
+                    groqModel === model.id && styles.modelOptionActive
+                  ]}
+                  onPress={() => saveGroqModel(model.id)}
+                >
+                  <Text style={[
+                    styles.modelOptionText,
+                    groqModel === model.id && styles.modelOptionTextActive
+                  ]}>
+                    {model.name}
+                  </Text>
+                  {groqModel === model.id && (
+                    <Text style={styles.modelOptionCheck}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         </View>
 
         <View style={styles.providerNote}>
           <Text style={styles.providerNoteText}>
             💡 Groq API est gratuit et rapide. Ajoutez plusieurs clés pour éviter les limites.{'\n'}
             Obtenez vos clés sur console.groq.com
+          </Text>
+        </View>
+      </View>
+
+      {/* === GÉNÉRATION DE TEXTE - Llama Local (Offline) === */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>📱 Génération Locale (Offline)</Text>
+        <Text style={styles.sectionDescription}>
+          Téléchargez et utilisez des modèles Llama directement sur votre téléphone.{'\n'}
+          100% hors ligne, aucune connexion internet requise.
+        </Text>
+
+        {/* Statut Llama */}
+        {llamaAvailability && (
+          <View style={styles.llamaStatusBox}>
+            <Text style={styles.llamaStatusTitle}>📊 Statut des modèles</Text>
+            
+            <Text style={styles.llamaStatusText}>
+              🤖 Modèle actif: {llamaAvailability.activeModel || 'Aucun'}
+            </Text>
+            
+            <Text style={styles.llamaStatusText}>
+              📥 Phi-3.5 Mini: {llamaAvailability.phi35Downloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
+            </Text>
+            
+            <Text style={styles.llamaStatusText}>
+              📥 Llama 3.2 1B: {llamaAvailability.llama321bDownloaded ? '✅ Téléchargé' : '❌ Non téléchargé'}
+            </Text>
+            
+            <Text style={styles.llamaStatusText}>
+              ⚡ État: {llamaAvailability.isLoaded ? '✅ Chargé en mémoire' : '❌ Non chargé'}
+            </Text>
+          </View>
+        )}
+
+        {/* Barre de progression */}
+        {llamaDownloading && (
+          <View style={styles.progressContainer}>
+            <Text style={styles.progressText}>
+              📥 Téléchargement... {Math.round(llamaDownloadProgress)}%
+            </Text>
+            <View style={styles.progressBar}>
+              <View style={[styles.progressFill, { width: `${llamaDownloadProgress}%` }]} />
+            </View>
+          </View>
+        )}
+
+        {/* Boutons de téléchargement */}
+        <View style={styles.llamaModelButtons}>
+          <TouchableOpacity
+            style={[
+              styles.llamaModelButton,
+              llamaAvailability?.phi35Downloaded && styles.llamaModelButtonDownloaded
+            ]}
+            onPress={() => downloadLlamaModel('phi35mini')}
+            disabled={llamaDownloading}
+          >
+            <Text style={styles.llamaModelButtonText}>
+              {llamaAvailability?.phi35Downloaded 
+                ? '✅ Phi-3.5 Mini (2.2 GB)' 
+                : '📥 Phi-3.5 Mini (2.2 GB)'}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.llamaModelButton,
+              llamaAvailability?.llama321bDownloaded && styles.llamaModelButtonDownloaded
+            ]}
+            onPress={() => downloadLlamaModel('llama321b')}
+            disabled={llamaDownloading}
+          >
+            <Text style={styles.llamaModelButtonText}>
+              {llamaAvailability?.llama321bDownloaded 
+                ? '✅ Llama 3.2 1B (700 MB)' 
+                : '📥 Llama 3.2 1B (700 MB)'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Boutons de chargement/déchargement */}
+        {llamaAvailability && (
+          <View style={styles.llamaActionButtons}>
+            {llamaAvailability.isLoaded ? (
+              <TouchableOpacity
+                style={[styles.llamaActionButton, styles.llamaUnloadButton]}
+                onPress={unloadLlamaModel}
+              >
+                <Text style={styles.llamaActionButtonText}>⏹️ Décharger le modèle</Text>
+              </TouchableOpacity>
+            ) : (
+              <>
+                {llamaAvailability.phi35Downloaded && (
+                  <TouchableOpacity
+                    style={styles.llamaActionButton}
+                    onPress={() => loadLlamaModel('phi35mini')}
+                  >
+                    <Text style={styles.llamaActionButtonText}>⚡ Charger Phi-3.5 Mini</Text>
+                  </TouchableOpacity>
+                )}
+                {llamaAvailability.llama321bDownloaded && (
+                  <TouchableOpacity
+                    style={styles.llamaActionButton}
+                    onPress={() => loadLlamaModel('llama321b')}
+                  >
+                    <Text style={styles.llamaActionButtonText}>⚡ Charger Llama 3.2 1B</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
+          </View>
+        )}
+
+        <View style={styles.providerNote}>
+          <Text style={styles.providerNoteText}>
+            💡 Phi-3.5 Mini offre la meilleure qualité pour le roleplay.{'\n'}
+            Llama 3.2 1B est plus léger et rapide sur les téléphones modestes.{'\n'}
+            Une fois chargé, le modèle fonctionne 100% hors ligne.
           </Text>
         </View>
       </View>
@@ -1947,5 +2196,114 @@ const styles = StyleSheet.create({
     marginTop: 10,
     lineHeight: 18,
     fontStyle: 'italic',
+  },
+  // === Styles pour le sélecteur de modèle Groq ===
+  modelSelectorContainer: {
+    marginTop: 15,
+    padding: 12,
+    backgroundColor: '#f0fdf4',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#10b981',
+  },
+  modelSelectorTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#065f46',
+    marginBottom: 8,
+  },
+  modelSelectorScroll: {
+    flexDirection: 'row',
+  },
+  modelOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    marginRight: 8,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  modelOptionActive: {
+    backgroundColor: '#10b981',
+    borderColor: '#059669',
+  },
+  modelOptionText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  modelOptionTextActive: {
+    color: '#fff',
+  },
+  modelOptionCheck: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    fontSize: 10,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  // === Styles pour la section Llama Local ===
+  llamaStatusBox: {
+    marginTop: 15,
+    padding: 12,
+    backgroundColor: '#f0fdf4',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#10b981',
+  },
+  llamaStatusTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#065f46',
+    marginBottom: 8,
+  },
+  llamaStatusText: {
+    fontSize: 13,
+    color: '#065f46',
+    marginBottom: 4,
+  },
+  llamaModelButtons: {
+    flexDirection: 'row',
+    marginTop: 15,
+    gap: 10,
+  },
+  llamaModelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#6366f1',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  llamaModelButtonDownloaded: {
+    backgroundColor: '#10b981',
+  },
+  llamaModelButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  llamaActionButtons: {
+    marginTop: 15,
+    gap: 10,
+  },
+  llamaActionButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#f59e0b',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  llamaUnloadButton: {
+    backgroundColor: '#ef4444',
+  },
+  llamaActionButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
