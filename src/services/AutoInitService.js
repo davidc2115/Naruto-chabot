@@ -149,14 +149,10 @@ class AutoInitService {
       // Vérifier si le modèle est téléchargé
       const isDownloaded = await LlamaService.isModelDownloaded(modelId);
       if (!isDownloaded) {
-        console.log('⚠️ Modèle LLM non téléchargé, téléchargement requis');
-        onProgress?.('llama', 'downloading', 'Téléchargement du modèle LLM...');
-        
-        // Télécharger le modèle
-        await LlamaService.downloadModel(modelId, (progress, bytes, total) => {
-          const pct = Math.round(progress * 100);
-          onProgress?.('llama', 'downloading', `Téléchargement: ${pct}%`);
-        });
+        console.log('⚠️ Modèle LLM non téléchargé, auto-téléchargement désactivé');
+        this.notifyStatusChange('llama', 'disabled');
+        onProgress?.('llama', 'disabled', 'Modèle non téléchargé. Téléchargez-le dans Paramètres.');
+        return;
       }
 
       // Charger le modèle
