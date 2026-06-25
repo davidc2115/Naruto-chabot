@@ -18,7 +18,7 @@ import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
 import SyncService from '../services/SyncService';
 import AuthService from '../services/AuthService';
-import LlamaService from '../services/LlamaService';
+import LlamaService, { LLAMA_MODELS } from '../services/LlamaService';
 import * as FileSystem from 'expo-file-system';
 
 // URL du serveur Freebox pour les fonctions admin
@@ -374,7 +374,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
       setLlamaDownloading(true);
       setLlamaDownloadProgress(0);
       
-      const model = LlamaService.LLAMA_MODELS?.[modelId];
+      const model = LLAMA_MODELS?.[modelId];
       if (!model) {
         throw new Error('Modèle inconnu');
       }
