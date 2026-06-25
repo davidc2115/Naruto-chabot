@@ -130,13 +130,9 @@ class AutoInitService {
       this.notifyStatusChange('llama', 'disabled');
     }
 
-    // Initialisation du modèle d'image
-    if (preferences.autoInitImage) {
-      await this.initializeImage(preferences.preferredImageModel, onProgress);
-    } else {
-      console.log('⏭️ AutoInit Image désactivé');
-      this.notifyStatusChange('image', 'disabled');
-    }
+    // Initialisation du modèle d'image - DÉSACTIVÉ car placeholder
+    console.log('⏭️ AutoInit Image désactivé (placeholder)');
+    this.notifyStatusChange('image', 'disabled');
 
     console.log('✅ AutoInit: Initialisation terminée');
     return this.initializationStatus;
