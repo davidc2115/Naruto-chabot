@@ -445,7 +445,7 @@ export default function ConversationScreen({ route, navigation }) {
         };
 
         const callGroq = () => Promise.race([
-          GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship),
+          GroqService.generateResponse(updatedMessages, character, userProfile, {}, memoriesPrompt, newRelationship, true),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout Groq')), 60000))
         ]);
 

@@ -127,7 +127,7 @@ export default function SettingsScreen({ navigation, onLogout }) {
         { id: 'pollinations-gpt4', name: 'Pollinations GPT-4', requiresKey: false, available: true },
         { id: 'venice', name: 'Venice AI', requiresKey: true, available: !!veniceKey },
         { id: 'deepinfra', name: 'DeepInfra', requiresKey: true, available: !!deepinfraKey },
-        { id: 'groq', name: 'Groq', requiresKey: true, available: !!await AsyncStorage.getItem('groq_api_key') },
+        { id: 'groq', name: 'Groq', requiresKey: true, available: groqApiKeys.some(k => k && k.trim()) },
       ];
       setAvailableApis(apis);
       
@@ -289,11 +289,13 @@ export default function SettingsScreen({ navigation, onLogout }) {
         setGroqModel(model);
       }
       
-      // Modèles disponibles
+      // Modèles disponibles (doivent correspondre à GroqService)
       const models = [
-        { id: 'llama3-70b-8192', name: 'Llama 3 70B' },
-        { id: 'llama3-8b-8192', name: 'Llama 3 8B' },
-        { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B' },
+        { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B (Recommandé)' },
+        { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B (Rapide)' },
+        { id: 'gemma2-9b-it', name: 'Gemma2 9B' },
+        { id: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 70B' },
+        { id: 'mistral-saba-24b', name: 'Mistral Saba 24B' },
       ];
       setAvailableModels(models);
       
