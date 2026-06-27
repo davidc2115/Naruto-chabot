@@ -106,13 +106,13 @@ export default function ConversationScreen({ route, navigation }) {
 
   const initializeScreen = async () => {
     try {
-      // Charger le selectedApi depuis AsyncStorage
+      // Charger le text_generation_system depuis AsyncStorage
       try {
-        const api = await AsyncStorage.getItem('selected_api');
-        setSelectedApi(api || 'pollinations-mistral');
-        console.log('🔧 API sélectionnée:', api || 'pollinations-mistral');
+        const system = await AsyncStorage.getItem('text_generation_system') || 'mix';
+        setSelectedApi(system === 'local' ? 'local-llama' : system === 'groq' ? 'groq' : 'mix');
+        console.log('🔧 Système de génération:', system);
       } catch (e) {
-        console.log('⚠️ Erreur chargement selectedApi:', e.message);
+        console.log('⚠️ Erreur chargement text_generation_system:', e.message);
       }
       
       // Charger tout en parallèle
@@ -464,11 +464,32 @@ export default function ConversationScreen({ route, navigation }) {
         // Logique basée sur selectedApi
         if (selectedApi === 'local-llama') {
           // PRIORITÉ : IA locale hors ligne
-          console.log('� Mode local Llama sélectionné');
+          console.log('📱 Mode local Llama sélectionné');
           response = await callLlama();
         } else if (selectedApi === 'groq') {
           // PRIORITÉ : Groq multi-keys
           console.log('⚡ Mode Groq sélectionné');
+          try {
+            response = await callGroq();
+          } catch (groqError) {
+            console.log('⚠️ Groq échoué, fallback local...');
+            try {
+              response = await callLlama();
+            } catch (llamaError) {
+              console.log('⚠️ Llama indisponible, tentative serveur Replit…');
+              const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
+              if (serverAvailable) {
+                response = await Promise.race([
+                  ApiServerService.generateText(systemPrompt, updatedMessages, GroqService.selectedModel),
+                  new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout serveur')), 25000))
+                ]);
+              }
+              if (!response) throw groqError;
+            }
+          }
+        } else if (selectedApi === 'mix') {
+          // PRIORITÉ : Groq avec fallback local
+          console.log('🔄 Mode Mix sélectionné (Groq + Local)');
           try {
             response = await callGroq();
           } catch (groqError) {
