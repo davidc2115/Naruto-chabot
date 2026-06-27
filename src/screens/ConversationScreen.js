@@ -109,8 +109,8 @@ export default function ConversationScreen({ route, navigation }) {
       // Charger le selectedApi depuis AsyncStorage
       try {
         const api = await AsyncStorage.getItem('selected_api');
-        setSelectedApi(api || 'pollinations-mistral');
-        console.log('🔧 API sélectionnée:', api || 'pollinations-mistral');
+        setSelectedApi(api || 'groq'); // Par défaut: groq au lieu de pollinations-mistral
+        console.log('🔧 API sélectionnée:', api || 'groq');
       } catch (e) {
         console.log('⚠️ Erreur chargement selectedApi:', e.message);
       }

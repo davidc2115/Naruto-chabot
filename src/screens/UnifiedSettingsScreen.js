@@ -118,6 +118,11 @@ export default function UnifiedSettingsScreen({ navigation, onLogout }) {
     try {
       setTextSystem(system);
       await AsyncStorage.setItem('text_generation_system', system);
+      
+      // Synchroniser avec selected_api utilisé par ConversationScreen
+      const selectedApi = system === 'local' ? 'local-llama' : system === 'groq' ? 'groq' : 'pollinations-mistral';
+      await AsyncStorage.setItem('selected_api', selectedApi);
+      
       Alert.alert('Succès', `Système de texte: ${system === 'local' ? 'Local uniquement' : system === 'groq' ? 'Groq uniquement' : 'Mix (Groq + Local)'}`);
     } catch (error) {
       console.error('Erreur sauvegarde système texte:', error);
