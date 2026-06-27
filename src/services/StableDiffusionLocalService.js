@@ -437,9 +437,9 @@ class StableDiffusionLocalService {
     if (!modelStatus?.onnxAvailable && !this.moduleInfo.onnxAvailable) {
       const onnxError = this.moduleInfo.onnxError || modelStatus?.onnxError || '';
       if (onnxError) {
-        return `❌ ONNX indisponible: ${onnxError}. Utilisez Freebox/API externe.`;
+        return `❌ ONNX indisponible: ${onnxError}. Utilisez API externe.`;
       }
-      return '❌ ONNX Runtime non disponible sur cet appareil. Utilisez Freebox/API externe.';
+      return '❌ ONNX Runtime non disponible sur cet appareil. Utilisez API externe.';
     }
     
     if (!modelsCheck.allPresent) {
@@ -450,14 +450,16 @@ class StableDiffusionLocalService {
     const totalRamGB = ((systemInfo?.totalRamMB || systemInfo?.maxMemoryMB || 0) / 1024).toFixed(1);
     const availableRamGB = ((systemInfo?.availableRamMB || systemInfo?.freeMemoryMB || 0) / 1024).toFixed(1);
     
-    // Si RAM détectée à 0, c'est un problème de détection
+    // Si RAM détectée à 0, ignorer la vérification et permettre l'utilisation
     if (parseFloat(totalRamGB) < 0.5) {
-      return '⚠️ Impossible de détecter la RAM. Le module peut ne pas fonctionner correctement.';
+      console.log('⚠️ RAM non détectée, mais ONNX est disponible. Tentative d\'utilisation...');
+      return '✅ ONNX disponible. RAM non détectée mais tentative d\'utilisation possible.';
     }
     
-    if (!systemInfo?.hasEnoughRAM) {
-      return `⚠️ RAM insuffisante (${totalRamGB} GB total, ${availableRamGB} GB dispo - besoin 4+ GB)`;
-    }
+    // Désactiver la vérification stricte de RAM - permettre l'utilisation si ONNX est dispo
+    // if (!systemInfo?.hasEnoughRAM) {
+    //   return `⚠️ RAM insuffisante (${totalRamGB} GB total, ${availableRamGB} GB dispo - besoin 4+ GB)`;
+    // }
     
     if (!systemInfo?.hasEnoughStorage) {
       const storageGB = ((systemInfo?.freeStorageMB || 0) / 1024).toFixed(1);

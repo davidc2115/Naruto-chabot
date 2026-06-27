@@ -216,13 +216,14 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   };
 
   const handleImageStrategyChange = async (newStrategy) => {
-    if (newStrategy === 'local' && !isPremium) {
-      Alert.alert(
-        '💎 Premium Requis',
-        'La génération d\'images sur smartphone est réservée aux membres Premium.'
-      );
-      return;
-    }
+    // Suppression de la vérification premium - la génération locale est maintenant disponible pour tous
+    // if (newStrategy === 'local' && !isPremium) {
+    //   Alert.alert(
+    //     '💎 Premium Requis',
+    //     'La génération d\'images sur smartphone est réservée aux membres Premium.'
+    //   );
+    //   return;
+    // }
 
     if (newStrategy === 'local' && (!sdAvailability?.available || !sdAvailability?.modelDownloaded)) {
       Alert.alert(
@@ -257,13 +258,14 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   };
 
   const handleDownloadSD = async () => {
-    if (!isPremium) {
-      Alert.alert(
-        '💎 Premium Requis',
-        'Le téléchargement de Stable Diffusion est réservé aux membres Premium.'
-      );
-      return;
-    }
+    // Suppression de la vérification premium - le téléchargement est maintenant disponible pour tous
+    // if (!isPremium) {
+    //   Alert.alert(
+    //     '💎 Premium Requis',
+    //     'Le téléchargement de Stable Diffusion est réservé aux membres Premium.'
+    //   );
+    //   return;
+    // }
 
     // Obtenir la taille totale des modèles
     const totalSize = StableDiffusionLocalService.getTotalModelSize();
