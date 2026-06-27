@@ -233,7 +233,17 @@ export default function UnifiedSettingsScreen({ navigation, onLogout }) {
               await checkLlamaAvailability();
               setLlamaDownloading(false);
               
-              Alert.alert('✅ Téléchargement terminé', `${model.name} a été téléchargé avec succès.`);
+              // Auto-charger le modèle après téléchargement
+              try {
+                await LlamaService.loadModel(modelId, (msg) => {
+                  console.log('Auto-load Llama:', msg);
+                });
+                await checkLlamaAvailability();
+                Alert.alert('✅ Téléchargement terminé', `${model.name} a été téléchargé et chargé avec succès.`);
+              } catch (loadError) {
+                console.error('Erreur auto-chargement:', loadError);
+                Alert.alert('✅ Téléchargement terminé', `${model.name} a été téléchargé. Cliquez sur "Charger" pour l'utiliser.`);
+              }
             } catch (error) {
               setLlamaDownloading(false);
               console.error('Erreur téléchargement Llama:', error);

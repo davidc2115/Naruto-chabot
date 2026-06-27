@@ -477,9 +477,16 @@ class StableDiffusionLocalService {
    * Vérifie si une URL est accessible
    */
   async _checkUrlAccessible(url) {
+    console.log(`🔍 Test URL: ${url}`);
     try {
-      const response = await fetch(url, { method: 'HEAD', timeout: 10000 });
-      return response.ok;
+      // Utiliser GET au lieu de HEAD car certains serveurs ne supportent pas HEAD
+      const response = await fetch(url, { 
+        method: 'GET',
+        headers: { 'Range': 'bytes=0-1024' }, // Télécharger seulement les premiers 1KB
+        timeout: 15000 
+      });
+      console.log(`✅ URL accessible - Status: ${response.status}`);
+      return response.ok || response.status === 206; // 206 = Partial Content (Range request)
     } catch (e) {
       console.warn(`⚠️ URL inaccessible: ${url} - ${e.message}`);
       return false;

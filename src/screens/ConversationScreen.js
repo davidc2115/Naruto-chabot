@@ -462,6 +462,10 @@ export default function ConversationScreen({ route, navigation }) {
         };
 
         // Logique basée sur selectedApi
+        console.log('🔍 Début génération - selectedApi:', selectedApi);
+        console.log('🔍 LlamaService.isLoaded:', LlamaService.isLoaded);
+        console.log('🔍 LlamaService.activeModelId:', LlamaService.activeModelId);
+        
         if (selectedApi === 'local-llama') {
           // PRIORITÉ : IA locale hors ligne
           console.log('📱 Mode local Llama sélectionné');
@@ -472,11 +476,11 @@ export default function ConversationScreen({ route, navigation }) {
           try {
             response = await callGroq();
           } catch (groqError) {
-            console.log('⚠️ Groq échoué, fallback local...');
+            console.log('⚠️ Groq échoué, fallback local... Erreur:', groqError.message);
             try {
               response = await callLlama();
             } catch (llamaError) {
-              console.log('⚠️ Llama indisponible, tentative serveur Replit…');
+              console.log('⚠️ Llama indisponible, tentative serveur Replit… Erreur:', llamaError.message);
               const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
               if (serverAvailable) {
                 response = await Promise.race([
@@ -493,11 +497,11 @@ export default function ConversationScreen({ route, navigation }) {
           try {
             response = await callGroq();
           } catch (error) {
-            console.log('⚠️ Groq échoué, fallback local...');
+            console.log('⚠️ Groq échoué, fallback local... Erreur:', error.message);
             try {
               response = await callLlama();
             } catch (llamaError) {
-              console.log('⚠️ Llama indisponible, tentative serveur Replit…');
+              console.log('⚠️ Llama indisponible, tentative serveur Replit… Erreur:', llamaError.message);
               const serverAvailable = await ApiServerService.isServerAvailable().catch(() => false);
               if (serverAvailable) {
                 response = await Promise.race([
