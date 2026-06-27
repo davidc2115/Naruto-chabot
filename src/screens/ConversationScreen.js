@@ -489,11 +489,11 @@ export default function ConversationScreen({ route, navigation }) {
           }
         } else {
           // Autres APIs (Pollinations, Venice, DeepInfra, etc.) - fallback vers Groq
-          console.log(`🌐 Mode ${selectedApi} sélectionné`);
+          console.log(`🌐 Mode ${selectedApi} sélectionné, fallback vers Groq`);
           try {
             response = await callGroq();
           } catch (error) {
-            console.log('⚠️ API échouée, fallback local...');
+            console.log('⚠️ Groq échoué, fallback local...');
             try {
               response = await callLlama();
             } catch (llamaError) {
