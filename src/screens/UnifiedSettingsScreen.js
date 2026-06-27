@@ -14,7 +14,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserProfileService from '../services/UserProfileService';
 import GroqService from '../services/GroqService';
-import LlamaService from '../services/LlamaService';
+import LlamaService, { LLAMA_MODELS } from '../services/LlamaService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
 import AuthService from '../services/AuthService';
 
