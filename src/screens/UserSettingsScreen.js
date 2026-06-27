@@ -18,7 +18,7 @@ import AuthService from '../services/AuthService';
 import UserProfileService from '../services/UserProfileService';
 import CustomImageAPIService from '../services/CustomImageAPIService';
 import StableDiffusionLocalService from '../services/StableDiffusionLocalService';
-import LlamaService from '../services/LlamaService';
+import LlamaService, { LLAMA_MODELS } from '../services/LlamaService';
 import appJson from '../../app.json';
 
 /**
@@ -115,7 +115,6 @@ export default function UserSettingsScreen({ navigation, onLogout }) {
   };
 
   const handleDownloadLlamaModel = async (modelId) => {
-    const { LLAMA_MODELS } = LlamaService;
     const model = LLAMA_MODELS?.[modelId];
     if (!model) return;
     
