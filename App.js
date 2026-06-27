@@ -227,8 +227,6 @@ export default function App() {
           options={{ title: 'Galerie', headerStyle: { backgroundColor: '#12121f' }, headerTintColor: '#C9A227' }} />
         <Stack.Screen name="Conversation" component={ConversationScreen}
           options={{ headerStyle: { backgroundColor: '#12121f' }, headerTintColor: '#C9A227' }} />
-        <Stack.Screen name="UserSettings" component={UserSettingsScreen}
-          options={{ title: 'Paramètres Utilisateur', headerStyle: { backgroundColor: '#12121f' }, headerTintColor: '#C9A227' }} />
         <Stack.Screen name="PayPalConfig" component={PayPalConfigScreen}
           options={{ title: 'Configuration PayPal', headerStyle: { backgroundColor: '#12121f' }, headerTintColor: '#C9A227' }} />
         <Stack.Screen name="Premium" component={PremiumScreen}
