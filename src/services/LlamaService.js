@@ -188,13 +188,20 @@ class LlamaService {
    * @returns {Promise<string>}
    */
   async generateResponse(messages, systemPrompt, onToken, isNSFW = true) {
+    console.log('🦙 Llama generateResponse called');
+    console.log('🦙 isLoaded:', this.isLoaded);
+    console.log('🦙 context exists:', !!this.context);
+    console.log('🦙 activeModelId:', this.activeModelId);
+    
     if (!this.isLoaded || !this.context) {
+      console.error('❌ Llama: No model loaded');
       throw new Error(
         'Aucun modèle chargé. Allez dans Config → Hors-ligne pour télécharger et charger un modèle.'
       );
     }
 
     const model = LLAMA_MODELS[this.activeModelId];
+    console.log('🦙 Model config:', model);
     // v6.4 — Stop tokens étendus pour empêcher les réponses qui s'éternisent
     const baseStops = model?.stop || ['<|end|>', 'Utilisateur:'];
     const stopTokens = [
