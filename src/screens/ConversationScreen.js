@@ -1529,7 +1529,14 @@ export default function ConversationScreen({ route, navigation }) {
         
         <TouchableOpacity
           style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
-          onPress={sendMessage}
+          onPress={() => {
+            console.log('🔘 Send button pressed');
+            console.log('🔘 inputText:', inputText);
+            console.log('🔘 isLoading:', isLoading);
+            console.log('🔘 inputText.trim():', inputText.trim());
+            console.log('🔘 Button disabled:', !inputText.trim() || isLoading);
+            sendMessage();
+          }}
           disabled={!inputText.trim() || isLoading}
         >
           <Text style={styles.sendButtonText}>➤</Text>
