@@ -93,7 +93,10 @@ export default function UnifiedSettingsScreen({ navigation, onLogout }) {
       if (keys) setGroqApiKeys(JSON.parse(keys));
       
       const model = await AsyncStorage.getItem('groq_model');
-      if (model) setGroqModel(model);
+      if (model) {
+        setGroqModel(model);
+        GroqService.selectedModel = model;
+      }
     } catch (error) {
       console.error('Erreur chargement système texte:', error);
     }
@@ -180,6 +183,17 @@ export default function UnifiedSettingsScreen({ navigation, onLogout }) {
       Alert.alert('Succès', `${validKeys.length} clé(s) Groq sauvegardée(s)`);
     } catch (error) {
       console.error('Erreur sauvegarde clés Groq:', error);
+    }
+  };
+
+  const saveGroqModel = async (modelId) => {
+    try {
+      setGroqModel(modelId);
+      await AsyncStorage.setItem('groq_model', modelId);
+      GroqService.selectedModel = modelId;
+      Alert.alert('Succès', `Modèle Groq changé`);
+    } catch (error) {
+      console.error('Erreur sauvegarde modèle Groq:', error);
     }
   };
 
@@ -674,6 +688,22 @@ export default function UnifiedSettingsScreen({ navigation, onLogout }) {
                       >
                         <Text style={styles.saveButtonText}>💾 Sauvegarder</Text>
                       </TouchableOpacity>
+                    </View>
+
+                    {/* Groq Model Selection */}
+                    <Text style={styles.subsectionTitle}>🤖 Modèle Groq</Text>
+                    <View style={styles.buttonGroup}>
+                      {GroqService.models.map((model) => (
+                        <TouchableOpacity
+                          key={model.id}
+                          style={[styles.optionButton, groqModel === model.id && styles.optionButtonActive]}
+                          onPress={() => saveGroqModel(model.id)}
+                        >
+                          <Text style={[styles.optionButtonText, groqModel === model.id && styles.optionButtonTextActive]}>
+                            {model.name}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
                     </View>
                   </View>
                 )}
