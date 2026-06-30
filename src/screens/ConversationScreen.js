@@ -521,10 +521,12 @@ export default function ConversationScreen({ route, navigation }) {
         }
       } catch (genError) {
         console.error('❌ Erreur génération:', genError.message);
+        console.error('❌ Erreur complète:', genError);
+        console.error('❌ Stack:', genError.stack);
         if (_usedOffline) {
           response = `*te regarde* "..." (Mode hors-ligne — vérifie que ton modèle local est bien chargé)`;
         } else {
-          response = `*te regarde* "Hmm..." (J'ai eu un petit problème, réessaie)`;
+          response = `*te regarde* "Hmm..." (Erreur: ${genError.message})`;
         }
       }
 
