@@ -381,6 +381,11 @@ export default function ConversationScreen({ route, navigation }) {
   };
 
   const sendMessage = async () => {
+    console.log('🚀 sendMessage called');
+    console.log('🚀 inputText:', inputText);
+    console.log('🚀 isLoading:', isLoading);
+    console.log('🚀 character:', character?.id);
+    
     // Validation stricte
     if (!inputText?.trim() || isLoading) return;
     if (!character?.id) {
@@ -388,6 +393,7 @@ export default function ConversationScreen({ route, navigation }) {
       return;
     }
 
+    console.log('✅ Validation passed, proceeding with generation');
     const userMessageContent = inputText.trim();
     const userMessage = {
       role: 'user',
